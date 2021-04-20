@@ -7,10 +7,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.19.18 documentation</title>
+  <title>Utilities &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -159,7 +160,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -230,15 +231,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="utilities">
+  <section id="utilities">
 <h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="logging">
+<section id="logging">
 <span id="id1"></span><h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-sgtk.log"></span><p>Toolkit uses the standard python logging for its
 log management. The <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a> class below
 acts as an interface that helps make it easy to access
 and manage Toolkit logging.</p>
-<div class="section" id="logging-hierarchy">
+<section id="logging-hierarchy">
 <h3>Logging hierarchy<a class="headerlink" href="#logging-hierarchy" title="Permalink to this headline">¶</a></h3>
 <p>All Toolkit logging is written into a <code class="docutils literal notranslate"><span class="pre">sgtk.*</span></code> logging
 namespace. This has been “sealed” so that log messages
@@ -291,13 +292,13 @@ are broken down further by environment, engine, etc.</p></li>
      |- tank_cmd
 </pre></div>
 </div>
-</div>
-<div class="section" id="generating-log-messages-in-toolkit">
+</section>
+<section id="generating-log-messages-in-toolkit">
 <h3>Generating log messages in Toolkit<a class="headerlink" href="#generating-log-messages-in-toolkit" title="Permalink to this headline">¶</a></h3>
 <p>Generating log messages are done differently depending on your context.
 Below are a series of examples and best practice recipes explaining how to best
 apply logging to different scenarios.</p>
-<div class="section" id="logging-from-within-your-app-engine-or-framework">
+<section id="logging-from-within-your-app-engine-or-framework">
 <h4>Logging from within your App, Engine or Framework<a class="headerlink" href="#logging-from-within-your-app-engine-or-framework" title="Permalink to this headline">¶</a></h4>
 <p>Inside your app, a logger is available via <a class="reference internal" href="platform.html#sgtk.platform.Application.logger" title="sgtk.platform.Application.logger"><code class="xref py py-meth docutils literal notranslate"><span class="pre">logger()</span></code></a>.
 Alternatively, you can also
@@ -330,8 +331,8 @@ which displays the logging associated with a particular
 app UI dialog.</p>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="logging-from-scripts-and-other-external-locations">
+</section>
+<section id="logging-from-scripts-and-other-external-locations">
 <h4>Logging from scripts and other external locations<a class="headerlink" href="#logging-from-scripts-and-other-external-locations" title="Permalink to this headline">¶</a></h4>
 <p>If you want to add standard Toolkit logging to a script, simply
 use the following recipe:</p>
@@ -344,8 +345,8 @@ use the following recipe:</p>
 </pre></div>
 </div>
 <p>All this logging will appear below the <code class="docutils literal notranslate"><span class="pre">sgtk.ext</span></code> logger.</p>
-</div>
-<div class="section" id="logging-from-inside-the-core-api">
+</section>
+<section id="logging-from-inside-the-core-api">
 <h4>Logging from inside the Core API<a class="headerlink" href="#logging-from-inside-the-core-api" title="Permalink to this headline">¶</a></h4>
 <p>To emit log messages from inside the Toolkit Core API, use the following pattern:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
@@ -356,9 +357,9 @@ use the following recipe:</p>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;inside my code, i can log like this&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="consuming-log-messages-in-toolkit">
+</section>
+</section>
+<section id="consuming-log-messages-in-toolkit">
 <h3>Consuming log messages in Toolkit<a class="headerlink" href="#consuming-log-messages-in-toolkit" title="Permalink to this headline">¶</a></h3>
 <p>Toolkit provides several ways to access the log information generated by
 the various methods and recipes shown above.</p>
@@ -368,15 +369,15 @@ logging resolution, e.g. how much log information to display. The toolkit
 logging hierarchy itself is set to DEBUG resolution.</p>
 <p>The Toolkit <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a> provides a default set of logging methods
 to help access log information.</p>
-<div class="section" id="global-debug">
+<section id="global-debug">
 <h4>Global debug<a class="headerlink" href="#global-debug" title="Permalink to this headline">¶</a></h4>
 <p>Toolkit has a concept of a global debug flag. This flag can be
 enabled by setting the <code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code> environment variable or
 alternatively setting the <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LogManager.global_debug()</span></code></a> property.</p>
 <p>All log handlers that have been created using the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a>
 will be affected by the flag.</p>
-</div>
-<div class="section" id="backend-file-logging">
+</section>
+<section id="backend-file-logging">
 <h4>Backend file logging<a class="headerlink" href="#backend-file-logging" title="Permalink to this headline">¶</a></h4>
 <p>Log information is automatically written to disk by the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a>.
 The location to which log files are written can be accessed via the
@@ -395,8 +396,8 @@ If you omit this call, logging will automatically be
 started up as the engine is launched.</p>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="dcc-logging">
+</section>
+<section id="dcc-logging">
 <h4>DCC Logging<a class="headerlink" href="#dcc-logging" title="Permalink to this headline">¶</a></h4>
 <p>Each toolkit engine integrates logging into the DCC. DCCs such as
 Maya, Nuke or houdini traditionally have a console of some sort where
@@ -406,8 +407,8 @@ the <code class="docutils literal notranslate"><span class="pre">log_info</span>
 improved logging platform is introduced and we recommend that engines
 <em>do not</em> implement the <code class="docutils literal notranslate"><span class="pre">log_xxx</span></code> methods at all but instead implement
 a single <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_emit_log_message()</span></code></a> method.</p>
-</div>
-<div class="section" id="standard-logging">
+</section>
+<section id="standard-logging">
 <h4>Standard Logging<a class="headerlink" href="#standard-logging" title="Permalink to this headline">¶</a></h4>
 <p>If you want some sort of log output in addition to the logging an
 engine provides, you can add standard toolkit handlers. These handlers
@@ -425,9 +426,9 @@ the <code class="docutils literal notranslate"><span class="pre">sgtk</span></co
 </div></blockquote>
 <p>Python provides a large number of log handlers as part of its standard library.
 For more information, see <a class="reference external" href="https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers">https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers</a></p>
-</div>
-</div>
-<div class="section" id="logmanager">
+</section>
+</section>
+<section id="logmanager">
 <h3>LogManager<a class="headerlink" href="#logmanager" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.log.LogManager">
@@ -666,9 +667,9 @@ None if no base logger was previously active.</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="centralizing-your-settings">
+</section>
+</section>
+<section id="centralizing-your-settings">
 <span id="centralizing-settings"></span><h2>Centralizing your settings<a class="headerlink" href="#centralizing-your-settings" title="Permalink to this headline">¶</a></h2>
 <p>Instead of customizing your proxy settings on each of your project, it is possible to configure them once in a file
 and have your projects inherit these values, unless the project overrides itself the setting
@@ -880,8 +881,8 @@ into an integer.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="file-system-utilities">
+</section>
+<section id="file-system-utilities">
 <h2>File System Utilities<a class="headerlink" href="#file-system-utilities" title="Permalink to this headline">¶</a></h2>
 <p>Below is a collection of file system related
 convenience methods that make it easy to manage
@@ -894,7 +895,7 @@ by hooks. If you are developing apps or engines, we
 recommend using <a class="reference internal" href="platform.html#sgtk.platform.Application.ensure_folder_exists" title="sgtk.platform.Application.ensure_folder_exists"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ensure_folder_exists()</span></code></a>
 as this method calls out to a customizable hook implementation.</p>
 </div>
-<div class="section" id="sgtk-util-filesystem">
+<section id="sgtk-util-filesystem">
 <h3>sgtk.util.filesystem<a class="headerlink" href="#sgtk-util-filesystem" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sgtk.util.filesystem.with_cleared_umask">
@@ -1138,8 +1139,8 @@ could create the returned path before it is used by the caller.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="sgtk-util-json">
+</section>
+<section id="sgtk-util-json">
 <h3>sgtk.util.json<a class="headerlink" href="#sgtk-util-json" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sgtk.util.json.load">
@@ -1161,8 +1162,8 @@ ensures unserialized strings are utf-8 encoded <a class="reference external" hre
 <p>See the documentation for <a class="reference external" href="https://docs.python.org/2/library/json.html#json.loads" title="(in Python v2.7)"><code class="xref py py-func docutils literal notranslate"><span class="pre">json.loads()</span></code></a> to learn more about this method.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="sgtk-util-pickle">
+</section>
+<section id="sgtk-util-pickle">
 <h3>sgtk.util.pickle<a class="headerlink" href="#sgtk-util-pickle" title="Permalink to this headline">¶</a></h3>
 <p>Toolkit’s <code class="docutils literal notranslate"><span class="pre">pickle</span></code> module isn’t a drop-in replacement for Python’s, but a wrapper around Python’s <a class="reference external" href="https://docs.python.org/2/library/pickle.html#module-pickle" title="(in Python v2.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> module so collections and scalar types can be exchanged freely between Python 2 and Python 3 processes without having to worry about the subtle pickle serialization differences between the two.</p>
 <p>If you wish to serialize your own custom classes to be exchanged between Python 2 and Python 3, you will need to sanitize data unpickled with Python 2 that was pickled with Python 3 and vice-versa. Otheriwse, your data will contain unexpected <code class="docutils literal notranslate"><span class="pre">bytes</span></code> or <code class="docutils literal notranslate"><span class="pre">unicode</span></code> objects instead of utf-8 encoded <code class="docutils literal notranslate"><span class="pre">str</span></code> instances.</p>
@@ -1249,8 +1250,8 @@ objects in Python 2.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="shotgunpath">
+</section>
+<section id="shotgunpath">
 <h3>ShotgunPath<a class="headerlink" href="#shotgunpath" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.util.ShotgunPath">
@@ -1535,8 +1536,8 @@ in Shotgun.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="localfilestoragemanager">
+</section>
+<section id="localfilestoragemanager">
 <h3>LocalFileStorageManager<a class="headerlink" href="#localfilestoragemanager" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.util.LocalFileStorageManager">
@@ -1705,9 +1706,9 @@ which is the current generation of paths.</p></li>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="os-detection">
+</section>
+</section>
+<section id="os-detection">
 <h2>OS detection<a class="headerlink" href="#os-detection" title="Permalink to this headline">¶</a></h2>
 <p>Below are a collection of convenience methods to detect which operating system is in use:</p>
 <dl class="function">
@@ -1764,8 +1765,8 @@ which is the current generation of paths.</p></li>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="shotgun-related">
+</section>
+<section id="shotgun-related">
 <h2>Shotgun Related<a class="headerlink" href="#shotgun-related" title="Permalink to this headline">¶</a></h2>
 <p>Below are a collection of Shotgun related utility
 and convenience methods:</p>
@@ -2125,8 +2126,8 @@ the published file type in Shotgun is always <code class="docutils literal notra
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="file-download-related">
+</section>
+<section id="file-download-related">
 <h2>File Download Related<a class="headerlink" href="#file-download-related" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sgtk.util.download_url">
@@ -2221,8 +2222,8 @@ the bundle in a subfolder, this should be correctly unfolded.</p></li>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="version-comparison-related">
+</section>
+<section id="version-comparison-related">
 <h2>Version Comparison Related<a class="headerlink" href="#version-comparison-related" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sgtk.util.is_version_older">
@@ -2292,8 +2293,8 @@ they can’t be compared.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="miscellaneous">
+</section>
+<section id="miscellaneous">
 <h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sgtk.util.append_path_to_env_var">
@@ -2328,8 +2329,8 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="exceptions">
+</section>
+<section id="exceptions">
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sgtk.util.EnvironmentVariableFileLookupError">
@@ -2426,8 +2427,8 @@ set self.__traceback__ to tb and return self.</p>
 
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

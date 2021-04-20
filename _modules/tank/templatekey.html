@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.templatekey &mdash; tk-core v0.19.18 documentation</title>
+  <title>tank.templatekey &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -302,9 +302,7 @@
 
         <span class="c1"># Validation</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_field_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_entity_type</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Shotgun field requires a shotgun entity be set.&quot;</span> <span class="o">%</span> <span class="bp">self</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: SG field requires a SG entity be set.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_abstract</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>

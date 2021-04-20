@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.19.18 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -228,6 +228,7 @@
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TankEngineInitError</span><span class="p">,</span>
+    <span class="n">TankUnresolvedEnvironmentError</span><span class="p">,</span>
     <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span>
     <span class="n">TankEngineEventError</span><span class="p">,</span>
     <span class="n">TankMissingEngineError</span><span class="p">,</span>
@@ -2623,7 +2624,7 @@
             <span class="n">file_in</span><span class="o">.</span><span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="p">)</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-            <span class="c1"># set the std selection bg color to be &#39;shotgun blue&#39;</span>
+            <span class="c1"># set the std selection bg color to be &#39;SG blue&#39;</span>
             <span class="n">highlight_color</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QBrush</span><span class="p">(</span>
                 <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SG_STYLESHEET_CONSTANTS</span><span class="p">[</span><span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">])</span>
             <span class="p">)</span>
@@ -3483,7 +3484,7 @@
     <span class="c1"># get the location for our engine</span>
     <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">TankMissingEngineError</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot find a shotgun engine in </span><span class="si">%s</span><span class="s2">. Please contact support.&quot;</span> <span class="o">%</span> <span class="n">env</span>
+            <span class="s2">&quot;Cannot find a SG engine in </span><span class="si">%s</span><span class="s2">. Please contact support.&quot;</span> <span class="o">%</span> <span class="n">env</span>
         <span class="p">)</span>
 
     <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">)</span>
@@ -3614,7 +3615,7 @@
         <span class="c1"># this may be because an incomplete Context was passed.</span>
         <span class="c1"># without an environment, engine creation cannot succeed.</span>
         <span class="c1"># raise an exception with a message</span>
-        <span class="k">raise</span> <span class="n">TankEngineInitError</span><span class="p">(</span>
+        <span class="k">raise</span> <span class="n">TankUnresolvedEnvironmentError</span><span class="p">(</span>
             <span class="s2">&quot;Engine </span><span class="si">%s</span><span class="s2"> cannot initialize - the pick environment hook was not &quot;</span>
             <span class="s2">&quot;able to return an environment to use, given the context </span><span class="si">%s</span><span class="s2">. &quot;</span>
             <span class="s2">&quot;Usually this is because the context contains insufficient information &quot;</span>

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.19.18 documentation</title>
+  <title>tank.context &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -292,7 +292,7 @@
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Step: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__step</span><span class="p">))</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Task: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task</span><span class="p">))</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  User: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__user</span><span class="p">))</span>
-        <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Shotgun URL: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">)</span>
+        <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  SG URL: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">)</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Additional Entities: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__additional_entities</span><span class="p">))</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Source Entity: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span><span class="p">))</span>
 
@@ -1132,7 +1132,7 @@
                         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                             <span class="s2">&quot;Key &#39;</span><span class="si">%s</span><span class="s2">&#39; in template &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be populated by &quot;</span>
                             <span class="s2">&quot;context &#39;</span><span class="si">%s</span><span class="s2">&#39; because the context does not contain a &quot;</span>
-                            <span class="s2">&quot;shotgun entity of type &#39;</span><span class="si">%s</span><span class="s2">&#39;!&quot;</span>
+                            <span class="s2">&quot;SG entity of type &#39;</span><span class="si">%s</span><span class="s2">&#39;!&quot;</span>
                             <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">shotgun_entity_type</span><span class="p">)</span>
                         <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -1156,8 +1156,8 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
                         <span class="c1"># no record with that id in shotgun!</span>
                         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                            <span class="s2">&quot;Could not retrieve Shotgun data for key &#39;</span><span class="si">%s</span><span class="s2">&#39; in &quot;</span>
-                            <span class="s2">&quot;template &#39;</span><span class="si">%s</span><span class="s2">&#39;. No records in Shotgun are matching &quot;</span>
+                            <span class="s2">&quot;Could not retrieve SG data for key &#39;</span><span class="si">%s</span><span class="s2">&#39; in &quot;</span>
+                            <span class="s2">&quot;template &#39;</span><span class="si">%s</span><span class="s2">&#39;. No records in SG are matching &quot;</span>
                             <span class="s2">&quot;entity &#39;</span><span class="si">%s</span><span class="s2">&#39; (Which is part of the current &quot;</span>
                             <span class="s2">&quot;context &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
                         <span class="p">)</span>
@@ -1190,7 +1190,7 @@
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">processed_val</span><span class="p">):</span>
                             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                                 <span class="s2">&quot;Template validation failed for value &#39;</span><span class="si">%s</span><span class="s2">&#39;. This &quot;</span>
-                                <span class="s2">&quot;value was retrieved from entity </span><span class="si">%s</span><span class="s2"> in Shotgun to &quot;</span>
+                                <span class="s2">&quot;value was retrieved from entity </span><span class="si">%s</span><span class="s2"> in SG to &quot;</span>
                                 <span class="s2">&quot;represent key &#39;</span><span class="si">%s</span><span class="s2">&#39; in &quot;</span>
                                 <span class="s2">&quot;template &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span>
                                 <span class="o">%</span> <span class="p">(</span><span class="n">processed_val</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span>

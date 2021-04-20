@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.errors &mdash; tk-core v0.19.18 documentation</title>
+  <title>tank.platform.errors &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -228,6 +228,12 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that an engine could not start up.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<span class="k">class</span> <span class="nc">TankUnresolvedEnvironmentError</span><span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception that indicates that the pick_environment hook did not return a valid environment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">TankEngineEventError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>

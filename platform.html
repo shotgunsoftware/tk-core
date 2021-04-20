@@ -7,10 +7,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.19.18 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -177,7 +178,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -248,7 +249,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="apps-engines-and-frameworks">
+  <section id="apps-engines-and-frameworks">
 <span id="sgtk-platform-docs"></span><span id="id1"></span><h1>Apps, Engines and Frameworks<a class="headerlink" href="#apps-engines-and-frameworks" title="Permalink to this headline">¶</a></h1>
 <p>This part of the API documentation covers all the classes and methods used when dealing with Engines, Apps and Frameworks.
 If you are interested in developing your own apps, engines or frameworks, the base classes needed to be derived
@@ -259,7 +260,7 @@ from are outlined below. The documentation also covers how to initialize and shu
 from an initialized toolkit environment. For more information on how to
 set this up, see <a class="reference internal" href="initializing.html#init-and-startup"><span class="std std-ref">Initialization and startup</span></a>.</p>
 </div>
-<div class="section" id="managing-engines-and-apps">
+<section id="managing-engines-and-apps">
 <h2>Managing Engines and Apps<a class="headerlink" href="#managing-engines-and-apps" title="Permalink to this headline">¶</a></h2>
 <p>The methods in this section are used when you want to start up or manage a Toolkit engine.
 This typically happens directly once a host application (e.g. Maya or Nuke) has been launched.
@@ -419,8 +420,8 @@ is to restart the engine with its current context.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="engines">
+</section>
+<section id="engines">
 <span id="id2"></span><h2>Engines<a class="headerlink" href="#engines" title="Permalink to this headline">¶</a></h2>
 <p>A Toolkit engine connects a runtime environment such as a DCC with the rest of the Toolkit ecosystem.
 As the engine starts up, it loads the various associated apps and frameworks defined in the configuration and acts
@@ -464,7 +465,7 @@ engine to implement these methods so that they work nicely inside the host appli
 paths, setting a proper environment for launch, and initializing toolkit integration during the launch
 phase. This is described in detail in the <a class="reference internal" href="initializing.html#launching-software"><span class="std std-ref">Launching Software</span></a> section.</p></li>
 </ul>
-<div class="section" id="engine-events">
+<section id="engine-events">
 <h3>Engine Events<a class="headerlink" href="#engine-events" title="Permalink to this headline">¶</a></h3>
 <p>Engines have the ability to emit events that can then be handled by Toolkit Apps. The design follows closely
 that of Qt’s events, where event handler methods can be implemented in a Toolkit App to execute custom
@@ -516,8 +517,8 @@ opened by the host DCC application:</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">set_version_entity_by_file</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="engine">
+</section>
+<section id="engine">
 <h3>Engine<a class="headerlink" href="#engine" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.platform.Engine">
@@ -2051,9 +2052,9 @@ at the root level of the app, engine or framework. Use a
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="applications">
+</section>
+</section>
+<section id="applications">
 <h2>Applications<a class="headerlink" href="#applications" title="Permalink to this headline">¶</a></h2>
 <p>Toolkit Apps are tools that can execute in multiple DCC environments.</p>
 <div class="admonition note">
@@ -2063,7 +2064,7 @@ at the root level of the app, engine or framework. Use a
 <p>A good way to get started with App development is to clone our starter github repository
 <a class="reference external" href="https://github.com/shotgunsoftware/tk-multi-starterapp">https://github.com/shotgunsoftware/tk-multi-starterapp</a>. Please note that there are different branches
 demonstrating different types of apps with a varying degree of complexity.</p>
-<div class="section" id="application">
+<section id="application">
 <h3>Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.platform.Application">
@@ -2872,9 +2873,9 @@ at the root level of the app, engine or framework. Use a
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="frameworks">
+</section>
+</section>
+<section id="frameworks">
 <h2>Frameworks<a class="headerlink" href="#frameworks" title="Permalink to this headline">¶</a></h2>
 <p>Frameworks are like libraries. They contain functionality that can be shared and reused across apps or engines.</p>
 <p>Frameworks are automatically imported into the system whenever Toolkit finds a framework defined in the info.yml
@@ -2916,7 +2917,7 @@ dictionary in conjunction with the import_module command, as shown above.</p>
 each app will import its own instance of the framework. This is to ensure stability and encapsulation.</p>
 <p>A framework works just like an app or an engine - it has an info.yml manifest, a framework.py file which
 typically contains a class which derives from the Framework base class, etc.</p>
-<div class="section" id="framework">
+<section id="framework">
 <h3>Framework<a class="headerlink" href="#framework" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.platform.Framework">
@@ -3651,9 +3652,9 @@ at the root level of the app, engine or framework. Use a
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="exceptions">
+</section>
+</section>
+<section id="exceptions">
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
 <p>The following exception types are raised from within <code class="docutils literal notranslate"><span class="pre">sgtk.platform</span></code>:</p>
 <dl class="class">
@@ -3699,10 +3700,10 @@ set self.__traceback__ to tb and return self.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="app-and-engine-development">
+</section>
+<section id="app-and-engine-development">
 <h2>App and Engine Development<a class="headerlink" href="#app-and-engine-development" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="import-and-access-methods">
+<section id="import-and-access-methods">
 <h3>Import and access methods<a class="headerlink" href="#import-and-access-methods" title="Permalink to this headline">¶</a></h3>
 <p>The following methods are useful when writing app, engine or framework code and you need to
 access and load other objects.</p>
@@ -3794,8 +3795,8 @@ info.yml manifest.</p></li>
 <code class="sig-prename descclassname">sgtk.platform.</code><code class="sig-name descname">get_logger</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.get_logger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="manifest-file">
+</section>
+<section id="manifest-file">
 <h3>Manifest file<a class="headerlink" href="#manifest-file" title="Permalink to this headline">¶</a></h3>
 <p>Apps, engines and frameworks each have a metadata file. It always resides in the root of the app or engine
 and is always named <code class="docutils literal notranslate"><span class="pre">info.yml</span></code>. This metadata file contains important information about the item:</p>
@@ -3810,7 +3811,7 @@ versions (e.g. <code class="docutils literal notranslate"><span class="pre">v1.x
 <p>For real-world examples, see for example
 the <a class="reference external" href="https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml">Shotgun Loader</a>
 or the <a class="reference external" href="https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml">Shotgun Nuke Write Node</a>.</p>
-<div class="section" id="display-name-and-description">
+<section id="display-name-and-description">
 <h4>Display name and Description<a class="headerlink" href="#display-name-and-description" title="Permalink to this headline">¶</a></h4>
 <p>The optional <code class="docutils literal notranslate"><span class="pre">display_name</span></code> field defines the name that the user will see for the app.
 The optional <code class="docutils literal notranslate"><span class="pre">description</span></code> field is a brief one line description of what the app does:</p>
@@ -3819,8 +3820,8 @@ The optional <code class="docutils literal notranslate"><span class="pre">descri
 <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Support for the Shotgun Write Node in Nuke.&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h4>Frameworks<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <p>If a framework is being used by the app, declare it in the <code class="docutils literal notranslate"><span class="pre">info.yml</span></code> and Toolkit will keep track
 and make sure that it is installed and available. Once inside the app, use the call
@@ -3849,8 +3850,8 @@ major version number.</p>
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="version-constraints">
+</section>
+<section id="version-constraints">
 <h4>Version constraints<a class="headerlink" href="#version-constraints" title="Permalink to this headline">¶</a></h4>
 <p>If your app or engine requires specific versions of shotgun, the core or other things,
 you can specify this using the three parameters <code class="docutils literal notranslate"><span class="pre">requires_shotgun_version</span></code>, <code class="docutils literal notranslate"><span class="pre">requires_core_version</span></code>
@@ -3861,8 +3862,8 @@ and (for apps only) <code class="docutils literal notranslate"><span class="pre"
 <span class="n">requires_engine_version</span><span class="p">:</span> <span class="s2">&quot;v0.2.3&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="supported-engines-and-operating-systems">
+</section>
+<section id="supported-engines-and-operating-systems">
 <h4>Supported Engines and operating systems<a class="headerlink" href="#supported-engines-and-operating-systems" title="Permalink to this headline">¶</a></h4>
 <p>If your app is not a multi-app that has been designed to run in <em>any</em> engine, use
 this option to specify which engines are supported:</p>
@@ -3873,8 +3874,8 @@ this option to specify which engines are supported:</p>
 using a <code class="docutils literal notranslate"><span class="pre">supported_platforms</span></code> parameter. Valid values are <code class="docutils literal notranslate"><span class="pre">linux</span></code>, <code class="docutils literal notranslate"><span class="pre">windows</span></code> and <code class="docutils literal notranslate"><span class="pre">mac</span></code>.
 This is an optional setting - omitting it or leaving it blank means that the app
 or engine will work on all platforms.</p>
-</div>
-<div class="section" id="documentation-and-support">
+</section>
+<section id="documentation-and-support">
 <h4>Documentation and Support<a class="headerlink" href="#documentation-and-support" title="Permalink to this headline">¶</a></h4>
 <p>If you are developing an app for the Toolkit app store, no need to fill this in - the Sgtk Store
 manages documentation separately! But if you are building an in-house app for your studio,
@@ -3894,16 +3895,16 @@ users to reach out from the app to this system, just define a <code class="docut
 </div>
 <p>This setting is optional, and if left blank, the support url will automatically
 be the standard Toolkit support location.</p>
-</div>
-<div class="section" id="required-context-fields">
+</section>
+<section id="required-context-fields">
 <h4>Required Context Fields<a class="headerlink" href="#required-context-fields" title="Permalink to this headline">¶</a></h4>
 <p>Toolkit has a <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> which it uses to determine what the current Shot, Project or Asset is.
 Apps may require a particular feature to be present in the context - for example, a
 Loader App may require an entity to be present in order to show a list of items for the
 current Asset or Shot. The <code class="docutils literal notranslate"><span class="pre">required_context</span></code> settings help defining what fields are needed.
 Possible values are <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">entity</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">task</span></code> and <code class="docutils literal notranslate"><span class="pre">user</span></code>.</p>
-</div>
-<div class="section" id="shotgun-fields">
+</section>
+<section id="shotgun-fields">
 <h4>Shotgun fields<a class="headerlink" href="#shotgun-fields" title="Permalink to this headline">¶</a></h4>
 <p>If your app requires a particular custom field in Shotgun to operate correctly, you can add this to the
 <code class="docutils literal notranslate"><span class="pre">info.yml</span></code> manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.</p>
@@ -3929,9 +3930,9 @@ and allows you to execute arbitrary code as part of the app installation process
 therefore requires a workflow where an admin is required to update or install such apps. For general
 purpose apps, we therefore recommend not relying on this functionality.</p>
 </div>
-</div>
-</div>
-<div class="section" id="the-configuration-section">
+</section>
+</section>
+<section id="the-configuration-section">
 <h3>The configuration section<a class="headerlink" href="#the-configuration-section" title="Permalink to this headline">¶</a></h3>
 <p>If an app requires a setting in its code, it should be defined in the info.yml.
 Toolkit will validate all requested settings and make sure that they
@@ -3982,14 +3983,14 @@ outlines in the following sections.</p>
                 <span class="o">-</span> <span class="p">{</span> <span class="n">actions</span><span class="p">:</span> <span class="p">[</span><span class="n">script_import</span><span class="p">],</span> <span class="n">filters</span><span class="p">:</span> <span class="p">{</span> <span class="n">published_file_type</span><span class="p">:</span> <span class="n">Nuke</span> <span class="n">Script</span><span class="p">}</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="section" id="sparse-configurations">
+<section id="sparse-configurations">
 <h4>Sparse configurations<a class="headerlink" href="#sparse-configurations" title="Permalink to this headline">¶</a></h4>
 <p>In the configuration you can define default value for the various app settings that you define.
 As of <code class="docutils literal notranslate"><span class="pre">v0.18.x</span></code>, these values will be read at run-time if the setting is not
 specified in the environment. Prior to <code class="docutils literal notranslate"><span class="pre">v0.18.x</span></code>, configuration files were required to be
 non-sparse, meaning that all parameters needed to be populated in the configuration.</p>
-</div>
-<div class="section" id="default-values-per-engine">
+</section>
+<section id="default-values-per-engine">
 <h4>Default values per engine<a class="headerlink" href="#default-values-per-engine" title="Permalink to this headline">¶</a></h4>
 <p>It is possible to define defaults per engine using the following syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">setting_name</span><span class="p">:</span>
@@ -4006,8 +4007,8 @@ for a general <code class="docutils literal notranslate"><span class="pre">defau
 manually supply a value to populate in the environment. As of <code class="docutils literal notranslate"><span class="pre">v0.18.x</span></code>,
 settings with a default value will not be explicitly added to the installed/updated
 app’s settings.</p>
-</div>
-<div class="section" id="values-that-are-procedurally-populated-by-hooks">
+</section>
+<section id="values-that-are-procedurally-populated-by-hooks">
 <h4>Values that are procedurally populated by hooks<a class="headerlink" href="#values-that-are-procedurally-populated-by-hooks" title="Permalink to this headline">¶</a></h4>
 <p>For advanced use cases, it is possible to specify a configuration value as a special hook evaluator
 rather than as a template setting. This means that when you configure your environment,
@@ -4016,8 +4017,8 @@ code that returns the value to use. This makes it possible to create very comple
 settings logic. For more information, see
 the <a class="reference external" href="https://github.com/shotgunsoftware/tk-core/blob/master/hooks/example_template_hook.py">example_template_hook.py hook</a>
 located in the core hooks area.</p>
-</div>
-<div class="section" id="simple-data-types">
+</section>
+<section id="simple-data-types">
 <h4>Simple Data Types<a class="headerlink" href="#simple-data-types" title="Permalink to this headline">¶</a></h4>
 <p>A number of simple data types are supported. These do not have any special options.</p>
 <ul class="simple">
@@ -4033,8 +4034,8 @@ located in the core hooks area.</p>
     <span class="n">description</span><span class="p">:</span> <span class="n">Controls</span> <span class="n">whether</span> <span class="n">debug</span> <span class="n">messages</span> <span class="n">should</span> <span class="n">be</span> <span class="n">emitted</span> <span class="n">to</span> <span class="n">the</span> <span class="n">logger</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-config-path-data-type">
+</section>
+<section id="the-config-path-data-type">
 <h4>The config_path data type<a class="headerlink" href="#the-config-path-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Use this when your app requires an external file that is part of the configuration.
 Typically, this settings type is used when you want to allow for a user to associate
@@ -4046,8 +4047,8 @@ slash and using slashes as its path separator. Sgtk will translate it into a val
     <span class="n">description</span><span class="p">:</span> <span class="n">A</span> <span class="n">config</span> <span class="n">centric</span> <span class="n">path</span> <span class="n">that</span> <span class="n">points</span> <span class="n">to</span> <span class="n">a</span> <span class="n">square</span> <span class="n">icon</span> <span class="n">png</span> <span class="n">file</span><span class="o">.</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-publish-type-data-type">
+</section>
+<section id="the-publish-type-data-type">
 <h4>The publish_type data type<a class="headerlink" href="#the-publish-type-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Use this when you want a setting which expects a <strong>Publish Type</strong> - these are typically used
 when publishing data to Shotgun. Value is a string matching <code class="docutils literal notranslate"><span class="pre">PublishedFileType.code</span></code>:</p>
@@ -4060,8 +4061,8 @@ when publishing data to Shotgun. Value is a string matching <code class="docutil
 <p class="admonition-title">Note</p>
 <p>The equivalent <code class="docutils literal notranslate"><span class="pre">tank_type</span></code> data type is also supported for backwards compatibility.</p>
 </div>
-</div>
-<div class="section" id="the-shotgun-entity-type-data-type">
+</section>
+<section id="the-shotgun-entity-type-data-type">
 <h4>The shotgun_entity_type data type<a class="headerlink" href="#the-shotgun-entity-type-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Value is a string that represents a Shotgun entity type like Task, Sequence, Shot:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entity_type</span><span class="p">:</span>
@@ -4070,8 +4071,8 @@ when publishing data to Shotgun. Value is a string matching <code class="docutil
     <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;The entity type to attach to&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-shotgun-permission-group-data-type">
+</section>
+<section id="the-shotgun-permission-group-data-type">
 <h4>The shotgun_permission_group data type<a class="headerlink" href="#the-shotgun-permission-group-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Value is a string that represents the display name of a Shotgun permission group like Admin,
 Artist:</p>
@@ -4081,8 +4082,8 @@ Artist:</p>
     <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Permissions group to use when performing the operation&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-shotgun-filter-data-type">
+</section>
+<section id="the-shotgun-filter-data-type">
 <h4>The shotgun_filter data type<a class="headerlink" href="#the-shotgun-filter-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Value is a filter that will be passed to the shotgun api when performing a query (e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;sg_status_list&quot;,</span> <span class="pre">&quot;is&quot;,</span> <span class="pre">&quot;cmpt&quot;]</span></code>).
 As shotgun filters can take multiple forms, no additional validation will be done on values of this type:</p>
@@ -4092,8 +4093,8 @@ As shotgun filters can take multiple forms, no additional validation will be don
         <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_filter</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-template-data-type">
+</section>
+<section id="the-template-data-type">
 <h4>The template data type<a class="headerlink" href="#the-template-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Value is a string matching an entry in <code class="docutils literal notranslate"><span class="pre">templates.yml</span></code>. Using the fields option
 you specify how Toolkit should validate the template that the user specifies:</p>
@@ -4142,8 +4143,8 @@ setting that can be set to <code class="docutils literal notranslate"><span clas
     <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-hook-data-type">
+</section>
+<section id="the-hook-data-type">
 <h4>The hook data type<a class="headerlink" href="#the-hook-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Hooks makes it possible to create flexible and powerful configurations for toolkit apps.
 A hook is a python file which contains a single class (deriving from a Hook base class or
@@ -4227,8 +4228,8 @@ to be defined in the currently running environment, as part of the frameworks se
     <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">dev</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="o">/</span><span class="n">some</span><span class="o">/</span><span class="n">path</span><span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-list-data-type">
+</section>
+<section id="the-list-data-type">
 <h4>The list data type<a class="headerlink" href="#the-list-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Value is a list, all values in the list must be of the same data type.
 You must supply values dict that describes the data type of the list items:</p>
@@ -4253,8 +4254,8 @@ You must supply values dict that describes the data type of the list items:</p>
         <span class="n">tank_types</span><span class="p">:</span> <span class="p">[]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="the-dict-data-type">
+</section>
+<section id="the-dict-data-type">
 <h4>The dict data type<a class="headerlink" href="#the-dict-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Value is a dictionary, keys are always strings, values can be of mixed types.</p>
 <p>In info.yml, optionally provide an <strong>items</strong> dict. Used to mark what keys must be in the config,
@@ -4281,9 +4282,9 @@ default values, and type info for the values which will be used for validation:<
 <span class="o">-</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Dpx</span> <span class="n">Render</span><span class="p">,</span> <span class="n">file_type</span><span class="p">:</span> <span class="n">dpx</span><span class="p">,</span> <span class="n">publish_type</span><span class="p">:</span> <span class="n">Quicktime</span><span class="p">,</span> <span class="n">render_template</span><span class="p">:</span> <span class="n">dpx_shot_render</span><span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="using-qt-inside-your-toolkit-app">
+</section>
+</section>
+<section id="using-qt-inside-your-toolkit-app">
 <h3>Using QT inside your Toolkit App<a class="headerlink" href="#using-qt-inside-your-toolkit-app" title="Permalink to this headline">¶</a></h3>
 <p>You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
 platform considerations in the background. Typically, PySide is being used for QT integration, but Sgtk
@@ -4295,8 +4296,8 @@ should be no problem writing code that works with both libraries.</p>
 </div>
 <p>Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.</p>
-</div>
-<div class="section" id="using-qt-5-inside-your-toolkit-app">
+</section>
+<section id="using-qt-5-inside-your-toolkit-app">
 <h3>Using QT 5 inside your Toolkit App<a class="headerlink" href="#using-qt-5-inside-your-toolkit-app" title="Permalink to this headline">¶</a></h3>
 <p>When running in an environment with PySide 2 , Toolkit will provide under <code class="docutils literal notranslate"><span class="pre">sgtk.platform.qt</span></code> an
 emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don’t
@@ -4312,8 +4313,8 @@ so that we may update it.</p>
 <p>To learn more about API discrepancies between Qt 4 and Qt 5, you can visit
 <a class="reference external" href="https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5">https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5</a>.</p>
 </div>
-</div>
-<div class="section" id="creating-dialogs">
+</section>
+<section id="creating-dialogs">
 <h3>Creating Dialogs<a class="headerlink" href="#creating-dialogs" title="Permalink to this headline">¶</a></h3>
 <p>When creating a dialog, it is important to parent it properly to the host environment. There is nothing stopping
 you from managing this by yourself, but for maximum compatibility and portabilty, we strongly suggest that you l
@@ -4341,8 +4342,8 @@ it to one of the UI factory methods that the engine has. For example:</p>
 <p>What happens in the above calls is that your app widget is parented inside of a Dialog window Sgtk is creating.
 Sgtk will add additional potential window constructs, menus etc. Whenever the app widget is closed (for example
 using the close() method), the parent window that is used to wrap the widget will automatically close too.</p>
-</div>
-<div class="section" id="modal-dialogs-and-exit-codes">
+</section>
+<section id="modal-dialogs-and-exit-codes">
 <h3>Modal dialogs and exit codes<a class="headerlink" href="#modal-dialogs-and-exit-codes" title="Permalink to this headline">¶</a></h3>
 <p>If you want to run your widget as a modal dialog, it may be useful to signal success or failure.
 This is normally done in QT using the methods QDialog.accepted() and QDialog.rejected(), however since the app
@@ -4360,8 +4361,8 @@ property called <code class="docutils literal notranslate"><span class="pre">exi
 </pre></div>
 </div>
 <p>The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.</p>
-</div>
-<div class="section" id="hiding-the-default-toolkit-title-bar">
+</section>
+<section id="hiding-the-default-toolkit-title-bar">
 <h3>Hiding the default Toolkit title bar<a class="headerlink" href="#hiding-the-default-toolkit-title-bar" title="Permalink to this headline">¶</a></h3>
 <p>By default, the standard Toolkit UI dialog includes a title bar at the top. However, sometimes this is not desirable,
 especially when the contained widget is quite small. To hide the title bar, just add a property called
@@ -4376,8 +4377,8 @@ especially when the contained widget is quite small. To hide the title bar, just
         <span class="o">...</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="styling-your-toolkit-app">
+</section>
+<section id="styling-your-toolkit-app">
 <h3>Styling your Toolkit App<a class="headerlink" href="#styling-your-toolkit-app" title="Permalink to this headline">¶</a></h3>
 <p>If a <a class="reference external" href="http://doc.qt.io/qt-5/stylesheet.html">standard Qt style sheet</a>  <code class="docutils literal notranslate"><span class="pre">style.qss</span></code> file resides in the root of your app, Toolkit will automatically load it and apply it to your app.</p>
 <p>When developping your app, you can enable interactive styling by setting the <code class="docutils literal notranslate"><span class="pre">SHOTGUN_QSS_FILE_WATCHER</span></code> environment variable to <code class="docutils literal notranslate"><span class="pre">1</span></code>. Toolkit will automatically reload and re-apply the styling when the file is changed.</p>
@@ -4385,9 +4386,9 @@ especially when the contained widget is quite small. To hide the title bar, just
 <p class="admonition-title">Note</p>
 <p>The style sheet file watching can be helpful when developping apps, but shouldn’t be used in production.</p>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

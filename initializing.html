@@ -7,10 +7,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.19.18 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -174,7 +175,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -245,12 +246,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="initialization-and-startup">
+  <section id="initialization-and-startup">
 <span id="init-and-startup"></span><h1>Initialization and startup<a class="headerlink" href="#initialization-and-startup" title="Permalink to this headline">¶</a></h1>
 <p>This section outlines how Toolkit starts up and initializes. It explains the common
 patterns around startup, configuration management and the various
 APIs and workflows related to this process.</p>
-<div class="section" id="introduction">
+<section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Toolkit is controlled using <em>Pipeline Configuration Entities</em>. Each Project in Shotgun can have one or
 more of these entities associated. The Shotgun entity either contains Toolkit configuration settings
@@ -289,8 +290,8 @@ in parallel with production.</p>
 <p>To read more about the default configurations offered with Toolkit, see
 the <a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/115000067493-Integrations-Admin-Guide">Shotgun integrations admin guide</a>.</p>
 </div>
-</div>
-<div class="section" id="the-toolkit-startup">
+</section>
+<section id="the-toolkit-startup">
 <h2>The Toolkit startup<a class="headerlink" href="#the-toolkit-startup" title="Permalink to this headline">¶</a></h2>
 <p>In order to understand how the Toolkit startup APIs operate,
 let’s begin by taking a look at how the default Toolkit configuration
@@ -333,7 +334,7 @@ general utilities, etc.</p>
 </div>
 <p>There are two fundamentally different ways to set up a Toolkit Project in Shotgun,
 both briefly outlined below:</p>
-<div class="section" id="distributed-configurations">
+<section id="distributed-configurations">
 <span id="id1"></span><h3>Distributed configurations<a class="headerlink" href="#distributed-configurations" title="Permalink to this headline">¶</a></h3>
 <p>Distributed configurations are defined as Pipeline Configurations inside Shotgun.
 At startup, these are detected by the Bootstrap API which will automatically
@@ -348,8 +349,8 @@ automatically caches all necessary runtime components locally.</p>
 a <strong>Shotgun Pipeline Configuration entity</strong> for your project. For more information,
 see <a class="reference internal" href="#automatically-managed-pcs"><span class="std std-ref">Managing distributed configurations</span></a>.</p>
 </div>
-</div>
-<div class="section" id="centralized-configurations">
+</section>
+<section id="centralized-configurations">
 <span id="id2"></span><h3>Centralized configurations<a class="headerlink" href="#centralized-configurations" title="Permalink to this headline">¶</a></h3>
 <p>Centralized configurations are installed into a specific disk location, usually on a shared storage,
 and accessed by all users. All users who want to access to the configuration need to be able to
@@ -358,9 +359,9 @@ access its shared location on disk.</p>
 <p>These configurations are created using Toolkit’s <strong>project setup</strong> system (either the Shotgun Desktop project
 setup wizard or the <code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command). After project setup, the configuration is manually
 managed, typically via the <code class="docutils literal notranslate"><span class="pre">tank</span></code> command.</p>
-</div>
-</div>
-<div class="section" id="uploading-a-configuration-to-shotgun">
+</section>
+</section>
+<section id="uploading-a-configuration-to-shotgun">
 <span id="upload-config-to-shotgun"></span><h2>Uploading a configuration to Shotgun<a class="headerlink" href="#uploading-a-configuration-to-shotgun" title="Permalink to this headline">¶</a></h2>
 <p>The simplest way to distribute a Toolkit configuration to a group of users, whether these
 are distributed in different locations or all working in the same building, is to upload it
@@ -386,8 +387,8 @@ next time they start up.</p>
 github as a zip and upload it as an attachment from Shotgun:
 <a class="reference external" href="https://github.com/shotgunsoftware/tk-config-basic/archive/master.zip">https://github.com/shotgunsoftware/tk-config-basic/archive/master.zip</a></p>
 </div>
-</div>
-<div class="section" id="managing-distributed-configurations">
+</section>
+<section id="managing-distributed-configurations">
 <span id="automatically-managed-pcs"></span><h2>Managing distributed configurations<a class="headerlink" href="#managing-distributed-configurations" title="Permalink to this headline">¶</a></h2>
 <p>In order to configure an automatically managed configuration, create an
 entity in Shotgun to represent a <code class="docutils literal notranslate"><span class="pre">Primary</span></code> configuration:</p>
@@ -449,13 +450,13 @@ will use it from this location rather than downloading it or using the
 global bundle cache.</p>
 </div>
 <p>Lastly, the Pipeline Configuration structure is created on local disk, from which Toolkit is launched.</p>
-<div class="section" id="examples">
+<section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
 <p>Below are a collection of practical examples for how Pipeline Configurations can be set up.
 Each Pipeline Configuration uses a <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor URI</span></a> to specify where the
 configuration should be downloaded from. For full technical details, see the
 Descriptor documentation.</p>
-<div class="section" id="fixing-a-version-for-a-project">
+<section id="fixing-a-version-for-a-project">
 <h4>Fixing a version for a project<a class="headerlink" href="#fixing-a-version-for-a-project" title="Permalink to this headline">¶</a></h4>
 <p>All users in the current project will be using a fixed version of the <code class="docutils literal notranslate"><span class="pre">tk-config-basic</span></code> configuration
 from the Shotgun App Store. This can be useful if you don’t want a project to auto update. Omitting
@@ -479,8 +480,8 @@ recent version number.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="git-site-and-project-configurations">
+</section>
+<section id="git-site-and-project-configurations">
 <h4>Git site and project configurations<a class="headerlink" href="#git-site-and-project-configurations" title="Permalink to this headline">¶</a></h4>
 <p>This example shows several things. The Pipeline Configuration without a Project set is a site
 wide configuration - it will be used by all projects except the Bootstrap project, which has a
@@ -517,8 +518,8 @@ git repository, whereas all other projects will use the tag with the highest ver
 <p class="admonition-title">Note</p>
 <p>For <code class="docutils literal notranslate"><span class="pre">git</span></code> based workflows, all users need to have git installed.</p>
 </div>
-</div>
-<div class="section" id="developer-sandbox">
+</section>
+<section id="developer-sandbox">
 <h4>Developer sandbox<a class="headerlink" href="#developer-sandbox" title="Permalink to this headline">¶</a></h4>
 <p>This example shows a typical development/test setup - alongside the Primary configuraton for the project
 there is a dev sandbox. All user associated with that dev sandbox will pick that up instead of the
@@ -542,9 +543,9 @@ allowing a user to choose which config to use). A <code class="docutils literal 
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="section" id="plugins-and-plugin-ids">
+</section>
+</section>
+<section id="plugins-and-plugin-ids">
 <span id="id3"></span><h3>Plugins and plugin ids<a class="headerlink" href="#plugins-and-plugin-ids" title="Permalink to this headline">¶</a></h3>
 <p>In each of the examples shown above, there is a <strong>Plugin Ids</strong> field set to <code class="docutils literal notranslate"><span class="pre">basic.*</span></code>:</p>
 <a class="reference internal image-reference" href="_images/pipeline_config.png"><img alt="_images/pipeline_config.png" class="align-center" src="_images/pipeline_config.png" style="width: 700px;" /></a>
@@ -562,8 +563,8 @@ to certain software integrations, you can specify this:</p>
 <p>If you don’t specify a plugin id for your Pipeline Configuration, it will be ignored
 by the boostrap. We recommend using <code class="docutils literal notranslate"><span class="pre">basic.*</span></code> as a default.</p>
 </div>
-</div>
-<div class="section" id="self-contained-configurations">
+</section>
+<section id="self-contained-configurations">
 <h3>Self contained configurations<a class="headerlink" href="#self-contained-configurations" title="Permalink to this headline">¶</a></h3>
 <p>If you include a <code class="docutils literal notranslate"><span class="pre">bundle_cache</span></code> folder in your Toolkit configuration, it will be automatically
 detected and added to the bundle cache search path. This makes it possible to distribute a complete
@@ -573,8 +574,8 @@ for an external Internet access and has a local site install of Shotgun.
 Create your configuration, manually add a <code class="docutils literal notranslate"><span class="pre">bundle_cache</span></code> folder
 containing the necessary app, engine, core and framework payload, zip it and
 <a class="reference internal" href="#upload-config-to-shotgun"><span class="std std-ref">upload it to Shotgun</span></a>.</p>
-</div>
-<div class="section" id="configurations-with-filesystem-templates">
+</section>
+<section id="configurations-with-filesystem-templates">
 <h3>Configurations with filesystem templates<a class="headerlink" href="#configurations-with-filesystem-templates" title="Permalink to this headline">¶</a></h3>
 <p>If the configuration you have specified in the descriptor field (or have uploaded to Shotgun) is using
 the Toolkit folder schema and templates system, you need to manually configure a series of settings
@@ -592,8 +593,8 @@ is defined in a field named <code class="docutils literal notranslate"><span cla
 is automatically handled by the project setup wizard. In this case, you have to
 do it manually.</p>
 </div>
-</div>
-<div class="section" id="distributing-application-code-from-your-site">
+</section>
+<section id="distributing-application-code-from-your-site">
 <h3>Distributing application code from your site<a class="headerlink" href="#distributing-application-code-from-your-site" title="Permalink to this headline">¶</a></h3>
 <p>If you want to cache custom application code that may only be accessible for
 users on your local network or from developers who have access keys to the Git
@@ -706,9 +707,9 @@ a bundle, always create a new version number.</p>
 <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration</span></code> entity in Shotgun. Now every time a user bootstraps into this pipeline
 configuration, they will download the configuration and cache the Toolkit core and all application
 bundles through the hook.</p>
-</div>
-</div>
-<div class="section" id="managing-centralized-configurations">
+</section>
+</section>
+<section id="managing-centralized-configurations">
 <span id="centralized-configs"></span><h2>Managing centralized configurations<a class="headerlink" href="#managing-centralized-configurations" title="Permalink to this headline">¶</a></h2>
 <p>A manual project is either done via the Shotgun Desktop Project Setup Wizard or through the <code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">setup_project</span></code>
 command. During this process, you will choose a location on disk for your configuration. Make sure you
@@ -728,7 +729,7 @@ however it is less flexible than the more automatic workflows and can be especia
 challenging when you have a setup which doesn’t have a centralized storage. We
 recommend using <a class="reference internal" href="#automatically-managed-pcs"><span class="std std-ref">distributed configurations</span></a> whenever possible.</p>
 </div>
-<div class="section" id="configuration-maintenance">
+<section id="configuration-maintenance">
 <h3>Configuration Maintenance<a class="headerlink" href="#configuration-maintenance" title="Permalink to this headline">¶</a></h3>
 <p>Once the project has been set up, you have to manually manage it. This is typically done
 via the <code class="docutils literal notranslate"><span class="pre">tank</span></code> command:</p>
@@ -742,8 +743,8 @@ between several different project by creating a <em>shared core</em>.</p></li>
 development or testing), right click on the configuration in Shotgun and choose
 the <strong>Clone Configuration</strong> option.</p></li>
 </ul>
-</div>
-<div class="section" id="starting-a-toolkit-engine-from-a-centralized-project">
+</section>
+<section id="starting-a-toolkit-engine-from-a-centralized-project">
 <h3>Starting a Toolkit engine from a centralized project<a class="headerlink" href="#starting-a-toolkit-engine-from-a-centralized-project" title="Permalink to this headline">¶</a></h3>
 <p>In this case, when a known location exists for your core API, you are not required to use the
 bootstrap API. Given that the location of the configuration is known on beforehand, factory methods
@@ -795,8 +796,8 @@ The bootstrap API will automatically determine which version is required for the
 we are bootstrapping into, and potentially swap the core at runtime if the project
 requires a more recent version than the one used to bootstrap with.</p>
 </div>
-</div>
-<div class="section" id="factory-methods">
+</section>
+<section id="factory-methods">
 <h3>Factory methods<a class="headerlink" href="#factory-methods" title="Permalink to this headline">¶</a></h3>
 <p>Two main methods exist if you want to start a centralized configuration and not utilize the
 bootstrap API:</p>
@@ -872,9 +873,9 @@ a Shotgun entity rather than a path. For more details, see <a class="reference i
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="bootstrap-api">
+</section>
+</section>
+<section id="bootstrap-api">
 <span id="id4"></span><h2>Bootstrap API<a class="headerlink" href="#bootstrap-api" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> class allows for run-time handling of Toolkit configurations
 and removes the traditional step of a project setup. Instead, you can launch an engine
@@ -912,7 +913,7 @@ to launch Toolkit’s default config for an Shotgun Asset:</p>
 instance or run a <code class="docutils literal notranslate"><span class="pre">tank</span></code> command - the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> instead becomes the entry
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.</p>
-<div class="section" id="environment-variables">
+<section id="environment-variables">
 <span id="id5"></span><h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
 <p>A number of different environment variables exist to help control the behavior of the Toolkit Startup:</p>
 <table class="docutils align-default">
@@ -951,8 +952,8 @@ complex proxy setups is preventing Toolkit to correctly operate.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="toolkitmanager">
+</section>
+<section id="toolkitmanager">
 <h3>ToolkitManager<a class="headerlink" href="#toolkitmanager" title="Permalink to this headline">¶</a></h3>
 <p>Below follows the full API reference for the <code class="docutils literal notranslate"><span class="pre">ToolkitManager</span></code> bootstrap API.</p>
 <p class="rubric">Properties</p>
@@ -1479,8 +1480,8 @@ bootstrapping.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="exception-classes">
+</section>
+<section id="exception-classes">
 <h3>Exception Classes<a class="headerlink" href="#exception-classes" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.bootstrap.TankBootstrapError">
@@ -1510,9 +1511,9 @@ set self.__traceback__ to tb and return self.</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="installing-the-sgtk-module-using-pip">
+</section>
+</section>
+<section id="installing-the-sgtk-module-using-pip">
 <h2>Installing the sgtk module using pip<a class="headerlink" href="#installing-the-sgtk-module-using-pip" title="Permalink to this headline">¶</a></h2>
 <p>When running Toolkit using the bootstrap API above, you need access to the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a>
 class in order to kickstart the bootstrap process. Once you have started the bootstrap, Toolkit will
@@ -1540,8 +1541,8 @@ number will currently download the latest commit from the master branch and
 associate it with the highest available version number tag. Such downloads are
 likely to contain changes which have not yet been full tested.</p>
 </div>
-</div>
-<div class="section" id="launching-software">
+</section>
+<section id="launching-software">
 <span id="id6"></span><h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
 <p>In order to run software integrations in the form of a Toolkit <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>,
 it is necessary to be able to easily launch the software and initialize Toolkit once
@@ -1559,7 +1560,7 @@ implements the following:</p>
 to create a centralized launcher experience. The <code class="docutils literal notranslate"><span class="pre">tk-multi-launchapp</span></code> is
 an example of such an implementation.</p>
 </div>
-<div class="section" id="a-simple-launch-application">
+<section id="a-simple-launch-application">
 <h3>A Simple Launch Application<a class="headerlink" href="#a-simple-launch-application" title="Permalink to this headline">¶</a></h3>
 <p>The Toolkit core API provides an interface that custom applications can use to implement the business
 logic for launching DCC software related to a particular Toolkit engine. This interface is comprised
@@ -1598,8 +1599,8 @@ required for a successful launch.</p>
 <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_command</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="engine-implementation">
+</section>
+<section id="engine-implementation">
 <h3>Engine Implementation<a class="headerlink" href="#engine-implementation" title="Permalink to this headline">¶</a></h3>
 <p>If you are writing a Toolkit software integration (an Engine), you should include logic for
 how the software is being launched and how Toolkit should initialize after launch. This is
@@ -1658,7 +1659,7 @@ DCC and startup the engine integration.</p></li>
         <span class="k">return</span> <span class="n">launch_information</span>
 </pre></div>
 </div>
-<div class="section" id="after-software-launch">
+<section id="after-software-launch">
 <h4>After software launch<a class="headerlink" href="#after-software-launch" title="Permalink to this headline">¶</a></h4>
 <p>Note how the <code class="docutils literal notranslate"><span class="pre">prepare_launch()</span></code> method in the example above modifies
 the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>. Later on as Maya is launching, it will look for a
@@ -1673,8 +1674,8 @@ The supported Toolkit engines for Maya, Nuke, and Houdini are good reference imp
 <p>Also note how the example code above calls <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_standard_plugin_environment()</span></code></a>.
 This will include a set of default environment variables which can be picked up by the startup script
 and initialize Toolkit with the correct site, context etc.</p>
-</div>
-<div class="section" id="settings-and-configuration">
+</section>
+<section id="settings-and-configuration">
 <h4>Settings and configuration<a class="headerlink" href="#settings-and-configuration" title="Permalink to this headline">¶</a></h4>
 <p>You can access any engine settings defined in the environment using the
 <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_setting" title="sgtk.platform.SoftwareLauncher.get_setting"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SoftwareLauncher.get_setting()</span></code></a> method. This means that you can create
@@ -1686,9 +1687,9 @@ for engine settings.</p>
 <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_setting" title="sgtk.platform.SoftwareLauncher.get_setting"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_setting()</span></code></a> during <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_launch()</span></code></a> and
 pass it as an environment variable into your startup script.</p>
 </div>
-</div>
-</div>
-<div class="section" id="software-launch-apis">
+</section>
+</section>
+<section id="software-launch-apis">
 <h3>Software Launch APIs<a class="headerlink" href="#software-launch-apis" title="Permalink to this headline">¶</a></h3>
 <p>This section contains the techincal documentation for the core classes and methods described in the
 <a class="reference internal" href="#launching-software"><span class="std std-ref">Launching Software</span></a> section above.</p>
@@ -1746,7 +1747,7 @@ on disk.</p>
 </dl>
 </dd></dl>
 
-<div class="section" id="softwarelauncher">
+<section id="softwarelauncher">
 <h4>SoftwareLauncher<a class="headerlink" href="#softwarelauncher" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
 <dt id="sgtk.platform.SoftwareLauncher">
@@ -2019,8 +2020,8 @@ lists of supported version and product variations via the <a class="reference in
 
 </dd></dl>
 
-</div>
-<div class="section" id="softwareversion">
+</section>
+<section id="softwareversion">
 <h4>SoftwareVersion<a class="headerlink" href="#softwareversion" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
 <dt id="sgtk.platform.SoftwareVersion">
@@ -2114,8 +2115,8 @@ that need to be passed down to the DCC.</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="launchinformation">
+</section>
+<section id="launchinformation">
 <h4>LaunchInformation<a class="headerlink" href="#launchinformation" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
 <dt id="sgtk.platform.LaunchInformation">
@@ -2179,10 +2180,10 @@ launching DCC.</p>
 
 </dd></dl>
 
-</div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
+</section>
 
 
            </div>

@@ -7,10 +7,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.19.18 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -147,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -218,7 +219,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="descriptors">
+  <section id="descriptors">
 <span id="descriptor"></span><h1>Descriptors<a class="headerlink" href="#descriptors" title="Permalink to this headline">¶</a></h1>
 <p>Descriptors are abstractions used to describe a remote piece of code or configuration.
 They handle caching of remote resources locally, making it easy to write workflows
@@ -299,7 +300,7 @@ to function.</p>
 <p>Alternatively, you can set the <code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_PATH</span></code> environment variable to
 a cache path on disk. This override helps facilitate workflows that require a
 centralized disk location to which the descriptors are cached.</p>
-<div class="section" id="descriptor-types">
+<section id="descriptor-types">
 <h2>Descriptor types<a class="headerlink" href="#descriptor-types" title="Permalink to this headline">¶</a></h2>
 <p>Several different descriptor types are supported by Toolkit:</p>
 <ul class="simple">
@@ -318,7 +319,7 @@ locations if you want to pre-bake your own collection of caches.
 Descriptors that are downloaded (cached) to the local disk are called <strong>downloadable</strong> descriptors.
 The <strong>app_store</strong>, <strong>shotgun</strong>, <strong>git</strong> and <strong>git_branch</strong> descriptors are downloadable descriptors,
 while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong> descriptors are accessed directly from the specified path.</p>
-<div class="section" id="the-shotgun-app-store">
+<section id="the-shotgun-app-store">
 <span id="app-store-descriptor"></span><h3>The Shotgun App store<a class="headerlink" href="#the-shotgun-app-store" title="Permalink to this headline">¶</a></h3>
 <p>The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
@@ -351,8 +352,8 @@ targeting that particular DCC version. If you for example are running a plugin b
 v2017 of a DCC, the plugin can be set up to track against the latest released version of
 <code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-dcc&amp;label=v2017</span></code>. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.</p>
-</div>
-<div class="section" id="tracking-against-tags-in-git">
+</section>
+<section id="tracking-against-tags-in-git">
 <span id="git-descriptors"></span><h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
@@ -408,8 +409,8 @@ the repository and comparing the version numbers in order to determine the highe
 For this comparison, <code class="xref py py-class docutils literal notranslate"><span class="pre">LooseVersion</span></code> is used and we recommend
 that version numbers follow the semantic versioning standard that can be found at <a class="reference external" href="http://semver.org">http://semver.org</a>.</p>
 </div>
-</div>
-<div class="section" id="tracking-against-commits-in-a-git-branch">
+</section>
+<section id="tracking-against-commits-in-a-git-branch">
 <h3>Tracking against commits in a git branch<a class="headerlink" href="#tracking-against-commits-in-a-git-branch" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
 a commit in a particular branch.</p>
@@ -481,8 +482,8 @@ the <code class="docutils literal notranslate"><span class="pre">PATH</span></co
 app download. The git executable is, however, not needed during descriptor
 resolve and normal operation.</p>
 </div>
-</div>
-<div class="section" id="tracking-against-releases-on-github">
+</section>
+<section id="tracking-against-releases-on-github">
 <h3>Tracking against releases on Github<a class="headerlink" href="#tracking-against-releases-on-github" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">github_release</span></code> descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.</p>
 <p>Getting <code class="docutils literal notranslate"><span class="pre">tk-multi-pythonconsole</span></code> from its <code class="docutils literal notranslate"><span class="pre">shotgunsoftware</span></code> Github repo:</p>
@@ -514,8 +515,8 @@ resolve and normal operation.</p>
 <p class="admonition-title">Warning</p>
 <p>Private repositories are not currently supported by this descriptor.</p>
 </div>
-</div>
-<div class="section" id="pointing-to-a-path-on-disk">
+</section>
+<section id="pointing-to-a-path-on-disk">
 <h3>Pointing to a path on disk<a class="headerlink" href="#pointing-to-a-path-on-disk" title="Permalink to this headline">¶</a></h3>
 <p>Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
 or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
@@ -622,8 +623,8 @@ pipeline configurations do not contain the <code class="docutils literal notrans
 If you wish to refer to elements inside the <code class="docutils literal notranslate"><span class="pre">config</span></code> folder and wish the configuration to be usable
 both with installed, baked or cached configuration, we recommend you use the <code class="docutils literal notranslate"><span class="pre">CONFIG_FOLDER</span></code> token.</p>
 </div>
-</div>
-<div class="section" id="pointing-at-a-file-attachment-in-shotgun">
+</section>
+<section id="pointing-at-a-file-attachment-in-shotgun">
 <h3>Pointing at a file attachment in Shotgun<a class="headerlink" href="#pointing-at-a-file-attachment-in-shotgun" title="Permalink to this headline">¶</a></h3>
 <p>The Shotgun descriptor allows you to upload an attachment directly
 to Shotgun and then reference it with a descriptor.</p>
@@ -680,8 +681,8 @@ following syntax can be useful:</p>
 </div>
 <p>Here, instead of specifying the entity id you can specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">project_id</span></code> field. The name
 field will be translated into an appropriate Shotgun name field, typically the <code class="docutils literal notranslate"><span class="pre">code</span></code> field.</p>
-</div>
-<div class="section" id="manual-descriptors">
+</section>
+<section id="manual-descriptors">
 <h3>Manual Descriptors<a class="headerlink" href="#manual-descriptors" title="Permalink to this headline">¶</a></h3>
 <p>Toolkit also provides a <code class="docutils literal notranslate"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
 and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
@@ -703,8 +704,8 @@ for the code in the <code class="docutils literal notranslate"><span class="pre"
 <p>Manual descriptors are part of an older toolkit workflow methodology and while they are supported,
 we do not recommend using them.</p>
 </div>
-</div>
-<div class="section" id="environment-variables">
+</section>
+<section id="environment-variables">
 <h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
 <p>A number of different environment variables exist to help control the behavior of Descriptors:</p>
 <table class="docutils align-default">
@@ -738,11 +739,11 @@ complex proxy setups is preventing Toolkit to correctly operate.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="section" id="api-reference">
+</section>
+</section>
+<section id="api-reference">
 <h2>API reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="factory-methods">
+<section id="factory-methods">
 <h3>Factory Methods<a class="headerlink" href="#factory-methods" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sgtk.descriptor.create_descriptor">
@@ -877,8 +878,8 @@ version by omitting the version token altogether.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="appdescriptor">
+</section>
+<section id="appdescriptor">
 <h3>AppDescriptor<a class="headerlink" href="#appdescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.AppDescriptor">
@@ -1331,8 +1332,8 @@ min_engine and min_desktop</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="enginedescriptor">
+</section>
+<section id="enginedescriptor">
 <h3>EngineDescriptor<a class="headerlink" href="#enginedescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.EngineDescriptor">
@@ -1785,8 +1786,8 @@ min_engine and min_desktop</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="frameworkdescriptor">
+</section>
+<section id="frameworkdescriptor">
 <h3>FrameworkDescriptor<a class="headerlink" href="#frameworkdescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.FrameworkDescriptor">
@@ -2252,8 +2253,8 @@ min_engine and min_desktop</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="configdescriptor">
+</section>
+<section id="configdescriptor">
 <h3>ConfigDescriptor<a class="headerlink" href="#configdescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.ConfigDescriptor">
@@ -2678,8 +2679,8 @@ If not url has been defined, <code class="docutils literal notranslate"><span cl
 
 </dd></dl>
 
-</div>
-<div class="section" id="coredescriptor">
+</section>
+<section id="coredescriptor">
 <h3>CoreDescriptor<a class="headerlink" href="#coredescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.CoreDescriptor">
@@ -3018,8 +3019,8 @@ If not url has been defined, <code class="docutils literal notranslate"><span cl
 
 </dd></dl>
 
-</div>
-<div class="section" id="exceptions">
+</section>
+<section id="exceptions">
 <h3>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.TankDescriptorError">
@@ -3144,9 +3145,9 @@ set self.__traceback__ to tb and return self.</p>
 
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

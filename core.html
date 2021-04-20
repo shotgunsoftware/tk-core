@@ -7,10 +7,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.19.18 documentation</title>
+  <title>Core &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -174,7 +175,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -245,7 +246,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="core">
+  <section id="core">
 <span id="core-api"></span><h1>Core<a class="headerlink" href="#core" title="Permalink to this headline">¶</a></h1>
 <p>The Toolkit Foundation is the part of the Toolkit Core API
 that contains lower level components and APIs. These include</p>
@@ -263,7 +264,7 @@ that contains lower level components and APIs. These include</p>
 an initialized toolkit environment. For more information on how to
 set this up, see <a class="reference internal" href="initializing.html#init-and-startup"><span class="std std-ref">Initialization and startup</span></a>.</p>
 </div>
-<div class="section" id="sgtk">
+<section id="sgtk">
 <h2>Sgtk<a class="headerlink" href="#sgtk" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sgtk.Sgtk">
@@ -875,7 +876,7 @@ folder creation pass should be executed for a particular engine.</p></li>
 
 </dd></dl>
 
-<div class="section" id="authentication">
+<section id="authentication">
 <h3>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h3>
 <p>Certain API operations require Shotgun data and hence require a way for the API
 to establish a connection to Shotgun. The easiest way to handle this is by
@@ -916,8 +917,8 @@ None otherwise.</p>
 <p>The <a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> serializes the authentication state, so if you are passing a context
 from one process or application to the next, you don’t need to utilize the methods above.</p>
 </div>
-</div>
-<div class="section" id="pipeline-configuration-utilities">
+</section>
+<section id="pipeline-configuration-utilities">
 <h3>Pipeline Configuration Utilities<a class="headerlink" href="#pipeline-configuration-utilities" title="Permalink to this headline">¶</a></h3>
 <p>It is possible to enquiry about the location of various components of the pipeline configuration and
 the currently running version of the Toolkit Core.</p>
@@ -1001,9 +1002,9 @@ does not exist.</p></li>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="context">
+</section>
+</section>
+<section id="context">
 <h2>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sgtk.Context">
@@ -1436,14 +1437,14 @@ method.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="commands">
+</section>
+<section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">tank</span></code> command offers a variety of system utility commands to handle for example upgrades,
 administration and maintenance. These commands are also available to use via the API in order to
 make it easy to integrate Toolkit maintenance workflows with other scriped workflows you may have
 in your studio. The following commands can be used to manage and execute these functions:</p>
-<div class="section" id="api-access-methods">
+<section id="api-access-methods">
 <h3>API access methods<a class="headerlink" href="#api-access-methods" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sgtk.list_commands">
@@ -1507,8 +1508,8 @@ using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.l
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="sgtksystemcommand">
+</section>
+<section id="sgtksystemcommand">
 <h3>SgtkSystemCommand<a class="headerlink" href="#sgtksystemcommand" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.SgtkSystemCommand">
@@ -1626,8 +1627,8 @@ does not terminate straight away.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="commandinteraction">
+</section>
+<section id="commandinteraction">
 <h3>CommandInteraction<a class="headerlink" href="#commandinteraction" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.CommandInteraction">
@@ -1700,16 +1701,16 @@ has been selected in the past.</p></li>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="hooks">
+</section>
+</section>
+<section id="hooks">
 <span id="sgtk-hook-docs"></span><h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
 <p>Hooks are snippets of code that can be customized as part of the configuration of a Toolkit app,
 engine or core itself. You can use hooks with the Core API (we call those core hooks) and with
 apps and engines. Hooks are a central concept in the configuration of Toolkit. We use hooks whenever
 there is a need to expose code and allow it to be customized. Examples
 of when this is useful is Disk I/O, launching of applications, DCC-specific logic and permissions control.</p>
-<div class="section" id="hook">
+<section id="hook">
 <h3>Hook<a class="headerlink" href="#hook" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.Hook">
@@ -2002,8 +2003,8 @@ This needs to be defined in the currently running environment, as part of the <c
 
 </dd></dl>
 
-</div>
-<div class="section" id="get-hook-baseclass">
+</section>
+<section id="get-hook-baseclass">
 <h3>get_hook_baseclass<a class="headerlink" href="#get-hook-baseclass" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sgtk.get_hook_baseclass">
@@ -2012,14 +2013,14 @@ This needs to be defined in the currently running environment, as part of the <c
 being loaded. For more details and examples, see the <a class="reference internal" href="#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hook</span></code></a> documentation.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="core-hooks">
+</section>
+<section id="core-hooks">
 <h3>Core Hooks<a class="headerlink" href="#core-hooks" title="Permalink to this headline">¶</a></h3>
 <p>The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
 want to take over a certain behavior, copy the hook found inside the core’s <a class="reference external" href="https://github.com/shotgunsoftware/tk-core/tree/master/hooks">hooks</a> folder
 and copy it to your configuration’s <code class="docutils literal notranslate"><span class="pre">core/hooks</span></code> folder.</p>
 <p>Here is the list of hooks that be taken over in the Toolkit core.</p>
-<div class="section" id="module-before_register_publish">
+<section id="module-before_register_publish">
 <span id="before-register-publish-py"></span><h4>before_register_publish.py<a class="headerlink" href="#module-before_register_publish" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed before a publish record is created in Shotgun.
 This hook makes it possible to add custom fields to a publish before it gets created
@@ -2050,8 +2051,8 @@ as well as modifying the content that is being pushed to Shotgun.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-bootstrap">
+</section>
+<section id="module-bootstrap">
 <span id="bootstrap-py"></span><h4>bootstrap.py<a class="headerlink" href="#module-bootstrap" title="Permalink to this headline">¶</a></h4>
 <p>This hook is used override some of the functionality of the <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a>.</p>
 <p>It will be instantiated only after a configuration has been selected by the <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a>.
@@ -2124,8 +2125,8 @@ that this is not the final destination folder inside the bundle cache.</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-bundle_init">
+</section>
+<section id="module-bundle_init">
 <span id="bundle-init-py"></span><h4>bundle_init.py<a class="headerlink" href="#module-bundle_init" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed every time a bundle is fully initialized.</p>
 <dl class="class">
@@ -2146,8 +2147,8 @@ or <a class="reference internal" href="platform.html#sgtk.platform.Application" 
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-cache_location">
+</section>
+<section id="module-cache_location">
 <span id="cache-location-py"></span><h4>cache_location.py<a class="headerlink" href="#module-cache_location" title="Permalink to this headline">¶</a></h4>
 <p>Hook to control path cache and bundle cache folder creation.</p>
 <dl class="class">
@@ -2235,8 +2236,8 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-context_change">
+</section>
+<section id="module-context_change">
 <span id="context-change-py"></span><h4>context_change.py<a class="headerlink" href="#module-context_change" title="Permalink to this headline">¶</a></h4>
 <p>This hook gets executed before and after the context changes in Toolkit.</p>
 <dl class="class">
@@ -2293,8 +2294,8 @@ from the old one, you’ll need to compare the two arguments using the
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-engine_init">
+</section>
+<section id="module-engine_init">
 <span id="engine-init-py"></span><h4>engine_init.py<a class="headerlink" href="#module-engine_init" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed every time an engine has been fully initialized.</p>
 <dl class="class">
@@ -2316,8 +2317,8 @@ and the engine is fully operational.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-ensure_folder_exists">
+</section>
+<section id="module-ensure_folder_exists">
 <span id="ensure-folder-exists-py"></span><h4>ensure_folder_exists.py<a class="headerlink" href="#module-ensure_folder_exists" title="Permalink to this headline">¶</a></h4>
 <p>This hook is called when an engine, app or framework’s
 <a class="reference internal" href="platform.html#sgtk.platform.Application.ensure_folder_exists" title="sgtk.platform.Application.ensure_folder_exists"><code class="xref py py-class docutils literal notranslate"><span class="pre">ensure_folder_exists</span></code></a> method is called.</p>
@@ -2348,8 +2349,8 @@ parameter and we recommend using self.parent instead.</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-get_current_login">
+</section>
+<section id="module-get_current_login">
 <span id="get-current-login-py"></span><h4>get_current_login.py<a class="headerlink" href="#module-get_current_login" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed when the current user is being retrieved.</p>
 <p>Please note that this hook will only be called whenever Toolkit doesn’t
@@ -2386,8 +2387,8 @@ Shotgun users table in order to extract further metadata.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-log_metrics">
+</section>
+<section id="module-log_metrics">
 <span id="log-metrics-py"></span><h4>log_metrics.py<a class="headerlink" href="#module-log_metrics" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed every time Toolkit logs user metrics.</p>
 <dl class="class">
@@ -2420,8 +2421,8 @@ resources across multiple threads.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pick_environment">
+</section>
+<section id="module-pick_environment">
 <span id="pick-environment-py"></span><h4>pick_environment.py<a class="headerlink" href="#module-pick_environment" title="Permalink to this headline">¶</a></h4>
 <p>Hook which chooses an environment file to use based on the current context.
 This file is almost always overridden by a configuration.</p>
@@ -2450,8 +2451,8 @@ does not match <code class="docutils literal notranslate"><span class="pre">Shot
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-pipeline_configuration_init">
+</section>
+<section id="module-pipeline_configuration_init">
 <span id="pipeline-configuration-init-py"></span><h4>pipeline_configuration_init.py<a class="headerlink" href="#module-pipeline_configuration_init" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed every time a new PipelineConfiguration instance is created.</p>
 <dl class="class">
@@ -2466,8 +2467,8 @@ does not match <code class="docutils literal notranslate"><span class="pre">Shot
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-process_folder_creation">
+</section>
+<section id="module-process_folder_creation">
 <span id="process-folder-creation-py"></span><h4>process_folder_creation.py<a class="headerlink" href="#module-process_folder_creation" title="Permalink to this headline">¶</a></h4>
 <p>This hook is invoked during folder creation when <a class="reference internal" href="#sgtk.Sgtk.create_filesystem_structure" title="sgtk.Sgtk.create_filesystem_structure"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.Sgtk.create_filesystem_structure()</span></code></a> is
 called.</p>
@@ -2558,8 +2559,8 @@ modifications.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-process_folder_name">
+</section>
+<section id="module-process_folder_name">
 <span id="process-folder-name-py"></span><h4>process_folder_name.py<a class="headerlink" href="#module-process_folder_name" title="Permalink to this headline">¶</a></h4>
 <p>Core hook which handles conversion of Shotgun field data into strings.</p>
 <p>This hook can be used to control how folders are named on disk given
@@ -2603,8 +2604,8 @@ be converted to <code class="docutils literal notranslate"><span class="pre">Pon
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-resolve_publish">
+</section>
+<section id="module-resolve_publish">
 <span id="resolve-publish-py"></span><h4>resolve_publish.py<a class="headerlink" href="#module-resolve_publish" title="Permalink to this headline">¶</a></h4>
 <p>Hook used to resolve publish records in Shotgun into local form on a machine during
 a call to <a class="reference internal" href="utils.html#sgtk.util.resolve_publish_path" title="sgtk.util.resolve_publish_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.util.resolve_publish_path()</span></code></a>.</p>
@@ -2633,8 +2634,8 @@ Contains at minimum a code, type, id and a path key.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-tank_init">
+</section>
+<section id="module-tank_init">
 <span id="tank-init-py"></span><h4>tank_init.py<a class="headerlink" href="#module-tank_init" title="Permalink to this headline">¶</a></h4>
 <p>Hook that gets executed every time a new Toolkit API instance is created.</p>
 <dl class="class">
@@ -2650,9 +2651,9 @@ Contains at minimum a code, type, id and a path key.</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="module-example_template_hook">
+</section>
+</section>
+<section id="module-example_template_hook">
 <span id="template-hooks"></span><h3>Template Hooks<a class="headerlink" href="#module-example_template_hook" title="Permalink to this headline">¶</a></h3>
 <p>This hook is a simple example to illustrate how template settings in an app
 can be evaluated at runtime based on complex conditions.</p>
@@ -2698,9 +2699,9 @@ be [‘foo’, ‘bar’]</p></li>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="templates">
+</section>
+</section>
+<section id="templates">
 <h2>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h2>
 <p>The Toolkit template system is used to handle path and string token manipulations.</p>
 <p>Since the Shotgun Toolkit is file system based, Apps will need to resolve file paths whenever
@@ -2744,7 +2745,7 @@ If we wanted to describe a publish path for an asset rather than a shot, we woul
 and a version field, since this is needed for all publishes, regardless of what type of data it is -
 however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
 where the asset field would be associated with an asset in Shotgun.</p>
-<div class="section" id="template">
+<section id="template">
 <h3>Template<a class="headerlink" href="#template" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.Template">
@@ -3005,8 +3006,8 @@ be present in the input path and found by the template.</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="templatepath">
+</section>
+<section id="templatepath">
 <h3>TemplatePath<a class="headerlink" href="#templatepath" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.TemplatePath">
@@ -3047,8 +3048,8 @@ This is a dictionary with sys.platform-style keys</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="templatestring">
+</section>
+<section id="templatestring">
 <h3>TemplateString<a class="headerlink" href="#templatestring" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.TemplateString">
@@ -3077,8 +3078,8 @@ the template configuration.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="templatekey">
+</section>
+<section id="templatekey">
 <h3>TemplateKey<a class="headerlink" href="#templatekey" title="Permalink to this headline">¶</a></h3>
 <p>A template, e.g. <code class="docutils literal notranslate"><span class="pre">shots/{Shot}/{Step}/pub/{name}.v{version}.ma</span></code> consists of several dynamic <code class="docutils literal notranslate"><span class="pre">{tokens}</span></code>.
 Each token is represented by a <a class="reference internal" href="#sgtk.TemplateKey" title="sgtk.TemplateKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">TemplateKey</span></code></a> object at runtime, where you can access properties and
@@ -3259,8 +3260,8 @@ of files, for example when you want to represent a sequence of frames using a
 
 </dd></dl>
 
-</div>
-<div class="section" id="stringkey">
+</section>
+<section id="stringkey">
 <h3>StringKey<a class="headerlink" href="#stringkey" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.StringKey">
@@ -3382,8 +3383,8 @@ with Python 2.6+.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="sequencekey">
+</section>
+<section id="sequencekey">
 <h3>SequenceKey<a class="headerlink" href="#sequencekey" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.SequenceKey">
@@ -3473,8 +3474,8 @@ the value.</p></li>
 
 </dd></dl>
 
-</div>
-<div class="section" id="integerkey">
+</section>
+<section id="integerkey">
 <h3>IntegerKey<a class="headerlink" href="#integerkey" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.IntegerKey">
@@ -3547,8 +3548,8 @@ format_spec when parsing a string.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="timestampkey">
+</section>
+<section id="timestampkey">
 <h3>TimestampKey<a class="headerlink" href="#timestampkey" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.TimestampKey">
@@ -3598,9 +3599,9 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="exceptions">
+</section>
+</section>
+<section id="exceptions">
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
 <p>The following exceptions are raised by the Toolkit Core API classes:</p>
 <dl class="class">
@@ -3744,8 +3745,8 @@ set self.__traceback__ to tb and return self.</p>
 
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

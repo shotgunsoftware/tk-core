@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.19.18 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.19.19 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.18.<br>
+    <b>tk-core</b> v0.19.19.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -743,7 +743,7 @@
                     <span class="c1"># issue a warning and fall back on the server-side functionality</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="s2">&quot;Could not find the expected storage for required root &quot;</span>
-                        <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; in Shotgun to associate publish &#39;</span><span class="si">%s</span><span class="s2">&#39; with. &quot;</span>
+                        <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; in SG to associate publish &#39;</span><span class="si">%s</span><span class="s2">&#39; with. &quot;</span>
                         <span class="s2">&quot;Falling back to Shotgun&#39;s built-in storage resolution &quot;</span>
                         <span class="s2">&quot;logic. It is recommended that you explicitly map a &quot;</span>
                         <span class="s2">&quot;local storage to required root &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span>
@@ -774,7 +774,7 @@
             <span class="c1"># 1. look for storages in Shotgun and see if we can create a local path</span>
             <span class="c1"># 2. failing that, just register the entry as a file:// resource.</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path &#39;</span><span class="si">%s</span><span class="s2">&#39; does not have an associated config root.&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will check shotgun local storages to see if there is a match.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will check SG local storages to see if there is a match.&quot;</span><span class="p">)</span>
 
             <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">for</span> <span class="n">storage</span> <span class="ow">in</span> <span class="n">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
@@ -783,9 +783,7 @@
                 <span class="k">if</span> <span class="n">local_storage_path</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
                     <span class="n">local_storage_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
                 <span class="p">):</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">&quot;Path matches Shotgun local storage &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">storage</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span>
-                    <span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path matches SG local storage &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">storage</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">])</span>
                     <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="k">break</span>
 
