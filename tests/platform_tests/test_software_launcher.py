@@ -140,7 +140,7 @@ class TestEngineLauncher(TankTestBase):
             launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
             env = launcher.get_standard_plugin_environment()
             expected_env = {
-                "SHOTGUN_PIPELINE_CONFIGURATION_ID": "123",
+                "SHOTGUN_PIPELINE_CONFIGURATION_ID": str(self.sg_pc_entity["id"]),
                 "SHOTGUN_SITE": "http://unit_test_mock_sg",
                 "SHOTGUN_ENTITY_TYPE": entity["type"],
                 "SHOTGUN_ENTITY_ID": str(entity["id"]),
@@ -159,7 +159,7 @@ class TestEngineLauncher(TankTestBase):
         launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
         env = launcher.get_standard_plugin_environment()
         expected_env = {
-            "SHOTGUN_PIPELINE_CONFIGURATION_ID": "123",
+            "SHOTGUN_PIPELINE_CONFIGURATION_ID": str(self.sg_pc_entity["id"]),
             "SHOTGUN_SITE": "http://unit_test_mock_sg",
         }
         self.assertDictEqual(expected_env, env)

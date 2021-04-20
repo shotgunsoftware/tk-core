@@ -246,6 +246,13 @@ class Shotgun(object):
             return self._schema[entity_type]
         else:
             return dict((k, v) for k, v in self._schema[entity_type].items() if k == field_name)
+    
+    def get_next_id(self, entity_type):
+        try:
+            # get next id in this table
+            return max(self._db[entity_type]) + 1
+        except ValueError:
+            return 1
 
     def find(
         self, entity_type, filters, fields=None, order=None, filter_operator=None,
@@ -364,11 +371,7 @@ class Shotgun(object):
         self._validate_entity_type(entity_type)
         self._validate_entity_data(entity_type, data)
         self._validate_entity_fields(entity_type, return_fields)
-        try:
-            # get next id in this table
-            next_id = max(self._db[entity_type]) + 1
-        except ValueError:
-            next_id = 1
+        next_id = self.get_next_id(entity_type)
 
         row = self._get_new_row(entity_type)
 

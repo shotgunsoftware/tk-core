@@ -80,7 +80,9 @@ def get_cached_local_storages(tk):
 
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None):
+def find_publish(
+    tk, list_of_paths, filters=None, fields=None, only_current_project=True
+):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
@@ -94,6 +96,10 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     By default, the shotgun id is returned for each successfully identified path.
     If you want to retrieve additional fields, you can specify these using
     the fields parameter.
+
+    By default, only publishes in the current project will be found. If you
+    want to retreive publishes from any active project in the pipeline config,
+    you can specify the only_current_project param to False.
 
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example::
@@ -111,6 +117,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
                    return. Defaults to id and type.
+    :param only_current_project: Optional boolean to find publishes in Shotgun only from the
+                                 current project (True) or from any active project (False).
+                                 Defaults to True.
     :returns: dictionary keyed by path
     """
     # avoid cyclic references
@@ -120,7 +129,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # in case of sequences, there will be more than one file
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
-    storage_root_to_paths = group_by_storage(tk, list_of_paths)
+    storage_root_to_paths = group_by_storage(tk, list_of_paths, only_current_project)
 
     filters = filters or []
     fields = fields or []
