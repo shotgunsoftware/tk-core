@@ -195,7 +195,7 @@ Applications
 
 Toolkit Apps are tools that can execute in multiple DCC environments.
 
-.. note:: For an introduction to App development, see https://support.shotgunsoftware.com/entries/95440137
+.. note:: For an introduction to App development, see https://support.shotgridsoftware.com/entries/95440137
 
 A good way to get started with App development is to clone our starter github repository
 https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
@@ -455,7 +455,7 @@ Just create a ``requires_shotgun_fields`` in your manifest and add entries on th
 
 Note how the fields are grouped by Shotgun entity type (in the example above ``Version``). For a list of
 which field types are supported,
-see the `Shotgun API documentation <http://developer.shotgunsoftware.com/python-api/data_types.html>`_.
+see the `Shotgun API documentation <http://developer.shotgridsoftware.com/python-api/data_types.html>`_.
 
 .. note:: For more complex field types (such as entity and multi entity links), you need to set up creation via
           the **post-install hook** instead. (The post install hook is a special hook which runs at installation time
@@ -879,7 +879,7 @@ through :meth:`Engine.has_qt5`.
 
 .. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact support@shotgunsoftware.com
+             in the PySide 1 emulation layer is not working or missing, please contact support@shotgridsoftware.com
              so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit

@@ -1259,7 +1259,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
     logger.info("")
 
     logger.info("Welcome to SGTK!")
-    logger.info("For documentation, see https://support.shotgunsoftware.com")
+    logger.info("For documentation, see https://support.shotgridsoftware.com")
 
     # Now create a tk instance and a context if possible
     ctx = None
