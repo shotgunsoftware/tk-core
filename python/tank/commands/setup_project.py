@@ -361,7 +361,7 @@ class SetupProjectAction(Action):
 
         # now connect to shotgun
         try:
-            log.info("Connecting to Shotgun...")
+            log.info("Connecting to ShotGrid...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target SG server! (v%s)" % sg_version)
@@ -934,7 +934,7 @@ class SetupProjectAction(Action):
 
         # present a summary of storages that exist in SG
         log.info("")
-        log.info("The following local storages exist in Shotgun:")
+        log.info("The following local storages exist in ShotGrid:")
         log.info("")
         for storage in sorted(storages, key=lambda s: s["code"]):
             self._print_storage_info(storage, log)

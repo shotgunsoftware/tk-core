@@ -8,12 +8,12 @@
 
 # Shotgun Pipeline Toolkit Core API
 
-This repository represents the Shotgun Pipeline Toolkit Core API.
+This repository represents the ShotGrid Pipeline Toolkit Core API.
 
 ## Getting started with the Shotgun Pipeline Toolkit
 
-Installing the Shotgun Pipeline Toolkit is normally done via our
-Shotgun App Store. For detailed instructions on how to get started
+Installing the ShotGrid Pipeline Toolkit is normally done via our
+ShotGrid App Store. For detailed instructions on how to get started
 with Toolkit, head over to our support site:
 https://support.shotgridsoftware.com/entries/95442748
 

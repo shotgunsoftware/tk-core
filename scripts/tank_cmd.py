@@ -841,7 +841,7 @@ def _shotgun_run_action(
             req_sg = installer.get_required_sg_version_for_update()
             logger.warning(
                 "<b>A new version (%s) of the core API is available however "
-                "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg)
+                "it requires a more recent version (%s) of ShotGrid!</b>" % (lv, req_sg)
             )
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
@@ -920,7 +920,7 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
     sg = shotgun.get_sg_connection()
 
     logger.debug(
-        "Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern)
+        "ShotGrid: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern)
     )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     logger.debug("Got data: %r" % data)
@@ -1095,7 +1095,7 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
                 ["project", "is", {"type": "Project", "id": constrain_by_project_id}]
             )
 
-        logger.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
+        logger.debug("ShotGrid: find(%s, %s)" % (entity_type, shotgun_filters))
         entities = sg.find(
             entity_type,
             shotgun_filters,
@@ -1103,14 +1103,14 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
         )
         logger.debug("Got data: %r" % entities)
     except Exception as e:
-        raise TankError("An error occurred when searching in Shotgun: %s" % e)
+        raise TankError("An error occurred when searching in ShotGrid: %s" % e)
 
     selected_entity = None
 
     if len(entities) == 0:
         logger.info("")
         logger.info(
-            "Could not find a %s with a name containing '%s' in Shotgun!"
+            "Could not find a %s with a name containing '%s' in ShotGrid!"
             % (entity_type, entity_search_token)
         )
         raise TankError(
@@ -1426,7 +1426,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 # filter out all other items in other projects.
                 filters.append(["project", "is", {"type": "Project", "id": project_id}])
 
-            logger.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
+            logger.debug("ShotGrid: find(%s, %s)" % (entity_type, filters))
             data = sg.find(entity_type, filters, ["id", name_field])
             logger.debug("Got data: %r" % data)
 
@@ -1889,7 +1889,7 @@ if __name__ == "__main__":
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
-            logger.exception("A ShotgunAuthenticationError was raised: %s" % str(e))
+            logger.exception("A ShotGridAuthenticationError was raised: %s" % str(e))
         else:
             # one line report
             logger.error(str(e))

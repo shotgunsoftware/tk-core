@@ -50,14 +50,14 @@ class DesktopMigration(Action):
         :param log: std python logger
         :param args: command line args
         """
-        log.info("Retrieving pipeline configuration from Shotgun...")
+        log.info("Retrieving pipeline configuration from ShotGrid...")
         log.info("")
 
         pc = self.tk.pipeline_configuration
 
         if pc.is_unmanaged():
             log.error(
-                "Cannot migrate a setup which does not have a pipeline configuration in Shotgun!"
+                "Cannot migrate a setup which does not have a pipeline configuration in ShotGrid!"
             )
             return
 
@@ -112,10 +112,10 @@ class DesktopMigration(Action):
                 pc.get_shotgun_id(),
                 {"project": None},
             )
-            log.debug("Pipeline configuration updated in Shotgun.")
+            log.debug("Pipeline configuration updated in ShotGrid.")
         else:
             log.warning(
-                "Pipeline configuration isn't assigned to a project in Shotgun."
+                "Pipeline configuration isn't assigned to a project in ShotGrid."
             )
 
         # Upgrade site configuration on disk.

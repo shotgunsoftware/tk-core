@@ -697,12 +697,12 @@ class TestFromEntity(TestContext):
         ):
             context.from_entity(self.tk, "Task", None)
         with self.assertRaisesRegex(
-            TankError, "Unable to locate Task with id -1 in Shotgun"
+            TankError, "Unable to locate Task with id -1 in ShotGrid"
         ):
             context.from_entity(self.tk, "Task", -1)
         # PublishedFiles go through some dedicated code.
         with self.assertRaisesRegex(
-            TankError, "Entity PublishedFile with id -1 not found in Shotgun!"
+            TankError, "Entity PublishedFile with id -1 not found in ShotGrid!"
         ):
             context.from_entity(self.tk, "PublishedFile", -1)
 
