@@ -15,7 +15,7 @@
 # - any images (*.png)
 # - any pickles (*.pickle)
 # - any files that are compared against the output of a tool (test_post_update_new_parser.yml, test_post_update_old_parser.yml, tank_core.txt)
-exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|test_post_update_new_parser.yml|test_post_update_old_parser.yml|tank_core.txt|zip_with_root_folder.txt|zip_with_root_auto_detect.txt"
+exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|test_post_update_new_parser.yml|test_post_update_old_parser.yml|tank_core.txt|zip_with_root_folder.txt|zip_with_root_auto_detect.txt|ui_busy_dialog.py|ui_item.py|ui_tank_dialog.py|resources_rc.py"
 # List of super useful formatters.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
