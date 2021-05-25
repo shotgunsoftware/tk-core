@@ -3478,7 +3478,7 @@ class Shotgun(object):
                 # get raised as well.
                 #
                 # For more info see:
-                # http://blog.shotgridsoftware.com/2016/01/important-ssl-certificate-renewal-and.html
+                # http://blog.shotgunsoftware.com/2016/01/important-ssl-certificate-renewal-and.html
                 #
                 # SHA-2 errors look like this:
                 #   [Errno 1] _ssl.c:480: error:0D0C50A1:asn1 encoding routines:ASN1_item_verify:
@@ -3492,7 +3492,7 @@ class Shotgun(object):
                 if self.config.no_ssl_validation is False:
                     LOG.warning("SSL Error: this Python installation is incompatible with "
                                 "certificates signed with SHA-2. Disabling certificate validation. "
-                                "For more information, see http://blog.shotgridsoftware.com/2016/01/"
+                                "For more information, see http://blog.shotgunsoftware.com/2016/01/"
                                 "important-ssl-certificate-renewal-and.html")
                     self._turn_off_ssl_validation()
                     # reload user agent to reflect that we have turned off ssl validation

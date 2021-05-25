@@ -214,7 +214,7 @@ of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_relea
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
-http://developer.shotgridsoftware.com/tk-core/descriptor
+http://developer.shotgunsoftware.com/tk-core/descriptor
 
 
 """.format(

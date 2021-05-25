@@ -358,7 +358,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://support.shotgridsoftware.com"
+            support_url = "https://support.shotgunsoftware.com"
         return support_url
 
     @property
@@ -370,7 +370,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         doc_url = meta.get("documentation_url")
         if doc_url is None:
-            doc_url = "https://support.shotgridsoftware.com/hc/en-us/articles/115000068574-User-Guide"
+            doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
         return doc_url
 
     @property

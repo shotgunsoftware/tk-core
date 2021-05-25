@@ -22,7 +22,7 @@ class PublishResolver(Hook):
         If the method returns None, the default implementation will be used.
 
         For more information, see
-        http://developer.shotgridsoftware.com/tk-core/utils.html#sgtk.util.resolve_publish_path
+        http://developer.shotgunsoftware.com/tk-core/utils.html#sgtk.util.resolve_publish_path
 
         :param sg_publish_data: Dictionary containing Shotgun publish data.
             Contains at minimum a code, type, id and a path key.
