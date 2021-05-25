@@ -236,7 +236,7 @@ class LocalFileStorageManager(object):
             # shotgun.internal.int     -> shotgun.internal.int
             #
             base_url = base_url.replace(".shotgunstudio.com", "").replace(
-                ".shotgridstudio.com", ""
+                ".shotgrid.autodesk.com", ""
             )
 
         return os.path.join(cls.get_global_root(path_type, generation), base_url)

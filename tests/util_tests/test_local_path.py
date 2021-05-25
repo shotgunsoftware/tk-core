@@ -132,7 +132,7 @@ class TestLocalFileStorage(ShotgunTestBase):
             LocalFileStorageManager.LOGGING,
         ]
 
-        hosted_sg_sites = ["test.shotgunstudio.com", "test.shotgridstudio.com"]
+        hosted_sg_sites = ["test.shotgunstudio.com", "test.shotgrid.autodesk.com"]
 
         for path_type in new_path_types:
             for site_name in hosted_sg_sites:
@@ -226,7 +226,7 @@ class TestLocalFileStorage(ShotgunTestBase):
 
         for hostname in [
             "http://test.shotgunstudio.com",
-            "http://test.shotgridstudio.com",
+            "http://test.shotgrid.autodesk.com",
         ]:
             path_types = [
                 LocalFileStorageManager.PREFERENCES,
@@ -278,7 +278,7 @@ class TestLocalFileStorage(ShotgunTestBase):
 
         for hostname in [
             "http://test.shotgunstudio.com",
-            "http://test.shotgridstudio.com",
+            "http://test.shotgrid.autodesk.com",
         ]:
 
             path_types = [
