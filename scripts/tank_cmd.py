@@ -1889,7 +1889,7 @@ if __name__ == "__main__":
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
-            logger.exception("A ShotGridAuthenticationError was raised: %s" % str(e))
+            logger.exception("A ShotgunAuthenticationError was raised: %s" % str(e))
         else:
             # one line report
             logger.error(str(e))

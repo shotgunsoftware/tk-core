@@ -224,7 +224,10 @@ class TestLocalFileStorage(ShotgunTestBase):
 
     def _compute_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
-        for hostname in ["http://test.shotgunstudio.com", "http://test.shotgridstudio.com"]:
+        for hostname in [
+            "http://test.shotgunstudio.com",
+            "http://test.shotgridstudio.com",
+        ]:
             path_types = [
                 LocalFileStorageManager.PREFERENCES,
                 LocalFileStorageManager.CACHE,
@@ -273,7 +276,10 @@ class TestLocalFileStorage(ShotgunTestBase):
         self, project_id, plugin_id, pc_id, expected_suffix
     ):
 
-        for hostname in ["http://test.shotgunstudio.com", "http://test.shotgridstudio.com"]:
+        for hostname in [
+            "http://test.shotgunstudio.com",
+            "http://test.shotgridstudio.com",
+        ]:
 
             path_types = [
                 LocalFileStorageManager.CACHE,
