@@ -110,7 +110,7 @@ while the **path**, **dev** and **manual** descriptors are accessed directly fro
 .. _app_store_descriptor:
 
 The ShotGrid App store
-=====================
+======================
 
 The ShotGrid app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by ShotGrid. App store descriptors should include a name and version token and
