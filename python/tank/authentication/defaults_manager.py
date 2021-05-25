@@ -110,7 +110,7 @@ class DefaultsManager(object):
 
         The returned format will be the same as is being used in the Shotgun API.
         For more information, see the `Shotgun API documentation
-        <http://developer.shotgunsoftware.com/python-api/reference.html#shotgun>`_.
+        <http://developer.shotgridsoftware.com/python-api/reference.html#shotgun>`_.
 
         :returns: String containing the default http proxy, None by default.
         """

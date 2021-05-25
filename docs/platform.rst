@@ -455,7 +455,7 @@ Just create a ``requires_shotgun_fields`` in your manifest and add entries on th
 
 Note how the fields are grouped by ShotGrid entity type (in the example above ``Version``). For a list of
 which field types are supported,
-see the `ShotGrid API documentation <http://developer.shotgunsoftware.com/python-api/data_types.html>`_.
+see the `ShotGrid API documentation <http://developer.shotgridsoftware.com/python-api/data_types.html>`_.
 
 .. note:: For more complex field types (such as entity and multi entity links), you need to set up creation via
           the **post-install hook** instead. (The post install hook is a special hook which runs at installation time
