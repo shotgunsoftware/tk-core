@@ -79,7 +79,7 @@ class depending on their internal complexity. A summary of functionality include
 The typical things an engine needs to handle are:
 
 - Menu management. At engine startup, once the apps have been loaded, the engine needs to create
-  its Shotgun menu and add the various apps to this menu.
+  its ShotGrid menu and add the various apps to this menu.
 
 - Logging methods are typically overridden to write to the application log.
 
@@ -195,7 +195,7 @@ Applications
 
 Toolkit Apps are tools that can execute in multiple DCC environments.
 
-.. note:: For an introduction to App development, see https://support.shotgridsoftware.com/entries/95440137
+.. note:: For an introduction to App development, see https://support.shotgunsoftware.com/entries/95440137
 
 A good way to get started with App development is to clone our starter github repository
 https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
@@ -329,14 +329,14 @@ and is always named ``info.yml``. This metadata file contains important informat
 
 - Configuration settings available for an app or engine.
 - Display name, documentation and support links for the app and other user facing metadata.
-- All custom Shotgun fields that are required by the app or engine code.
+- All custom ShotGrid fields that are required by the app or engine code.
 - Which frameworks that are required in order for this app to run. You can specify
   an exact framework version to use (e.g. ``v1.2.3``) or you can track against a subset of
   versions (e.g. ``v1.x.x`` or ``v1.2.x``).
 
 For real-world examples, see for example
-the `Shotgun Loader <https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml>`_
-or the `Shotgun Nuke Write Node <https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml>`_.
+the `ShotGrid Loader <https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml>`_
+or the `ShotGrid Nuke Write Node <https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml>`_.
 
 
 Display name and Description
@@ -347,7 +347,7 @@ The optional ``description`` field is a brief one line description of what the a
 
     # More verbose description of this item
     display_name: "Write Node"
-    description: "Support for the Shotgun Write Node in Nuke."
+    description: "Support for the ShotGrid Write Node in Nuke."
 
 
 Frameworks
@@ -439,29 +439,29 @@ Loader App may require an entity to be present in order to show a list of items 
 current Asset or Shot. The ``required_context`` settings help defining what fields are needed.
 Possible values are ``project``, ``entity``, ``step``, ``task`` and ``user``.
 
-Shotgun fields
+ShotGrid fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your app requires a particular custom field in Shotgun to operate correctly, you can add this to the
+If your app requires a particular custom field in ShotGrid to operate correctly, you can add this to the
 ``info.yml`` manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.
 
 Just create a ``requires_shotgun_fields`` in your manifest and add entries on the following form::
 
 
     requires_shotgun_fields:
-        # Shotgun fields that this app expects
+        # ShotGrid fields that this app expects
         Version:
             - { "system_name": "sg_movie_type", "type": "text" }
 
-Note how the fields are grouped by Shotgun entity type (in the example above ``Version``). For a list of
+Note how the fields are grouped by ShotGrid entity type (in the example above ``Version``). For a list of
 which field types are supported,
-see the `Shotgun API documentation <http://developer.shotgridsoftware.com/python-api/data_types.html>`_.
+see the `ShotGrid API documentation <http://developer.shotgunsoftware.com/python-api/data_types.html>`_.
 
 .. note:: For more complex field types (such as entity and multi entity links), you need to set up creation via
           the **post-install hook** instead. (The post install hook is a special hook which runs at installation time
           and allows you to execute arbitrary code as part of the app installation process.)
 
-.. warning:: This functionality requires administrative privileges in Shotgun. Apps using this functionality
+.. warning:: This functionality requires administrative privileges in ShotGrid. Apps using this functionality
              therefore requires a workflow where an admin is required to update or install such apps. For general
              purpose apps, we therefore recommend not relying on this functionality.
 
@@ -598,7 +598,7 @@ The publish_type data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use this when you want a setting which expects a **Publish Type** - these are typically used
-when publishing data to Shotgun. Value is a string matching ``PublishedFileType.code``::
+when publishing data to ShotGrid. Value is a string matching ``PublishedFileType.code``::
 
 
     published_script_type:
@@ -611,7 +611,7 @@ when publishing data to Shotgun. Value is a string matching ``PublishedFileType.
 The shotgun_entity_type data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Value is a string that represents a Shotgun entity type like Task, Sequence, Shot::
+Value is a string that represents a ShotGrid entity type like Task, Sequence, Shot::
 
     entity_type:
         type: shotgun_entity_type
@@ -621,7 +621,7 @@ Value is a string that represents a Shotgun entity type like Task, Sequence, Sho
 The shotgun_permission_group data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Value is a string that represents the display name of a Shotgun permission group like Admin,
+Value is a string that represents the display name of a ShotGrid permission group like Admin,
 Artist::
 
     permissions_group:
@@ -802,7 +802,7 @@ You must supply values dict that describes the data type of the list items::
         type: list
         values: {type: shotgun_entity_type}
         default_value: [Sequence, Shot, Asset, Task]
-        description: List of Shotgun entity types where this
+        description: List of ShotGrid entity types where this
                      Sgtk action should be visible on the Actions menu.
 
 Optionally you can also specify an **allows_empty** option if an empty list is a valid value::
@@ -879,7 +879,7 @@ through :meth:`Engine.has_qt5`.
 
 .. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact support@shotgridsoftware.com
+             in the PySide 1 emulation layer is not working or missing, please contact support@shotgunsoftware.com
              so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit

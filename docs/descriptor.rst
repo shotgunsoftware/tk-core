@@ -16,7 +16,7 @@ around installation and deployment.
 Descriptors are used extensively by Toolkit and allow a user to configure and drive
 Toolkit in a flexible fashion. Descriptors typically point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
-Descriptors form the backbone for Shotgun deployment and installation. The following
+Descriptors form the backbone for ShotGrid deployment and installation. The following
 example shows basic usage::
 
     import sgtk
@@ -91,7 +91,7 @@ Several different descriptor types are supported by Toolkit:
 
 
 - An **app_store** descriptor represents an item in the Toolkit App Store
-- A **shotgun** descriptor represents an item stored in Shotgun
+- A **shotgun** descriptor represents an item stored in ShotGrid
 - A **git** descriptor represents a tag in a git repository
 - A **git_branch** descriptor represents a commit in a git branch
 - A **github_release** descriptor represents a Release on a Github repo
@@ -109,11 +109,11 @@ while the **path**, **dev** and **manual** descriptors are accessed directly fro
 
 .. _app_store_descriptor:
 
-The Shotgun App store
+The ShotGrid App store
 =====================
 
-The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
-tested and approved by Shotgun. App store descriptors should include a name and version token and
+The ShotGrid app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+tested and approved by ShotGrid. App store descriptors should include a name and version token and
 are on the following form:
 
 .. code-block:: yaml
@@ -464,31 +464,31 @@ becomes easy to exchange environment configs. You can achieve this by using the 
     both with installed, baked or cached configuration, we recommend you use the ``CONFIG_FOLDER`` token.
 
 
-Pointing at a file attachment in Shotgun
+Pointing at a file attachment in ShotGrid
 ============================================
 
 The Shotgun descriptor allows you to upload an attachment directly
-to Shotgun and then reference it with a descriptor.
+to ShotGrid and then reference it with a descriptor.
 
 This allows for workflows where you can distribute configurations, custom apps
 or other items to your distributed users - regardless of network or file access.
-All they need is a connection to Shotgun.
+All they need is a connection to ShotGrid.
 
 A practical application of this is Toolkit's cloud based configurations;
 Upload a zipped toolkit configuration to the ``PipelineConfiguration.uploaded_config`` field on your pipeline configuration.
 The :class:`~sgtk.bootstrap.ToolkitManager` bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
-uploaded to Shotgun and it gets automatically picked up by all
+uploaded to ShotGrid and it gets automatically picked up by all
 users (even if they are remote).
 
 The Shotgun descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
-field in Shotgun and expects a zip file to be uploaded to the field.
+field in ShotGrid and expects a zip file to be uploaded to the field.
 
 Two formats are supported, one explicit based on a shotgun entity id and
 one implicit which uses the name in shotgun to resolve a record. With the
-id based syntax you specify the Shotgun entity type and field name you want
+id based syntax you specify the ShotGrid entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
 ``PipelineConfiguration.uploaded_config`` and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:
@@ -509,7 +509,7 @@ the Pipeline Configuration entity with id 111, use the following descriptor:
 
 
 The version token above refers to the version of the attachment. Every time a new
-attachment is uploaded to Shotgun, it gets assigned a unique id and the version
+attachment is uploaded to ShotGrid, it gets assigned a unique id and the version
 number in the descriptor allows you to point at a particular version of an uploaded
 attachment. It is also used to handle the underlying logic to understand what the
 latest version of an attachment is.
@@ -533,7 +533,7 @@ following syntax can be useful:
     sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
 
 Here, instead of specifying the entity id you can specify a ``name`` and an optional ``project_id`` field. The name
-field will be translated into an appropriate Shotgun name field, typically the ``code`` field.
+field will be translated into an appropriate ShotGrid name field, typically the ``code`` field.
 
 
 
@@ -581,7 +581,7 @@ SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS Colon separated list of paths to look for bu
                                     for example useful if you maintain a centralized bundle cache location
                                     that you want the bootstrap API to pick up bundles from.
 
-SHOTGUN_DISABLE_APPSTORE_ACCESS     Setting this to ``1`` will disable any Shotgun Appstore access. No attempts
+SHOTGUN_DISABLE_APPSTORE_ACCESS     Setting this to ``1`` will disable any ShotGrid Appstore access. No attempts
                                     to connect will be carried out. This option can be useful in cases where
                                     complex proxy setups is preventing Toolkit to correctly operate.
 
