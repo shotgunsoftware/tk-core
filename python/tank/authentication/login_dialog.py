@@ -188,7 +188,7 @@ class LoginDialog(QtGui.QDialog):
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
         completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
         self.ui.site.set_style_sheet(completer_style)
-        self.ui.site.set_placeholder_text("example.shotgunstudio.com")
+        self.ui.site.set_placeholder_text("example.shotgrid.autodesk.com")
         self.ui.login.set_style_sheet(completer_style)
         self.ui.login.set_placeholder_text("login")
 

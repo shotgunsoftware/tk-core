@@ -66,7 +66,7 @@ may be useful:
     # a ShotGrid API instance which is associated with that user.
     user = sa.create_script_user(api_script="myscript",
                                  api_key="xxxxx",
-                                 host="https://myhost.shotgridstudio.com")
+                                 host="https://myhost.shotgrid.autodesk.com")
 
     # tell the Toolkit Core API which user to use
     sgtk.set_authenticated_user(user)
