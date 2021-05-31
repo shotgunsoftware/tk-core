@@ -869,7 +869,7 @@ class SsoSaml2Core(object):
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
             message = (
                 "<p>Your company has configured Single Sign-On (SSO) for the SG site %s"
-                "<p>Please authenticate with your computer login and password to log into Shotgun."
+                "<p>Please authenticate with your computer login and password to log into ShotGrid."
                 "<p>"
             )
             auth_dialog = UsernamePasswordDialog(message=message % self._session.host)

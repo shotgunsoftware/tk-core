@@ -253,7 +253,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         data = self._sg_connection.find_one(self._entity_type, filters, [self._field])
 
         if data is None:
-            raise TankDescriptorError("Cannot resolve descriptor %s in Shotgun!" % self)
+            raise TankDescriptorError(
+                "Cannot resolve descriptor %s in ShotGrid!" % self
+            )
 
         # attachment field is on the following form in the case a file has been
         # uploaded:
