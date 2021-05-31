@@ -34,7 +34,7 @@ def get_entity_type_display_name(tk, entity_type_code):
 
     .. note:: The recommended way to access this data is now via the
               globals module in the shotgunutils framework. For more information,
-              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
+              see http://developer.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param entity_type_code: API entity type name

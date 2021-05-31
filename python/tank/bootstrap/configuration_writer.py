@@ -341,7 +341,7 @@ class ConfigurationWriter(object):
 
         with filesystem.auto_created_yml(config_info_file) as fh:
             fh.write("# This file contains metadata describing what exact version\n")
-            fh.write("# Of the config that was downloaded from Shotgun\n")
+            fh.write("# Of the config that was downloaded from ShotGrid\n")
             fh.write("\n")
             fh.write("# Below follows details for the sg attachment that is\n")
             fh.write("# reflected within this local configuration.\n")
@@ -426,7 +426,7 @@ class ConfigurationWriter(object):
         """
         if project_id:
             # Look up the project name via the project id
-            log.debug("Checking project in Shotgun...")
+            log.debug("Checking project in ShotGrid...")
             sg_data = self._sg_connection.find_one(
                 "Project", [["id", "is", project_id]], ["tank_name"]
             )
@@ -445,7 +445,7 @@ class ConfigurationWriter(object):
         # resolve project name and pipeline config name from shotgun.
         if pipeline_config_id:
             # look up pipeline config name and project name via the pc
-            log.debug("Checking pipeline config in Shotgun...")
+            log.debug("Checking pipeline config in ShotGrid...")
 
             sg_data = self._sg_connection.find_one(
                 constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,

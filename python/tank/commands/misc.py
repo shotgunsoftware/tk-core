@@ -29,7 +29,7 @@ class ClearCacheAction(Action):
             (
                 "Clears the SG Menu Cache associated with this Configuration. "
                 "This is sometimes useful after complex configuration changes if new "
-                "or modified Toolkit menu items are not appearing inside Shotgun."
+                "or modified Toolkit menu items are not appearing inside ShotGrid."
             ),
             "Admin",
         )

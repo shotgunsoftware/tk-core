@@ -132,18 +132,20 @@ class TestLocalFileStorage(ShotgunTestBase):
             LocalFileStorageManager.LOGGING,
         ]
 
+        hosted_sg_sites = ["test.shotgunstudio.com", "test.shotgrid.autodesk.com"]
+
         for path_type in new_path_types:
+            for site_name in hosted_sg_sites:
+                cache_path = LocalFileStorageManager.get_site_root(
+                    "https://{}".format(site_name), path_type
+                )
 
-            cache_path = LocalFileStorageManager.get_site_root(
-                "https://test.shotgunstudio.com", path_type
-            )
-
-            self.assertEqual(
-                cache_path,
-                os.path.join(
-                    LocalFileStorageManager.get_global_root(path_type), "test"
-                ),
-            )
+                self.assertEqual(
+                    cache_path,
+                    os.path.join(
+                        LocalFileStorageManager.get_global_root(path_type), "test"
+                    ),
+                )
 
             cache_path = LocalFileStorageManager.get_site_root(
                 "http://shotgun", path_type
@@ -175,21 +177,22 @@ class TestLocalFileStorage(ShotgunTestBase):
 
         for path_type in old_path_types:
 
-            cache_path = LocalFileStorageManager.get_site_root(
-                "https://test.shotgunstudio.com",
-                path_type,
-                LocalFileStorageManager.CORE_V17,
-            )
+            for site_name in hosted_sg_sites:
+                cache_path = LocalFileStorageManager.get_site_root(
+                    "https://{}".format(site_name),
+                    path_type,
+                    LocalFileStorageManager.CORE_V17,
+                )
 
-            self.assertEqual(
-                cache_path,
-                os.path.join(
-                    LocalFileStorageManager.get_global_root(
-                        path_type, LocalFileStorageManager.CORE_V17
+                self.assertEqual(
+                    cache_path,
+                    os.path.join(
+                        LocalFileStorageManager.get_global_root(
+                            path_type, LocalFileStorageManager.CORE_V17
+                        ),
+                        site_name,
                     ),
-                    "test.shotgunstudio.com",
-                ),
-            )
+                )
 
             cache_path = LocalFileStorageManager.get_site_root(
                 "http://shotgun", path_type, LocalFileStorageManager.CORE_V17
@@ -221,23 +224,25 @@ class TestLocalFileStorage(ShotgunTestBase):
 
     def _compute_config_root(self, project_id, plugin_id, pc_id, expected_suffix):
 
-        hostname = "http://test.shotgunstudio.com"
+        for hostname in [
+            "http://test.shotgunstudio.com",
+            "http://test.shotgrid.autodesk.com",
+        ]:
+            path_types = [
+                LocalFileStorageManager.PREFERENCES,
+                LocalFileStorageManager.CACHE,
+                LocalFileStorageManager.PERSISTENT,
+                LocalFileStorageManager.LOGGING,
+            ]
 
-        path_types = [
-            LocalFileStorageManager.PREFERENCES,
-            LocalFileStorageManager.CACHE,
-            LocalFileStorageManager.PERSISTENT,
-            LocalFileStorageManager.LOGGING,
-        ]
+            for path_type in path_types:
+                root = LocalFileStorageManager.get_configuration_root(
+                    hostname, project_id, plugin_id, pc_id, path_type
+                )
 
-        for path_type in path_types:
-            root = LocalFileStorageManager.get_configuration_root(
-                hostname, project_id, plugin_id, pc_id, path_type
-            )
+                site_root = LocalFileStorageManager.get_site_root(hostname, path_type)
 
-            site_root = LocalFileStorageManager.get_site_root(hostname, path_type)
-
-            self.assertEqual(root, os.path.join(site_root, expected_suffix))
+                self.assertEqual(root, os.path.join(site_root, expected_suffix))
 
     def test_config_root(self):
         """
@@ -271,29 +276,32 @@ class TestLocalFileStorage(ShotgunTestBase):
         self, project_id, plugin_id, pc_id, expected_suffix
     ):
 
-        hostname = "http://test.shotgunstudio.com"
+        for hostname in [
+            "http://test.shotgunstudio.com",
+            "http://test.shotgrid.autodesk.com",
+        ]:
 
-        path_types = [
-            LocalFileStorageManager.CACHE,
-            LocalFileStorageManager.PERSISTENT,
-            LocalFileStorageManager.LOGGING,
-        ]
+            path_types = [
+                LocalFileStorageManager.CACHE,
+                LocalFileStorageManager.PERSISTENT,
+                LocalFileStorageManager.LOGGING,
+            ]
 
-        for path_type in path_types:
-            root = LocalFileStorageManager.get_configuration_root(
-                hostname,
-                project_id,
-                plugin_id,
-                pc_id,
-                path_type,
-                LocalFileStorageManager.CORE_V17,
-            )
+            for path_type in path_types:
+                root = LocalFileStorageManager.get_configuration_root(
+                    hostname,
+                    project_id,
+                    plugin_id,
+                    pc_id,
+                    path_type,
+                    LocalFileStorageManager.CORE_V17,
+                )
 
-            site_root = LocalFileStorageManager.get_site_root(
-                hostname, path_type, LocalFileStorageManager.CORE_V17
-            )
+                site_root = LocalFileStorageManager.get_site_root(
+                    hostname, path_type, LocalFileStorageManager.CORE_V17
+                )
 
-            self.assertEqual(root, os.path.join(site_root, expected_suffix))
+                self.assertEqual(root, os.path.join(site_root, expected_suffix))
 
     def test_legacy_config_root(self):
         """
