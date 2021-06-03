@@ -201,7 +201,7 @@ class Shotgun(object):
         if schema_path is None or schema_entity_path is None:
             raise MockgunError("Cannot create Mockgun instance because no schema files have been defined. "
                                "Before creating a Mockgun instance, please call Mockgun.set_schema_paths() "
-                               "in order to specify which SG schema Mockgun should operate against.")
+                               "in order to specify which ShotGrid schema Mockgun should operate against.")
 
         self._schema, self._schema_entity = SchemaFactory.get_schemas(schema_path, schema_entity_path)
 
@@ -246,13 +246,6 @@ class Shotgun(object):
             return self._schema[entity_type]
         else:
             return dict((k, v) for k, v in self._schema[entity_type].items() if k == field_name)
-    
-    def get_next_id(self, entity_type):
-        try:
-            # get next id in this table
-            return max(self._db[entity_type]) + 1
-        except ValueError:
-            return 1
 
     def find(
         self, entity_type, filters, fields=None, order=None, filter_operator=None,
@@ -371,7 +364,11 @@ class Shotgun(object):
         self._validate_entity_type(entity_type)
         self._validate_entity_data(entity_type, data)
         self._validate_entity_fields(entity_type, return_fields)
-        next_id = self.get_next_id(entity_type)
+        try:
+            # get next id in this table
+            next_id = max(self._db[entity_type]) + 1
+        except ValueError:
+            next_id = 1
 
         row = self._get_new_row(entity_type)
 
@@ -506,7 +503,7 @@ class Shotgun(object):
                                    "url": dict}[sg_type]
                 except KeyError:
                     raise ShotgunError(
-                        "Field %s.%s: Handling for SG type %s is not implemented" %
+                        "Field %s.%s: Handling for ShotGrid type %s is not implemented" %
                         (entity_type, field, sg_type)
                     )
 
