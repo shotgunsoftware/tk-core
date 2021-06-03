@@ -897,7 +897,6 @@ class TankTestBase(unittest.TestCase):
         entity_type = "PipelineConfiguration"
         sg_pc_entity = {
             "type": entity_type,
-            "id": self.mockgun.get_next_id(entity_type),
             "code": "%s_pc" % tank_name,
             "project": project,
             "windows_path": pipeline_config_root,
@@ -976,11 +975,10 @@ class TankTestBase(unittest.TestCase):
         """
 
         entity_type = "Project"
-        project_id = self.mockgun.get_next_id(entity_type)
+        project_id = len(self.mockgun.find("Project", [])) + 1
         project_entity = {
             "type": entity_type,
-            "id": project_id,
-            "tank_name": "project_%s" % str(project_id),
+            "tank_name": "project_%s" % project_id,
             "name": "project_name",
             "archived": False,
             "is_template": False,
@@ -1046,7 +1044,10 @@ class TankTestBase(unittest.TestCase):
 
             # if the entity does not specify an "id", get the next one
             if entity.get("id", None) is None:
-                entity["id"] = self.mockgun.get_next_id(et)
+                # FIXME: We should be using create below instead of allowing the user to pick an id.
+                # get next id in this table.
+                entity["id"] = len(self.mockgun.find(et, [])) + 1
+
             eid = entity["id"]
 
             # special retired flag for mockgun
