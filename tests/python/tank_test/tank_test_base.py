@@ -968,6 +968,20 @@ class TankTestBase(unittest.TestCase):
             tk,
         )
 
+    def _get_next_id(self, entity_type):
+        """
+        Compute the next available id for the given entity.
+
+        :param entity_type: Type of the entity.
+
+        :returns: The next available id.
+        """
+        entities = self.mockgun.find(entity_type, [])
+        if entities:
+            return max(entity["id"] for entity in entities) + 1
+        else:
+            return 1
+
     def create_project(self, project_properties):
         """
         Convenience method to add a Project entity to the mocked shotgun database. This
@@ -975,7 +989,7 @@ class TankTestBase(unittest.TestCase):
         """
 
         entity_type = "Project"
-        project_id = len(self.mockgun.find("Project", [])) + 1
+        project_id = self._get_next_id("Project")
         project_entity = {
             "type": entity_type,
             "tank_name": "project_%s" % project_id,
@@ -1046,7 +1060,7 @@ class TankTestBase(unittest.TestCase):
             if entity.get("id", None) is None:
                 # FIXME: We should be using create below instead of allowing the user to pick an id.
                 # get next id in this table.
-                entity["id"] = len(self.mockgun.find(et, [])) + 1
+                entity["id"] = self._get_next_id(et)
 
             eid = entity["id"]
 
