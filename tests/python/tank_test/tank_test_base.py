@@ -897,7 +897,6 @@ class TankTestBase(unittest.TestCase):
         entity_type = "PipelineConfiguration"
         sg_pc_entity = {
             "type": entity_type,
-            "id": self.mockgun.get_next_id(entity_type),
             "code": "%s_pc" % tank_name,
             "project": project,
             "windows_path": pipeline_config_root,
@@ -969,6 +968,20 @@ class TankTestBase(unittest.TestCase):
             tk,
         )
 
+    def _get_next_id(self, entity_type):
+        """
+        Compute the next available id for the given entity.
+
+        :param entity_type: Type of the entity.
+
+        :returns: The next available id.
+        """
+        entities = self.mockgun.find(entity_type, [])
+        if entities:
+            return max(entity["id"] for entity in entities) + 1
+        else:
+            return 1
+
     def create_project(self, project_properties):
         """
         Convenience method to add a Project entity to the mocked shotgun database. This
@@ -976,11 +989,10 @@ class TankTestBase(unittest.TestCase):
         """
 
         entity_type = "Project"
-        project_id = self.mockgun.get_next_id(entity_type)
+        project_id = self._get_next_id("Project")
         project_entity = {
             "type": entity_type,
-            "id": project_id,
-            "tank_name": "project_%s" % str(project_id),
+            "tank_name": "project_%s" % project_id,
             "name": "project_name",
             "archived": False,
             "is_template": False,
@@ -1046,7 +1058,10 @@ class TankTestBase(unittest.TestCase):
 
             # if the entity does not specify an "id", get the next one
             if entity.get("id", None) is None:
-                entity["id"] = self.mockgun.get_next_id(et)
+                # FIXME: We should be using create below instead of allowing the user to pick an id.
+                # get next id in this table.
+                entity["id"] = self._get_next_id(et)
+
             eid = entity["id"]
 
             # special retired flag for mockgun
