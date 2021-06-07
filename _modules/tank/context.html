@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.19.19 documentation</title>
+  <title>tank.context &mdash; tk-core v0.20.1 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.19.<br>
+    <b>tk-core</b> v0.20.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1519,7 +1519,7 @@
 
         <span class="k">if</span> <span class="n">sg_entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;Entity </span><span class="si">%s</span><span class="s2"> with id </span><span class="si">%s</span><span class="s2"> not found in Shotgun!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
+                <span class="s2">&quot;Entity </span><span class="si">%s</span><span class="s2"> with id </span><span class="si">%s</span><span class="s2"> not found in ShotGrid!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sg_entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">):</span>
@@ -2012,7 +2012,7 @@
         <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">task_id</span><span class="p">]],</span> <span class="n">standard_fields</span> <span class="o">+</span> <span class="n">additional_fields</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">task</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Unable to locate Task with id </span><span class="si">%s</span><span class="s2"> in Shotgun&quot;</span> <span class="o">%</span> <span class="n">task_id</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Unable to locate Task with id </span><span class="si">%s</span><span class="s2"> in ShotGrid&quot;</span> <span class="o">%</span> <span class="n">task_id</span><span class="p">)</span>
 
     <span class="c1"># add task so it can be processed with other shotgun entities</span>
     <span class="n">task</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">]}</span>
@@ -2072,7 +2072,7 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-            <span class="s2">&quot;Unable to locate </span><span class="si">%s</span><span class="s2"> with id </span><span class="si">%s</span><span class="s2"> in Shotgun&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
+            <span class="s2">&quot;Unable to locate </span><span class="si">%s</span><span class="s2"> with id </span><span class="si">%s</span><span class="s2"> in ShotGrid&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="c1"># create context</span>

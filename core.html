@@ -11,7 +11,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.19.19 documentation</title>
+  <title>Core &mdash; tk-core v0.20.1 documentation</title>
   
 
   
@@ -175,7 +175,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.19.<br>
+    <b>tk-core</b> v0.20.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -878,8 +878,8 @@ folder creation pass should be executed for a particular engine.</p></li>
 
 <section id="authentication">
 <h3>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h3>
-<p>Certain API operations require Shotgun data and hence require a way for the API
-to establish a connection to Shotgun. The easiest way to handle this is by
+<p>Certain API operations require ShotGrid data and hence require a way for the API
+to establish a connection to ShotGrid. The easiest way to handle this is by
 making sure that each API instance has an associated authenticated user:</p>
 <dl class="function">
 <dt id="sgtk.set_authenticated_user">
@@ -1991,7 +1991,7 @@ This needs to be defined in the currently running environment, as part of the <c
 <span class="n">frameworks</span><span class="p">:</span>
  <span class="c1"># define the framework that we are using in the hook</span>
  <span class="n">tk</span><span class="o">-</span><span class="n">framework</span><span class="o">-</span><span class="n">library_v1</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">:</span>
-    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;https://github.com/foo/tk-framework-library.git&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="o">.</span><span class="mf">2.6</span><span class="p">}</span>
+    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;https://github.com/foo/tk-framework-library.git&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="mf">.2.6</span><span class="p">}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -2704,7 +2704,7 @@ be [‘foo’, ‘bar’]</p></li>
 <section id="templates">
 <h2>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h2>
 <p>The Toolkit template system is used to handle path and string token manipulations.</p>
-<p>Since the Shotgun Toolkit is file system based, Apps will need to resolve file paths whenever
+<p>Since the ShotGrid Toolkit is file system based, Apps will need to resolve file paths whenever
 they need to read or write data from disk. Apps are file system structure agnostic - meaning
 that they don’t know how the file system is organized. The template system handles all this for them.</p>
 <p>At the heart of the template system, there is a Templates Configuration File. This file contains
@@ -2739,12 +2739,12 @@ This is why all the file system locations are kept in a single file.</p>
 </pre></div>
 </div>
 <p>Note how the above path and template has two different types of fields: The Shot and Step fields are
-high-level fields with equivalent objects in Shotgun (a Shot and a Pipeline Step) where the name and
+high-level fields with equivalent objects in ShotGrid (a Shot and a Pipeline Step) where the name and
 the version fields are very specific to this particular type of template (in this case a publish path.).
 If we wanted to describe a publish path for an asset rather than a shot, we would still have a name
 and a version field, since this is needed for all publishes, regardless of what type of data it is -
 however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
-where the asset field would be associated with an asset in Shotgun.</p>
+where the asset field would be associated with an asset in ShotGrid.</p>
 <section id="template">
 <h3>Template<a class="headerlink" href="#template" title="Permalink to this headline">¶</a></h3>
 <dl class="class">

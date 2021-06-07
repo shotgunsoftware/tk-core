@@ -1,4 +1,4 @@
-Shotgun pipeline toolkit core platform, |release|
+ShotGrid pipeline toolkit core platform, |release|
 ####################################################
 
 .. toctree::

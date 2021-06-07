@@ -11,7 +11,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.19.19 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.20.1 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#supported-engines-and-operating-systems">Supported Engines and operating systems</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#documentation-and-support">Documentation and Support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#required-context-fields">Required Context Fields</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#shotgun-fields">Shotgun fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#shotgrid-fields">ShotGrid fields</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#the-configuration-section">The configuration section</a><ul>
@@ -178,7 +178,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.19.<br>
+    <b>tk-core</b> v0.20.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -452,7 +452,7 @@ does not the default base class behavior.</p></li>
 <p>The typical things an engine needs to handle are:</p>
 <ul class="simple">
 <li><p>Menu management. At engine startup, once the apps have been loaded, the engine needs to create
-its Shotgun menu and add the various apps to this menu.</p></li>
+its ShotGrid menu and add the various apps to this menu.</p></li>
 <li><p>Logging methods are typically overridden to write to the application log.</p></li>
 <li><p>UI methods are typically overridden to ensure seamless integration of Windows launched by Toolkit apps
 and the underlying host application window management setup. Engines are launched via the
@@ -3803,21 +3803,21 @@ and is always named <code class="docutils literal notranslate"><span class="pre"
 <ul class="simple">
 <li><p>Configuration settings available for an app or engine.</p></li>
 <li><p>Display name, documentation and support links for the app and other user facing metadata.</p></li>
-<li><p>All custom Shotgun fields that are required by the app or engine code.</p></li>
+<li><p>All custom ShotGrid fields that are required by the app or engine code.</p></li>
 <li><p>Which frameworks that are required in order for this app to run. You can specify
 an exact framework version to use (e.g. <code class="docutils literal notranslate"><span class="pre">v1.2.3</span></code>) or you can track against a subset of
 versions (e.g. <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code> or <code class="docutils literal notranslate"><span class="pre">v1.2.x</span></code>).</p></li>
 </ul>
 <p>For real-world examples, see for example
-the <a class="reference external" href="https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml">Shotgun Loader</a>
-or the <a class="reference external" href="https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml">Shotgun Nuke Write Node</a>.</p>
+the <a class="reference external" href="https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml">ShotGrid Loader</a>
+or the <a class="reference external" href="https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml">ShotGrid Nuke Write Node</a>.</p>
 <section id="display-name-and-description">
 <h4>Display name and Description<a class="headerlink" href="#display-name-and-description" title="Permalink to this headline">¶</a></h4>
 <p>The optional <code class="docutils literal notranslate"><span class="pre">display_name</span></code> field defines the name that the user will see for the app.
 The optional <code class="docutils literal notranslate"><span class="pre">description</span></code> field is a brief one line description of what the app does:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># More verbose description of this item</span>
 <span class="n">display_name</span><span class="p">:</span> <span class="s2">&quot;Write Node&quot;</span>
-<span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Support for the Shotgun Write Node in Nuke.&quot;</span>
+<span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Support for the ShotGrid Write Node in Nuke.&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -3904,20 +3904,20 @@ Loader App may require an entity to be present in order to show a list of items 
 current Asset or Shot. The <code class="docutils literal notranslate"><span class="pre">required_context</span></code> settings help defining what fields are needed.
 Possible values are <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">entity</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">task</span></code> and <code class="docutils literal notranslate"><span class="pre">user</span></code>.</p>
 </section>
-<section id="shotgun-fields">
-<h4>Shotgun fields<a class="headerlink" href="#shotgun-fields" title="Permalink to this headline">¶</a></h4>
-<p>If your app requires a particular custom field in Shotgun to operate correctly, you can add this to the
+<section id="shotgrid-fields">
+<h4>ShotGrid fields<a class="headerlink" href="#shotgrid-fields" title="Permalink to this headline">¶</a></h4>
+<p>If your app requires a particular custom field in ShotGrid to operate correctly, you can add this to the
 <code class="docutils literal notranslate"><span class="pre">info.yml</span></code> manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.</p>
 <p>Just create a <code class="docutils literal notranslate"><span class="pre">requires_shotgun_fields</span></code> in your manifest and add entries on the following form:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">requires_shotgun_fields</span><span class="p">:</span>
-    <span class="c1"># Shotgun fields that this app expects</span>
+    <span class="c1"># ShotGrid fields that this app expects</span>
     <span class="n">Version</span><span class="p">:</span>
         <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
 </pre></div>
 </div>
-<p>Note how the fields are grouped by Shotgun entity type (in the example above <code class="docutils literal notranslate"><span class="pre">Version</span></code>). For a list of
+<p>Note how the fields are grouped by ShotGrid entity type (in the example above <code class="docutils literal notranslate"><span class="pre">Version</span></code>). For a list of
 which field types are supported,
-see the <a class="reference external" href="http://developer.shotgunsoftware.com/python-api/data_types.html">Shotgun API documentation</a>.</p>
+see the <a class="reference external" href="http://developer.shotgridsoftware.com/python-api/data_types.html">ShotGrid API documentation</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For more complex field types (such as entity and multi entity links), you need to set up creation via
@@ -3926,7 +3926,7 @@ and allows you to execute arbitrary code as part of the app installation process
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>This functionality requires administrative privileges in Shotgun. Apps using this functionality
+<p>This functionality requires administrative privileges in ShotGrid. Apps using this functionality
 therefore requires a workflow where an admin is required to update or install such apps. For general
 purpose apps, we therefore recommend not relying on this functionality.</p>
 </div>
@@ -4051,7 +4051,7 @@ slash and using slashes as its path separator. Sgtk will translate it into a val
 <section id="the-publish-type-data-type">
 <h4>The publish_type data type<a class="headerlink" href="#the-publish-type-data-type" title="Permalink to this headline">¶</a></h4>
 <p>Use this when you want a setting which expects a <strong>Publish Type</strong> - these are typically used
-when publishing data to Shotgun. Value is a string matching <code class="docutils literal notranslate"><span class="pre">PublishedFileType.code</span></code>:</p>
+when publishing data to ShotGrid. Value is a string matching <code class="docutils literal notranslate"><span class="pre">PublishedFileType.code</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">published_script_type</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">publish_type</span>
     <span class="n">description</span><span class="p">:</span> <span class="n">The</span> <span class="n">Published</span> <span class="n">file</span> <span class="nb">type</span> <span class="k">for</span> <span class="n">published</span> <span class="n">Nuke</span> <span class="n">scripts</span><span class="o">.</span>
@@ -4064,7 +4064,7 @@ when publishing data to Shotgun. Value is a string matching <code class="docutil
 </section>
 <section id="the-shotgun-entity-type-data-type">
 <h4>The shotgun_entity_type data type<a class="headerlink" href="#the-shotgun-entity-type-data-type" title="Permalink to this headline">¶</a></h4>
-<p>Value is a string that represents a Shotgun entity type like Task, Sequence, Shot:</p>
+<p>Value is a string that represents a ShotGrid entity type like Task, Sequence, Shot:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entity_type</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_entity_type</span>
     <span class="n">default_value</span><span class="p">:</span> <span class="n">Shot</span>
@@ -4074,7 +4074,7 @@ when publishing data to Shotgun. Value is a string matching <code class="docutil
 </section>
 <section id="the-shotgun-permission-group-data-type">
 <h4>The shotgun_permission_group data type<a class="headerlink" href="#the-shotgun-permission-group-data-type" title="Permalink to this headline">¶</a></h4>
-<p>Value is a string that represents the display name of a Shotgun permission group like Admin,
+<p>Value is a string that represents the display name of a ShotGrid permission group like Admin,
 Artist:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">permissions_group</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_permission_group</span>
@@ -4237,7 +4237,7 @@ You must supply values dict that describes the data type of the list items:</p>
     <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
     <span class="n">values</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_entity_type</span><span class="p">}</span>
     <span class="n">default_value</span><span class="p">:</span> <span class="p">[</span><span class="n">Sequence</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">Task</span><span class="p">]</span>
-    <span class="n">description</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="n">Shotgun</span> <span class="n">entity</span> <span class="n">types</span> <span class="n">where</span> <span class="n">this</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">List</span> <span class="n">of</span> <span class="n">ShotGrid</span> <span class="n">entity</span> <span class="n">types</span> <span class="n">where</span> <span class="n">this</span>
                  <span class="n">Sgtk</span> <span class="n">action</span> <span class="n">should</span> <span class="n">be</span> <span class="n">visible</span> <span class="n">on</span> <span class="n">the</span> <span class="n">Actions</span> <span class="n">menu</span><span class="o">.</span>
 </pre></div>
 </div>

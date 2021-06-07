@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.19.19 documentation</title>
+  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.20.1 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.19.<br>
+    <b>tk-core</b> v0.20.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -230,7 +230,7 @@
 
 <span class="sd">    .. note:: The recommended way to access this data is now via the</span>
 <span class="sd">              globals module in the shotgunutils framework. For more information,</span>
-<span class="sd">              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html</span>
+<span class="sd">              see http://developer.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_globals.html</span>
 
 <span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
 <span class="sd">    :param entity_type_code: API entity type name</span>
@@ -276,7 +276,9 @@
 
 
 <div class="viewcode-block" id="find_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.find_publish">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span>
+    <span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">only_current_project</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Finds publishes in Shotgun given paths on disk.</span>
 <span class="sd">    This method is similar to the find method in the Shotgun API,</span>
@@ -290,6 +292,10 @@
 <span class="sd">    By default, the shotgun id is returned for each successfully identified path.</span>
 <span class="sd">    If you want to retrieve additional fields, you can specify these using</span>
 <span class="sd">    the fields parameter.</span>
+
+<span class="sd">    By default, only publishes in the current project will be found. If you</span>
+<span class="sd">    want to retreive publishes from any active project in the pipeline config,</span>
+<span class="sd">    you can specify the only_current_project param to False.</span>
 
 <span class="sd">    The method will return a dictionary, keyed by path. The value will be</span>
 <span class="sd">    a standard shotgun query result dictionary, for example::</span>
@@ -307,6 +313,9 @@
 <span class="sd">    :param filters: Optional list of shotgun filters to apply.</span>
 <span class="sd">    :param fields: Optional list of fields from the matched entities to</span>
 <span class="sd">                   return. Defaults to id and type.</span>
+<span class="sd">    :param only_current_project: Optional boolean to find publishes in Shotgun only from the</span>
+<span class="sd">                                 current project (True) or from any active project (False).</span>
+<span class="sd">                                 Defaults to True.</span>
 <span class="sd">    :returns: dictionary keyed by path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># avoid cyclic references</span>
@@ -316,7 +325,7 @@
     <span class="c1"># in case of sequences, there will be more than one file</span>
     <span class="c1"># per path cache</span>
     <span class="c1"># {&lt;storage name&gt;: { path_cache: [full_path, full_path]}}</span>
-    <span class="n">storage_root_to_paths</span> <span class="o">=</span> <span class="n">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>
+    <span class="n">storage_root_to_paths</span> <span class="o">=</span> <span class="n">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">only_current_project</span><span class="p">)</span>
 
     <span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span> <span class="ow">or</span> <span class="p">[]</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="p">[]</span>
