@@ -32,6 +32,7 @@ from .. import hook
 from ..errors import TankError
 from .errors import (
     TankEngineInitError,
+    TankUnresolvedEnvironmentError,
     TankContextChangeNotSupportedError,
     TankEngineEventError,
     TankMissingEngineError,
@@ -2427,7 +2428,7 @@ class Engine(TankBundle):
             file_in.__rshift__(self._dark_palette)
             fh.close()
 
-            # set the std selection bg color to be 'shotgun blue'
+            # set the std selection bg color to be 'SG blue'
             highlight_color = QtGui.QBrush(
                 QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"])
             )
@@ -3222,27 +3223,32 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
                 schema = app_desc.configuration_schema
                 settings = env.get_app_settings(eng, app)
 
-                # check that the context contains all the info that the app needs
+                # Check that the context contains all the info that the app needs.
                 validation.validate_context(app_desc, context)
 
-                # make sure the current operating system platform is supported
+                # Make sure the current operating system platform is supported.
                 validation.validate_platform(app_desc)
 
-                # for multi engine apps, make sure our engine is supported
+                # For multi engine apps, make sure our engine is supported.
                 supported_engines = app_desc.supported_engines
                 if supported_engines and engine_name not in supported_engines:
                     raise TankError(
-                        "The app could not be loaded since it only supports "
-                        "the following engines: %s" % supported_engines
+                        "The app doesn't support the engine %s. It supports "
+                        "the following engines: %s" % (engine_name, supported_engines)
                     )
 
-                # finally validate the configuration.
+                # Finally validate the configuration.
                 # Note: context is set to None as we don't
                 # want to fail validation because of an
                 # incomplete context at this stage!
                 validation.validate_settings(app, tk, None, schema, settings)
-            except TankError:
-                # ignore any Tank exceptions to skip invalid apps
+            except TankError as e:
+                core_logger.warning(
+                    "Could not validate app settings for the "
+                    '"%s" app instance in the "%s" environment '
+                    'on the "%s" engine.\nError: %s' % (app, env_name, engine_name, e)
+                )
+                # Ignore any Tank exceptions to skip invalid apps.
                 continue
 
             # settings are valid so add them to return list:
@@ -3282,7 +3288,7 @@ def start_shotgun_engine(tk, entity_type, context):
     # get the location for our engine
     if constants.SHOTGUN_ENGINE_NAME not in env.get_engines():
         raise TankMissingEngineError(
-            "Cannot find a shotgun engine in %s. Please contact support." % env
+            "Cannot find a SG engine in %s. Please contact support." % env
         )
 
     engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)
@@ -3413,7 +3419,7 @@ def __pick_environment(engine_name, tk, context):
         # this may be because an incomplete Context was passed.
         # without an environment, engine creation cannot succeed.
         # raise an exception with a message
-        raise TankEngineInitError(
+        raise TankUnresolvedEnvironmentError(
             "Engine %s cannot initialize - the pick environment hook was not "
             "able to return an environment to use, given the context %s. "
             "Usually this is because the context contains insufficient information "

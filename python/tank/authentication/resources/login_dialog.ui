@@ -161,10 +161,18 @@ QComboBox::disabled {
            <number>0</number>
           </property>
           <item>
-           <widget class="RecentBox" name="site"/>
+           <widget class="RecentBox" name="site">
+            <property name="accessibleName">
+             <string>site</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="RecentBox" name="login"/>
+           <widget class="RecentBox" name="login">
+            <property name="accessibleName">
+             <string>login</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="Qt5LikeLineEdit" name="password">
@@ -173,6 +181,9 @@ QComboBox::disabled {
               <width>308</width>
               <height>0</height>
              </size>
+            </property>
+            <property name="accessibleName">
+             <string>password</string>
             </property>
             <property name="echoMode">
              <enum>QLineEdit::Password</enum>
@@ -242,7 +253,7 @@ QComboBox::disabled {
 }</string>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://mystudio.shotgunstudio.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Forgot your password?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://mystudio.shotgrid.autodesk.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Forgot your password?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>
@@ -373,6 +384,9 @@ background-color: rgb(35, 165, 225);</string>
              </item>
              <item>
               <widget class="Qt5LikeLineEdit" name="_2fa_code">
+               <property name="accessibleName">
+                <string>2fa code</string>
+               </property>
                <property name="placeholderText">
                 <string>Enter code</string>
                </property>
@@ -544,6 +558,9 @@ background-color: rgb(35, 165, 225);</string>
              </item>
              <item>
               <widget class="Qt5LikeLineEdit" name="backup_code">
+               <property name="accessibleName">
+                <string>backup code</string>
+               </property>
                <property name="text">
                 <string/>
                </property>

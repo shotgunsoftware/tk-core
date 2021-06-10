@@ -52,3 +52,9 @@ class SsoSaml2MissingQtWebKit(SsoSaml2MissingQtModuleError):
     """
     Exception that indicates that the QtWebKit component is missing.
     """
+
+
+class SsoSaml2IncompletePySide2(SsoSaml2Error):
+    """
+    Exception that indicates that the version of PySide2 used is incomplete or obsolete.
+    """

@@ -17,6 +17,13 @@ from .shotgun import create_event_log_entry
 from .shotgun import get_entity_type_display_name
 from .shotgun import get_published_file_entity_type
 
+from .version import (
+    is_version_older,
+    is_version_newer,
+    is_version_older_or_equal,
+    is_version_newer_or_equal,
+)
+
 from .shotgun_entity import get_sg_entity_name_field
 
 from .environment import append_path_to_env_var

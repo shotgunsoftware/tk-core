@@ -79,6 +79,15 @@ class ShotgunUser(object):
         """
         return self._impl.get_login()
 
+    def resolve_entity(self):
+        """
+        Resolves the Shotgun entity associated with this user.
+
+        :returns: A dictionary with ``type`` and ``id`` values.
+        :rtype: dict
+        """
+        return self._impl.resolve_entity()
+
     def create_sg_connection(self):
         """
         Creates a Shotgun connection using the credentials for this user.

@@ -135,6 +135,44 @@ class TestFileSystem(TankTestBase):
         # Clean up
         fs.safe_delete_folder(test_folder)
 
+    def test_copy_file_and_folder(self):
+        """
+        Test the copy_file helper
+        """
+        # A root folder
+        copy_test_root_folder = os.path.join(self.tank_temp, "copy_tests")
+        fs.ensure_folder_exists(copy_test_root_folder, permissions=0o777)
+        # Copy src file
+        copy_test_basename = "copy_file.txt"
+        copy_test_file = os.path.join(copy_test_root_folder, copy_test_basename)
+        fs.touch_file(copy_test_file, permissions=0o777)
+        # Copy dst folder
+        copy_test_dst_folder = os.path.join(
+            copy_test_root_folder, "copy_test_dst_folder"
+        )
+        fs.ensure_folder_exists(copy_test_dst_folder, permissions=0o777)
+        # Copy dst file
+        copy_test_dst_file = os.path.join(copy_test_dst_folder, "copied_file.txt")
+
+        # Tests
+        # Test folder name dst argument
+        fs.copy_file(
+            os.path.join(copy_test_root_folder, copy_test_basename),
+            copy_test_dst_folder,
+            permissions=0o777,
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(copy_test_dst_folder, copy_test_basename))
+        )
+        # Test file name dst argument
+        fs.copy_file(
+            os.path.join(copy_test_root_folder, copy_test_basename), copy_test_dst_file
+        )
+        self.assertTrue(os.path.exists(copy_test_dst_file))
+
+        # Clean up
+        fs.safe_delete_folder(copy_test_root_folder)
+
 
 class TestOpenInFileBrowser(TankTestBase):
     """

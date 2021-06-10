@@ -64,7 +64,7 @@ def _get_site_infos(url, http_proxy=None):
         http_proxy = _sanitize_http_proxy(http_proxy).netloc
         if http_proxy:
             get_logger().debug(
-                "Using HTTP proxy to connect to the Shotgun server: %s", http_proxy
+                "Using HTTP proxy to connect to the SG server: %s", http_proxy
             )
         # Checks if the information is in the cache, is missing or out of date.
         if url not in INFOS_CACHE or (

@@ -152,3 +152,6 @@ from .hook import Hook, get_hook_baseclass
 from .commands import list_commands, get_command, SgtkSystemCommand, CommandInteraction
 
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
+
+# expose the support url
+from .constants import SUPPORT_URL as support_url

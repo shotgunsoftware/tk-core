@@ -96,7 +96,7 @@ class Context(object):
         msg.append("  Step: %s" % str(self.__step))
         msg.append("  Task: %s" % str(self.__task))
         msg.append("  User: %s" % str(self.__user))
-        msg.append("  Shotgun URL: %s" % self.shotgun_url)
+        msg.append("  SG URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         msg.append("  Source Entity: %s" % str(self.__source_entity))
 
@@ -936,7 +936,7 @@ class Context(object):
                         raise TankError(
                             "Key '%s' in template '%s' could not be populated by "
                             "context '%s' because the context does not contain a "
-                            "shotgun entity of type '%s'!"
+                            "SG entity of type '%s'!"
                             % (key, template, self, key.shotgun_entity_type)
                         )
                     else:
@@ -960,8 +960,8 @@ class Context(object):
                     if not result:
                         # no record with that id in shotgun!
                         raise TankError(
-                            "Could not retrieve Shotgun data for key '%s' in "
-                            "template '%s'. No records in Shotgun are matching "
+                            "Could not retrieve SG data for key '%s' in "
+                            "template '%s'. No records in SG are matching "
                             "entity '%s' (Which is part of the current "
                             "context '%s')" % (key, template, entity, self)
                         )
@@ -994,7 +994,7 @@ class Context(object):
                         if not key.validate(processed_val):
                             raise TankError(
                                 "Template validation failed for value '%s'. This "
-                                "value was retrieved from entity %s in Shotgun to "
+                                "value was retrieved from entity %s in SG to "
                                 "represent key '%s' in "
                                 "template '%s'."
                                 % (processed_val, entity, key, template)
@@ -1323,7 +1323,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         if sg_entity is None:
             raise TankError(
-                "Entity %s with id %s not found in Shotgun!" % (entity_type, entity_id)
+                "Entity %s with id %s not found in ShotGrid!" % (entity_type, entity_id)
             )
 
         if sg_entity.get("task"):
@@ -1816,7 +1816,7 @@ def _task_from_sg(tk, task_id, additional_fields=None):
         "Task", [["id", "is", task_id]], standard_fields + additional_fields
     )
     if not task:
-        raise TankError("Unable to locate Task with id %s in Shotgun" % task_id)
+        raise TankError("Unable to locate Task with id %s in ShotGrid" % task_id)
 
     # add task so it can be processed with other shotgun entities
     task["task"] = {"type": "Task", "id": task_id, "name": task["content"]}
@@ -1876,7 +1876,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     if not data:
         raise TankError(
-            "Unable to locate %s with id %s in Shotgun" % (entity_type, entity_id)
+            "Unable to locate %s with id %s in ShotGrid" % (entity_type, entity_id)
         )
 
     # create context
@@ -1949,8 +1949,8 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             raise TankError(
                 "The path '%s' associated with %s id %s does not "
                 "resolve correctly. This may be an indication of an issue "
-                "with the local storage setup. Please contact %s."
-                % (curr_path, entity_type, entity_id, constants.SUPPORT_EMAIL)
+                "with the local storage setup. Please contact support at %s."
+                % (curr_path, entity_type, entity_id, constants.SUPPORT_URL)
             )
 
         # grab the name for the context entity

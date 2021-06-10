@@ -32,7 +32,7 @@ from ... import LogManager
 from .. import constants
 from .downloadable import IODescriptorDownloadable
 
-from ...constants import SUPPORT_EMAIL
+from ...constants import SUPPORT_URL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -220,7 +220,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         ):  # no none-check for sg_bundle_data param since this is none for tk-core
             log.debug("Will cache pre-fetched cache data.")
         else:
-            log.debug("Connecting to Shotgun to retrieve metadata for %r" % self)
+            log.debug("Connecting to SG to retrieve metadata for %r" % self)
 
             # get the appropriate shotgun app store types and fields
             bundle_entity_type = self._APP_STORE_OBJECT[self._bundle_type]
@@ -612,7 +612,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             limit=limit,
         )
 
-        log.debug("Downloaded data for %d versions from Shotgun." % len(sg_versions))
+        log.debug("Downloaded data for %d versions from ShotGrid." % len(sg_versions))
 
         # now filter out all labels that aren't matching
         matching_records = []
@@ -753,12 +753,14 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 else:
                     raise
 
-            log.debug("Connecting to %s..." % constants.SGTK_APP_STORE)
+            app_store = os.environ.get("SGTK_APP_STORE", constants.SGTK_APP_STORE)
+
+            log.debug("Connecting to %s..." % app_store)
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
             app_store_sg = shotgun_api3.Shotgun(
-                constants.SGTK_APP_STORE,
+                app_store,
                 script_name=script_name,
                 api_key=script_key,
                 http_proxy=self.__get_app_store_proxy_setting(),
@@ -777,8 +779,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 )
             except shotgun_api3.AuthenticationFault:
                 raise InvalidAppStoreCredentialsError(
-                    "The Toolkit App Store credentials found in Shotgun are invalid.\n"
-                    "Please contact %s to resolve this issue." % SUPPORT_EMAIL
+                    "The Toolkit App Store credentials found in SG are invalid.\n"
+                    "Please contact support at %s to resolve this issue." % SUPPORT_URL
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
@@ -871,8 +873,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         if not data["script_name"] or not data["script_key"]:
             raise InvalidAppStoreCredentialsError(
-                "Toolkit App Store credentials could not be retrieved from Shotgun.\n"
-                "Please contact %s to resolve this issue." % SUPPORT_EMAIL
+                "Toolkit App Store credentials could not be retrieved from ShotGrid.\n"
+                "Please contact support at %s to resolve this issue." % SUPPORT_URL
             )
 
         log.debug(

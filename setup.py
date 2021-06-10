@@ -32,7 +32,7 @@ def get_version():
     # will be picked up from the most recently added tag.
     try:
         version_git = subprocess.check_output(
-            ["git", "describe", "--abbrev=0"]
+            ["git", "describe", "--abbrev=0"], universal_newlines=True
         ).rstrip()
         return version_git
     except:
@@ -65,10 +65,9 @@ finally:
 setup(
     name="sgtk",
     version=get_version(),
-    description="Shotgun Pipeline Toolkit Core API",
+    description="SG Toolkit Core API",
     long_description=readme,
-    author="Shotgun Software",
-    author_email="support@shotgunsoftware.com",
+    author="Autodesk, Inc",
     url="https://github.com/shotgunsoftware/tk-core",
     license=license,
     # Recursively discover all packages in python folder, excluding any tests

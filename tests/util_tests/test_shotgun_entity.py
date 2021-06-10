@@ -14,6 +14,80 @@ from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule 
 from tank.util.shotgun_entity import get_sg_entity_name_field, sg_entity_to_string
 
 
+KNOWN_SG_ENTITIES = [
+    "ActionMenuItem",
+    "ApiUser",
+    "ApiUser",
+    "Asset",
+    "AssetLibrary",
+    "Attachment",
+    "Blendshape",
+    "Booking",
+    "Camera",
+    "Candidate",
+    "ClientUser",
+    "Composition",
+    "Cut",
+    "CutItem",
+    "Delivery",
+    "Department",
+    "Element",
+    "Episode",
+    "EventLogEntry",
+    "FilesystemLocation",
+    "Group",
+    "HumanUser",
+    "Icon",
+    "Launch",
+    "Level",
+    "LocalStorage",
+    "MocapPass",
+    "MocapSetup",
+    "MocapTake",
+    "MocapTakeRange",
+    "Note",
+    "Page",
+    "PageHit",
+    "PageSetting",
+    "Performer",
+    "PermissionRuleSet",
+    "Phase",
+    "PhysicalAsset",
+    "PipelineConfiguration",
+    "Playlist",
+    "PlaylistShare",
+    "Project",
+    "PublishEvent",
+    "PublishedFile",
+    "PublishedFileDependency",
+    "PublishedFileType",
+    "Reel",
+    "Release",
+    "Reply",
+    "Revision",
+    "Routine",
+    "RvLicense",
+    "Scene",
+    "Sequence",
+    "ShootDay",
+    "Shot",
+    "Slate",
+    "Software",
+    "Status",
+    "Step",
+    "Tag",
+    "Task",
+    "TaskDependency",
+    "TaskTemplate",
+    "Ticket",
+    "TimeLog",
+    "Tool",
+    "Version",
+    "CustomEntity02",
+    "CustomNonProjectEntity01",
+]
+
+
 class TestShotgunEntity(TankTestBase):
     """
     Test shotgun entity parsing classes and methods.
@@ -32,15 +106,17 @@ class TestShotgunEntity(TankTestBase):
         Test retrieving the right "name" field for various entity types.
         """
         # Test most standard entities, and check that custom entities use "code"
-        for entity_type in ["Sequence", "Shot", "Asset", "CustomXXXXEntity"]:
-            self.assertEqual(get_sg_entity_name_field(entity_type), "code")
-        # Test most standard entities where the name is in a "name" field.
-        for entity_type in ["HumanUser", "Project", "Department"]:
-            self.assertEqual(get_sg_entity_name_field(entity_type), "name")
-
-        self.assertEqual(get_sg_entity_name_field("Task"), "content")
-        self.assertEqual(get_sg_entity_name_field("Note"), "subject")
-        self.assertEqual(get_sg_entity_name_field("Delivery"), "title")
+        for entity_name in KNOWN_SG_ENTITIES:
+            field_name = sgtk.util.get_sg_entity_name_field(entity_name)
+            # Some entities do not have a name field, those can be skipped.
+            if field_name is None:
+                continue
+            # Find the schema for that field
+            entity_schema = self.mockgun.schema_field_read(entity_name, field_name)
+            # Make sure one field was returned
+            assert field_name in entity_schema
+            # Sanity check that the field is a text field.
+            assert entity_schema[field_name]["data_type"]["value"] == "text"
 
     def test_entity_to_string(self):
         """

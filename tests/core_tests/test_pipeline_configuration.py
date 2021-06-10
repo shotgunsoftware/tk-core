@@ -138,6 +138,16 @@ class TestPipelineConfig(TankTestBase):
         self.assertEqual(self.tk.pipeline_configuration.get_project_disk_name(), "abc")
         self.assertEqual(self.tk.pipeline_configuration.get_name(), "Firstary")
 
+    def test_invalid_yaml_cache(self):
+        """
+        Makes sure there are no errors if the pickle file is found but not valid.
+        """
+        pickle_file = os.path.join(
+            self.tk.pipeline_configuration._pc_root, "yaml_cache.pickle"
+        )
+        self.create_file(pickle_file)
+        self.tk.pipeline_configuration._populate_yaml_cache()
+
 
 class TestConfigLocations(TankTestBase):
     """

@@ -46,9 +46,9 @@ jobs:
         displayName: Run integeration tests
         env:
           SHOTGUN_TEST_COVERAGE: 1
-          SHOTGUN_HOST: $(shotgun_site)
-          SHOTGUN_SCRIPT_NAME: $(shotgun_script_name)
-          SHOTGUN_SCRIPT_KEY: $(shotgun_script_key)
+          SHOTGUN_HOST: $(sg.ci.host)
+          SHOTGUN_SCRIPT_NAME: $(sg.ci.script.name)
+          SHOTGUN_SCRIPT_KEY: $(sg.ci.script.key)
           # Sandbox each test executing based on the Azure agent name. Those are
           # Azure Pipelines 1-10
           SHOTGUN_TEST_ENTITY_SUFFIX: '$(Agent.Name)'

@@ -14,6 +14,7 @@ This module offers different SSO integration warppers for Shotgun.
 # Exceptions
 from .core.errors import (  # noqa
     SsoSaml2Error,
+    SsoSaml2IncompletePySide2,
     SsoSaml2MissingQtCore,
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtModuleError,

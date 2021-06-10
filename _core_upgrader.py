@@ -252,7 +252,7 @@ def upgrade_tank(sgtk_install_root, log):
         ):
             log.error(
                 "You are running a very old version of the Toolkit Core API. Automatic upgrades "
-                "are no longer supported. Please contact support@shotgunsoftware.com."
+                "are no longer supported. Please contact support at https://support.shotgunsoftware.com"
             )
             return
 

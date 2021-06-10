@@ -221,7 +221,7 @@ class LocalFileStorageManager(object):
         """
         if hostname is None:
             raise TankError(
-                "Cannot compute path for local site specific storage - no shotgun hostname specified!"
+                "Cannot compute path for local site specific storage - no SG hostname specified!"
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
@@ -235,7 +235,9 @@ class LocalFileStorageManager(object):
             # mysite.shotgunstudio.com -> mysite
             # shotgun.internal.int     -> shotgun.internal.int
             #
-            base_url = base_url.replace(".shotgunstudio.com", "")
+            base_url = base_url.replace(".shotgunstudio.com", "").replace(
+                ".shotgrid.autodesk.com", ""
+            )
 
         return os.path.join(cls.get_global_root(path_type, generation), base_url)
 

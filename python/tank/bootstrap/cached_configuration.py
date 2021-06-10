@@ -114,7 +114,7 @@ class CachedConfiguration(Configuration):
         self._descriptor.ensure_local()
 
         log.debug(
-            "Verifying that all necessary shotgun data is "
+            "Verifying that all necessary SG data is "
             "available in order for config %s to run..." % self
         )
 
@@ -146,7 +146,7 @@ class CachedConfiguration(Configuration):
         if unmapped_roots:
             raise TankBootstrapError(
                 "This configuration defines one or more storage roots that can "
-                "not be mapped to a local storage defined in Shotgun. Please "
+                "not be mapped to a local storage defined in ShotGrid. Please "
                 "update the roots.yml file in this configuration to correct "
                 "this issue. Roots file: '%s'. Unmapped storage roots: %s."
                 % (storage_roots.roots_file, ", ".join(unmapped_roots))
@@ -161,7 +161,7 @@ class CachedConfiguration(Configuration):
         if proj_data["tank_name"] is None:
             raise TankMissingTankNameError(
                 "The configuration requires you to specify a value for the project's "
-                "tank_name field in Shotgun."
+                "tank_name field in ShotGrid."
             )
 
     def status(self):
@@ -439,7 +439,7 @@ class CachedConfiguration(Configuration):
         if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
             if self._descriptor.associated_core_version_less_than("v0.18.120"):
                 raise TankBootstrapError(
-                    "Configurations uploaded to Shotgun must use core API "
+                    "Configurations uploaded to SG must use core API "
                     "version v0.18.120 or later. Please check the "
                     "core/core_api.yml file in your configuration."
                 )
