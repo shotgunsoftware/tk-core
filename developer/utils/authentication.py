@@ -20,7 +20,7 @@ logger = LogManager.get_logger("utils.authentication")
 automated_setup_documentation = """For automated build setups, you can provide a specific shotgun API script name and
 and corresponding script key:
 
-> python populate_bundle_cache.py
+> python {script_name}
             --shotgun-host='https://mysite.shotgunstudio.com'
             --shotgun-script-name='plugin_build'
             --shotgun-script-key='<script-key-here>'
@@ -38,9 +38,9 @@ def add_authentication_options(parser):
     """
     group = optparse.OptionGroup(
         parser,
-        "Shotgun Authentication",
+        "SG Authentication",
         "In order to download content from the Toolkit app store, the script will need to authenticate "
-        "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
+        "against any SG site. By default, it will use the toolkit authentication APIs stored "
         "credentials, and if such are not found, it will prompt for site, username and password.",
     )
 
@@ -49,7 +49,7 @@ def add_authentication_options(parser):
         "--shotgun-host",
         default=None,
         action="store",
-        help="Shotgun host to authenticate with.",
+        help="SG host to authenticate with.",
     )
 
     group.add_option(
@@ -101,7 +101,7 @@ def authenticate(options):
         sg_user = sg_auth.create_script_user(script_name, script_key, shotgun_host)
 
     else:
-        logger.info("Connect to any Shotgun site to collect AppStore keys.")
+        logger.info("Connect to any SG site to collect AppStore keys.")
         # get user, prompt if necessary
         sg_user = sg_auth.get_user()
 

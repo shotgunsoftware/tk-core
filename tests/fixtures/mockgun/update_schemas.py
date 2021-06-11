@@ -15,13 +15,13 @@ This script will update the Shotgun schema for Mockgun.
 from __future__ import print_function
 import sys
 
-sys.path.append("../../../python")
+sys.path.insert(0, "../../../python")
 
 from sgtk.authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_api3.lib import mockgun
 
 # Log on a site.
-print("This script will update the Shotgun schema for Mockgun.")
+print("This script will update the SG schema for Mockgun.")
 print(
     "Please enter your credentials for the site you wish to clone the schema from. Ideally this would be "
     "a site that has a clean schema like a new site."
@@ -42,8 +42,9 @@ errors = []
 schema_requirements = {
     # This is a builtin entity that is disabled by default.
     "Scene": [],
-    # Simply turn this one on. Nothing else to do.
+    # Simply turn these on. Nothing else to do.
     "CustomEntity02": [],
+    "CustomEntity03": [],
 }
 
 # Ensure every entity is present and their fields.

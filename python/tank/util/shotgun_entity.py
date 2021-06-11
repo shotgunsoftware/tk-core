@@ -19,12 +19,29 @@ from tank_vendor import six
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.
 SG_ENTITY_SPECIAL_NAME_FIELDS = {
-    "Project": "name",
-    "Task": "content",
-    "HumanUser": "name",
-    "Note": "subject",
-    "Department": "name",
+    "ActionMenuItem": "title",
+    "ApiUser": "firstname",
+    "Attachment": None,
+    "Booking": None,
+    "ClientUser": "name",
     "Delivery": "title",
+    "Department": "name",
+    "EventLogEntry": None,
+    "HumanUser": "name",
+    "Icon": "name",
+    "Note": "subject",
+    "Page": "name",
+    "PageHit": None,
+    "PageSetting": None,
+    "PlaylistShare": None,
+    "Project": "name",
+    "PublishedFileDependency": None,
+    "Reply": None,
+    "Tag": "name",
+    "Task": "content",
+    "TaskDependency": None,
+    "Ticket": "title",
+    "TimeLog": None,
 }
 
 
@@ -261,9 +278,9 @@ class EntityExpression(object):
                 # required value was not provided!
                 raise TankError(
                     "Folder Configuration Error: "
-                    "A Shotgun field '%s' is being requested as part of the expression "
+                    "A SG field '%s' is being requested as part of the expression "
                     "'%s' when creating folders connected to entities of type %s, "
-                    "however no such field exists in Shotgun. Please review your "
+                    "however no such field exists in ShotGrid. Please review your "
                     "configuration!"
                     % (field_name, self._field_name_expr, self._entity_type)
                 )
@@ -292,7 +309,7 @@ class EntityExpression(object):
             raise TankError(
                 "Folder Configuration Error. Could not create folders for %s! "
                 "The expression %s refers to one or more values that are blank "
-                "in Shotgun and a folder can therefore "
+                "in SG and a folder can therefore "
                 "not be created." % (nice_name, self._field_name_expr)
             )
 

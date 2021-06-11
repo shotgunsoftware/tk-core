@@ -175,6 +175,8 @@ def download_and_unpack_attachment(
         the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
+    # NOTE Downloading by attachment ID is deprecated in the Shotgun API.
+    # We should avoid using this where possible.
     return _download_and_unpack(
         sg, target, retries, auto_detect_bundle, attachment_id=attachment_id
     )
@@ -292,7 +294,7 @@ def _download_and_unpack(
         # the attachment in shotgun could not be unpacked
         if attachment_id:
             raise ShotgunAttachmentDownloadError(
-                "Shotgun attachment with id %s is not a zip file!" % attachment_id
+                "SG attachment with id %s is not a zip file!" % attachment_id
             )
         else:
             raise ShotgunAttachmentDownloadError(

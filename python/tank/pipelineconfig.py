@@ -434,10 +434,12 @@ class PipelineConfiguration(object):
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
         except Exception as e:
             log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
+        else:
+            log.debug(
+                "Read %s items from yaml cache %s" % (len(cache_items), cache_file)
+            )
         finally:
             fh.close()
-
-        log.debug("Read %s items from yaml cache %s" % (len(cache_items), cache_file))
 
     ########################################################################################
     # general access and properties
@@ -498,7 +500,7 @@ class PipelineConfiguration(object):
 
         if data is None:
             raise TankError(
-                "Cannot find a Pipeline configuration in Shotgun "
+                "Cannot find a Pipeline configuration in SG "
                 "that has id %s." % self.get_shotgun_id()
             )
 
@@ -611,7 +613,7 @@ class PipelineConfiguration(object):
         """
 
         if self.get_shotgun_path_cache_enabled():
-            raise TankError("Shotgun based path cache already turned on!")
+            raise TankError("SG based path cache already turned on!")
 
         self._update_metadata({"use_shotgun_path_cache": True})
         self._use_shotgun_path_cache = True

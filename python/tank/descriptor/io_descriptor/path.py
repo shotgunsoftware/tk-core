@@ -92,6 +92,9 @@ class IODescriptorPath(IODescriptorBase):
         #  non-required for finding the code)
         self._version = descriptor_dict.get("version") or "Undefined"
 
+        # Resolve environment variables in the version
+        self._version = os.path.expandvars(self._version)
+
         # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:
         self._name = descriptor_dict.get("name")

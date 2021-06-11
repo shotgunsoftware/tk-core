@@ -22,8 +22,8 @@ from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     skip_if_pyside_missing,
-    skip_if_on_travis_ci,
     interactive,
+    suppress_generated_code_qt_warnings,
 )
 from mock import patch
 from tank.authentication import (
@@ -63,6 +63,7 @@ class InteractiveTests(ShotgunTestBase):
 
         QtGui.QApplication.processEvents()
 
+    @suppress_generated_code_qt_warnings
     def test_site_and_user_disabled_on_session_renewal(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -89,15 +90,16 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
-        with contextlib.closing(
-            login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
-        ) as ld:
-            # SSO module and threading causes issues with unit tests, so disable it.
-            ld._saml2_sso = None
-            self._prepare_window(ld)
-            yield ld
+        # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
+        # issues with tests.
+        with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+            with contextlib.closing(
+                login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
+            ) as ld:
+                self._prepare_window(ld)
+                yield ld
 
-    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
+    @suppress_generated_code_qt_warnings
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -130,6 +132,7 @@ class InteractiveTests(ShotgunTestBase):
         self._print_message("Test successful", console)
 
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_login_ui(self):
         """
         Pops the ui and lets the user authenticate.
@@ -139,6 +142,7 @@ class InteractiveTests(ShotgunTestBase):
 
     @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_login_console(self, _get_ui_state_mock):
         """
         Pops the ui and lets the user authenticate.
@@ -195,6 +199,7 @@ class InteractiveTests(ShotgunTestBase):
         self._print_message("Test successful", test_console)
 
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_session_renewal_ui(self):
         """
         Interactively test session renewal.
@@ -203,6 +208,7 @@ class InteractiveTests(ShotgunTestBase):
 
     @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_session_renewal_console(self, _get_ui_state_mock):
         """
         Interactively test for session renewal with the GUI.
@@ -211,6 +217,7 @@ class InteractiveTests(ShotgunTestBase):
         _get_ui_state_mock.return_value = False
         self._test_session_renewal(test_console=True)
 
+    @suppress_generated_code_qt_warnings
     def test_invoker_rethrows_exception(self):
         """
         Makes sure that the invoker will carry the exception back to the calling thread.
@@ -316,6 +323,7 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
         return_value=" password ",
     )
+    @suppress_generated_code_qt_warnings
     def test_console_auth_with_whitespace(self, *mocks):
         """
         Makes sure that authentication strips whitespaces on the command line.
@@ -335,6 +343,7 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
         return_value=True,
     )
+    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -353,6 +362,7 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
         return_value=True,
     )
+    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -370,6 +380,7 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
         return_value=True,
     )
+    @suppress_generated_code_qt_warnings
     def test_identity_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -379,7 +390,7 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
-    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
+    @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
         """
         Makes sure that the ui strips out whitespaces.

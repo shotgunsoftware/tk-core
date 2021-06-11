@@ -284,7 +284,7 @@ class FilterExpressionToken(object):
         if self._sg_data_key not in shotgun_data:
             raise TankError(
                 "Cannot resolve data key %s from "
-                "shotgun data bundle %s" % (self._sg_data_key, shotgun_data)
+                "SG data bundle %s" % (self._sg_data_key, shotgun_data)
             )
 
         value = shotgun_data[self._sg_data_key]

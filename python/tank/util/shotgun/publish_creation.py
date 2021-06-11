@@ -285,7 +285,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                     )
 
         # create the publish
-        log.debug("Publish: Creating publish in Shotgun")
+        log.debug("Publish: Creating publish in ShotGrid")
         entity = _create_published_file(
             tk,
             context,
@@ -547,8 +547,8 @@ def _create_published_file(
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in Shotgun to associate publish '%s' with. "
-                        "Falling back to Shotgun's built-in storage resolution "
+                        "'%s' in SG to associate publish '%s' with. "
+                        "Falling back to ShotGrid's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
                         % (root_name, path, root_name)
@@ -578,7 +578,7 @@ def _create_published_file(
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check shotgun local storages to see if there is a match.")
+            log.debug("Will check SG local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
@@ -587,9 +587,7 @@ def _create_published_file(
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
                 ):
-                    log.debug(
-                        "Path matches Shotgun local storage '%s'" % storage["code"]
-                    )
+                    log.debug("Path matches SG local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
 
@@ -629,7 +627,7 @@ def _create_published_file(
         )
         return data
     else:
-        log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
+        log.debug("Registering publish in ShotGrid: %s" % pprint.pformat(data))
         return tk.shotgun.create(published_file_entity_type, data)
 
 
@@ -764,7 +762,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
         tk.shotgun.batch(sg_batch_data)
 
 
-def _calc_path_cache(tk, path):
+def _calc_path_cache(tk, path, project_names=None):
     r"""
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache). The relative path is always using forward
@@ -787,6 +785,10 @@ def _calc_path_cache(tk, path):
 
     :param tk: Toolkit API instance
     :param str path: Path to normalize.
+    :param list project_names: A list of project names used to find a matching
+                               storage to calculate the path cache. If a list is
+                               not provided, only the current project name will
+                               be used.
     :returns: (root_name, path_cache)
     """
     # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
@@ -795,14 +797,15 @@ def _calc_path_cache(tk, path):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = norm_path.replace("\\", "/")
+    norm_path = six.ensure_str(norm_path.replace("\\", "/"))
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
 
     # get project name, typically a a-z string but can contain
     # forward slashes, e.g. 'my_project', or 'client_a/proj_b'
-    project_disk_name = tk.pipeline_configuration.get_project_disk_name()
+    if not project_names:
+        project_names = [tk.pipeline_configuration.get_project_disk_name()]
 
     for root_name, root_path in storage_roots.items():
 
@@ -810,32 +813,38 @@ def _calc_path_cache(tk, path):
         # normalize the root path
         norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
 
-        # append project and normalize
-        proj_path = root_path_obj.join(project_disk_name).current_os
-        proj_path = proj_path.replace(os.sep, "/")
+        for project_name in project_names:
 
-        if norm_path.lower().startswith(proj_path.lower()):
-            # our path matches this storage!
+            # append project and normalize
+            proj_path = root_path_obj.join(project_name).current_os
+            proj_path = six.ensure_str(proj_path.replace(os.sep, "/"))
 
-            # Remove parent dir plus "/" - be careful to handle the case where
-            # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = norm_path[len(norm_root_path) :].lstrip("/")
-            log.debug(
-                "Split up path '%s' into storage %s and relative path '%s'"
-                % (path, root_name, path_cache)
-            )
-            return root_name, path_cache
+            if norm_path.lower().startswith(proj_path.lower()):
+                # our path matches this storage!
+
+                # Remove parent dir plus "/" - be careful to handle the case where
+                # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
+                path_cache = norm_path[len(norm_root_path) :].lstrip("/")
+                log.debug(
+                    "Split up path '%s' into storage %s and relative path '%s'"
+                    % (path, root_name, path_cache)
+                )
+                return root_name, path_cache
 
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
     return None, None
 
 
-def group_by_storage(tk, list_of_paths):
+def group_by_storage(tk, list_of_paths, only_current_project=True):
     r"""
     Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.
+
+    By default, paths are grouped only by storages matching the current project.
+    Set only_current_project to False to group by storages matching any current
+    active project in the pipeline config.
 
     This method aims to process the paths to make them useful for later shotgun processing.
 
@@ -865,11 +874,26 @@ def group_by_storage(tk, list_of_paths):
     """
     storages_paths = {}
 
+    # get a list of all the current tank names. We'll need it when trying to determine the root of the given paths
+    if not only_current_project:
+        sg_projects = tk.shotgun.find(
+            "Project",
+            [
+                ["archived", "is", False],
+                ["is_template", "is", False],
+                ["tank_name", "is_not", None],
+            ],
+            ["tank_name"],
+        )
+        project_names = [p["tank_name"] for p in sg_projects]
+    else:
+        project_names = None
+
     for path in list_of_paths:
 
         # use abstracted path if path is part of a sequence
         abstract_path = _translate_abstract_fields(tk, path)
-        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
+        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path, project_names)
 
         # make sure that the path is even remotely valid, otherwise skip
         if dep_path_cache is None:
