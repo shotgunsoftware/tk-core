@@ -1109,7 +1109,7 @@ class ToolkitManager(object):
         # done in the same process than another.
         config_descriptor = config.descriptor
         if hasattr(config_descriptor, '_sq_bootstrap_env'):
-            for key, val in config_descriptor._sq_bootstrap_env.iteritems():
+            for key, val in config_descriptor._sq_bootstrap_env.items():
                 log.info("[Squeeze] Setting {0} to {1}".format(key, val))
                 os.environ[key] = val
         else:

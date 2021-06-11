@@ -161,14 +161,12 @@ class PipelineConfiguration(object):
                 self.get_install_location(), "install"
             )
 
+        self._bundle_cache_fallback_paths = []
         if pipeline_config_metadata.get("bundle_cache_fallback_roots"):
-            self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
-
-            # [Squeeze] Allow the bundle_cache fallback to be defined via an environment variable.
-            # This is defined in our tk_shared_bundlecache rez packages.
-            self._bundle_cache_fallback_paths = os.path.expandvars(self._bundle_cache_fallback_paths)
-        else:
-            self._bundle_cache_fallback_paths = []
+            for path in pipeline_config_metadata.get("bundle_cache_fallback_roots"):
+                # [Squeeze] Allow the bundle_cache fallback to be defined via an environment variable.
+                # This is defined in our tk_shared_bundlecache rez packages.
+                self._bundle_cache_fallback_paths.append(os.path.expandvars(path))
 
         # There are five ways this initializer can be invoked.
         #

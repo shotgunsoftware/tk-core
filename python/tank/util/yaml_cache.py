@@ -17,6 +17,7 @@ from __future__ import with_statement
 
 import os
 import copy
+import locale
 import threading
 
 from tank_vendor import yaml
@@ -49,8 +50,9 @@ class CacheItem(object):
             try:
                 self._stat = os.stat(self.path)
             except Exception as exc:
+                # This was modified so that errors on a french windows would be readable by this error
                 raise TankUnreadableFileError(
-                    "Unable to stat file '%s': %s" % (self.path, exc)
+                    u"Unable to stat file '%s': %s" % (self.path, str(exc).decode(locale.getdefaultlocale()[1]))
                 )
         else:
             self._stat = stat

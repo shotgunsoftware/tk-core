@@ -93,7 +93,7 @@ class IODescriptorRez(IODescriptorBase):
 
         path = stdout.strip()
         log.debug("Resulting path is: {0}".format(path))
-        return path
+        return path.decode('utf-8')
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
