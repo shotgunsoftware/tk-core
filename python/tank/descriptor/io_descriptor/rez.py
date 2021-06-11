@@ -8,14 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import shutil
+import locale
 import sys
 import subprocess
 
 from .base import IODescriptorBase
 from ..errors import TankDescriptorError
-from ...util import ShotgunPath
 from ... import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -93,7 +91,10 @@ class IODescriptorRez(IODescriptorBase):
 
         path = stdout.strip()
         log.debug("Resulting path is: {0}".format(path))
-        return path.decode('utf-8')
+        if sys.version_info[0] == 2:
+            return path
+        else:
+            return path.decode(locale.getdefaultlocale())
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
