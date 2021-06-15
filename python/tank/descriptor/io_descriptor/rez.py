@@ -94,7 +94,7 @@ class IODescriptorRez(IODescriptorBase):
         if sys.version_info[0] == 2:
             return path
         else:
-            return path.decode(locale.getdefaultlocale())
+            return path.decode(locale.getdefaultlocale()[1])
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
