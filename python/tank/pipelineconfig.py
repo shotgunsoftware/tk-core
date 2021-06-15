@@ -193,7 +193,7 @@ class PipelineConfiguration(object):
         # This allow a generic installed configuration to use any configuration.
         # Since environment variables are string, we expect the string to be a descriptor uri.
         # ex: "sgtk:descriptor:rez?name=tk_config_squeeze&version=3.3"
-        if isinstance(descriptor_dict, basestring):
+        if isinstance(descriptor_dict, six.string_types):
             descriptor_uri = os.path.expandvars(descriptor_dict)
             new_descriptor_dict = descriptor_uri_to_dict(descriptor_uri)
             log.info("[Squeeze] Exanded {0} to {1}".format(descriptor_dict, new_descriptor_dict))
