@@ -371,7 +371,7 @@ class LoginDialog(QtGui.QDialog):
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
         use_web = (
-            self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
+            self._query_task.sso_enabled
         )
 
         # If we have full support for Web-based login, or if we enable it in our
