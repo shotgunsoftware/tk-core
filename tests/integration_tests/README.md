@@ -14,6 +14,10 @@ There are also two optional environment variables:
 `SHOTGUN_TEST_TEMP`: When set, Toolkit will write all it's configuration files at this location and the data will not be erased after a test ends. This is useful for debugging.
 `SHOTGUN_TEST_COVERAGE`: When set, code coverage for tk-core will be generated and result into multiple `.coverage.<machine-name>.<uuid>` files containing coverage for each test run. Note that the test folder is not deleted so `coverage combine` can get line information properly.
 
+You will also need to configure `CustomNonProjectEntity1`. It needs to have 2 user define fields:
+- `sg_content`, a file field
+- `sg_descriptor`, a string field.
+
 How to run an integration test
 ------------------------------
 Once the 3 main environment variables have been set, you can run the tests using `run_integration_tests.py`. This will run all the tests. If you only want to run one or more test, you can do so like this:
