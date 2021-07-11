@@ -103,10 +103,10 @@ class ConsoleAuthenticationHandlerBase(object):
                         ),
                         None,
                     )
-            except AuthenticationError:
+            except AuthenticationError as error:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
-                print("Login failed.")
+                print("Login failed: %s" % error)
                 print()
 
     def _get_user_credentials(self, hostname, login, http_proxy):
