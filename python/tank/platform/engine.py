@@ -1835,9 +1835,7 @@ class Engine(TankBundle):
         The dialog will be created with a standard Toolkit window title bar where
         the title will be displayed.
 
-        .. seealso::
-            - :ref:`qdialog-exit-codes`
-            - :ref:`hiding-toolkit-title-bar`
+        .. seealso:: :ref:`hiding-toolkit-title-bar`
 
         **Notes for engine developers**
 
@@ -1907,7 +1905,9 @@ class Engine(TankBundle):
         the title will be displayed.
 
         .. seealso::
+
             - :ref:`qdialog-exit-codes`
+
             - :ref:`hiding-toolkit-title-bar`
 
         :param title: The title of the window
@@ -1918,10 +1918,9 @@ class Engine(TankBundle):
         Additional parameters specified will be passed through to the
         ``widget_class`` constructor.
 
-        :returns: Tuple of :attr:`QDialog.DialogCode
-                  <PySide.QtGui.PySide.QtGui.QDialog.DialogCode>` and and the created
-                  ``widget_class`` instance
-        :rtype: (:class:`int`, :class:`PySide.QtGui.QWidget`)
+        :returns: :attr:`QDialog.DialogCode <PySide.QtGui.PySide.QtGui.QDialog.DialogCode>`
+            and the created ``widget_class`` instance
+        :rtype: tuple(int, PySide.QtGui.QWidget)
         """
         if not self.has_ui:
             self.log_error(
@@ -1954,14 +1953,7 @@ class Engine(TankBundle):
         The dialog will be created with a standard Toolkit window title bar where
         the title will be displayed.
 
-        .. note:: In some cases, it is necessary to hide the standard Toolkit title
-                  bar. You can do this by adding a property to the widget class you are
-                  displaying::
-
-                        @property
-                        def hide_tk_title_bar(self):
-                            "Tell the system to not show the standard toolkit toolbar"
-                            return True
+        .. seealso:: :ref:`hiding-toolkit-title-bar`
 
         :param panel_id: Unique identifier for the panel, as obtained by register_panel().
         :param title: The title of the panel
@@ -1969,9 +1961,11 @@ class Engine(TankBundle):
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
 
-        Additional parameters specified will be passed through to the widget_class constructor.
+        Additional parameters specified will be passed through to the
+        ``widget_class`` constructor.
 
-        :returns: the created widget_class instance
+        :returns: The created ``widget_class`` instance
+        :rtype: PySide.QtGui.QWidget
         """
         # engines implementing panel support should subclass this method.
         # the core implementation falls back on a modeless window.
