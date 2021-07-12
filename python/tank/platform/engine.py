@@ -1835,14 +1835,9 @@ class Engine(TankBundle):
         The dialog will be created with a standard Toolkit window title bar where
         the title will be displayed.
 
-        .. note:: In some cases, it is necessary to hide the standard Toolkit title
-                  bar. You can do this by adding a property to the widget class you are
-                  displaying::
-
-                        @property
-                        def hide_tk_title_bar(self):
-                            "Tell the system to not show the standard toolkit toolbar"
-                            return True
+        .. seealso::
+            - `Hiding the default Toolkit title bar`
+            - `Modal dialogs and exit codes`
 
         **Notes for engine developers**
 
