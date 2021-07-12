@@ -639,13 +639,6 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
     login = args[3]
     rot13_password = args[4]
 
-    # un-swizzle the password
-    rot13 = string.maketrans(
-        "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm",
-        "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
-    )
-    password = string.translate(rot13_password, rot13)
-
     # now, first try to authenticate
     core_dm = CoreDefaultsManager()
     sa = ShotgunAuthenticator(core_dm)
@@ -659,7 +652,7 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
         tank.set_authenticated_user(default_user)
     else:
         # no default user. Have to authenticate
-        if password == "-":
+        if _unswizzled_password(rot13_password) == "-":
             # no password given from shotgun. Try to use a stored session token
             try:
                 user = sa.create_session_user(login)
@@ -1653,6 +1646,24 @@ def _extract_credentials(cmd_line):
 
     # If no elements were specified, that's ok.
     return cmd_line, {}
+
+
+def _unswizzled_password(rot13_password):  # type: (str) -> str
+    """Translate the original rot13 password string.
+
+    Falls back to use ``string.maketrans`` for older versions of Python when
+    ``str.maketrans`` isn't available.
+    """
+    maketrans = getattr(str, "maketrans", getattr(string, "maketrans", None))
+    translate = getattr(str, "translate", getattr(string, "translate", None))
+    fatal_message = "No password translate methods available!"
+    assert maketrans is not None and translate is not None, fatal_message
+
+    rot13 = maketrans(
+        "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm",
+        "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
+    )
+    return translate(rot13_password, rot13)
 
 
 if __name__ == "__main__":
