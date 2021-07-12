@@ -1848,19 +1848,24 @@ class Engine(TankBundle):
         Making use of these methods in the correct way allows the base Engine class to manage the
         lifetime of the dialogs and widgets efficiently and safely without you having to worry about it.
 
-        The methods available are listed here in the hierarchy in which they are called::
+        The methods available are listed here in the hierarchy in which they are called:
 
-            show_dialog()/show_modal()
-                _create_dialog_with_widget()
-                    _get_dialog_parent()
-                    _create_widget()
-                    _create_dialog()
+          - :meth:`~Engine.show_dialog`/:meth:`~Engine.show_modal`
+
+              - :meth:`~Engine._create_dialog_with_widget`
+
+                  - :meth:`~Engine._get_dialog_parent`
+
+                  - :meth:`~Engine._create_widget`
+
+                  - :meth:`~Engine._create_dialog`
 
         For example, if you just need to make sure that all dialogs use a specific parent widget
-        then you only need to override _get_dialog_parent() (e.g. the tk-maya engine).
+        then you only need to override :meth:`~Engine._get_dialog_parent` (e.g. the tk-maya engine).
         However, if you need to implement a two-stage creation then you may need to re-implement
-        show_dialog() and show_modal() to call _create_widget() and _create_dialog() directly rather
-        than using the helper method _create_dialog_with_widget() (e.g. the tk-3dsmax engine).
+        :meth:`~Engine.show_dialog` and :meth:`~Engine.show_modal` to call :meth:`~Engine._create_widget`
+        and :meth:`~Engine._create_dialog` directly rather than using the helper method
+        :meth:`~Engine._create_dialog_with_widget` (e.g. the tk-3dsmax engine).
         Finally, if the application you are writing an engine for is Qt based then you may not need
         to override any of these methods (e.g. the tk-nuke engine).
 
@@ -1869,9 +1874,11 @@ class Engine(TankBundle):
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
 
-        Additional parameters specified will be passed through to the widget_class constructor.
+        Additional parameters specified will be passed through to the
+        ``widget_class`` constructor.
 
-        :returns: the created widget_class instance
+        :returns: The created ``widget_class`` instance
+        :rtype: PySide.QtGui.QWidget
         """
         if not self.has_ui:
             self.log_error(
@@ -1899,23 +1906,22 @@ class Engine(TankBundle):
         The dialog will be created with a standard Toolkit window title bar where
         the title will be displayed.
 
-        .. note:: In some cases, it is necessary to hide the standard Toolkit title
-                  bar. You can do this by adding a property to the widget class you are
-                  displaying::
-
-                        @property
-                        def hide_tk_title_bar(self):
-                            "Tell the system to not show the standard toolkit toolbar"
-                            return True
+        .. seealso::
+            - :ref:`qdialog-exit-codes`
+            - :ref:`hiding-toolkit-title-bar`
 
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
 
-        Additional parameters specified will be passed through to the widget_class constructor.
+        Additional parameters specified will be passed through to the
+        ``widget_class`` constructor.
 
-        :returns: (a standard QT dialog status return code, the created widget_class instance)
+        :returns: Tuple of :attr:`QDialog.DialogCode
+                  <PySide.QtGui.PySide.QtGui.QDialog.DialogCode>` and and the created
+                  ``widget_class`` instance
+        :rtype: (:class:`int`, :class:`PySide.QtGui.QWidget`)
         """
         if not self.has_ui:
             self.log_error(
