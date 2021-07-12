@@ -1836,8 +1836,8 @@ class Engine(TankBundle):
         the title will be displayed.
 
         .. seealso::
-            - `Hiding the default Toolkit title bar`
-            - `Modal dialogs and exit codes`
+            - :ref:`qdialog-exit-codes`
+            - :ref:`hiding-toolkit-title-bar`
 
         **Notes for engine developers**
 
