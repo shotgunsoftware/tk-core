@@ -54,7 +54,7 @@ USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
 THREAD_WAIT_TIMEOUT_MS = 5000
 
 
-def _is_context_desktop():
+def _is_running_in_desktop():
     """
     Indicate if we are in the context of the ShotGrid Desktop.
 
@@ -386,7 +386,7 @@ class LoginDialog(QtGui.QDialog):
         # are showing and what was detected on the potential target site.
         use_web = self._query_task.sso_enabled
 
-        if _is_context_desktop():
+        if _is_running_in_desktop():
             logger.info("Using the Web Login with the ShotGrid Desktop")
             use_web = use_web or self._query_task.autodesk_identity_enabled
 
