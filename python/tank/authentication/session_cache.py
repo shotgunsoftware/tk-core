@@ -562,8 +562,8 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
         # .. and generate the session token. If it throws, we have invalid
         # credentials or invalid host/proxy settings.
         return sg.get_session_token()
-    except AuthenticationFault:
-        raise AuthenticationError("Authentication failed.")
+    except AuthenticationFault as error:
+        raise AuthenticationError("Authentication failed: %s" % error)
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)
     # In the following handlers, we are not rethrowing an AuthenticationError for
