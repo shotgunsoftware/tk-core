@@ -176,6 +176,9 @@ class UserCredentialsNotAllowedForSSOAuthenticationFault(Fault):
 
 class UserCredentialsNotAllowedForOxygenAuthenticationFault(Fault):
     """
+    WARNING: This exception is no longer used, but has been left to avoid breaking
+             existing code.
+
     Exception when the server is configured to use Oxygen. It is not possible to use
     a username/password pair to authenticate on such server.
     """
@@ -2158,7 +2161,7 @@ class Shotgun(object):
         .. note::
             When sharing a filmstrip thumbnail, it is required to have a static thumbnail in
             place before the filmstrip will be displayed in the Shotgun web UI.
-            If the :ref:`thumbnail is still processing and is using a placeholder 
+            If the :ref:`thumbnail is still processing and is using a placeholder
             <interpreting_image_field_strings>`, this method will error.
 
         Simple use case:
@@ -2185,7 +2188,7 @@ class Shotgun(object):
             share the static thumbnail. Defaults to ``False``.
         :returns: ``id`` of the Attachment entity representing the source thumbnail that is shared.
         :rtype: int
-        :raises: :class:`ShotgunError` if not supported by server version or improperly called, 
+        :raises: :class:`ShotgunError` if not supported by server version or improperly called,
             or :class:`ShotgunThumbnailNotReady` if thumbnail is still pending.
         """
         if not self.server_caps.version or self.server_caps.version < (4, 0, 0):
@@ -2346,7 +2349,7 @@ class Shotgun(object):
         assign tags to the Attachment.
 
         .. note::
-          Make sure to have retries for file uploads. Failures when uploading will occasionally happen. 
+          Make sure to have retries for file uploads. Failures when uploading will occasionally happen.
           When it does, immediately retrying to upload usually works
 
         >>> mov_file = '/data/show/ne2/100_110/anim/01.mlk-02b.mov'
@@ -3639,8 +3642,6 @@ class Shotgun(object):
         ERR_2FA = 106
         # error code when SSO is activated on the site, preventing the use of username/password for authentication.
         ERR_SSO = 108
-        # error code when Oxygen is activated on the site, preventing the use of username/password for authentication.
-        ERR_OXYG = 110
 
         if isinstance(sg_response, dict) and sg_response.get("exception"):
             if sg_response.get("error_code") == ERR_AUTH:
@@ -3654,11 +3655,6 @@ class Shotgun(object):
                     sg_response.get("message",
                                     "Authentication using username/password is not "
                                     "allowed for an SSO-enabled ShotGrid site")
-                )
-            elif sg_response.get("error_code") == ERR_OXYG:
-                raise UserCredentialsNotAllowedForOxygenAuthenticationFault(
-                    sg_response.get("message", "Authentication using username/password is not "
-                                    "allowed for an Autodesk Identity enabled ShotGrid site")
                 )
             else:
                 # raise general Fault
