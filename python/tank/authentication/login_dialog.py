@@ -63,7 +63,7 @@ def _is_running_in_desktop():
     target site is using Autodesk Identity.
     """
     executable_name = os.path.splitext(os.path.basename(sys.executable))[0].lower()
-    return executable_name == "shotgun"
+    return executable_name in ["shotgun", "shotgrid"]
 
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
