@@ -144,7 +144,7 @@ class PyQt5Patcher(PySide2Patcher):
             https://doc.bccnsoft.com/docs/PyQt5/pyqt4_differences.html#old-style-signals-and-slots
             """
 
-            def connect(sender, signal, method, connection_type=QtCore.Qt.AutoConnection):
+            def connect(self, sender, signal, method, connection_type=QtCore.Qt.AutoConnection):
                 if hasattr(sender, signal):
                     getattr(sender, signal).connect(method, connection_type)
 
