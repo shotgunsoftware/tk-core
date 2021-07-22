@@ -213,6 +213,25 @@ class PyQt5Patcher(PySide2Patcher):
                     self += 1
                     value = self.value()
 
+        class QColor(QtGui.QColor):
+            """
+            Adds missing toTuple method to PyQt5 QColor class.
+            """
+            def toTuple(self):
+                if self.spec() == QtGui.QColor.Rgb:
+                    r, g, b, a = self.getRgb()
+                    return (r, g, b, a)
+                elif self.spec() == QtGui.QColor.Hsv:
+                    h, s, v, a = self.getHsv()
+                    return (h, s, v, a)
+                elif self.spec() == QtGui.QColor.Cmyk:
+                    c, m, y, k, a = self.getCmyk()
+                    return (c, m, y, k, a)
+                elif self.spec() == QtGui.QColor.Hsl:
+                    h, s, l, a = self.getHsl()
+                    return (h, s, l, a)
+                return tuple()
+
         # hot patch the library to make it work with pyside code
         QtCore.SIGNAL = SIGNAL
         QtCore.Signal = QtCore.pyqtSignal
@@ -231,5 +250,6 @@ class PyQt5Patcher(PySide2Patcher):
         QtGui.QPyTextObject = QPyTextObject
         QtGui.QTreeWidgetItem = QTreeWidgetItem
         QtGui.QTreeWidgetItemIterator = QTreeWidgetItemIterator
+        QtGui.QColor = QColor
 
         return QtCore, QtGui
