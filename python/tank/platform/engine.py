@@ -2161,8 +2161,6 @@ class Engine(TankBundle):
         ``__version__``, which refer to the name of the binding and it's version, e.g.
         PySide2 and 2.0.1.
 
-        .. note:: PyQt5 not supported since it runs only on Python 3.
-
         :returns: A dictionary with all the modules, __version__ and __name__.
         """
         return QtImporter(interface_version_requested=QtImporter.QT5).base
