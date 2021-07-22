@@ -2156,9 +2156,10 @@ class Engine(TankBundle):
 
     def __define_qt5_base(self):
         """
-        This will be called at initialization to discover every PySide 2 modules. It should provide
-        every Qt modules available as well as two extra attributes, ``__name__`` and
-        ``__version__``, which refer to the name of the binding and it's version, e.g.
+        This will be called at initialization to discover every PySide2 or PyQt5
+        modules. It should provide every Qt module available as well as two extra
+        attributes, ``__name__`` and ``__version__``, which refer to the name of
+        the binding and it's version, e.g.
         PySide2 and 2.0.1.
 
         :returns: A dictionary with all the modules, __version__ and __name__.
