@@ -527,6 +527,7 @@ def _create_published_file(
         log.debug("Registering publish in ShotGrid: %s" % pprint.pformat(data))
         return tk.shotgun.create(published_file_entity_type, data)
 
+
 def _get_publish_data_from_path(tk, path):
     """
     Parse the given path and extract path related SG data for publishing.
@@ -692,6 +693,7 @@ def _get_publish_data_from_path(tk, path):
                     "name": data["code"],  # same as publish name
                 }
     return data
+
 
 def _translate_abstract_fields(tk, path):
     """
