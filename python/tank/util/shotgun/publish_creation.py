@@ -459,11 +459,83 @@ def _create_published_file(
     # set the associated project
     data["project"] = context.project
 
+    if isinstance(path, dict):
+        # If a dictionary, we expect the "local_storage" and "relative_path" keys
+        # to be populated. We just do some basic sanity checks to make sure the
+        # publish will not fail straight away.
+
+        # Check if the shotgun server supports the storage and relative_path parameters.
+        supports_specific_storage_syntax = (
+            hasattr(tk.shotgun, "server_caps")
+            and tk.shotgun.server_caps.version
+            and tk.shotgun.server_caps.version >= (7, 0, 1)
+        )
+        if not supports_specific_storage_syntax:
+            raise TankError(
+                "Your SG server version does not support storage and relative_path parameters "
+                "for publishes."
+            )
+        # Check needed values are populated
+        if not path.get("local_storage") or not path.get("relative_path"):
+            raise TankError(
+                "Both 'local_storage' and 'relative_path' values must be set in publish path dictionary."
+            )
+        # Normalize input path to remove double slashes etc.
+        norm_path = ShotgunPath.normalize(path["relative_path"])
+        if os.path.isabs(norm_path):
+            raise TankError(
+                "Path %s is an absolute path, not a relative path to a local storage." % norm_path
+            )
+
+        # Convert the abstract fields to their defaults
+        norm_path = _translate_abstract_fields(tk, norm_path)
+        # Name of publish is the filename
+        data["code"] = os.path.basename(norm_path)
+        # Normalize to only use forward slashes.
+        norm_path = six.ensure_str(norm_path.replace("\\", "/"))
+        data["path"] = {
+            "relative_path": norm_path,
+            "local_storage": path["local_storage"],
+        }
+        data["path_cache"] = norm_path
+
+    else:
+        # Assume a string, extract SG data from it.
+        data.update(_get_publish_data_from_path(tk, path))
+
+    # now call out to hook just before publishing
+    data = tk.execute_core_hook(
+        constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context
+    )
+
+    if dry_run:
+        # add the publish type to be as consistent as possible
+        data["type"] = published_file_entity_type
+        log.debug(
+            "Dry run. Simply returning the data that would be sent to SG: %s"
+            % pprint.pformat(data)
+        )
+        return data
+    else:
+        log.debug("Registering publish in ShotGrid: %s" % pprint.pformat(data))
+        return tk.shotgun.create(published_file_entity_type, data)
+
+def _get_publish_data_from_path(tk, path):
+    """
+    Parse the given path and extract path related SG data for publishing.
+
+    :param tk: :class:`~sgtk.Sgtk` instance.
+    :param str path: The path to the file or sequence we want to publish. If the
+                 path is a sequence path it will be abstracted so that
+                 any sequence keys are replaced with their default values.
+    :returns: A dictionary with path related SG data set.
+    """
     # Check if path is a url or a straight file path.  Path
     # is assumed to be a url if it has a scheme:
     #
     #     scheme://netloc/path
     #
+    data = {}
     path_is_url = False
     res = urllib.parse.urlparse(path)
     if res.scheme:
@@ -612,24 +684,7 @@ def _create_published_file(
                     "url": file_url,
                     "name": data["code"],  # same as publish name
                 }
-
-    # now call out to hook just before publishing
-    data = tk.execute_core_hook(
-        constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context
-    )
-
-    if dry_run:
-        # add the publish type to be as consistent as possible
-        data["type"] = published_file_entity_type
-        log.debug(
-            "Dry run. Simply returning the data that would be sent to SG: %s"
-            % pprint.pformat(data)
-        )
-        return data
-    else:
-        log.debug("Registering publish in ShotGrid: %s" % pprint.pformat(data))
-        return tk.shotgun.create(published_file_entity_type, data)
-
+    return data
 
 def _translate_abstract_fields(tk, path):
     """
