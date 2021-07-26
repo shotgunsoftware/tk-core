@@ -52,11 +52,14 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     number. This is used to group together publishes in Shotgun and various
     integrations.
 
-    If the path matches any local storage roots defined by the toolkit project,
-    it will be uploaded as a local file link to Shotgun. If not matching roots
-    are found, the method will retrieve the list of local storages from Shotgun
-    and try to locate a suitable storage. Failing that, it will fall back on a
-    register the path as a ``file://`` url. For more information on
+    The path can either be a string or, for advanced use cases, a dictionary with
+    `local_storage` and `relative_path` values explicitly set.
+
+    If the path is a string and matches any local storage roots defined by the
+    toolkit project, it will be uploaded as a local file link to Shotgun. If not
+    matching roots are found, the method will retrieve the list of local storages
+    from Shotgun and try to locate a suitable storage. Failing that, it will fall
+    back on a register the path as a ``file://`` url. For more information on
     this resolution logic, see our
     `Admin Guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution>`_.
 
@@ -161,6 +164,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
+                 The path can be a string or a dictionary with `local_storage` and
+                 `relative_path` values.
     :param name: A name, without version number, which helps distinguish
                this publish from other publishes. This is typically
                used for grouping inside of Shotgun so that all the
@@ -377,6 +382,8 @@ def _create_published_file(
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
+                 The path can be a string or a dictionary with `local_storage` and
+                 `relative_path` values.
     :param name: A name, without version number, which helps distinguish
                this publish from other publishes. This is typically
                used for grouping inside of Shotgun so that all the
