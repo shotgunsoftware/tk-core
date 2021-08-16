@@ -7,6 +7,7 @@ Required packages
 * unittest2
 * mock
 * coverage (only if `--with-coverage` option is used)
+* pytest
 
 `unitest2` and `mock` are packaged under `tests/python/third_party`. If you intend to run the tests with the `--with-coverage` option, you need to `pip install coverage` first.
 

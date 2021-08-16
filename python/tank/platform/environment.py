@@ -961,7 +961,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # >>> yaml.safe_dump({"foo": u"bar"})
                 # '{foo: bar}\n'
                 #
-                yaml.safe_dump(data, fh)
+                yaml.safe_dump(data, fh, default_flow_style=None)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when an old version (<= v1.3.20)
