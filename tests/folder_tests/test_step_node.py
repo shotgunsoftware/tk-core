@@ -477,11 +477,17 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         )
 
         expected_paths = []
-
+        sandbox_folder_name = tank.util.shotgun_entity.sg_entity_to_string(
+            tk=self.tk,
+            sg_entity_type=self.humanuser["type"],
+            sg_id=self.humanuser["id"],
+            sg_field_name=self.humanuser["name"],
+            data=self.humanuser["login"]
+        )
         sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
         sequences_path = os.path.join(self.project_root, "sequences")
         shot_path = os.path.join(sequence_path, self.shot["code"])
-        sandbox_path = os.path.join(shot_path, self.humanuser["login"])
+        sandbox_path = os.path.join(shot_path, sandbox_folder_name)
         step_path = os.path.join(sandbox_path, self.step["short_name"])
 
         expected_paths.extend(
