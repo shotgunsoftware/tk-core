@@ -43,7 +43,7 @@ jobs:
     # After the tests have run, run the integration tests.
     post_tests_steps:
       - bash: python tests/integration_tests/run_integration_tests.py
-        displayName: Run integeration tests
+        displayName: Run integration tests
         env:
           SHOTGUN_TEST_COVERAGE: 1
           SHOTGUN_HOST: $(sg.ci.host)
