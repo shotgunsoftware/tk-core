@@ -451,7 +451,7 @@ class IODescriptorBase(object):
             try:
                 file_data = open(file_path)
                 try:
-                    metadata = yaml.load(file_data)
+                    metadata = yaml.load(file_data, Loader=yaml.FullLoader)
                 finally:
                     file_data.close()
             except Exception as exp:

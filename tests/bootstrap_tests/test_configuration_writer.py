@@ -109,7 +109,7 @@ class TestShotgunYmlWriting(TestConfigurationWriterBase):
         )
         self.assertTrue(os.path.exists(shotgun_yml_path))
         with open(shotgun_yml_path, "rb") as fh:
-            return yaml.load(fh)
+            return yaml.load(fh, Loader=yaml.FullLoader)
 
     def test_no_template_generate_new_file(self):
         """

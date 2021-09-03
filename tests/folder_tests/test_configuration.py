@@ -50,7 +50,7 @@ class TestFolderConfiguration(TankTestBase):
         )
 
         fh = open(roots_file, "r")
-        data = yaml.load(fh)
+        data = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
         data["root_name"] = "some_bogus_Data"
         fh = open(roots_file, "w")

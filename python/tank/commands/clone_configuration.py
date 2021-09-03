@@ -293,7 +293,7 @@ def _do_clone(
         # read the file first
         fh = open(sg_pc_location, "rt")
         try:
-            data = yaml.load(fh)
+            data = yaml.load(fh, Loader=yaml.FullLoader)
         finally:
             fh.close()
 
