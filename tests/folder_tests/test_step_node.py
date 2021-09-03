@@ -482,7 +482,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
             sg_entity_type=self.humanuser["type"],
             sg_id=self.humanuser["id"],
             sg_field_name=self.humanuser["name"],
-            data=self.humanuser["login"]
+            data=self.humanuser["login"],
         )
         sequence_path = os.path.join(self.project_root, "sequences", self.seq["code"])
         sequences_path = os.path.join(self.project_root, "sequences")
