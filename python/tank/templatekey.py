@@ -296,8 +296,14 @@ class TemplateKey(object):
     def _as_value(self, str_value):
         return str_value
 
-    def __repr__(self):
+    def _string_representation(self):
         return "<Sgtk %s %s>" % (self.__class__.__name__, self.name)
+
+    def __repr__(self):
+        return self._string_representation()
+
+    def __str__(self):
+        return self._string_representation()
 
 
 class StringKey(TemplateKey):
