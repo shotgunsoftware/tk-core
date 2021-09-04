@@ -15,6 +15,6 @@ cd tk-core/scripts
 python upgrade_pyyaml.py
 ```
 
-After running the script the old `python/tank_vendor/yaml` will be moved to `python/tank_vendor/yaml.old`. 
+After running the script the old `python/tank_vendor/yaml` will be moved to `python/tank_vendor/yaml.old`.
 
-**Note:** `python/tank_vendor/yaml.old` folder is included in `.gitignore` and won't be pushed to remote git repo. 
+**Note:** `python/tank_vendor/yaml.old` folder is included in `.gitignore` and won't be pushed to remote git repo.

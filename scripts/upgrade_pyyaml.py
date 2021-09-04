@@ -19,7 +19,9 @@ class PackageUpgrade(object):
         self.url = "https://github.com/yaml/pyyaml.git"
         self.base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         self.pyyaml_dir = os.path.join(self.base_dir, "python", "tank_vendor", "yaml")
-        self.pyyaml_old_dir = os.path.join(self.base_dir, "python", "tank_vendor", "yaml.old")
+        self.pyyaml_old_dir = os.path.join(
+            self.base_dir, "python", "tank_vendor", "yaml.old"
+        )
 
     def upgrade(self):
         print("Updating pyyaml package")
@@ -59,14 +61,10 @@ class PackageUpgrade(object):
         return clone_dir
 
     def get_latest_tag(self):
-        cmd = [
-            "git",
-            "tag",
-            "--sort=committerdate"
-        ]
+        cmd = ["git", "tag", "--sort=committerdate"]
         print(" ".join(cmd))
         tag = subprocess.check_output(cmd).splitlines()[-1]
-        tag = tag.decode("utf-8")   # py3 compatibility
+        tag = tag.decode("utf-8")  # py3 compatibility
         print(tag)
 
         return tag
