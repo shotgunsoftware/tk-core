@@ -49,3 +49,6 @@ htmlcov
 
 # venv
 venv
+
+# backup folders
+python/tank_vendor/yaml.old
