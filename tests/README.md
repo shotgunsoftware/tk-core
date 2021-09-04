@@ -13,7 +13,10 @@ the `--with-coverage` option, you need to `pip install coverage` first.
 
 Running the test suite
 -----------------------
-To run the tests on Windows run the `run_tests.bat`. To run on Linux or macOS, run the script `run_tests.sh`.
+To run the tests on Windows run the `run_tests.bat`. Also you need to run it as `admin` in `powershell` 
+with unrestricted execution policy (`Set-ExecutionPolicy Unrestricted`).
+
+To run on Linux or macOS, run the script `run_tests.sh`.
 
 Add `-h` to see options.
 
