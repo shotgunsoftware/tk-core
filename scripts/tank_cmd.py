@@ -773,7 +773,7 @@ def _shotgun_run_action(
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
-    :param ation_name: Name of action to execute (e.g launch_maya)
+    :param action_name: Name of action to execute (e.g launch_maya)
     :param entity_type: Entity type to execute action for
     :param entity_ids: list of entity ids (as ints) to pass to the action.
     """
