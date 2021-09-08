@@ -1069,7 +1069,7 @@ class TemplateConfiguration(object):
             try:
                 file_data = open(info_yml)
                 try:
-                    self._manifest = yaml.load(file_data)
+                    self._manifest = yaml.load(file_data, Loader=yaml.FullLoader)
                 finally:
                     file_data.close()
             except Exception as e:

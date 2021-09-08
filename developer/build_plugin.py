@@ -283,7 +283,7 @@ def _validate_manifest(source_path):
     logger.debug("Reading %s" % manifest_path)
     try:
         with open(manifest_path, "rt") as fh:
-            manifest_data = yaml.load(fh)
+            manifest_data = yaml.load(fh, Loader=yaml.FullLoader)
     except Exception as e:
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 

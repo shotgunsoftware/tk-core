@@ -1605,7 +1605,7 @@ def _read_credentials_from_file(auth_path):
         raise IncompleteCredentials("credentials file does not exist.")
     # Read the dictionary from file
     with open(auth_path) as auth_file:
-        file_data = yaml.load(auth_file)
+        file_data = yaml.load(auth_file, Loader=yaml.FullLoader)
 
     args = [
         (k, v) for k, v in file_data.items() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
