@@ -50,6 +50,9 @@ class PackageUpgrade(object):
         # copy old required files
         self.copy_old_required_files()
 
+        # delete old folder
+        self.remove_old_folder()
+
         shutil.rmtree(temp_dir, ignore_errors=True)
 
     def clone_repo(self, temp_dir):
@@ -106,6 +109,10 @@ class PackageUpgrade(object):
         source = os.path.join(self.pyyaml_old_dir, "__init__.py")
         target = os.path.join(self.pyyaml_dir, "__init__.py")
         shutil.copy(source, target)
+
+    def remove_old_folder(self):
+        print("Remove old pyyaml package folder")
+        shutil.rmtree(self.pyyaml_old_dir)
 
 
 def main():
