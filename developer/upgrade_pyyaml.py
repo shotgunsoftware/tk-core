@@ -112,7 +112,7 @@ class PackageUpgrade(object):
 
     def remove_old_folder(self):
         print("Remove old pyyaml package folder")
-        shutil.rmtree(self.pyyaml_old_dir, ignore_errors=True)
+        shutil.rmtree(self.pyyaml_old_dir)
 
 
 def main():
