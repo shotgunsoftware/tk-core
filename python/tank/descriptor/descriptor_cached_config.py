@@ -79,7 +79,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
             # read the file first
             fh = open(core_descriptor_path, "rt")
             try:
-                data = yaml.load(fh)
+                data = yaml.load(fh, Loader=yaml.FullLoader)
                 core_descriptor_dict = data["location"]
             except Exception as e:
                 raise TankDescriptorError(

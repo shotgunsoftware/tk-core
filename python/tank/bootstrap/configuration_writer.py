@@ -377,7 +377,7 @@ class ConfigurationWriter(object):
         if os.path.exists(source_config_sg_file):
             log.debug("shotgun.yml found in the config at '%s'.", source_config_sg_file)
             with open(source_config_sg_file, "rb") as fh:
-                metadata = yaml.load(fh)
+                metadata = yaml.load(fh, Loader=yaml.FullLoader)
         else:
             log.debug(
                 "File '%s' does not exist in the config. shotgun.yml will only contain the host.",

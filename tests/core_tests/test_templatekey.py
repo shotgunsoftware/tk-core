@@ -424,7 +424,6 @@ class TestStringKey(ShotgunTestBase):
         )
 
         for test in tests:
-
             print(test)
 
             short = test["short"]

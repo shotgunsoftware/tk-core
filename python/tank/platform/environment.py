@@ -866,12 +866,12 @@ class WritableEnvironment(InstalledEnvironment):
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             else:
                 # use pyyaml parser
-                yaml_data = yaml.load(fh)
+                yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
-            yaml_data = yaml.load(fh)
+            yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except Exception as e:
             raise TankError(
                 "Could not parse file '%s'. Error reported: '%s'" % (path, e)
@@ -961,7 +961,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # >>> yaml.safe_dump({"foo": u"bar"})
                 # '{foo: bar}\n'
                 #
-                yaml.safe_dump(data, fh)
+                yaml.safe_dump(data, fh, default_flow_style=None)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when an old version (<= v1.3.20)
