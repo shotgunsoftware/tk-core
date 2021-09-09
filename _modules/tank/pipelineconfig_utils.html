@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.20.4 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.20.5 documentation</title>
   
 
   
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.4.<br>
+    <b>tk-core</b> v0.20.5.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -337,7 +337,7 @@
     <span class="c1"># read the file first</span>
     <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_file_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
         <span class="n">core_descriptor_dict</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
