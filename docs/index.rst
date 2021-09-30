@@ -11,3 +11,4 @@ ShotGrid pipeline toolkit core platform, |release|
     utils
     descriptor
     authentication
+    environment_variables
