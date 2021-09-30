@@ -566,7 +566,7 @@ for the code in the ``BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0`` folder.
 Environment Variables
 ===============================================
 
-A number of different :ref:`environment variables<environment_variables>` exist to help control the behavior of Descriptors.
+A number of different :ref:`environment variables<environment_variables_bundle_cache>` exist to help control the behavior of Descriptors.
 
 
 API reference
