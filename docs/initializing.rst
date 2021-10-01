@@ -599,6 +599,7 @@ instance or run a ``tank`` command - the :class:`ToolkitManager` instead becomes
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
 
+A number of different :ref:`environment variables<environment_variables>` exist to help control the behavior of the Toolkit Startup.
 
 ToolkitManager
 ========================================
