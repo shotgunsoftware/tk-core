@@ -10,6 +10,10 @@ A number of different environment variables exist to help control the behavior o
 General
 =======
 
+``SHOTGUN_HOME``
+----------------
+Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.
+
 ``SGTK_PREFERENCES_LOCATION``
 -----------------------------
 Allows you to store your configuration file somewhere else on your computer or on your network. See the `documentation here <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#toolkit-configuration-file>`_.
@@ -38,10 +42,6 @@ Overrides the path to the main bundle cache, e.g. the location where the :ref:`D
 ``SHOTGUN_DISABLE_APPSTORE_ACCESS``
 -----------------------------------
 Setting this to ``1`` will disable any ShotGrid Appstore access. No attempts to connect will be carried out. This option can be useful in cases where complex proxy setups is preventing Toolkit to correctly operate.
-
-``SHOTGUN_HOME``
-----------------
-Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.
 
 .. _environment_variables_file_resolving:
 
