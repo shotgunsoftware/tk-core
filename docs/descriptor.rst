@@ -566,26 +566,7 @@ for the code in the ``BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0`` folder.
 Environment Variables
 ===============================================
 
-A number of different environment variables exist to help control the behavior of Descriptors:
-
-=================================== ===========================================================================
-Environment Variable Name           Description
-=================================== ===========================================================================
-SHOTGUN_HOME                        Overrides the location where Toolkit stores data. This includes bootstrap
-                                    data as well as bundle cache, cached thumbnails and other temp files.
-
-SHOTGUN_BUNDLE_CACHE_PATH           Overrides the path to the main bundle cache, e.g. the location where
-                                    the :ref:`Descriptor URI<descriptor>` will download bundles.
-
-SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS Colon separated list of paths to look for bundle cache locations. This is
-                                    for example useful if you maintain a centralized bundle cache location
-                                    that you want the bootstrap API to pick up bundles from.
-
-SHOTGUN_DISABLE_APPSTORE_ACCESS     Setting this to ``1`` will disable any ShotGrid Appstore access. No attempts
-                                    to connect will be carried out. This option can be useful in cases where
-                                    complex proxy setups is preventing Toolkit to correctly operate.
-
-=================================== ===========================================================================
+A number of different :ref:`environment variables<environment_variables_bundle_cache>` exist to help control the behavior of Descriptors.
 
 
 API reference
