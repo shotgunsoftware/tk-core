@@ -44,6 +44,7 @@ def load(
     # between Python 2 and 3.
     # See https://docs.python.org/3/library/json.html#json.load and
     # https://docs.python.org/2/library/json.html#json.load for both signatures.
+    # Python 3.9 does not have an encodings parameter, so don't add the value to the arguments list.
     if sys.version_info[0:2] < (3, 9):
         kw["encoding"] = encoding
     loaded_value = json.load(
@@ -83,6 +84,7 @@ def loads(
     # between Python 2 and 3.
     # See https://docs.python.org/3/library/json.html#json.loads and
     # https://docs.python.org/2/library/json.html#json.loads for both signatures.
+    # Python 3.9 does not have an encodings parameter, so don't add the value to the arguments list.
     if sys.version_info[0:2] < (3, 9):
         kw["encoding"] = encoding
     loaded_value = json.loads(
