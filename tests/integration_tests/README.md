@@ -14,6 +14,8 @@ There are also two optional environment variables:
 `SHOTGUN_TEST_TEMP`: When set, Toolkit will write all it's configuration files at this location and the data will not be erased after a test ends. This is useful for debugging.
 `SHOTGUN_TEST_COVERAGE`: When set, code coverage for tk-core will be generated and result into multiple `.coverage.<machine-name>.<uuid>` files containing coverage for each test run. Note that the test folder is not deleted so `coverage combine` can get line information properly.
 
+To run the tests you must first configure your Personal Access Token (PAT). If you have not yet configured your PAT you might not be able to run the tests. For more information on how to configure your Personal Access Token, please visit [this page](https://knowledge.autodesk.com/support/shotgrid/learn-explore/caas/CloudHelp/cloudhelp/ENU/SG-Migration/files/mi-migration/SG-Migration-mi-migration-account-mi-end-user-account-html-html.html?us_oa=akn-us&us_si=e1612a29-78a6-4503-9349-2ec30fc72e28&us_st=Personal%20Access%20Tokens).
+
 How to run an integration test
 ------------------------------
 Once the 3 main environment variables have been set, you can run the tests using `run_integration_tests.py`. This will run all the tests. If you only want to run one or more test, you can do so like this:
