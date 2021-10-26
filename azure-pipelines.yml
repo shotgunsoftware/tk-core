@@ -42,6 +42,24 @@ jobs:
   parameters:
     # After the tests have run, run the integration tests.
     post_tests_steps:
+      # FIXME: This step is a temporary hack to get tests running on Python 3.9 until
+      # tk-ci-tools supports Python 3.9
+      - ${{ if contains(parameters.image_name, 'ubuntu') }}:
+        - bash: python3.9 -m pytest -vv
+          displayName: Run tests with 3.9
+          env:
+            # These environmenet variables were copied from the Run tests step in the tk-ci-tools pipeline.
+            # https://github.com/shotgunsoftware/tk-ci-tools/blob/e6120fbad5d895993ea710b2c66182336d9c1252/internal/run-tests-with.yml#L131-L140
+            QT_QPA_PLATFORM: offscreen
+            DISPLAY: ':99.0'
+            TK_DEBUG: 1
+            CI: 1
+            # Allows to connect to a real Shotgun site during a test. Use sparingly to avoid
+            # slowing down automation. Using Mockgun is still the best way to have speedy tests.
+            TK_TOOLCHAIN_HOST: $(sg.ci.host)
+            TK_TOOLCHAIN_USER_LOGIN: $(sg.ci.human.login)
+            TK_TOOLCHAIN_USER_PASSWORD: $(sg.ci.human.password)
+            SHOTGUN_TEST_ENTITY_SUFFIX: '$(Agent.Name)'
       - bash: python tests/integration_tests/run_integration_tests.py
         displayName: Run integration tests
         env:
