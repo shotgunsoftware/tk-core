@@ -59,7 +59,7 @@ jobs:
         inputs:
           versionSpec: 3.9
         displayName: Use Python 3.9
-      - bash: python3.9 -m pytest -vv
+      - bash: python -m pytest -vv
         displayName: Run tests with 3.9
         env:
           # These environmenet variables were copied from the Run tests step in the tk-ci-tools pipeline.
