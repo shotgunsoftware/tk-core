@@ -59,6 +59,8 @@ jobs:
         inputs:
           versionSpec: 3.9
         displayName: Use Python 3.9
+      - bash: git+https://github.com/shotgunsoftware/tk-toolchain.git@master#egg=tk-toolchain
+        displayName: Installing dependencies
       - bash: python -m pytest -vv
         displayName: Run tests with 3.9
         env:
