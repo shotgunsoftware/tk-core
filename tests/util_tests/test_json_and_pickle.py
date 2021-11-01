@@ -219,16 +219,22 @@ class Impl:
             Ensures reloading JSON written by any version of Python works in the current
             Python version.
             """
-            with open(self.file_location(2), "rb") as fh:
+            with open(self.file_location(2, 7), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
 
-            with open(self.file_location(3), "rb") as fh:
+            with open(self.file_location(3, 7), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
 
-            with open(self.file_location(2), "r{0}".format(self.mode)) as fh:
+            with open(self.file_location(3, 9), "rb") as fh:
+                self.assertEqual(self.load(fh), self.dict_with_unicode)
+
+            with open(self.file_location(2, 7), "r{0}".format(self.mode)) as fh:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
-            with open(self.file_location(3), "r{0}".format(self.mode)) as fh:
+            with open(self.file_location(3, 7), "r{0}".format(self.mode)) as fh:
+                self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
+
+            with open(self.file_location(3, 9), "r{0}".format(self.mode)) as fh:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
         fixtures_location = os.path.join(
@@ -236,16 +242,16 @@ class Impl:
         )
 
         @classmethod
-        def file_location(cls, python_version):
+        def file_location(cls, python_major, python_minor):
             return os.path.join(
-                cls.fixtures_location, cls.filename.format(python_version)
+                cls.fixtures_location, cls.filename.format(python_major, python_minor)
             )
 
 
 class JSONTests(Impl.SerializationTests):
 
     # Parametrizes the tests from the base class.
-    filename = "json_saved_with_python_{0}.json"
+    filename = "json_saved_with_python_{0}.{1}.json"
     mode = "t"
     write_mode = "wb" if six.PY2 else "wt"
     loader_module = tk_json
@@ -255,7 +261,7 @@ class JSONTests(Impl.SerializationTests):
 class PickleTests(Impl.SerializationTests):
 
     # Parametrizes the tests from the base class.
-    filename = "pickle_saved_with_python_{0}.pickle"
+    filename = "pickle_saved_with_python_{0}.{1}.pickle"
     mode = "b"
     write_mode = "wb"
     loader_module = pickle
@@ -280,11 +286,11 @@ if __name__ == "__main__":
 
     # PYTHONPATH=../../python python test_json_and_pickle.py
     # with python 2 and python 3 to generate the files.
-    file_path = JSONTests.file_location(sys.version_info[0])
+    file_path = JSONTests.file_location(sys.version_info[0], sys.version_info[1])
     with open(file_path, "wt") as fh:
         json.dump(JSONTests.dict_with_unicode, fh, sort_keys=True)
 
-    file_path = PickleTests.file_location(sys.version_info[0])
+    file_path = PickleTests.file_location(sys.version_info[0], sys.version_info[1])
     with open(file_path, "wb") as fh:
         pickle.dump(PickleTests.dict_with_unicode, fh)
 
