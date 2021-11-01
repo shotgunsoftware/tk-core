@@ -168,7 +168,7 @@ class TestStartEngine(TestEngineBase):
         Test engine properties
         """
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
-        expected_doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
+        expected_doc_url = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Supervisor_Artist_sa_integrations_sa_integrations_user_guide_html"
         self.assertEqual(engine.name, "test_engine")
         self.assertEqual(engine.display_name, "test_engine")
         self.assertEqual(engine.version, "Undefined")
