@@ -14,7 +14,7 @@ Utility methods for unserializing JSON documents.
 # We need to add this to the file or the import json will reimport this
 # module instead of importing the global json module.
 from __future__ import absolute_import
-
+import sys
 import json
 
 from .unicode import ensure_contains_str
@@ -44,9 +44,11 @@ def load(
     # between Python 2 and 3.
     # See https://docs.python.org/3/library/json.html#json.load and
     # https://docs.python.org/2/library/json.html#json.load for both signatures.
+    # Python 3.9 does not have an encodings parameter, so don't add the value to the arguments list.
+    if sys.version_info[0:2] < (3, 9):
+        kw["encoding"] = encoding
     loaded_value = json.load(
         fp,
-        encoding=encoding,
         cls=cls,
         object_hook=object_hook,
         parse_float=parse_float,
@@ -82,9 +84,11 @@ def loads(
     # between Python 2 and 3.
     # See https://docs.python.org/3/library/json.html#json.loads and
     # https://docs.python.org/2/library/json.html#json.loads for both signatures.
+    # Python 3.9 does not have an encodings parameter, so don't add the value to the arguments list.
+    if sys.version_info[0:2] < (3, 9):
+        kw["encoding"] = encoding
     loaded_value = json.loads(
         s,
-        encoding=encoding,
         cls=cls,
         object_hook=object_hook,
         parse_float=parse_float,
