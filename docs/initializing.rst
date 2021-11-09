@@ -54,7 +54,7 @@ in parallel with production.
 
 
 .. note:: To read more about the default configurations offered with Toolkit, see
-    the `ShotGrid integrations admin guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493-Integrations-Admin-Guide>`_.
+    the `ShotGrid integrations admin guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide>`_.
 
 
 The Toolkit startup
