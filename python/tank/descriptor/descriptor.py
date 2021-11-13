@@ -358,7 +358,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://support.shotgunsoftware.com"
+            support_url = "https://developer.shotgridsoftware.com"
         return support_url
 
     @property

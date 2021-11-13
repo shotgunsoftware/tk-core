@@ -348,7 +348,7 @@ class SetupProjectAction(Action):
         log.info(
             "For more Apps, Support, Documentation and the Toolkit Community, go to"
         )
-        log.info("https://support.shotgunsoftware.com")
+        log.info("https://developer.shotgridsoftware.com")
         log.info("")
 
     def _shotgun_connect(self, log):
