@@ -20,7 +20,7 @@ https://developer.shotgridsoftware.com/e95205a8/?title=An+Overview+of+Toolkit
 ## Reference Documentation and Release Notes
 
 For our *latest released API Documentation*, head over to the Toolkit App Store:
-https://developer.shotgridsoftware.com/e95205a8/?title=An+Overview+of+Toolkit
+https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide
 
 Release Notes for the Core API are also maintained as a wiki document
 and can be found here: https://github.com/shotgunsoftware/tk-core/wiki/Release-Notes
