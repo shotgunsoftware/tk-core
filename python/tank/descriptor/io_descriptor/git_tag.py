@@ -199,13 +199,6 @@ class IODescriptorGitTag(IODescriptorGit):
 
         git_tags = self._fetch_tags()
 
-        # import sys
-        # sys.path.append(
-        #     r"/Applications/PyCharm.app/Contents/debug-eggs/pydevd-pycharm.egg")
-        # import pydevd
-        # pydevd.settrace('localhost', port=5490, stdoutToServer=True,
-        #                 stderrToServer=True)
-
         latest_tag = self._find_latest_tag_by_pattern(git_tags, pattern)
         if latest_tag is None:
             raise TankDescriptorError(
