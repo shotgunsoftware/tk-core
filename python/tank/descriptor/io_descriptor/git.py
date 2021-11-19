@@ -89,7 +89,7 @@ class IODescriptorGit(IODescriptorDownloadable):
 
     @LogManager.log_timing
     def _clone_then_execute_git_commands(
-            self, target_path, commands, depth=None, ref=None
+        self, target_path, commands, depth=None, ref=None
     ):
         """
         Clones the git repository into the given location and
