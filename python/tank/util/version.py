@@ -177,9 +177,9 @@ def _compare_versions(a, b):
         # has '-' appended it's older than the same version with '-' at the end
         if version_num_a == version_num_b:
             if "-" in a and "-" not in b:
-                return False  # because b is the latest version e.g. v1.1.0
+                return False  # False, version a is older than b
             elif "-" in b and "-" not in a:
-                return True  # because a is the latest version e.g. v1.1.0
+                return True  # True, version a is older than b
             else:
                 return LooseVersion(a) > LooseVersion(
                     b
