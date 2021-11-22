@@ -83,7 +83,7 @@ DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"
 TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
 
 # URL for contacting support
-SUPPORT_URL = "https://support.shotgunsoftware.com"
+SUPPORT_URL = "https://knowledge.autodesk.com/contact-support"
 
 # environment variable to hold external pipeline config data
 ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"

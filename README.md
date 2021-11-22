@@ -15,12 +15,12 @@ This repository represents the ShotGrid Pipeline Toolkit Core API.
 Installing the ShotGrid Pipeline Toolkit is normally done via our
 ShotGrid App Store. For detailed instructions on how to get started
 with Toolkit, head over to our support site:
-https://support.shotgunsoftware.com/entries/95442748
+https://developer.shotgridsoftware.com/e95205a8/?title=An+Overview+of+Toolkit
 
 ## Reference Documentation and Release Notes
 
 For our *latest released API Documentation*, head over to the Toolkit App Store:
-https://support.shotgunsoftware.com/entries/95441257
+https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide
 
 Release Notes for the Core API are also maintained as a wiki document
 and can be found here: https://github.com/shotgunsoftware/tk-core/wiki/Release-Notes
