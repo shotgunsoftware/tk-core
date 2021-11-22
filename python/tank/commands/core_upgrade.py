@@ -154,8 +154,12 @@ class CoreUpdateAction(Action):
         )
         log.info("")
         log.info("For more information, please see the Toolkit documentation:")
-        log.info("https://developer.shotgridsoftware.com/3414fbb3/?title=Desktop+Startup")
-        log.info("https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components")
+        log.info(
+            "https://developer.shotgridsoftware.com/3414fbb3/?title=Desktop+Startup"
+        )
+        log.info(
+            "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+        )
         log.info("")
 
         config_desc = self.tk.configuration_descriptor if self.tk is not None else None

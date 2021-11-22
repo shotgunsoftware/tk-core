@@ -174,7 +174,9 @@ class InstallAppAction(Action):
                 "To see all apps and engines in the Toolkit App Store, navigate here:"
             )
             log.info("")
-            log.info("https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components")
+            log.info(
+                "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+            )
             log.info("")
             log.info("To install an app store app, use the following syntax:")
             log.info("> tank install_app environment_name engine_name app_name")
@@ -476,7 +478,9 @@ class InstallEngineAction(Action):
                 "To see all apps and engines in the Toolkit App Store, navigate here:"
             )
             log.info("")
-            log.info("https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components")
+            log.info(
+                "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+            )
             log.info("")
             log.info("To install an app store engine, use the following syntax:")
             log.info("> tank install_engine environment_name engine_name")
