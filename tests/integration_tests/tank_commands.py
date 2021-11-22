@@ -225,7 +225,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_07_install_app(self):
         """
-        Runs tank install_app on the project..
+        Runs tank install_app on the project.
         """
         output = self.run_tank_cmd(
             self.pipeline_location,
