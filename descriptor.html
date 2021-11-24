@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.20.6 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.20.7 documentation</title>
   
 
   
@@ -124,6 +124,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment_variables.html">Environment Variables</a></li>
 </ul>
 
             
@@ -147,12 +148,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.6.<br>
+    <b>tk-core</b> v0.20.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://support.shotgridsoftware.com/home'>Shotgun Support</a>.
+    <a class=custom_post_menu href='https://developer.shotgridsoftware.com'>Shotgun Support</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -707,38 +708,7 @@ we do not recommend using them.</p>
 </div>
 <div class="section" id="environment-variables">
 <h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
-<p>A number of different environment variables exist to help control the behavior of Descriptors:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="32%" />
-<col width="68%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Environment Variable Name</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>SHOTGUN_HOME</td>
-<td>Overrides the location where Toolkit stores data. This includes bootstrap
-data as well as bundle cache, cached thumbnails and other temp files.</td>
-</tr>
-<tr class="row-odd"><td>SHOTGUN_BUNDLE_CACHE_PATH</td>
-<td>Overrides the path to the main bundle cache, e.g. the location where
-the <a class="reference internal" href="#descriptor"><span class="std std-ref">Descriptor URI</span></a> will download bundles.</td>
-</tr>
-<tr class="row-even"><td>SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</td>
-<td>Colon separated list of paths to look for bundle cache locations. This is
-for example useful if you maintain a centralized bundle cache location
-that you want the bootstrap API to pick up bundles from.</td>
-</tr>
-<tr class="row-odd"><td>SHOTGUN_DISABLE_APPSTORE_ACCESS</td>
-<td>Setting this to <code class="docutils literal notranslate"><span class="pre">1</span></code> will disable any ShotGrid Appstore access. No attempts
-to connect will be carried out. This option can be useful in cases where
-complex proxy setups is preventing Toolkit to correctly operate.</td>
-</tr>
-</tbody>
-</table>
+<p>A number of different <a class="reference internal" href="environment_variables.html#environment-variables-bundle-cache"><span class="std std-ref">environment variables</span></a> exist to help control the behavior of Descriptors.</p>
 </div>
 </div>
 <div class="section" id="api-reference">

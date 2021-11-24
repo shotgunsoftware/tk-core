@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.20.6 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.20.7 documentation</title>
   
 
   
@@ -123,7 +123,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#bootstrap-api">Bootstrap API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#toolkitmanager">ToolkitManager</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#exception-classes">Exception Classes</a></li>
 </ul>
@@ -151,6 +150,7 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment_variables.html">Environment Variables</a></li>
 </ul>
 
             
@@ -174,12 +174,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.6.<br>
+    <b>tk-core</b> v0.20.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://support.shotgridsoftware.com/home'>Shotgun Support</a>.
+    <a class=custom_post_menu href='https://developer.shotgridsoftware.com'>Shotgun Support</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -287,7 +287,7 @@ in parallel with production.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">To read more about the default configurations offered with Toolkit, see
-the <a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/115000067493-Integrations-Admin-Guide">ShotGrid integrations admin guide</a>.</p>
+the <a class="reference external" href="https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide">ShotGrid integrations admin guide</a>.</p>
 </div>
 </div>
 <div class="section" id="the-toolkit-startup">
@@ -430,7 +430,7 @@ but is shared between all pipeline configurations.</p>
 <li><code class="docutils literal notranslate"><span class="pre">~/.shotgun</span></code> (Linux)</li>
 </ul>
 <p class="last">These locations can be customized by setting a <code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code>
-<a class="reference internal" href="#environment-variables"><span class="std std-ref">environment variable</span></a>.</p>
+<a class="reference internal" href="environment_variables.html#environment-variables"><span class="std std-ref">environment variable</span></a>.</p>
 </div>
 <div class="admonition note" id="local-bundle-caches">
 <p class="first admonition-title">Note</p>
@@ -918,46 +918,7 @@ to launch Toolkit’s default config for a ShotGrid Asset:</p>
 instance or run a <code class="docutils literal notranslate"><span class="pre">tank</span></code> command - the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> instead becomes the entry
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.</p>
-<div class="section" id="environment-variables">
-<span id="id5"></span><h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
-<p>A number of different environment variables exist to help control the behavior of the Toolkit Startup:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="32%" />
-<col width="68%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Environment Variable Name</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>SHOTGUN_HOME</td>
-<td>Overrides the location where Toolkit stores data.
-This includes bootstrap data as well as bundle cache,
-cached thumbnails and other temp files.</td>
-</tr>
-<tr class="row-odd"><td>SHOTGUN_BUNDLE_CACHE_PATH</td>
-<td>Overrides the path to the main bundle cache, e.g. the location where
-the <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor URI</span></a> will download bundles.</td>
-</tr>
-<tr class="row-even"><td>SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</td>
-<td>Colon separated list of paths to look for bundle cache locations. This is
-for example useful if you maintain a centralized bundle cache location
-that you want the bootstrap API to pick up bundles from.</td>
-</tr>
-<tr class="row-odd"><td>TK_BOOTSTRAP_CONFIG_OVERRIDE</td>
-<td>Low level bypass to set the configuration desciptor URI that the bootstrap
-API should load up. Useful in complex workflow development scenarios.</td>
-</tr>
-<tr class="row-even"><td>SHOTGUN_DISABLE_APPSTORE_ACCESS</td>
-<td>Setting this to <code class="docutils literal notranslate"><span class="pre">1</span></code> will disable any ShotGrid Appstore access. No attempts
-to connect will be carried out. This option can be useful in cases where
-complex proxy setups is preventing Toolkit to correctly operate.</td>
-</tr>
-</tbody>
-</table>
-</div>
+<p>A number of different <a class="reference internal" href="environment_variables.html#environment-variables"><span class="std std-ref">environment variables</span></a> exist to help control the behavior of the Toolkit Startup.</p>
 <div class="section" id="toolkitmanager">
 <h3>ToolkitManager<a class="headerlink" href="#toolkitmanager" title="Permalink to this headline">¶</a></h3>
 <p>Below follows the full API reference for the <code class="docutils literal notranslate"><span class="pre">ToolkitManager</span></code> bootstrap API.</p>
@@ -1577,7 +1538,7 @@ likely to contain changes which have not yet been full tested.</p>
 </div>
 </div>
 <div class="section" id="launching-software">
-<span id="id6"></span><h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
 <p>In order to run software integrations in the form of a Toolkit <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>,
 it is necessary to be able to easily launch the software and initialize Toolkit once
 the software environment.</p>

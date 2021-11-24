@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.json &mdash; tk-core v0.20.6 documentation</title>
+  <title>tank.util.json &mdash; tk-core v0.20.7 documentation</title>
   
 
   
@@ -99,6 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../environment_variables.html">Environment Variables</a></li>
 </ul>
 
             
@@ -122,12 +123,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.6.<br>
+    <b>tk-core</b> v0.20.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://support.shotgridsoftware.com/home'>Shotgun Support</a>.
+    <a class=custom_post_menu href='https://developer.shotgridsoftware.com'>Shotgun Support</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -210,7 +211,7 @@
 <span class="c1"># We need to add this to the file or the import json will reimport this</span>
 <span class="c1"># module instead of importing the global json module.</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
-
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">json</span>
 
 <span class="kn">from</span> <span class="nn">.unicode</span> <span class="kn">import</span> <span class="n">ensure_contains_str</span>
@@ -240,9 +241,11 @@
     <span class="c1"># between Python 2 and 3.</span>
     <span class="c1"># See https://docs.python.org/3/library/json.html#json.load and</span>
     <span class="c1"># https://docs.python.org/2/library/json.html#json.load for both signatures.</span>
+    <span class="c1"># Python 3.9 does not have an encodings parameter, so don&#39;t add the value to the arguments list.</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
+        <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;encoding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoding</span>
     <span class="n">loaded_value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
         <span class="n">fp</span><span class="p">,</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
         <span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
         <span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">,</span>
         <span class="n">parse_float</span><span class="o">=</span><span class="n">parse_float</span><span class="p">,</span>
@@ -278,9 +281,11 @@
     <span class="c1"># between Python 2 and 3.</span>
     <span class="c1"># See https://docs.python.org/3/library/json.html#json.loads and</span>
     <span class="c1"># https://docs.python.org/2/library/json.html#json.loads for both signatures.</span>
+    <span class="c1"># Python 3.9 does not have an encodings parameter, so don&#39;t add the value to the arguments list.</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
+        <span class="n">kw</span><span class="p">[</span><span class="s2">&quot;encoding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoding</span>
     <span class="n">loaded_value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
         <span class="n">s</span><span class="p">,</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
         <span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
         <span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">,</span>
         <span class="n">parse_float</span><span class="o">=</span><span class="n">parse_float</span><span class="p">,</span>

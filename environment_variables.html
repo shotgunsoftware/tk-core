@@ -1,0 +1,326 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Environment Variables &mdash; tk-core v0.20.7 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Authentication" href="authentication.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+    <a href='http://developer.shotgridsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px;
+                margin: 2px;
+                border-radius: 0px;
+                padding: 0px;'
+            src='_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Environment Variables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general">General</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-home"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-preferences-location"><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tk-bootstrap-config-override"><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tk-debug"><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#bundle-cache">Bundle cache</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-bundle-cache-fallback-paths"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-bundle-cache-path"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_PATH</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-disable-appstore-access"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_DISABLE_APPSTORE_ACCESS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#file-resolving">File resolving</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-path-windows-mac-linux-storagename"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_PATH_&lt;WINDOWS|MAC|LINUX&gt;_&lt;STORAGENAME&gt;</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-path-windows-mac-linux"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_PATH_&lt;WINDOWS|MAC|LINUX&gt;</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px;
+                color: #b3b3b3;
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>
+    <style>
+        a.custom_post_menu { display: inline;
+                             padding: 0px;
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.20.7.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://developer.shotgridsoftware.com'>Shotgun Support</a>.
+    The code associated with this documentation can be found
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tk-core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Environment Variables</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="environment-variables">
+<span id="id1"></span><h1>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h1>
+<p>A number of different environment variables exist to help control the behavior of the Toolkit Startup.</p>
+<div class="section" id="general">
+<span id="environment-variables-general"></span><h2>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="shotgun-home">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code><a class="headerlink" href="#shotgun-home" title="Permalink to this headline">¶</a></h3>
+<p>Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.</p>
+</div>
+<div class="section" id="sgtk-preferences-location">
+<h3><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code><a class="headerlink" href="#sgtk-preferences-location" title="Permalink to this headline">¶</a></h3>
+<p>Allows you to store your configuration file somewhere else on your computer or on your network. See the <a class="reference external" href="https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#toolkit-configuration-file">documentation here</a>.</p>
+</div>
+<div class="section" id="tk-bootstrap-config-override">
+<h3><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code><a class="headerlink" href="#tk-bootstrap-config-override" title="Permalink to this headline">¶</a></h3>
+<p>Low level bypass to set the configuration desciptor URI that the bootstrap API should load up. Useful in complex workflow development scenarios.</p>
+</div>
+<div class="section" id="tk-debug">
+<h3><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code><a class="headerlink" href="#tk-debug" title="Permalink to this headline">¶</a></h3>
+<p>Controls debug logging.</p>
+</div>
+</div>
+<div class="section" id="bundle-cache">
+<span id="environment-variables-bundle-cache"></span><h2>Bundle cache<a class="headerlink" href="#bundle-cache" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="shotgun-bundle-cache-fallback-paths">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code><a class="headerlink" href="#shotgun-bundle-cache-fallback-paths" title="Permalink to this headline">¶</a></h3>
+<p>Path that lets a user specify bundle cache fallbacks to go look for a bundle in case it is now found in the bundle cache. This is part of the <a class="reference internal" href="initializing.html#bootstrap-api"><span class="std std-ref">Bootstrap API</span></a>. Also see <a class="reference external" href="https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#managing-updates-via-manual-download">ShotGrid Integrations Admin guide</a>.</p>
+</div>
+<div class="section" id="shotgun-bundle-cache-path">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_PATH</span></code><a class="headerlink" href="#shotgun-bundle-cache-path" title="Permalink to this headline">¶</a></h3>
+<p>Overrides the path to the main bundle cache, e.g. the location where the <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor URI</span></a> will download bundles.</p>
+</div>
+<div class="section" id="shotgun-disable-appstore-access">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_DISABLE_APPSTORE_ACCESS</span></code><a class="headerlink" href="#shotgun-disable-appstore-access" title="Permalink to this headline">¶</a></h3>
+<p>Setting this to <code class="docutils literal notranslate"><span class="pre">1</span></code> will disable any ShotGrid Appstore access. No attempts to connect will be carried out. This option can be useful in cases where complex proxy setups is preventing Toolkit to correctly operate.</p>
+</div>
+</div>
+<div class="section" id="file-resolving">
+<span id="environment-variables-file-resolving"></span><h2>File resolving<a class="headerlink" href="#file-resolving" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="shotgun-path-windows-mac-linux-storagename">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_PATH_&lt;WINDOWS|MAC|LINUX&gt;_&lt;STORAGENAME&gt;</span></code><a class="headerlink" href="#shotgun-path-windows-mac-linux-storagename" title="Permalink to this headline">¶</a></h3>
+<p>Specifies your local storage root on different operating systems. See <a class="reference external" href="https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#resolving-local-file-links">Resolving local file links</a>.</p>
+</div>
+<div class="section" id="shotgun-path-windows-mac-linux">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_PATH_&lt;WINDOWS|MAC|LINUX&gt;</span></code><a class="headerlink" href="#shotgun-path-windows-mac-linux" title="Permalink to this headline">¶</a></h3>
+<p>Resolves a <code class="docutils literal notranslate"><span class="pre">file://</span></code> URL on different operating systems. See <a class="reference external" href="https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#resolving-file-urls">Resolving file URLS</a>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="authentication.html" class="btn btn-neutral float-left" title="Authentication" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Autodesk
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

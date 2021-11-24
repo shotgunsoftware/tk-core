@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.version &mdash; tk-core v0.20.6 documentation</title>
+  <title>tank.util.version &mdash; tk-core v0.20.7 documentation</title>
   
 
   
@@ -99,6 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../environment_variables.html">Environment Variables</a></li>
 </ul>
 
             
@@ -122,12 +123,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.6.<br>
+    <b>tk-core</b> v0.20.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://support.shotgridsoftware.com/home'>Shotgun Support</a>.
+    <a class=custom_post_menu href='https://developer.shotgridsoftware.com'>Shotgun Support</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -353,7 +354,37 @@
     <span class="c1"># First, try to use LooseVersion for comparison.  This should work in</span>
     <span class="c1"># most cases.</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="n">version_a</span> <span class="o">=</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
+        <span class="n">version_b</span> <span class="o">=</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
+        <span class="n">version_num_a</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">version_num_b</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># taking only the integers of the version to make comparison</span>
+        <span class="k">for</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">version_a</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">)):</span>
+                <span class="n">version_num_a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">for</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">version_b</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">)):</span>
+                <span class="n">version_num_b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Comparing equal number versions with with one of them with &#39;-&#39; appended, if a version</span>
+        <span class="c1"># has &#39;-&#39; appended it&#39;s older than the same version with &#39;-&#39; at the end</span>
+        <span class="k">if</span> <span class="n">version_num_a</span> <span class="o">==</span> <span class="n">version_num_b</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">a</span> <span class="ow">and</span> <span class="s2">&quot;-&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">b</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># False, version a is older than b</span>
+            <span class="k">elif</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">b</span> <span class="ow">and</span> <span class="s2">&quot;-&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># True, version a is older than b</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">LooseVersion</span><span class="p">(</span>
+                    <span class="n">b</span>
+                <span class="p">)</span>  <span class="c1"># If both has &#39;-&#39; compare &#39;-rcx&#39; versions</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">LooseVersion</span><span class="p">(</span>
+                <span class="n">b</span>
+            <span class="p">)</span>  <span class="c1"># If they are different numeric versions</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
         <span class="c1"># To mimick the behavior in Python 2.7 as closely as possible, we will</span>
         <span class="c1"># If LooseVersion comparison didn&#39;t work, try to extract a numeric</span>
