@@ -10,9 +10,11 @@
 
 import os
 import contextlib
+import traceback
 
 from .. import constants
 from ... import LogManager
+from ... import hook
 from ...util import filesystem, sgre as re
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
@@ -37,6 +39,8 @@ class IODescriptorBase(object):
     Tank App store and one which knows how to handle the local file system.
     """
 
+    HOOK_NAME = "register_descriptor.py"
+    IO_DESCRIPTORS_INITIALIZED = False
     _factory = {}
 
     @classmethod
@@ -65,6 +69,10 @@ class IODescriptorBase(object):
         :returns: Instance of class deriving from :class:`IODescriptorBase`
         :raises: TankDescriptorError
         """
+        if not cls.IO_DESCRIPTORS_INITIALIZED:
+            cls.initialize_io_descriptor_types(
+                descriptor_dict, sg_connection, bundle_type
+            )
         descriptor_type = descriptor_dict.get("type")
         if descriptor_type not in cls._factory:
             raise TankDescriptorError(
@@ -72,6 +80,51 @@ class IODescriptorBase(object):
             )
         class_obj = cls._factory[descriptor_type]
         return class_obj(descriptor_dict, sg_connection, bundle_type)
+
+    @classmethod
+    def initialize_io_descriptor_types(
+        cls, descriptor_dict, sg_connection, bundle_type
+    ):
+        # First put our base hook implementation into the array.
+        base_class_path = os.path.normpath(
+            os.path.join(
+                os.path.dirname(__file__),
+                os.pardir,
+                os.pardir,
+                os.pardir,
+                os.pardir,
+                "hooks",
+                cls.HOOK_NAME,
+            )
+        )
+        hook_inheritance_chain = [base_class_path]
+
+        # Then, check if there is a config-level override.
+        hook_path = os.path.join(
+            descriptor_dict.get("path"), "core", "hooks", cls.HOOK_NAME
+        )
+        if os.path.isfile(hook_path):
+            hook_inheritance_chain.append(hook_path)
+
+        try:
+            instance = hook.create_hook_instance(hook_inheritance_chain, parent=None)
+            instance.init(sg_connection, bundle_type, descriptor_dict)
+            instance.register_io_descriptors()
+        except TankDescriptorError:
+            from tank.descriptor.io_descriptor import _initialize_descriptor_factory
+
+            log.warning(
+                "Error while executing {hook_name} from {hook_path}. "
+                "Falling back to core descriptors".format(
+                    hook_name=cls.HOOK_NAME, hook_path=hook_inheritance_chain
+                )
+            )
+            log.debug(traceback.format_exc())
+            _initialize_descriptor_factory(cls)
+        finally:
+            # We only want to call this at most once.
+            # If it fails the first time, what could possible make it succeed a second time?
+            cls.IO_DESCRIPTORS_INITIALIZED = True
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
