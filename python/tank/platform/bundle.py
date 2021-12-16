@@ -541,6 +541,7 @@ class TankBundle(object):
                 self._get_engine_name() == 'tk-nuke' and
                 not pipeline.use_3_digits_version_numbering_for_nuke_files.enabled):
 
+
             # Exclude templates other than for Nuke or Json files. Example : 'nuke_asset_publish_json' and
             # if the string "_old" is already present at the end of template name.
             extension_for_old_template_name = '_old'
