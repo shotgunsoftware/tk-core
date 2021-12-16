@@ -528,8 +528,43 @@ class TankBundle(object):
         :param key: Setting to retrieve template for
         :returns: :class:`~Template` object
         """
+        from sstk_config.configs import pipeline
+
         template_name = self.get_setting(key)
-        return self.get_template_by_name(template_name)
+
+        template = None
+        ################################################################################################################
+        # Switch between Nuke file path templates for projects where
+        # the version uses 2 digits and the one where it uses 3 digits.
+        ################################################################################################################
+        if (template_name and
+                self._get_engine_name() == 'tk-nuke' and
+                not pipeline.use_3_digits_version_numbering_for_nuke_files.enabled):
+
+            # Exclude templates other than for Nuke or Json files. Example : 'nuke_asset_publish_json' and
+            # if the string "_old" is already present at the end of template name.
+            extension_for_old_template_name = '_old'
+
+            if (template_name.startswith('nuke_') or
+                    not template_name.endswith('_json') or
+                    not template_name.endswith(extension_for_old_template_name)):
+
+                # Adding the "_old" at the template name.
+                old_template_name = template_name + extension_for_old_template_name
+                try:
+                    self.tank.templates[old_template_name]
+                    template = self.get_template_by_name(old_template_name)
+                except KeyError:
+                    unconverted_message = ("The {0} template name when converted to "
+                                           "old path does not exist in tank Template! "
+                                           "It will be used unconverted".format(template_name))
+                    core_logger.debug(unconverted_message)
+
+        ################################################################################################################
+        if not template:
+            template = self.get_template_by_name(template_name)
+
+        return template
 
     def get_template_by_name(self, template_name):
         """
