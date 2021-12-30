@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# Imports the shared Azure CI tools
+# Imports the shared Azure CI tools.
 resources:
   repositories:
     - repository: templates
