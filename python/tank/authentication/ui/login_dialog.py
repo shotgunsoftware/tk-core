@@ -1,20 +1,31 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'login_dialog.ui'
-#
-#      by: pyside-uic 0.2.15 running on PySide 1.2.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'login_dialog.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from .qt_abstraction import QtCore, QtGui
+from .qt_abstraction import QtCore
+from .qt_abstraction import QtGui
+
+
+from .qt5_like_line_edit import Qt5LikeLineEdit
+from .recent_box import RecentBox
+from .aspect_preserving_label import AspectPreservingLabel
+
+from . import resources_rc
 
 class Ui_LoginDialog(object):
     def setupUi(self, LoginDialog):
-        LoginDialog.setObjectName("LoginDialog")
+        if not LoginDialog.objectName():
+            LoginDialog.setObjectName(u"LoginDialog")
         LoginDialog.setWindowModality(QtCore.Qt.NonModal)
         LoginDialog.resize(364, 304)
         LoginDialog.setMinimumSize(QtCore.QSize(364, 296))
-        LoginDialog.setStyleSheet("\n"
+        LoginDialog.setStyleSheet(u"\n"
 "QWidget\n"
 "{\n"
 "    background-color:  rgb(36, 39, 42);\n"
@@ -63,7 +74,8 @@ class Ui_LoginDialog(object):
 "}\n"
 "\n"
 "QLineEdit:Disabled {\n"
-"    background-color: rgb(60, 60, 60);\n"
+"    backgr"
+                        "ound-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
 "}\n"
 "\n"
@@ -83,291 +95,364 @@ class Ui_LoginDialog(object):
         LoginDialog.setModal(True)
         self.verticalLayout_2 = QtGui.QVBoxLayout(LoginDialog)
         self.verticalLayout_2.setContentsMargins(20, 20, 20, 20)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setSpacing(0)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalLayout.setSizeConstraint(QtGui.QLayout.SetMinAndMaxSize)
-        self.horizontalLayout.setObjectName("horizontalLayout")
         self.logo = AspectPreservingLabel(LoginDialog)
+        self.logo.setObjectName(u"logo")
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.logo.sizePolicy().hasHeightForWidth())
         self.logo.setSizePolicy(sizePolicy)
         self.logo.setMaximumSize(QtCore.QSize(250, 72))
-        self.logo.setText("")
-        self.logo.setPixmap(QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png"))
+        self.logo.setPixmap(QtGui.QPixmap(u":/shotgun_authentication/shotgun_logo_light_medium.png"))
         self.logo.setAlignment(QtCore.Qt.AlignCenter)
         self.logo.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-        self.logo.setObjectName("logo")
+
         self.horizontalLayout.addWidget(self.logo)
+
+
         self.verticalLayout_2.addLayout(self.horizontalLayout)
+
         self.stackedWidget = QtGui.QStackedWidget(LoginDialog)
+        self.stackedWidget.setObjectName(u"stackedWidget")
         self.stackedWidget.setMinimumSize(QtCore.QSize(324, 172))
-        self.stackedWidget.setObjectName("stackedWidget")
         self.login_page = QtGui.QWidget()
-        self.login_page.setObjectName("login_page")
+        self.login_page.setObjectName(u"login_page")
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.login_page)
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.credentials = QtGui.QWidget(self.login_page)
+        self.credentials.setObjectName(u"credentials")
         self.credentials.setMinimumSize(QtCore.QSize(0, 126))
-        self.credentials.setObjectName("credentials")
         self.verticalLayout_7 = QtGui.QVBoxLayout(self.credentials)
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_7.setObjectName("verticalLayout_7")
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.site = RecentBox(self.credentials)
-        self.site.setObjectName("site")
+        self.site.setObjectName(u"site")
+
         self.verticalLayout_7.addWidget(self.site)
+
         self.login = RecentBox(self.credentials)
-        self.login.setObjectName("login")
+        self.login.setObjectName(u"login")
+
         self.verticalLayout_7.addWidget(self.login)
+
         self.password = Qt5LikeLineEdit(self.credentials)
+        self.password.setObjectName(u"password")
         self.password.setMinimumSize(QtCore.QSize(308, 0))
         self.password.setEchoMode(QtGui.QLineEdit.Password)
-        self.password.setObjectName("password")
+
         self.verticalLayout_7.addWidget(self.password)
+
         self.message = QtGui.QLabel(self.credentials)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.message.sizePolicy().hasHeightForWidth())
-        self.message.setSizePolicy(sizePolicy)
+        self.message.setObjectName(u"message")
+        sizePolicy1 = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.message.sizePolicy().hasHeightForWidth())
+        self.message.setSizePolicy(sizePolicy1)
         self.message.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.message.setWordWrap(True)
         self.message.setMargin(4)
-        self.message.setObjectName("message")
+
         self.verticalLayout_7.addWidget(self.message)
-        spacerItem = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_7.addItem(spacerItem)
+
+        self.verticalSpacer_3 = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+
+        self.verticalLayout_7.addItem(self.verticalSpacer_3)
+
+
         self.verticalLayout_3.addWidget(self.credentials)
+
         self.button_layout = QtGui.QHBoxLayout()
         self.button_layout.setSpacing(10)
+        self.button_layout.setObjectName(u"button_layout")
         self.button_layout.setContentsMargins(0, -1, -1, -1)
-        self.button_layout.setObjectName("button_layout")
         self.links = QtGui.QVBoxLayout()
-        self.links.setObjectName("links")
+        self.links.setObjectName(u"links")
         self.forgot_password_link = QtGui.QLabel(self.login_page)
-        self.forgot_password_link.setCursor(QtCore.Qt.PointingHandCursor)
-        self.forgot_password_link.setStyleSheet("QWidget\n"
+        self.forgot_password_link.setObjectName(u"forgot_password_link")
+        self.forgot_password_link.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.forgot_password_link.setStyleSheet(u"QWidget\n"
 "{\n"
 "    color: rgb(192, 193, 195);\n"
 "}")
         self.forgot_password_link.setTextFormat(QtCore.Qt.RichText)
         self.forgot_password_link.setMargin(4)
         self.forgot_password_link.setOpenExternalLinks(False)
-        self.forgot_password_link.setObjectName("forgot_password_link")
+
         self.links.addWidget(self.forgot_password_link)
+
+
         self.button_layout.addLayout(self.links)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.button_layout.addItem(spacerItem1)
+
+        self.sign_in_hspacer = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+
+        self.button_layout.addItem(self.sign_in_hspacer)
+
         self.cancel = QtGui.QPushButton(self.login_page)
-        self.cancel.setStyleSheet("")
+        self.cancel.setObjectName(u"cancel")
+        self.cancel.setStyleSheet(u"")
         self.cancel.setAutoDefault(False)
         self.cancel.setFlat(True)
-        self.cancel.setObjectName("cancel")
+
         self.button_layout.addWidget(self.cancel)
+
         self.sign_in = QtGui.QPushButton(self.login_page)
-        self.sign_in.setStyleSheet("color: rgb(248, 248, 248);\n"
+        self.sign_in.setObjectName(u"sign_in")
+        self.sign_in.setStyleSheet(u"color: rgb(248, 248, 248);\n"
 "background-color: rgb(35, 165, 225);")
         self.sign_in.setAutoDefault(True)
-        self.sign_in.setDefault(True)
         self.sign_in.setFlat(True)
-        self.sign_in.setObjectName("sign_in")
+
         self.button_layout.addWidget(self.sign_in)
+
         self.button_layout.setStretch(1, 1)
+
         self.verticalLayout_3.addLayout(self.button_layout)
+
         self.stackedWidget.addWidget(self.login_page)
         self._2fa_page = QtGui.QWidget()
-        self._2fa_page.setObjectName("_2fa_page")
+        self._2fa_page.setObjectName(u"_2fa_page")
         self.verticalLayout_4 = QtGui.QVBoxLayout(self._2fa_page)
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.credentials_2 = QtGui.QWidget(self._2fa_page)
+        self.credentials_2.setObjectName(u"credentials_2")
         self.credentials_2.setMinimumSize(QtCore.QSize(0, 133))
-        self.credentials_2.setObjectName("credentials_2")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.credentials_2)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.label = QtGui.QLabel(self.credentials_2)
+        self.label.setObjectName(u"label")
         self.label.setMinimumSize(QtCore.QSize(86, 0))
-        self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap(":/google_authenticator/google_authenticator.png"))
+        self.label.setPixmap(QtGui.QPixmap(u":/google_authenticator/google_authenticator.png"))
         self.label.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
-        self.label.setObjectName("label")
+
         self.horizontalLayout_2.addWidget(self.label)
+
         self.widget_2 = QtGui.QWidget(self.credentials_2)
-        self.widget_2.setObjectName("widget_2")
+        self.widget_2.setObjectName(u"widget_2")
         self.verticalLayout = QtGui.QVBoxLayout(self.widget_2)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self._2fa_message = QtGui.QLabel(self.widget_2)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self._2fa_message.sizePolicy().hasHeightForWidth())
-        self._2fa_message.setSizePolicy(sizePolicy)
+        self._2fa_message.setObjectName(u"_2fa_message")
+        sizePolicy1.setHeightForWidth(self._2fa_message.sizePolicy().hasHeightForWidth())
+        self._2fa_message.setSizePolicy(sizePolicy1)
         self._2fa_message.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self._2fa_message.setWordWrap(True)
         self._2fa_message.setMargin(0)
-        self._2fa_message.setObjectName("_2fa_message")
+
         self.verticalLayout.addWidget(self._2fa_message)
+
         self._2fa_code = Qt5LikeLineEdit(self.widget_2)
-        self._2fa_code.setObjectName("_2fa_code")
+        self._2fa_code.setObjectName(u"_2fa_code")
+
         self.verticalLayout.addWidget(self._2fa_code)
+
         self.invalid_code = QtGui.QLabel(self.widget_2)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.invalid_code.sizePolicy().hasHeightForWidth())
-        self.invalid_code.setSizePolicy(sizePolicy)
-        self.invalid_code.setText("")
-        self.invalid_code.setObjectName("invalid_code")
+        self.invalid_code.setObjectName(u"invalid_code")
+        sizePolicy1.setHeightForWidth(self.invalid_code.sizePolicy().hasHeightForWidth())
+        self.invalid_code.setSizePolicy(sizePolicy1)
+
         self.verticalLayout.addWidget(self.invalid_code)
-        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem2)
+
+        self.verticalSpacer_2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer_2)
+
+
         self.horizontalLayout_2.addWidget(self.widget_2)
+
+
         self.verticalLayout_4.addWidget(self.credentials_2)
+
         self.button_layout_2 = QtGui.QHBoxLayout()
         self.button_layout_2.setSpacing(10)
+        self.button_layout_2.setObjectName(u"button_layout_2")
         self.button_layout_2.setContentsMargins(0, -1, -1, -1)
-        self.button_layout_2.setObjectName("button_layout_2")
         self.use_backup = QtGui.QPushButton(self._2fa_page)
+        self.use_backup.setObjectName(u"use_backup")
         self.use_backup.setFlat(True)
-        self.use_backup.setObjectName("use_backup")
+
         self.button_layout_2.addWidget(self.use_backup)
-        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.button_layout_2.addItem(spacerItem3)
+
+        self._2fa_hspacer = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+
+        self.button_layout_2.addItem(self._2fa_hspacer)
+
         self.cancel_tfa = QtGui.QPushButton(self._2fa_page)
-        self.cancel_tfa.setStyleSheet("")
+        self.cancel_tfa.setObjectName(u"cancel_tfa")
+        self.cancel_tfa.setStyleSheet(u"")
         self.cancel_tfa.setAutoDefault(False)
         self.cancel_tfa.setFlat(True)
-        self.cancel_tfa.setObjectName("cancel_tfa")
+
         self.button_layout_2.addWidget(self.cancel_tfa)
+
         self.verify_2fa = QtGui.QPushButton(self._2fa_page)
+        self.verify_2fa.setObjectName(u"verify_2fa")
         self.verify_2fa.setMinimumSize(QtCore.QSize(65, 0))
-        self.verify_2fa.setStyleSheet("color: rgb(248, 248, 248);\n"
+        self.verify_2fa.setStyleSheet(u"color: rgb(248, 248, 248);\n"
 "background-color: rgb(35, 165, 225);")
         self.verify_2fa.setAutoDefault(False)
-        self.verify_2fa.setDefault(True)
         self.verify_2fa.setFlat(True)
-        self.verify_2fa.setObjectName("verify_2fa")
+
         self.button_layout_2.addWidget(self.verify_2fa)
+
+
         self.verticalLayout_4.addLayout(self.button_layout_2)
+
         self.stackedWidget.addWidget(self._2fa_page)
         self.backup_page = QtGui.QWidget()
-        self.backup_page.setObjectName("backup_page")
+        self.backup_page.setObjectName(u"backup_page")
         self.verticalLayout_6 = QtGui.QVBoxLayout(self.backup_page)
         self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.credentials_3 = QtGui.QWidget(self.backup_page)
+        self.credentials_3.setObjectName(u"credentials_3")
         self.credentials_3.setMinimumSize(QtCore.QSize(0, 133))
-        self.credentials_3.setObjectName("credentials_3")
         self.horizontalLayout_3 = QtGui.QHBoxLayout(self.credentials_3)
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.label_2 = QtGui.QLabel(self.credentials_3)
-        self.label_2.setText("")
-        self.label_2.setPixmap(QtGui.QPixmap(":/backup_codes/backup_codes_light_bg.png"))
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setPixmap(QtGui.QPixmap(u":/backup_codes/backup_codes_light_bg.png"))
         self.label_2.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
-        self.label_2.setObjectName("label_2")
+
         self.horizontalLayout_3.addWidget(self.label_2)
+
         self.widget_4 = QtGui.QWidget(self.credentials_3)
-        self.widget_4.setObjectName("widget_4")
+        self.widget_4.setObjectName(u"widget_4")
         self.verticalLayout_5 = QtGui.QVBoxLayout(self.widget_4)
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self._2fa_message_2 = QtGui.QLabel(self.widget_4)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self._2fa_message_2.sizePolicy().hasHeightForWidth())
-        self._2fa_message_2.setSizePolicy(sizePolicy)
+        self._2fa_message_2.setObjectName(u"_2fa_message_2")
+        sizePolicy1.setHeightForWidth(self._2fa_message_2.sizePolicy().hasHeightForWidth())
+        self._2fa_message_2.setSizePolicy(sizePolicy1)
         self._2fa_message_2.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self._2fa_message_2.setWordWrap(True)
         self._2fa_message_2.setMargin(0)
-        self._2fa_message_2.setObjectName("_2fa_message_2")
+
         self.verticalLayout_5.addWidget(self._2fa_message_2)
+
         self.backup_code = Qt5LikeLineEdit(self.widget_4)
-        self.backup_code.setText("")
-        self.backup_code.setObjectName("backup_code")
+        self.backup_code.setObjectName(u"backup_code")
+
         self.verticalLayout_5.addWidget(self.backup_code)
+
         self.invalid_backup_code = QtGui.QLabel(self.widget_4)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.invalid_backup_code.sizePolicy().hasHeightForWidth())
-        self.invalid_backup_code.setSizePolicy(sizePolicy)
-        self.invalid_backup_code.setText("")
-        self.invalid_backup_code.setObjectName("invalid_backup_code")
+        self.invalid_backup_code.setObjectName(u"invalid_backup_code")
+        sizePolicy1.setHeightForWidth(self.invalid_backup_code.sizePolicy().hasHeightForWidth())
+        self.invalid_backup_code.setSizePolicy(sizePolicy1)
+
         self.verticalLayout_5.addWidget(self.invalid_backup_code)
-        spacerItem4 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_5.addItem(spacerItem4)
+
+        self.verticalSpacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+
+        self.verticalLayout_5.addItem(self.verticalSpacer)
+
+
         self.horizontalLayout_3.addWidget(self.widget_4)
+
+
         self.verticalLayout_6.addWidget(self.credentials_3)
+
         self.button_layout_3 = QtGui.QHBoxLayout()
         self.button_layout_3.setSpacing(10)
+        self.button_layout_3.setObjectName(u"button_layout_3")
         self.button_layout_3.setContentsMargins(0, -1, -1, -1)
-        self.button_layout_3.setObjectName("button_layout_3")
         self.use_app = QtGui.QPushButton(self.backup_page)
+        self.use_app.setObjectName(u"use_app")
         self.use_app.setAutoDefault(False)
         self.use_app.setFlat(True)
-        self.use_app.setObjectName("use_app")
+
         self.button_layout_3.addWidget(self.use_app)
-        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.button_layout_3.addItem(spacerItem5)
+
+        self.backup_hspacer = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+
+        self.button_layout_3.addItem(self.backup_hspacer)
+
         self.cancel_backup = QtGui.QPushButton(self.backup_page)
+        self.cancel_backup.setObjectName(u"cancel_backup")
         self.cancel_backup.setAutoDefault(False)
         self.cancel_backup.setFlat(True)
-        self.cancel_backup.setObjectName("cancel_backup")
+
         self.button_layout_3.addWidget(self.cancel_backup)
+
         self.verify_backup = QtGui.QPushButton(self.backup_page)
+        self.verify_backup.setObjectName(u"verify_backup")
         self.verify_backup.setMinimumSize(QtCore.QSize(65, 0))
-        self.verify_backup.setStyleSheet("color: rgb(248, 248, 248);\n"
+        self.verify_backup.setStyleSheet(u"color: rgb(248, 248, 248);\n"
 "background-color: rgb(35, 165, 225);")
         self.verify_backup.setAutoDefault(True)
-        self.verify_backup.setDefault(True)
         self.verify_backup.setFlat(True)
-        self.verify_backup.setObjectName("verify_backup")
+
         self.button_layout_3.addWidget(self.verify_backup)
+
+
         self.verticalLayout_6.addLayout(self.button_layout_3)
+
         self.stackedWidget.addWidget(self.backup_page)
+
         self.verticalLayout_2.addWidget(self.stackedWidget)
+
         self.verticalLayout_2.setStretch(0, 1)
 
         self.retranslateUi(LoginDialog)
+        self.cancel_tfa.clicked.connect(LoginDialog.reject)
+        self.cancel_backup.clicked.connect(LoginDialog.reject)
+        self.cancel.clicked.connect(LoginDialog.reject)
+
         self.stackedWidget.setCurrentIndex(0)
-        QtCore.QObject.connect(self.cancel_tfa, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
-        QtCore.QObject.connect(self.cancel_backup, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
-        QtCore.QObject.connect(self.cancel, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
+        self.sign_in.setDefault(True)
+        self.verify_2fa.setDefault(True)
+        self.verify_backup.setDefault(True)
+
+
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
+    # setupUi
 
     def retranslateUi(self, LoginDialog):
-        self.site.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "site", None, QtGui.QApplication.UnicodeUTF8))
-        self.login.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
-        self.password.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
-        self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
-        self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
-        self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgrid.autodesk.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
-        self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Enter the code generated by the Google Authenticator or Duo Mobile app.", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "2fa code", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter code", None, QtGui.QApplication.UnicodeUTF8))
-        self.use_backup.setText(QtGui.QApplication.translate("LoginDialog", "Use backup code", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancel_tfa.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
-        self.verify_2fa.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_message_2.setText(QtGui.QApplication.translate("LoginDialog", "Please enter one of your backup codes.", None, QtGui.QApplication.UnicodeUTF8))
-        self.backup_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "backup code", None, QtGui.QApplication.UnicodeUTF8))
-        self.backup_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter backup code", None, QtGui.QApplication.UnicodeUTF8))
-        self.use_app.setText(QtGui.QApplication.translate("LoginDialog", "Use Google App", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancel_backup.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
-        self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
+        self.logo.setText("")
+#if QT_CONFIG(accessibility)
+        self.site.setAccessibleName(QtGui.QApplication.translate("LoginDialog", u"site", None, QtGui.QApplication.UnicodeUTF8))
+#endif // QT_CONFIG(accessibility)
+#if QT_CONFIG(accessibility)
+        self.login.setAccessibleName(QtGui.QApplication.translate("LoginDialog", u"login", None, QtGui.QApplication.UnicodeUTF8))
+#endif // QT_CONFIG(accessibility)
+#if QT_CONFIG(accessibility)
+        self.password.setAccessibleName(QtGui.QApplication.translate("LoginDialog", u"password", None, QtGui.QApplication.UnicodeUTF8))
+#endif // QT_CONFIG(accessibility)
+        self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", u"password", None, QtGui.QApplication.UnicodeUTF8))
+        self.message.setText(QtGui.QApplication.translate("LoginDialog", u"Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
+        self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", u"<html><head/><body><p><a href=\"http://mystudio.shotgrid.autodesk.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.cancel.setText(QtGui.QApplication.translate("LoginDialog", u"Cancel", None, QtGui.QApplication.UnicodeUTF8))
+        self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", u"Sign In", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText("")
+        self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", u"Enter the code generated by the Google Authenticator or Duo Mobile app.", None, QtGui.QApplication.UnicodeUTF8))
+#if QT_CONFIG(accessibility)
+        self._2fa_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", u"2fa code", None, QtGui.QApplication.UnicodeUTF8))
+#endif // QT_CONFIG(accessibility)
+        self._2fa_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", u"Enter code", None, QtGui.QApplication.UnicodeUTF8))
+        self.invalid_code.setText("")
+        self.use_backup.setText(QtGui.QApplication.translate("LoginDialog", u"Use backup code", None, QtGui.QApplication.UnicodeUTF8))
+        self.cancel_tfa.setText(QtGui.QApplication.translate("LoginDialog", u"Cancel", None, QtGui.QApplication.UnicodeUTF8))
+        self.verify_2fa.setText(QtGui.QApplication.translate("LoginDialog", u"Verify", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText("")
+        self._2fa_message_2.setText(QtGui.QApplication.translate("LoginDialog", u"Please enter one of your backup codes.", None, QtGui.QApplication.UnicodeUTF8))
+#if QT_CONFIG(accessibility)
+        self.backup_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", u"backup code", None, QtGui.QApplication.UnicodeUTF8))
+#endif // QT_CONFIG(accessibility)
+        self.backup_code.setText("")
+        self.backup_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", u"Enter backup code", None, QtGui.QApplication.UnicodeUTF8))
+        self.invalid_backup_code.setText("")
+        self.use_app.setText(QtGui.QApplication.translate("LoginDialog", u"Use Google App", None, QtGui.QApplication.UnicodeUTF8))
+        self.cancel_backup.setText(QtGui.QApplication.translate("LoginDialog", u"Cancel", None, QtGui.QApplication.UnicodeUTF8))
+        self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", u"Verify", None, QtGui.QApplication.UnicodeUTF8))
+        pass
+    # retranslateUi
 
-from .aspect_preserving_label import AspectPreservingLabel
-from .recent_box import RecentBox
-from .qt5_like_line_edit import Qt5LikeLineEdit
-from . import resources_rc

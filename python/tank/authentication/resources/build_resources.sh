@@ -12,7 +12,6 @@
 
 # The path to output all built .py files to:
 UI_PYTHON_PATH=../ui
-PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 
 # Remove any problematic profiles from pngs.
 for f in *.png; do mogrify $f; done
@@ -24,24 +23,45 @@ function build_qt {
     # compile ui to python
     $1 $2 > $UI_PYTHON_PATH/$3.py
 
-    # replace PySide imports with local imports and remove line containing Created by date
-    sed -i "" -e "s/from PySide import/from .qt_abstraction import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
+    # specific replacements
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/from PySide2\./from \.qt_abstraction import /g" -e "/# Created:/d"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/from \.qt_abstraction import QtWidgets import \*//g"  -e "/# Created:/d"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/ import \*//g"  -e "/# Created:/d"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/from PySide2 import/from \.qt_abstraction import/g"  -e "/# Created:/d"
+
+    # generic replacements
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QVBoxLayout/QtGui\.QVBoxLayout/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QHBoxLayout/QtGui\.QHBoxLayout/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/from  \. import resources_rc/from \. import resources_rc/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QSize(/QtCore.QSize(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QSizePolicy/QtGui\.QSizePolicy/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QPixmap/QtGui\.QPixmap/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QLabel(/QtGui.QLabel(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QStackedWidget(/QtGui.QStackedWidget(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QWidget(/QtGui.QWidget(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/Qt\./QtCore\.Qt\./g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QMetaObject/QtCore\.QMetaObject/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QLayout\./QtGui.QLayout\./g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QLineEdit\./QtGui.QLineEdit\./g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QRect(/QtCore.QRect(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QSpacerItem(/QtGui.QSpacerItem(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QCursor(/QtGui.QCursor(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QPushButton(/QtGui.QPushButton(/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/QCoreApplication\.translate/QtGui\.QApplication.translate/g"
+    sed -i $UI_PYTHON_PATH/$3.py -e "s/, None))/, None, QtGui\.QApplication\.UnicodeUTF8))/g"
 }
 
 function build_ui {
-    build_qt "${PYTHON_BASE}/bin/python ${PYTHON_BASE}/bin/pyside-uic --from-imports" "$1.ui" "../ui/$1"
+    build_qt "pyside2-uic --from-imports" "$1.ui" "../ui/$1"
 }
 
 function build_res {
-	# Include the "-py3" flag so that we add the `b` prefix to strings for
-	# PySide2 / Python3 compatibility.  This means these files will no longer
-	# be compatible with Python 2.5 and below, but the `b` prefix is ignored in
-	# Python 2.6+.
-    build_qt "${PYTHON_BASE}/bin/pyside-rcc -py3" "$1.qrc" "../ui/$1_rc"
+	# Include the "-g python" flag so that we add the `b` prefix to strings for
+	# PySide2 / Python3 compatibility.
+    build_qt "pyside2-rcc -g python" "$1.qrc" "../ui/$1_rc"
 }
 
-
-# build UI's:
+# build UIº's:
 echo "building user interfaces..."
 build_ui login_dialog
 
