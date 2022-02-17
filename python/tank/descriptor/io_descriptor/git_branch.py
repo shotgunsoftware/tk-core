@@ -91,6 +91,9 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param bundle_cache_root: Bundle cache root path
         :return: Path to bundle cache location
         """
+        # If the descriptor is an integer change the version to a string type
+        if isinstance(self._version, int):
+            self._version = str(self._version)
         # to be MAXPATH-friendly, we only use the first seven chars
         short_hash = self._version[:7]
 
