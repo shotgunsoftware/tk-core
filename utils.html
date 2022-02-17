@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.20.8 documentation</title>
+  <title>Utilities &mdash; tk-core v0.20.9 documentation</title>
   
 
   
@@ -160,7 +160,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.8.<br>
+    <b>tk-core</b> v0.20.9.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -690,40 +690,40 @@ and have your projects inherit these values, unless the project overrides itself
 inside <code class="docutils literal notranslate"><span class="pre">shotgun.yml</span></code>.</p>
 <p>Here’s an example:</p>
 <blockquote>
-<div><div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1"># Login related settings</span>
-<span class="c1">#</span>
-<span class="k">[Login]</span>
+<div><div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1"># Login related settings</span><span class="w"></span>
+<span class="c1">#</span><span class="w"></span>
+<span class="k">[Login]</span><span class="w"></span>
 
-<span class="c1"># If specified, the username text input on the login screen will be populated</span>
-<span class="c1"># with this value when logging into Toolkit for the very first time.</span>
-<span class="c1"># Defaults to the user&#39;s OS login. Environment variables are actually resolved for</span>
-<span class="c1"># all values in this file, which allows greater flexibility when sharing this configuration</span>
-<span class="c1"># file with multiple users.</span>
-<span class="c1">#</span>
-<span class="na">default_login</span><span class="o">=</span><span class="s">$USERNAME</span>
+<span class="c1"># If specified, the username text input on the login screen will be populated</span><span class="w"></span>
+<span class="c1"># with this value when logging into Toolkit for the very first time.</span><span class="w"></span>
+<span class="c1"># Defaults to the user&#39;s OS login. Environment variables are actually resolved for</span><span class="w"></span>
+<span class="c1"># all values in this file, which allows greater flexibility when sharing this configuration</span><span class="w"></span>
+<span class="c1"># file with multiple users.</span><span class="w"></span>
+<span class="c1">#</span><span class="w"></span>
+<span class="na">default_login</span><span class="o">=</span><span class="s">$USERNAME</span><span class="w"></span>
 
-<span class="c1"># If specified, the site text input on the login screen will be populated with</span>
-<span class="c1"># this value when logging into Toolkit the very first time.</span>
-<span class="c1"># Defaults to https://mystudio.shotgunstudio.com.</span>
-<span class="c1">#</span>
-<span class="na">default_site</span><span class="o">=</span><span class="s">https://your-site-here.shotgunstudio.com</span>
+<span class="c1"># If specified, the site text input on the login screen will be populated with</span><span class="w"></span>
+<span class="c1"># this value when logging into Toolkit the very first time.</span><span class="w"></span>
+<span class="c1"># Defaults to https://mystudio.shotgunstudio.com.</span><span class="w"></span>
+<span class="c1">#</span><span class="w"></span>
+<span class="na">default_site</span><span class="o">=</span><span class="s">https://your-site-here.shotgunstudio.com</span><span class="w"></span>
 
-<span class="c1"># If specified, the Toolkit will use these proxy settings to connect to</span>
-<span class="c1"># the ShotGrid site and the Toolkit App Store. The proxy string should be of the</span>
-<span class="c1"># forms 123.123.123.123, 123.123.123.123:8888 or</span>
-<span class="c1"># username:pass@123.123.123.123:8888.</span>
-<span class="c1"># Empty by default.</span>
-<span class="c1">#</span>
-<span class="na">http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span>
+<span class="c1"># If specified, the Toolkit will use these proxy settings to connect to</span><span class="w"></span>
+<span class="c1"># the ShotGrid site and the Toolkit App Store. The proxy string should be of the</span><span class="w"></span>
+<span class="c1"># forms 123.123.123.123, 123.123.123.123:8888 or</span><span class="w"></span>
+<span class="c1"># username:pass@123.123.123.123:8888.</span><span class="w"></span>
+<span class="c1"># Empty by default.</span><span class="w"></span>
+<span class="c1">#</span><span class="w"></span>
+<span class="na">http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span><span class="w"></span>
 
-<span class="c1"># If specified, the ShotGrid API will use these proxy settings to connect</span>
-<span class="c1"># to the Toolkit App Store. The proxy string format is the same as http_proxy.</span>
-<span class="c1"># If the setting is present in the file but not set, then no proxy will be used</span>
-<span class="c1"># to connect to the Toolkit App Store, regardless of the value of the http_proxy</span>
-<span class="c1"># setting.</span>
-<span class="c1"># Empty by default.</span>
-<span class="c1">#</span>
-<span class="na">app_store_http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span>
+<span class="c1"># If specified, the ShotGrid API will use these proxy settings to connect</span><span class="w"></span>
+<span class="c1"># to the Toolkit App Store. The proxy string format is the same as http_proxy.</span><span class="w"></span>
+<span class="c1"># If the setting is present in the file but not set, then no proxy will be used</span><span class="w"></span>
+<span class="c1"># to connect to the Toolkit App Store, regardless of the value of the http_proxy</span><span class="w"></span>
+<span class="c1"># setting.</span><span class="w"></span>
+<span class="c1"># Empty by default.</span><span class="w"></span>
+<span class="c1">#</span><span class="w"></span>
+<span class="na">app_store_http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -2636,7 +2636,7 @@ set self.__traceback__ to tb and return self.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2021, Autodesk
+        &copy; Copyright 2022, Autodesk
 
     </p>
   </div> 
