@@ -648,11 +648,13 @@ class TestDescriptorSupport(TankTestBase):
                 "type": "git_branch",
                 "path": "https://github.com/shotgunsoftware/tk-multi-shotgunpanel.git",
                 "branch": "master",
-                "version": "6547378"
+                "version": "6547378",
             }
         )
         self.assertEqual(
-            desc._io_descriptor._validate_git_commands("/tmp/foo", depth=1, ref="master"),
+            desc._io_descriptor._validate_git_commands(
+                "/tmp/foo", depth=1, ref="master"
+            ),
             'git clone --no-hardlinks -q "https://github.com/shotgunsoftware/tk-multi-shotgunpanel.git" -b master "/tmp/foo" ',
         )
         self.assertEqual(
