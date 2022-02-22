@@ -664,18 +664,14 @@ class TestDescriptorSupport(TankTestBase):
             desc._io_descriptor._validate_git_commands(
                 target_path, depth=1, ref="master"
             ),
-            'git clone --no-hardlinks -q "%s" %s "%s" ' % (
-            self.git_repo_uri,
-            "-b master",
-            target_path,
-        ))
+            'git clone --no-hardlinks -q "%s" %s "%s" '
+            % (self.git_repo_uri, "-b master", target_path,),
+        )
         self.assertEqual(
             desc._io_descriptor._validate_git_commands(target_path, ref="master"),
-            'git clone --no-hardlinks -q "%s" %s "%s" ' % (
-                self.git_repo_uri,
-                "-b master",
-                target_path,
-            ))
+            'git clone --no-hardlinks -q "%s" %s "%s" '
+            % (self.git_repo_uri, "-b master", target_path,),
+        )
 
 
 class TestConstraintValidation(unittest2.TestCase):

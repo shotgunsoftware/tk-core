@@ -221,13 +221,15 @@ class TestIODescriptors(ShotgunTestBase):
         """
         Tests that Short integer commit hashes descriptors are converted to a str type.
         """
-        self.git_repo_uri = os.path.join(self.fixtures_root, "tk-multi-shotgunpanel.git")
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "tk-multi-shotgunpanel.git"
+        )
         sg = self.mockgun
         location = {
             "type": "git_branch",
             "version": 6547378,
             "branch": "master",
-            "path": self.git_repo_uri
+            "path": self.git_repo_uri,
         }
         d = sgtk.descriptor.create_descriptor(
             sg, sgtk.descriptor.Descriptor.APP, location,
@@ -237,7 +239,9 @@ class TestIODescriptors(ShotgunTestBase):
         # Short hashes works with integer commit descriptors
         self.assertEqual(
             d._io_descriptor._get_bundle_cache_path(self.cache_root),
-            os.path.join(self.cache_root, "gitbranch", "tk-multi-shotgunpanel.git", "6547378")
+            os.path.join(
+                self.cache_root, "gitbranch", "tk-multi-shotgunpanel.git", "6547378"
+            ),
         )
 
     def test_download_receipt(self):
