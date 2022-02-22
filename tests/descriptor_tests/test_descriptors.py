@@ -643,8 +643,10 @@ class TestDescriptorSupport(TankTestBase):
         """
         Test that shallow git clones are not enabled with git_branch descriptors.
         """
-        self.git_repo_uri = os.path.join(self.fixtures_root, "tk-multi-shotgupanel.git")
-        target_path = os.path.join("tmp", "foo")
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "tk-multi-shotgunpanel.git"
+        )
+        target_path = self.cache_root
         desc = self.tk.pipeline_configuration.get_app_descriptor(
             {
                 "type": "git_branch",
@@ -653,13 +655,6 @@ class TestDescriptorSupport(TankTestBase):
                 "version": "6547378",
             }
         )
-        # import sys
-        # sys.path.append(
-        #     r"/Applications/PyCharm.app/Contents/debug-eggs/pydevd-pycharm.egg")
-        # import pydevd
-        # pydevd.settrace('localhost', port=5490, stdoutToServer=True,
-        #                 stderrToServer=True)
-
         self.assertEqual(
             desc._io_descriptor._validate_git_commands(
                 target_path, depth=1, ref="master"
