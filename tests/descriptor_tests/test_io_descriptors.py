@@ -219,7 +219,7 @@ class TestIODescriptors(ShotgunTestBase):
 
     def test_git_branch_descriptor_input(self):
         """
-        Tests that Short integer commit hashes descriptors are converted to a str type.
+        Tests that Short integer commit hashes descriptors are converted to a str type
         """
         self.git_repo_uri = os.path.join(
             self.fixtures_root, "tk-multi-shotgunpanel.git"
