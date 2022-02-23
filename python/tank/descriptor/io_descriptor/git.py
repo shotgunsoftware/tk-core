@@ -141,7 +141,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         log.debug("Git installed: %s" % output)
 
         # Make sure all git commands are correct according to the descriptor type
-        cmd = self._validate_git_commands(target_path, depth=depth, ref=ref, is_latest_commit=is_latest_commit)
+        cmd = self._validate_git_commands(
+            target_path, depth=depth, ref=ref, is_latest_commit=is_latest_commit
+        )
 
         run_with_os_system = True
 
@@ -321,7 +323,9 @@ class IODescriptorGit(IODescriptorDownloadable):
             skip_list=skip_list or [],
         )
 
-    def _validate_git_commands(self, target_path, depth=None, ref=None, is_latest_commit=None):
+    def _validate_git_commands(
+        self, target_path, depth=None, ref=None, is_latest_commit=None
+    ):
         """
         Validate that git commands are correct according to the descriptor type
         avoiding shallow git clones when tracking against commits in a git branch.

@@ -130,7 +130,10 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         if short_latest_commit != version[:7]:
             return False
-        log.debug("This version is pointing to the latest commit %s, lets enable shallow clones" % short_latest_commit)
+        log.debug(
+            "This version is pointing to the latest commit %s, lets enable shallow clones"
+            % short_latest_commit
+        )
 
         return True
 
@@ -159,7 +162,11 @@ class IODescriptorGitBranch(IODescriptorGit):
             # then reset to the given commit
             commands = ['checkout -q "%s"' % self._version]
             self._clone_then_execute_git_commands(
-                destination_path, commands, depth=depth, ref=self._branch, is_latest_commit=is_latest_commit
+                destination_path,
+                commands,
+                depth=depth,
+                ref=self._branch,
+                is_latest_commit=is_latest_commit,
             )
         except Exception as e:
             raise TankDescriptorError(
