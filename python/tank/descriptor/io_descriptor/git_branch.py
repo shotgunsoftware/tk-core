@@ -10,7 +10,7 @@
 import os
 import copy
 
-from .git import IODescriptorGit
+from .git import IODescriptorGit, _check_output
 from ..errors import TankDescriptorError
 from ... import LogManager
 
@@ -110,6 +110,30 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         return self._version
 
+    def _is_latest_commit(self, version, branch):
+        """
+        Check if the git_branch descriptor is pointing to the
+        latest commit version.
+        """
+        # first probe to check that git exists in our PATH
+        log.debug("Checking if the version is pointing to the latest commit...")
+        try:
+            output = _check_output(["git", "ls-remote", self._path, branch])
+        except:
+            log.exception("Unexpected error:")
+            raise TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            )
+        latest_commit = output.split("\t")
+        short_latest_commit = latest_commit[0][:7]
+
+        if short_latest_commit != version[:7]:
+            return False
+        log.debug("This version is pointing to the latest commit %s, lets enable shallow clones" % short_latest_commit)
+
+        return True
+
     def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
@@ -126,12 +150,16 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param destination_path: The destination path on disk to which
         the git branch descriptor is to be downloaded to.
         """
+        depth = None
+        is_latest_commit = self._is_latest_commit(self._version, self._branch)
+        if is_latest_commit:
+            depth = 1
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
             commands = ['checkout -q "%s"' % self._version]
             self._clone_then_execute_git_commands(
-                destination_path, commands, ref=self._branch
+                destination_path, commands, depth=depth, ref=self._branch, is_latest_commit=is_latest_commit
             )
         except Exception as e:
             raise TankDescriptorError(
