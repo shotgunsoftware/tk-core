@@ -49,12 +49,7 @@ except ImportError:
     # environment.
     UsernamePasswordDialog = None
 
-try:
-    # Python2
-    from urllib import urlencode
-except ImportError:
-    # Python3
-    from urllib.parse import urlencode
+from tank_vendor.six.moves.urllib.parse import urlencode
 
 # Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To SG site."
