@@ -26,6 +26,14 @@ Low level bypass to set the configuration desciptor URI that the bootstrap API s
 ------------
 Controls debug logging.
 
+``TK_SHOTGRID_DEFAULT_LOGIN``
+-----------------------------
+Indicates the default Autodesk Identity account to use to pre-fill the login window dialog. This is purely for the convenience of the user and has no other use or side-effects.
+
+``TK_SHOTGRID_SSO_DOMAIN``
+--------------------------
+When the user's Autodesk Identity account is on an email domain that uses SSO for authentication, setting this will allow the bypass of the initial Autodesk Identity window. This saves the user from entering their email twice. Has no other use or side-effects.
+
 .. _environment_variables_bundle_cache:
 
 Bundle cache

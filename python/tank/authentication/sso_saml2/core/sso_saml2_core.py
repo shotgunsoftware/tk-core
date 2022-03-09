@@ -17,10 +17,10 @@ Module to support Web login via a web browser and automated session renewal.
 # pylint: disable=too-many-statements
 
 import base64
-import logging
 import os
 import sys
 import time
+import urllib
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
@@ -49,6 +49,7 @@ except ImportError:
     # environment.
     UsernamePasswordDialog = None
 
+from tank_vendor.six.moves.urllib.parse import urlencode
 
 # Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To SG site."
@@ -117,13 +118,33 @@ FUNCTION_PROTOTYPE_BIND_POLYFILL = """
     }
 """
 
+# login paths, used by the Unified Login Flow.
+URL_ULF_RENEW_PATH = "/auth/renew"
+URL_ULF_LANDING_PATH = "/auth/landing"
+
+
+def get_renew_path(session):
+    """Construct the renew path, leveraging existing environment variables"""
+    renew_path = session.host + URL_ULF_RENEW_PATH + "?"
+    renew_params = {"product": session.product}
+    # When this variable is set, it is passed to Autodesk Identity's login.
+    tk_shotgun_default_login = os.getenv("TK_SHOTGRID_DEFAULT_LOGIN")
+    # When this variable is set for a SSO domain, skip the initial login page.
+    tk_shotgun_sso_domain = os.getenv("TK_SHOTGRID_SSO_DOMAIN")
+
+    # ShotGrid's renew endpoint supports some useful
+    # Autodesk Identity params.
+    if tk_shotgun_default_login:
+        renew_params["email"] = tk_shotgun_default_login
+    if tk_shotgun_sso_domain:
+        renew_params["sso_domain"] = tk_shotgun_sso_domain
+
+    renew_path += urlencode(renew_params)
+    return renew_path
+
 
 class SsoSaml2Core(object):
     """Performs SG Web login and pre-emptive renewal for SSO sessions."""
-
-    # login paths, used by the Unified Login Flow.
-    renew_path = "/auth/renew"
-    landing_path = "/auth/landing"
 
     def __init__(self, window_title="Web Login", qt_modules=None):
         """
@@ -787,9 +808,7 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        url = (
-            self._session.host + self.renew_path + "?product=%s" % self._session.product
-        )
+        url = get_renew_path(self._session)
         self._logger.debug("Navigating to %s", url)
         self._view.page().mainFrame().load(url)
 
@@ -841,7 +860,7 @@ class SsoSaml2Core(object):
             self._dialog.setWindowTitle(url)
         self._logger.debug("_on_url_changed %s", url)
         if self._session is not None and url.startswith(
-            self._session.host + self.landing_path
+            self._session.host + URL_ULF_LANDING_PATH
         ):
             self._sso_renew_watchdog_timer.stop()
             self.update_session_from_browser()
@@ -966,9 +985,7 @@ class SsoSaml2Core(object):
         self._view.raise_()
 
         # We append the product code to the GET request.
-        url = (
-            self._session.host + self.renew_path + "?product=%s" % self._session.product
-        )
+        url = get_renew_path(self._session)
         self._logger.debug("Navigating to %s", url)
         self._view.page().mainFrame().load(url)
 
