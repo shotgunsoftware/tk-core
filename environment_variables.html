@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Environment Variables &mdash; tk-core v0.20.10 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.20.11 documentation</title>
   
 
   
@@ -106,6 +106,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-preferences-location"><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-bootstrap-config-override"><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-debug"><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tk-shotgrid-default-login"><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_DEFAULT_LOGIN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tk-shotgrid-sso-domain"><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_SSO_DOMAIN</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#bundle-cache">Bundle cache</a><ul>
@@ -144,7 +146,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.10.<br>
+    <b>tk-core</b> v0.20.11.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -235,6 +237,14 @@
 <div class="section" id="tk-debug">
 <h3><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code><a class="headerlink" href="#tk-debug" title="Permalink to this headline">¶</a></h3>
 <p>Controls debug logging.</p>
+</div>
+<div class="section" id="tk-shotgrid-default-login">
+<h3><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_DEFAULT_LOGIN</span></code><a class="headerlink" href="#tk-shotgrid-default-login" title="Permalink to this headline">¶</a></h3>
+<p>Indicates the default Autodesk Identity account to use to pre-fill the login window dialog. This is purely for the convenience of the user and has no other use or side-effects.</p>
+</div>
+<div class="section" id="tk-shotgrid-sso-domain">
+<h3><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_SSO_DOMAIN</span></code><a class="headerlink" href="#tk-shotgrid-sso-domain" title="Permalink to this headline">¶</a></h3>
+<p>When the user’s Autodesk Identity account is on an email domain that uses SSO for authentication, setting this will allow the bypass of the initial Autodesk Identity window. This saves the user from entering their email twice. Has no other use or side-effects.</p>
 </div>
 </div>
 <div class="section" id="bundle-cache">
