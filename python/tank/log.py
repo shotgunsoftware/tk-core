@@ -601,7 +601,7 @@ class LogManager(object):
 
     @property
     def log_file(self):
-        """ Full path to the current log file or None if logging is not active. """
+        """Full path to the current log file or None if logging is not active."""
         return self._std_file_handler_log_file
 
     @property

@@ -58,13 +58,13 @@ class TestEventMetric(ShotgunTestBase):
         self.assertTrue("event_properties" in metric)
 
     def test_init_with_invalid_parameters(self):
-        """ Simply assert that the constructor is exception free and is
-            able to deal with invalid parameters and various type of extra
-            properties.
+        """Simply assert that the constructor is exception free and is
+        able to deal with invalid parameters and various type of extra
+        properties.
 
-            Also tests the '_add_system_info_properties' method which
-            gets called in constructor
-            """
+        Also tests the '_add_system_info_properties' method which
+        gets called in constructor
+        """
 
         try:
             EventMetric(None, "Testing No event group"),
@@ -80,11 +80,11 @@ class TestEventMetric(ShotgunTestBase):
             )
 
     def test_init_with_valid_parameters(self):
-        """ Simply assert that the constructor is exception free.
+        """Simply assert that the constructor is exception free.
 
-            Also tests the '_add_system_info_properties' method which
-            gets called in constructor
-            """
+        Also tests the '_add_system_info_properties' method which
+        gets called in constructor
+        """
         try:
 
             EventMetric("App", "Test Log Metric without additional properties")
@@ -106,7 +106,7 @@ class TestEventMetric(ShotgunTestBase):
             )
 
     def test_usage_of_extra_properties(self):
-        """ Simply assert usage of the properties parameter is exception free. """
+        """Simply assert usage of the properties parameter is exception free."""
         EventMetric("App", "Test add_event_properties", None)
 
         EventMetric(
@@ -898,15 +898,15 @@ class TestMetricsQueueSingleton(unittest2.TestCase):
 
 
 class TestMetricsDeprecatedFunctions(ShotgunTestBase):
-    """ Cases testing tank.util.metrics of deprecated functions
+    """Cases testing tank.util.metrics of deprecated functions
 
-        Test that the `log_metric`, `log_user_activity_metric` and
-        `log_user_attribute_metric` methods are deprecated by creating a
-        mock of the `MetricsQueueSingleton.log` method and then
-        verifiying whether or not it was called.
+    Test that the `log_metric`, `log_user_activity_metric` and
+    `log_user_attribute_metric` methods are deprecated by creating a
+    mock of the `MetricsQueueSingleton.log` method and then
+    verifiying whether or not it was called.
 
-        Also test that method still exist for retro-compatibility although
-        there're basically empty no-op methods.
+    Also test that method still exist for retro-compatibility although
+    there're basically empty no-op methods.
     """
 
     def setUp(self):

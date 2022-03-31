@@ -232,7 +232,9 @@ class TestIODescriptors(ShotgunTestBase):
             "path": self.git_repo_uri,
         }
         d = sgtk.descriptor.create_descriptor(
-            sg, sgtk.descriptor.Descriptor.APP, location,
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            location,
         )
 
         self.assertEqual(

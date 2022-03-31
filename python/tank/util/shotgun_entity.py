@@ -429,7 +429,7 @@ class EntityExpression(object):
         match = regex_obj.match(value_to_convert)
         if match is None:
             # no match. return empty string
-            resolved_value = u""
+            resolved_value = ""
         else:
             # we have a match object. concatenate the groups
             resolved_value = "".join(match.groups())

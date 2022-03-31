@@ -37,9 +37,13 @@ from tank_test.mock_appstore import patch_app_store
 )
 # We're mocking _install_core so that it does nothing. We are only
 # testing that it can update the core_api.yml.
-@patch("tank.commands.core_upgrade.TankCoreUpdater._install_core",)
+@patch(
+    "tank.commands.core_upgrade.TankCoreUpdater._install_core",
+)
 # Need to set the path to the cache config, this is done in the method.
-@patch("tank.pipelineconfig_utils.get_path_to_current_core",)
+@patch(
+    "tank.pipelineconfig_utils.get_path_to_current_core",
+)
 class TestCoreUpdate(TankTestBase):
     """
     Makes sure environment code works with the app store mocker.
@@ -86,7 +90,8 @@ class TestCoreUpdate(TankTestBase):
         self.assertEqual(descriptor.version, "v0.19.5")
 
     @patch(
-        "tank.descriptor.descriptor.Descriptor.is_immutable", return_value=True,
+        "tank.descriptor.descriptor.Descriptor.is_immutable",
+        return_value=True,
     )
     def test_immutable_config_core_update_core_api_yaml(
         self, _mock_is_immutable, mock_config_path, *_
@@ -108,7 +113,8 @@ class TestCoreUpdate(TankTestBase):
         self.assertEqual(descriptor.version, "v0.18.91")
 
     @patch(
-        "tank.descriptor.descriptor.Descriptor.is_dev", return_value=True,
+        "tank.descriptor.descriptor.Descriptor.is_dev",
+        return_value=True,
     )
     @patch("tank.descriptor.descriptor.Descriptor.get_path")
     def test_dev_config_core_update_core_api_yaml(

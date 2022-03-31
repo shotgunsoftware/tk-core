@@ -487,14 +487,16 @@ class TestDescriptorSupport(TankTestBase):
             with patch(
                 "tank.descriptor.io_descriptor.appstore.log.debug"
             ) as log_debug_mock:
-                descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
-                    {
-                        "name": "tk-config-basic",
-                        "version": "v1.0.0",
-                        "type": "app_store",
-                    },
-                    self.mockgun,
-                    sgtk.descriptor.Descriptor.CONFIG,
+                descriptor = (
+                    sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                        {
+                            "name": "tk-config-basic",
+                            "version": "v1.0.0",
+                            "type": "app_store",
+                        },
+                        self.mockgun,
+                        sgtk.descriptor.Descriptor.CONFIG,
+                    )
                 )
                 self.assertEqual(descriptor.has_remote_access(), False)
 
@@ -660,12 +662,20 @@ class TestDescriptorSupport(TankTestBase):
                 target_path, depth=1, ref="master"
             ),
             'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (self.git_repo_uri, "-b master", target_path,),
+            % (
+                self.git_repo_uri,
+                "-b master",
+                target_path,
+            ),
         )
         self.assertEqual(
             desc._io_descriptor._validate_git_commands(target_path, ref="master"),
             'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (self.git_repo_uri, "-b master", target_path,),
+            % (
+                self.git_repo_uri,
+                "-b master",
+                target_path,
+            ),
         )
 
 

@@ -1728,7 +1728,7 @@ def context_yaml_representer(dumper, context):
     # pipeline config path as part of the dict
     context_dict["_pc_path"] = context.tank.pipeline_configuration.get_path()
 
-    return dumper.represent_mapping(u"!TankContext", context_dict)
+    return dumper.represent_mapping("!TankContext", context_dict)
 
 
 def context_yaml_constructor(loader, node):
@@ -1759,7 +1759,7 @@ def context_yaml_constructor(loader, node):
 
 
 yaml.add_representer(Context, context_yaml_representer)
-yaml.add_constructor(u"!TankContext", context_yaml_constructor)
+yaml.add_constructor("!TankContext", context_yaml_constructor)
 
 ################################################################################################
 # utility methods

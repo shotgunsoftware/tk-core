@@ -50,7 +50,7 @@ repos:
       exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
   # Leave black at the bottom so all touchups are done before it is run.
   - repo: https://github.com/ambv/black
-    rev: 19.10b0
+    rev: 22.3.0
     hooks:
     - id: black
       language_version: python3

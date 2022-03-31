@@ -32,8 +32,13 @@ class LoginTests(TankTestBase):
         session.
         """
         find_one_mock.return_value = {"login": "tk-user"}
-        get_authenticated_user_mock.return_value = ShotgunAuthenticator().create_session_user(
-            host="host", login="tk-user", session_token="session_token", http_proxy=None
+        get_authenticated_user_mock.return_value = (
+            ShotgunAuthenticator().create_session_user(
+                host="host",
+                login="tk-user",
+                session_token="session_token",
+                http_proxy=None,
+            )
         )
         try:
             # Clear the cache so that get_current_user can work. Path cache is being updated by

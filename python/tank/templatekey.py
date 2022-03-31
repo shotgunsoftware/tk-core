@@ -521,7 +521,7 @@ class StringKey(TemplateKey):
             if match is None:
                 # no match. return empty string
                 # validate should prevent this from happening
-                resolved_value = u""
+                resolved_value = ""
 
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the

@@ -120,7 +120,11 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     # configuration descriptor and version.
     target_path = os.path.join(
         target_path,
-        "%s-%s" % (config_descriptor.system_name, config_descriptor.version,),
+        "%s-%s"
+        % (
+            config_descriptor.system_name,
+            config_descriptor.version,
+        ),
     )
 
     # Check that target path doesn't exist
@@ -313,7 +317,11 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
 
     # we are all set.
     bake_config(
-        sg_connection, config_descriptor, target_path, options.zip, skip_bundle_types,
+        sg_connection,
+        config_descriptor,
+        target_path,
+        options.zip,
+        skip_bundle_types,
     )
 
     # all good!

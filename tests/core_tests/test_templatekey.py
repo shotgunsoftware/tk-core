@@ -319,8 +319,8 @@ class TestStringKey(ShotgunTestBase):
         )
         tests.append(
             {
-                "short": u"foo",
-                "full": u"foobar",
+                "short": "foo",
+                "full": "foobar",
                 "template": StringKey("field_name", subset="(.{3}).*"),
             }
         )
@@ -328,8 +328,8 @@ class TestStringKey(ShotgunTestBase):
         # unicode
         tests.append(
             {
-                "short": u"\u3042\u308a\u304c",
-                "full": u"\u3042\u308a\u304c\u3068",
+                "short": "\u3042\u308a\u304c",
+                "full": "\u3042\u308a\u304c\u3068",
                 "template": StringKey("field_name", subset="(.{3}).*"),
             }
         )
@@ -402,8 +402,8 @@ class TestStringKey(ShotgunTestBase):
         # unicode
         tests.append(
             {
-                "short": u"\u3042\u308a\u304c ",
-                "full": u"\u3042\u308a\u304c\u3068",
+                "short": "\u3042\u308a\u304c ",
+                "full": "\u3042\u308a\u304c\u3068",
                 "template": StringKey(
                     "field_name", subset="(.{3}).*", subset_format="{0} "
                 ),

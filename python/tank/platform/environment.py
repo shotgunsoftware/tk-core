@@ -69,8 +69,7 @@ class Environment(object):
         return "Environment %s" % os.path.basename(self._env_path)
 
     def _refresh(self):
-        """Refreshes the environment data from disk
-        """
+        """Refreshes the environment data from disk"""
         data = self.__load_environment_data()
 
         self._env_data = environment_includes.process_includes(
@@ -1013,20 +1012,20 @@ class WritableEnvironment(InstalledEnvironment):
         # it isn't correct to have one.
         #
         # It is the difference between the following:
-        #
-        # common.engines.tk-maya.location:
-        #   type: app_store
-        #   name: tk-maya
-        #   version: v0.8.1
-        #
-        # And:
-        #
-        # common.apps.tk-multi-shotgunpanel:
-        #   location:
-        #     type: app_store
-        #     name: tk-multi-shotgunpanel
-        #     version: v1.4.3
-        #
+        """
+        common.engines.tk-maya.location:
+          type: app_store
+          name: tk-maya
+          version: v0.8.1
+
+        And:
+
+        common.apps.tk-multi-shotgunpanel:
+          location:
+            type: app_store
+            name: tk-multi-shotgunpanel
+            version: v1.4.3
+        """
         # In the former, the new location information is replaced at
         # the top level of the data dictionary. For the latter, the
         # location key's contents is replaced.

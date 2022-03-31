@@ -301,8 +301,8 @@ class TestPipelineConfigUtils(ShotgunTestBase):
             )
 
         # Test with a core location that is invalid.
-        config_with_invalid_core_location = self._create_unlocalized_pipeline_configuration(
-            "config_with_invalid_core"
+        config_with_invalid_core_location = (
+            self._create_unlocalized_pipeline_configuration("config_with_invalid_core")
         )
 
         self._create_core_file(
@@ -315,8 +315,8 @@ class TestPipelineConfigUtils(ShotgunTestBase):
             )
 
         # Test when the core file is missing.
-        config_with_no_core_file_location = self._create_unlocalized_pipeline_configuration(
-            "config_with_no_core_file"
+        config_with_no_core_file_location = (
+            self._create_unlocalized_pipeline_configuration("config_with_no_core_file")
         )
 
         with self.assertRaisesRegex(

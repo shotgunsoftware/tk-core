@@ -611,8 +611,7 @@ class TestCreateFilesystemStructure(TankTestBase):
         self.assertTrue(os.path.exists(expected))
 
     def test_wrong_type_entity_ids(self):
-        """Test passing in type other than list, int or tuple as value for entity_ids parameter.
-        """
+        """Test passing in type other than list, int or tuple as value for entity_ids parameter."""
         for bad_entity_ids in ["abab", self.shot, object()]:
             self.assertRaises(
                 ValueError,

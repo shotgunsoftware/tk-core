@@ -307,7 +307,13 @@ class TestShotgunFindPublish(TankTestBase):
         # Create a new project and pipeline configuration, and set the new project
         # as the current project of the new pipeline configuraiton
         other_proj, other_proj_root = self.create_project({"name": "other project"})
-        (_, _, _, _, other_tk,) = self.create_pipeline_configuration(other_proj)
+        (
+            _,
+            _,
+            _,
+            _,
+            other_tk,
+        ) = self.create_pipeline_configuration(other_proj)
         other_proj_name = os.path.basename(other_proj_root)
         other_pub = {
             "type": "PublishedFile",
