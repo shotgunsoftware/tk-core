@@ -12,7 +12,7 @@
 from unittest2 import TestCase
 import re
 from tank.util import sgre
-
+from __future__ import unicode_literals
 
 class TestSgre(TestCase):
     def test_wrap(self):

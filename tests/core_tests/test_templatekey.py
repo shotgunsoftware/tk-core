@@ -12,7 +12,7 @@
 Tests for templatefield module.
 """
 
-from __future__ import with_statement, print_function
+from __future__ import with_statement, print_function, unicode_literals
 
 from tank import TankError
 import copy
