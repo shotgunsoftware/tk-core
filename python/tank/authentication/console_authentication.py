@@ -28,7 +28,7 @@ from .errors import (
     ConsoleLoginNotSupportedError,
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import is_autodesk_identity_enabled_on_site, is_sso_enabled_on_site
+from .sso_saml2 import is_sso_enabled_on_site
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
@@ -45,8 +45,6 @@ def _assert_console_session_is_supported(hostname, http_proxy):
     """
     if is_sso_enabled_on_site(hostname, http_proxy):
         raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
-    if is_autodesk_identity_enabled_on_site(hostname, http_proxy):
-        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
 
 class ConsoleAuthenticationHandlerBase(object):
@@ -105,10 +103,10 @@ class ConsoleAuthenticationHandlerBase(object):
                         ),
                         None,
                     )
-            except AuthenticationError:
+            except AuthenticationError as error:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
-                print("Login failed.")
+                print("Login failed: %s" % error)
                 print()
 
     def _get_user_credentials(self, hostname, login, http_proxy):

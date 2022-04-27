@@ -250,7 +250,7 @@ class DumpConfigAction(Action):
                 )
         else:
             # get an in-memory file handle
-            fh = StringIO.StringIO()
+            fh = StringIO()
 
         return fh
 

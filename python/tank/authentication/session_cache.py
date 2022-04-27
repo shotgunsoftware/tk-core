@@ -163,7 +163,7 @@ def _try_load_yaml_file(file_path):
         config_file = None
         # Open the file and read it.
         config_file = open(file_path, "r")
-        result = yaml.load(config_file)
+        result = yaml.load(config_file, Loader=yaml.FullLoader)
         # Make sure we got a dictionary back.
         if isinstance(result, dict):
             return result
@@ -550,7 +550,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     """
     try:
         # Create the instance that does not connect right away for speed...
-        logger.debug("Connecting to Shotgun to generate session token...")
+        logger.debug("Connecting to SG to generate session token...")
         sg = Shotgun(
             hostname,
             login=login,
@@ -562,8 +562,8 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
         # .. and generate the session token. If it throws, we have invalid
         # credentials or invalid host/proxy settings.
         return sg.get_session_token()
-    except AuthenticationFault:
-        raise AuthenticationError("Authentication failed.")
+    except AuthenticationFault as error:
+        raise AuthenticationError("Authentication failed: %s" % error)
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)
     # In the following handlers, we are not rethrowing an AuthenticationError for

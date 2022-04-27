@@ -626,7 +626,7 @@ class TestCachedConfiguration(ShotgunTestBase):
             data = "corrupted"
         else:
             with open(path, "rt") as fh:
-                data = yaml.load(fh)
+                data = yaml.load(fh, Loader=yaml.FullLoader)
                 if generation is not None:
                     data["deploy_generation"] = generation
                 if descriptor is not None:

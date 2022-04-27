@@ -88,7 +88,9 @@ class IODescriptorGit(IODescriptorDownloadable):
             self._path = self._path[:-1]
 
     @LogManager.log_timing
-    def _clone_then_execute_git_commands(self, target_path, commands):
+    def _clone_then_execute_git_commands(
+        self, target_path, commands, depth=None, ref=None, is_latest_commit=None
+    ):
         """
         Clones the git repository into the given location and
         executes the given list of git commands::
@@ -115,6 +117,8 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         :param target_path: path to clone into
         :param commands: list git commands to execute, e.g. ['checkout x']
+        :param depth: depth of the clone, allows shallow clone
+        :param ref: git ref to checkout - it can be commit, tag or branch
         :returns: stdout and stderr of the last command executed as a string
         :raises: TankGitError on git failure
         """
@@ -133,18 +137,13 @@ class IODescriptorGit(IODescriptorDownloadable):
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
             )
+
         log.debug("Git installed: %s" % output)
 
-        # Note: git doesn't like paths in single quotes when running on
-        # windows - it also prefers to use forward slashes
-        #
-        # Also note - we are adding a --no-hardlinks flag here to ensure that
-        # when a github repo resides locally on a drive, git isn't trying
-        # to be clever and utilize hard links to save space - this can cause
-        # complications in cleanup scenarios and with file copying. We want
-        # each repo that we clone to be completely independent on a filesystem level.
-        log.debug("Git Cloning %r into %s" % (self, target_path))
-        cmd = 'git clone --no-hardlinks -q "%s" "%s"' % (self._path, target_path)
+        # Make sure all git commands are correct according to the descriptor type
+        cmd = self._validate_git_commands(
+            target_path, depth=depth, ref=ref, is_latest_commit=is_latest_commit
+        )
 
         run_with_os_system = True
 
@@ -245,7 +244,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # return the last returned stdout/stderr
         return output
 
-    def _tmp_clone_then_execute_git_commands(self, commands):
+    def _tmp_clone_then_execute_git_commands(self, commands, depth=None, ref=None):
         """
         Clone into a temp location and executes the given
         list of git commands.
@@ -260,7 +259,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         )
         filesystem.ensure_folder_exists(clone_tmp)
         try:
-            return self._clone_then_execute_git_commands(clone_tmp, commands)
+            return self._clone_then_execute_git_commands(
+                clone_tmp, commands, depth, ref
+            )
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
             shutil.rmtree(clone_tmp, ignore_errors=True)
@@ -288,7 +289,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         try:
             log.debug("%r: Probing if a connection to git can be established..." % self)
             # clone repo into temp folder
-            self._tmp_clone_then_execute_git_commands([])
+            self._tmp_clone_then_execute_git_commands([], depth=1)
             log.debug("...connection established")
         except Exception as e:
             log.debug("...could not establish connection: %s" % e)
@@ -321,3 +322,44 @@ class IODescriptorGit(IODescriptorDownloadable):
             # Make we do not pass none or we will be getting the default skip list.
             skip_list=skip_list or [],
         )
+
+    def _validate_git_commands(
+        self, target_path, depth=None, ref=None, is_latest_commit=None
+    ):
+        """
+        Validate that git commands are correct according to the descriptor type
+        avoiding shallow git clones when tracking against commits in a git branch.
+        :param target_path: path to clone into
+        :param depth: depth of the clone, allows shallow clone
+        :param ref: git ref to checkout - it can be commit, tag or branch
+        :returns: str git commands to execute
+        """
+        # Note: git doesn't like paths in single quotes when running on
+        # windows - it also prefers to use forward slashes
+        #
+        # Also note - we are adding a --no-hardlinks flag here to ensure that
+        # when a github repo resides locally on a drive, git isn't trying
+        # to be clever and utilize hard links to save space - this can cause
+        # complications in cleanup scenarios and with file copying. We want
+        # each repo that we clone to be completely independent on a filesystem level.
+        log.debug("Git Cloning %r into %s" % (self, target_path))
+        depth = "--depth %s" % depth if depth else ""
+        ref = "-b %s" % ref if ref else ""
+        cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
+            self._path,
+            ref,
+            target_path,
+            depth,
+        )
+        if self._descriptor_dict.get("type") == "git_branch":
+            if not is_latest_commit:
+                if "--depth" in cmd:
+                    depth = ""
+                    cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
+                        self._path,
+                        ref,
+                        target_path,
+                        depth,
+                    )
+
+        return cmd

@@ -1,4 +1,4 @@
-Shotgun pipeline toolkit core platform, |release|
+ShotGrid pipeline toolkit core platform, |release|
 ####################################################
 
 .. toctree::
@@ -11,3 +11,4 @@ Shotgun pipeline toolkit core platform, |release|
     utils
     descriptor
     authentication
+    environment_variables

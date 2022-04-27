@@ -358,7 +358,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://support.shotgunsoftware.com"
+            support_url = "https://knowledge.autodesk.com/contact-support"
         return support_url
 
     @property
@@ -370,7 +370,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         doc_url = meta.get("documentation_url")
         if doc_url is None:
-            doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
+            doc_url = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Supervisor_Artist_sa_integrations_sa_integrations_user_guide_html"
         return doc_url
 
     @property

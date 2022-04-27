@@ -639,7 +639,7 @@ class TestShotgunSync(TankTestBase):
         # now clear the path cache completely. This should trigger a full flush
         os.remove(pcl)
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete Shotgun folder sync" in log)
+        self.assertTrue("Performing a complete SG folder sync" in log)
 
         # check that the sync happend
         self.assertEqual(
@@ -791,7 +791,7 @@ class TestShotgunSync(TankTestBase):
 
         # check that this triggers a full sync
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete Shotgun folder sync" in log)
+        self.assertTrue("Performing a complete SG folder sync" in log)
 
     def test_multiple_projects_eventlog(self):
         """
@@ -827,7 +827,7 @@ class TestShotgunSync(TankTestBase):
 
         # now because we deleted our path cache, we will do a full sync
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete Shotgun folder sync" in log)
+        self.assertTrue("Performing a complete SG folder sync" in log)
 
         # now if we sync again, this should be incremental and the sync
         # should detect that there are no new entries for this project,

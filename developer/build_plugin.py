@@ -283,7 +283,7 @@ def _validate_manifest(source_path):
     logger.debug("Reading %s" % manifest_path)
     try:
         with open(manifest_path, "rt") as fh:
-            manifest_data = yaml.load(fh)
+            manifest_data = yaml.load(fh, Loader=yaml.FullLoader)
     except Exception as e:
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 
@@ -726,7 +726,7 @@ users.
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
-http://developer.shotgunsoftware.com/tk-core/descriptor
+http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
 """.format(
@@ -815,7 +815,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     try:
         sg_connection.find_one("HumanUser", [])
     except Exception as e:
-        logger.error("Could not communicate with Shotgun: %s" % e)
+        logger.error("Could not communicate with ShotGrid: %s" % e)
         return 3
 
     # we are all set.

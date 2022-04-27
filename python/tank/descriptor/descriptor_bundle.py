@@ -130,7 +130,7 @@ class BundleDescriptor(Descriptor):
         reasons = []
 
         self._test_version_constraint(
-            "min_sg", self._get_sg_version(self._sg_connection), "Shotgun", reasons
+            "min_sg", self._get_sg_version(self._sg_connection), "ShotGrid", reasons
         )
         self._test_version_constraint(
             "min_core",
@@ -179,7 +179,7 @@ class BundleDescriptor(Descriptor):
                     )
 
         self._test_version_constraint(
-            "min_desktop", desktop_version, "Shotgun Desktop", reasons
+            "min_desktop", desktop_version, "SG Desktop", reasons
         )
 
         if len(reasons) > 0:
@@ -375,7 +375,7 @@ class BundleDescriptor(Descriptor):
 
                     else:
                         log.debug(
-                            "Field %s.%s already exists in Shotgun."
+                            "Field %s.%s already exists in ShotGrid."
                             % (sg_entity_type, sg_field_name)
                         )
 

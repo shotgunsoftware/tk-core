@@ -241,7 +241,7 @@ class ConfigurationWriter(object):
         # Figures out which is the current Python interpreter.
         # If we're in the Shotgun Desktop
         if os.path.split(executable)[1].lower().startswith("shotgun"):
-            log.debug("Shotgun Desktop process detected.")
+            log.debug("SG Desktop process detected.")
             # We'll use the builtin Python.
             if is_macos():
                 current_interpreter = os.path.join(prefix, "bin", "python")
@@ -267,9 +267,7 @@ class ConfigurationWriter(object):
         if current_interpreter:
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
-            log.debug(
-                "Current OS interpreter will be the default Shotgun Desktop location."
-            )
+            log.debug("Current OS interpreter will be the default SG Desktop location.")
 
         config_root_path = self._path.current_os
 
@@ -325,9 +323,13 @@ class ConfigurationWriter(object):
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")
-            fh.write("Windows: '%s'\n" % self._path.windows)
-            fh.write("Darwin: '%s'\n" % self._path.macosx)
-            fh.write("Linux: '%s'\n" % self._path.linux)
+
+            locations = {}
+            locations["Windows"] = self._path.windows
+            locations["Darwin"] = self._path.macosx
+            locations["Linux"] = self._path.linux
+
+            yaml.safe_dump(locations, fh, default_flow_style=False)
 
     def write_config_info_file(self, config_descriptor):
         """
@@ -339,7 +341,7 @@ class ConfigurationWriter(object):
 
         with filesystem.auto_created_yml(config_info_file) as fh:
             fh.write("# This file contains metadata describing what exact version\n")
-            fh.write("# Of the config that was downloaded from Shotgun\n")
+            fh.write("# Of the config that was downloaded from ShotGrid\n")
             fh.write("\n")
             fh.write("# Below follows details for the sg attachment that is\n")
             fh.write("# reflected within this local configuration.\n")
@@ -375,7 +377,7 @@ class ConfigurationWriter(object):
         if os.path.exists(source_config_sg_file):
             log.debug("shotgun.yml found in the config at '%s'.", source_config_sg_file)
             with open(source_config_sg_file, "rb") as fh:
-                metadata = yaml.load(fh)
+                metadata = yaml.load(fh, Loader=yaml.FullLoader)
         else:
             log.debug(
                 "File '%s' does not exist in the config. shotgun.yml will only contain the host.",
@@ -424,7 +426,7 @@ class ConfigurationWriter(object):
         """
         if project_id:
             # Look up the project name via the project id
-            log.debug("Checking project in Shotgun...")
+            log.debug("Checking project in ShotGrid...")
             sg_data = self._sg_connection.find_one(
                 "Project", [["id", "is", project_id]], ["tank_name"]
             )
@@ -443,7 +445,7 @@ class ConfigurationWriter(object):
         # resolve project name and pipeline config name from shotgun.
         if pipeline_config_id:
             # look up pipeline config name and project name via the pc
-            log.debug("Checking pipeline config in Shotgun...")
+            log.debug("Checking pipeline config in ShotGrid...")
 
             sg_data = self._sg_connection.find_one(
                 constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,

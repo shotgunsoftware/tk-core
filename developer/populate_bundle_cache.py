@@ -145,7 +145,7 @@ give special meaning to the & character.
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
-http://developer.shotgunsoftware.com/tk-core/descriptor
+http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
 """.format(

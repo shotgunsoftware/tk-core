@@ -639,6 +639,35 @@ class TestDescriptorSupport(TankTestBase):
             "v1.x.2",
         )
 
+    def test_git_branch_descriptor_commands(self):
+        """
+        Test that shallow git clones are not enabled with git_branch descriptors.
+        """
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "tk-multi-shotgunpanel.git"
+        )
+        target_path = self.cache_root
+        desc = self.tk.pipeline_configuration.get_app_descriptor(
+            {
+                "type": "git_branch",
+                "path": self.git_repo_uri,
+                "branch": "master",
+                "version": "6547378",
+            }
+        )
+        self.assertEqual(
+            desc._io_descriptor._validate_git_commands(
+                target_path, depth=1, ref="master"
+            ),
+            'git clone --no-hardlinks -q "%s" %s "%s" '
+            % (self.git_repo_uri, "-b master", target_path,),
+        )
+        self.assertEqual(
+            desc._io_descriptor._validate_git_commands(target_path, ref="master"),
+            'git clone --no-hardlinks -q "%s" %s "%s" '
+            % (self.git_repo_uri, "-b master", target_path,),
+        )
+
 
 class TestConstraintValidation(unittest2.TestCase):
     """
@@ -713,7 +742,7 @@ class TestConstraintValidation(unittest2.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least Shotgun .* but currently installed version is .*\.",
+            r"Requires at least ShotGrid .* but currently installed version is .*\.",
         )
 
     def test_min_core_constraint_pass(self):
@@ -829,7 +858,7 @@ class TestConstraintValidation(unittest2.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least Shotgun Desktop.* but currently installed version is .*\.",
+            r"Requires at least SG Desktop.* but currently installed version is .*\.",
         )
 
     @patch(
@@ -890,7 +919,7 @@ class TestConstraintValidation(unittest2.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least Shotgun Desktop v3.3.4 but no version was specified",
+            "Requires at least SG Desktop v3.3.4 but no version was specified",
         )
 
 

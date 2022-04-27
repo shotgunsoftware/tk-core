@@ -34,7 +34,7 @@ def get_entity_type_display_name(tk, entity_type_code):
 
     .. note:: The recommended way to access this data is now via the
               globals module in the shotgunutils framework. For more information,
-              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
+              see http://developer.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param entity_type_code: API entity type name
@@ -69,7 +69,7 @@ def get_cached_local_storages(tk):
     storage_data = tk.get_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY)
 
     if storage_data is None:
-        log.debug("Caching shotgun local storages...")
+        log.debug("Caching SG local storages...")
         storage_data = tk.shotgun.find(
             "LocalStorage", [], ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
         )
@@ -80,7 +80,9 @@ def get_cached_local_storages(tk):
 
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None):
+def find_publish(
+    tk, list_of_paths, filters=None, fields=None, only_current_project=True
+):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
@@ -94,6 +96,10 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     By default, the shotgun id is returned for each successfully identified path.
     If you want to retrieve additional fields, you can specify these using
     the fields parameter.
+
+    By default, only publishes in the current project will be found. If you
+    want to retreive publishes from any active project in the pipeline config,
+    you can specify the only_current_project param to False.
 
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example::
@@ -111,6 +117,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
                    return. Defaults to id and type.
+    :param only_current_project: Optional boolean to find publishes in Shotgun only from the
+                                 current project (True) or from any active project (False).
+                                 Defaults to True.
     :returns: dictionary keyed by path
     """
     # avoid cyclic references
@@ -120,7 +129,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # in case of sequences, there will be more than one file
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
-    storage_root_to_paths = group_by_storage(tk, list_of_paths)
+    storage_root_to_paths = group_by_storage(tk, list_of_paths, only_current_project)
 
     filters = filters or []
     fields = fields or []

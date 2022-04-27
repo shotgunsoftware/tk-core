@@ -237,7 +237,7 @@ class SessionCacheTests(ShotgunTestBase):
             "r",
         ) as fh:
             # Let's read the file directly to see if the data was cleaned up.
-            data = yaml.load(fh)
+            data = yaml.load(fh, Loader=yaml.FullLoader)
             self.assertEqual(data["current_host"], "https://host.cleaned.up.on.write")
 
     def test_current_user(self):

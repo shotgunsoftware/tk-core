@@ -64,14 +64,26 @@ class BootstrapHookTests(SgtkIntegrationTest):
         # If we didn't find the record, create it. We're being fault tolerant here and assuming that
         # maybe a run might have created the record but failed at uploading the bundle.
         if not item:
+            # This field is a simple string field. Create it in ShotGrid if you get an error here.
             item = cls.sg.create(
                 "CustomNonProjectEntity01", {"sg_descriptor": descriptor}
             )
 
-        # Upload the bundle to Shotgun.
-        cls.sg.upload(
-            "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
-        )
+        for _ in range(5):
+            try:
+                # Upload the bundle to Shotgun.
+                # This field is a File field. Create it in ShotGrid if you get an error here.
+                cls.sg.upload(
+                    "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
+                )
+            except Exception:
+                logger.exception(
+                    "An unexpected exception was raised using the upload of the configuration:"
+                )
+            else:
+                return
+        else:
+            raise RuntimeError("Failed uploading media after 5 retries.")
 
     @classmethod
     def _find_bundle_in_sg(cls, descriptor):

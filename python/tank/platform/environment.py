@@ -108,6 +108,33 @@ class Environment(object):
         self.__framework_locations = {}
         self.__extract_locations()
 
+    def __validate_settings(self, name, settings):
+        """
+        Validates the engine/app/framework settings dictionary
+        """
+
+        # Make sure the settings dict is not empty
+        if not settings:
+            raise TankError(
+                'No settings found for "{}" in {}'.format(name, self.disk_location)
+            )
+
+        # Make sure the required keys exist and have values
+        required_keys = [constants.ENVIRONMENT_LOCATION_KEY]
+        for key in required_keys:
+            if key not in settings:
+                raise TankError(
+                    '"{}" key missing in the definition of "{}" in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
+            if settings[key] is None:
+                raise TankError(
+                    '"{}" key of "{}" has an empty definition in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
+
     def __is_item_disabled(self, settings):
         """
         handles the checks to see if an item is disabled
@@ -140,6 +167,7 @@ class Environment(object):
             return
         # iterate over the apps dict
         for app, app_settings in data.items():
+            self.__validate_settings(app, app_settings)
             if not self.__is_item_disabled(app_settings):
                 self.__app_settings[(engine, app)] = app_settings
 
@@ -151,6 +179,7 @@ class Environment(object):
             return
         # iterate over the engine dict
         for engine, engine_settings in engines.items():
+            self.__validate_settings(engine, engine_settings)
             # Check for engine disabled
             if not self.__is_item_disabled(engine_settings):
                 engine_apps = engine_settings.pop("apps")
@@ -165,6 +194,7 @@ class Environment(object):
             return
 
         for fw, fw_settings in frameworks.items():
+            self.__validate_settings(fw, fw_settings)
             # Check for framework disabled
             if not self.__is_item_disabled(fw_settings):
                 self.__framework_settings[fw] = fw_settings
@@ -223,7 +253,7 @@ class Environment(object):
         """
         loads the main data from disk, raw form
         """
-        logger.debug("Loading environment data from path: %s", self._env_path)
+        logger.debug("Loading environment data from path: %s", path)
         return g_yaml_cache.get(path) or {}
 
     def __load_environment_data(self):
@@ -836,12 +866,12 @@ class WritableEnvironment(InstalledEnvironment):
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             else:
                 # use pyyaml parser
-                yaml_data = yaml.load(fh)
+                yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
-            yaml_data = yaml.load(fh)
+            yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except Exception as e:
             raise TankError(
                 "Could not parse file '%s'. Error reported: '%s'" % (path, e)
@@ -931,7 +961,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # >>> yaml.safe_dump({"foo": u"bar"})
                 # '{foo: bar}\n'
                 #
-                yaml.safe_dump(data, fh)
+                yaml.safe_dump(data, fh, default_flow_style=None)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when an old version (<= v1.3.20)

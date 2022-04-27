@@ -680,18 +680,19 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         """
         Test that uploaded zip field is used when no descriptor or path
         """
-        self._create_pc(
+        uploaded_config_dict = {
+            "name": "v1.2.3.zip",
+            "url": "https://...",
+            "content_type": "application/zip",
+            "type": "Attachment",
+            "id": 139,
+            "link_type": "upload",
+        }
+        pc = self._create_pc(
             "Primary",
             self._project,
             plugin_ids="foo.*, bar, baz",
-            uploaded_config_dict={
-                "name": "v1.2.3.zip",
-                "url": "https://...",
-                "content_type": "application/zip",
-                "type": "Attachment",
-                "id": 139,
-                "link_type": "upload",
-            },
+            uploaded_config_dict=uploaded_config_dict,
         )
 
         config = self.resolver.resolve_shotgun_configuration(
@@ -706,9 +707,9 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             {
                 "entity_type": "PipelineConfiguration",
                 "field": "uploaded_config",
-                "id": 124,
+                "id": pc["id"],
                 "type": "shotgun",
-                "version": 139,
+                "version": uploaded_config_dict["id"],
             },
         )
 
@@ -1120,7 +1121,7 @@ class TestErrorHandling(TestResolverBase):
 
         with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
-            "The Shotgun pipeline configuration with id %s has no source location specified for "
+            "The SG pipeline configuration with id %s has no source location specified for "
             "your operating system." % pc_id,
         ):
             self.resolver.resolve_shotgun_configuration(

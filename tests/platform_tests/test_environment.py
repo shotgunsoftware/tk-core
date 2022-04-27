@@ -15,6 +15,7 @@ from tank.errors import TankError
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank_vendor import yaml
+from tank.platform.environment import Environment
 
 import copy
 
@@ -37,19 +38,19 @@ class TestEnvironment(TankTestBase):
         # get raw environment
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        self.raw_env_data = yaml.load(fh)
+        self.raw_env_data = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
         # get raw app metadata
         app_md = os.path.join(self.project_config, "bundles", "test_app", "info.yml")
         fh = open(app_md)
-        self.raw_app_metadata = yaml.load(fh)
+        self.raw_app_metadata = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
         # get raw engine metadata
         eng_md = os.path.join(self.project_config, "bundles", "test_engine", "info.yml")
         fh = open(eng_md)
-        self.raw_engine_metadata = yaml.load(fh)
+        self.raw_engine_metadata = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
     def test_basic_properties(self):
@@ -104,6 +105,78 @@ class TestEnvironment(TankTestBase):
             self.env.get_app_descriptor("test_engine", "test_app").configuration_schema,
             self.raw_app_metadata["configuration"],
         )
+
+    def test_engine_missing_location(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "missing_engine_location.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_app_missing_location(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "missing_app_location.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_framework_missing_location(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "missing_framework_location.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_engine_empty_settings(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_engine_settings.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_app_empty_settings(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_app_settings.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_framework_empty_settings(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "empty_framework_settings.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_app_empty_location(self):
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_app_location.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_engine_empty_location(self):
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_engine_location.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_framework_empty_location(self):
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "empty_framework_location.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
 
 
 class TestDumpEnvironment(TankTestBase):
@@ -229,7 +302,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml.load(fh)
+        env_before = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
         self.env.create_engine_settings("new_engine")
@@ -237,7 +310,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml.load(fh)
+        env_after = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
         # ensure that disk was updated
@@ -263,14 +336,14 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         with open(env_file) as fh:
-            env_before = yaml.load(fh)
+            env_before = yaml.load(fh, Loader=yaml.FullLoader)
 
         self.env.create_app_settings("test_engine", "new_app")
 
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         with open(env_file) as fh:
-            env_after = yaml.load(fh)
+            env_after = yaml.load(fh, Loader=yaml.FullLoader)
 
         # ensure that disk was updated
         self.assertNotEqual(env_after, env_before)
@@ -306,7 +379,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml.load(fh)
+        env_before = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
         prev_settings = self.env.get_engine_settings("test_engine")
 
@@ -317,7 +390,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml.load(fh)
+        env_after = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
         # ensure that disk was updated
@@ -358,7 +431,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_before = yaml.load(fh)
+        env_before = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
         settings_before = self.env.get_app_settings("test_engine", "test_app")
 
@@ -370,7 +443,7 @@ class TestUpdateEnvironment(TankTestBase):
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
         fh = open(env_file)
-        env_after = yaml.load(fh)
+        env_after = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
 
         # ensure that disk was updated

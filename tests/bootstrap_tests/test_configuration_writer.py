@@ -109,7 +109,7 @@ class TestShotgunYmlWriting(TestConfigurationWriterBase):
         )
         self.assertTrue(os.path.exists(shotgun_yml_path))
         with open(shotgun_yml_path, "rb") as fh:
-            return yaml.load(fh)
+            return yaml.load(fh, Loader=yaml.FullLoader)
 
     def test_no_template_generate_new_file(self):
         """
@@ -203,7 +203,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def test_desktop_interpreter(self):
         """
-        Checks that if we're running in the Shotgun Desktop we're writing the correct interpreter.
+        Checks that if we're running in the SG Desktop we're writing the correct interpreter.
         """
         expected_interpreters = self._get_default_intepreters()
         if is_windows():
@@ -476,6 +476,34 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
                 "source_descriptor": self.__descriptor.get_dict(),
             },
         )
+
+
+class TestInstallationLocationFile(ShotgunTestBase):
+    def test_character_escaping(self):
+        """
+        Ensure that the ' characte is properly escaped
+        when writing out install_location.yml
+        """
+        new_config_root = os.path.join(
+            self.tank_temp, self.short_test_name, "O'Connell"
+        )
+
+        writer = ConfigurationWriter(
+            ShotgunPath.from_current_os_path(new_config_root), self.mockgun
+        )
+
+        install_location_path = os.path.join(
+            new_config_root, "config", "core", "install_location.yml"
+        )
+
+        os.makedirs(os.path.dirname(install_location_path))
+
+        writer.write_install_location_file()
+
+        with open(install_location_path, "rt") as f:
+            paths = yaml.safe_load(f)
+            path = ShotgunPath(paths["Windows"], paths["Linux"], paths["Darwin"])
+        assert path.current_os == new_config_root
 
 
 class TestTransaction(ShotgunTestBase):

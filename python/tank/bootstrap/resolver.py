@@ -264,7 +264,7 @@ class ConfigurationResolver(object):
         # get the pipeline configs for the current project which are
         # either the primary or is associated with the currently logged in user.
         # also get the pipeline configs for the site level (project=None)
-        log.debug("Requesting pipeline configurations from Shotgun...")
+        log.debug("Requesting pipeline configurations from ShotGrid...")
 
         if pipeline_config_name is None:
             # If nothing was specified, we need to pick pipeline configurations...
@@ -765,7 +765,7 @@ class ConfigurationResolver(object):
         :return: :class:`Configuration` instance
         """
         log.debug(
-            "%s resolving configuration from Shotgun Pipeline Configuration %s"
+            "%s resolving configuration from SG Pipeline Configuration %s"
             % (self, pipeline_config_identifier)
         )
 
@@ -814,7 +814,7 @@ class ConfigurationResolver(object):
                 "Will use pipeline configuration id '%s'" % pipeline_config_identifier
             )
 
-            log.debug("Requesting pipeline configuration data from Shotgun...")
+            log.debug("Requesting pipeline configuration data from ShotGrid...")
 
             # Fetch the one and only config that matches this id.
             pipeline_config = sg_connection.find_one(
@@ -826,7 +826,7 @@ class ConfigurationResolver(object):
             # If it doesn't exist, we're in trouble.
             if pipeline_config is None:
                 raise TankBootstrapError(
-                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Shotgun."
+                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in ShotGrid."
                     % (pipeline_config_identifier, self._proj_entity_dict["id"])
                 )
 
@@ -864,7 +864,7 @@ class ConfigurationResolver(object):
                     pipeline_config["id"],
                 )
                 raise TankBootstrapError(
-                    "The Shotgun pipeline configuration with id %s has no source location specified for "
+                    "The SG pipeline configuration with id %s has no source location specified for "
                     "your operating system." % pipeline_config["id"]
                 )
             config_descriptor = pipeline_config["config_descriptor"]

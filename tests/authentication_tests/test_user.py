@@ -10,13 +10,14 @@
 
 from __future__ import with_statement
 import base64
+import pytest
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 from mock import patch
 
-from tank.authentication import user, user_impl
+from tank.authentication import user, user_impl, errors
 from tank_vendor.shotgun_api3 import AuthenticationFault
 from tank_vendor import six
 
@@ -39,6 +40,16 @@ class UserTests(ShotgunTestBase):
                 host="https://tank.shotgunstudio.com",
                 login="login",
                 session_token="session_token",
+                http_proxy="http_proxy",
+            )
+        )
+
+    def _create_script_user(self):
+        return user.ShotgunUser(
+            user_impl.ScriptUser(
+                host="host",
+                api_script="api_script",
+                api_key="api_key",
                 http_proxy="http_proxy",
             )
         )
@@ -82,14 +93,7 @@ class UserTests(ShotgunTestBase):
         )
         self.assertEqual(session_user.login, "session_user")
 
-        script_user = user.ShotgunUser(
-            user_impl.ScriptUser(
-                host="host",
-                api_script="api_script",
-                api_key="api_key",
-                http_proxy="http_proxy",
-            )
-        )
+        script_user = self._create_script_user()
         self.assertIsNone(script_user.login)
 
         class CustomUser(user_impl.ShotgunUserImpl):
@@ -140,14 +144,7 @@ class UserTests(ShotgunTestBase):
         self.assertEqual(su.login, su_2.login)
         self.assertEqual(su.impl.get_session_token(), su_2.impl.get_session_token())
 
-        su = user.ShotgunUser(
-            user_impl.ScriptUser(
-                host="host",
-                api_script="api_script",
-                api_key="api_key",
-                http_proxy="http_proxy",
-            )
-        )
+        su = self._create_script_user()
 
         su_2 = user.deserialize_user(user.serialize_user(su))
         self.assertEqual(su.host, su_2.host)
@@ -224,3 +221,64 @@ class UserTests(ShotgunTestBase):
         # Trigger _call_rpc to make sure sure the ShotgunWrapper copied over the session_token.
         sg._call_rpc()
         self.assertEqual(sg._user.get_session_token(), "session_token_2")
+
+    def test_unresolvable_user(self):
+        """
+        Ensure the errors strings are properly formatted when we can't resolve a user's
+        entity dict.
+        """
+        assert str(errors.UnresolvableHumanUser("jf")) == (
+            "The person named 'jf' could not be resolved. Check if the "
+            "permissions for the current user are hiding the field "
+            "'HumanUser.login'."
+        )
+        assert str(errors.UnresolvableScriptUser("robot-jf")) == (
+            "The script named 'robot-jf' could not be resolved. Check if the "
+            "permissions for the current user are hiding the field "
+            "'ApiUser.firstname'."
+        )
+
+    def test_resolving_human_user(self):
+        """
+        Ensure HumanUser.resolve_entity behaves properly.
+        """
+        self._test_resolve_entity(
+            "SessionUser",
+            "HumanUser",
+            "login",
+            "login",
+            self._create_test_user,
+            errors.UnresolvableHumanUser,
+        )
+
+    def test_resolving_script_user(self):
+        """
+        Ensure ScriptUser.resolve_entity behaves properly.
+        """
+        self._test_resolve_entity(
+            "ScriptUser",
+            "ApiUser",
+            "firstname",
+            "api_script",
+            self._create_script_user,
+            errors.UnresolvableScriptUser,
+        )
+
+    def _test_resolve_entity(
+        self, class_name, entity_type, field_name, field_value, factory, error_type
+    ):
+        with patch(
+            "tank.authentication.user_impl.%s.create_sg_connection" % class_name,
+            return_value=self.mockgun,
+        ):
+            user = factory()
+            # When the user can't be found, an error should be raised.
+            with pytest.raises(error_type):
+                user.resolve_entity()
+
+            entity = self.mockgun.create(entity_type, {field_name: field_value})
+            # clean up the entity dict so we can easily compare it with the resolve_entity() result.
+            entity = {"type": entity["type"], "id": entity["id"]}
+            # When the user exists, it should be resolved properly.
+            resolved_entity = user.resolve_entity()
+            assert entity == resolved_entity

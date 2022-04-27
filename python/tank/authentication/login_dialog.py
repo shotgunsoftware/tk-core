@@ -17,6 +17,8 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import os
+import sys
 from tank_vendor import shotgun_api3
 from tank_vendor import six
 from .web_login_support import get_shotgun_authenticator_support_web_login
@@ -25,9 +27,11 @@ from .ui import login_dialog
 from . import session_cache
 from ..util.shotgun import connection
 from ..util import login
+from ..util import LocalFileStorageManager
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
+from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from .sso_saml2 import (
+    SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
     is_autodesk_identity_enabled_on_site,
@@ -48,6 +52,18 @@ USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
 
 # Let's put at 5 seconds the maximum time we might wait for a SSO check thread.
 THREAD_WAIT_TIMEOUT_MS = 5000
+
+
+def _is_running_in_desktop():
+    """
+    Indicate if we are in the context of the ShotGrid Desktop.
+
+    When the ShotGrid Desktop is used, we want to disregard the value returned
+    by the call to `get_shotgun_authenticator_support_web_login()` when the
+    target site is using Autodesk Identity.
+    """
+    executable_name = os.path.splitext(os.path.basename(sys.executable))[0].lower()
+    return executable_name in ["shotgun", "shotgrid"]
 
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
@@ -144,11 +160,17 @@ class LoginDialog(QtGui.QDialog):
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
+            "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
             self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
         except SsoSaml2MissingQtModuleError as e:
-            logger.info("Web login not supported due to missing Qt module: %s" % e)
+            logger.warning("Web login not supported due to missing Qt module: %s" % e)
+            self._sso_saml2 = None
+        except SsoSaml2IncompletePySide2 as e:
+            logger.warning(
+                "Web login not supported due to missing Qt method/class: %s" % e
+            )
             self._sso_saml2 = None
 
         hostname = hostname or ""
@@ -163,7 +185,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.setupUi(self)
 
         # Set the title
-        self.setWindowTitle("Shotgun Login")
+        self.setWindowTitle("ShotGrid Login")
 
         # Assign credentials
         self._http_proxy = http_proxy
@@ -180,7 +202,7 @@ class LoginDialog(QtGui.QDialog):
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
         completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
         self.ui.site.set_style_sheet(completer_style)
-        self.ui.site.set_placeholder_text("example.shotgunstudio.com")
+        self.ui.site.set_placeholder_text("example.shotgrid.autodesk.com")
         self.ui.login.set_style_sheet(completer_style)
         self.ui.login.set_placeholder_text("login")
 
@@ -199,7 +221,7 @@ class LoginDialog(QtGui.QDialog):
         if fixed_host:
             self._disable_text_widget(
                 self.ui.site,
-                "The Shotgun site has been predefined and cannot be modified.",
+                "The ShotGrid site has been predefined and cannot be modified.",
             )
 
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.
@@ -362,14 +384,24 @@ class LoginDialog(QtGui.QDialog):
         """
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
-        use_web = (
-            self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
-        )
+        # With a SSO site, we have no choice but to use the web to login.
+        use_web = self._query_task.sso_enabled
 
-        # If we have full support for Web-based login, or if we enable it in our
-        # environment, use the Unified Login Flow for all authentication modes.
-        if get_shotgun_authenticator_support_web_login():
-            use_web = use_web or self._query_task.unified_login_flow_enabled
+        # The user may decide to force the use of the old dialog:
+        # - due to graphical issues with Qt and its WebEngine
+        # - they need to use the legacy login / passphrase to use a PAT with
+        #   Autodesk Identity authentication
+        if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+            logger.info("Using the standard login dialog with the ShotGrid Desktop")
+        else:
+            if _is_running_in_desktop():
+                logger.info("Using the Web Login with the ShotGrid Desktop")
+                use_web = use_web or self._query_task.autodesk_identity_enabled
+
+            # If we have full support for Web-based login, or if we enable it in our
+            # environment, use the Unified Login Flow for all authentication modes.
+            if get_shotgun_authenticator_support_web_login():
+                use_web = use_web or self._query_task.unified_login_flow_enabled
 
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.
@@ -445,12 +477,16 @@ class LoginDialog(QtGui.QDialog):
                   None if the user cancelled.
         """
         if self._session_metadata and self._sso_saml2:
+            profile_location = LocalFileStorageManager.get_site_root(
+                self._get_current_site(), LocalFileStorageManager.CACHE
+            )
             res = self._sso_saml2.login_attempt(
                 host=self._get_current_site(),
                 http_proxy=self._http_proxy,
                 cookies=self._session_metadata,
                 product=PRODUCT_IDENTIFIER,
                 use_watchdog=True,
+                profile_location=profile_location,
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
@@ -549,11 +585,15 @@ class LoginDialog(QtGui.QDialog):
         success = False
         try:
             if self._use_web and self._sso_saml2:
+                profile_location = LocalFileStorageManager.get_site_root(
+                    site, LocalFileStorageManager.CACHE
+                )
                 res = self._sso_saml2.login_attempt(
                     host=site,
                     http_proxy=self._http_proxy,
                     cookies=self._session_metadata,
                     product=PRODUCT_IDENTIFIER,
+                    profile_location=profile_location,
                 )
                 if res == QtGui.QDialog.Accepted:
                     self._new_session_token = self._sso_saml2.session_id

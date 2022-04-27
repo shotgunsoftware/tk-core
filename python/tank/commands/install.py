@@ -59,7 +59,7 @@ class InstallAppAction(Action):
             "description": (
                 "Address to app to install. If you specify the name of "
                 "an app (e.g. tk-multi-loader), toolkit will try to download "
-                "it from the Shotgun App Store. Alternatively, you can also "
+                "it from the SG App Store. Alternatively, you can also "
                 "specify the path to a bare git repo, for example in github. "
                 "For more info, see the help for the install_app commmand."
             ),
@@ -127,7 +127,7 @@ class InstallAppAction(Action):
             log.info("")
             log.info(
                 "For more information about app development, see "
-                "https://support.shotgunsoftware.com/entries/95440137"
+                "https://developer.shotgridsoftware.com/2e5ed7bb/?title=Developing+apps"
             )
             log.info("")
             log.info("")
@@ -174,7 +174,9 @@ class InstallAppAction(Action):
                 "To see all apps and engines in the Toolkit App Store, navigate here:"
             )
             log.info("")
-            log.info("https://support.shotgunsoftware.com/entries/95441247")
+            log.info(
+                "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+            )
             log.info("")
             log.info("To install an app store app, use the following syntax:")
             log.info("> tank install_app environment_name engine_name app_name")
@@ -213,7 +215,7 @@ class InstallAppAction(Action):
     def _run(self, log, env_name, engine_instance_name, app_name, preserve_yaml):
 
         log.info("")
-        log.info("Welcome to the Shotgun Pipeline Toolkit App installer!")
+        log.info("Welcome to the SG Pipeline Toolkit App installer!")
         log.info(
             "Installing into environment %s and engine %s."
             % (env_name, engine_instance_name)
@@ -374,7 +376,7 @@ class InstallEngineAction(Action):
             "description": (
                 "Address to engine to install. If you specify the name of "
                 "an engine (e.g. tk-maya), toolkit will try to download "
-                "it from the Shotgun App Store. Alternatively, you can also "
+                "it from the SG App Store. Alternatively, you can also "
                 "specify the path to a bare git repo, for example in github. "
                 "For more info, see the help for the install_engine commmand."
             ),
@@ -476,7 +478,9 @@ class InstallEngineAction(Action):
                 "To see all apps and engines in the Toolkit App Store, navigate here:"
             )
             log.info("")
-            log.info("https://support.shotgunsoftware.com/entries/95441247")
+            log.info(
+                "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+            )
             log.info("")
             log.info("To install an app store engine, use the following syntax:")
             log.info("> tank install_engine environment_name engine_name")
@@ -516,7 +520,7 @@ class InstallEngineAction(Action):
 
         log.info("")
         log.info("")
-        log.info("Welcome to the Shotgun Pipeline Toolkit Engine installer!")
+        log.info("Welcome to the SG Pipeline Toolkit Engine installer!")
         log.info("")
 
         try:
