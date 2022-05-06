@@ -108,7 +108,7 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked.
-    :param skip_bundles: Bundle types to skip.
+    :param skip_bundles_types: Bundle types to skip.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
@@ -118,10 +118,11 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
     # configuration descriptor and version.
-    target_path = os.path.join(
-        target_path,
-        "%s-%s" % (config_descriptor.system_name, config_descriptor.version,),
+    target_path_folder_name = "%s-%s" % (
+        config_descriptor.system_name,
+        config_descriptor.version,
     )
+    target_path = os.path.join(target_path, target_path_folder_name)
 
     # Check that target path doesn't exist
     if os.path.exists(target_path):
@@ -313,7 +314,11 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
 
     # we are all set.
     bake_config(
-        sg_connection, config_descriptor, target_path, options.zip, skip_bundle_types,
+        sg_connection,
+        config_descriptor,
+        target_path,
+        options.zip,
+        skip_bundle_types,
     )
 
     # all good!
