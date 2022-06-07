@@ -43,7 +43,16 @@ def dumps(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS))
+    try:
+        return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS))
+    except UnicodeError as e:
+        # Fix unicode issue when ensuring string values
+        # https://jira.autodesk.com/browse/SG-6588
+        if e.encoding == "utf-8" and e.reason == "invalid continuation byte":
+            return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS),
+                                  encoding="ISO-8859-1")
+
+        raise
 
 
 def dump(data, fh):
