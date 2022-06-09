@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2013 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -30,8 +31,12 @@ from tank_vendor import six
 from tank.authentication import ShotgunAuthenticator
 
 
-# Run tests with a "difficult" (non-ascii) user name
-USER_NAME = u"Üser Ñâme"
+# Run tests with a "difficult" (non-latin1) user name
+if six.PY3:
+    USER_NAME = "Üser Ñâme"
+if six.PY2:
+    # In python2, the user name field is utf-8 encoded
+    USER_NAME = u"Üser Ñâme".encode("utf-8")
 
 class TestContext(TankTestBase):
     def setUp(self):
