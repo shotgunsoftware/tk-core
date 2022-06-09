@@ -98,10 +98,6 @@ def store_env_var_pickled(key, data):
     .. note::
         This method is part of Toolkit's internal API.
 
-    In Python 3 pickle.dumps() returns a binary object that can't be decoded to
-    a string for storage in an environment variable.  To work around this, we
-    encode the pickled data to base64, compress the result, and store that.
-
     :param key: The name of the environment variable to store the data in.
     :param data: The object to pickle and store.
     """
@@ -118,10 +114,6 @@ def retrieve_env_var_pickled(key):
 
     .. note::
         This method is part of Toolkit's internal API.
-
-    In Python 3 pickle.dumps() returns a binary object that can't be decoded to
-    a string for storage in an environment variable.  To work around this, we
-    encode the pickled data to base64, compress the result, and store that.
 
     :param key: The name of the environment variable to retrieve data from.
     :returns: The original object that was stored.
