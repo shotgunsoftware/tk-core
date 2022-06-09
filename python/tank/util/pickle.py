@@ -18,7 +18,7 @@ from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
-
+CODEC = "latin1"
 # kwargs for pickle.load* and pickle.dump* calls.
 LOAD_KWARGS = {"encoding": "bytes"} if six.PY3 else {}
 # Protocol 0 ensures ASCII encoding, which is required when writing
@@ -43,7 +43,7 @@ def dumps(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS))
+    return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS), encoding=CODEC)
 
 
 def dump(data, fh):
@@ -72,7 +72,7 @@ def loads(data):
     :returns: The unpickled object.
     :rtype: object
     """
-    return ensure_contains_str(cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
+    return ensure_contains_str(cPickle.loads(six.ensure_binary(data, encoding=CODEC), **LOAD_KWARGS))
 
 
 def load(fh):
@@ -108,8 +108,7 @@ def store_env_var_pickled(key, data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     pickled_data = dumps(data)
-    encoded_data = six.ensure_str(pickled_data)
-    os.environ[key] = encoded_data
+    os.environ[key] = pickled_data
 
 
 def retrieve_env_var_pickled(key):
@@ -127,5 +126,5 @@ def retrieve_env_var_pickled(key):
     :param key: The name of the environment variable to retrieve data from.
     :returns: The original object that was stored.
     """
-    envvar_contents = six.ensure_binary(os.environ[key])
+    envvar_contents = six.ensure_binary(os.environ[key], encoding=CODEC)
     return loads(envvar_contents)
