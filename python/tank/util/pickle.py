@@ -26,6 +26,8 @@ LOAD_KWARGS = {"encoding": "bytes"} if six.PY3 else {}
 # a pickle to an environment variable.
 DUMP_KWARGS = {"protocol": 0}
 
+# Fix unicode issue when ensuring string values
+# https://jira.autodesk.com/browse/SG-6588
 FALLBACK_ENCODING = "ISO-8859-1"
 FALLBACK_ENCODING_KEY = "_payload_encoding"
 
@@ -47,16 +49,17 @@ def dumps(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
+    serialized = cPickle.dumps(data, **DUMP_KWARGS)
     try:
-        return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS))
+        return six.ensure_str(serialized)
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
         if e.encoding == "utf-8" and e.reason == "invalid continuation byte":
+            encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
-                data[FALLBACK_ENCODING_KEY] = FALLBACK_ENCODING
-            return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS),
-                                  encoding=FALLBACK_ENCODING)
+                data[FALLBACK_ENCODING_KEY] = encoding
+            return six.ensure_str(serialized, encoding=encoding)
 
         raise
 
@@ -87,17 +90,13 @@ def loads(data):
     :returns: The unpickled object.
     :rtype: object
     """
-    loads_data = ensure_contains_str(
-        cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
+    binary = six.ensure_binary(data)
+    loads_data = ensure_contains_str(cPickle.loads(binary, **LOAD_KWARGS))
 
     if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
-            encoding = loads_data[FALLBACK_ENCODING_KEY]
-            loads_data = ensure_contains_str(
-                cPickle.loads(
-                    six.ensure_binary(data, encoding=encoding),
-                    **LOAD_KWARGS
-                )
-            )
+        encoding = loads_data[FALLBACK_ENCODING_KEY]
+        binary = six.ensure_binary(data, encoding=encoding)
+        loads_data = ensure_contains_str(cPickle.loads(binary, **LOAD_KWARGS))
 
     return loads_data
 
