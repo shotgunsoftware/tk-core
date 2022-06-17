@@ -361,7 +361,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A string.
         """
-        return self._login
+        return six.ensure_str(self._login)
 
     @staticmethod
     def from_dict(payload):
