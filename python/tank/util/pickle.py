@@ -16,6 +16,7 @@ from .unicode import ensure_contains_str
 from tank_vendor.six.moves import cPickle
 from tank_vendor import six
 
+
 log = LogManager.get_logger(__name__)
 
 
@@ -24,6 +25,9 @@ LOAD_KWARGS = {"encoding": "bytes"} if six.PY3 else {}
 # Protocol 0 ensures ASCII encoding, which is required when writing
 # a pickle to an environment variable.
 DUMP_KWARGS = {"protocol": 0}
+
+FALLBACK_ENCODING = "ISO-8859-1"
+FALLBACK_ENCODING_KEY = "_payload_encoding"
 
 
 def dumps(data):
@@ -49,8 +53,10 @@ def dumps(data):
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
         if e.encoding == "utf-8" and e.reason == "invalid continuation byte":
+            if isinstance(data, dict):
+                data[FALLBACK_ENCODING_KEY] = FALLBACK_ENCODING
             return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS),
-                                  encoding="ISO-8859-1")
+                                  encoding=FALLBACK_ENCODING)
 
         raise
 
@@ -81,15 +87,19 @@ def loads(data):
     :returns: The unpickled object.
     :rtype: object
     """
-    try:
-        return ensure_contains_str(
-            cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
-    except Exception as e:
-        # Fix unicode issue when ensuring string values
-        # https://jira.autodesk.com/browse/SG-6588
-        return ensure_contains_str(
-            cPickle.loads(six.ensure_binary(data, encoding="ISO-8859-1"),
-                          **LOAD_KWARGS))
+    loads_data = ensure_contains_str(
+        cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
+
+    if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
+            encoding = loads_data[FALLBACK_ENCODING_KEY]
+            loads_data = ensure_contains_str(
+                cPickle.loads(
+                    six.ensure_binary(data, encoding=encoding),
+                    **LOAD_KWARGS
+                )
+            )
+
+    return loads_data
 
 
 def load(fh):
