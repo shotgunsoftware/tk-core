@@ -81,7 +81,15 @@ def loads(data):
     :returns: The unpickled object.
     :rtype: object
     """
-    return ensure_contains_str(cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
+    try:
+        return ensure_contains_str(
+            cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
+    except Exception as e:
+        # Fix unicode issue when ensuring string values
+        # https://jira.autodesk.com/browse/SG-6588
+        return ensure_contains_str(
+            cPickle.loads(six.ensure_binary(data, encoding="ISO-8859-1"),
+                          **LOAD_KWARGS))
 
 
 def load(fh):
