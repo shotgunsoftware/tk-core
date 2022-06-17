@@ -82,3 +82,19 @@ class TestUnicode(TestCase):
         self.assertEqual(id(value), id(converted_value[1][0]))
         self.assertEqual(id(value), id(converted_value[1][1]))
         self.assertEqual(id(value), id(converted_value[1][2]))
+
+    def test_convert_to_str_with_different_languages(self):
+        """
+        Ensure all values are property converted to str with latin-1 strings
+        in Python.
+        """
+        expected_values = [
+            'AñoVolvió',
+            'JiříVyčítal',
+            '日本のユーザー*',
+        ]
+
+        for expected_value in expected_values:
+            dumps_value = sgtk.util.pickle.dumps(expected_value)
+            received_value = sgtk.util.pickle.loads(dumps_value)
+            self.assertEqual(expected_value, received_value)
