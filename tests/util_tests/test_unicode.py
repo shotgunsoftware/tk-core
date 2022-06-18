@@ -85,16 +85,27 @@ class TestUnicode(TestCase):
 
     def test_convert_to_str_with_different_languages(self):
         """
-        Ensure all values are property converted to str with latin-1 strings
-        in Python.
+        Ensure all values encoded with ISO-8859-1 are properly converted to str
+        in Python 2 and 3.
         """
-        expected_values = [
+        logins = [
             'AñoVolvió',
             'JiříVyčítal',
             '日本のユーザー*',
         ]
 
-        for expected_value in expected_values:
+        for login in logins:
+            expected_value = {
+                'type': 'SessionUser',
+                'data': {
+                    'http_proxy': None,
+                    'host': 'https://xyxyxyxyx.jjj',
+                    'login': login,
+                    'session_token': 'de97e6ff868b6b2ce332',
+                    'session_metadata': 'G9kZXNrLmNvbTsgcGF0aD0v'
+                }
+            }
+
             dumps_value = sgtk.util.pickle.dumps(expected_value)
             received_value = sgtk.util.pickle.loads(dumps_value)
             self.assertEqual(expected_value, received_value)

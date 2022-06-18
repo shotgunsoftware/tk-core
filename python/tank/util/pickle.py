@@ -49,8 +49,8 @@ def dumps(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    serialized = cPickle.dumps(data, **DUMP_KWARGS)
     try:
+        serialized = cPickle.dumps(data, **DUMP_KWARGS)
         return six.ensure_str(serialized)
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
@@ -59,6 +59,7 @@ def dumps(data):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
+                serialized = cPickle.dumps(data, **DUMP_KWARGS)
             return six.ensure_str(serialized, encoding=encoding)
 
         raise
