@@ -29,6 +29,8 @@ from tank_vendor import yaml
 from tank_vendor import six
 from tank.authentication import ShotgunAuthenticator
 
+USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
+
 
 class TestContext(TankTestBase):
     def setUp(self):
@@ -66,7 +68,7 @@ class TestContext(TankTestBase):
         # One human user not matching the current login
         self.other_user = {
             "type": "HumanUser",
-            "name": "user_name",
+            "name": USER_NAME,
             "id": 1,
             "login": "user_login",
         }
@@ -74,7 +76,7 @@ class TestContext(TankTestBase):
         self.current_login = tank.util.login.get_login_name()
         self.current_user = {
             "type": "HumanUser",
-            "name": "user_name",
+            "name": USER_NAME,
             "id": 2,
             "login": self.current_login,
         }
@@ -1194,7 +1196,7 @@ class TestSerialize(TestContext):
             "Version", {"code": "version_code", "project": self.project}
         )
 
-        self.user = self.mockgun.create("HumanUser", {"name": "user_name"})
+        self.user = self.mockgun.create("HumanUser", {"name": USER_NAME})
 
         self.kws = {}
         self.kws["tk"] = self.tk
@@ -1263,7 +1265,7 @@ class TestSerialize(TestContext):
             "additional_entities": [
                 {"type": "Sequence", "name": "seq_name", "id": self.seq["id"]}
             ],
-            "user": {"type": "HumanUser", "id": self.user["id"], "name": "user_name"},
+            "user": {"type": "HumanUser", "id": self.user["id"], "name": USER_NAME},
         }
 
         ctx = context.Context(**self.kws)
