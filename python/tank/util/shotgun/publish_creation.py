@@ -308,19 +308,24 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             if thumbnail_path and os.path.exists(thumbnail_path):
 
                 # publish
-                tk.shotgun.upload_thumbnail(
-                    published_file_entity_type, entity["id"], thumbnail_path
-                )
+                _upload_thumbnail_with_retry(tk.shotgun,
+                                             published_file_entity_type,
+                                             entity["id"],
+                                             thumbnail_path)
 
                 # entity
                 if update_entity_thumbnail == True and context.entity is not None:
-                    tk.shotgun.upload_thumbnail(
-                        context.entity["type"], context.entity["id"], thumbnail_path
-                    )
+                    _upload_thumbnail_with_retry(tk.shotgun,
+                                                 context.entity["type"],
+                                                 context.entity["id"],
+                                                 thumbnail_path)
 
                 # task
                 if update_task_thumbnail == True and task is not None:
-                    tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
+                    _upload_thumbnail_with_retry(tk.shotgun,
+                                                 "Task",
+                                                 task["id"],
+                                                 thumbnail_path)
 
             else:
                 # no thumbnail found - instead use the default one
@@ -328,9 +333,10 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                 no_thumb = os.path.join(
                     this_folder, os.path.pardir, "resources", "no_preview.jpg"
                 )
-                tk.shotgun.upload_thumbnail(
-                    published_file_entity_type, entity.get("id"), no_thumb
-                )
+                _upload_thumbnail_with_retry(tk.shotgun,
+                                             published_file_entity_type,
+                                             entity.get("id"),
+                                             no_thumb)
 
             # register dependencies
             log.debug("Publish: Register dependencies")
@@ -351,6 +357,31 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             # Raise our own exception with the original message and the created entity,
             # if any
             raise ShotgunPublishError(error_message="%s" % e, entity=entity)
+
+
+def _upload_thumbnail_with_retry(sg, entity_type, entity_id, path, retries=1):
+    """
+    Update the thumbnail of the given entity and retry if that fails.
+
+    :param shotgun_api3.Shotgun sg: A ShotGrid API instance.
+    :param str entity_type: Entity type to link the upload to.
+    :param int entity_id: Id of the entity to link the upload to.
+    :param str path: Full path to an existing non-empty file on disk to upload.
+    :param int retries: How often to retry to upload. Can be between 0 and 3.
+    :returns: ID of the Attachment entity.
+    :rtype: int
+    :raises: When an error occurred during upload after the maximum
+             retries have been reached.
+    """
+    retries = max(0, min(retries, 3))
+    retry = 0
+    while True:
+        retry += 1
+        try:
+            return sg.upload_thumbnail(entity_type=entity_type, entity_id=entity_id, path=path)
+        except:
+            if retry > retries:
+                raise
 
 
 def _create_published_file(

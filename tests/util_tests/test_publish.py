@@ -11,7 +11,7 @@
 from __future__ import with_statement
 import os
 
-from mock import patch, call
+from mock import patch, call, MagicMock
 
 import tank
 from tank import context, errors
@@ -403,6 +403,41 @@ class TestShotgunRegisterPublish(TankTestBase):
             cm.exception.entity["type"]
             == tank.util.get_published_file_entity_type(self.tk)
         )
+
+    def test_publish_thumbnail_upload_retries_once_on_error(self):
+        """Tests retry of thumbnail uploads on error."""
+
+        with patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            new=MagicMock(side_effect=(ValueError, 1)),
+        ) as mock:
+
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                "Constant failure",
+                self.name,
+                self.version,
+                dependencies=[-1],
+            )
+
+    def test_publish_thumbnail_errors_on_second_bad_upload_attempt(self):
+        """Tests retry of thumbnail uploads on error."""
+
+        with patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            new=MagicMock(side_effect=(ValueError, ValueError)),
+        ) as mock:
+            with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    "Constant failure",
+                    self.name,
+                    self.version,
+                    dependencies=[-1],
+                )
 
 
 class TestMultiRoot(TankTestBase):
