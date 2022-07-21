@@ -20,6 +20,8 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
+from ..descriptor import descriptor_uri_to_dict
+import sys
 
 log = LogManager.get_logger(__name__)
 
@@ -1025,7 +1027,7 @@ class ToolkitManager(object):
                 # convert to dict so we can introspect
                 config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
                 config_name = config_descriptor.get("name")
-    
+
                 # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
                 # if we are running in Python2 we need to raise this error to avoid autoupdate the
                 # SG Configuration to the latest tk-config-basic version.
