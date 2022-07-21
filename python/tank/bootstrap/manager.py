@@ -74,7 +74,6 @@ class ToolkitManager(object):
         # defaults
         self._pre_engine_start_callback = None
         self._progress_cb = None
-        self.config_basic_stop_autoupdate = False
         # These are serializable parameters from the class.
         self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
@@ -974,7 +973,6 @@ class ToolkitManager(object):
                 "Detected a %s environment variable."
                 % constants.CONFIG_BASIC_STOP_AUTOUPDATE
             )
-            self.config_basic_stop_autoupdate = True
             # Overrides the base configuration to the latest version supporting Python2
             self._base_config_descriptor = "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.4.5"
 
@@ -1026,8 +1024,9 @@ class ToolkitManager(object):
             if isinstance(self._base_config_descriptor, str):
                 # convert to dict so we can introspect
                 config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
-
-            config_name = config_descriptor.get("name")
+                config_name = config_descriptor.get("name")
+            else:
+                config_name = self._base_config_descriptor.get("name")
 
             # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
             # if we are running in Python2 we need to raise this error to avoid autoupdate the
