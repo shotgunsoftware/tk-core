@@ -1025,18 +1025,16 @@ class ToolkitManager(object):
                 # convert to dict so we can introspect
                 config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
                 config_name = config_descriptor.get("name")
-            else:
-                config_name = self._base_config_descriptor.get("name")
-
-            # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
-            # if we are running in Python2 we need to raise this error to avoid autoupdate the
-            # SG Configuration to the latest tk-config-basic version.
-            if sys.version_info[0] != 3 and config_name == 'tk-config-basic':
-                raise TankBootstrapError(
-                    "In order to launch SG Desktop running Python2, please use the "
-                    "environment variable 'CONFIG_BASIC_STOP_AUTOUPDATE'"
-                )
-            # do the full resolve where we connect to shotgun etc.
+    
+                # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
+                # if we are running in Python2 we need to raise this error to avoid autoupdate the
+                # SG Configuration to the latest tk-config-basic version.
+                if sys.version_info[0] != 3 and config_name == 'tk-config-basic':
+                    raise TankBootstrapError(
+                        "In order to launch SG Desktop running Python2, please use the "
+                        "environment variable 'CONFIG_BASIC_STOP_AUTOUPDATE'"
+                    )
+                # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in ShotGrid.")
             log.debug(
                 "In order to turn this off, set do_shotgun_config_lookup to False"
