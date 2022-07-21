@@ -66,6 +66,10 @@ BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
 # configuration loaded when a bootstrap/plugin is starting up.
 CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
 
+# environment variable that avoid auto-updating the configuration
+# to one that doesn't support Python2 during startup.
+CONFIG_BASIC_STOP_AUTOUPDATE = "CONFIG_BASIC_STOP_AUTOUPDATE"
+
 # environment variable that is used to indicate a specific
 # pipeline configuration to be used.
 PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
