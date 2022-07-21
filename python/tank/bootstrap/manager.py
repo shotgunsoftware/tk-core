@@ -74,7 +74,7 @@ class ToolkitManager(object):
         # defaults
         self._pre_engine_start_callback = None
         self._progress_cb = None
-
+        self.config_basic_stop_autoupdate = False
         # These are serializable parameters from the class.
         self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
@@ -966,6 +966,29 @@ class ToolkitManager(object):
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
         if (
+                constants.CONFIG_BASIC_STOP_AUTOUPDATE in os.environ
+                and sys.version_info[0] != 3
+        ):
+            #
+            log.info(
+                "Detected a %s environment variable."
+                % constants.CONFIG_BASIC_STOP_AUTOUPDATE
+            )
+            self.config_basic_stop_autoupdate = True
+            # Overrides the base configuration to the latest version supporting Python2
+            self._base_config_descriptor = "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.4.5"
+
+            # convert to dict so we can introspect
+            config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
+            config_name = config_descriptor.get("name")
+            config_version = config_descriptor.get("version")
+
+            # Resolve use the latest config version supporting Python2 which is v1.4.4
+            config = resolver.resolve_configuration(
+                {"name": config_name, "type": "app_store", "version": config_version}, self._sg_connection
+            )
+            log.info("Config will be updated to the %s version supporting Python2." % config_version)
+        elif (
             constants.CONFIG_OVERRIDE_ENV_VAR in os.environ
             and self._allow_config_overrides
         ):
@@ -999,6 +1022,21 @@ class ToolkitManager(object):
             )
 
         elif self._do_shotgun_config_lookup:
+            # convert to dictionary form
+            if isinstance(self._base_config_descriptor, str):
+                # convert to dict so we can introspect
+                config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
+
+            config_name = config_descriptor.get("name")
+
+            # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
+            # if we are running in Python2 we need to raise this error to avoid autoupdate the
+            # SG Configuration to the latest tk-config-basic version.
+            if sys.version_info[0] != 3 and config_name == 'tk-config-basic':
+                raise TankBootstrapError(
+                    "In order to launch SG Desktop running Python2, please use the "
+                    "environment variable 'CONFIG_BASIC_STOP_AUTOUPDATE'"
+                )
             # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in ShotGrid.")
             log.debug(
