@@ -303,8 +303,7 @@ class TankQDialog(TankDialogBase):
                 else:
                     formatted = "%s" % p.get("name")
 
-                if isinstance(formatted, six.text_type):
-                    formatted = formatted.encode("utf-8")
+                formatted = six.ensure_str(formatted)
 
                 return formatted
 
