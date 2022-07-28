@@ -308,7 +308,7 @@ class TestStopAutoupdate(TankTestBase):
         # Test with the envvar set to a None token config version
         with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE=""):
             self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, expected_message, mgr._get_configuration, None, progress_callback)
-            
+
 
 
         expected_message = (
