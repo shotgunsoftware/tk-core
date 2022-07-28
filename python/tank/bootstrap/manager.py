@@ -918,6 +918,30 @@ class ToolkitManager(object):
         log.debug("Bootstrapping engine %s." % engine_name)
         log.debug("-----------------------------------------------------------------")
 
+    def _get_override_config(self, config_basic_version, resolver):
+        """
+        Resolve the configuration to use when 'CONFIG_BASIC_STOP_AUTOUPDATE' is 
+        set to a specific valid tk-config-basic appstore version supporting Python 2.
+        
+        :parm config_basic_version: The tk-config-basic appstore version.
+        :param resolver: A ConfigurationResolver instance
+        :returns: descriptor dictionary
+        """
+        if not config_basic_version:
+            # if a version token is omitted, the latest version
+            # should be resolved, so we need to raise an error.
+            raise TankBootstrapError(
+                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE" 
+                "to a valid tk-config-basic appstore version supporting Python 2"
+            )
+
+        # Resolve use the config version specified in 'CONFIG_BASIC_STOP_AUTOUPDATE'
+        config = resolver.resolve_configuration(
+            {"name": "tk-config-basic", "type": "app_store", "version": config_basic_version}, self._sg_connection
+        )
+        return config
+
+
     def _get_configuration(self, entity, progress_callback):
         """
         Resolves the configuration to use without creating it on disk.
@@ -970,24 +994,23 @@ class ToolkitManager(object):
                 constants.CONFIG_BASIC_STOP_AUTOUPDATE in os.environ
                 and sys.version_info[0] != 3
         ):
+            # set this environment variable to point to an appstore config basic
+            # version that supports Python2:
             #
+            # CONFIG_BASIC_STOP_AUTOUPDATE=v1.4.5
+            #
+
             log.info(
                 "Detected a %s environment variable."
                 % constants.CONFIG_BASIC_STOP_AUTOUPDATE
             )
+            config_basic_version = os.environ[constants.CONFIG_BASIC_STOP_AUTOUPDATE]
+
             # Overrides the base configuration to the latest version supporting Python2
-            self._base_config_descriptor = "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.4.5"
+            config = self._get_override_config(config_basic_version, resolver)
 
-            # convert to dict so we can introspect
-            config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
-            config_name = config_descriptor.get("name")
-            config_version = config_descriptor.get("version")
+            log.info("Config will be updated to the %s version supporting Python2." % config)
 
-            # Resolve use the latest config version supporting Python2 which is v1.4.4
-            config = resolver.resolve_configuration(
-                {"name": config_name, "type": "app_store", "version": config_version}, self._sg_connection
-            )
-            log.info("Config will be updated to the %s version supporting Python2." % config_version)
         elif (
             constants.CONFIG_OVERRIDE_ENV_VAR in os.environ
             and self._allow_config_overrides
