@@ -254,7 +254,8 @@ class TestStopAutoupdate(TankTestBase):
 
     @patch("sgtk.bootstrap.ToolkitManager._report_progress")
     @patch("sys.version_info", return_value=Mock())
-    def test_stop_autoupdate(self, _,  progress_callback):
+    @patch("sgtk.bootstrap.ToolkitManager._get_config_descriptor_dict")
+    def test_stop_autoupdate(self, get_descriptor_dict, _,  progress_callback):
         """
         Test the configuration resolved to be used when
         'CONFIG_BASIC_STOP_AUTOUPDATE' is set.
@@ -264,21 +265,61 @@ class TestStopAutoupdate(TankTestBase):
 
         # Set the startup base configuration used in the Shotgun Desktop startup
         mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
-        version = 'v1.4.2'
-        payload_descriptor = {
+        # Mock descriptor_uri_to_dict() return value for base_configuration
+        get_descriptor_dict.return_value = {
             'type': 'app_store',
             'name': 'tk-config-basic',
-            'version': version,
         }
 
-        # Check Python Version
+        expected_config = {
+            'type': 'app_store',
+            'name': 'tk-config-basic',
+            'version': 'v1.4.2',
+        }
+
+        # Mock Python2 Version
         sys.version_info = [2, 7, 16, 'final', 0]
         self.assertEqual(sys.version_info[0], 2)
 
-        # Test the override config basic
-        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE=version):
+        # Test the configuration resolved using the envvar
+        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE='v1.4.2'):
             config = mgr._get_configuration(None, progress_callback)
-            self.assertEqual(config._descriptor.get_dict(), payload_descriptor)
+            self.assertEqual(config._descriptor.get_dict(), expected_config)
+
+        expected_config2 = {
+            'type': 'app_store',
+            'name': 'tk-config-basic',
+            'version': 'v1.4.5',
+        }
+
+        # Mock Python2 Version
+        sys.version_info = [2, 7, 16, 'final', 0]
+        self.assertEqual(sys.version_info[0], 2)
+
+        # Test the configuration resolved using the envvar
+        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE='v1.4.5'):
+            config = mgr._get_configuration(None, progress_callback)
+            self.assertEqual(config._descriptor.get_dict(), expected_config2)
+
+        expected_message = (
+                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE"
+                "to a valid tk-config-basic appstore version supporting Python 2"
+            )
+        # Test with the envvar set to a None token config version
+        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE=""):
+            self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, expected_message, mgr._get_configuration, None, progress_callback)
+            
+
+
+        expected_message = (
+                "In order to launch SG Desktop running Python2, please use the environment variable "
+                "'CONFIG_BASIC_STOP_AUTOUPDATE"
+            )
+        # Test using Python2 with no envvar set
+        self.assertEqual(sys.version_info[0], 2)
+        with self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, expected_message):
+            mgr._get_configuration(None, progress_callback)
+
 
 
 class TestGetPipelineConfigs(TankTestBase):
