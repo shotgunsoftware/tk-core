@@ -920,9 +920,9 @@ class ToolkitManager(object):
 
     def _get_override_config(self, config_basic_version, resolver):
         """
-        Resolve the configuration to use when 'CONFIG_BASIC_STOP_AUTOUPDATE' is 
+        Resolve the configuration to use when 'CONFIG_BASIC_STOP_AUTOUPDATE' is
         set to a specific valid tk-config-basic appstore version supporting Python 2.
-        
+
         :parm config_basic_version: The tk-config-basic appstore version.
         :param resolver: A ConfigurationResolver instance
         :returns: descriptor dictionary
@@ -931,7 +931,7 @@ class ToolkitManager(object):
             # if a version token is omitted, the latest version
             # should be resolved, so we need to raise an error.
             raise TankBootstrapError(
-                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE" 
+                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE"
                 "to a valid tk-config-basic appstore version supporting Python 2"
             )
 
