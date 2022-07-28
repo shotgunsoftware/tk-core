@@ -941,6 +941,9 @@ class ToolkitManager(object):
         )
         return config
 
+    def _get_config_descriptor_dict(self):
+        # Getter for base config dict descriptor.
+        return descriptor_uri_to_dict(self._base_config_descriptor)
 
     def _get_configuration(self, entity, progress_callback):
         """
@@ -1048,7 +1051,7 @@ class ToolkitManager(object):
             # convert to dictionary form
             if isinstance(self._base_config_descriptor, str):
                 # convert to dict so we can introspect
-                config_descriptor = descriptor_uri_to_dict(self._base_config_descriptor)
+                config_descriptor = self._get_config_descriptor_dict()
                 config_name = config_descriptor.get("name")
 
                 # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
