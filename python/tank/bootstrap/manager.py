@@ -1009,10 +1009,10 @@ class ToolkitManager(object):
             )
             config_basic_version = os.environ[constants.CONFIG_BASIC_STOP_AUTOUPDATE]
 
-            # Overrides the base configuration to the latest version supporting Python2
+            # Resolve the configuration
             config = self._get_override_config(config_basic_version, resolver)
 
-            log.info("Config will be updated to the %s version supporting Python2." % config)
+            log.info("Config will be updated to the %s version." % config)
 
         elif (
             constants.CONFIG_OVERRIDE_ENV_VAR in os.environ
