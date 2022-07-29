@@ -302,7 +302,7 @@ class TestStopAutoupdate(TankTestBase):
             self.assertEqual(config._descriptor.get_dict(), expected_config2)
 
         expected_message = (
-                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE"
+                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE "
                 "to a valid tk-config-basic appstore version supporting Python 2"
             )
         # Test with the envvar set to a None token config version
