@@ -66,9 +66,8 @@ BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
 # configuration loaded when a bootstrap/plugin is starting up.
 CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
 
-# environment variable that avoid auto-updating the configuration
-# and allows to set a specific appstore version of tk-config-basic to use
-# during startup.
+# Environment variable that allows to set a specific appstore version of tk-config-basic when Python 2
+# is being used to bootstrap an engine.
 CONFIG_BASIC_STOP_AUTOUPDATE = "CONFIG_BASIC_STOP_AUTOUPDATE"
 
 # environment variable that is used to indicate a specific
