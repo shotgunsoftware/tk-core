@@ -122,7 +122,7 @@ class UserTests(ShotgunTestBase):
             )
             self.assertEqual(session_user.login, login)
 
-            script_user = self._create_script_user(login=login)
+            script_user = self._create_script_user()
             self.assertIsNone(script_user.login)
 
             custom_user = user.ShotgunUser(CustomUser(login=login))
