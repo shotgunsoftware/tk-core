@@ -602,7 +602,7 @@ def deserialize_user(payload):
         user_dict = sgjson.loads(six.ensure_binary(payload))
     else:
         # Unpickle the dictionary
-        user_dict = pickle.loads(six.ensure_binary(payload))
+        user_dict = pickle.loads(payload)
 
     # Find which user type we have
     global __factories
