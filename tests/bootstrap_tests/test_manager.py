@@ -258,7 +258,7 @@ class TestStopAutoupdate(TankTestBase):
     def test_stop_autoupdate(self, get_descriptor_dict, _,  progress_callback):
         """
         Test the configuration resolved to be used when
-        'CONFIG_BASIC_STOP_AUTOUPDATE' is set.
+        'SGTK_CONFIG_LOCK_VERSION' is set.
         """
         mgr = ToolkitManager(self._mocked_sg_user)
         mgr.plugin_id = "basic.test"
@@ -282,7 +282,7 @@ class TestStopAutoupdate(TankTestBase):
         self.assertEqual(sys.version_info[0], 2)
 
         # Test the configuration resolved using the envvar
-        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE='v1.4.2'):
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='v1.4.2'):
             config = mgr._get_configuration(None, progress_callback)
             self.assertEqual(config._descriptor.get_dict(), expected_config)
 
@@ -297,23 +297,23 @@ class TestStopAutoupdate(TankTestBase):
         self.assertEqual(sys.version_info[0], 2)
 
         # Test the configuration resolved using the envvar
-        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE='v1.4.5'):
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='v1.4.5'):
             config = mgr._get_configuration(None, progress_callback)
             self.assertEqual(config._descriptor.get_dict(), expected_config2)
 
         expected_message = (
-                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE "
+                "In order to launch SG Desktop running Python2, please set 'SGTK_CONFIG_LOCK_VERSION' "
                 "to a valid tk-config-basic appstore version supporting Python 2"
             )
         # Test with the envvar set to a None token config version
-        with temp_env_var(CONFIG_BASIC_STOP_AUTOUPDATE=""):
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION=""):
             self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, expected_message, mgr._get_configuration, None, progress_callback)
 
 
 
         expected_message = (
                 "In order to launch SG Desktop running Python2, please use the environment variable "
-                "'CONFIG_BASIC_STOP_AUTOUPDATE"
+                "'SGTK_CONFIG_LOCK_VERSION'"
             )
         # Test using Python2 with no envvar set
         self.assertEqual(sys.version_info[0], 2)

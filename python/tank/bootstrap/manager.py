@@ -920,7 +920,7 @@ class ToolkitManager(object):
 
     def _get_override_config(self, config_basic_version, resolver):
         """
-        Resolve the configuration to use when 'CONFIG_BASIC_STOP_AUTOUPDATE' is
+        Resolve the configuration to use when 'SGTK_CONFIG_LOCK_VERSION' is
         set to a specific valid tk-config-basic appstore version supporting Python 2.
 
         :parm config_basic_version: The tk-config-basic appstore version.
@@ -931,11 +931,11 @@ class ToolkitManager(object):
             # if a version token is omitted, the latest version
             # should be resolved, so we need to raise an error.
             raise TankBootstrapError(
-                "In order to launch SG Desktop running Python2, please set 'CONFIG_BASIC_STOP_AUTOUPDATE "
+                "In order to launch SG Desktop running Python2, please set 'SGTK_CONFIG_LOCK_VERSION' "
                 "to a valid tk-config-basic appstore version supporting Python 2"
             )
 
-        # Resolve use the config version specified in 'CONFIG_BASIC_STOP_AUTOUPDATE'
+        # Resolve use the config version specified in 'SGTK_CONFIG_LOCK_VERSION'
         config = resolver.resolve_configuration(
             {"name": "tk-config-basic", "type": "app_store", "version": config_basic_version}, self._sg_connection
         )
@@ -994,20 +994,20 @@ class ToolkitManager(object):
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
         if (
-                constants.CONFIG_BASIC_STOP_AUTOUPDATE in os.environ
+                constants.SGTK_CONFIG_LOCK_VERSION in os.environ
                 and sys.version_info[0] != 3
         ):
             # set this environment variable to point to an appstore config basic
-            # version that supports Python2:
+            # version that supports Python2 e.g:
             #
-            # CONFIG_BASIC_STOP_AUTOUPDATE=v1.4.5
+            # SGTK_CONFIG_LOCK_VERSION=v1.4.5
             #
 
             log.info(
                 "Detected a %s environment variable."
-                % constants.CONFIG_BASIC_STOP_AUTOUPDATE
+                % constants.SGTK_CONFIG_LOCK_VERSION
             )
-            config_basic_version = os.environ[constants.CONFIG_BASIC_STOP_AUTOUPDATE]
+            config_basic_version = os.environ[constants.SGTK_CONFIG_LOCK_VERSION]
 
             # Resolve the configuration
             config = self._get_override_config(config_basic_version, resolver)
@@ -1060,7 +1060,7 @@ class ToolkitManager(object):
                 if sys.version_info[0] != 3 and config_name == 'tk-config-basic':
                     raise TankBootstrapError(
                         "In order to launch SG Desktop running Python2, please use the "
-                        "environment variable 'CONFIG_BASIC_STOP_AUTOUPDATE'"
+                        "environment variable 'SGTK_CONFIG_LOCK_VERSION'"
                     )
                 # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in ShotGrid.")
