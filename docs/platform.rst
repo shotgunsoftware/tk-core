@@ -195,7 +195,7 @@ Applications
 
 Toolkit Apps are tools that can execute in multiple DCC environments.
 
-.. note:: For an introduction to App development, see https://support.shotgunsoftware.com/entries/95440137
+.. note:: For an introduction to App development, see https://developer.shotgridsoftware.com/2e5ed7bb/?title=Developing+apps
 
 A good way to get started with App development is to clone our starter github repository
 https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
@@ -879,7 +879,7 @@ through :meth:`Engine.has_qt5`.
 
 .. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact support@shotgunsoftware.com
+             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/contact-support
              so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit

@@ -35,7 +35,6 @@ from .lib import sgsix
 from .lib.six import BytesIO               # used for attachment upload
 from .lib.six.moves import map
 
-import base64
 from .lib.six.moves import http_cookiejar  # used for attachment upload
 import datetime
 import logging
@@ -56,6 +55,12 @@ from .lib.sgtimezone import SgTimezone
 # Import Error and ResponseError (even though they're unused in this file) since they need
 # to be exposed as part of the API.
 from .lib.six.moves.xmlrpc_client import Error, ProtocolError, ResponseError  # noqa
+
+if six.PY3:
+    from base64 import encodebytes as base64encode
+else:
+    from base64 import encodestring as base64encode
+
 
 LOG = logging.getLogger("shotgun_api3")
 """
@@ -117,7 +122,7 @@ except ImportError as e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.3.0"
+__version__ = "3.3.4"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -651,18 +656,20 @@ class Shotgun(object):
         # if the service contains user information strip it out
         # copied from the xmlrpclib which turned the user:password into
         # and auth header
-        # Do NOT urlsplit(self.base_url) here, as it contains the lower case version
-        # of the base_url argument. Doing so would base64-encode the lowercase
-        # version of the credentials.
-        auth, self.config.server = urllib.parse.splituser(urllib.parse.urlsplit(base_url).netloc)
+
+        # Do NOT self._split_url(self.base_url) here, as it contains the lower
+        # case version of the base_url argument. Doing so would base64encode
+        # the lowercase version of the credentials.
+        auth, self.config.server = self._split_url(base_url)
         if auth:
-            auth = base64.encodestring(six.ensure_binary(urllib.parse.unquote(auth))).decode("utf-8")
+            auth = base64encode(six.ensure_binary(
+                urllib.parse.unquote(auth))).decode("utf-8")
             self.config.authorization = "Basic " + auth.strip()
 
         # foo:bar@123.456.789.012:3456
         if http_proxy:
-            # check if we're using authentication. Start from the end since there might be
-            # @ in the user's password.
+            # check if we're using authentication. Start from the end since
+            # there might be @ in the user's password.
             p = http_proxy.rsplit("@", 1)
             if len(p) > 1:
                 self.config.proxy_user, self.config.proxy_pass = \
@@ -709,6 +716,33 @@ class Shotgun(object):
             self.config.user_login = None
             self.config.user_password = None
             self.config.auth_token = None
+
+    def _split_url(self, base_url):
+        """
+        Extract the hostname:port and username/password/token from base_url
+        sent when connect to the API.
+
+        In python 3.8 `urllib.parse.splituser` was deprecated warning devs to
+        use `urllib.parse.urlparse`.
+        """
+        if six.PY38:
+            auth = None
+            results = urllib.parse.urlparse(base_url)
+            server = results.hostname
+            if results.port:
+                server = "{}:{}".format(server, results.port)
+
+            if results.username:
+                auth = results.username
+
+                if results.password:
+                    auth = "{}:{}".format(auth, results.password)
+
+        else:
+            auth, server = urllib.parse.splituser(
+                urllib.parse.urlsplit(base_url).netloc)
+
+        return auth, server
 
     # ========================================================================
     # API Functions
@@ -3322,17 +3356,39 @@ class Shotgun(object):
         if self.config.localized is True:
             req_headers["locale"] = "auto"
 
-        http_status, resp_headers, body = self._make_call("POST", self.config.api_path,
-                                                          encoded_payload, req_headers)
-        LOG.debug("Completed rpc call to %s" % (method))
-        try:
-            self._parse_http_status(http_status)
-        except ProtocolError as e:
-            e.headers = resp_headers
-            # 403 is returned with custom error page when api access is blocked
-            if e.errcode == 403:
-                e.errmsg += ": %s" % body
-            raise
+        attempt = 1
+        max_attempts = 4 # Three retries on failure
+        backoff = 0.75 # Seconds to wait before retry, times the attempt number
+
+        while attempt <= max_attempts:
+            http_status, resp_headers, body = self._make_call(
+                "POST",
+                self.config.api_path,
+                encoded_payload,
+                req_headers,
+            )
+
+            LOG.debug("Completed rpc call to %s" % (method))
+
+            try:
+                self._parse_http_status(http_status)
+            except ProtocolError as e:
+                e.headers = resp_headers
+
+                # We've seen some rare instances of SG returning 502 for issues that
+                # appear to be caused by something internal to SG. We're going to
+                # allow for limited retries for those specifically.
+                if attempt != max_attempts and e.errcode == 502:
+                    LOG.debug("Got a 502 response. Waiting and retrying...")
+                    time.sleep(float(attempt) * backoff)
+                    attempt += 1
+                    continue
+                elif e.errcode == 403:
+                    # 403 is returned with custom error page when api access is blocked
+                    e.errmsg += ": %s" % body
+                raise
+            else:
+                break
 
         response = self._decode_response(resp_headers, body)
         self._response_errors(response)
@@ -3531,6 +3587,18 @@ class Shotgun(object):
         LOG.debug("Response body is %s" % resp_body)
 
         return (http_status, resp_headers, resp_body)
+
+    def _make_upload_request(self, request, opener):
+        """
+        Open the given request object, return the
+        response, raises URLError on protocol errors.
+        """
+        try:
+            result = opener.open(request)
+
+        except urllib.error.HTTPError:
+            raise
+        return result
 
     def _parse_http_status(self, status):
         """
@@ -3993,21 +4061,40 @@ class Shotgun(object):
         :returns: upload url.
         :rtype: str
         """
-        try:
-            opener = self._build_opener(urllib.request.HTTPHandler)
+        opener = self._build_opener(urllib.request.HTTPHandler)
 
-            request = urllib.request.Request(storage_url, data=data)
-            request.add_header("Content-Type", content_type)
-            request.add_header("Content-Length", size)
-            request.get_method = lambda: "PUT"
-            result = opener.open(request)
-            etag = result.info()["Etag"]
-        except urllib.error.HTTPError as e:
-            if e.code == 500:
-                raise ShotgunError("Server encountered an internal error.\n%s\n%s\n\n" % (storage_url, e))
+        request = urllib.request.Request(storage_url, data=data)
+        request.add_header("Content-Type", content_type)
+        request.add_header("Content-Length", size)
+        request.get_method = lambda: "PUT"
+
+        attempt = 1
+        max_attempts = 4  # Three retries on failure
+        backoff = 0.75  # Seconds to wait before retry, times the attempt number
+
+        while attempt <= max_attempts:
+            try:
+                result = self._make_upload_request(request, opener)
+
+                LOG.debug("Completed request to %s" % request.get_method())
+
+            except urllib.error.HTTPError as e:
+                if e.code == 500:
+                    raise ShotgunError("Server encountered an internal error.\n%s\n%s\n\n" % (storage_url, e))
+                elif attempt != max_attempts and e.code == 503:
+                    LOG.debug("Got a 503 response. Waiting and retrying...")
+                    time.sleep(float(attempt) * backoff)
+                    attempt += 1
+                    continue
+                else:
+                    if e.code == 503:
+                        raise ShotgunError("Got a 503 response when uploading to %s: %s" % (storage_url, e))
+                    raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
+
             else:
-                raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
+                break
 
+        etag = result.info()["Etag"]
         LOG.debug("Part upload completed successfully.")
         return etag
 

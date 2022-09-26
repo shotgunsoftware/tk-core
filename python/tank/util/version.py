@@ -157,7 +157,37 @@ def _compare_versions(a, b):
     # First, try to use LooseVersion for comparison.  This should work in
     # most cases.
     try:
-        return LooseVersion(a) > LooseVersion(b)
+        version_a = LooseVersion(a).version
+        version_b = LooseVersion(b).version
+        version_num_a = []
+        version_num_b = []
+        # taking only the integers of the version to make comparison
+        for version in version_a:
+            if isinstance(version, (int)):
+                version_num_a.append(version)
+            elif version == "-":
+                break
+        for version in version_b:
+            if isinstance(version, (int)):
+                version_num_b.append(version)
+            elif version == "-":
+                break
+
+        # Comparing equal number versions with with one of them with '-' appended, if a version
+        # has '-' appended it's older than the same version with '-' at the end
+        if version_num_a == version_num_b:
+            if "-" in a and "-" not in b:
+                return False  # False, version a is older than b
+            elif "-" in b and "-" not in a:
+                return True  # True, version a is older than b
+            else:
+                return LooseVersion(a) > LooseVersion(
+                    b
+                )  # If both has '-' compare '-rcx' versions
+        else:
+            return LooseVersion(a) > LooseVersion(
+                b
+            )  # If they are different numeric versions
     except TypeError:
         # To mimick the behavior in Python 2.7 as closely as possible, we will
         # If LooseVersion comparison didn't work, try to extract a numeric

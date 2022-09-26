@@ -372,24 +372,6 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
-    @patch(
-        "tank.authentication.console_authentication.input",
-        side_effect=["  https://test-identity.shotgunstudio.com "],
-    )
-    @patch(
-        "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
-        return_value=True,
-    )
-    @suppress_generated_code_qt_warnings
-    def test_identity_enabled_site(self, *mocks):
-        """
-        Ensure that an exception is thrown should we attempt console authentication
-        on an Autodesk Identity-enabled site.
-        """
-        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
-        with self.assertRaises(ConsoleLoginNotSupportedError):
-            handler._get_user_credentials(None, None, None)
-
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
         """

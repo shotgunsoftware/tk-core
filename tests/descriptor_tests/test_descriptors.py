@@ -639,6 +639,35 @@ class TestDescriptorSupport(TankTestBase):
             "v1.x.2",
         )
 
+    def test_git_branch_descriptor_commands(self):
+        """
+        Test that shallow git clones are not enabled with git_branch descriptors.
+        """
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "tk-multi-shotgunpanel.git"
+        )
+        target_path = self.cache_root
+        desc = self.tk.pipeline_configuration.get_app_descriptor(
+            {
+                "type": "git_branch",
+                "path": self.git_repo_uri,
+                "branch": "master",
+                "version": "6547378",
+            }
+        )
+        self.assertEqual(
+            desc._io_descriptor._validate_git_commands(
+                target_path, depth=1, ref="master"
+            ),
+            'git clone --no-hardlinks -q "%s" %s "%s" '
+            % (self.git_repo_uri, "-b master", target_path,),
+        )
+        self.assertEqual(
+            desc._io_descriptor._validate_git_commands(target_path, ref="master"),
+            'git clone --no-hardlinks -q "%s" %s "%s" '
+            % (self.git_repo_uri, "-b master", target_path,),
+        )
+
 
 class TestConstraintValidation(unittest2.TestCase):
     """

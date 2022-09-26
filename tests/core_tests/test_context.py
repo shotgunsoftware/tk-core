@@ -1275,7 +1275,7 @@ class TestSerialize(TestContext):
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml.dump(context_1)
-        context_2 = yaml.load(serialized)
+        context_2 = yaml.load(serialized, Loader=yaml.FullLoader)
         self._assert_equal_contexts(context_1, context_2)
 
     def test_equal_custom(self):

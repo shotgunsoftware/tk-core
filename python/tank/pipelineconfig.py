@@ -326,7 +326,7 @@ class PipelineConfiguration(object):
 
         fh = open(cfg_yml, "rt")
         try:
-            data = yaml.load(fh)
+            data = yaml.load(fh, Loader=yaml.FullLoader)
             if data is None:
                 raise Exception("File contains no data!")
         except Exception as e:

@@ -17,6 +17,8 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import os
+import sys
 from tank_vendor import shotgun_api3
 from tank_vendor import six
 from .web_login_support import get_shotgun_authenticator_support_web_login
@@ -50,6 +52,18 @@ USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
 
 # Let's put at 5 seconds the maximum time we might wait for a SSO check thread.
 THREAD_WAIT_TIMEOUT_MS = 5000
+
+
+def _is_running_in_desktop():
+    """
+    Indicate if we are in the context of the ShotGrid Desktop.
+
+    When the ShotGrid Desktop is used, we want to disregard the value returned
+    by the call to `get_shotgun_authenticator_support_web_login()` when the
+    target site is using Autodesk Identity.
+    """
+    executable_name = os.path.splitext(os.path.basename(sys.executable))[0].lower()
+    return executable_name in ["shotgun", "shotgrid"]
 
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
@@ -370,14 +384,24 @@ class LoginDialog(QtGui.QDialog):
         """
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
-        use_web = (
-            self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
-        )
+        # With a SSO site, we have no choice but to use the web to login.
+        use_web = self._query_task.sso_enabled
 
-        # If we have full support for Web-based login, or if we enable it in our
-        # environment, use the Unified Login Flow for all authentication modes.
-        if get_shotgun_authenticator_support_web_login():
-            use_web = use_web or self._query_task.unified_login_flow_enabled
+        # The user may decide to force the use of the old dialog:
+        # - due to graphical issues with Qt and its WebEngine
+        # - they need to use the legacy login / passphrase to use a PAT with
+        #   Autodesk Identity authentication
+        if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+            logger.info("Using the standard login dialog with the ShotGrid Desktop")
+        else:
+            if _is_running_in_desktop():
+                logger.info("Using the Web Login with the ShotGrid Desktop")
+                use_web = use_web or self._query_task.autodesk_identity_enabled
+
+            # If we have full support for Web-based login, or if we enable it in our
+            # environment, use the Unified Login Flow for all authentication modes.
+            if get_shotgun_authenticator_support_web_login():
+                use_web = use_web or self._query_task.unified_login_flow_enabled
 
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.

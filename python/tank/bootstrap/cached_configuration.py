@@ -195,7 +195,7 @@ class CachedConfiguration(Configuration):
 
         try:
             with open(config_info_file, "rt") as fh:
-                data = yaml.load(fh)
+                data = yaml.load(fh, Loader=yaml.FullLoader)
                 deploy_generation = data["deploy_generation"]
                 descriptor_dict = data["config_descriptor"]
         except Exception as e:

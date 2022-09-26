@@ -54,7 +54,7 @@ in parallel with production.
 
 
 .. note:: To read more about the default configurations offered with Toolkit, see
-    the `ShotGrid integrations admin guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493-Integrations-Admin-Guide>`_.
+    the `ShotGrid integrations admin guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide>`_.
 
 
 The Toolkit startup
@@ -599,36 +599,7 @@ instance or run a ``tank`` command - the :class:`ToolkitManager` instead becomes
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
 
-.. _environment_variables:
-
-Environment Variables
-===============================================
-
-A number of different environment variables exist to help control the behavior of the Toolkit Startup:
-
-=================================== ===========================================================================
-Environment Variable Name           Description
-=================================== ===========================================================================
-SHOTGUN_HOME                        Overrides the location where Toolkit stores data.
-                                    This includes bootstrap data as well as bundle cache,
-                                    cached thumbnails and other temp files.
-
-SHOTGUN_BUNDLE_CACHE_PATH           Overrides the path to the main bundle cache, e.g. the location where
-                                    the :ref:`Descriptor URI<descriptor>` will download bundles.
-
-SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS Colon separated list of paths to look for bundle cache locations. This is
-                                    for example useful if you maintain a centralized bundle cache location
-                                    that you want the bootstrap API to pick up bundles from.
-
-TK_BOOTSTRAP_CONFIG_OVERRIDE        Low level bypass to set the configuration desciptor URI that the bootstrap
-                                    API should load up. Useful in complex workflow development scenarios.
-
-SHOTGUN_DISABLE_APPSTORE_ACCESS     Setting this to ``1`` will disable any ShotGrid Appstore access. No attempts
-                                    to connect will be carried out. This option can be useful in cases where
-                                    complex proxy setups is preventing Toolkit to correctly operate.
-
-=================================== ===========================================================================
-
+A number of different :ref:`environment variables<environment_variables>` exist to help control the behavior of the Toolkit Startup.
 
 ToolkitManager
 ========================================
