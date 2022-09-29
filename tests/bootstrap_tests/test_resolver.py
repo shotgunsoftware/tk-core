@@ -319,6 +319,7 @@ class TestFallbackHandling(TestResolverBase):
         """
         Tests the direct config resolve, which doesn't talk to Shotgun
         """
+
         config = self.resolver.resolve_configuration(self.config_1, self.mockgun)
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 

@@ -19,6 +19,8 @@ from sgtk.bootstrap import ToolkitManager
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import TankTestBase
+import sys
+
 
 
 class TestErrorHandling(ShotgunTestBase):
@@ -235,6 +237,91 @@ class TestPrepareEngine(ShotgunTestBase):
         self.assertEqual(progress_cb.nb_exists_locally, 3)
 
 
+class TestStopAutoupdate(TankTestBase):
+
+    def setUp(self):
+        super(TestStopAutoupdate, self).setUp()
+
+        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
+        self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})
+        self._project = self.mockgun.create("Project", {"name": "my_project"})
+        self._mocked_sg_user = _MockedShotgunUser(self.mockgun, "john.doe")
+
+        self.install_root = os.path.join(
+            self.tk.pipeline_configuration.get_install_location(), "install"
+        )
+
+
+    @patch("sgtk.bootstrap.ToolkitManager._report_progress")
+    @patch("sys.version_info", return_value=Mock())
+    @patch("sgtk.bootstrap.ToolkitManager._get_config_descriptor_dict")
+    def test_stop_autoupdate(self, get_descriptor_dict, _,  progress_callback):
+        """
+        Test the configuration resolved to be used when
+        'SGTK_CONFIG_LOCK_VERSION' is set.
+        """
+        mgr = ToolkitManager(self._mocked_sg_user)
+        mgr.plugin_id = "basic.test"
+
+        # Set the startup base configuration used in the Shotgun Desktop startup
+        mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
+        # Mock descriptor_uri_to_dict() return value for base_configuration
+        get_descriptor_dict.return_value = {
+            'type': 'app_store',
+            'name': 'tk-config-basic',
+        }
+
+        expected_config = {
+            'type': 'app_store',
+            'name': 'tk-config-basic',
+            'version': 'v1.4.2',
+        }
+
+        # Mock Python2 Version
+        sys.version_info = [2, 7, 16, 'final', 0]
+        self.assertEqual(sys.version_info[0], 2)
+
+        # Test the configuration resolved using the envvar
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='v1.4.2'):
+            config = mgr._get_configuration(None, progress_callback)
+            self.assertEqual(config._descriptor.get_dict(), expected_config)
+
+        expected_config2 = {
+            'type': 'app_store',
+            'name': 'tk-config-basic',
+            'version': 'v1.4.5',
+        }
+
+        # Mock Python2 Version
+        sys.version_info = [2, 7, 16, 'final', 0]
+        self.assertEqual(sys.version_info[0], 2)
+
+        # Test the configuration resolved using the envvar
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='v1.4.5'):
+            config = mgr._get_configuration(None, progress_callback)
+            self.assertEqual(config._descriptor.get_dict(), expected_config2)
+
+        expected_message = (
+                "In order to launch SG Desktop running Python2, please set 'SGTK_CONFIG_LOCK_VERSION' "
+                "to a valid tk-config-basic appstore version supporting Python 2"
+            )
+        # Test with the envvar set to a None token config version
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION=""):
+            self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, expected_message, mgr._get_configuration, None, progress_callback)
+
+
+
+        expected_message = (
+                "In order to launch SG Desktop running Python2, please use the environment variable "
+                "'SGTK_CONFIG_LOCK_VERSION'"
+            )
+        # Test using Python2 with no envvar set
+        self.assertEqual(sys.version_info[0], 2)
+        with self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, expected_message):
+            mgr._get_configuration(None, progress_callback)
+
+
+
 class TestGetPipelineConfigs(TankTestBase):
     def setUp(self):
         super(TestGetPipelineConfigs, self).setUp()
@@ -347,6 +434,7 @@ class TestGetPipelineConfigs(TankTestBase):
         """
         Test descriptors tracking latest
         """
+
         self.mockgun.create(
             "PipelineConfiguration",
             dict(

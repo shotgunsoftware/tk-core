@@ -22,6 +22,11 @@ Allows you to store your configuration file somewhere else on your computer or o
 --------------------------------
 Low level bypass to set the configuration desciptor URI that the bootstrap API should load up. Useful in complex workflow development scenarios.
 
+``SGTK_CONFIG_LOCK_VERSION``
+--------------------------------
+Environment variable that allows to set a specific appstore version of tk-config-basic  when Python 2 is being used to bootstrap an engine. Useful for users to set a
+supported Python 2 version of tk-config-basic when launching the ShotGrid Desktop and avoid the bootstrap API fall back on looking for the latest appstore release.
+
 ``TK_DEBUG``
 ------------
 Controls debug logging.
