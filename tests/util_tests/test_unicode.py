@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 # Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -82,3 +83,33 @@ class TestUnicode(TestCase):
         self.assertEqual(id(value), id(converted_value[1][0]))
         self.assertEqual(id(value), id(converted_value[1][1]))
         self.assertEqual(id(value), id(converted_value[1][2]))
+
+    def test_convert_to_str_with_different_languages(self):
+        """
+        Ensure all values encoded with ISO-8859-1 are properly converted to str
+        in Python 2 and 3.
+        """
+        logins = [
+            'AñoVolvió',
+            'JiříVyčítal',
+            '日本のユーザー*',
+            '이사이트에서는개발자가',
+            'およびその他の教育リソース'
+            '工作流技术总监或将要设置工作流并希望开发',
+        ]
+
+        for login in logins:
+            expected_value = {
+                'type': 'SessionUser',
+                'data': {
+                    'http_proxy': None,
+                    'host': 'https://xyxyxyxyx.jjj',
+                    'login': login,
+                    'session_token': 'de97e6ff868b6b2ce332',
+                    'session_metadata': 'G9kZXNrLmNvbTsgcGF0aD0v'
+                }
+            }
+
+            dumps_value = sgtk.util.pickle.dumps(expected_value)
+            received_value = sgtk.util.pickle.loads(dumps_value)
+            self.assertEqual(expected_value, received_value)

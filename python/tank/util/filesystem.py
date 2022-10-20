@@ -172,10 +172,13 @@ def copy_file(src, dst, permissions=0o666):
                         be readable and writable for all users.
     """
     if is_windows():
+        src = os.path.realpath(src)
         # Check if the dst is a directory and change it to a filename if it is
         if os.path.isdir(dst):
             basename = os.path.basename(src)
             dst = os.path.join(dst, basename)
+
+        dst = os.path.realpath(dst)
         # Use larger copy buffer in the shutil.copyfileobj operation
         with open(src, mode="rb") as windows_src:
             with open(dst, mode="wb") as windows_dst:
