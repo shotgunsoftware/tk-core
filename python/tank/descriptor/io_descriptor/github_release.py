@@ -7,9 +7,11 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
 import json
 import os
+import tempfile
+import uuid
+
 from tank_vendor.six.moves import urllib
 
 from .downloadable import IODescriptorDownloadable
@@ -17,6 +19,7 @@ from ..errors import TankError, TankDescriptorError
 from ... import LogManager
 from ...util import sgre as re
 from ...util.shotgun import download
+from ...util.zip import unzip_file
 
 log = LogManager.get_logger(__name__)
 
@@ -41,13 +44,14 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "organization", "repository", "version"],
-            optional=[],
+            optional=["private"],
         )
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
         self._organization = descriptor_dict["organization"]
         self._repository = descriptor_dict["repository"]
         self._version = descriptor_dict["version"]
+        self._is_private = descriptor_dict.get("private", False)
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
@@ -87,6 +91,19 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         :param destination_path: The directory path to which the shotgun entity is to be
         downloaded to.
         """
+        if self._is_private:
+            # private releases must be downloaded using github api and authentication
+            self._download_local_from_api(destination_path)
+        else:
+            self._download_local_from_archive(destination_path)
+
+    def _download_local_from_archive(self, destination_path):
+        """
+        Download this version to local repo, attempting to access a public archive.
+
+        :param destination_path: The directory path where the shotgun entity should go.
+        :return: True if the download succeeds or the app already exists, True otherwise.
+        """
         url = "https://github.com/{organization}/{system_name}/archive/{version}.zip"
         url = url.format(
             organization=self._organization,
@@ -99,6 +116,39 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
                 self._sg_connection, url, destination_path, auto_detect_bundle=True
             )
         except TankError as e:
+            raise TankDescriptorError(
+                "Failed to download %s from %s. Error: %s" % (self, url, e)
+            )
+
+    def _download_local_from_api(self, destination_path):
+        url = "https://api.github.com/repos/{organization}/{system_name}/zipball/{version}"
+        url = url.format(
+            organization=self._organization,
+            system_name=self.get_system_name(),
+            version=self.get_version(),
+        )
+
+        if self._sg_connection.config.proxy_handler:
+            log.debug("Installing Proxy Handler for Github API requests...")
+            # Grab proxy server settings from the shotgun API.
+            opener = urllib.request.build_opener(
+                self._sg_connection.config.proxy_handler
+            )
+            urllib.request.install_opener(opener)
+
+        try:
+            log.debug("Downloading Release from Github API: %s" % url)
+            headers = self._get_auth_headers()
+            req = urllib.request.Request(url, headers=headers)
+            response = urllib.request.urlopen(req)
+
+            zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
+            with open(zip_tmp, 'wb') as fp:
+                fp.write(response.read())
+
+            unzip_file(zip_tmp, destination_path, auto_detect_bundle=True)
+
+        except urllib.error.HTTPError as e:
             raise TankDescriptorError(
                 "Failed to download %s from %s. Error: %s" % (self, url, e)
             )
@@ -138,7 +188,9 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         next_link = None
         try:
             log.debug("Requesting Releases from Github API: %s" % url)
-            response = urllib.request.urlopen(url)
+            headers = self._get_auth_headers()
+            req = urllib.request.Request(url, headers=headers)
+            response = urllib.request.urlopen(req)
             response_data = json.load(response)
             log.debug("Got a valid JSON response from Github API.")
             m = re.search(r"<(.+)>; rel=\"next\"", response.headers.get("link", ""))
@@ -211,6 +263,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             "repository": self.get_system_name(),
             "version": version,
             "type": "github_release",
+            "private": self._is_private,
         }
         desc = IODescriptorGithubRelease(
             descriptor_dict, self._sg_connection, self._bundle_type
@@ -251,6 +304,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             "repository": self.get_system_name(),
             "version": version_to_use,
             "type": "github_release",
+            "private": self._is_private,
         }
 
         # and return a descriptor instance
@@ -289,8 +343,10 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             log.debug(
                 "%r: Probing if a connection to Github can be established..." % self
             )
+            headers = self._get_auth_headers()
+            req = urllib.request.Request(url, headers=headers)
             # ensure we get response code 200
-            response_code = urllib.request.urlopen(url).getcode()
+            response_code = urllib.request.urlopen(req).getcode()
             # Unfortunately, to prevent probing private repos, GH API also gives a 404 response
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
@@ -307,3 +363,28 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
+
+    def _get_auth_headers(self) -> dict:
+        """
+        Return authentication headers to use when making requests to the Github api.
+
+        Looks for a token environment variable associated with this descriptor's organization:
+            SG_GITHUB_TOKEN_<ORGANIZATION>
+
+        Returns:
+            Dict containing the authorization headers for use in urllib Request.
+        """
+        if not self._is_private:
+            # no authentication is required
+            return {}
+
+        org_upper = self._organization.upper()
+        token_env_key = 'SG_GITHUB_TOKEN_{0}'.format(org_upper)
+        token = os.environ.get(token_env_key)
+
+        if not token:
+            log.warning("The `%s` env var is not set.", token_env_key)
+            return {}
+
+        headers = {'Authorization': 'Bearer %s' % token}
+        return headers
