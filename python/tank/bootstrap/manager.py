@@ -20,8 +20,6 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
-from ..descriptor import descriptor_uri_to_dict
-import sys
 
 log = LogManager.get_logger(__name__)
 
@@ -76,6 +74,7 @@ class ToolkitManager(object):
         # defaults
         self._pre_engine_start_callback = None
         self._progress_cb = None
+
         # These are serializable parameters from the class.
         self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
@@ -918,33 +917,6 @@ class ToolkitManager(object):
         log.debug("Bootstrapping engine %s." % engine_name)
         log.debug("-----------------------------------------------------------------")
 
-    def _get_override_config(self, config_basic_version, resolver):
-        """
-        Resolve the configuration to use when 'SGTK_CONFIG_LOCK_VERSION' is
-        set to a specific valid tk-config-basic appstore version supporting Python 2.
-
-        :parm config_basic_version: The tk-config-basic appstore version.
-        :param resolver: A ConfigurationResolver instance
-        :returns: descriptor dictionary
-        """
-        if not config_basic_version:
-            # if a version token is omitted, the latest version
-            # should be resolved, so we need to raise an error.
-            raise TankBootstrapError(
-                "In order to launch SG Desktop running Python2, please set 'SGTK_CONFIG_LOCK_VERSION' "
-                "to a valid tk-config-basic appstore version supporting Python 2"
-            )
-
-        # Resolve use the config version specified in 'SGTK_CONFIG_LOCK_VERSION'
-        config = resolver.resolve_configuration(
-            {"name": "tk-config-basic", "type": "app_store", "version": config_basic_version}, self._sg_connection
-        )
-        return config
-
-    def _get_config_descriptor_dict(self):
-        # Getter for base config dict descriptor.
-        return descriptor_uri_to_dict(self._base_config_descriptor)
-
     def _get_configuration(self, entity, progress_callback):
         """
         Resolves the configuration to use without creating it on disk.
@@ -994,27 +966,6 @@ class ToolkitManager(object):
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
         if (
-                constants.SGTK_CONFIG_LOCK_VERSION in os.environ
-                and sys.version_info[0] != 3
-        ):
-            # set this environment variable to point to an appstore config basic
-            # version that supports Python2 e.g:
-            #
-            # SGTK_CONFIG_LOCK_VERSION=v1.4.5
-            #
-
-            log.info(
-                "Detected a %s environment variable."
-                % constants.SGTK_CONFIG_LOCK_VERSION
-            )
-            config_basic_version = os.environ[constants.SGTK_CONFIG_LOCK_VERSION]
-
-            # Resolve the configuration
-            config = self._get_override_config(config_basic_version, resolver)
-
-            log.info("Config will be updated to the %s version." % config)
-
-        elif (
             constants.CONFIG_OVERRIDE_ENV_VAR in os.environ
             and self._allow_config_overrides
         ):
@@ -1048,21 +999,7 @@ class ToolkitManager(object):
             )
 
         elif self._do_shotgun_config_lookup:
-            # convert to dictionary form
-            if isinstance(self._base_config_descriptor, str):
-                # convert to dict so we can introspect
-                config_descriptor = self._get_config_descriptor_dict()
-                config_name = config_descriptor.get("name")
-
-                # If no pipeline configuration is found in ShotGrid, we will use the fallback descriptor, so
-                # if we are running in Python2 we need to raise this error to avoid autoupdate the
-                # SG Configuration to the latest tk-config-basic version.
-                if sys.version_info[0] != 3 and config_name == 'tk-config-basic':
-                    raise TankBootstrapError(
-                        "In order to launch SG Desktop running Python2, please use the "
-                        "environment variable 'SGTK_CONFIG_LOCK_VERSION'"
-                    )
-                # do the full resolve where we connect to shotgun etc.
+            # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in ShotGrid.")
             log.debug(
                 "In order to turn this off, set do_shotgun_config_lookup to False"
