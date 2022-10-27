@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.pickle &mdash; tk-core v0.20.13 documentation</title>
+  <title>tank.util.pickle &mdash; tk-core v0.20.14 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.13.<br>
+    <b>tk-core</b> v0.20.14.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -219,6 +219,7 @@
 <span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span>
 <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
 
+
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -227,6 +228,11 @@
 <span class="c1"># Protocol 0 ensures ASCII encoding, which is required when writing</span>
 <span class="c1"># a pickle to an environment variable.</span>
 <span class="n">DUMP_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+<span class="c1"># Fix unicode issue when ensuring string values</span>
+<span class="c1"># https://jira.autodesk.com/browse/SG-6588</span>
+<span class="n">FALLBACK_ENCODING</span> <span class="o">=</span> <span class="s2">&quot;ISO-8859-1&quot;</span>
+<span class="n">FALLBACK_ENCODING_KEY</span> <span class="o">=</span> <span class="s2">&quot;_payload_encoding&quot;</span>
 
 
 <div class="viewcode-block" id="dumps"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.dumps">[docs]</a><span class="k">def</span> <span class="nf">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
@@ -246,7 +252,20 @@
     <span class="c1"># Force pickle protocol 0, since this is a non-binary pickle protocol.</span>
     <span class="c1"># See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL</span>
     <span class="c1"># Decode the result to a str before returning.</span>
-    <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">))</span></div>
+    <span class="n">serialized</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">serialized</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Fix unicode issue when ensuring string values</span>
+        <span class="c1"># https://jira.autodesk.com/browse/SG-6588</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">encoding</span> <span class="o">==</span> <span class="s2">&quot;utf-8&quot;</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">reason</span> <span class="o">==</span> <span class="s2">&quot;invalid continuation byte&quot;</span><span class="p">:</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="n">FALLBACK_ENCODING</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">FALLBACK_ENCODING_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoding</span>
+                <span class="n">serialized</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+
+        <span class="k">raise</span></div>
 
 
 <div class="viewcode-block" id="dump"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.dump">[docs]</a><span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fh</span><span class="p">):</span>
@@ -275,7 +294,15 @@
 <span class="sd">    :returns: The unpickled object.</span>
 <span class="sd">    :rtype: object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span></div>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">loads_data</span> <span class="o">=</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loads_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">FALLBACK_ENCODING_KEY</span> <span class="ow">in</span> <span class="n">loads_data</span><span class="p">:</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">loads_data</span><span class="p">[</span><span class="n">FALLBACK_ENCODING_KEY</span><span class="p">]</span>
+        <span class="n">binary</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="n">loads_data</span> <span class="o">=</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">loads_data</span></div>
 
 
 <div class="viewcode-block" id="load"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fh</span><span class="p">):</span>
