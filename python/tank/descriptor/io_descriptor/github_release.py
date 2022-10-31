@@ -373,7 +373,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             can_connect = False
         return can_connect
 
-    def _get_auth_headers(self) -> dict:
+    def _get_auth_headers(self):
         """
         Return authentication headers to use when making requests to the Github api.
 
