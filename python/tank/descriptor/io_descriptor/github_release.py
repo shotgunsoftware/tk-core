@@ -138,9 +138,12 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
 
         try:
             log.debug("Downloading Release from Github API: %s" % url)
-            headers = self._get_auth_headers()
-            req = urllib.request.Request(url, headers=headers)
-            response = urllib.request.urlopen(req)
+            if self._is_private:
+                headers = self._get_auth_headers()
+                req = urllib.request.Request(url, headers=headers)
+                response = urllib.request.urlopen(req)
+            else:
+                response = urllib.request.urlopen(url)
 
             zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
             with open(zip_tmp, 'wb') as fp:
@@ -188,9 +191,12 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         next_link = None
         try:
             log.debug("Requesting Releases from Github API: %s" % url)
-            headers = self._get_auth_headers()
-            req = urllib.request.Request(url, headers=headers)
-            response = urllib.request.urlopen(req)
+            if self._is_private:
+                headers = self._get_auth_headers()
+                req = urllib.request.Request(url, headers=headers)
+                response = urllib.request.urlopen(req)
+            else:
+                response = urllib.request.urlopen(url)
             response_data = json.load(response)
             log.debug("Got a valid JSON response from Github API.")
             m = re.search(r"<(.+)>; rel=\"next\"", response.headers.get("link", ""))
@@ -343,10 +349,13 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             log.debug(
                 "%r: Probing if a connection to Github can be established..." % self
             )
-            headers = self._get_auth_headers()
-            req = urllib.request.Request(url, headers=headers)
-            # ensure we get response code 200
-            response_code = urllib.request.urlopen(req).getcode()
+            if self._is_private:
+                headers = self._get_auth_headers()
+                req = urllib.request.Request(url, headers=headers)
+                response_code = urllib.request.urlopen(req).getcode()
+            else:
+                # ensure we get response code 200
+                response_code = urllib.request.urlopen(url).getcode()
             # Unfortunately, to prevent probing private repos, GH API also gives a 404 response
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
