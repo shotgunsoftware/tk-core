@@ -18,9 +18,9 @@ Module to support Web login via a web browser and automated session renewal.
 
 import base64
 import os
+import re
 import sys
 import time
-import urllib
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
@@ -1015,9 +1015,22 @@ class SsoSaml2Core(object):
                 # Let's have another go, without any cookies this time !
                 # This will force the GUI to be shown to the user.
                 self._logger.debug(
-                    "Unable to login/renew claims automaticall, presenting GUI to user"
+                    "Unable to login/renew claims automatically, presenting "
+                    "GUI to user"
                 )
-                status = self.on_sso_login_attempt()
+                if self._is_executable_nuke:
+                    """
+                    https://jira.autodesk.com/browse/SG-25374
+                    Weblogin does not show up in Nuke 11 and makes Nuke 12 and 
+                    13 to crash
+                    """
+                    self._display_nuke_messagebox()
+                    status = QtGui.QDialog.Rejected
+                    self._logger.warn(
+                        "Skipping web login dialog for Nuke DCC."
+                    )
+                else:
+                    status = self.on_sso_login_attempt()
                 self._login_status = self._login_status or status
             else:
                 self.resolve_event()
@@ -1031,3 +1044,18 @@ class SsoSaml2Core(object):
 
         # Clear the web page
         self._view.page().mainFrame().load("about:blank")
+
+    @property
+    def _is_executable_nuke(self):
+        """Validate if current executable is Nuke DCC."""
+        if re.compile(r'.+Nuke[\d.v]+\.exe').search(sys.executable):
+            return True
+
+        return False
+
+    def _display_nuke_messagebox(self):
+        self._QtGui.QMessageBox.critical(
+            self._dialog,
+            "Warning",
+            "ShotGrid session expired, you will need to restart Nuke.",
+            self._QtGui.QMessageBox.Ok)
