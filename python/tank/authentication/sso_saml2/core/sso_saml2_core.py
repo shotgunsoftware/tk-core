@@ -1021,7 +1021,7 @@ class SsoSaml2Core(object):
                 if self._is_executable_nuke:
                     """
                     https://jira.autodesk.com/browse/SG-25374
-                    Weblogin does not show up in Nuke 11 and makes Nuke 12 and 
+                    Weblogin does not show up in Nuke 11 and makes Nuke 12 and
                     13 to crash
                     """
                     self._display_nuke_messagebox()
