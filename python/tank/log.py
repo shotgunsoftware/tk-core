@@ -225,6 +225,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
+import tempfile
 import time
 import weakref
 import uuid
@@ -304,7 +305,7 @@ class LogManager(object):
 
             try:
                 os.rename(self.baseFilename, temp_backup_name)
-            except:
+            except OSError:
                 # It failed, so we'll simply append from now on.
                 log.debug(
                     "Cannot rotate log file '%s'. Logging will continue to this file, "
@@ -319,7 +320,7 @@ class LogManager(object):
             # so doRollover can do its work.
             try:
                 os.rename(temp_backup_name, self.baseFilename)
-            except:
+            except OSError:
                 # For some reason we couldn't move the backup in its place.
                 log.debug(
                     "Unexpected issue while rotating log file '%s'. Logging will continue to this file, "
@@ -344,7 +345,7 @@ class LogManager(object):
             # disable rollover and append to the current log.
             try:
                 RotatingFileHandler.doRollover(self)
-            except:
+            except Exception:
                 # Something probably failed trying to rollover the backups,
                 # since the code above proved that in theory the main log file
                 # should be renamable. In any case, we didn't succeed in renaming,
@@ -824,7 +825,23 @@ class LogManager(object):
 
 
 # the logger for logging messages from this file :)
-log = LogManager.get_logger(__name__)
+# using python default's logger just in case the LogManager fails and we need to debug it, logging to a tempfile
+log = logging.getLogger("fallback")
+log.setLevel(logging.INFO)
+fallback_log_filepath = os.path.join(
+    tempfile.gettempdir(),
+    "{}.fallback.log".format(constants.ROOT_LOGGER_NAME)
+)
+fh = logging.FileHandler(fallback_log_filepath)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+log.addHandler(fh)
+log.info("fallback default logger setup")
+
+if os.environ.get(constants.DEBUG_LOGGING_ENV_VAR, False):
+    log.setLevel(logging.DEBUG)
+    log.debug("debug mode on")
+
 
 # initialize toolkit logging
 #
