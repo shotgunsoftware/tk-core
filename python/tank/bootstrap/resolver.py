@@ -208,13 +208,12 @@ class ConfigurationResolver(object):
         resolve_latest = is_descriptor_version_missing(fallback_config_descriptor)
         # Avoid auto update to the latest config version
         if (
-                #constants.SGTK_CONFIG_LOCK_VERSION in os.environ
                 "SGTK_CONFIG_LOCK_VERSION" in os.environ
                 and sys.version_info[0] != 3
                 and self._plugin_id == "basic.desktop"
                 and resolve_latest
         ):
-            # Check if CONFIG_LOCK has been set, this will avoid auto update your site configuration
+            # Check if "SGTK_CONFIG_LOCK_VERSION" has been set, this will avoid auto update your tk-config-basic configuration
             # to the latest available version when running Python 2.This cover the cases below:
             #
             # 1. Python 2 users launch SG Desktop and it startup the tk-desktop engine for their site
