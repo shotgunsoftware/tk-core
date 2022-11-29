@@ -178,7 +178,7 @@ class ConfigurationResolver(object):
                 cfg_descriptor, sg_connection, pc_id=None
             )
 
-    def resolve_not_found_sg_configuration(self, fallback_config_descriptor, sg_connection):
+    def resolve_not_found_sg_configuration(self, config_descriptor, sg_connection):
         """
         Creates a configuration object given a config fallback descriptor this
         means not pipeline config record was found in shotgrid, now resolve the
@@ -186,26 +186,26 @@ class ConfigurationResolver(object):
         we request that the latest version should be resolved instance based on
         this associated descriptor object.
 
-        :param fallback_config_descriptor: descriptor dict or string
+        :param config_descriptor: Fallback descriptor dict or string
         :param sg_connection: Shotgun API instance
         :return: :class:`Configuration` instance
         """
 
-        if fallback_config_descriptor is None:
+        if config_descriptor is None:
             raise TankBootstrapError(
                 "No config descriptor specified - Cannot create a configuration object."
             )
 
         # convert to dictionary form
-        if isinstance(fallback_config_descriptor, str):
+        if isinstance(config_descriptor, str):
             # convert to dict so we can introspect
-            config_descriptor = descriptor_uri_to_dict(fallback_config_descriptor)
+            config_descriptor = descriptor_uri_to_dict(config_descriptor)
         # This is a special case covered in resolve_configuration()
         if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
-            return self.resolve_configuration(fallback_config_descriptor, sg_connection)
+            return self.resolve_configuration(config_descriptor, sg_connection)
 
         # Validate if descriptor version token is omitted
-        resolve_latest = is_descriptor_version_missing(fallback_config_descriptor)
+        resolve_latest = is_descriptor_version_missing(config_descriptor)
         # Avoid auto update to the latest config version
         if (
                 "SGTK_CONFIG_LOCK_VERSION" in os.environ
@@ -252,7 +252,7 @@ class ConfigurationResolver(object):
 
         else:
             # Resolve config normally
-            return self.resolve_configuration(fallback_config_descriptor, sg_connection)
+            return self.resolve_configuration(config_descriptor, sg_connection)
 
         return self._create_configuration_from_descriptor(
             cfg_descriptor, sg_connection, pc_id=None
@@ -922,7 +922,6 @@ class ConfigurationResolver(object):
 
             # We couldn't resolve anything from Shotgun, so we'll resolve the configuration using
             # an offline resolve.
-            #return self.resolve_configuration(fallback_config_descriptor, sg_connection)
             return self.resolve_not_found_sg_configuration(fallback_config_descriptor, sg_connection)
 
         else:
