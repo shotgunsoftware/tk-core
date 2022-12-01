@@ -87,4 +87,4 @@ SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
 # This is the maximum version oftk-config-basic
 # supporting Python 2.
-MAX_CONFIG_BASIC_PYTHON2_SUPPORTED = "v.1.4.5"
+MAX_CONFIG_BASIC_PYTHON2_SUPPORTED = "v1.4.5"

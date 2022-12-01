@@ -181,7 +181,7 @@ class CachedConfiguration(Configuration):
         # metadata file on disk.
         installed_config_version = descriptor_dict.get("version")
         associated_descriptor_config_version = self._descriptor.get_version()
-
+        #max_version_python2 = associated_descriptor_config_version if not constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
         # If config version is older or equal than the max config version
         # supporting python 2, return True.
         return version.is_version_older_or_equal(
@@ -251,7 +251,7 @@ class CachedConfiguration(Configuration):
                 # the config already installed does not supports Python 2
                 log.debug(
                     "Local config %r does not support Python 2. "
-                    "Triggering full config rebuild to the latest"
+                    "Triggering full config rebuild to the latest "
                     "config supporting Python 2."
                     % (descriptor_dict)
                 )
