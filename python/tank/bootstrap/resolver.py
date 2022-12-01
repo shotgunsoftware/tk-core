@@ -208,7 +208,7 @@ class ConfigurationResolver(object):
         resolve_latest = is_descriptor_version_missing(config_descriptor)
         # Avoid auto update to the latest config version
         if (
-                "SGTK_CONFIG_LOCK_VERSION" in os.environ
+                constants.SGTK_CONFIG_LOCK_VERSION in os.environ
                 and sys.version_info[0] != 3
                 and self._plugin_id == "basic.desktop"
                 and resolve_latest
@@ -235,9 +235,9 @@ class ConfigurationResolver(object):
 
             # Disable resolve latest
             resolve_latest = False
-            # Make sure the version points to the latest
+            # Make sure the configuration version points to the latest
             # supporting Python2
-            config_descriptor["version"] = "v1.4.5"
+            config_descriptor["version"] = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
             log.debug(
                 "%s resolving configuration for descriptor %s" % (self, config_descriptor)
             )
