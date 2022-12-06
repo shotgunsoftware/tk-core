@@ -85,6 +85,6 @@ BUNDLE_CACHE_FOLDER_NAME = "bundle_cache"
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
-# This is the maximum version oftk-config-basic
+# This is the maximum version of tk-config-basic
 # supporting Python 2.
 MAX_CONFIG_BASIC_PYTHON2_SUPPORTED = "v1.4.5"
