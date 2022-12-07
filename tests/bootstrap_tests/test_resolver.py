@@ -13,8 +13,7 @@ from __future__ import with_statement
 import itertools
 import os
 import sys
-from mock import patch
-import sgtk
+from mock import patch, Mock
 from sgtk.util import ShotgunPath
 from tank_vendor.shotgun_api3.lib import sgsix
 
@@ -351,6 +350,7 @@ class TestAutoUpdate(TestResolverBase):
         super(TestAutoUpdate, self).setUp()
         self.resolver._plugin_id = 'basic.desktop'
 
+    @patch("sys.version_info", return_value=Mock())
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_autoupdate_config(self, find_mock):
         """
