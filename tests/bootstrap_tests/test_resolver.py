@@ -14,6 +14,7 @@ import itertools
 import os
 import sys
 from mock import patch, Mock
+import sgtk
 from sgtk.util import ShotgunPath
 from tank_vendor.shotgun_api3.lib import sgsix
 
@@ -352,7 +353,7 @@ class TestAutoUpdate(TestResolverBase):
 
     @patch("sys.version_info", return_value=Mock())
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_autoupdate_config(self, find_mock):
+    def test_autoupdate_config(self, find_mock, _):
         """
         Tests the direct config resolve for a descriptor with no version number set
         when Python 2 is being used to launch SG Desktop to startup the tk-desktop
