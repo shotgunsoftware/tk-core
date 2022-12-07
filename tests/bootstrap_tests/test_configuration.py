@@ -665,11 +665,6 @@ class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
                                                                "version": version,
                                                            }
                                                         )
-        sys.path.append(
-            r"/Applications/PyCharm.app/Contents/debug-eggs/pydevd-pycharm.egg")
-        import pydevd
-        pydevd.settrace('localhost', port=5490, stdoutToServer=True,
-                        stderrToServer=True)
 
     @patch("sys.version_info", return_value=Mock())
     def test_python_compatible_descriptors(self, _):
