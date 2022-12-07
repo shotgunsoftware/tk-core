@@ -256,6 +256,13 @@ class CachedConfiguration(Configuration):
                     % (descriptor_dict)
                 )
                 return self.LOCAL_CFG_DIFFERENT
+            else:
+                log.debug(
+                    "Local config %r does support Python 2, "
+                    "so is up to date."
+                    % (descriptor_dict)
+                )
+                return self.LOCAL_CFG_UP_TO_DATE
 
         if descriptor_dict != self._descriptor.get_dict():
             log.debug(

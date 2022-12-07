@@ -13,11 +13,12 @@ from __future__ import with_statement
 import uuid
 import os
 import sys
-from mock import patch
+from mock import patch, Mock
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, temp_env_var
 
+from tank.bootstrap import constants
 from sgtk.bootstrap.cached_configuration import CachedConfiguration
 from sgtk.bootstrap.configuration import Configuration
 from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
@@ -612,6 +613,107 @@ class TestCachedConfiguration(ShotgunTestBase):
         self.assertEqual(
             self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT
         )
+
+class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
+    def setUp(self):
+        super(TestCachedAutoUpdateConfiguration, self).setUp()
+
+        # Reset the tank_name and create a storage named after the one in the config.
+        self.mockgun.update("Project", self.project["id"], {"tank_name": None})
+        self.mockgun.create("LocalStorage", {"code": "primary"})
+
+        # Initialize a cached configuration pointing to the config.
+        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
+
+        self._temp_config_root = os.path.join(self.tank_temp, self.short_test_name)
+        self._cached_config = CachedConfiguration(
+            sgtk.util.ShotgunPath.from_current_os_path(self._temp_config_root),
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(config_root),
+            ),
+            self.project["id"],
+            "basic.*",
+            None,
+            [],
+        )
+
+        # Due to this being a test that runs offline, we can't use anything other than a
+        # path descriptor, which means that it is mutable. Because LOCAL_CFG_DIFFERENT
+        # is actually returned by three different code paths, the only way to ensure that
+        # we are indeed in the up to date state, which means everything is ready to do, is
+        # to cheat and make the descriptor immutable by monkey-patching it.
+        self._cached_config._descriptor.is_immutable = lambda: True
+        # Seems up the test tremendously since installing core becomes a noop.
+        self._cached_config._config_writer.install_core = lambda _: None
+        self._cached_config._config_writer.create_tank_command = lambda: None
+        # Maximum tk-config-basic version supporting Python 2.
+        version = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
+        # Mock the cached descriptor version since we can't use anything other than a
+        # path descriptor.
+        self._cached_config._descriptor.get_version = Mock(spec=self._cached_config._descriptor.get_version,
+                                                           return_value=version
+                                                           )
+        # Mock the cached descriptor dictionary since we can't use anything other than a
+        # path descriptor.
+        self._cached_config._descriptor.get_dict = Mock(spec=self._cached_config._descriptor.get_dict,
+                                                           return_value={
+                                                               "type": "app_store",
+                                                               "name": "tk-config-basic",
+                                                               "version": version,
+                                                           }
+                                                        )
+        sys.path.append(
+            r"/Applications/PyCharm.app/Contents/debug-eggs/pydevd-pycharm.egg")
+        import pydevd
+        pydevd.settrace('localhost', port=5490, stdoutToServer=True,
+                        stderrToServer=True)
+
+    @patch("sys.version_info", return_value=Mock())
+    def test_python_compatible_descriptors(self, _):
+        """
+        Ensures that the descriptor the actual config installed
+        on disk is Python 2 compatible otherwise will yield a
+        different config status.
+        """
+        # Mock Python 2 Version
+        sys.version_info = [2, 7, 16, 'final', 0]
+        self.assertEqual(sys.version_info[0], 2)
+
+        self._cached_config.update_configuration()
+        # Test a config cached on disk with a descriptor pointing
+        # to a version that doesn't support Python 2.
+        self._update_deploy_file(
+            descriptor={
+                "type": "app_store",
+                "name": "tk-config-basic",
+                "version": "v1.4.6",
+            }
+        )
+        # Test that the configuration resolved is the maximum tk-config-basic
+        # version supporting Python 2 when auto-update is triggered for a Site
+        # or Project environment, and the 'SGTK_CONFIG_LOCK_VERSION' envvar
+        # has been set.
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='1'):
+            self.assertEqual(
+                self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT
+            )
+
+        # Test a config cached on disk with a descriptor pointing
+        # to a version that does support Python 2.
+        self._update_deploy_file(
+            descriptor={
+                "type": "app_store",
+                "name": "tk-config-basic",
+                "version": "v1.4.2",
+            }
+        )
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='1'):
+            self.assertEqual(
+                self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE
+            )
 
     def _update_deploy_file(self, generation=None, descriptor=None, corrupt=False):
         """
