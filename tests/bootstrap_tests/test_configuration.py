@@ -614,6 +614,28 @@ class TestCachedConfiguration(ShotgunTestBase):
             self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT
         )
 
+    def _update_deploy_file(self, generation=None, descriptor=None, corrupt=False):
+        """
+        Updates the deploy file.
+
+        :param generation: If set, will update the generation number of the config.
+        :param descriptor: If set, will update the descriptor of the config.
+        :param corrupt: If set, will corrupt the configuration file.
+        """
+        path = self._cached_config._config_writer.get_descriptor_metadata_file()
+        if corrupt:
+            data = "corrupted"
+        else:
+            with open(path, "rt") as fh:
+                data = yaml.load(fh, Loader=yaml.FullLoader)
+                if generation is not None:
+                    data["deploy_generation"] = generation
+                if descriptor is not None:
+                    data["config_descriptor"] = descriptor
+
+        with open(path, "wt") as fh:
+            yaml.dump(data, fh)
+
 class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
     def setUp(self):
         super(TestCachedAutoUpdateConfiguration, self).setUp()
