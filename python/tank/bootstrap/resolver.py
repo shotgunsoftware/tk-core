@@ -181,9 +181,8 @@ class ConfigurationResolver(object):
     def resolve_not_found_sg_configuration(self, config_descriptor, sg_connection):
         """
         Creates a configuration object given a config fallback descriptor this
-        means not pipeline config record was found in shotgrid, now resolve the
-        descriptor to use and creates the configuration version token ommited so
-        we request that the latest version should be resolved instance based on
+        means not pipeline config record was found in shotgrid, so
+        we request that the latest version should be resolved based on
         this associated descriptor object.
 
         :param config_descriptor: Fallback descriptor dict or string
@@ -206,15 +205,16 @@ class ConfigurationResolver(object):
 
         # Validate if descriptor version token is omitted
         resolve_latest = is_descriptor_version_missing(config_descriptor)
-        # Avoid auto update to the latest config version
         if (
                 constants.SGTK_CONFIG_LOCK_VERSION in os.environ
                 and sys.version_info[0] != 3
                 and self._plugin_id == "basic.desktop"
                 and resolve_latest
         ):
-            # Check if "SGTK_CONFIG_LOCK_VERSION" has been set, this will avoid auto update your tk-config-basic configuration
-            # to the latest available version when running Python 2.This cover the cases below:
+            # Check if "SGTK_CONFIG_LOCK_VERSION" has been set, this will avoid auto update your
+            # tk-config-basic configuration to the latest available version when running Python 2
+            # and instead it will resolve the maximum config version supporting Python 2.
+            # This cover the cases below:
             #
             # 1. Python 2 users launch SG Desktop and it startup the tk-desktop engine for their site
             # configuration using the fallback descriptor(If no pipeline configuration found in Shotgrid).
