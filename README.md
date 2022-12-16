@@ -6,11 +6,11 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Linting](https://img.shields.io/badge/PEP8%20by-Hound%20CI-a873d1.svg)](https://houndci.com)
 
-# Shotgun Pipeline Toolkit Core API
+# ShotGrid Pipeline Toolkit Core API
 
 This repository represents the ShotGrid Pipeline Toolkit Core API.
 
-## Getting started with the Shotgun Pipeline Toolkit
+## Getting started with the ShotGrid Pipeline Toolkit
 
 Installing the ShotGrid Pipeline Toolkit is normally done via our
 ShotGrid App Store. For detailed instructions on how to get started
