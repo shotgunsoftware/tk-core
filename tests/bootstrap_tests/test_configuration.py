@@ -706,7 +706,7 @@ class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
             descriptor={
                 "type": "app_store",
                 "name": "tk-config-basic",
-                "version": "v1.4.6",
+                "version": "v1.4.7",
             }
         )
         # Test that the configuration resolved is the maximum tk-config-basic
