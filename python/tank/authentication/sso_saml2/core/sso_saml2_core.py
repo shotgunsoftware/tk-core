@@ -566,7 +566,7 @@ class SsoSaml2Core(object):
 
     def update_session_from_browser(self):
         """
-        Updtate our session from the browser cookies.
+        Update our session from the browser cookies.
         """
         self._logger.debug("Updating session cookies from browser")
 

@@ -24,10 +24,10 @@ import urllib
 # fail.
 try:
     import urlparse
-    from urllib import unquote
+    from urllib import unquote_plus
 except ImportError:
     import urllib.parse as urlparse
-    from urllib.parse import unquote
+    from urllib.parse import unquote_plus
 try:
     from http.cookies import SimpleCookie
 except ImportError:
@@ -252,7 +252,7 @@ def get_user_name(encoded_cookies):
         encoded_cookies, "shotgun_current_user_login"
     ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     if user_name is not None:
-        user_name = unquote(user_name)
+        user_name = unquote_plus(user_name)
     return user_name
 
 
