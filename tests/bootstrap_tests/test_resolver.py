@@ -13,13 +13,14 @@ from __future__ import with_statement
 import itertools
 import os
 import sys
-from mock import patch
+from mock import patch, Mock
 import sgtk
 from sgtk.util import ShotgunPath
 from tank_vendor.shotgun_api3.lib import sgsix
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestBase, temp_env_var
+from tank.bootstrap import constants
 
 
 class TestResolverBase(TankTestBase):
@@ -340,6 +341,50 @@ class TestFallbackHandling(TestResolverBase):
         # make sure we didn't talk to shotgun
         self.assertEqual(find_mock.called, False)
 
+class TestAutoUpdate(TestResolverBase):
+    """
+    A test class for the config resolved when
+    launch SG Desktop to startup the tk-desktop
+    engine on a site or Project context.
+    """
+    def setUp(self):
+        super(TestAutoUpdate, self).setUp()
+        self.resolver._plugin_id = 'basic.desktop'
+
+    @patch("sys.version_info", return_value=Mock())
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_autoupdate_config(self, find_mock, _):
+        """
+        Tests the direct config resolve for a descriptor with no version number set
+        when Python 2 is being used to launch SG Desktop to startup the tk-desktop
+        engine on a site or Project context.
+        """
+
+        # Mock Python2 Version
+        sys.version_info = [2, 7, 16, 'final', 0]
+        self.assertEqual(sys.version_info[0], 2)
+
+        # test latest version of config by omitting version number
+        config_latest = {"type": "app_store", "name": "tk-config-test"}
+        # Maximum tk-config-basic version supporting Python 2.
+        version = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
+        # expected config
+        expected_config = {
+            'type': 'app_store',
+            'name': 'tk-config-test',
+            'version': version,
+        }
+
+        # Test the configuration resolved is the Maximum tk-config-basic
+        # version supporting Python 2 when auto-update is triggered
+        # and the 'SGTK_CONFIG_LOCK_VERSION' environment variable
+        # has been set.
+        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='1'):
+            config = self.resolver.resolve_not_found_sg_configuration(config_latest, self.mockgun)
+            self.assertEqual(config._descriptor.get_dict(), expected_config)
+
+        # make sure we didn't talk to shotgun
+        self.assertEqual(find_mock.called, False)
 
 class TestResolverPriority(TestResolverBase):
     """

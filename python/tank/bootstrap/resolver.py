@@ -178,6 +178,86 @@ class ConfigurationResolver(object):
                 cfg_descriptor, sg_connection, pc_id=None
             )
 
+    def resolve_not_found_sg_configuration(self, config_descriptor, sg_connection):
+        """
+        Creates a configuration object given a config fallback descriptor this
+        means not pipeline config record was found in shotgrid, so
+        we request that the latest version should be resolved based on
+        this associated descriptor object.
+
+        :param config_descriptor: Fallback descriptor dict or string
+        :param sg_connection: Shotgun API instance
+        :return: :class:`Configuration` instance
+        """
+
+        if config_descriptor is None:
+            raise TankBootstrapError(
+                "No config descriptor specified - Cannot create a configuration object."
+            )
+
+        # convert to dictionary form
+        if isinstance(config_descriptor, str):
+            # convert to dict so we can introspect
+            config_descriptor = descriptor_uri_to_dict(config_descriptor)
+        # This is a special case covered in resolve_configuration()
+        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
+            return self.resolve_configuration(config_descriptor, sg_connection)
+
+        # Validate if descriptor version token is omitted
+        resolve_latest = is_descriptor_version_missing(config_descriptor)
+        if (
+                constants.SGTK_CONFIG_LOCK_VERSION in os.environ
+                and sys.version_info[0] != 3
+                and self._plugin_id == "basic.desktop"
+                and resolve_latest
+        ):
+            # Check if "SGTK_CONFIG_LOCK_VERSION" has been set, this will avoid auto update your
+            # tk-config-basic configuration to the latest available version when running Python 2
+            # and instead it will resolve the maximum config version supporting Python 2.
+            # This cover the cases below:
+            #
+            # 1. Python 2 users launch SG Desktop and it startup the tk-desktop engine for their site
+            # configuration using the fallback descriptor(If no pipeline configuration found in Shotgrid).
+            # 2. When click on a Project in SG Desktop that has been configured to use a Python2 interpreter,
+            # this will initialize the tk-desktop for that project using the fallback
+            # descriptor(If no pipeline configuration found in Shotgrid).
+            #
+            # In those cases we request that the latest supported python 2 version should be resolved.
+            log.info(
+                "Detected a 'SGTK_CONFIG_LOCK_VERSION' environment variable."
+            )
+            log.debug(
+                "Base configuration descriptor does not have a "
+                "version token defined. If the actual "
+                "configuration installed on disk does not support Python 2 "
+                "will resolve the latest version available supporting Python 2."
+            )
+
+            # Disable resolve latest
+            resolve_latest = False
+            # Make sure the configuration version points to the latest
+            # supporting Python2
+            config_descriptor["version"] = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
+            log.debug(
+                "%s resolving configuration for descriptor %s" % (self, config_descriptor)
+            )
+            # create config descriptor
+            cfg_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.CONFIG,
+                config_descriptor,
+                fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=resolve_latest,
+            )
+
+        else:
+            # Resolve config normally
+            return self.resolve_configuration(config_descriptor, sg_connection)
+
+        return self._create_configuration_from_descriptor(
+            cfg_descriptor, sg_connection, pc_id=None
+        )
+
     def _create_configuration_from_descriptor(
         self, cfg_descriptor, sg_connection, pc_id
     ):
@@ -842,7 +922,7 @@ class ConfigurationResolver(object):
 
             # We couldn't resolve anything from Shotgun, so we'll resolve the configuration using
             # an offline resolve.
-            return self.resolve_configuration(fallback_config_descriptor, sg_connection)
+            return self.resolve_not_found_sg_configuration(fallback_config_descriptor, sg_connection)
 
         else:
             # Something was found in Shotgun, which means we've also potentially resolved its

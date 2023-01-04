@@ -66,6 +66,12 @@ BAKED_DESCRIPTOR_FOLDER_NAME = "baked"
 # configuration loaded when a bootstrap/plugin is starting up.
 CONFIG_OVERRIDE_ENV_VAR = "TK_BOOTSTRAP_CONFIG_OVERRIDE"
 
+# Environment variable that if set, enables auto update to the latest
+# version of tk-config-basic supporting Python 2 when Python 2 is being
+# used to launch SG Desktop to startup the tk-desktop engine on a site
+# or Project context.
+SGTK_CONFIG_LOCK_VERSION = "SGTK_CONFIG_LOCK_VERSION"
+
 # environment variable that is used to indicate a specific
 # pipeline configuration to be used.
 PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
@@ -78,3 +84,7 @@ BUNDLE_CACHE_FOLDER_NAME = "bundle_cache"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
+
+# This is the maximum version of tk-config-basic
+# supporting Python 2.
+MAX_CONFIG_BASIC_PYTHON2_SUPPORTED = "v1.4.6"
