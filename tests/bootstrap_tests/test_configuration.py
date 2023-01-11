@@ -702,6 +702,9 @@ class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
         self._cached_config.update_configuration()
         # Test a config cached on disk with a descriptor pointing
         # to a version that doesn't support Python 2.
+        # this should resolved a 'LOCAL_CFG_DIFFERENT' status
+        # causing a full config rebuild to the latest config
+        # supporting Python 2.
         self._update_deploy_file(
             descriptor={
                 "type": "app_store",
@@ -709,17 +712,16 @@ class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
                 "version": "v1.4.7",
             }
         )
-        # Test that the configuration resolved is the maximum tk-config-basic
-        # version supporting Python 2 when auto-update is triggered for a Site
-        # or Project environment, and the 'SGTK_CONFIG_LOCK_VERSION' envvar
-        # has been set.
-        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='1'):
-            self.assertEqual(
-                self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT
-            )
+        self.assertEqual(
+            self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT
+        )
+
 
         # Test a config cached on disk with a descriptor pointing
         # to a version that does support Python 2.
+        # this should resolved a 'LOCAL_CFG_UP_TO_DATE' status
+        # causing a full config rebuild to the latest config
+        # supporting Python 2.
         self._update_deploy_file(
             descriptor={
                 "type": "app_store",
@@ -727,10 +729,9 @@ class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
                 "version": "v1.4.2",
             }
         )
-        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='1'):
-            self.assertEqual(
-                self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE
-            )
+        self.assertEqual(
+            self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE
+        )
 
     def _update_deploy_file(self, generation=None, descriptor=None, corrupt=False):
         """

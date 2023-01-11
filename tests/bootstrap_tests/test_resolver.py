@@ -376,12 +376,9 @@ class TestAutoUpdate(TestResolverBase):
         }
 
         # Test the configuration resolved is the Maximum tk-config-basic
-        # version supporting Python 2 when auto-update is triggered
-        # and the 'SGTK_CONFIG_LOCK_VERSION' environment variable
-        # has been set.
-        with temp_env_var(SGTK_CONFIG_LOCK_VERSION='1'):
-            config = self.resolver.resolve_not_found_sg_configuration(config_latest, self.mockgun)
-            self.assertEqual(config._descriptor.get_dict(), expected_config)
+        # version supporting Python 2 when auto-update is triggered.
+        config = self.resolver.resolve_not_found_sg_configuration(config_latest, self.mockgun)
+        self.assertEqual(config._descriptor.get_dict(), expected_config)
 
         # make sure we didn't talk to shotgun
         self.assertEqual(find_mock.called, False)
