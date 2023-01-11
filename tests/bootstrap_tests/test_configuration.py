@@ -730,7 +730,7 @@ class TestCachedAutoUpdateConfiguration(ShotgunTestBase):
             }
         )
         self.assertEqual(
-            self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE
+            self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT
         )
 
     def _update_deploy_file(self, generation=None, descriptor=None, corrupt=False):

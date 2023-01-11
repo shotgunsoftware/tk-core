@@ -206,8 +206,7 @@ class ConfigurationResolver(object):
         # Validate if descriptor version token is omitted
         resolve_latest = is_descriptor_version_missing(config_descriptor)
         if (
-                not os.environ.get(constants.SGTK_CONFIG_LOCK_VERSION) == "1"
-                and sys.version_info[0] < 3
+                sys.version_info[0] < 3
                 and self._plugin_id == "basic.desktop"
                 and resolve_latest
         ):
@@ -228,9 +227,7 @@ class ConfigurationResolver(object):
             )
             log.debug(
                 "Base configuration descriptor does not have a "
-                "version token defined. If the actual "
-                "configuration installed on disk does not support Python 2 "
-                "will resolve the latest version available supporting Python 2."
+                "version token defined."
             )
 
             # Disable resolve latest
@@ -239,7 +236,7 @@ class ConfigurationResolver(object):
             # supporting Python2
             config_descriptor["version"] = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
             log.debug(
-                "%s resolving configuration for descriptor %s" % (self, config_descriptor)
+                "%s Resolving configuration for latest version supporting Python 2 descriptor %s" % (self, config_descriptor)
             )
             # create config descriptor
             cfg_descriptor = create_descriptor(
