@@ -167,8 +167,7 @@ class CachedConfiguration(Configuration):
 
     def _verify_descriptor_compatible_with_python_version(self, descriptor_dict):
         """
-        If we are running Python 2 and the "SGTK_CONFIG_LOCK_VERSION" environment
-        variable has been set, this method validates if the actual config installed
+        If we are running Python 2, this method validates if the actual config installed
         on disk is Python 2 compatible.
 
         :param descriptor_dict: This is the config descriptor from the
@@ -179,9 +178,10 @@ class CachedConfiguration(Configuration):
         # get the versions from the the associated configuration described
         # by the descriptor, and from the config descriptor from the config
         # metadata file on disk.
+
         installed_config_version = descriptor_dict.get("version")
         associated_descriptor_config_version = self._descriptor.get_version()
-        #max_version_python2 = associated_descriptor_config_version if not constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
+
         # If config version is older or equal than the max config version
         # supporting python 2, return True.
         return version.is_version_older_or_equal(
@@ -241,14 +241,15 @@ class CachedConfiguration(Configuration):
             )
             return self.LOCAL_CFG_DIFFERENT
 
-        # validate if we are currently running in Python 2,
-        # and "SGTK_CONFIG_LOCK_VERSION" environment variable has been set.
+
+        # validate if we are currently running in Python 2
         if (
-            constants.SGTK_CONFIG_LOCK_VERSION in os.environ
-            and sys.version_info[0] != 3
+                not os.environ.get(constants.SGTK_CONFIG_LOCK_VERSION) == "1"
+                and sys.version_info[0] < 3
+                and self._descriptor.get_version() is not "Undefined"
         ):
             if not self._verify_descriptor_compatible_with_python_version(descriptor_dict):
-                # the config already installed does not supports Python 2
+                # the local config already installed on disk does not supports Python 2
                 log.debug(
                     "Local config %r does not support Python 2. "
                     "Triggering full config rebuild to the latest "
@@ -259,7 +260,7 @@ class CachedConfiguration(Configuration):
             else:
                 log.debug(
                     "Local config %r does support Python 2, "
-                    "so is up to date."
+                    "So this will avoid auto update the configuration."
                     % (descriptor_dict)
                 )
                 return self.LOCAL_CFG_UP_TO_DATE
