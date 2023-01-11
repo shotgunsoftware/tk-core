@@ -344,7 +344,7 @@ class TestFallbackHandling(TestResolverBase):
 class TestAutoUpdate(TestResolverBase):
     """
     A test class for the config resolved when
-    launch SG Desktop to startup the tk-desktop
+    SG Desktop is launched to startup the tk-desktop
     engine on a site or Project context.
     """
     def setUp(self):
@@ -355,9 +355,9 @@ class TestAutoUpdate(TestResolverBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_autoupdate_config(self, find_mock, _):
         """
-        Tests the direct config resolve for a descriptor with no version number set
-        when Python 2 is being used to launch SG Desktop to startup the tk-desktop
-        engine on a site or Project context.
+        Tests that the configuration resolved is the maximum tk-config-basic
+        version supporting Python 2 when SG Desktop is used to startup the
+        tk-desktop engine on a Site or Project context.
         """
 
         # Mock Python2 Version
