@@ -206,25 +206,25 @@ class ConfigurationResolver(object):
         # Validate if descriptor version token is omitted
         resolve_latest = is_descriptor_version_missing(config_descriptor)
         if (
-                constants.SGTK_CONFIG_LOCK_VERSION in os.environ
-                and sys.version_info[0] != 3
+                not os.environ.get(constants.SGTK_CONFIG_LOCK_VERSION) == "1"
+                and sys.version_info[0] < 3
                 and self._plugin_id == "basic.desktop"
                 and resolve_latest
         ):
-            # Check if "SGTK_CONFIG_LOCK_VERSION" has been set, this will avoid auto update your
-            # tk-config-basic configuration to the latest available version when running Python 2
-            # and instead it will resolve the maximum config version supporting Python 2.
+            # This will avoid auto update your tk-config-basic configuration to the latest
+            # available version when running Python 2 and instead it will resolve the maximum
+            # config version supporting Python 2.
             # This cover the cases below:
             #
             # 1. Python 2 users launch SG Desktop and it startup the tk-desktop engine for their site
-            # configuration using the fallback descriptor(If no pipeline configuration found in Shotgrid).
+            # configuration using the fallback descriptor(If no pipeline configuration found in ShotGrid).
             # 2. When click on a Project in SG Desktop that has been configured to use a Python2 interpreter,
             # this will initialize the tk-desktop for that project using the fallback
-            # descriptor(If no pipeline configuration found in Shotgrid).
+            # descriptor(If no pipeline configuration found in ShotGrid).
             #
             # In those cases we request that the latest supported python 2 version should be resolved.
             log.info(
-                "Detected a 'SGTK_CONFIG_LOCK_VERSION' environment variable."
+                "Using Python version '%s'" % ".".join(str(i) for i in sys.version_info[0:3])
             )
             log.debug(
                 "Base configuration descriptor does not have a "
