@@ -206,31 +206,28 @@ class ConfigurationResolver(object):
         # Validate if descriptor version token is omitted
         resolve_latest = is_descriptor_version_missing(config_descriptor)
         if (
-                constants.SGTK_CONFIG_LOCK_VERSION in os.environ
-                and sys.version_info[0] != 3
+                sys.version_info[0] < 3
                 and self._plugin_id == "basic.desktop"
                 and resolve_latest
         ):
-            # Check if "SGTK_CONFIG_LOCK_VERSION" has been set, this will avoid auto update your
-            # tk-config-basic configuration to the latest available version when running Python 2
-            # and instead it will resolve the maximum config version supporting Python 2.
-            # This cover the cases below:
+            # This will avoid auto update your tk-config-basic configuration to the
+            # latest available version when running Python 2.
+            # This cover the following case:
             #
-            # 1. Python 2 users launch SG Desktop and it startup the tk-desktop engine for their site
-            # configuration using the fallback descriptor(If no pipeline configuration found in Shotgrid).
-            # 2. When click on a Project in SG Desktop that has been configured to use a Python2 interpreter,
-            # this will initialize the tk-desktop for that project using the fallback
-            # descriptor(If no pipeline configuration found in Shotgrid).
+            # * SG Desktop is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
+            #   environment variable to '2'and it will startup the tk-desktop engine for
+            #   the Site configuration.
             #
-            # In those cases we request that the latest supported python 2 version should be resolved.
+            # In this case this will initialize the tk-desktop for the 'Site' environment and
+            # resolve a configuration object using a descriptor pointing to the maximum config
+            # version supporting Python 2 which is maintained in the variable
+            # 'MAX_CONFIG_BASIC_PYTHON2_SUPPORTED' in the bootstrap constants.
             log.info(
-                "Detected a 'SGTK_CONFIG_LOCK_VERSION' environment variable."
+                "Using Python version '%s'" % ".".join(str(i) for i in sys.version_info[0:3])
             )
             log.debug(
                 "Base configuration descriptor does not have a "
-                "version token defined. If the actual "
-                "configuration installed on disk does not support Python 2 "
-                "will resolve the latest version available supporting Python 2."
+                "version token defined."
             )
 
             # Disable resolve latest
@@ -239,7 +236,7 @@ class ConfigurationResolver(object):
             # supporting Python2
             config_descriptor["version"] = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
             log.debug(
-                "%s resolving configuration for descriptor %s" % (self, config_descriptor)
+                "%s Resolving configuration for latest version supporting Python 2 descriptor %s" % (self, config_descriptor)
             )
             # create config descriptor
             cfg_descriptor = create_descriptor(

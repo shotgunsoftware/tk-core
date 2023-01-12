@@ -1033,7 +1033,6 @@ class ToolkitManager(object):
 
         :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
-
         config = self._get_configuration(entity, progress_callback)
 
         # verify that this configuration works with Shotgun
