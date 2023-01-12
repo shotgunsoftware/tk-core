@@ -211,19 +211,17 @@ class ConfigurationResolver(object):
                 and resolve_latest
         ):
             # This will avoid auto update your tk-config-basic configuration to the
-            # latest available version when running Python 2 and instead it will
-            # resolve the maximum config version supporting Python 2.
-            # This cover the cases below:
+            # latest available version when running Python 2.
+            # This cover the following case:
             #
-            # 1. SG Desktop is launched using Python 2 and it startup the tk-desktop
-            #    engine for their Site configuration.
-            # 2. When click on a Project with a config basic in SG Desktop that has been
-            #    configured to use a Python2 interpreter.
+            # * SG Desktop is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
+            #   environment variable to '2'and it will startup the tk-desktop engine for
+            #   the Site configuration.
             #
-            # In both cases this will initialize the tk-desktop for that environment and
-            # resolve a configuration object using a descriptor with the maximum config
+            # In this case this will initialize the tk-desktop for the 'Site' environment and
+            # resolve a configuration object using a descriptor pointing to the maximum config
             # version supporting Python 2 which is maintained in the variable
-            # 'MAX_CONFIG_BASIC_PYTHON2_SUPPORTED' stored in the bootstrap constants.
+            # 'MAX_CONFIG_BASIC_PYTHON2_SUPPORTED' in the bootstrap constants.
             log.info(
                 "Using Python version '%s'" % ".".join(str(i) for i in sys.version_info[0:3])
             )
