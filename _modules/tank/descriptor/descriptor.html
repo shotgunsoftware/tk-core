@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.20.14 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.20.16 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.14.<br>
+    <b>tk-core</b> v0.20.16.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -235,7 +235,7 @@
     <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this when creating descriptor objects.</span>
 
 <span class="sd">    .. note:: Descriptors inherit their threading characteristics from</span>
@@ -324,7 +324,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_default_bundle_cache_root</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the cache location for the default bundle cache.</span>
 
 <span class="sd">    :returns: path on disk</span>
@@ -336,7 +336,7 @@
 
 
 <span class="k">class</span> <span class="nc">Descriptor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A descriptor describes a particular version of an app, engine or core component.</span>
 <span class="sd">    It also knows how to access metadata such as documentation, descriptions etc.</span>
 
@@ -356,7 +356,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">register_descriptor_factory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">descriptor_type</span><span class="p">,</span> <span class="n">subclass</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Registers a descriptor subclass with the :meth:`create` factory.</span>
 <span class="sd">        This is an internal method that should not be called by external</span>
 <span class="sd">        code.</span>
@@ -376,7 +376,7 @@
         <span class="n">bundle_cache_root_override</span><span class="p">,</span>
         <span class="n">fallback_roots</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Factory method used by :meth:`create_descriptor`. This is an internal</span>
 <span class="sd">        method that should not be called by external code.</span>
 
@@ -401,7 +401,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
 
@@ -422,20 +422,20 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Used for debug logging</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%r</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Used for pretty printing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_manifest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the info.yml metadata associated with this descriptor.</span>
 
 <span class="sd">        :returns: dictionary with the contents of info.yml</span>
@@ -446,7 +446,7 @@
     <span class="c1"># data accessors</span>
 
     <span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the dictionary associated with this descriptor</span>
 
 <span class="sd">        :returns: Dictionary that can be used to construct the descriptor</span>
@@ -457,7 +457,7 @@
     <span class="n">get_location</span> <span class="o">=</span> <span class="n">get_dict</span>
 
     <span class="k">def</span> <span class="nf">get_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the uri associated with this descriptor</span>
 <span class="sd">        The uri is a string based representation that is equivalent to the</span>
 <span class="sd">        descriptor dictionary returned by the get_dict() method.</span>
@@ -467,7 +467,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_folder</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copy the config descriptor into the specified target location.</span>
 
 <span class="sd">        :param target_folder: Folder to copy the descriptor to</span>
@@ -475,7 +475,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">target_folder</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">clone_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_root</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The descriptor system maintains an internal cache where it downloads</span>
 <span class="sd">        the payload that is associated with the descriptor. Toolkit supports</span>
 <span class="sd">        complex cache setups, where you can specify a series of path where toolkit</span>
@@ -493,7 +493,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The display name for this item.</span>
 <span class="sd">        If no display name has been defined, the system name will be returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -504,7 +504,7 @@
         <span class="k">return</span> <span class="n">display_name</span>
 
     <span class="k">def</span> <span class="nf">is_dev</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if this item is intended for development purposes</span>
 
 <span class="sd">        :returns: True if this is a developer item</span>
@@ -512,7 +512,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">is_dev</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">is_immutable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if this descriptor never changes its content.</span>
 <span class="sd">        This is true for most descriptors as they represent a particular</span>
 <span class="sd">        version, tag or commit of an item. Examples of non-immutable</span>
@@ -526,7 +526,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A short description of the item.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
@@ -537,7 +537,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">icon_256</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The path to a 256px square png icon file representing this item</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">app_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">(),</span> <span class="s2">&quot;icon_256.png&quot;</span><span class="p">)</span>
@@ -554,7 +554,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A url that points at a support web page associated with this item.</span>
 <span class="sd">        If not url has been defined, ``None`` is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -566,7 +566,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">documentation_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The documentation url for this item. If no documentation url has been defined,</span>
 <span class="sd">        a url to the toolkit user guide is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -578,7 +578,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">deprecation_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Information about deprecation status.</span>
 
 <span class="sd">        :returns: Returns a tuple (is_deprecated, message) to indicate</span>
@@ -588,20 +588,20 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">system_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A short name, suitable for use in configuration files and for folders on disk.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_system_name</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The version number string for this item.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the path to a location where this item is cached.</span>
 
 <span class="sd">        When locating the item, any bundle cache fallback paths</span>
@@ -616,7 +616,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Information about the changelog for this item.</span>
 
 <span class="sd">        :returns: A tuple (changelog_summary, changelog_url). Values may be ``None``</span>
@@ -625,25 +625,25 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_changelog</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">ensure_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method. Ensures that the item is locally available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">ensure_local</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">exists_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if this item exists in a local repo.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">download_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves this version to local repo.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">find_latest_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a descriptor object that represents the latest version.</span>
 
 <span class="sd">        .. note:: Different descriptor types implements this logic differently,</span>
@@ -672,7 +672,7 @@
         <span class="k">return</span> <span class="n">latest</span>
 
     <span class="k">def</span> <span class="nf">find_latest_cached_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a descriptor object that represents the latest version</span>
 <span class="sd">        that can be found in the local bundle caches.</span>
 
@@ -705,7 +705,7 @@
         <span class="k">return</span> <span class="n">latest</span>
 
     <span class="k">def</span> <span class="nf">has_remote_access</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Probes if the current descriptor is able to handle</span>
 <span class="sd">        remote requests. If this method returns, true, operations</span>
 <span class="sd">        such as :meth:`download_local` and :meth:`find_latest_version`</span>
@@ -756,7 +756,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2022, Autodesk
+        &copy; Copyright 2023, Autodesk
 
     </p>
   </div> 

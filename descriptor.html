@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.20.14 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.20.16 documentation</title>
   
 
   
@@ -148,7 +148,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.14.<br>
+    <b>tk-core</b> v0.20.16.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -331,27 +331,27 @@ while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong
 <p>The ShotGrid app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by ShotGrid. App store descriptors should include a name and version token and
 are on the following form:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">app_store</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-core</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v12.3.4</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">app_store</span><span class="p p-Indicator">,</span>
+<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-core</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v12.3.4</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4</span>
 </pre></div>
 </div>
 <p>App store may also have an optional <code class="docutils literal notranslate"><span class="pre">label</span></code> parameter. This indicates that the descriptor is tracking
 against a particular label in the app store and will not download updates which do not have the label assigned:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">app_store</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-core</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v12.3.4</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    label</span><span class="p">:</span><span class="w"> </span><span class="nv">v2018.3</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">app_store</span><span class="p p-Indicator">,</span>
+<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-core</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v12.3.4</span><span class="p p-Indicator">,</span>
+<span class="nt">    label</span><span class="p">:</span><span class="w"> </span><span class="nv">v2018.3</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3</span>
 </pre></div>
 </div>
 <p>A label can for example be used by plugins that are bundled with DCCs to only receive app store updates
@@ -366,47 +366,47 @@ for the latest available version in the app store, only versions labelled with v
 versions of something. You can use any syntax that git supports, with a path key containing the path
 to the git repository.</p>
 <p>Git repository residing on the local file system:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.2.1</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.2.1</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4</span>
 </pre></div>
 </div>
 <p>SSH git syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&amp;version=v0.1.0</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <p>Git protocol syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <p>Http protocol syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -422,51 +422,51 @@ that version numbers follow the semantic versioning standard that can be found a
 <p>The <code class="docutils literal notranslate"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
 a commit in a particular branch.</p>
 <p>Git repository residing on the local file system:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>SSH git syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user@remotehost:/path_to/repo.git&amp;version=17fedd8</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user@remotehost:/path_to/repo.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>Git protocol syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>Http protocol syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+<span class="nt">    branch</span><span class="p">:</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>You can use both long and short hash formats for the version token. The latest version for a git_branch
@@ -494,15 +494,15 @@ resolve and normal operation.</p>
 <h3>Tracking against releases on Github<a class="headerlink" href="#tracking-against-releases-on-github" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">github_release</span></code> descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.</p>
 <p>Getting <code class="docutils literal notranslate"><span class="pre">tk-multi-pythonconsole</span></code> from its <code class="docutils literal notranslate"><span class="pre">shotgunsoftware</span></code> Github repo:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">github_release</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    organization</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgunsoftware</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    repository</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-multi-pythonconsole</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v1.2.29</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">github_release</span><span class="p p-Indicator">,</span>
+<span class="nt">    organization</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgunsoftware</span><span class="p p-Indicator">,</span>
+<span class="nt">    repository</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-multi-pythonconsole</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v1.2.29</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:github_release?organization=shotgunsoftware&amp;repository=tk-multi-pythonconsole&amp;version=v1.2.29</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:github_release?organization=shotgunsoftware&amp;repository=tk-multi-pythonconsole&amp;version=v1.2.29</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -537,45 +537,45 @@ For production deploys, always use the <code class="docutils literal notranslate
 </div>
 <p>Basic example with a path intended to be used on the local operating system - the typical setup for doing
 personal development:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/app</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/app</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=/path/to/app</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=/path/to/app</span>
 </pre></div>
 </div>
 <p>When using a <code class="docutils literal notranslate"><span class="pre">path</span></code> descriptor in production, you can include paths to multiple different operating systems:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">path</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    windows_path</span><span class="p">:</span><span class="w"> </span><span class="nv">c</span><span class="p p-Indicator">:</span><span class="nv">\path\to\app</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    linux_path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/app</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    mac_path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/app</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">path</span><span class="p p-Indicator">,</span>
+<span class="nt">    windows_path</span><span class="p">:</span><span class="w"> </span><span class="nv">c</span><span class="p p-Indicator">:</span><span class="nv">\path\to\app</span><span class="p p-Indicator">,</span>
+<span class="nt">    linux_path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/app</span><span class="p p-Indicator">,</span>
+<span class="nt">    mac_path</span><span class="p">:</span><span class="w"> </span><span class="nv">/path/to/app</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c:\path\to\app</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c:\path\to\app</span>
 </pre></div>
 </div>
 <p>Environment variables can be included in paths:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">$</span><span class="p p-Indicator">{</span><span class="nv">HOME</span><span class="p p-Indicator">}</span><span class="nv">/path/to/app</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">$</span><span class="p p-Indicator">{</span><span class="nv">HOME</span><span class="p p-Indicator">}</span><span class="nv">/path/to/app</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%24%7BHOME%7D/path/to/app</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%24%7BHOME%7D/path/to/app</span>
 </pre></div>
 </div>
 <p>Home directory <cite>~</cite> syntax will be expanded:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">path</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">~/path/to/app</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">path</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">~/path/to/app</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -589,13 +589,13 @@ descriptor types. Although we recommend in those case to use the <a class="refer
 caches</span></a>, it may not always be desirable. In those cases, it is possible to
 package the application code alongside the <code class="docutils literal notranslate"><span class="pre">env</span></code> or <code class="docutils literal notranslate"><span class="pre">hooks</span></code> folder and refer to it with the
 <code class="docutils literal notranslate"><span class="pre">CONFIG_FOLDER</span></code> token:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">CONFIG_FOLDER</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">CONFIG_FOLDER</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BCONFIG_FOLDER%7D/dev/tk-nuke-myapp</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BCONFIG_FOLDER%7D/dev/tk-nuke-myapp</span>
 </pre></div>
 </div>
 <p>When using an installed pipeline configuration, this will refer to
@@ -614,13 +614,13 @@ sandbox relative to a pipeline configuration. If all developers in the studio sh
 where they for example have a <code class="docutils literal notranslate"><span class="pre">dev</span></code> folder inside their pipeline configuration dev sandboxes, it
 becomes easy to exchange environment configs. You can achieve this by using the special token
 <code class="docutils literal notranslate"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the local path to the pipeline configuration:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">PIPELINE_CONFIG</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span>
+<span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">PIPELINE_CONFIG</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -654,16 +654,16 @@ id based syntax you specify the ShotGrid entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
 <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.uploaded_config</span></code> and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgun</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    entity_type</span><span class="p">:</span><span class="w"> </span><span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span><span class="w">  </span><span class="c1"># entity type</span><span class="w"></span>
-<span class="nt">    id</span><span class="p">:</span><span class="w"> </span><span class="nv">111</span><span class="p p-Indicator">,</span><span class="w">                             </span><span class="c1"># shotgun entity id</span><span class="w"></span>
-<span class="nt">    field</span><span class="p">:</span><span class="w"> </span><span class="nv">uploaded_config</span><span class="p p-Indicator">,</span><span class="w">              </span><span class="c1"># attachment field where payload can be found</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">222</span><span class="w">                         </span><span class="c1"># attachment id of particular attachment</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgun</span><span class="p p-Indicator">,</span>
+<span class="nt">    entity_type</span><span class="p">:</span><span class="w"> </span><span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span><span class="w">  </span><span class="c1"># entity type</span>
+<span class="nt">    id</span><span class="p">:</span><span class="w"> </span><span class="nv">111</span><span class="p p-Indicator">,</span><span class="w">                             </span><span class="c1"># shotgun entity id</span>
+<span class="nt">    field</span><span class="p">:</span><span class="w"> </span><span class="nv">uploaded_config</span><span class="p p-Indicator">,</span><span class="w">              </span><span class="c1"># attachment field where payload can be found</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">222</span><span class="w">                         </span><span class="c1"># attachment id of particular attachment</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222</span>
 </pre></div>
 </div>
 <p>The version token above refers to the version of the attachment. Every time a new
@@ -673,17 +673,17 @@ attachment. It is also used to handle the underlying logic to understand what th
 latest version of an attachment is.</p>
 <p>In some workflows, typically where you follow name based naming conventions, the
 following syntax can be useful:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgun</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    entity_type</span><span class="p">:</span><span class="w"> </span><span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span><span class="w">  </span><span class="c1"># entity type</span><span class="w"></span>
-<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">Primary</span><span class="p p-Indicator">,</span><span class="w">                       </span><span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span><span class="w"></span>
-<span class="nt">    project_id</span><span class="p">:</span><span class="w"> </span><span class="nv">123</span><span class="p p-Indicator">,</span><span class="w">                     </span><span class="c1"># optional project id. If omitted, name is assumed to be unique.</span><span class="w"></span>
-<span class="nt">    field</span><span class="p">:</span><span class="w"> </span><span class="nv">uploaded_config</span><span class="p p-Indicator">,</span><span class="w">              </span><span class="c1"># attachment field where payload can be found</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">456</span><span class="w">                         </span><span class="c1"># attachment id of particular attachment</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgun</span><span class="p p-Indicator">,</span>
+<span class="nt">    entity_type</span><span class="p">:</span><span class="w"> </span><span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span><span class="w">  </span><span class="c1"># entity type</span>
+<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">Primary</span><span class="p p-Indicator">,</span><span class="w">                       </span><span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
+<span class="nt">    project_id</span><span class="p">:</span><span class="w"> </span><span class="nv">123</span><span class="p p-Indicator">,</span><span class="w">                     </span><span class="c1"># optional project id. If omitted, name is assumed to be unique.</span>
+<span class="nt">    field</span><span class="p">:</span><span class="w"> </span><span class="nv">uploaded_config</span><span class="p p-Indicator">,</span><span class="w">              </span><span class="c1"># attachment field where payload can be found</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">456</span><span class="w">                         </span><span class="c1"># attachment id of particular attachment</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456</span>
 </pre></div>
 </div>
 <p>Here, instead of specifying the entity id you can specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">project_id</span></code> field. The name
@@ -694,14 +694,14 @@ field will be translated into an appropriate ShotGrid name field, typically the 
 <p>Toolkit also provides a <code class="docutils literal notranslate"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
 and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
 location and no automated update checks will ever take place. The manual mode uses the following syntax:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="w"></span>
-<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">manual</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-nuke-publish</span><span class="p p-Indicator">,</span><span class="w"></span>
-<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.5.0</span><span class="w"></span>
-<span class="p p-Indicator">}</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">manual</span><span class="p p-Indicator">,</span>
+<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-nuke-publish</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.5.0</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:manual?name=tk-nuke-publish&amp;version=v0.5.0</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:manual?name=tk-nuke-publish&amp;version=v0.5.0</span>
 </pre></div>
 </div>
 <p>It will look for the code in a <code class="docutils literal notranslate"><span class="pre">manual</span></code> folder in the bundle cache, so with the example above, Toolkit would look
@@ -3460,7 +3460,7 @@ set self.__traceback__ to tb and return self.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2022, Autodesk
+        &copy; Copyright 2023, Autodesk
 
     </p>
   </div> 

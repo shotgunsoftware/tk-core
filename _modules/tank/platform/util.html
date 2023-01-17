@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.util &mdash; tk-core v0.20.14 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.20.16 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.14.<br>
+    <b>tk-core</b> v0.20.16.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -221,7 +221,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_current_bundle</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The current import bundle is set by bundle.import_module() and</span>
 <span class="sd">    and is a way to defuse the chicken/egg situation which happens</span>
 <span class="sd">    when trying to do an import_framework inside a module that is being</span>
@@ -276,7 +276,7 @@
 
 
 <div class="viewcode-block" id="change_context"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.change_context">[docs]</a><span class="k">def</span> <span class="nf">change_context</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Running change_context will attempt to change the context the engine and</span>
 <span class="sd">    its apps are running in on the fly. The current engine must accept the</span>
 <span class="sd">    context change, otherwise a full restart of the engine will be run instead.</span>
@@ -322,7 +322,7 @@
 
 
 <div class="viewcode-block" id="restart"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.restart">[docs]</a><span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="n">new_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Restarts the currently running Toolkit platform. This includes reloading all</span>
 <span class="sd">    configuration files as well as reloading the code for all apps and engines.</span>
 <span class="sd">    (The Core API, however, is not reloaded). The call does not take any parameters</span>
@@ -355,7 +355,7 @@
 
 
 <span class="k">def</span> <span class="nf">current_bundle</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the bundle (app, engine or framework) instance for the</span>
 <span class="sd">    app that the calling code is associated with. This is a special method, designed to</span>
 <span class="sd">    be used inside python modules that belong to apps, engines or frameworks.</span>
@@ -375,7 +375,7 @@
 
 
 <div class="viewcode-block" id="get_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_framework">[docs]</a><span class="k">def</span> <span class="nf">get_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method that returns a framework instance given a framework name.</span>
 
 <span class="sd">    This is a special method, designed to</span>
@@ -411,7 +411,7 @@
 
 
 <span class="k">def</span> <span class="nf">import_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method for using frameworks code inside of apps, engines and other frameworks.</span>
 
 <span class="sd">    This method is intended to replace an import statement.</span>
@@ -450,7 +450,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">module_name</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Standard sgtk logging access for python code that runs inside apps.</span>
 
 <span class="sd">    We recommend that you use this method for all logging that takes place</span>
@@ -488,7 +488,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2022, Autodesk
+        &copy; Copyright 2023, Autodesk
 
     </p>
   </div> 
