@@ -41,12 +41,13 @@ from tank.util import is_windows
 # something usually done by the Toolkit. The worry is that the import may fail
 # in the context of a DCC, but occur too early for the Toolkit logging to be
 # fully in place to record it.
+logger = LogManager.get_logger(__name__)
+
 try:
     from .ui.qt_abstraction import QtGui
-except Exception:
+except ImportError as e:
+    logger.debug("Cant import QtGui: %s" %e)
     QtGui = None
-
-logger = LogManager.get_logger(__name__)
 
 
 ###############################################################################################

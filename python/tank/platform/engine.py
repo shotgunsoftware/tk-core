@@ -188,7 +188,11 @@ class Engine(TankBundle):
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
-        from ..authentication.ui import qt_abstraction
+        try:
+            from ..authentication.ui import qt_abstraction
+        except ImportError:
+            class qt_abstraction:
+                pass
 
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
@@ -416,13 +420,13 @@ class Engine(TankBundle):
                 from .qt.busy_dialog import BusyDialog
                 from .qt import QtGui, QtCore
 
-            except:
+            except ImportError as e:
                 # QT import failed. This may be because someone has upgraded the core
                 # to the latest but are still running a earlier version of the
                 # Shotgun or Shell engine where the self.has_ui method is not
                 # correctly implemented. In that case, absorb the error and
                 # emit a log message
-                self.log_info("[%s] %s" % (title, details))
+                self.log_info("[%s] %s: %s" % (title, details, e))
 
             else:
                 # our qt import worked!
@@ -2152,7 +2156,7 @@ class Engine(TankBundle):
 
         :returns: dict
         """
-        base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
+        base = {"qt_core": None, "qt_gui": None, "dialog_base": None, "wrapper": None}
         try:
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
@@ -2162,11 +2166,11 @@ class Engine(TankBundle):
             else:
                 base["dialog_base"] = None
             base["wrapper"] = importer.binding
-        except:
+        except ImportError:
 
-            self.log_exception(
+            self.log_error(
                 "Default engine QT definition failed to find QT. "
-                "This may need to be subclassed."
+                "This may need to be subclassed"
             )
 
         return base
@@ -2182,7 +2186,11 @@ class Engine(TankBundle):
 
         :returns: A dictionary with all the modules, __version__ and __name__.
         """
-        return QtImporter(interface_version_requested=QtImporter.QT5).base
+        try:
+            return QtImporter(interface_version_requested=QtImporter.QT5).base
+        except ImportError as e:
+            self.log_debug(e)
+            return {}
 
     def __define_qt6_base(self):
         """

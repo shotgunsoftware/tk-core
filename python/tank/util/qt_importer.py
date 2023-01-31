@@ -26,7 +26,7 @@ class QtImporter(object):
     .. code-block:: python
         try:
             importer = QtImporter()
-        except Exception as e:
+        except ImportError as e:
             print "Couldn't import a Qt Wrapper: " % (e,)
         else:
             importer.QtGui.QApplication([])
@@ -42,13 +42,16 @@ class QtImporter(object):
 
         :param interface_version_request: Indicates which version of the Qt API is requested.
         """
-        (
-            self._binding_name,
-            self._binding_version,
-            self._binding,
-            self._modules,
-            self._qt_version_tuple,
-        ) = self._import_modules(interface_version_requested)
+        try:
+            (
+                self._binding_name,
+                self._binding_version,
+                self._binding,
+                self._modules,
+                self._qt_version_tuple,
+            ) = self._import_modules(interface_version_requested)
+        except ImportError:
+            raise
 
     @property
     def QtCore(self):
@@ -475,6 +478,4 @@ class QtImporter(object):
                 logger.debug("Cant import PyQt4: %s" % e)
                 pass
 
-        logger.debug("No Qt matching that interface was found.")
-
-        return (None, None, None, None, None)
+        raise ImportError("No Qt matching that interface was found.")
