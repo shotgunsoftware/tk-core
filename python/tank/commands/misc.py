@@ -70,8 +70,8 @@ class ClearCacheAction(Action):
                 log.debug("Deleting cache file %s..." % full_path)
                 try:
                     os.remove(full_path)
-                except:
-                    log.warning("Could not delete cache file '%s'!" % full_path)
+                except OSError as e:
+                    log.warning("Could not delete cache file '%s'! // %s" % (full_path, e))
 
         log.info("The SG menu cache has been cleared.")
 
@@ -137,7 +137,7 @@ class InteractiveShellAction(Action):
                 readline.parse_and_bind("bind ^I rl_complete")
             else:
                 readline.parse_and_bind("tab: complete")
-        except:
-            pass
+        except Exception as e:
+            msg.append(e)
 
         code.interact(banner="\n".join(msg), local=tk_locals)

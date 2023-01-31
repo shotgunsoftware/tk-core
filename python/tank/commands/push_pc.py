@@ -137,8 +137,8 @@ class PushPCAction(Action):
             raise TankError("Aborted by user.")
         try:
             target_pc_id = int(answer)
-        except:
-            raise TankError("Please enter a number!")
+        except ValueError as e:
+            raise TankError("Please enter a number! // %s" % e)
 
         self._run(
             log,
@@ -230,7 +230,7 @@ class PushPCAction(Action):
         for env_name in self.tk.pipeline_configuration.get_environments():
             try:
                 env = self.tk.pipeline_configuration.get_environment(env_name)
-            except Exception as e:
+            except TankError as e:
                 raise TankError(
                     "Failed to load environment %s,"
                     " run 'tank validate' for more details, got error: %s"

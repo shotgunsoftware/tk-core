@@ -35,17 +35,15 @@ def get_version():
             ["git", "describe", "--abbrev=0"], universal_newlines=True
         ).rstrip()
         return version_git
-    except:
-        # Blindly ignore problems, git might be not available, or the user could
-        # be installing from zip archive, etc...
-        pass
-
-    # If everything fails, return a sensible string highlighting that the version
-    # couldn't be extracted. If a version is not specified in `setup`, 0.0.0
-    # will be used by default, it seems better to have an explicit keyword for
-    # this case, following TK "dev" locator pattern and the convention described here:
-    # http://peak.telecommunity.com/DevCenter/setuptools#specifying-your-project-s-version
-    return "dev"
+    except Exception as e:
+        print(e)
+        print("Fallback on `dev` version")
+        # If everything fails, return a sensible string highlighting that the version
+        # couldn't be extracted. If a version is not specified in `setup`, 0.0.0
+        # will be used by default, it seems better to have an explicit keyword for
+        # this case, following TK "dev" locator pattern and the convention described here:
+        # http://peak.telecommunity.com/DevCenter/setuptools#specifying-your-project-s-version
+        return "dev"
 
 
 # Retrieve long description and licence from external files

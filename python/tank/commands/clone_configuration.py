@@ -280,7 +280,7 @@ def _do_clone(
         fh.write("# End of file.\n")
         fh.close()
 
-    except Exception as e:
+    except OSError as e:
         raise TankError("Could not create file system structure: %s" % e)
 
     # lastly, update the pipeline_configuration.yml file

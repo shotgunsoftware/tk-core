@@ -260,7 +260,8 @@ class IODescriptorBase(object):
         for version_num in version_numbers:
             try:
                 version_split = list(map(int, version_num[1:].split(".")))
-            except Exception:
+            except Exception as e:
+                log.debug(e)
                 # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
 

@@ -260,6 +260,7 @@ def get_core_path_for_config(pipeline_config_path):
         studio_folder = os.path.normpath(studio_folder)
         return studio_folder
     except Exception:
+        logger.debug("Cant get core path for config %s" % pipeline_config_path, exc_info=True)
         return None
 
 
@@ -472,6 +473,7 @@ def _get_version_from_manifest(info_yml_path):
         data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False) or {}
         data = str(data.get("version", "unknown"))
     except Exception:
+        logger.debug("Cant get version from manifest %s" % info_yml_path, exc_info=True)
         data = "unknown"
 
     return data

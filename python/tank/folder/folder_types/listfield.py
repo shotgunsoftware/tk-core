@@ -172,10 +172,10 @@ class ListField(Folder):
                     chunks = self._field_name.split(".")
                     entity_type = chunks[1]
                     field_name = chunks[2]
-                except:
+                except IndexError as e:
                     msg = (
-                        "Folder creation error: Cannot resolve the field expression %s."
-                        % self._field_name
+                        "Folder creation error: Cannot resolve the field expression %s: %s"
+                        % (self._field_name, e)
                     )
                     raise TankError(msg)
 

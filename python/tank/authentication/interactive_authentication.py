@@ -68,7 +68,8 @@ def _get_current_os_user():
 
             pwd_entry = pwd.getpwuid(os.geteuid())
             return pwd_entry[0]
-        except:
+        except Exception as e:
+            logger.debug("Cant get current user: %s" %e)
             return None
 
 

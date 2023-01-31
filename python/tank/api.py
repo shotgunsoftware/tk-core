@@ -282,7 +282,8 @@ class Sgtk(object):
             data = str(data.get("documentation_url"))
             if data == "":
                 data = None
-        except Exception:
+        except Exception as e:
+            log.debug("Cant get documentation url: %s" %e)
             data = None
 
         return data

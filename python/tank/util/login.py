@@ -14,11 +14,12 @@ Helper methods that extracts information about the current user.
 """
 
 import os
-import sys
 
 from . import constants
 from .platforms import is_windows
+from .. import LogManager
 
+log = LogManager.get_logger(__name__)
 
 def get_login_name():
     """
@@ -34,7 +35,8 @@ def get_login_name():
 
             pwd_entry = pwd.getpwuid(os.geteuid())
             return pwd_entry[0]
-        except:
+        except Exception as e:
+            log.debug("Cant get login name: %s" % e)
             return None
 
 

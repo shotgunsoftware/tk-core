@@ -437,14 +437,16 @@ class QtImporter(object):
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PySide2 as PySide: %s" % e)
                 pass
         elif interface_version_requested == self.QT5:
             try:
                 pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")
                 return pyside2
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PySide2: %s" % e)
                 pass
         elif interface_version_requested == self.QT6:
             # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
@@ -459,7 +461,8 @@ class QtImporter(object):
                 pyside = self._import_pyside()
                 logger.debug("Imported PySide1.")
                 return pyside
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PySide1: %s" % e)
                 pass
 
         # Now try PyQt4
@@ -468,7 +471,8 @@ class QtImporter(object):
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
                 return pyqt
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PyQt4: %s" % e)
                 pass
 
         logger.debug("No Qt matching that interface was found.")
