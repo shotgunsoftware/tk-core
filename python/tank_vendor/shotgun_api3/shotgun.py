@@ -37,6 +37,7 @@ from .lib.six.moves import map
 
 from .lib.six.moves import http_cookiejar  # used for attachment upload
 import datetime
+import errno
 import logging
 import uuid                                # used for attachment upload
 import os
@@ -4090,7 +4091,14 @@ class Shotgun(object):
                     if e.code == 503:
                         raise ShotgunError("Got a 503 response when uploading to %s: %s" % (storage_url, e))
                     raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
-
+            except urllib.error.URLError as e:
+                if e.errno == errno.ETIMEDOUT and attempt != max_attempts:
+                    time.sleep(float(attempt) * backoff)
+                    # If there is a timeout we will only allow one retry
+                    attempt = max_attempts
+                    continue
+                
+                raise ShotgunError("Error when uploading to %s: %s" % (storage_url, e))
             else:
                 break
 
