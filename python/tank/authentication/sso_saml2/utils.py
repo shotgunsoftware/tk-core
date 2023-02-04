@@ -115,6 +115,26 @@ def _get_user_authentication_method(url, http_proxy=None):
     return user_authentication_method
 
 
+def is_unified_login_flow2_enabled_on_site(url, http_proxy=None):
+    """
+    Check to see if the web site uses the unified login flow 2.
+
+    This setting appeared in the Shotgun 8.50 serie, being rarely disabled.
+
+    :param url:            Url of the site to query.
+    :param http_proxy:     HTTP proxy to use, if any.
+
+    :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
+    """
+    infos = _get_site_infos(url, http_proxy)
+    if "unified_login_flow_enabled2" in infos:
+        get_logger().debug("unified_login_flow_enabled for {u}: {v}".format(
+            u = url,
+            v = infos["unified_login_flow_enabled2"],
+        ))
+        return infos["unified_login_flow_enabled2"]
+    return False
+
 # pylint: disable=invalid-name
 def is_unified_login_flow_enabled_on_site(url, http_proxy=None):
     """

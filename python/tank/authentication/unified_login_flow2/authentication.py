@@ -134,6 +134,7 @@ def process(
     logger.debug('Request approved')
     try:
         assert(response.json['sessionToken'])
+        assert(response.json['userLogin'])
     except KeyError:
         raise errors.AuthenticationError("proto error")
     except AssertionError:
@@ -143,7 +144,7 @@ def process(
 
     return (
         sg_url,
-        "john", # TODO: remove hardcoded
+        response.json['userLogin'],
         response.json['sessionToken'],
         None, # Extra metadata - useless here
     )
