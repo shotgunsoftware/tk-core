@@ -159,8 +159,9 @@ def _try_load_yaml_file(file_path):
     if not os.path.exists(file_path):
         logger.debug("Yaml file missing: %s" % file_path)
         return {}
+
+    config_file = None
     try:
-        config_file = None
         # Open the file and read it.
         config_file = open(file_path, "r")
         result = yaml.load(config_file, Loader=yaml.FullLoader)
