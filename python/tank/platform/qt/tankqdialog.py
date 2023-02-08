@@ -62,13 +62,11 @@ class TankQDialog(TankDialogBase):
 
         widgets = [widget]
         for w in widgets:
-
             # look through class hierarchy - can't use isinstance here
             # because we don't know which module the BrowserWidget would
             # be from!
             cls_type = None
             for cls in inspect.getmro(type(w)):
-
                 # stop if we've previously checked this class:
                 cls_type = checked_classes.get(cls, None)
                 if cls_type != None:
@@ -225,7 +223,6 @@ class TankQDialog(TankDialogBase):
         self.ui.top_group.setVisible(show_tk_title_bar)
 
         if show_tk_title_bar:
-
             ########################################################################################
             # set up the title bar and configuration panel
 
@@ -299,44 +296,43 @@ class TankQDialog(TankDialogBase):
                 if p is None:
                     formatted = "Undefined"
                 elif show_type:
-                    formatted = "%s %s" % (six.ensure_str(p.get("type", "None")),
-                                           six.ensure_str(p.get("name", "None")))
+                    formatted = "{} {}".format(p.get("type"), p.get("name"))
                 else:
-                    formatted = "%s" % six.ensure_str(p.get("name", "None"))
+                    formatted = "{}".format(p.get("name"))
 
                 return formatted
 
             tooltip = ""
             tooltip += "<b>Your Current Context</b>"
             tooltip += "<hr>"
-            tooltip += "<b>Project</b>: %s<br>" % _format_context_property(
-                self._bundle.context.project
+            tooltip += "<b>Project</b>: {}<br>".format(
+                _format_context_property(self._bundle.context.project)
             )
-            tooltip += "<b>Entity</b>: %s<br>" % _format_context_property(
-                self._bundle.context.entity, True
+            tooltip += "<b>Entity</b>: {}<br>".format(
+                _format_context_property(self._bundle.context.entity, True)
             )
-            tooltip += "<b>Pipeline Step</b>: %s<br>" % _format_context_property(
-                self._bundle.context.step
+            tooltip += "<b>Pipeline Step</b>: {}<br>".format(
+                _format_context_property(self._bundle.context.step)
             )
-            tooltip += "<b>Task</b>: %s<br>" % _format_context_property(
-                self._bundle.context.task
+            tooltip += "<b>Task</b>: {}<br>".format(
+                _format_context_property(self._bundle.context.task)
             )
-            tooltip += "<b>User</b>: %s<br>" % _format_context_property(
-                self._bundle.context.user
+            tooltip += "<b>User</b>: {}<br>".format(
+                _format_context_property(self._bundle.context.user)
             )
             for e in self._bundle.context.additional_entities:
-                tooltip += "<b>Additional Item</b>: %s<br>" % _format_context_property(
-                    e, True
+                tooltip += "<b>Additional Item</b>: {}<br>".format(
+                    _format_context_property(e, True)
                 )
 
             tooltip += "<br>"
             tooltip += "<b>System Information</b>"
             tooltip += "<hr>"
-            tooltip += (
-                "<b>SG Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
+            tooltip += "<b>SG Pipeline Toolkit Version: </b>{}<br>".format(
+                self._bundle.tank.version
             )
-            tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
-            tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()
+            tooltip += "<b>Pipeline Config: </b>{}<br>".format(pc.get_name())
+            tooltip += "<b>Config Path: </b>{}<br>".format(pc.get_path())
 
             self.ui.lbl_context.setToolTip(tooltip)
 
@@ -621,7 +617,6 @@ class TankQDialog(TankDialogBase):
         Toggle the visibility of the info panel, animating the transition.
         """
         if self._info_mode:
-
             self.setUpdatesEnabled(False)
             try:
                 # activate page 1 again - note that this will reset all positions!
@@ -677,7 +672,6 @@ class TankQDialog(TankDialogBase):
             self.grp.start()
 
         else:
-
             # activate page 2 - note that this will reset all positions!
             self.ui.stackedWidget.setCurrentIndex(1)
             # this hides page page 1, but let's show it again
@@ -748,7 +742,6 @@ class TankQDialog(TankDialogBase):
         # launch one window for each location on disk
         paths = self._bundle.context.filesystem_locations
         for disk_location in paths:
-
             url = QtCore.QUrl.fromLocalFile(disk_location)
             status = QtGui.QDesktopServices.openUrl(url)
 
@@ -773,7 +766,6 @@ class TankQDialog(TankDialogBase):
             self._bundle.log_error(e)
 
         try:
-
             # now restart the engine
             current_context = self._bundle.context
             current_engine_name = self._bundle.engine.name
