@@ -63,3 +63,12 @@ Specifies your local storage root on different operating systems. See `Resolving
 ``SHOTGUN_PATH_<WINDOWS|MAC|LINUX>``
 ------------------------------------
 Resolves a ``file://`` URL on different operating systems. See `Resolving file URLS <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#resolving-file-urls>`_.
+
+
+Thumbnail display for ShotGrid Desktop
+======================================
+
+``SGTK_PROJ_THUMB_OLD``
+-----------------------
+
+When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in ShotGrid Desktop <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#configuring-the-thumbnail-display-in-shotgrid-desktop>`_
