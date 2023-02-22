@@ -49,3 +49,6 @@ htmlcov
 
 # venv
 venv
+
+# VSCode
+.vscode
