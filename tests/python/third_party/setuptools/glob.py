@@ -3,14 +3,12 @@ Filename globbing utility. Mostly a copy of `glob` from Python 3.5.
 
 Changes include:
  * `yield from` and PEP3102 `*` removed.
- * `bytes` changed to `six.binary_type`.
  * Hidden files are not ignored.
 """
 
 import os
 import re
 import fnmatch
-from setuptools.extern.six import binary_type
 
 __all__ = ["glob", "iglob", "escape"]
 
@@ -49,6 +47,8 @@ def iglob(pathname, recursive=False):
 
 def _iglob(pathname, recursive):
     dirname, basename = os.path.split(pathname)
+    glob_in_dir = glob2 if recursive and _isrecursive(basename) else glob1
+
     if not has_magic(pathname):
         if basename:
             if os.path.lexists(pathname):
@@ -58,13 +58,9 @@ def _iglob(pathname, recursive):
             if os.path.isdir(dirname):
                 yield pathname
         return
+
     if not dirname:
-        if recursive and _isrecursive(basename):
-            for x in glob2(dirname, basename):
-                yield x
-        else:
-            for x in glob1(dirname, basename):
-                yield x
+        yield from glob_in_dir(dirname, basename)
         return
     # `os.path.split()` returns the argument itself as a dirname if it is a
     # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
@@ -73,12 +69,7 @@ def _iglob(pathname, recursive):
         dirs = _iglob(dirname, recursive)
     else:
         dirs = [dirname]
-    if has_magic(basename):
-        if recursive and _isrecursive(basename):
-            glob_in_dir = glob2
-        else:
-            glob_in_dir = glob1
-    else:
+    if not has_magic(basename):
         glob_in_dir = glob0
     for dirname in dirs:
         for name in glob_in_dir(dirname, basename):
@@ -92,7 +83,7 @@ def _iglob(pathname, recursive):
 
 def glob1(dirname, pattern):
     if not dirname:
-        if isinstance(pattern, binary_type):
+        if isinstance(pattern, bytes):
             dirname = os.curdir.encode('ASCII')
         else:
             dirname = os.curdir
@@ -129,8 +120,8 @@ def glob2(dirname, pattern):
 # Recursively yields relative pathnames inside a literal directory.
 def _rlistdir(dirname):
     if not dirname:
-        if isinstance(dirname, binary_type):
-            dirname = binary_type(os.curdir, 'ASCII')
+        if isinstance(dirname, bytes):
+            dirname = os.curdir.encode('ASCII')
         else:
             dirname = os.curdir
     try:
@@ -149,7 +140,7 @@ magic_check_bytes = re.compile(b'([*?[])')
 
 
 def has_magic(s):
-    if isinstance(s, binary_type):
+    if isinstance(s, bytes):
         match = magic_check_bytes.search(s)
     else:
         match = magic_check.search(s)
@@ -157,7 +148,7 @@ def has_magic(s):
 
 
 def _isrecursive(pattern):
-    if isinstance(pattern, binary_type):
+    if isinstance(pattern, bytes):
         return pattern == b'**'
     else:
         return pattern == '**'
@@ -169,7 +160,7 @@ def escape(pathname):
     # Escaping is done by wrapping any of "*?[" between square brackets.
     # Metacharacters do not work in the drive part and shouldn't be escaped.
     drive, pathname = os.path.splitdrive(pathname)
-    if isinstance(pathname, binary_type):
+    if isinstance(pathname, bytes):
         pathname = magic_check_bytes.sub(br'[\1]', pathname)
     else:
         pathname = magic_check.sub(r'[\1]', pathname)

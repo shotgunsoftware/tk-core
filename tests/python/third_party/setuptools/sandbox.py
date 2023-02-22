@@ -8,11 +8,11 @@ import re
 import contextlib
 import pickle
 import textwrap
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import builtins, map
+import builtins
 
 import pkg_resources
+from distutils.errors import DistutilsError
+from pkg_resources import working_set
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
@@ -23,11 +23,13 @@ try:
 except NameError:
     _file = None
 _open = open
-from distutils.errors import DistutilsError
-from pkg_resources import working_set
+
 
 __all__ = [
-    "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
+    "AbstractSandbox",
+    "DirectorySandbox",
+    "SandboxViolation",
+    "run_setup",
 ]
 
 
@@ -38,10 +40,6 @@ def _execfile(filename, globals, locals=None):
     mode = 'rb'
     with open(filename, mode) as stream:
         script = stream.read()
-    # compile() function in Python 2.6 and 3.1 requires LF line endings.
-    if sys.version_info[:2] < (2, 7) or sys.version_info[:2] >= (3, 0) and sys.version_info[:2] < (3, 2):
-        script = script.replace(b'\r\n', b'\n')
-        script = script.replace(b'\r', b'\n')
     if locals is None:
         locals = globals
     code = compile(script, filename, 'exec')
@@ -73,8 +71,7 @@ def override_temp(replacement):
     """
     Monkey-patch tempfile.tempdir with replacement, ensuring it exists
     """
-    if not os.path.isdir(replacement):
-        os.makedirs(replacement)
+    os.makedirs(replacement, exist_ok=True)
 
     saved = tempfile.tempdir
 
@@ -112,6 +109,7 @@ class UnpickleableException(Exception):
         except Exception:
             # get UnpickleableException inside the sandbox
             from setuptools.sandbox import UnpickleableException as cls
+
             return cls.dump(cls, cls(repr(exc)))
 
 
@@ -142,7 +140,7 @@ class ExceptionSaver:
             return
 
         type, exc = map(pickle.loads, self._saved)
-        six.reraise(type, exc, self._tb)
+        raise exc.with_traceback(self._tb)
 
 
 @contextlib.contextmanager
@@ -160,7 +158,8 @@ def save_modules():
     sys.modules.update(saved)
     # remove any modules imported since
     del_modules = (
-        mod_name for mod_name in sys.modules
+        mod_name
+        for mod_name in sys.modules
         if mod_name not in saved
         # exclude any encodings modules. See #285
         and not mod_name.startswith('encodings.')
@@ -189,14 +188,23 @@ def setup_context(setup_dir):
     temp_dir = os.path.join(setup_dir, 'temp')
     with save_pkg_resources_state():
         with save_modules():
-            hide_setuptools()
             with save_path():
+                hide_setuptools()
                 with save_argv():
                     with override_temp(temp_dir):
                         with pushd(setup_dir):
                             # ensure setuptools commands are available
                             __import__('setuptools')
                             yield
+
+
+_MODULES_TO_HIDE = {
+    'setuptools',
+    'distutils',
+    'pkg_resources',
+    'Cython',
+    '_distutils_hack',
+}
 
 
 def _needs_hiding(mod_name):
@@ -216,8 +224,8 @@ def _needs_hiding(mod_name):
     >>> _needs_hiding('Cython')
     True
     """
-    pattern = re.compile(r'(setuptools|pkg_resources|distutils|Cython)(\.|$)')
-    return bool(pattern.match(mod_name))
+    base_module = mod_name.split('.', 1)[0]
+    return base_module in _MODULES_TO_HIDE
 
 
 def hide_setuptools():
@@ -227,6 +235,10 @@ def hide_setuptools():
     necessary to avoid issues such as #315 where setuptools upgrading itself
     would fail to find a function declared in the metadata.
     """
+    _distutils_hack = sys.modules.get('_distutils_hack', None)
+    if _distutils_hack is not None:
+        _distutils_hack.remove_shim()
+
     modules = filter(_needs_hiding, sys.modules)
     _clear_modules(modules)
 
@@ -242,15 +254,8 @@ def run_setup(setup_script, args):
             working_set.__init__()
             working_set.callbacks.append(lambda dist: dist.activate())
 
-            # __file__ should be a byte string on Python 2 (#712)
-            dunder_file = (
-                setup_script
-                if isinstance(setup_script, str) else
-                setup_script.encode(sys.getfilesystemencoding())
-            )
-
             with DirectorySandbox(setup_dir):
-                ns = dict(__file__=dunder_file, __name__='__main__')
+                ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
         except SystemExit as v:
             if v.args and v.args[0]:
@@ -265,7 +270,8 @@ class AbstractSandbox:
 
     def __init__(self):
         self._attrs = [
-            name for name in dir(_os)
+            name
+            for name in dir(_os)
             if not name.startswith('_') and hasattr(self, name)
         ]
 
@@ -320,9 +326,25 @@ class AbstractSandbox:
         _file = _mk_single_path_wrapper('file', _file)
     _open = _mk_single_path_wrapper('open', _open)
     for name in [
-        "stat", "listdir", "chdir", "open", "chmod", "chown", "mkdir",
-        "remove", "unlink", "rmdir", "utime", "lchown", "chroot", "lstat",
-        "startfile", "mkfifo", "mknod", "pathconf", "access"
+        "stat",
+        "listdir",
+        "chdir",
+        "open",
+        "chmod",
+        "chown",
+        "mkdir",
+        "remove",
+        "unlink",
+        "rmdir",
+        "utime",
+        "lchown",
+        "chroot",
+        "lstat",
+        "startfile",
+        "mkfifo",
+        "mknod",
+        "pathconf",
+        "access",
     ]:
         if hasattr(_os, name):
             locals()[name] = _mk_single_path_wrapper(name)
@@ -373,12 +395,12 @@ class AbstractSandbox:
         """Called for path pairs like rename, link, and symlink operations"""
         return (
             self._remap_input(operation + '-from', src, *args, **kw),
-            self._remap_input(operation + '-to', dst, *args, **kw)
+            self._remap_input(operation + '-to', dst, *args, **kw),
         )
 
 
 if hasattr(os, 'devnull'):
-    _EXCEPTIONS = [os.devnull,]
+    _EXCEPTIONS = [os.devnull]
 else:
     _EXCEPTIONS = []
 
@@ -386,28 +408,38 @@ else:
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
 
-    write_ops = dict.fromkeys([
-        "open", "chmod", "chown", "mkdir", "remove", "unlink", "rmdir",
-        "utime", "lchown", "chroot", "mkfifo", "mknod", "tempnam",
-    ])
+    write_ops = dict.fromkeys(
+        [
+            "open",
+            "chmod",
+            "chown",
+            "mkdir",
+            "remove",
+            "unlink",
+            "rmdir",
+            "utime",
+            "lchown",
+            "chroot",
+            "mkfifo",
+            "mknod",
+            "tempnam",
+        ]
+    )
 
-    _exception_patterns = [
-        # Allow lib2to3 to attempt to save a pickled grammar object (#121)
-        r'.*lib2to3.*\.pickle$',
-    ]
+    _exception_patterns = []
     "exempt writing to paths that match the pattern"
 
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox, '')
         self._exceptions = [
-            os.path.normcase(os.path.realpath(path))
-            for path in exceptions
+            os.path.normcase(os.path.realpath(path)) for path in exceptions
         ]
         AbstractSandbox.__init__(self)
 
     def _violation(self, operation, *args, **kw):
         from setuptools.sandbox import SandboxViolation
+
         raise SandboxViolation(operation, args, kw)
 
     if _file:
@@ -440,12 +472,10 @@ class DirectorySandbox(AbstractSandbox):
 
     def _exempted(self, filepath):
         start_matches = (
-            filepath.startswith(exception)
-            for exception in self._exceptions
+            filepath.startswith(exception) for exception in self._exceptions
         )
         pattern_matches = (
-            re.match(pattern, filepath)
-            for pattern in self._exception_patterns
+            re.match(pattern, filepath) for pattern in self._exception_patterns
         )
         candidates = itertools.chain(start_matches, pattern_matches)
         return any(candidates)
@@ -470,15 +500,19 @@ class DirectorySandbox(AbstractSandbox):
 
 
 WRITE_FLAGS = functools.reduce(
-    operator.or_, [getattr(_os, a, 0) for a in
-        "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
+    operator.or_,
+    [
+        getattr(_os, a, 0)
+        for a in "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()
+    ],
 )
 
 
 class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
 
-    tmpl = textwrap.dedent("""
+    tmpl = textwrap.dedent(
+        """
         SandboxViolation: {cmd}{args!r} {kwargs}
 
         The package setup script has attempted to modify files on your system
@@ -488,7 +522,8 @@ class SandboxViolation(DistutilsError):
         support alternate installation locations even if you run its setup
         script by hand.  Please inform the package's author and the EasyInstall
         maintainers to find out if a fix or workaround is available.
-        """).lstrip()
+        """
+    ).lstrip()
 
     def __str__(self):
         cmd, args, kwargs = self.args
