@@ -37,6 +37,7 @@ from .sso_saml2 import (
     is_autodesk_identity_enabled_on_site,
     is_sso_enabled_on_site,
     is_unified_login_flow_enabled_on_site,
+    is_unified_login_flow2_enabled_on_site,
 )
 from .. import LogManager
 
@@ -82,6 +83,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         self._url_to_test = ""
         self._sso_enabled = False
         self._unified_login_flow_enabled = False
+        self._unified_login_flow2_enabled = False
         self._http_proxy = http_proxy
 
     @property
@@ -98,6 +100,11 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
     def unified_login_flow_enabled(self):
         """returns: `True` if ULF is enabled, `False` otherwise."""
         return self._unified_login_flow_enabled
+
+    @property
+    def unified_login_flow2_enabled(self):
+        """returns: `True` if ULF2 is enabled, `False` otherwise."""
+        return self._unified_login_flow2_enabled
 
     @property
     def url_to_test(self):
@@ -119,6 +126,10 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
             self.url_to_test, self._http_proxy
         )
         self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(
+            self.url_to_test, self._http_proxy
+        )
+
+        self._unified_login_flow2_enabled = is_unified_login_flow2_enabled_on_site(
             self.url_to_test, self._http_proxy
         )
 
@@ -181,6 +192,7 @@ class LoginDialog(QtGui.QDialog):
         self._is_session_renewal = is_session_renewal
         self._session_metadata = session_metadata
         self._use_web = False
+        self._use_local_browser = False
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -248,6 +260,25 @@ class LoginDialog(QtGui.QDialog):
 
         # Select the right first page.
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
+
+        # Initialize Options menu
+        menu = QtGui.QMenu(self.ui.button_options)
+        self.ui.button_options.setMenu(menu)
+        self.ui.button_options.setVisible(False)
+
+        self.menu_action_ulf2 = QtGui.QAction("Authenticate with your web browser", menu)
+        self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
+        menu.addAction(self.menu_action_ulf2)
+
+        self.menu_action_ulf = QtGui.QAction("Authenticate on the web (legacy)", menu)
+        self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
+        menu.addAction(self.menu_action_ulf)
+
+        self.menu_action_legacy = QtGui.QAction("Authenticate with login credentials", menu)
+        self.menu_action_legacy.triggered.connect(self._menu_activated_action_login_creds)
+        menu.addAction(self.menu_action_legacy)
+
+        menu.addAction("Forgot your password?", self._link_activated)
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
@@ -390,7 +421,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.sender().setText(self.sender().text().strip())
 
-    def _link_activated(self, site):
+    def _link_activated(self, site=None):
         """
         Clicked when the user presses on the "Forgot your password?" link.
         """
@@ -409,7 +440,7 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_web(self):
+    def _toggle_web(self, menu_action=None):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
@@ -417,6 +448,7 @@ class LoginDialog(QtGui.QDialog):
         # are showing and what was detected on the potential target site.
         # With a SSO site, we have no choice but to use the web to login.
         use_web = self._query_task.sso_enabled
+        use_local_browser = False
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -426,7 +458,6 @@ class LoginDialog(QtGui.QDialog):
             logger.info("Using the standard login dialog with the ShotGrid Desktop")
         else:
             if _is_running_in_desktop():
-                logger.info("Using the Web Login with the ShotGrid Desktop")
                 use_web = use_web or self._query_task.autodesk_identity_enabled
 
             # If we have full support for Web-based login, or if we enable it in our
@@ -434,20 +465,77 @@ class LoginDialog(QtGui.QDialog):
             if get_shotgun_authenticator_support_web_login():
                 use_web = use_web or self._query_task.unified_login_flow_enabled
 
+        if self._query_task.unified_login_flow2_enabled:
+            if menu_action:
+                # Selecting requested mode (credentials, web_legacy or unified_login_flow2)
+                if menu_action == "unified_login_flow2":
+                    use_local_browser = True
+            elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+                # Selecting legacy auth by default
+                pass
+            else:
+                # Select Unified Login Flow 2
+                use_local_browser = True
+
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.
         # In web-based authentication, the web form is in charge of obtaining
         # and validating the user credentials.
-        if self._use_web != use_web:
-            self._use_web = not self._use_web
-            if self._use_web:
-                self.ui.message.setText("Sign in using the Web.")
-                self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
-            else:
-                self.ui.message.setText("Please enter your credentials.")
 
-            self.ui.login.setVisible(not self._use_web)
-            self.ui.password.setVisible(not self._use_web)
+        if use_local_browser:
+            self._use_web = False
+            if self._use_local_browser:
+                return # nothing to do
+
+            self._use_local_browser = not self._use_local_browser
+
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+            self.ui.login.setVisible(False)
+            self.ui.password.setVisible(False)
+            self.ui.message.setText(
+                "Sign in using your local web browser."
+                "\n\n"
+                "By clicking on the Sign-in button, your local web browser "
+                "will open and you will have to review the authentication "
+                "request from the ShotGrid site."
+            )
+        elif use_web:
+            logger.info("Using the Web Login with the ShotGrid Desktop")
+            self._use_local_browser = False
+            if self._use_web:
+                return # nothing to do
+
+            self._use_web = not self._use_web
+
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+            self.ui.login.setVisible(False)
+            self.ui.password.setVisible(False)
+            self.ui.message.setText("Sign in using the Web.")
+        else:
+            self._use_web = False
+            self._use_local_browser = False
+
+            self.ui.login.setVisible(True)
+            self.ui.password.setVisible(True)
+            self.ui.message.setText("Please enter your credentials.")
+
+        self.ui.forgot_password_link.setVisible(not self._query_task.unified_login_flow2_enabled)
+        self.ui.button_options.setVisible(self._query_task.unified_login_flow2_enabled)
+        self.menu_action_ulf.setVisible(use_web)
+        self.menu_action_legacy.setVisible(not use_web)
+
+        self.menu_action_ulf2.setEnabled(not self._use_local_browser)
+        self.menu_action_ulf.setEnabled(self._use_local_browser)
+        self.menu_action_legacy.setEnabled(self._use_local_browser)
+
+    def _menu_activated_action_ulf2(self):
+        self._toggle_web(menu_action="unified_login_flow2")
+
+    def _menu_activated_action_web_legacy(self):
+        self._toggle_web(menu_action="web_legacy")
+
+    def _menu_activated_action_login_creds(self):
+        self._toggle_web(menu_action="credentials")
 
     def _current_page_changed(self, index):
         """
@@ -580,7 +668,7 @@ class LoginDialog(QtGui.QDialog):
             site = "https" + site[4:]
         self.ui.site.setEditText(site)
 
-        if not self._use_web:
+        if not self._use_web and not self._use_local_browser:
             if len(login) == 0:
                 self._set_error_message(
                     self.ui.message, "Please enter your login name."
@@ -615,7 +703,9 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self._use_web and self._sso_saml2:
+            if self._use_local_browser:
+                raise AuthenticationError("Not yet implemented!")
+            elif self._use_web and self._sso_saml2:
                 profile_location = LocalFileStorageManager.get_site_root(
                     site, LocalFileStorageManager.CACHE
                 )
