@@ -12,7 +12,12 @@ these are not really related, formatting could be factored out as
 a separate base
 """
 
-from collections import MutableSet
+try:
+    # Python >=3.3
+    from collections.abc import MutableSet
+except ImportError:
+    # Python <3.3
+    from collections import MutableSet
 
 from .compat import ordereddict
 
