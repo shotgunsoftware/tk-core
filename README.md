@@ -1,4 +1,4 @@
-[![VFX Platform](https://img.shields.io/badge/vfxplatform-2022-yellow.svg)](http://www.vfxplatform.com/)
+[![VFX Platform](https://img.shields.io/badge/vfxplatform-2020%20%7C%20202022-yellow.svg)](http://www.vfxplatform.com/)
 [![Python 3.7 3.9](https://img.shields.io/badge/python-3.7%20%7C%203.9-blue.svg)](https://www.python.org/)
 [![Reference Documentation](http://img.shields.io/badge/doc-reference-blue.svg)](http://developer.shotgridsoftware.com/tk-core)
 [![Build Status](https://dev.azure.com/shotgun-ecosystem/Toolkit/_apis/build/status/shotgunsoftware.tk-core?branchName=master)](https://dev.azure.com/shotgun-ecosystem/Toolkit/_build/latest?definitionId=38&branchName=master)
