@@ -17,3 +17,6 @@
 # The git executable expects packed-refs to always have LF line endings, even on
 # Windows.
 **/packed-refs text eol=lf
+
+# We don't want CRLF conversion or any automatic change in there
+tests/python/third_party/** binary
