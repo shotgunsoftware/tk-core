@@ -42,12 +42,20 @@ $PYTHON - <<EOF
 import sys
 sys.path.insert(0, 'third_party')
 
+import importlib
+
 def main():
     # Ensures other modules required by the unit tests work!
     try:
-        import mock
-        import unittest2
-        import coverage
+        for mod_name in [
+            "mock",
+            "unittest2",
+            "coverage",
+        ]:
+            mod_imported = importlib.import_module(mod_name)
+            if not mod_imported.__file__.startswith("third_party/"):
+                raise Exception(f"Require to run in a Python environment not having the {mod_name} already installed")
+
         print("Upgrade successful!")
         print()
         print("Run 'git add third_party' to add changes made to the repo to the next commit.")
