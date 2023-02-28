@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -64,4 +64,5 @@ def main():
         print("Run 'git add third_party' to add changes made to the repo to the next commit.")
     except Exception as e:
         print("Upgrade failed! %s" % e)
+        sys.exit(1)
 main()
