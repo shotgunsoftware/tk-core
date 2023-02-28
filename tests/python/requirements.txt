@@ -11,6 +11,9 @@
 # This file enumerates the various third party libraries Toolkit uses for unit testing.
 # They are committed inside this repo. See README.md in this folder for details.
 
+# Required for the --with-coverage option
+coverage==7.1.0
+
 # Use to temporarily replace part of the API or mock return vaues.
 mock==2.0.0
 
