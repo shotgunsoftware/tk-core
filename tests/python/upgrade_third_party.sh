@@ -11,13 +11,13 @@
 
 # Read pip and python location from the command-line or use defaults.
 if [ -z "$1" ]; then
-    export PIP=pip2.6
+    export PIP=pip3.7
 else
     export PIP=$1
 fi
 
 if [ -z "$2" ]; then
-    export PYTHON=python2.6
+    export PYTHON=python3.7
 else
     export PYTHON=$2
 fi
@@ -39,21 +39,10 @@ echo "==========================="
 echo Launching $PYTHON
 $PYTHON - <<EOF
 
-from __future__ import print_function
-
 import sys
 sys.path.insert(0, 'third_party')
 
 def main():
-    # Ensures the ordereddict module was installed, which is required to run the tests on Python
-    # 2.6
-    try:
-        import ordereddict
-    except ImportError:
-        print("Upgrade failed because 'ordereddict' could not be imported.")
-        print("Please run this script from Python 2.6.")
-        return
-
     # Ensures other modules required by the unit tests work!
     try:
         import mock
