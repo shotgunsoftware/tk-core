@@ -32,7 +32,7 @@ Indicates the default Autodesk Identity account to use to pre-fill the login win
 
 ``TK_SHOTGRID_SSO_DOMAIN``
 --------------------------
-When the user's Autodesk Identity account is on an email domain that uses SSO for authentication, setting this will allow the bypass of the initial Autodesk Identity window. This saves the user from entering their email twice. Has no other use or side-effects.
+When the user's Autodesk Identity account is on an email domain that uses SSO for authentication, setting this variable will allow the bypass of the initial Autodesk Identity window. This saves the user from entering their email twice. The expected format of this variable should be an email domain, like `gmail.com`, `mystudio.com`, `autodesk.com`, etc.. Other than that, this variable has no other use or side-effects.
 
 .. _environment_variables_bundle_cache:
 
