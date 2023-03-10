@@ -632,13 +632,13 @@ a bundle, always create a new version number.</p>
 <span class="c1"># By using sgtk.get_hook_baseclass instead of deriving from sgtk.Hook, we&#39;ll be</span>
 <span class="c1"># getting the default hook&#39;s init method for free.</span>
 <span class="k">class</span> <span class="nc">Bootstrap</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This hook allows to download certain bundles from Shotgun instead of</span>
 <span class="sd">    official source for the bundle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if the descriptor has been cached in Shotgun.</span>
 
 <span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
@@ -652,7 +652,7 @@ a bundle, always create a new version number.</p>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_bundle_attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the attachment associated to this descriptor in Shotgun.</span>
 
 <span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
@@ -686,7 +686,7 @@ a bundle, always create a new version number.</p>
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method will retrieve the bundle from the Shotgun site and unpack it</span>
 <span class="sd">        in the destination folder.</span>
 
@@ -1088,7 +1088,7 @@ data.</p>
 created.</p>
 <p>This function should have the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called before the engine is started.</span>
 
 <span class="sd">    :param :class:&quot;~sgtk.Context&quot; ctx: Context into</span>
@@ -1194,7 +1194,7 @@ all the config dependencies.</p>
 <dd><p>Callback that gets called whenever progress should be reported.</p>
 <p>This function should have the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called whenever toolkit reports progress.</span>
 
 <span class="sd">    :param progress_value: The current progress value as float number.</span>
@@ -1264,7 +1264,7 @@ apps from the toolkit app store and installing files on disk.</p>
 <p>A callback function that handles cleanup after successful completion of the bootstrap
 with the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called by the asynchronous bootstrap upon completion.</span>
 
 <span class="sd">    :param engine: Engine instance representing the engine</span>
@@ -1275,7 +1275,7 @@ with the following signature:</p>
 <p>A callback function that handles cleanup after failed completion of the bootstrap
 with the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called by the asynchronous bootstrap if an exception is raised.</span>
 
 <span class="sd">    :param phase: Indicates in which phase of the bootstrap the exception</span>

@@ -217,7 +217,7 @@
 
 
 <div class="viewcode-block" id="DefaultsManager"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager">[docs]</a><span class="k">class</span> <span class="nc">DefaultsManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The defaults manager allows a client of the Shotgun Authenticator class</span>
 <span class="sd">    to customize various behaviors around data storage and settings.</span>
 
@@ -244,7 +244,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="o">=</span> <span class="n">fixed_host</span>
 
 <div class="viewcode-block" id="DefaultsManager.is_host_fixed"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.is_host_fixed">[docs]</a>    <span class="k">def</span> <span class="nf">is_host_fixed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When doing an interactive login, this indicates if the user can decide</span>
 <span class="sd">        the host to connect to. In its default implementation, the :class:`DefaultsManager`</span>
 <span class="sd">        will indicate that the host is not fixed, meaning that the user will be</span>
@@ -264,7 +264,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_host">[docs]</a>    <span class="k">def</span> <span class="nf">get_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The default host is used as a useful starting point when doing</span>
 <span class="sd">        interactive authentication. When the host is not fixed (see the</span>
 <span class="sd">        :meth:`is_host_fixed` method), the return value of get_host is what is</span>
@@ -288,7 +288,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.set_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_host">[docs]</a>    <span class="k">def</span> <span class="nf">set_host</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when a new host has been defined.</span>
 
 <span class="sd">        :param host: The new default host.</span>
@@ -299,7 +299,7 @@
         <span class="n">session_cache</span><span class="o">.</span><span class="n">set_current_host</span><span class="p">(</span><span class="n">host</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_http_proxy"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_http_proxy">[docs]</a>    <span class="k">def</span> <span class="nf">get_http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when it needs to retrieve the</span>
 <span class="sd">        proxy settings to use for a Shotgun connection.</span>
 
@@ -323,7 +323,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_login"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_login">[docs]</a>    <span class="k">def</span> <span class="nf">get_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when it needs to get a</span>
 <span class="sd">        value for the login. Typically this is used to populate UI</span>
 <span class="sd">        fields with defaults.</span>
@@ -342,7 +342,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">default_login</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_user_credentials"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_user_credentials">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when it requests a default or current user.</span>
 
 <span class="sd">        A dictionary with a login and a session token should be returned, which will</span>
@@ -370,7 +370,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.set_login"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_login">[docs]</a>    <span class="k">def</span> <span class="nf">set_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">login</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the authentication system when a new user is being logged in.</span>
 
 <span class="sd">        The default implementation maintains a concept of a default user</span>

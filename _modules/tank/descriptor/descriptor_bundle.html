@@ -223,12 +223,12 @@
 
 
 <span class="k">class</span> <span class="nc">BundleDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Bundle (App/Engine/Framework)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
 
@@ -240,7 +240,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A dictionary with version constraints. The absence of a key</span>
 <span class="sd">        indicates that there is no defined constraint. The following keys can be</span>
 <span class="sd">        returned: min_sg, min_core, min_engine and min_desktop</span>
@@ -269,7 +269,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_get_sg_version</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the version of the studio shotgun server. It caches the result per site.</span>
 
 <span class="sd">        :param connection: Connection to the Shotgun site.</span>
@@ -288,7 +288,7 @@
         <span class="k">return</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">version_tuple</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">_test_version_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">item_name</span><span class="p">,</span> <span class="n">reasons</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tests a version constraint by ensuring the user provided a version that is not older than the expected</span>
 <span class="sd">        one.</span>
 
@@ -317,7 +317,7 @@
     <span class="k">def</span> <span class="nf">check_version_constraints</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">core_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desktop_version</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if there are constraints blocking an upgrade or install.</span>
 
 <span class="sd">        :param core_version: Core version. If None, current core version will be used.</span>
@@ -390,7 +390,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The required context, if there is one defined, for a bundle.</span>
 <span class="sd">        This is a list of strings, something along the lines of</span>
 <span class="sd">        [&quot;user&quot;, &quot;task&quot;, &quot;step&quot;] for an app that requires a context with</span>
@@ -406,7 +406,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The platforms supported. Possible values</span>
 <span class="sd">        are windows, linux and mac.</span>
 
@@ -424,7 +424,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The manifest configuration schema for this bundle.</span>
 <span class="sd">        Always returns a dictionary.</span>
 
@@ -440,7 +440,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The engines supported by this app or framework. Examples</span>
 <span class="sd">        of return values:</span>
 
@@ -452,7 +452,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of required frameworks for this item.</span>
 
 <span class="sd">        Always returns a list - for example::</span>
@@ -496,7 +496,7 @@
     <span class="c1"># helper methods</span>
 
     <span class="k">def</span> <span class="nf">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensures that any shotgun fields a particular descriptor requires</span>
 <span class="sd">        exists in shotgun. In the metadata (``info.yml``) for an app or an engine,</span>
 <span class="sd">        it is possible to define a section for this::</span>
@@ -583,7 +583,7 @@
                         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If a post install hook exists in a descriptor, execute it. In the</span>
 <span class="sd">        hooks directory for an app or engine, if a &#39;post_install.py&#39; hook</span>
 <span class="sd">        exists, the hook will be executed upon each installation.</span>
@@ -616,14 +616,14 @@
 
 
 <div class="viewcode-block" id="EngineDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.EngineDescriptor">[docs]</a><span class="k">class</span> <span class="nc">EngineDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Engine</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
 
@@ -638,14 +638,14 @@
 
 
 <div class="viewcode-block" id="AppDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.AppDescriptor">[docs]</a><span class="k">class</span> <span class="nc">AppDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit App</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
 
@@ -660,14 +660,14 @@
 
 
 <div class="viewcode-block" id="FrameworkDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor">[docs]</a><span class="k">class</span> <span class="nc">FrameworkDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Framework</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
 
@@ -681,7 +681,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">FrameworkDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FrameworkDescriptor.is_shared_framework"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor.is_shared_framework">[docs]</a>    <span class="k">def</span> <span class="nf">is_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a boolean indicating whether the bundle is a shared framework.</span>
 <span class="sd">        Shared frameworks only have a single instance per instance name in the</span>
 <span class="sd">        current environment.</span>

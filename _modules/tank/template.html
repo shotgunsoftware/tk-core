@@ -229,14 +229,14 @@
 
 
 <div class="viewcode-block" id="Template"><a class="viewcode-back" href="../../core.html#sgtk.Template">[docs]</a><span class="k">class</span> <span class="nc">Template</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents an expression containing several dynamic tokens</span>
 <span class="sd">    in the form of :class:`TemplateKey` objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_keys_from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">template_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts Template Keys from a definition.</span>
+        <span class="sd">&quot;&quot;&quot;Extracts Template Keys from a definition.</span>
 
 <span class="sd">        :param definition: Template definition as string</span>
 <span class="sd">        :param template_name: Name of template.</span>
@@ -268,7 +268,7 @@
         <span class="k">return</span> <span class="n">names_keys</span><span class="p">,</span> <span class="n">ordered_keys</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class is not designed to be used directly but</span>
 <span class="sd">        should be subclassed by any Template implementations.</span>
 
@@ -321,7 +321,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The template as a string, e.g ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Use first definition as it should be most inclusive in case of variations</span>
@@ -329,7 +329,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The keys that this template is using. For a template</span>
 <span class="sd">        ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are ``{Shot}``,</span>
 <span class="sd">        ``{Step}`` and ``{name}``.</span>
@@ -341,7 +341,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ordered_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The keys that this template is using in the order they appear. For a</span>
 <span class="sd">        template ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are</span>
 <span class="sd">        ``{Shot}``, ``{Step}`` and ``{name}``.</span>
@@ -353,7 +353,7 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ordered_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
 <div class="viewcode-block" id="Template.is_optional"><a class="viewcode-back" href="../../core.html#sgtk.Template.is_optional">[docs]</a>    <span class="k">def</span> <span class="nf">is_optional</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if the given key name is optional for this template.</span>
 
 <span class="sd">        For the template ``{Shot}[_{name}]``,</span>
@@ -372,7 +372,7 @@
             <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Template.missing_keys"><a class="viewcode-back" href="../../core.html#sgtk.Template.missing_keys">[docs]</a>    <span class="k">def</span> <span class="nf">missing_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines keys required for use of template which do not exist</span>
 <span class="sd">        in a given fields.</span>
 
@@ -399,7 +399,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_missing_keys</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_missing_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compares two dictionaries to determine keys in second missing in first.</span>
 
 <span class="sd">        :param fields: fields to test</span>
@@ -416,7 +416,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">required_keys</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)]</span>
 
 <div class="viewcode-block" id="Template.apply_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.apply_fields">[docs]</a>    <span class="k">def</span> <span class="nf">apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields. Certain fields may be processed in special ways, for</span>
 <span class="sd">        example :class:`SequenceKey` fields, which can take a `FORMAT` string which will intelligently</span>
 <span class="sd">        format a image sequence specifier based on the type of data is being handled. Example::</span>
@@ -465,7 +465,7 @@
     <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields.</span>
 
 <span class="sd">        :param fields: Mapping of keys to fields. Keys must match those in template</span>
@@ -523,7 +523,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cleaned_definitions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">%</span> <span class="n">processed_fields</span>
 
     <span class="k">def</span> <span class="nf">_definition_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines all possible definition based on combinations of optional sectionals.</span>
 
 <span class="sd">        &quot;{foo}&quot;               ==&gt; [&#39;{foo}&#39;]</span>
@@ -570,7 +570,7 @@
         <span class="k">return</span> <span class="n">definitions</span>
 
     <span class="k">def</span> <span class="nf">_fix_key_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Substitutes key name for name used in definition</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Substitute key names for original key input names(key aliasing)</span>
@@ -592,7 +592,7 @@
         <span class="k">return</span> <span class="n">cleaned_definition</span>
 
     <span class="k">def</span> <span class="nf">_calc_static_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds the tokens from a definition which are not involved in defining keys.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># expand the definition to include the prefix unless the definition is empty in which</span>
@@ -608,7 +608,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns Template representing the parent of this object.</span>
 
 <span class="sd">        :returns: :class:`Template`</span>
@@ -616,7 +616,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="Template.validate_and_get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate_and_get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">validate_and_get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">required_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Takes an input string and determines whether it can be mapped to the template pattern.</span>
 <span class="sd">        If it can then the list of matching fields is returned. Example::</span>
 
@@ -658,7 +658,7 @@
         <span class="k">return</span> <span class="n">path_fields</span></div>
 
 <div class="viewcode-block" id="Template.validate"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validates that a path can be mapped to the pattern given by the template. Example::</span>
 
 <span class="sd">            &gt;&gt;&gt; good_path = &#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
@@ -682,7 +682,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Template.get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extracts key name, value pairs from a string. Example::</span>
 
 <span class="sd">            &gt;&gt;&gt; input_path = &#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
@@ -718,13 +718,13 @@
 
 
 <div class="viewcode-block" id="TemplatePath"><a class="viewcode-back" href="../../core.html#sgtk.TemplatePath">[docs]</a><span class="k">class</span> <span class="nc">TemplatePath</span><span class="p">(</span><span class="n">Template</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :class:`Template` representing a complete path on disk. The template definition is multi-platform</span>
 <span class="sd">    and you can pass it per-os roots given by a separate :meth:`root_path`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
 <span class="sd">        the template configuration.</span>
 
@@ -755,14 +755,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">root_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the root path associated with this template.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns Template representing the parent of this object.</span>
 
 <span class="sd">        For paths, this means the parent folder.</span>
@@ -783,7 +783,7 @@
     <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields.</span>
 
 <span class="sd">        :param fields: Mapping of keys to fields. Keys must match those in template</span>
@@ -866,7 +866,7 @@
 
 
 <div class="viewcode-block" id="TemplateString"><a class="viewcode-back" href="../../core.html#sgtk.TemplateString">[docs]</a><span class="k">class</span> <span class="nc">TemplateString</span><span class="p">(</span><span class="n">Template</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :class:`Template` class for templates representing strings.</span>
 
 <span class="sd">    Templated strings are useful if you want to write code where you can configure</span>
@@ -875,7 +875,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate_with</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
 <span class="sd">        the template configuration.</span>
 
@@ -895,13 +895,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Strings don&#39;t have a concept of parent so this always returns ``None``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extracts key name, value pairs from a string. Example::</span>
 
 <span class="sd">            &gt;&gt;&gt; input = &#39;filename.v003.ma&#39;</span>
@@ -924,7 +924,7 @@
 
 
 <span class="k">def</span> <span class="nf">split_path</span><span class="p">(</span><span class="n">input_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Split a path into tokens.</span>
 
 <span class="sd">    :param input_path: path to split</span>
@@ -939,7 +939,7 @@
 
 
 <span class="k">def</span> <span class="nf">read_templates</span><span class="p">(</span><span class="n">pipeline_configuration</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates templates and keys based on contents of templates file.</span>
 
 <span class="sd">    :param pipeline_configuration: pipeline config object</span>
@@ -985,7 +985,7 @@
 
 
 <span class="k">def</span> <span class="nf">make_template_paths</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">,</span> <span class="n">default_root</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory function which creates TemplatePaths.</span>
 
 <span class="sd">    :param data: Data from which to construct the template paths.</span>
@@ -1052,7 +1052,7 @@
 
 
 <span class="k">def</span> <span class="nf">make_template_strings</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">template_paths</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory function which creates TemplateStrings.</span>
 
 <span class="sd">    :param data: Data from which to construct the template strings.</span>
@@ -1086,7 +1086,7 @@
 
 
 <span class="k">def</span> <span class="nf">_conform_template_data</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="n">template_name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes data for single template and conforms it expected data structure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
@@ -1103,7 +1103,7 @@
 
 
 <span class="k">def</span> <span class="nf">_process_templates_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">template_type</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Conforms templates data and checks for duplicate definitions.</span>
 
 <span class="sd">    :param data: Dictionary in form { &lt;template name&gt; : &lt;data&gt; }</span>

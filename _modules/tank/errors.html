@@ -217,60 +217,60 @@
 
 
 <div class="viewcode-block" id="TankError"><a class="viewcode-back" href="../../core.html#sgtk.TankError">[docs]</a><span class="k">class</span> <span class="nc">TankError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Top level exception for all toolkit-core level runtime errors</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <span class="k">class</span> <span class="nc">TankInitError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception indicating initialization failure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="TankUnreadableFileError"><a class="viewcode-back" href="../../core.html#sgtk.TankUnreadableFileError">[docs]</a><span class="k">class</span> <span class="nc">TankUnreadableFileError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a required file can&#39;t be read from disk.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="TankFileDoesNotExistError"><a class="viewcode-back" href="../../core.html#sgtk.TankFileDoesNotExistError">[docs]</a><span class="k">class</span> <span class="nc">TankFileDoesNotExistError</span><span class="p">(</span><span class="n">TankUnreadableFileError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a required file does not exist.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <span class="k">class</span> <span class="nc">TankNoDefaultValueError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that can be raised when a default value is required but none is found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="TankHookMethodDoesNotExistError"><a class="viewcode-back" href="../../core.html#sgtk.TankHookMethodDoesNotExistError">[docs]</a><span class="k">class</span> <span class="nc">TankHookMethodDoesNotExistError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a called method does not exist in the hook.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="TankInvalidCoreLocationError"><a class="viewcode-back" href="../../core.html#sgtk.TankInvalidCoreLocationError">[docs]</a><span class="k">class</span> <span class="nc">TankInvalidCoreLocationError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates the core location file contained an invalid path.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="TankNotPipelineConfigurationError"><a class="viewcode-back" href="../../core.html#sgtk.TankNotPipelineConfigurationError">[docs]</a><span class="k">class</span> <span class="nc">TankNotPipelineConfigurationError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a folder doesn&#39;t contain a pipeline configuration.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="TankErrorProjectIsSetup"><a class="viewcode-back" href="../../core.html#sgtk.TankErrorProjectIsSetup">[docs]</a><span class="k">class</span> <span class="nc">TankErrorProjectIsSetup</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a project already has a toolkit name but no pipeline configuration.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Include error message</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TankErrorProjectIsSetup</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
@@ -280,13 +280,13 @@
 
 
 <span class="k">class</span> <span class="nc">TankContextDeserializationError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that something went wrong while deserializating a context.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">TankMultipleMatchingTemplatesError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a path matches multiple templates.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </pre></div>

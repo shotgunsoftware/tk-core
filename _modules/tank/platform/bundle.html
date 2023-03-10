@@ -235,12 +235,12 @@
 
 
 <span class="k">class</span> <span class="nc">TankBundle</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract Base class for any engine, framework app etc in tank</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor.</span>
 
 <span class="sd">        :param tk: :class:`~sgtk.Sgtk` instance</span>
@@ -269,7 +269,7 @@
     <span class="c1"># internal API</span>
 
     <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">command_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Log metrics for this bundle and the given action.</span>
 
 <span class="sd">        :param str action: Action string to log, e.g. &#39;Opened Workfile&#39;.</span>
@@ -298,7 +298,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 <span class="sd">        This method may be changed or even removed at some point in the future.</span>
 <span class="sd">        We leave no guarantees that it will remain unchanged over time, so</span>
@@ -308,7 +308,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 <span class="sd">        This method may be changed or even removed at some point in the future.</span>
 <span class="sd">        We leave no guarantees that it will remain unchanged over time, so</span>
@@ -320,7 +320,7 @@
     <span class="c1"># methods used by internal classes, not part of the public interface</span>
 
     <span class="k">def</span> <span class="nf">get_setting_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 
 <span class="sd">        Get a value from the settings dictionary passed in</span>
@@ -333,7 +333,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_setting_value</span><span class="p">(</span><span class="n">other_settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_template_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_settings</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 
 <span class="sd">        A shortcut for looking up which template is referenced in the given setting from</span>
@@ -350,7 +350,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The short name for the item (e.g. tk-maya)</span>
 
 <span class="sd">        :returns: name as string</span>
@@ -359,7 +359,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The display name for the item (e.g. Maya Engine)</span>
 
 <span class="sd">        :returns: display name as string</span>
@@ -368,7 +368,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A short description of the item</span>
 
 <span class="sd">        :returns: string</span>
@@ -377,7 +377,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The version of the item (e.g. &#39;v0.2.3&#39;)</span>
 
 <span class="sd">        :returns: string representing the version</span>
@@ -386,14 +386,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">icon_256</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Path to a 256x256 pixel png file which describes the item</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">icon_256</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">style_constants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a dictionary of style constants. These can be used to build</span>
 <span class="sd">        UIs using standard colors and other style components. All keys returned</span>
 <span class="sd">        in this dictionary can also be used inside a style.qss that lives</span>
@@ -419,7 +419,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">documentation_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the relevant documentation url for this item.</span>
 
 <span class="sd">        :returns: url string, None if no documentation was found</span>
@@ -428,7 +428,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the relevant support url for this item.</span>
 
 <span class="sd">        :returns: url string, None if no documentation was found</span>
@@ -437,7 +437,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The folder on disk where this item is located.</span>
 <span class="sd">        This can be useful if you want to write app code</span>
 <span class="sd">        to retrieve a local resource::</span>
@@ -453,7 +453,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cache_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An item-specific location on disk where the app or engine can store</span>
 <span class="sd">        random cache data. This location is guaranteed to exist on disk.</span>
 
@@ -472,7 +472,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">site_cache_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A site location on disk where the app or engine can store</span>
 <span class="sd">        random cache data. This location is guaranteed to exist on disk.</span>
 
@@ -502,7 +502,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The context associated with this item.</span>
 
 <span class="sd">        :returns: :class:`~sgtk.Context`</span>
@@ -511,7 +511,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">context_change_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Whether a context change is allowed without the need for a restart.</span>
 <span class="sd">        If a bundle supports on-the-fly context changing, this property should</span>
 <span class="sd">        be overridden in the deriving class and forced to return True.</span>
@@ -522,7 +522,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the Toolkit API instance associated with this item</span>
 
 <span class="sd">        :returns: :class:`~sgtk.Tank`</span>
@@ -534,7 +534,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of all frameworks associated with this item</span>
 
 <span class="sd">        :returns: List of framework objects</span>
@@ -543,7 +543,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Standard python :class:`~logging.Logger` for this engine, app or framework.</span>
 
 <span class="sd">        Use this whenever you want to emit or process</span>
@@ -573,7 +573,7 @@
     <span class="c1"># public methods</span>
 
     <span class="k">def</span> <span class="nf">change_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Abstract method for context changing.</span>
 
 <span class="sd">        Implemented by deriving classes that wish to support context changes and</span>
@@ -587,7 +587,7 @@
             <span class="k">raise</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">pre_context_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called before a context change.</span>
 
 <span class="sd">        Implemented by deriving classes.</span>
@@ -600,7 +600,7 @@
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">post_context_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called after a context change.</span>
 
 <span class="sd">        Implemented by deriving classes.</span>
@@ -613,7 +613,7 @@
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">import_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Special import command for Toolkit bundles. Imports the python folder inside</span>
 <span class="sd">        an app and returns the specified module name that exists inside the python folder.</span>
 
@@ -684,7 +684,7 @@
         <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">mod_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">get_project_cache_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the bundle&#39;s cache-location path for the given project id.</span>
 
 <span class="sd">        :param project_id:  The project Entity id number.</span>
@@ -708,7 +708,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="n">project_id</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a value from the item&#39;s settings::</span>
 
 <span class="sd">            &gt;&gt;&gt; app.get_setting(&#39;entity_types&#39;)</span>
@@ -721,7 +721,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_setting_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a template object for a particular template setting in the Framework configuration.</span>
 <span class="sd">        This method will look at the app configuration, determine which template is being referred to</span>
 <span class="sd">        in the setting, go into the main platform Template API and fetch that particular template object.</span>
@@ -735,7 +735,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_template_by_name</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_template_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Note: This is for advanced use cases - Most of the time you should probably use</span>
 <span class="sd">        :meth:`get_template()`. Find a particular template, the way it is named in the master</span>
 <span class="sd">        config file ``templates.yml``. This method will access the master templates file</span>
@@ -753,7 +753,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute a hook that is part of the environment configuration for the current bundle.</span>
 
 <span class="sd">        Convenience method that calls :meth:`execute_hook_method()` with the</span>
@@ -786,7 +786,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute a specific method in a hook that is part of the</span>
 <span class="sd">        environment configuration for the current bundle.</span>
 
@@ -834,7 +834,7 @@
     <span class="k">def</span> <span class="nf">execute_hook_expression</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute an arbitrary hook via an expression. While the methods execute_hook</span>
 <span class="sd">        and execute_hook_method allows you to execute a particular hook setting as</span>
 <span class="sd">        specified in the app configuration manifest, this methods allows you to</span>
@@ -865,7 +865,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">execute_hook_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute an arbitrary hook located in the hooks folder for this project.</span>
 <span class="sd">        The hook_name is the name of the python file in which the hook resides,</span>
 <span class="sd">        without the file extension.</span>
@@ -889,7 +889,7 @@
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the instance of a hook object given an expression.</span>
 
 <span class="sd">        This is useful for complex workflows where it is beneficial to</span>
@@ -925,7 +925,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make sure that the given folder exists on disk.</span>
 <span class="sd">        Convenience method to make it easy for apps and engines to create folders in a</span>
 <span class="sd">        standardized fashion. While the creation of high level folder structure such as</span>
@@ -947,7 +947,7 @@
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Error creating folder </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Should be re-implemented in deriving classes and return a dictionary with</span>
 <span class="sd">        the properties needed to log a metric event for this bundle.</span>
 
@@ -959,7 +959,7 @@
     <span class="c1"># internal helpers</span>
 
     <span class="k">def</span> <span class="nf">_set_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the current context associated with this item.</span>
 
 <span class="sd">        :param new_context: The new context to associate with the bundle.</span>
@@ -967,7 +967,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__context</span> <span class="o">=</span> <span class="n">new_context</span>
 
     <span class="k">def</span> <span class="nf">_set_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the bundle&#39;s internal settings dictionary.</span>
 
 <span class="sd">        :param settings:    The new settings dict to store.</span>
@@ -975,7 +975,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__settings</span> <span class="o">=</span> <span class="n">settings</span>
 
     <span class="k">def</span> <span class="nf">__resolve_hook_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_name</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resolves a hook settings path into an absolute path.</span>
 
 <span class="sd">        :param settings_name: The name of the hook setting in the configuration. If the</span>
@@ -1145,7 +1145,7 @@
         <span class="k">return</span> <span class="n">path</span>
 
     <span class="k">def</span> <span class="nf">__resolve_hook_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_name</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method for resolving hook expressions. This method handles</span>
 <span class="sd">        resolving an environment configuration value into a path on disk.</span>
 
@@ -1239,7 +1239,7 @@
         <span class="k">return</span> <span class="n">resolved_hook_paths</span>
 
     <span class="k">def</span> <span class="nf">__resolve_setting_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resolve a setting value.  Exposed to allow values to be resolved for</span>
 <span class="sd">        settings derived outside of the app.</span>
 
@@ -1255,7 +1255,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_engine_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the bundle&#39;s engine name if available. None otherwise.</span>
 <span class="sd">        Convenience method to avoid try/except everywhere.</span>
 
@@ -1275,7 +1275,7 @@
 
 
 <span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Recursive post-processing of settings values</span>
 
 <span class="sd">    :param tk: Toolkit API instance</span>
@@ -1348,7 +1348,7 @@
 
 
 <span class="k">def</span> <span class="nf">resolve_setting_value</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resolve a setting value.  Exposed to allow values to be resolved for</span>
 <span class="sd">    settings derived outside of the app.</span>
 
@@ -1391,7 +1391,7 @@
 <span class="k">def</span> <span class="nf">resolve_default_value</span><span class="p">(</span>
     <span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raise_if_missing</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract a default value from the supplied schema.</span>
 
 <span class="sd">    Fall back on the supplied default value if no default could be</span>
@@ -1461,7 +1461,7 @@
 
 
 <span class="k">def</span> <span class="nf">_resolve_default_hook_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a hook value, evaluate any special keys or legacy values.</span>
 
 <span class="sd">    :param value: The unresolved default value for the hook</span>

@@ -1876,7 +1876,7 @@ so that you could even add support for a new DCC to your load app without having
 <span class="k">class</span> <span class="nc">Actions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Given some Shotgun publish data, return a list of</span>
 <span class="sd">        actions that can be performed</span>
 
@@ -1888,7 +1888,7 @@ so that you could even add support for a new DCC to your load app without having
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;show_in_sg&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Execute the given action</span>
 
 <span class="sd">        :param action: name of action. One of the items returned by list_actions.</span>
@@ -1939,7 +1939,7 @@ to the maya engine. This file looks like this:</p>
 <span class="k">class</span> <span class="nc">MayaActions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Given some Shotgun publish data, return a list of</span>
 <span class="sd">        actions that can be performed</span>
 
@@ -1954,7 +1954,7 @@ to the maya engine. This file looks like this:</p>
             <span class="n">actions</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span> <span class="s2">&quot;import&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Execute the given action</span>
 
 <span class="sd">        :param action: name of action. One of the items returned by list_actions.</span>
@@ -2141,7 +2141,7 @@ This needs to be defined in the currently running environment, as part of the <c
 <span class="n">frameworks</span><span class="p">:</span>
  <span class="c1"># define the framework that we are using in the hook</span>
  <span class="n">tk</span><span class="o">-</span><span class="n">framework</span><span class="o">-</span><span class="n">library_v1</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">:</span>
-    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;https://github.com/foo/tk-framework-library.git&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="mf">.2.6</span><span class="p">}</span>
+    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;https://github.com/foo/tk-framework-library.git&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="o">.</span><span class="mf">2.6</span><span class="p">}</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">

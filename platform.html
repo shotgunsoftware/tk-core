@@ -502,13 +502,13 @@ behavior tied to specific event types.</p>
 then emit its associated event. The example below is listening for a Qt signal from a host’s “frontend”
 handle and then emits a FileOpenEvent:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs before apps are initialized.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">frontend</span><span class="o">.</span><span class="n">file_opened</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_file_open</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_handle_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Emits a file open event that apps can listen for.</span>
 
 <span class="sd">    :param str file_path: The path of the file opened.</span>
@@ -534,7 +534,7 @@ the appropriate logic according to the results.</li>
 order to execute custom logic when the parent <a class="reference internal" href="#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> has indicated that a new file has been
 opened by the host DCC application:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles event notifications from the parent engine.</span>
 
 <span class="sd">    :param event: The event object that was emitted.</span>

@@ -236,7 +236,7 @@
 
 
 <div class="viewcode-block" id="with_cleared_umask"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.with_cleared_umask">[docs]</a><span class="k">def</span> <span class="nf">with_cleared_umask</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator which clears the umask for a method.</span>
 
 <span class="sd">    The umask is a permissions mask that gets applied</span>
@@ -285,7 +285,7 @@
 
 
 <div class="viewcode-block" id="compute_folder_size"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.compute_folder_size">[docs]</a><span class="k">def</span> <span class="nf">compute_folder_size</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes and returns the size of the given folder.</span>
 
 <span class="sd">    :param path: folder to compute size for</span>
@@ -301,7 +301,7 @@
 
 <div class="viewcode-block" id="touch_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.touch_file">[docs]</a><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">touch_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0o666</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Touch a file and optionally set its permissions.</span>
 
 <span class="sd">    :param path: path to touch</span>
@@ -325,7 +325,7 @@
 
 <div class="viewcode-block" id="ensure_folder_exists"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.ensure_folder_exists">[docs]</a><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0o775</span><span class="p">,</span> <span class="n">create_placeholder_file</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method - creates a folder and parent folders if such do not already exist.</span>
 
 <span class="sd">    :param path: path to create</span>
@@ -366,7 +366,7 @@
 
 <div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0o666</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy file and sets its permissions.</span>
 
 <span class="sd">    :param src: Source file</span>
@@ -393,7 +393,7 @@
 
 
 <div class="viewcode-block" id="safe_delete_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.safe_delete_file">[docs]</a><span class="k">def</span> <span class="nf">safe_delete_file</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes the given file if it exists.</span>
 
 <span class="sd">    Ignores any errors raised in the process and logs them as warnings.</span>
@@ -418,7 +418,7 @@
 
 <div class="viewcode-block" id="copy_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_folder">[docs]</a><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">copy_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0o775</span><span class="p">,</span> <span class="n">skip_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Alternative implementation to ``shutil.copytree``</span>
 
 <span class="sd">    Copies recursively and creates folders if they don&#39;t already exist.</span>
@@ -495,7 +495,7 @@
 
 <div class="viewcode-block" id="move_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.move_folder">[docs]</a><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">move_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0o775</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moves a directory.</span>
 
 <span class="sd">    First copies all content into target. Then deletes</span>
@@ -533,7 +533,7 @@
 
 <div class="viewcode-block" id="backup_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.backup_folder">[docs]</a><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">backup_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moves the given directory into a backup location.</span>
 
 <span class="sd">    By default, the folder will be renamed by simply giving it a</span>
@@ -558,7 +558,7 @@
 
 
 <div class="viewcode-block" id="create_valid_filename"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.create_valid_filename">[docs]</a><span class="k">def</span> <span class="nf">create_valid_filename</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a sanitized file name given a string.</span>
 <span class="sd">    Replaces spaces and other characters with underscores</span>
 
@@ -588,7 +588,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_permissions</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieve the file system permissions for the file or folder in the</span>
 <span class="sd">    given path.</span>
 
@@ -600,7 +600,7 @@
 
 
 <div class="viewcode-block" id="safe_delete_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.safe_delete_folder">[docs]</a><span class="k">def</span> <span class="nf">safe_delete_folder</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deletes a folder and all of its contents recursively, even if it has read-only</span>
 <span class="sd">    items.</span>
 
@@ -613,7 +613,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_on_rm_error</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Error function called whenever shutil.rmtree fails to remove a file system</span>
 <span class="sd">        item. Exceptions raised by this function will not be caught.</span>
 
@@ -651,7 +651,7 @@
 
 
 <div class="viewcode-block" id="get_unused_path"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.get_unused_path">[docs]</a><span class="k">def</span> <span class="nf">get_unused_path</span><span class="p">(</span><span class="n">base_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return an unused file path from the given base path by appending if needed</span>
 <span class="sd">    a number at the end of the basename of the path, right before the first &quot;.&quot;,</span>
 <span class="sd">    if any.</span>
@@ -695,7 +695,7 @@
 <span class="nd">@with_cleared_umask</span>
 <span class="nd">@contextmanager</span>
 <span class="k">def</span> <span class="nf">auto_created_yml</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A context manager for opening/closing an auto-generated yaml file.</span>
 
 <span class="sd">    - clears umask</span>
@@ -739,7 +739,7 @@
 
 
 <span class="k">def</span> <span class="nf">open_file_browser</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Opens the given path in the operating system file browser such as</span>
 <span class="sd">    Windows explorer or Macosx Finder.</span>
 
@@ -771,7 +771,7 @@
 
 
 <span class="k">def</span> <span class="nf">_open_file_browser_for_folder</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will take a path to a folder and open it in</span>
 <span class="sd">    an OS&#39;s file browser.</span>
 
@@ -806,7 +806,7 @@
 
 
 <span class="k">def</span> <span class="nf">_open_file_browser_for_file</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will take a path to a file and open it in</span>
 <span class="sd">    an OS&#39;s file browser and attempt to highlight it.</span>
 
