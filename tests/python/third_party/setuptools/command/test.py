@@ -3,21 +3,31 @@ import operator
 import sys
 import contextlib
 import itertools
+import unittest
 from distutils.errors import DistutilsError, DistutilsOptionError
 from distutils import log
 from unittest import TestLoader
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter
-
-from pkg_resources import (resource_listdir, resource_exists, normalize_path,
-                           working_set, _namespace_packages,
-                           add_activation_listener, require, EntryPoint)
+from pkg_resources import (
+    resource_listdir,
+    resource_exists,
+    normalize_path,
+    working_set,
+    evaluate_marker,
+    add_activation_listener,
+    require,
+)
+from .._importlib import metadata
 from setuptools import Command
-from setuptools.py31compat import unittest_main
+from setuptools.extern.more_itertools import unique_everseen
+from setuptools.extern.jaraco.functools import pass_none
 
 
 class ScanningLoader(TestLoader):
+    def __init__(self):
+        TestLoader.__init__(self)
+        self._visited = set()
+
     def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
@@ -25,6 +35,10 @@ class ScanningLoader(TestLoader):
         If the module has an ``additional_tests`` function, call it and add
         the return value to the tests.
         """
+        if module in self._visited:
+            return None
+        self._visited.add(module)
+
         tests = []
         tests.append(TestLoader.loadTestsFromModule(self, module))
 
@@ -49,7 +63,7 @@ class ScanningLoader(TestLoader):
 
 
 # adapted from jaraco.classes.properties:NonDataProperty
-class NonDataProperty(object):
+class NonDataProperty:
     def __init__(self, fget):
         self.fget = fget
 
@@ -62,12 +76,15 @@ class NonDataProperty(object):
 class test(Command):
     """Command to run unit tests after in-place build"""
 
-    description = "run unit tests after in-place build"
+    description = "run unit tests after in-place build (deprecated)"
 
     user_options = [
         ('test-module=', 'm', "Run 'test_suite' in specified module"),
-        ('test-suite=', 's',
-         "Run single test, case or suite (e.g. 'module.test_suite')"),
+        (
+            'test-suite=',
+            's',
+            "Run single test, case or suite (e.g. 'module.test_suite')",
+        ),
         ('test-runner=', 'r', "Test runner to use"),
     ]
 
@@ -101,6 +118,8 @@ class test(Command):
         return list(self._test_args())
 
     def _test_args(self):
+        if not self.test_suite:
+            yield 'discover'
         if self.verbose:
             yield '--verbose'
         if self.test_suite:
@@ -115,30 +134,11 @@ class test(Command):
 
     @contextlib.contextmanager
     def project_on_sys_path(self, include_dists=[]):
-        with_2to3 = six.PY3 and getattr(self.distribution, 'use_2to3', False)
+        self.run_command('egg_info')
 
-        if with_2to3:
-            # If we run 2to3 we can not do this inplace:
-
-            # Ensure metadata is up-to-date
-            self.reinitialize_command('build_py', inplace=0)
-            self.run_command('build_py')
-            bpy_cmd = self.get_finalized_command("build_py")
-            build_path = normalize_path(bpy_cmd.build_lib)
-
-            # Build extensions
-            self.reinitialize_command('egg_info', egg_base=build_path)
-            self.run_command('egg_info')
-
-            self.reinitialize_command('build_ext', inplace=0)
-            self.run_command('build_ext')
-        else:
-            # Without 2to3 inplace works fine:
-            self.run_command('egg_info')
-
-            # Build extensions in-place
-            self.reinitialize_command('build_ext', inplace=1)
-            self.run_command('build_ext')
+        # Build extensions in-place
+        self.reinitialize_command('build_ext', inplace=1)
+        self.run_command('build_ext')
 
         ei_cmd = self.get_finalized_command("egg_info")
 
@@ -173,7 +173,7 @@ class test(Command):
         orig_pythonpath = os.environ.get('PYTHONPATH', nothing)
         current_pythonpath = os.environ.get('PYTHONPATH', '')
         try:
-            prefix = os.pathsep.join(paths)
+            prefix = os.pathsep.join(unique_everseen(paths))
             to_join = filter(None, [prefix, current_pythonpath])
             new_path = os.pathsep.join(to_join)
             if new_path:
@@ -191,11 +191,24 @@ class test(Command):
         Install the requirements indicated by self.distribution and
         return an iterable of the dists that were built.
         """
-        ir_d = dist.fetch_build_eggs(dist.install_requires or [])
+        ir_d = dist.fetch_build_eggs(dist.install_requires)
         tr_d = dist.fetch_build_eggs(dist.tests_require or [])
-        return itertools.chain(ir_d, tr_d)
+        er_d = dist.fetch_build_eggs(
+            v
+            for k, v in dist.extras_require.items()
+            if k.startswith(':') and evaluate_marker(k[1:])
+        )
+        return itertools.chain(ir_d, tr_d, er_d)
 
     def run(self):
+        self.announce(
+            "WARNING: Testing via this command is deprecated and will be "
+            "removed in a future version. Users looking for a generic test "
+            "entry point independent of test runner are encouraged to use "
+            "tox.",
+            log.WARN,
+        )
+
         installed_dists = self.install_dists(self.distribution)
 
         cmd = ' '.join(self._argv)
@@ -211,27 +224,13 @@ class test(Command):
                 self.run_tests()
 
     def run_tests(self):
-        # Purge modules under test from sys.modules. The test loader will
-        # re-import them from the build location. Required when 2to3 is used
-        # with namespace packages.
-        if six.PY3 and getattr(self.distribution, 'use_2to3', False):
-            module = self.test_suite.split('.')[0]
-            if module in _namespace_packages:
-                del_modules = []
-                if module in sys.modules:
-                    del_modules.append(module)
-                module += '.'
-                for name in sys.modules:
-                    if name.startswith(module):
-                        del_modules.append(name)
-                list(map(sys.modules.__delitem__, del_modules))
-
-        exit_kwarg = {} if sys.version_info < (2, 7) else {"exit": False}
-        test = unittest_main(
-            None, None, self._argv,
+        test = unittest.main(
+            None,
+            None,
+            self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
-            **exit_kwarg
+            exit=False,
         )
         if not test.result.wasSuccessful():
             msg = 'Test failed: %s' % test.result
@@ -243,12 +242,10 @@ class test(Command):
         return ['unittest'] + self.test_args
 
     @staticmethod
+    @pass_none
     def _resolve_as_ep(val):
         """
         Load the indicated attribute value, called, as a as if it were
         specified as an entry point.
         """
-        if val is None:
-            return
-        parsed = EntryPoint.parse("x=" + val)
-        return parsed.resolve()()
+        return metadata.EntryPoint(value=val, name=None, group=None).load()()
