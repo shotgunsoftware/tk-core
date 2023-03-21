@@ -11,8 +11,10 @@
 import http
 import json
 import os
+import platform
 import time
 
+from tank_vendor import distro
 from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
@@ -53,7 +55,7 @@ def process(
         # method="POST", # see bellow
         data=urllib.parse.urlencode({
             "appName": product,
-            "machineId": "Example machine ID", # TODO
+            "machineId": platform.node(),
         }).encode()
     )
 
@@ -230,6 +232,7 @@ def _build_proxy_addr(http_proxy):
         proxy_port=proxy_port,
         proxy_server=proxy_server,
     )
+
 
 if __name__ == "__main__":
     import argparse
