@@ -55,7 +55,7 @@ def dumps(data):
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
-        if e.encoding == "utf-8" and e.reason == "invalid continuation byte":
+        if e.encoding == "utf-8" and e.reason in ("invalid continuation byte", "invalid start byte"):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
