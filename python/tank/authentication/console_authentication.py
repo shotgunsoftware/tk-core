@@ -75,7 +75,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     hostname, login, http_proxy
                 )
             except EOFError:
-                # Insert a \n on the current line so the print is displayed on a new time.
+                # Insert a \n on the current line so the print is displayed on a new line.
                 print()
                 raise AuthenticationCancelled()
 
