@@ -69,6 +69,17 @@ class ConsoleAuthenticationHandlerBase(object):
         """
         logger.debug("Requesting password on command line.")
         while True:
+            # Get the SG URL from the user or from the given hostname
+            try:
+                hostname = self._get_sg_url(hostname, http_proxy)
+            except EOFError:
+                # Insert a \n on the current line so the print is displayed on a new line.
+                print()
+                raise AuthenticationCancelled()
+
+            hostname = sanitize_url(hostname)
+            _assert_console_session_is_supported(hostname, http_proxy)
+
             # Get the credentials from the user
             try:
                 hostname, login, password = self._get_user_credentials(
@@ -108,6 +119,17 @@ class ConsoleAuthenticationHandlerBase(object):
                 # user + valid pass + invalid 2da code) we'll end up here.
                 print("Login failed: %s" % error)
                 print()
+
+    def _get_sg_url(self, hostname, http_proxy):
+        """
+        Prompts the user for the SG host.
+        :param host Host to authenticate for.
+        :param http_proxy: Proxy to connect to when authenticating.
+        :returns: The hostname.
+        :raises AuthenticationCancelled: If the user cancels the authentication process,
+                this exception will be thrown.
+        """
+        raise NotImplementedError
 
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
@@ -183,6 +205,9 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
     renew_session methods.
     """
 
+    def _get_sg_url(self, hostname, http_proxy):
+        return hostname
+
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Reads the user password from the keyboard.
@@ -192,8 +217,6 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         :returns: The (hostname, login, plain text password) tuple.
         """
         print("%s, your current session has expired." % login)
-
-        _assert_console_session_is_supported(hostname, http_proxy)
 
         print("Please enter your password to renew your session for %s" % hostname)
         return hostname, login, self._get_password()
@@ -213,6 +236,13 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         super(ConsoleLoginHandler, self).__init__()
         self._fixed_host = fixed_host
 
+    def _get_sg_url(self, hostname, http_proxy):
+        if self._fixed_host:
+            return hostname
+
+        print("Please enter your login credentials.")
+        return self._get_keyboard_input("Host", hostname)
+
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Reads the user credentials from the keyboard.
@@ -222,13 +252,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :returns: A tuple of (login, password) strings.
         """
         if self._fixed_host:
-            _assert_console_session_is_supported(hostname, http_proxy)
             print("Please enter your login credentials for %s" % hostname)
-
-        else:
-            print("Please enter your login credentials.")
-            hostname = self._get_keyboard_input("Host", hostname)
-            _assert_console_session_is_supported(hostname, http_proxy)
 
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
