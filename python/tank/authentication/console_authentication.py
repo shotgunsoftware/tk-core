@@ -80,45 +80,49 @@ class ConsoleAuthenticationHandlerBase(object):
             hostname = sanitize_url(hostname)
             _assert_console_session_is_supported(hostname, http_proxy)
 
-            # Get the credentials from the user
+            auth_fn = self._authenticate_legacy
             try:
-                hostname, login, password = self._get_user_credentials(
-                    hostname, login, http_proxy
-                )
-            except EOFError:
-                # Insert a \n on the current line so the print is displayed on a new line.
-                print()
-                raise AuthenticationCancelled()
-
-            try:
-                try:
-                    # Try to generate a session token and return the user info.
-                    return (
-                        hostname,
-                        login,
-                        session_cache.generate_session_token(
-                            hostname, login, password, http_proxy
-                        ),
-                        None,
-                    )
-                except MissingTwoFactorAuthenticationFault:
-                    # session_token was None, we need 2fa.
-                    code = self._get_2fa_code()
-                    # Ask again for a token using 2fa this time. If this throws an AuthenticationError because
-                    # the code is invalid or already used, it will be caught by the except clause beneath.
-                    return (
-                        hostname,
-                        login,
-                        session_cache.generate_session_token(
-                            hostname, login, password, http_proxy, auth_token=code
-                        ),
-                        None,
-                    )
+                return auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
                 print("Login failed: %s" % error)
                 print()
+
+    def _authenticate_legacy(self, hostname, login, http_proxy):
+        # Get the credentials from the user
+        try:
+            hostname, login, password = self._get_user_credentials(
+                hostname, login, http_proxy
+            )
+        except EOFError:
+            # Insert a \n on the current line so the print is displayed on a new line.
+            print()
+            raise AuthenticationCancelled()
+
+        try:
+            # Try to generate a session token and return the user info.
+            return (
+                hostname,
+                login,
+                session_cache.generate_session_token(
+                    hostname, login, password, http_proxy
+                ),
+                None,
+            )
+        except MissingTwoFactorAuthenticationFault:
+            # session_token was None, we need 2fa.
+            code = self._get_2fa_code()
+            # Ask again for a token using 2fa this time. If this throws an AuthenticationError because
+            # the code is invalid or already used, it will be caught by the except clause beneath.
+            return (
+                hostname,
+                login,
+                session_cache.generate_session_token(
+                    hostname, login, password, http_proxy, auth_token=code
+                ),
+                None,
+            )
 
     def _get_sg_url(self, hostname, http_proxy):
         """
