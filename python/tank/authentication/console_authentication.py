@@ -28,10 +28,12 @@ from .errors import (
     ConsoleLoginNotSupportedError,
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import is_sso_enabled_on_site
+from .sso_saml2 import is_sso_enabled_on_site, is_unified_login_flow2_enabled_on_site, is_autodesk_identity_enabled_on_site
+from .unified_login_flow2 import authentication as ulf2_auth
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
+import webbrowser
 from tank_vendor.six.moves import input
 
 logger = LogManager.get_logger(__name__)
@@ -43,8 +45,13 @@ def _assert_console_session_is_supported(hostname, http_proxy):
     username/password pair is not supported by the Shotgun server.
     Which is the case when using SSO or Autodesk Identity.
     """
-    if is_sso_enabled_on_site(hostname, http_proxy):
+    if is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
+        # OK we support that in console
+        pass
+    elif is_sso_enabled_on_site(hostname, http_proxy):
         raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+    elif is_autodesk_identity_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
 
 class ConsoleAuthenticationHandlerBase(object):
@@ -80,7 +87,7 @@ class ConsoleAuthenticationHandlerBase(object):
             hostname = sanitize_url(hostname)
             _assert_console_session_is_supported(hostname, http_proxy)
 
-            auth_fn = self._authenticate_legacy
+            auth_fn = self._get_auth_method(hostname, http_proxy)
             try:
                 return auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
@@ -123,6 +130,50 @@ class ConsoleAuthenticationHandlerBase(object):
                 ),
                 None,
             )
+
+    def _authenticate_unified_login_flow2(self, hostname, login, http_proxy):
+        print()
+        print("The authentication to {sg_url} requires to open your local web browser".format(sg_url=hostname))
+        print()
+        print("When the authentication is completed, you can close your web browser and come back to this window")
+        print()
+        self._read_clean_input("Press enter when you are ready to continue")
+        print()
+        print("A browser window will open shortly and ask you to authenticate to your SG site")
+        print("Once authenticated, please \"Authorize\" the access and close the tab")
+        session_info = ulf2_auth.process(
+            hostname, http_proxy=http_proxy,
+            browser_open_callback = lambda u: webbrowser.open(u)
+        )
+
+        print()
+        if not session_info:
+            raise AuthenticationError("The web authentication failed.")
+
+
+        print("The web authentication succeed, now processing.")
+        return session_info
+
+    def _get_auth_method(self, hostname, http_proxy):
+        if not is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
+            return self._authenticate_legacy
+
+        if is_autodesk_identity_enabled_on_site(hostname, http_proxy) or is_sso_enabled_on_site(hostname, http_proxy):
+            return self._authenticate_unified_login_flow2
+
+        # We have 2 choices here
+        print()
+        print("The ShotGrid site support two authentication methods:")
+        print(" 1. Legacy method using login/password")
+        print(" 2. App Session Launcher using your local web browser")
+        print()
+        method = self._get_keyboard_input("Select a method (1 or 2)", default_value="2")
+        if method == "1":
+            return self._authenticate_legacy
+        elif method == "2":
+            return self._authenticate_unified_login_flow2
+        else:
+            raise AuthenticationError("Unsupported authentication method choice {m}".format(m=method))
 
     def _get_sg_url(self, hostname, http_proxy):
         """
