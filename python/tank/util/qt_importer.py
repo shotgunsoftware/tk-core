@@ -33,7 +33,7 @@ class QtImporter(object):
             ...
     """
 
-    QT4, QT5 = range(4, 6)
+    QT4, QT5, QT6 = range(4, 7)
 
     def __init__(self, interface_version_requested=QT4):
         """
@@ -264,6 +264,82 @@ class QtImporter(object):
             self._to_version_tuple(QtCore.qVersion()),
         )
 
+    def _import_pyside6(self):
+        """
+        This will be called at initialization to discover every PySide 6 modules.
+
+        :returns: The ("PySide6", PySide6 version, PySide6 module, [Qt* modules]) tuple.
+        """
+        # Quick check if PySide 6 is available. Try to import a well known module. If that fails it will
+        # throw an import error which will be handled by the calling code. Note that PySide6 can be
+        # imported even if the Qt binaries are missing, so it's better to try importing QtCore for
+        # testing.
+        from PySide6 import QtCore
+
+        # List of all Qt 5 modules.
+        sub_modules = [
+            "QtGui",
+            "QtHelp",
+            "QtNetwork",
+            "QtPrintSupport",
+            "QtQml",
+            "QtQuick",
+            "QtQuickWidgets",
+            "QtScript",
+            "QtSvg",
+            "QtTest",
+            "QtUiTools",
+            "QtWebChannel",
+            "QtWebKit",
+            "QtWebKitWidgets",
+            "QtWidgets",
+            "QtWebSockets",
+            "QtXml",
+            "QtXmlPatterns",
+            "QtScriptSql",
+            "QtScriptTools",
+            "QtOpenGL",
+            "QtMultimedia",
+        ]
+
+        # We have the potential for a deadlock in Maya 2018 on Windows if this
+        # is imported. We set the env var from the tk-maya engine when we
+        # detect that we are in this situation.
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
+            sub_modules.append("QtWebEngineWidgets")
+
+        modules_dict = {"QtCore": QtCore}
+
+        # Depending on the build of PySide 6 being used, more or less modules are supported. Instead
+        # of assuming a base set of functionality, simply try every module one at a time.
+        #
+        # First, if a module is missing the __import__ function doesn't raise an exception.
+        # This is why we have to test for existence of the attribute on the PySide 6 module.
+        #
+        # Second, if the library couldn't load because of missing symbols with in Qt (e.g.
+        # both Maya 2017 and the PySide 6 built on my machine are missing some symbols in order to load
+        # QtScriptTools), it will raise an ImportError.
+        #
+        # Testing each module like this individually helps get as many as possible.
+        for module_name in sub_modules:
+            try:
+                wrapper = __import__("PySide6", globals(), locals(), [module_name])
+                if hasattr(wrapper, module_name):
+                    modules_dict[module_name] = getattr(wrapper, module_name)
+            except Exception as e:
+                logger.debug("'%s' was skipped: %s", module_name, e)
+                pass
+
+        import PySide6
+
+        return (
+            PySide6.__name__,
+            PySide6.__version__,
+            PySide6,
+            modules_dict,
+            self._to_version_tuple(QtCore.qVersion()),
+        )
+
     def _import_pyside2_as_pyside(self):
         """
         Imports PySide2.
@@ -351,14 +427,12 @@ class QtImporter(object):
             - PyQt4
 
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
-            no binding is avaialble.
+            no binding is available.
         """
-        logger.debug(
-            "Requesting %s-like interface",
-            "Qt4" if interface_version_requested == self.QT4 else "Qt5",
-        )
+
         # First try PySide 2.
         if interface_version_requested == self.QT4:
+            logger.debug("Requesting Qt4-like interface")
             try:
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
@@ -366,10 +440,19 @@ class QtImporter(object):
             except ImportError as e:
                 pass
         elif interface_version_requested == self.QT5:
+            logger.debug("Requesting Qt5-like interface")
             try:
                 pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")
                 return pyside2
+            except ImportError:
+                pass
+        elif interface_version_requested == self.QT6:
+            logger.debug("Requesting Qt6-like interface")
+            try:
+                pyside6 = self._import_pyside6()
+                logger.debug("Imported PySide6.")
+                return pyside6
             except ImportError:
                 pass
 

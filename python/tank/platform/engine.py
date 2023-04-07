@@ -49,6 +49,7 @@ from . import validation
 from . import events
 from . import qt
 from . import qt5
+from . import qt6
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
@@ -92,6 +93,7 @@ class Engine(TankBundle):
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
         self.__has_qt5 = False
+        self.__has_qt6 = False
 
         self.__commands_that_need_prefixing = []
 
@@ -178,6 +180,11 @@ class Engine(TankBundle):
         self.__has_qt5 = len(qt5_base) > 0
         for name, value in qt5_base.items():
             setattr(qt5, name, value)
+
+        qt6_base = self.__define_qt6_base()
+        self.__has_qt6 = len(qt6_base) > 0
+        for name, value in qt6_base.items():
+            setattr(qt6, name, value)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -612,6 +619,16 @@ class Engine(TankBundle):
         # default implementation is to assume a UI exists
         # this is since most engines are supporting a graphical application
         return True
+
+    @property
+    def has_qt6(self):
+        """
+        Indicates that the host application has access to Qt 6 and that the ``sgtk.platform.qt6``  module
+        has been populated with the Qt 6 modules and information.
+
+        :returns bool: boolean value indicating if Qt 6 is available.
+        """
+        return self.__has_qt6
 
     @property
     def has_qt5(self):
@@ -1542,75 +1559,76 @@ class Engine(TankBundle):
         if not self.has_ui:
             return
 
-        from sgtk.platform.qt import QtGui
+        # from sgtk.platform.qt import QtGui
+        #
+        # # if the fonts have been loaded, no need to do anything else
+        # if self.__fonts_loaded:
+        #     return
+        #
+        # if not QtGui:
+        #     # it is possible that QtGui is not available (test suite).
+        #     return
+        #
+        # if not QtGui.QApplication.instance():
+        #     # there is a QApplication, so we can load fonts.
+        #     return
+        #
+        # # fonts dir in the core resources dir
+        # fonts_parent_dir = self.__get_platform_resource_path("fonts")
+        #
+        # # in the parent directly, get all the font-specific directories
+        # for font_dir_name in os.listdir(fonts_parent_dir):
+        #
+        #     # the specific font directory
+        #     font_dir = os.path.join(fonts_parent_dir, font_dir_name)
+        #
+        #     if os.path.isdir(font_dir):
+        #
+        #         # iterate over the font files and attempt to load them
+        #         #
+        #         # NOTE: We're loading the ttf files in reverse order to work around
+        #         # a Windows 10 oddity in Qt5/PySide2. It appears as though Windows
+        #         # prefers the first ttf installed for a given font weight, so when
+        #         # we're setting weight in qss (publish2 is a good example), if we're
+        #         # going for a lighter-weight font, we end up getting condensed light
+        #         # instead of the regular style. So...we're going to install these in
+        #         # reverse order so that the regular light style is preferred.
+        #         for font_file_name in reversed(list(os.listdir(font_dir))):
+        #
+        #             # only process actual font files. It appears as though .ttf
+        #             # is the most common extension for use on win/mac/linux so
+        #             # for now limit to those files.
+        #             if not font_file_name.endswith(".ttf"):
+        #                 continue
+        #
+        #             # the actual font file
+        #             font_file = os.path.join(font_dir, font_file_name)
+        #
+        #             # rather than registering the file path with the QT
+        #             # font system, first load the font data into memory
+        #             # and then register that data.
+        #             #
+        #             # this is to avoid QT keeping an open file handle to
+        #             # the font files - this causes issues on windows and
+        #             # results in bootstrap changes sometimes not being
+        #             # picked up.
+        #             with open(font_file, "rb") as fh:
+        #                 # load binary data into memory
+        #                 font_data = fh.read()
+        #                 # load the font into the font db
+        #                 if (
+        #                     QtGui.QFontDatabase.addApplicationFontFromData(font_data)
+        #                     == -1
+        #                 ):
+        #                     self.log_warning(
+        #                         "Unable to load font file: %s" % (font_file,)
+        #                     )
+        #                 else:
+        #                     self.log_debug(
+        #                         "Loaded font file into memory: %s" % (font_file,)
+        #                     )
 
-        # if the fonts have been loaded, no need to do anything else
-        if self.__fonts_loaded:
-            return
-
-        if not QtGui:
-            # it is possible that QtGui is not available (test suite).
-            return
-
-        if not QtGui.QApplication.instance():
-            # there is a QApplication, so we can load fonts.
-            return
-
-        # fonts dir in the core resources dir
-        fonts_parent_dir = self.__get_platform_resource_path("fonts")
-
-        # in the parent directly, get all the font-specific directories
-        for font_dir_name in os.listdir(fonts_parent_dir):
-
-            # the specific font directory
-            font_dir = os.path.join(fonts_parent_dir, font_dir_name)
-
-            if os.path.isdir(font_dir):
-
-                # iterate over the font files and attempt to load them
-                #
-                # NOTE: We're loading the ttf files in reverse order to work around
-                # a Windows 10 oddity in Qt5/PySide2. It appears as though Windows
-                # prefers the first ttf installed for a given font weight, so when
-                # we're setting weight in qss (publish2 is a good example), if we're
-                # going for a lighter-weight font, we end up getting condensed light
-                # instead of the regular style. So...we're going to install these in
-                # reverse order so that the regular light style is preferred.
-                for font_file_name in reversed(list(os.listdir(font_dir))):
-
-                    # only process actual font files. It appears as though .ttf
-                    # is the most common extension for use on win/mac/linux so
-                    # for now limit to those files.
-                    if not font_file_name.endswith(".ttf"):
-                        continue
-
-                    # the actual font file
-                    font_file = os.path.join(font_dir, font_file_name)
-
-                    # rather than registering the file path with the QT
-                    # font system, first load the font data into memory
-                    # and then register that data.
-                    #
-                    # this is to avoid QT keeping an open file handle to
-                    # the font files - this causes issues on windows and
-                    # results in bootstrap changes sometimes not being
-                    # picked up.
-                    with open(font_file, "rb") as fh:
-                        # load binary data into memory
-                        font_data = fh.read()
-                        # load the font into the font db
-                        if (
-                            QtGui.QFontDatabase.addApplicationFontFromData(font_data)
-                            == -1
-                        ):
-                            self.log_warning(
-                                "Unable to load font file: %s" % (font_file,)
-                            )
-                        else:
-                            self.log_debug(
-                                "Loaded font file into memory: %s" % (font_file,)
-                            )
-
+        self.log_debug("Bypassing font-loading")
         self.__fonts_loaded = True
 
     def _get_dialog_parent(self):
@@ -2166,6 +2184,17 @@ class Engine(TankBundle):
         :returns: A dictionary with all the modules, __version__ and __name__.
         """
         return QtImporter(interface_version_requested=QtImporter.QT5).base
+
+    def __define_qt6_base(self):
+        """
+        This will be called at initialization to discover every PySide 6 modules. It should provide
+        every Qt modules available as well as two extra attributes, ``__name__`` and
+        ``__version__``, which refer to the name of the binding and it's version, e.g.
+        PySide6 and 6.2.0.
+
+        :returns: A dictionary with all the modules, __version__ and __name__.
+        """
+        return QtImporter(interface_version_requested=QtImporter.QT6).base
 
     def _initialize_dark_look_and_feel(self):
         """
