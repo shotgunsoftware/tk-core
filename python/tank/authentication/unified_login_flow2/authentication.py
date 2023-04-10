@@ -30,6 +30,7 @@ def process(
     sg_url, http_proxy=None,
     product=None,
     browser_open_callback=None,
+    keep_waiting_callback=None,
 ):
     sg_url = connection.sanitize_url(sg_url)
 
@@ -38,6 +39,11 @@ def process(
 
     assert product
     assert callable(browser_open_callback)
+
+    if not keep_waiting_callback:
+        keep_waiting_callback = lambda *args, **kwargs: True
+
+    assert callable(keep_waiting_callback)
 
     url_handlers = [urllib.request.HTTPHandler]
     if http_proxy:
@@ -99,7 +105,7 @@ def process(
         request.get_method = lambda: "PUT"
 
         t0 = time.time()
-        while time.time() - t0 < request_timeout:
+        while keep_waiting_callback() and time.time() - t0 < request_timeout:
             response = http_request(url_opener, request)
             if response.code == http_client.NOT_FOUND:
                 raise errors.AuthenticationError(
