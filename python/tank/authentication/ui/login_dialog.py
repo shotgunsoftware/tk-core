@@ -17,7 +17,7 @@ class Ui_LoginDialog(object):
         LoginDialog.setStyleSheet("\n"
 "QWidget\n"
 "{\n"
-"    background-color:  rgb(36, 39, 42);\n"
+"    background-color: rgb(36, 39, 42);\n"
 "    color: rgb(192, 192, 192);\n"
 "    selection-background-color: rgb(168, 123, 43);\n"
 "    selection-color: rgb(230, 230, 230);\n"
@@ -39,13 +39,13 @@ class Ui_LoginDialog(object):
 "    border: 1px solid rgb(54, 60, 66);\n"
 "    border-radius: 2px;\n"
 "    padding: 5px;\n"
-"     font-size: 12px;\n"
+"    font-size: 12px;\n"
 "}\n"
 "\n"
 "QComboBox\n"
 "{\n"
-"    margin-left: 3;\n"
-"    margin-right: 3\n"
+"    margin-left: 3px;\n"
+"    margin-right: 3px;\n"
 "}\n"
 "\n"
 "QComboBox:focus, QLineEdit:focus\n"
@@ -59,17 +59,15 @@ class Ui_LoginDialog(object):
 "\n"
 "QComboBox:down-arrow {\n"
 "    image: url(:/shotgun_authentication/down-arrow.png);\n"
-"\n"
 "}\n"
 "\n"
-"QLineEdit:Disabled {\n"
+"QLineEdit:disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
 "}\n"
 "\n"
 "QComboBox::drop-down:disabled {\n"
 "    border-width: 0px;\n"
-"\n"
 "}\n"
 "\n"
 "QComboBox::down-arrow:disabled {\n"
@@ -79,7 +77,8 @@ class Ui_LoginDialog(object):
 "QComboBox::disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
-"}")
+"}\n"
+"")
         LoginDialog.setModal(True)
         self.verticalLayout_2 = QtGui.QVBoxLayout(LoginDialog)
         self.verticalLayout_2.setContentsMargins(20, 20, 20, 20)
@@ -163,7 +162,6 @@ class Ui_LoginDialog(object):
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout.addItem(spacerItem1)
         self.cancel = QtGui.QPushButton(self.login_page)
-        self.cancel.setStyleSheet("")
         self.cancel.setAutoDefault(False)
         self.cancel.setFlat(True)
         self.cancel.setObjectName("cancel")
@@ -241,7 +239,6 @@ class Ui_LoginDialog(object):
         spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout_2.addItem(spacerItem3)
         self.cancel_tfa = QtGui.QPushButton(self._2fa_page)
-        self.cancel_tfa.setStyleSheet("")
         self.cancel_tfa.setAutoDefault(False)
         self.cancel_tfa.setFlat(True)
         self.cancel_tfa.setObjectName("cancel_tfa")
