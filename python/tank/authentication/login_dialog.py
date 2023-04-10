@@ -466,16 +466,22 @@ class LoginDialog(QtGui.QDialog):
                 use_web = use_web or self._query_task.unified_login_flow_enabled
 
         if self._query_task.unified_login_flow2_enabled:
+            site = self._query_task.url_to_test
+
             if menu_action:
                 # Selecting requested mode (credentials, web_legacy or unified_login_flow2)
                 if menu_action == "unified_login_flow2":
                     use_local_browser = True
+
+                session_cache.set_preferred_method(site, menu_action)
             elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 # Selecting legacy auth by default
                 pass
             else:
-                # Select Unified Login Flow 2
-                use_local_browser = True
+                method = session_cache.get_preferred_method(site)
+                if not method or method == "unified_login_flow2":
+                    # Select Unified Login Flow 2
+                    use_local_browser = True
 
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.
