@@ -36,6 +36,7 @@ QWidget
 QPushButton
 {
     background-color: transparent;
+    border: 1px solid transparent;
     border-radius: 2px;
     padding: 8px;
     padding-left: 15px;
@@ -55,6 +56,21 @@ QComboBox
 {
     margin-left: 3px;
     margin-right: 3px;
+}
+
+QPushButton:focus
+{
+    border-color: rgb(48, 167, 227);
+    outline: none;
+}
+
+QPushButton:hover {
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton:pressed
+{
+    border-color: rgb(192, 192, 192);
 }
 
 QComboBox:focus, QLineEdit:focus
@@ -91,7 +107,18 @@ QComboBox::disabled {
 QPushButton.main
 {
     background-color: rgb(35, 165, 225);
+    border-color: rgb(36, 39, 42);
     color: rgb(248, 248, 248);
+}
+
+QPushButton.main:focus, QPushButton.main:hover
+{
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton.main:pressed
+{
+    border-color: rgb(248, 248, 248);
 }
 </string>
   </property>
