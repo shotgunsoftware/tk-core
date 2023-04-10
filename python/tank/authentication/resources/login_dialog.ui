@@ -26,7 +26,7 @@
    <string notr="true">
 QWidget
 {
-    background-color:  rgb(36, 39, 42);
+    background-color: rgb(36, 39, 42);
     color: rgb(192, 192, 192);
     selection-background-color: rgb(168, 123, 43);
     selection-color: rgb(230, 230, 230);
@@ -48,13 +48,13 @@ QLineEdit, QComboBox
     border: 1px solid rgb(54, 60, 66);
     border-radius: 2px;
     padding: 5px;
-     font-size: 12px;
+    font-size: 12px;
 }
 
 QComboBox
 {
-    margin-left: 3;
-    margin-right: 3
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 QComboBox:focus, QLineEdit:focus
@@ -68,17 +68,15 @@ QComboBox:drop-down:button {
 
 QComboBox:down-arrow {
     image: url(:/shotgun_authentication/down-arrow.png);
-
 }
 
-QLineEdit:Disabled {
+QLineEdit:disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
 }
 
 QComboBox::drop-down:disabled {
     border-width: 0px;
-
 }
 
 QComboBox::down-arrow:disabled {
@@ -88,7 +86,8 @@ QComboBox::down-arrow:disabled {
 QComboBox::disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
-}</string>
+}
+</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -286,9 +285,6 @@ QComboBox::disabled {
          </item>
          <item>
           <widget class="QPushButton" name="cancel">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="text">
             <string>Cancel</string>
            </property>
@@ -460,9 +456,6 @@ background-color: rgb(35, 165, 225);</string>
          </item>
          <item>
           <widget class="QPushButton" name="cancel_tfa">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="text">
             <string>Cancel</string>
            </property>
