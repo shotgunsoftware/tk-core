@@ -90,6 +90,9 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
+        # Hook - disable exit confirmation for the tests
+        login_dialog.LoginDialog._confirm_exit = lambda c: True
+
         # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
         # issues with tests.
         with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
