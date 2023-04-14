@@ -186,9 +186,6 @@ class LoginDialog(QtGui.QDialog):
         self.ui = login_dialog.Ui_LoginDialog()
         self.ui.setupUi(self)
 
-        # Set the title
-        self.setWindowTitle("ShotGrid Login")
-
         # Assign credentials
         self._http_proxy = http_proxy
 
