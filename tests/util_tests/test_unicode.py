@@ -96,6 +96,7 @@ class TestUnicode(TestCase):
             '이사이트에서는개발자가',
             'およびその他の教育リソース'
             '工作流技术总监或将要设置工作流并希望开发',
+            'Martin Tlustý',
         ]
 
         for login in logins:
