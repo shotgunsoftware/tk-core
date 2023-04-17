@@ -149,10 +149,6 @@ class Ui_LoginDialog(object):
         self.links.setObjectName("links")
         self.forgot_password_link = QtGui.QLabel(self.login_page)
         self.forgot_password_link.setCursor(QtCore.Qt.PointingHandCursor)
-        self.forgot_password_link.setStyleSheet("QWidget\n"
-"{\n"
-"    color: rgb(192, 193, 195);\n"
-"}")
         self.forgot_password_link.setTextFormat(QtCore.Qt.RichText)
         self.forgot_password_link.setMargin(4)
         self.forgot_password_link.setOpenExternalLinks(False)
