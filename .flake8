@@ -58,4 +58,4 @@ exclude =
 # N806 Variables should be lower case. (clashes with Qt naming conventions)
 # E999 SyntaxError: invalid syntax (hack for hound CI which runs python 3.x)
 
-ignore = E203, E221, E261, E402, E501, W503, N802, N806, E999
+ignore = E203, E221, E261, E402, E501, W503, N802, N806, E999, BLK100
