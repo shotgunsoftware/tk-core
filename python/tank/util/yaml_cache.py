@@ -256,7 +256,7 @@ class YamlCache(object):
         """
         path = item.path
         try:
-            with open(path, "r") as fh:
+            with open(path, "r", encoding='utf8') as fh:
                 raw_data = yaml.load(fh, Loader=yaml.FullLoader)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
