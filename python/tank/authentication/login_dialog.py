@@ -253,10 +253,6 @@ class LoginDialog(QtGui.QDialog):
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.stackedWidget.currentChanged.connect(self._current_page_changed)
 
-        self.ui.cancel.clicked.connect(self.confirm_exit)
-        self.ui.cancel_backup.clicked.connect(self.confirm_exit)
-        self.ui.cancel_tfa.clicked.connect(self.confirm_exit)
-
         self.ui.verify_2fa.clicked.connect(self._verify_2fa_pressed)
         self.ui.use_backup.clicked.connect(self._use_backup_pressed)
 
@@ -312,12 +308,6 @@ class LoginDialog(QtGui.QDialog):
 
     def _confirm_exit(self):
         return self.confirm_box.exec() == QtGui.QMessageBox.StandardButton.Yes
-
-    def confirm_exit(self):
-        if not self._confirm_exit():
-            return
-
-        self.reject()
 
     def closeEvent(self, event):
         if not self._confirm_exit():

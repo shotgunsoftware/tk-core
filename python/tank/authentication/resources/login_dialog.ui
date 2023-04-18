@@ -267,7 +267,7 @@ QPushButton.main:pressed
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout" stretch="0,1,0,0">
+        <layout class="QHBoxLayout" name="button_layout" stretch="0,1,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -309,19 +309,6 @@ QPushButton.main:pressed
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancel">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="sign_in">
@@ -450,7 +437,7 @@ QPushButton.main:pressed
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -479,19 +466,6 @@ QPushButton.main:pressed
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancel_tfa">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="verify_2fa">
@@ -623,7 +597,7 @@ QPushButton.main:pressed
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -655,19 +629,6 @@ QPushButton.main:pressed
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancel_backup">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="verify_backup">
