@@ -43,6 +43,7 @@ jobs:
     # Add what is required on tests/python/requirements.txt
     extra_test_dependencies:
       - coverage==7.1.0
+      - pytest-cov==4.0.0
       - mock
       - setuptools
       - unittest2
