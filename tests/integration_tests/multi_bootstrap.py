@@ -25,9 +25,6 @@ import sgtk
 logger = sgtk.LogManager.get_logger(__name__)
 
 
-@unittest2.skipIf(
-    sys.version_info[0] > 2, "tk-config-basic is not Python 3 compatible."
-)
 class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
     """
     Tests that it's possible to run bootstrap more than once.

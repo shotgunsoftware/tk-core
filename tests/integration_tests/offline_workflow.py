@@ -24,7 +24,6 @@ from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
 
 
-@unittest2.skipIf(sys.version_info[0] > 2, "shell engine is not Python 3 compatible.")
 class OfflineWorkflow(SgtkIntegrationTest):
 
     OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
