@@ -20,6 +20,7 @@ with unrestricted execution policy (`Set-ExecutionPolicy Unrestricted`).
 To run on Linux or macOS, run the script `run_tests.sh`.
 
 Add `-h` to see options.
+Add `--with-coverage` to enable coverage.
 
 To run specific test(s), specify module, or module.class or module.class.test:
 

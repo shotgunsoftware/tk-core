@@ -42,7 +42,7 @@ jobs:
   parameters:
     # Add what is required on tests/python/requirements.txt
     extra_test_dependencies:
-      - coverage
+      - coverage==7.1.0
       - mock
       - setuptools
       - unittest2
