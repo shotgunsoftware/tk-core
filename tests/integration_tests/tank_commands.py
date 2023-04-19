@@ -19,7 +19,7 @@ import re
 import sys
 import shutil
 
-import unittest2
+import unittest
 from mock import Mock, patch
 from tank.util import is_linux, is_macos, is_windows, filesystem
 from tank.util import yaml_cache, zip
@@ -529,4 +529,4 @@ class TankCommands(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    ret_val = unittest.main(failfast=True, verbosity=2)

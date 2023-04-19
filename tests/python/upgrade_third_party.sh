@@ -49,7 +49,6 @@ def main():
     try:
         for mod_name in [
             "mock",
-            "unittest2",
             "coverage",
         ]:
             mod_imported = importlib.import_module(mod_name)
