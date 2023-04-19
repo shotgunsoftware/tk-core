@@ -3,12 +3,14 @@ Readme for Tank core tests
 
 Required packages
 -----------------
-* unittest2
-* mock
-* coverage (only if `--with-coverage` option is used)
-* pytest
+To install the required dependencies, just run the following command on the `python` directory.
 
-`unitest2`, `coverage` and `mock` are packaged under `tests/python/third_party`.
+```shell
+cd python
+./upgrade_third_party.sh
+```
+
+Packages will be installed under `tests/python/third_party`
 
 Running the test suite
 -----------------------

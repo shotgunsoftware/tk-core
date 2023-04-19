@@ -40,6 +40,12 @@ variables:
 jobs:
 - template: build-pipeline.yml@templates
   parameters:
+    # Add what is required on tests/python/requirements.txt
+    extra_test_dependencies:
+      - coverage
+      - mock
+      - setuptools
+      - unittest2
     # After the tests have run, run the integration tests.
     post_tests_steps:
       - bash: python tests/integration_tests/run_integration_tests.py
