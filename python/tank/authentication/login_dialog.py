@@ -270,15 +270,21 @@ class LoginDialog(QtGui.QDialog):
         self.ui.button_options.setMenu(menu)
         self.ui.button_options.setVisible(False)
 
-        self.menu_action_ulf2 = QtGui.QAction("Authenticate with your web browser", menu)
+        self.menu_action_ulf2 = QtGui.QAction(
+            "Authenticate with your default web browser", menu,
+        )
         self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
         menu.addAction(self.menu_action_ulf2)
 
-        self.menu_action_ulf = QtGui.QAction("Authenticate on the web (legacy)", menu)
+        self.menu_action_ulf = QtGui.QAction(
+            "Authenticate with the ShotGrid Desktop browser (legacy)", menu,
+        )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
         menu.addAction(self.menu_action_ulf)
 
-        self.menu_action_legacy = QtGui.QAction("Authenticate with login credentials", menu)
+        self.menu_action_legacy = QtGui.QAction(
+            "Authenticate with your legacy login credentials", menu,
+        )
         self.menu_action_legacy.triggered.connect(self._menu_activated_action_login_creds)
         menu.addAction(self.menu_action_legacy)
 
@@ -522,11 +528,10 @@ class LoginDialog(QtGui.QDialog):
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
             self.ui.message.setText(
-                "Sign in using your local web browser."
-                "\n\n"
-                "By clicking on the Sign-in button, your local web browser "
-                "will open and you will have to review the authentication "
-                "request from the ShotGrid site."
+                "<p>Continue to sign in using your web browser.</p>"
+                "<p>After selecting <b>Sign In</b>, your default web browser will "
+                "prompt you to approve the authentication request from your "
+                "ShotGrid site.</p>"
             )
         elif use_web:
             logger.info("Using the Web Login with the ShotGrid Desktop")
@@ -539,14 +544,30 @@ class LoginDialog(QtGui.QDialog):
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
-            self.ui.message.setText("Sign in using the Web.")
+
+            if not self._query_task.unified_login_flow2_enabled:
+                # Old text
+                 self.ui.message.setText("Sign in using the Web.")
+            else:
+                self.ui.message.setText(
+                    "<p>Authenticate with the ShotGrid Desktop browser (legacy).</p>"
+                    '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
+                        url="https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials",
+                    )
+                )
         else:
             self._use_web = False
             self._use_local_browser = False
 
             self.ui.login.setVisible(True)
             self.ui.password.setVisible(True)
-            self.ui.message.setText("Please enter your credentials.")
+            self.ui.message.setText(
+                "Please enter your credentials"
+                " - "
+                '<a style="color:#c0c1c3;" href="{url}">Learn more here</a>'.format(
+                    url = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials",
+                )
+            )
 
         self.ui.forgot_password_link.setVisible(not self._query_task.unified_login_flow2_enabled)
         self.ui.button_options.setVisible(self._query_task.unified_login_flow2_enabled)
