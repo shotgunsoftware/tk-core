@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.20.16 documentation</title>
+  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.20.17 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.16.<br>
+    <b>tk-core</b> v0.20.17.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -230,14 +230,14 @@
 
 
 <div class="viewcode-block" id="ConfigDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor">[docs]</a><span class="k">class</span> <span class="nc">ConfigDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Configuration</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
 
@@ -257,7 +257,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">associated_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The descriptor dict or url required for this core or ``None`` if not defined.</span>
 
 <span class="sd">        :returns: Core descriptor dict or uri or ``None`` if not defined</span>
@@ -268,7 +268,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">python_interpreter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the Python interpreter for the current platform from the interpreter files.</span>
 
 <span class="sd">        .. note:: Most runtime environments (Nuke, Maya, Houdini, etc.) provide their</span>
@@ -286,7 +286,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">resolve_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resolves the :class:`CoreDescriptor` from :attr:`ConfigDescriptor.associated_core_descriptor`.</span>
 
 <span class="sd">        :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,</span>
@@ -315,7 +315,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span>
 
 <div class="viewcode-block" id="ConfigDescriptor.get_associated_core_feature_info"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_associated_core_feature_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves information for a given feature in the manifest of the core.</span>
 
 <span class="sd">        The ``default_value`` will be returned in the following cases:</span>
@@ -337,7 +337,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A dictionary with version constraints. The absence of a key</span>
 <span class="sd">        indicates that there is no defined constraint. The following keys can be</span>
 <span class="sd">        returned: min_sg, min_core, min_engine and min_desktop</span>
@@ -359,7 +359,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">readme_content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Associated readme content as a list.</span>
 <span class="sd">        If not readme exists, an empty list is returned</span>
 
@@ -378,7 +378,7 @@
         <span class="k">return</span> <span class="n">readme_content</span>
 
 <div class="viewcode-block" id="ConfigDescriptor.associated_core_version_less_than"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor.associated_core_version_less_than">[docs]</a>    <span class="k">def</span> <span class="nf">associated_core_version_less_than</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attempt to determine if the associated core version is less than</span>
 <span class="sd">        a given version. Returning True means that the associated core</span>
 <span class="sd">        version is less than the given one, however returning False</span>
@@ -405,7 +405,7 @@
         <span class="k">return</span> <span class="n">result</span></div>
 
     <span class="k">def</span> <span class="nf">get_config_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the folder in which the configuration files are located.</span>
 
 <span class="sd">        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.</span>
@@ -417,7 +417,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_current_platform_interpreter_file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">install_root</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the path to the interpreter file for a given install root.</span>
 
 <span class="sd">        :param str install_root: This can be the root to a studio install for a core</span>
@@ -431,7 +431,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_find_interpreter_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds the interpreter file in a given ``config`` folder.</span>
 
 <span class="sd">        This is a helper method for derived classes.</span>
@@ -463,7 +463,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">required_storages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of storage names needed for this config.</span>
 <span class="sd">        This may be an empty list if the configuration doesn&#39;t</span>
 <span class="sd">        make use of the file system.</span>
@@ -479,7 +479,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">storage_roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A ``StorageRoots`` instance for this config descriptor.</span>
 
 <span class="sd">        Returns None if the config does not define any storage roots.</span>

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_entity &mdash; tk-core v0.20.16 documentation</title>
+  <title>tank.util.shotgun_entity &mdash; tk-core v0.20.17 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.16.<br>
+    <b>tk-core</b> v0.20.17.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -249,7 +249,7 @@
 
 
 <div class="viewcode-block" id="get_sg_entity_name_field"><a class="viewcode-back" href="../../../utils.html#sgtk.util.get_sg_entity_name_field">[docs]</a><span class="k">def</span> <span class="nf">get_sg_entity_name_field</span><span class="p">(</span><span class="n">entity_type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the Shotgun name field to use for the specified entity type.</span>
 
 <span class="sd">    :param str entity_type: The entity type to get the name field for.</span>
@@ -260,7 +260,7 @@
 
 
 <span class="k">def</span> <span class="nf">sg_entity_to_string</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_id</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a string value given a Shotgun value.</span>
 <span class="sd">    This logic is in a hook but it typically does conversions such as:</span>
 
@@ -288,7 +288,7 @@
 
 
 <span class="k">class</span> <span class="nc">EntityExpression</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a name expression for a Shotgun entity.</span>
 <span class="sd">    A name expression converts a pattern and a set of Shotgun data into a string:</span>
 
@@ -312,7 +312,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">field_name_expr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str entity_type: Associated Shotgun entity type.</span>
 <span class="sd">        :param str field_name_expr: Expression, e.g. &#39;{code}/foo&#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -398,7 +398,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_variations</span><span class="p">[</span><span class="n">expr_variation</span><span class="p">]</span> <span class="o">=</span> <span class="n">resolved_fields</span>
 
     <span class="k">def</span> <span class="nf">_get_expression_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns all possible optional variations for an expression.</span>
 
 <span class="sd">        &quot;{foo}&quot;               ==&gt; [&#39;{foo}&#39;]</span>
@@ -434,7 +434,7 @@
         <span class="k">return</span> <span class="n">definitions</span>
 
     <span class="k">def</span> <span class="nf">get_shotgun_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the Shotgun fields that are needed in order to</span>
 <span class="sd">        build this name expression. Returns all fields, including optional.</span>
 
@@ -447,7 +447,7 @@
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">field_names</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_shotgun_link_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a list of all entity links that are used in the name expression,</span>
 <span class="sd">        including optional ones.</span>
 <span class="sd">        For example, if a name expression for a Shot is &#39;{code}_{sg_sequence.Sequence.code}&#39;,</span>
@@ -466,7 +466,7 @@
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">link_names</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">generate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a name given some fields.</span>
 
 <span class="sd">        Assumes the name will be used as a folder name and validates</span>
@@ -519,7 +519,7 @@
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span> <span class="nf">_generate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a name given some fields.</span>
 
 <span class="sd">        Assumes the name will be used as a folder name and validates</span>
@@ -583,7 +583,7 @@
         <span class="k">return</span> <span class="n">resolved_expression</span>
 
     <span class="k">def</span> <span class="nf">_validate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check that the name meets basic file system naming standards.</span>
 
 <span class="sd">        :returns: True if valid, false otherwise</span>
@@ -609,7 +609,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">_process_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">regex_obj</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes the given string value with the given regex.</span>
 
 <span class="sd">        :param value: Value to process, either unicode or str.</span>

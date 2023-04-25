@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.download &mdash; tk-core v0.20.16 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.20.17 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.16.<br>
+    <b>tk-core</b> v0.20.17.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -235,7 +235,7 @@
 
 <div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_url">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
 <span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method that downloads a file from a given url.</span>
 <span class="sd">    This method will take into account any proxy settings which have</span>
 <span class="sd">    been defined in the Shotgun connection parameters.</span>
@@ -318,7 +318,7 @@
 
 
 <span class="k">def</span> <span class="nf">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on</span>
 <span class="sd">    Shotgun instance.</span>
 
@@ -363,7 +363,7 @@
 <div class="viewcode-block" id="download_and_unpack_attachment"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_attachment">[docs]</a><span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the given attachment from Shotgun, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
 
@@ -386,7 +386,7 @@
 
 
 <div class="viewcode-block" id="download_and_unpack_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_url">[docs]</a><span class="k">def</span> <span class="nf">download_and_unpack_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the content from the provided url, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
 
@@ -408,7 +408,7 @@
 <span class="k">def</span> <span class="nf">_download_and_unpack</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the given attachment from Shotgun if an attachment ID is provided,</span>
 <span class="sd">    otherwise downloads the content from the provided url.  Assumes the downloaded</span>
 <span class="sd">    file is a zip file and attempts to unpack it into the given location.</span>

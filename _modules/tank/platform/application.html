@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.application &mdash; tk-core v0.20.16 documentation</title>
+  <title>tank.platform.application &mdash; tk-core v0.20.17 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.16.<br>
+    <b>tk-core</b> v0.20.17.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -227,12 +227,12 @@
 
 
 <div class="viewcode-block" id="Application"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application">[docs]</a><span class="k">class</span> <span class="nc">Application</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all Applications (Apps) running in Toolkit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Application instances are constructed by the toolkit launch process</span>
 <span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
 
@@ -269,7 +269,7 @@
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk App 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, engine: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_destroy_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called on destroy, prior to calling destroy_app</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">fw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameworks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -283,7 +283,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a Shotgun API handle associated with the currently running</span>
 <span class="sd">        environment. This method is a convenience method that calls out</span>
 <span class="sd">        to :meth:`~sgtk.Tank.shotgun`.</span>
@@ -306,13 +306,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span>
 
     <span class="k">def</span> <span class="nf">_get_instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The name for this app instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span>
 
     <span class="k">def</span> <span class="nf">_set_instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the instance name of the app.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
@@ -321,13 +321,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The engine that this app is connected to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span>
 
 <div class="viewcode-block" id="Application.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.get_metrics_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a dictionary with properties to use when emitting a metric event</span>
 <span class="sd">        for this application in the current engine.</span>
 
@@ -356,14 +356,14 @@
     <span class="c1"># init, destroy, and context changing</span>
 
 <div class="viewcode-block" id="Application.init_app"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.init_app">[docs]</a>    <span class="k">def</span> <span class="nf">init_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to initialize the app</span>
 <span class="sd">        Called by the engine as it loads the app.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Application.post_engine_init"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.post_engine_init">[docs]</a>    <span class="k">def</span> <span class="nf">post_engine_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to run code after the engine</span>
 <span class="sd">        has completely finished initializing itself and all its apps.</span>
 <span class="sd">        At this point, the engine has a fully populated apps dictionary and</span>
@@ -372,7 +372,7 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Application.destroy_app"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.destroy_app">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to tear down the app</span>
 <span class="sd">        Called by the engine as it is being destroyed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -382,7 +382,7 @@
     <span class="c1"># event handling</span>
 
 <div class="viewcode-block" id="Application.event_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.event_engine">[docs]</a>    <span class="k">def</span> <span class="nf">event_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the parent engine emits an event. This method</span>
 <span class="sd">        is intended to be overridden by deriving classes in order to</span>
 <span class="sd">        implement event-specific behavior.</span>
@@ -407,7 +407,7 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Application.event_file_open"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.event_file_open">[docs]</a>    <span class="k">def</span> <span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the parent engine emits a file-open event. This method</span>
 <span class="sd">        is intended to be overridden by deriving classes.</span>
 
@@ -421,7 +421,7 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Application.event_file_close"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.event_file_close">[docs]</a>    <span class="k">def</span> <span class="nf">event_file_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the parent engine emits a file-close event. This method</span>
 <span class="sd">        is intended to be overridden by deriving classes.</span>
 
@@ -438,7 +438,7 @@
     <span class="c1"># logging methods</span>
 
 <div class="viewcode-block" id="Application.log_debug"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_debug">[docs]</a>    <span class="k">def</span> <span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs a debug message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -449,7 +449,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Application.log_info"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_info">[docs]</a>    <span class="k">def</span> <span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an info message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -460,7 +460,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Application.log_warning"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_warning">[docs]</a>    <span class="k">def</span> <span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an warning message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -471,7 +471,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Application.log_error"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_error">[docs]</a>    <span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an error message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -482,7 +482,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Application.log_exception"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.log_exception">[docs]</a>    <span class="k">def</span> <span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an exception message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -494,7 +494,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_application</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app_folder</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Internal helper method.</span>
 <span class="sd">    (Removed from the engine base class to make it easier to run unit tests).</span>
 <span class="sd">    Returns an application object given an engine and app settings.</span>
