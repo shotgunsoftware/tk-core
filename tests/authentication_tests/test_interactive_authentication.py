@@ -90,17 +90,25 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
-        # Hook - disable exit confirmation for the tests
-        login_dialog.LoginDialog._confirm_exit = lambda c: True
+        class MyLoginDialog(login_dialog.LoginDialog):
+            my_result = None
+
+            def done(self, r):
+                self.my_result = r
+                return super(MyLoginDialog, self).done(r)
 
         # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
         # issues with tests.
         with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
             with contextlib.closing(
-                login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
+                MyLoginDialog(is_session_renewal=is_session_renewal)
             ) as ld:
-                self._prepare_window(ld)
-                yield ld
+                try:
+                    self._prepare_window(ld)
+                    yield ld
+                finally:
+                    # Hook - disable exit confirmation for the tests
+                    ld._confirm_exit = lambda: True
 
     @suppress_generated_code_qt_warnings
     def test_focus(self):
@@ -401,3 +409,50 @@ class InteractiveTests(ShotgunTestBase):
                     self.assertEqual(widget.text(), "text")
                 else:
                     self.assertEqual(widget.currentText(), "text")
+
+    @suppress_generated_code_qt_warnings
+    def test_login_dialog_exit_confirmation(self):
+        """
+        Make sure that the site and user fields are disabled when doing session renewal
+        """
+
+        from tank.authentication.ui.qt_abstraction import QtGui, QtCore
+
+        # Test window close event
+        with self._login_dialog(False) as ld:
+            # First, simulate user clicks on the No button
+            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.No
+
+            self.assertEqual(ld.close(), False)
+            self.assertIsNone(ld.my_result)
+            self.assertEqual(ld.isVisible(), True)
+
+            # Then, simulate user clicks on the Yes button
+            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.Yes
+
+            self.assertEqual(ld.close(), True)
+            self.assertEqual(ld.my_result, QtGui.QDialog.Rejected)
+            self.assertEqual(ld.isVisible(), False)
+
+        # Test escape key event
+        with self._login_dialog(False) as ld:
+            event = QtGui.QKeyEvent(
+                QtGui.QKeyEvent.KeyPress,
+                QtCore.Qt.Key_Escape,
+                QtCore.Qt.KeyboardModifiers(),
+            )
+
+            # First, simulate user clicks on the No button
+            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.No
+
+            self.assertIsNone(ld.keyPressEvent(event))
+            self.assertIsNone(ld.my_result)
+            self.assertEqual(ld.isVisible(), True)
+
+            # Then, simulate user clicks on the Yes button
+            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.Yes
+
+            # Test Escape key
+            self.assertIsNone(ld.keyPressEvent(event))
+            self.assertEqual(ld.my_result, QtGui.QDialog.Rejected)
+            self.assertEqual(ld.isVisible(), False)
