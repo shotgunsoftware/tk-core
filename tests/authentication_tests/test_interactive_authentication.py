@@ -86,7 +86,7 @@ class InteractiveTests(ShotgunTestBase):
         QtGui.QApplication.processEvents()
 
     @contextlib.contextmanager
-    def _login_dialog(self, is_session_renewal, login=None, hostname=None):
+    def _login_dialog(self, is_session_renewal, **kwargs):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
@@ -101,7 +101,7 @@ class InteractiveTests(ShotgunTestBase):
         # issues with tests.
         with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
             with contextlib.closing(
-                MyLoginDialog(is_session_renewal=is_session_renewal)
+                MyLoginDialog(is_session_renewal, **kwargs)
             ) as ld:
                 try:
                     self._prepare_window(ld)
@@ -456,3 +456,84 @@ class InteractiveTests(ShotgunTestBase):
             self.assertIsNone(ld.keyPressEvent(event))
             self.assertEqual(ld.my_result, QtGui.QDialog.Rejected)
             self.assertEqual(ld.isVisible(), False)
+
+    @suppress_generated_code_qt_warnings
+    @patch(
+        "tank.authentication.sso_saml2.utils._get_site_infos",
+        return_value={
+            "unified_login_flow_enabled2": True,
+            "user_authentication_method": "default",
+        },
+    )
+    @patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
+    @patch(
+        "tank.authentication.login_dialog._is_running_in_desktop",
+        return_value=True,
+    )
+    @patch(
+        "tank.authentication.unified_login_flow2.authentication.process",
+        return_value=(
+            "https://host.shotgunstudio.com",
+            "user_login",
+            "session_token",
+            None,
+        ),
+    )
+    def test_login_dialog_unified_login_flow2(self, *unused_mocks):
+        with self._login_dialog(
+            True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
+            self.assertTrue(ld.menu_action_legacy.isVisible())
+            self.assertFalse(ld.menu_action_ulf.isVisible())
+            self.assertTrue(ld.menu_action_ulf2.isVisible())
+
+            # Ensure current method set is ufl2
+            self.assertFalse(ld._use_web)
+            self.assertTrue(ld._use_local_browser)
+
+            # Trigger login credentials
+            ld._menu_activated_action_login_creds()
+
+            # Ensure current method set is lcegacy credentials
+            self.assertFalse(ld._use_web)
+            self.assertFalse(ld._use_local_browser)
+
+            # Trigger ULF2 again
+            ld._menu_activated_action_ulf2()
+
+            # Trigger Sign-In
+            ld._ok_pressed()
+
+            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+
+            # check that UI displays the UFL2 pending screen
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
+
+            # Cancel the request and go back to the login screen
+            ld._ulf2_back_pressed()
+
+            # check that UI displays the login credentials
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
+            self.assertIsNone(ld._ulf2_task)
+
+            # Trigger Sign-In
+            ld._ok_pressed()
+            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+
+            # Simulate ULF2 Thread run
+            ld._ulf2_task.run()
+            ld._ulf2_task_finished()
+
+            # check that UI displays the login credentials
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
+
+            self.assertEqual(
+                ld._ulf2_task.session_info,
+                (
+                    "https://host.shotgunstudio.com",
+                    "user_login",
+                    "session_token",
+                    None,
+                ),
+            )
