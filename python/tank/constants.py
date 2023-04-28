@@ -85,5 +85,7 @@ TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
 # URL for contacting support
 SUPPORT_URL = "https://knowledge.autodesk.com/contact-support"
 
+DOCUMENTATION_URL_LEGACY_AUTHENTICATION = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials"
+
 # environment variable to hold external pipeline config data
 ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"

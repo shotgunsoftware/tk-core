@@ -8,29 +8,28 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import http
 import json
 import os
 import platform
 import time
 
-from tank_vendor import distro
 from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
-
 
 from .. import errors
 from ...util.shotgun import connection
 
 from ... import LogManager
+
 logger = LogManager.get_logger(__name__)
 
 
 def process(
-    sg_url, http_proxy=None,
+    sg_url,
+    http_proxy=None,
     product=None,
     browser_open_callback=None,
-    keep_waiting_callback=None,
+    keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
 
@@ -39,10 +38,6 @@ def process(
 
     assert product
     assert callable(browser_open_callback)
-
-    if not keep_waiting_callback:
-        keep_waiting_callback = lambda *args, **kwargs: True
-
     assert callable(keep_waiting_callback)
 
     url_handlers = [urllib.request.HTTPHandler]
@@ -50,19 +45,25 @@ def process(
         proxy_addr = _build_proxy_addr(http_proxy)
         sg_url = urllib.parse.urlparse(sg_url)
 
-        url_handlers.append(urllib.request.ProxyHandler({
-            sg_url.scheme: proxy_addr,
-        }))
+        url_handlers.append(
+            urllib.request.ProxyHandler(
+                {
+                    sg_url.scheme: proxy_addr,
+                }
+            )
+        )
 
     url_opener = urllib.request.build_opener(*url_handlers)
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
         # method="POST", # see bellow
-        data=urllib.parse.urlencode({
-            "appName": product,
-            "machineId": platform.node(),
-        }).encode()
+        data=urllib.parse.urlencode(
+            {
+                "appName": product,
+                "machineId": platform.node(),
+            }
+        ).encode(),
     )
 
     # Hook for Python 2
@@ -73,9 +74,11 @@ def process(
         if response.code != http_client.OK:
             raise errors.AuthenticationError("Request denied", response.json)
 
-        session_id = response.json['sessionRequestId']
+        session_id = response.json["sessionRequestId"]
     except KeyError:
-        raise errors.AuthenticationError("Proto error - invalid response data - no sessionRequestId key")
+        raise errors.AuthenticationError(
+            "Proto error - invalid response data - no sessionRequestId key"
+        )
 
     if not session_id:
         raise errors.AuthenticationError("Proto error - token is empty")
@@ -83,9 +86,12 @@ def process(
     logger.debug("session ID: {session_id}".format(session_id=session_id))
     try:
         ret = browser_open_callback(
-            urllib.parse.urljoin(sg_url, "/app_session_request/{session_id}".format(
-                session_id=session_id,
-            )),
+            urllib.parse.urljoin(
+                sg_url,
+                "/app_session_request/{session_id}".format(
+                    session_id=session_id,
+                ),
+            ),
         )
         if not ret:
             raise errors.AuthenticationError("Unable to open local browser")
@@ -93,11 +99,14 @@ def process(
         logger.debug("awaiting browser login...")
 
         sleep_time = 2
-        request_timeout = 180 # 5 minutes
+        request_timeout = 180  # 5 minutes
         request = urllib.request.Request(
-            urllib.parse.urljoin(sg_url, "/internal_api/app_session_request/{session_id}".format(
-                session_id=session_id,
-            )),
+            urllib.parse.urljoin(
+                sg_url,
+                "/internal_api/app_session_request/{session_id}".format(
+                    session_id=session_id,
+                ),
+            ),
             # method="PUT",
         )
 
@@ -109,7 +118,8 @@ def process(
             response = http_request(url_opener, request)
             if response.code == http_client.NOT_FOUND:
                 raise errors.AuthenticationError(
-                    "Request has maybe expired or proto error", response.json,
+                    "Request has maybe expired or proto error",
+                    response.json,
                 )
 
             if "approved" not in response.json or not response.json["approved"]:
@@ -120,12 +130,17 @@ def process(
     finally:
         # Delete the request (be a nice bot and clean up your own mess)
         try:
-            url_opener.open(urllib.request.Request(
-                urllib.parse.urljoin(sg_url, "/internal_api/app_session_request/{session_id}".format(
-                    session_id=session_id,
-                )),
-                # method="DELETE",
-            ))
+            url_opener.open(
+                urllib.request.Request(
+                    urllib.parse.urljoin(
+                        sg_url,
+                        "/internal_api/app_session_request/{session_id}".format(
+                            session_id=session_id,
+                        ),
+                    ),
+                    # method="DELETE",
+                )
+            )
 
             # Hook for Python 2
             request.get_method = lambda: "DELETE"
@@ -134,13 +149,13 @@ def process(
 
     if "approved" not in response.json:
         raise errors.AuthenticationError("Never approved")
-    elif not response.json['approved']:
+    elif not response.json["approved"]:
         raise errors.AuthenticationError("Rejected")
 
-    logger.debug('Request approved')
+    logger.debug("Request approved")
     try:
-        assert(response.json['sessionToken'])
-        assert(response.json['userLogin'])
+        assert response.json["sessionToken"]
+        assert response.json["userLogin"]
     except KeyError:
         raise errors.AuthenticationError("proto error")
     except AssertionError:
@@ -150,10 +165,11 @@ def process(
 
     return (
         sg_url,
-        response.json['userLogin'],
-        response.json['sessionToken'],
-        None, # Extra metadata - useless here
+        response.json["userLogin"],
+        response.json["sessionToken"],
+        None,  # Extra metadata - useless here
     )
+
 
 def _get_content_type(headers):
     if six.PY2:
@@ -161,6 +177,7 @@ def _get_content_type(headers):
         return value.split(";", 1)[0].lower()
     else:
         return headers.get_content_type()
+
 
 def http_request(opener, req):
     try:
@@ -179,7 +196,9 @@ def http_request(opener, req):
 
     if response.code == http_client.FORBIDDEN:
         logger.error("response: {resp}".format(resp=response.read()))
-        raise errors.AuthenticationError("Proto error - invalid response data - not JSON")
+        raise errors.AuthenticationError(
+            "Proto error - invalid response data - not JSON"
+        )
 
     if response.code == http_client.NOT_FOUND:
         logger.error("response: {resp}".format(resp=response.read()))
@@ -189,7 +208,9 @@ def http_request(opener, req):
         data = json.load(response)
         assert isinstance(data, dict)
     except json.JSONDecodeError:
-        raise errors.AuthenticationError("Proto error - invalid response data - not JSON")
+        raise errors.AuthenticationError(
+            "Proto error - invalid response data - not JSON"
+        )
 
     response.json = data
     return response
@@ -218,8 +239,8 @@ def _build_proxy_addr(http_proxy):
             raise ValueError(
                 'Invalid http_proxy address "{http_proxy}".'
                 'Valid format is "123.456.789.012" or "123.456.789.012:3456".'
-                'If no port is specified, a default of {proxy_port} will be '
-                'used.'.format(
+                "If no port is specified, a default of {proxy_port} will be "
+                "used.".format(
                     http_proxy=http_proxy,
                     proxy_port=proxy_port,
                 )
@@ -252,7 +273,7 @@ if __name__ == "__main__":
 
     result = process(
         args.sg_url,
-        browser_open_callback = lambda u: webbrowser.open(u),
+        browser_open_callback=lambda u: webbrowser.open(u),
     )
     if not result:
         print("The web authentication failed. Please try again.")
