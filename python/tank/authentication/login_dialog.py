@@ -271,21 +271,26 @@ class LoginDialog(QtGui.QDialog):
         self.ui.button_options.setVisible(False)
 
         self.menu_action_ulf2 = QtGui.QAction(
-            "Authenticate with your default web browser", menu,
+            "Authenticate with your default web browser",
+            menu,
         )
         self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
         menu.addAction(self.menu_action_ulf2)
 
         self.menu_action_ulf = QtGui.QAction(
-            "Authenticate with the ShotGrid Desktop browser (legacy)", menu,
+            "Authenticate with the ShotGrid Desktop browser (legacy)",
+            menu,
         )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
         menu.addAction(self.menu_action_ulf)
 
         self.menu_action_legacy = QtGui.QAction(
-            "Authenticate with your legacy login credentials", menu,
+            "Authenticate with your legacy login credentials",
+            menu,
         )
-        self.menu_action_legacy.triggered.connect(self._menu_activated_action_login_creds)
+        self.menu_action_legacy.triggered.connect(
+            self._menu_activated_action_login_creds
+        )
         menu.addAction(self.menu_action_legacy)
 
         menu.addAction("Forgot your password?", self._link_activated)
@@ -308,9 +313,11 @@ class LoginDialog(QtGui.QDialog):
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
         self.ui.ulf2_msg_help.setOpenExternalLinks(True)
-        self.ui.ulf2_msg_help.setText(self.ui.ulf2_msg_help.text().format(
-            url=constants.SUPPORT_URL,
-        ))
+        self.ui.ulf2_msg_help.setText(
+            self.ui.ulf2_msg_help.text().format(
+                url=constants.SUPPORT_URL,
+            )
+        )
 
         self.ui.ulf2_msg_back.linkActivated.connect(self._ulf2_back_pressed)
 
@@ -520,7 +527,7 @@ class LoginDialog(QtGui.QDialog):
         if use_local_browser:
             self._use_web = False
             if self._use_local_browser:
-                return # nothing to do
+                return  # nothing to do
 
             self._use_local_browser = not self._use_local_browser
 
@@ -537,7 +544,7 @@ class LoginDialog(QtGui.QDialog):
             logger.info("Using the Web Login with the ShotGrid Desktop")
             self._use_local_browser = False
             if self._use_web:
-                return # nothing to do
+                return  # nothing to do
 
             self._use_web = not self._use_web
 
@@ -547,12 +554,12 @@ class LoginDialog(QtGui.QDialog):
 
             if not self._query_task.unified_login_flow2_enabled:
                 # Old text
-                 self.ui.message.setText("Sign in using the Web.")
+                self.ui.message.setText("Sign in using the Web.")
             else:
                 self.ui.message.setText(
                     "<p>Authenticate with the ShotGrid Desktop browser (legacy).</p>"
                     '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
-                        url="https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials",
+                        url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
                     )
                 )
         else:
@@ -565,11 +572,13 @@ class LoginDialog(QtGui.QDialog):
                 "Please enter your credentials"
                 " - "
                 '<a style="color:#c0c1c3;" href="{url}">Learn more here</a>'.format(
-                    url = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials",
+                    url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
                 )
             )
 
-        self.ui.forgot_password_link.setVisible(not self._query_task.unified_login_flow2_enabled)
+        self.ui.forgot_password_link.setVisible(
+            not self._query_task.unified_login_flow2_enabled
+        )
         self.ui.button_options.setVisible(self._query_task.unified_login_flow2_enabled)
         self.menu_action_ulf.setVisible(use_web)
         self.menu_action_legacy.setVisible(not use_web)
@@ -847,7 +856,8 @@ class LoginDialog(QtGui.QDialog):
 
     def _ulf2_process(self, site):
         self._ulf2_task = ULF2_AuthTask(
-            self, site,
+            self,
+            site,
             http_proxy=self._http_proxy,
             product=PRODUCT_IDENTIFIER,
         )
@@ -909,7 +919,7 @@ class ULF2_AuthTask(QtCore.QThread):
                 self._sg_url,
                 http_proxy=self._http_proxy,
                 product=self._product,
-                browser_open_callback = lambda u: QtGui.QDesktopServices.openUrl(u),
+                browser_open_callback=lambda u: QtGui.QDesktopServices.openUrl(u),
                 keep_waiting_callback=self.should_continue,
             )
         except AuthenticationError as err:
