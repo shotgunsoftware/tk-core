@@ -565,8 +565,8 @@ to certain software integrations, you can specify this:</p>
 <p>The above configuration will only be used when the Maya and Nuke plugins bootstrap.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">If you don’t specify a plugin id for your Pipeline Configuration, it will be ignored
-by the boostrap. We recommend using <code class="docutils literal notranslate"><span class="pre">basic.*</span></code> as a default.</p>
+<p class="last">For <strong>project-bound configurations</strong>, if you don’t specify a plugin id for your Pipeline Configuration, it will be ignored
+by the boostrap. That said, we recommend using <code class="docutils literal notranslate"><span class="pre">basic.*</span></code> as a default in the <em>plugin Ids</em> field on the Pipeline Configuration for project-bound configurations. For <strong>non-project-bound configurations</strong>, the Pipeline Configuration will be ignored by the boostrap when <em>plugin Ids</em> is defined.</p>
 </div>
 </div>
 <div class="section" id="self-contained-configurations">
