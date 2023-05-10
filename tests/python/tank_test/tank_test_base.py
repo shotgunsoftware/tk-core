@@ -31,7 +31,7 @@ from collections import defaultdict
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
-import unittest2 as unittest
+import unittest
 import mock
 
 import sgtk

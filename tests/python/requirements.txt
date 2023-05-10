@@ -22,6 +22,3 @@ mock==2.0.0
 # The Shotgun Desktop does not include setuptools, which comes with pip. Make
 # sure they are installed in case the tests are run with this python.
 setuptools==65.5.1
-
-# Used to run tests
-unittest2==1.1.0

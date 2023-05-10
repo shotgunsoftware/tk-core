@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 import sgtk
 
-import unittest2
+import unittest
 
 from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, SealedMock
 
@@ -669,7 +669,7 @@ class TestDescriptorSupport(TankTestBase):
         )
 
 
-class TestConstraintValidation(unittest2.TestCase):
+class TestConstraintValidation(unittest.TestCase):
     """
     Tests for console utilities.
     """
@@ -923,7 +923,7 @@ class TestConstraintValidation(unittest2.TestCase):
         )
 
 
-class TestFeaturesApi(unittest2.TestCase):
+class TestFeaturesApi(unittest.TestCase):
     def _create_core_desc(self, io_descriptor):
         """
         Helper method which creates an io_descriptor

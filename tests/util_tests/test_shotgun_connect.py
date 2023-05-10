@@ -10,7 +10,7 @@
 
 from __future__ import with_statement
 import threading
-import unittest2 as unittest
+import unittest
 
 from mock import patch
 

@@ -203,7 +203,7 @@ class TestFileSystem(TankTestBase):
         self.assertTrue(
             os.path.exists(os.path.join(copy_test_dst_folder, copy_test_basename))
         )
-        self.assertEquals(fs.SKIP_LIST_DEFAULT, skip_list_copy)
+        self.assertEqual(fs.SKIP_LIST_DEFAULT, skip_list_copy)
 
         # Clean up this test
         fs.safe_delete_folder(copy_test_dst_folder)
@@ -220,7 +220,7 @@ class TestFileSystem(TankTestBase):
         self.assertTrue(
             os.path.exists(os.path.join(copy_test_dst_folder, copy_test_basename))
         )
-        self.assertEquals(skip_list, skip_list_copy)
+        self.assertEqual(skip_list, skip_list_copy)
 
         # Clean up everything
         fs.safe_delete_folder(copy_test_root_folder)

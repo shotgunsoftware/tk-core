@@ -32,7 +32,7 @@ import os
 import json
 import time
 import threading
-import unittest2
+import unittest
 from tank_vendor import six
 from tank_vendor.six.moves import urllib
 
@@ -885,7 +885,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(avg_time_ms < max_interval)
 
 
-class TestMetricsQueueSingleton(unittest2.TestCase):
+class TestMetricsQueueSingleton(unittest.TestCase):
     """Cases testing tank.util.metrics.MetricsQueueSingleton class."""
 
     def test_singleton(self):
@@ -1242,7 +1242,7 @@ class TestBundleMetrics(TankTestBase):
 from tank.util.metrics import PlatformInfo
 
 
-class TestPlatformInfo(unittest2.TestCase):
+class TestPlatformInfo(unittest.TestCase):
     def setUp(self):
         super(TestPlatformInfo, self).setUp()
         # reset un-cache PlatformInfo cached value
