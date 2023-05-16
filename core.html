@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.20.17 documentation</title>
+  <title>Core &mdash; tk-core v0.20.18 documentation</title>
   
 
   
@@ -175,7 +175,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.17.<br>
+    <b>tk-core</b> v0.20.18.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -1428,7 +1428,7 @@ when copying files between different user sandboxes. Example:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
 <span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;Dirk Gently&#39;}</span>
-<span class="gp">&gt;&gt;&gt;</span>
+<span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">create_copy_for_user</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;HumanUser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;John Snow&#39;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span><span class="o">.</span><span class="n">user</span>
 <span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;John Snow&#39;}</span>
