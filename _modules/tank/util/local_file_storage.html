@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.20.18 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core master documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> master.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -223,7 +223,7 @@
 
 
 <div class="viewcode-block" id="LocalFileStorageManager"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager">[docs]</a><span class="k">class</span> <span class="nc">LocalFileStorageManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that encapsulates logic for resolving local storage paths.</span>
 
 <span class="sd">    Toolkit needs to store cache data, logs and other items at runtime.</span>
@@ -266,7 +266,7 @@
 
 <div class="viewcode-block" id="LocalFileStorageManager.get_global_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_global_root">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_global_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a generic Shotgun storage root.</span>
 
 <span class="sd">        The following paths will be used:</span>
@@ -403,7 +403,7 @@
 
 <div class="viewcode-block" id="LocalFileStorageManager.get_site_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_site_root">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_site_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a cache root where items can be stored on a per site basis.</span>
 
 <span class="sd">        For more details, see :meth:`LocalFileStorageManager.get_global_root`.</span>
@@ -454,7 +454,7 @@
         <span class="n">path_type</span><span class="p">,</span>
         <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the storage root for any data that is project and config specific.</span>
 
 <span class="sd">        - A well defined project id should always be passed. Passing None as the project</span>

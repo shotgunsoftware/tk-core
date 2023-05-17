@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.framework &mdash; tk-core v0.20.18 documentation</title>
+  <title>tank.platform.framework &mdash; tk-core master documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> master.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -227,12 +227,12 @@
 
 
 <div class="viewcode-block" id="Framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework">[docs]</a><span class="k">class</span> <span class="nc">Framework</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for a Toolkit Framework</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the bundle loading framework. The constructor</span>
 <span class="sd">        is not meant to be overridden by deriving classes.</span>
 
@@ -261,7 +261,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_destroy_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the parent classes when it is time to destroy this framework</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># destroy all our (non-shared) frameworks</span>
@@ -277,7 +277,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a Shotgun API handle associated with the currently running</span>
 <span class="sd">        environment. This method is a convenience method that calls out</span>
 <span class="sd">        to :meth:`~sgtk.Tank.shotgun`.</span>
@@ -301,14 +301,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The engine that this framework is connected to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_shared</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Boolean indicating whether this is a shared framework.</span>
 
 <span class="sd">        Frameworks are shared by default and this is a setting that can be</span>
@@ -329,7 +329,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">is_shared_framework</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Framework.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.get_metrics_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a dictionary with properties to use when emitting a metric event</span>
 <span class="sd">        for this framework in the current engine.</span>
 
@@ -347,14 +347,14 @@
     <span class="c1"># init and destroy</span>
 
 <div class="viewcode-block" id="Framework.init_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.init_framework">[docs]</a>    <span class="k">def</span> <span class="nf">init_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to initialize the app.</span>
 <span class="sd">        Called by the engine as it loads the framework.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Framework.destroy_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.destroy_framework">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to tear down the framework.</span>
 <span class="sd">        Called by the engine as it is being destroyed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -364,7 +364,7 @@
     <span class="c1"># logging methods</span>
 
 <div class="viewcode-block" id="Framework.log_debug"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_debug">[docs]</a>    <span class="k">def</span> <span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs a debug message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -375,7 +375,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_info"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_info">[docs]</a>    <span class="k">def</span> <span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an info message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -386,7 +386,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_warning"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_warning">[docs]</a>    <span class="k">def</span> <span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an warning message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -397,7 +397,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_error"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_error">[docs]</a>    <span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an error message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -408,7 +408,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_exception"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_exception">[docs]</a>    <span class="k">def</span> <span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an exception message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
@@ -426,7 +426,7 @@
 
 
 <span class="k">def</span> <span class="nf">setup_frameworks</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">,</span> <span class="n">parent_obj</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">parent_descriptor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks if any frameworks are needed for the current item</span>
 <span class="sd">    and in that case loads them - recursively</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -458,7 +458,7 @@
 
 
 <span class="k">def</span> <span class="nf">load_framework</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">fw_instance_name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Validates, loads and initializes a framework.  If the framework is available from the list of</span>
 <span class="sd">    shared frameworks maintained by the engine then the shared framework is returned, otherwise a</span>
 <span class="sd">    new instance of the framework will be returned.</span>
@@ -537,7 +537,7 @@
 
 
 <span class="k">def</span> <span class="nf">_create_framework_instance</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Internal helper method.</span>
 <span class="sd">    Returns an framework object given an engine and fw settings.</span>
 

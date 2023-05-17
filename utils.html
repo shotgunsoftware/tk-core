@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.20.18 documentation</title>
+  <title>Utilities &mdash; tk-core master documentation</title>
   
 
   
@@ -160,7 +160,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> master.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -500,7 +500,7 @@ issues to do with I/O or cloud connectivity.</p>
 retrieve data, you can decorate it:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">log_timing</span>
 <span class="k">def</span> <span class="nf">my_shotgun_publish_method</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Publishes lots of files to Shotgun</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1"># shotgun code here</span>
@@ -1402,7 +1402,7 @@ it easy to perform operations and cast between representations and platforms.</p
 
 <dl class="staticmethod">
 <dt id="sgtk.util.ShotgunPath.get_file_name_from_template">
-<em class="property">static </em><code class="descname">get_file_name_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>platform='linux'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_file_name_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_file_name_from_template" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_file_name_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>platform='darwin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_file_name_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_file_name_from_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the complete file name for the current platform based on
 file name template passed in.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1420,7 +1420,7 @@ where the platform name should be inserted.</td>
 
 <dl class="staticmethod">
 <dt id="sgtk.util.ShotgunPath.get_shotgun_storage_key">
-<em class="property">static </em><code class="descname">get_shotgun_storage_key</code><span class="sig-paren">(</span><em>platform='linux'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_shotgun_storage_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_shotgun_storage_key" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_shotgun_storage_key</code><span class="sig-paren">(</span><em>platform='darwin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_shotgun_storage_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_shotgun_storage_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <code class="docutils literal notranslate"><span class="pre">sys.platform</span></code> constant, resolve a Shotgun storage key</p>
 <p>Shotgun local storages handle operating systems using
 the three keys ‘windows_path, ‘mac_path’ and ‘linux_path’,

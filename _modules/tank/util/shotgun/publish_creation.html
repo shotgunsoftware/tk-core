@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.20.18 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core master documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> master.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -238,7 +238,7 @@
 
 <div class="viewcode-block" id="register_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.register_publish">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
 <span class="k">def</span> <span class="nf">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Published File in Shotgun.</span>
 
 <span class="sd">    **Introduction**</span>
@@ -571,7 +571,7 @@
     <span class="n">sg_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a publish entity in shotgun given some standard fields.</span>
 
 <span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance</span>
@@ -835,7 +835,7 @@
 
 
 <span class="k">def</span> <span class="nf">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates abstract fields for a path into the default abstract value.</span>
 <span class="sd">    For example, the path /foo/bar/xyz.0003.exr will be transformed into</span>
 <span class="sd">    /foo/bar/xyz.%04d.exr</span>
@@ -880,7 +880,7 @@
 
 
 <span class="k">def</span> <span class="nf">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">publish_entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates dependencies in shotgun from a given entity to</span>
 <span class="sd">    a list of paths and ids. Paths not recognized are skipped.</span>
 
@@ -966,7 +966,7 @@
 
 
 <span class="k">def</span> <span class="nf">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">project_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates root path name and relative path (including project directory).</span>
 <span class="sd">    returns (root_name, path_cache). The relative path is always using forward</span>
 <span class="sd">    slashes.</span>
@@ -1040,7 +1040,7 @@
 
 
 <span class="k">def</span> <span class="nf">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">only_current_project</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a list of paths on disk, groups them into a data structure suitable for</span>
 <span class="sd">    shotgun. In shotgun, the path_cache field contains an abstracted representation</span>
 <span class="sd">    of the publish field, with a normalized path and the storage chopped off.</span>
