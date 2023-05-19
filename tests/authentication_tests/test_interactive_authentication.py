@@ -341,8 +341,12 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         self.assertEqual(
+            handler._get_sg_url(None, None),
+            "https://test.shotgunstudio.com",
+        )
+        self.assertEqual(
             handler._get_user_credentials(None, None, None),
-            ("https://test.shotgunstudio.com", "username", " password "),
+            (None, "username", " password "),
         )
         self.assertEqual(handler._get_2fa_code(), "2fa code")
 
@@ -354,6 +358,10 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
         return_value=True,
     )
+    @patch(
+        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
+        return_value=False,
+    )
     @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
         """
@@ -363,7 +371,7 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
-            handler._get_user_credentials(None, None, None)
+            handler.authenticate(None, None, None)
 
     @patch(
         "tank.authentication.console_authentication.input",
@@ -373,6 +381,10 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
         return_value=True,
     )
+    @patch(
+        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
+        return_value=False,
+    )
     @suppress_generated_code_qt_warnings
     def test_sso_enabled_site(self, *mocks):
         """
@@ -381,7 +393,7 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         with self.assertRaises(ConsoleLoginNotSupportedError):
-            handler._get_user_credentials(None, None, None)
+            handler.authenticate(None, None, None)
 
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):

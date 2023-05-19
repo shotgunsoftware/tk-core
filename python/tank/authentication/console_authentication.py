@@ -361,4 +361,4 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
 
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
-        return sanitize_url(hostname), login, password
+        return hostname, login, password
