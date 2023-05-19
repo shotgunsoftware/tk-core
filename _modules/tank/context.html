@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.20.18 documentation</title>
+  <title>tank.context &mdash; tk-core v0.20.19 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> v0.20.19.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -235,7 +235,7 @@
 
 
 <div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../core.html#sgtk.Context">[docs]</a><span class="k">class</span> <span class="nc">Context</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A context instance is used to collect a set of key fields describing the</span>
 <span class="sd">    current Context. We sometimes refer to the context as the current work area.</span>
 <span class="sd">    Typically this would be the current shot or asset that someone is working on.</span>
@@ -276,7 +276,7 @@
         <span class="n">additional_entities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Context objects are not constructed by hand but are fabricated by the</span>
 <span class="sd">        methods :meth:`Sgtk.context_from_entity`, :meth:`Sgtk.context_from_entity_dictionary`</span>
 <span class="sd">        and :meth:`Sgtk.context_from_path`.</span>
@@ -306,7 +306,7 @@
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Context: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation for context</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -353,7 +353,7 @@
         <span class="k">return</span> <span class="n">ctx_name</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this Context instance is equal to the other Context instance</span>
 
 <span class="sd">        :param other:   The other Context instance to compare with</span>
@@ -362,7 +362,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">_entity_dicts_eq</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Test to see if two entity dictionaries are equal.  They are considered</span>
 <span class="sd">            equal if both are dictionaries containing &#39;type&#39; and &#39;id&#39; with the same</span>
 <span class="sd">            values for both keys, For example:</span>
@@ -424,7 +424,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this Context instance is not equal to the other Context instance</span>
 
 <span class="sd">        :param other:   The other Context instance to compare with</span>
@@ -436,7 +436,7 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="n">is_equal</span>
 
     <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a unique hash for the Context.</span>
 
 <span class="sd">        :returns: int hash for this Context.</span>
@@ -447,7 +447,7 @@
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Allow Context objects to be deepcopied - Note that the tk</span>
 <span class="sd">        member is _never_ copied</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -473,7 +473,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun project associated with this context.</span>
 
 <span class="sd">        If the context is incomplete, it is possible that the property is None. Example::</span>
@@ -490,7 +490,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun entity associated with this context.</span>
 
 <span class="sd">        If the context is incomplete, it is possible that the property is None. Example::</span>
@@ -507,7 +507,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">source_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Shotgun entity that was used to construct this Context.</span>
 
 <span class="sd">        This is not necessarily the same as the context&#39;s &quot;entity&quot;, as there</span>
@@ -529,7 +529,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun step associated with this context.</span>
 
 <span class="sd">        If the context is incomplete, it is possible that the property is None. Example::</span>
@@ -546,7 +546,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun task associated with this context.</span>
 
 <span class="sd">        If the context is incomplete, it is possible that the property is None. Example::</span>
@@ -563,7 +563,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A property which holds the user associated with this context.</span>
 <span class="sd">        If the context is incomplete, it is possible that the property is None.</span>
 
@@ -593,7 +593,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">additional_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of entities that are required to provide a full context in non-standard configurations.</span>
 <span class="sd">        The &quot;context_additional_entities&quot; core hook gives the context construction code hints about how</span>
 <span class="sd">        this data should be populated.</span>
@@ -608,7 +608,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">entity_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of paths on disk which correspond to the **entity** which this context represents.</span>
 <span class="sd">        If no folders have been created for this context yet, the value of this property will be an empty list::</span>
 
@@ -630,7 +630,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the shotgun detail page url that best represents this context. Depending on</span>
 <span class="sd">        the context, this may be a task, a shot, an asset or a project. If the context is</span>
 <span class="sd">        completely empty, the root url of the associated shotgun installation is returned.</span>
@@ -666,7 +666,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">filesystem_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A property which holds a list of paths on disk which correspond to this context.</span>
 <span class="sd">        If no folders have been created for this context yet, the value of this property will be an empty list::</span>
 
@@ -729,7 +729,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Toolkit API instance associated with this context</span>
 
 <span class="sd">        :returns: :class:`Sgtk`</span>
@@ -738,7 +738,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Legacy equivalent of :meth:`sgtk`</span>
 
 <span class="sd">        :returns: :class:`Sgtk`</span>
@@ -749,7 +749,7 @@
     <span class="c1"># public methods</span>
 
 <div class="viewcode-block" id="Context.as_template_fields"><a class="viewcode-back" href="../../core.html#sgtk.Context.as_template_fields">[docs]</a>    <span class="k">def</span> <span class="nf">as_template_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the context object as a dictionary of template fields.</span>
 
 <span class="sd">        This is useful if you want to use a Context object as part of a call to</span>
@@ -888,7 +888,7 @@
         <span class="k">return</span> <span class="n">fields</span></div>
 
 <div class="viewcode-block" id="Context.create_copy_for_user"><a class="viewcode-back" href="../../core.html#sgtk.Context.create_copy_for_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_copy_for_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides the ability to create a copy of an existing Context for a specific user.</span>
 
 <span class="sd">        This is useful if you need to determine a user specific version of a path, e.g.</span>
@@ -915,7 +915,7 @@
     <span class="c1"># serialization</span>
 
 <div class="viewcode-block" id="Context.serialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_user_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Serializes the context into a string.</span>
 
 <span class="sd">        Any Context object can be serialized to/deserialized from a string.</span>
@@ -966,7 +966,7 @@
 
 <div class="viewcode-block" id="Context.deserialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.deserialize">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">context_str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The inverse of :meth:`Context.serialize`.</span>
 
 <span class="sd">        :param context_str: String representation of context, created with :meth:`Context.serialize`</span>
@@ -1016,7 +1016,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Context.to_dict"><a class="viewcode-back" href="../../core.html#sgtk.Context.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the context into a dictionary with keys ``project``,</span>
 <span class="sd">        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and</span>
 <span class="sd">        ``source_entity``.</span>
@@ -1041,7 +1041,7 @@
         <span class="p">}</span></div>
 
     <span class="k">def</span> <span class="nf">_cleanup_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cleanup the entity dictionary.</span>
 
 <span class="sd">        :param dict entity: Shotgun entity object.</span>
@@ -1068,7 +1068,7 @@
 
 <div class="viewcode-block" id="Context.from_dict"><a class="viewcode-back" href="../../core.html#sgtk.Context.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts a dictionary into a :class:`Context` object.</span>
 
 <span class="sd">        You should only pass in a dictionary that was created with the :meth:`Context.to_dict`</span>
@@ -1086,7 +1086,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a Context object based on the arguments found in a dictionary, but</span>
 <span class="sd">        only the ones that the Context understands.</span>
 
@@ -1112,7 +1112,7 @@
     <span class="c1"># private methods</span>
 
     <span class="k">def</span> <span class="nf">_fields_from_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">validate</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query Shotgun server for keys used by this template whose values come directly</span>
 <span class="sd">        from Shotgun fields.</span>
 
@@ -1211,7 +1211,7 @@
         <span class="k">return</span> <span class="n">fields</span>
 
     <span class="k">def</span> <span class="nf">_fields_from_entity_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines a template&#39;s key values based on context by walking up the context entities paths until</span>
 <span class="sd">        matches for the template are found.</span>
 
@@ -1286,7 +1286,7 @@
         <span class="k">return</span> <span class="n">fields</span>
 
     <span class="k">def</span> <span class="nf">_fields_from_template_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">known_fields</span><span class="p">,</span> <span class="n">context_entities</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines values for a template&#39;s keys based on the context by walking down the template tree</span>
 <span class="sd">        matching template keys with entity types.</span>
 
@@ -1430,7 +1430,7 @@
         <span class="k">return</span> <span class="n">found_fields</span>
 
     <span class="k">def</span> <span class="nf">_get_project_roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the project root paths for the current pipeline configuration.</span>
 
 <span class="sd">        :returns: A list of project root file paths as strings.</span>
@@ -1444,7 +1444,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_empty</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs an empty context.</span>
 
 <span class="sd">    :returns: a context object</span>
@@ -1453,7 +1453,7 @@
 
 
 <span class="k">def</span> <span class="nf">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun entity.</span>
 
 <span class="sd">    For more information, see :meth:`Sgtk.context_from_entity`.</span>
@@ -1468,7 +1468,7 @@
 
 
 <span class="k">def</span> <span class="nf">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from the entity type and id as stored in the given</span>
 <span class="sd">    entity. Any other data necessary to construct the context beyond the type</span>
 <span class="sd">    and id keys will be queried from Shotgun. To get a context from a fully</span>
@@ -1565,7 +1565,7 @@
 
 
 <span class="k">def</span> <span class="nf">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun entity dictionary.</span>
 
 <span class="sd">    For more information, see :meth:`Sgtk.context_from_entity_dictionary`.</span>
@@ -1580,7 +1580,7 @@
 
 
 <span class="k">def</span> <span class="nf">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a Shotgun entity dictionary.</span>
 
 <span class="sd">    For more information, see :meth:`Sgtk.context_from_entity_dictionary`.</span>
@@ -1675,7 +1675,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">fallback_to_ctx_from_entity</span><span class="p">:</span>
         <span class="c1"># clean up entities and populate context structure:</span>
         <span class="k">def</span> <span class="nf">_build_clean_entity</span><span class="p">(</span><span class="n">ent</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Ensure entity has id, type and name fields and build a clean</span>
 <span class="sd">            entity dictionary containing just those fields to return, stripping</span>
 <span class="sd">            out all other fields.</span>
@@ -1735,7 +1735,7 @@
 
 
 <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method that constructs a context object from a path on disk.</span>
 
 <span class="sd">    The algorithm will navigate upwards in the file system and collect</span>
@@ -1888,7 +1888,7 @@
 
 
 <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Serializes the context into a string.</span>
 
 <span class="sd">    .. deprecated:: v0.18.12</span>
@@ -1898,7 +1898,7 @@
 
 
 <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">context_str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The inverse of :meth:`serialize`.</span>
 
 <span class="sd">    .. deprecated:: v0.18.12</span>
@@ -1912,7 +1912,7 @@
 
 
 <span class="k">def</span> <span class="nf">context_yaml_representer</span><span class="p">(</span><span class="n">dumper</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom serializer.</span>
 <span class="sd">    Creates yaml code for a context object.</span>
 
@@ -1935,7 +1935,7 @@
 
 
 <span class="k">def</span> <span class="nf">context_yaml_constructor</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom deserializer.</span>
 <span class="sd">    Constructs a context object given the yaml data provided.</span>
 
@@ -1969,7 +1969,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_entity_name</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract the entity name from the specified entity dictionary if it can</span>
 <span class="sd">    be found.  The entity dictionary must contain at least &#39;type&#39;</span>
 
@@ -1987,7 +1987,7 @@
 
 
 <span class="k">def</span> <span class="nf">_task_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">additional_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun task.</span>
 <span class="sd">    Because we are constructing the context from a task, we will get a context</span>
 <span class="sd">    which has both a project, an entity a step and a task associated with it.</span>
@@ -2050,7 +2050,7 @@
 
 
 <span class="k">def</span> <span class="nf">_entity_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determines the entity details for the specified entity type and id by querying Shotgun.</span>
 
 <span class="sd">    If entity_type is &#39;Project&#39; then this will return a single dictionary for the project.  For all</span>
@@ -2104,7 +2104,7 @@
 
 
 <span class="k">def</span> <span class="nf">_context_data_from_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Adds data to context based on path cache.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds data to context based on path cache.</span>
 
 <span class="sd">    :param tk: a Sgtk API instance</span>
 <span class="sd">    :param entity_type: a Shotgun entity type</span>
@@ -2176,7 +2176,7 @@
 
 
 <span class="k">def</span> <span class="nf">_values_from_path_cache</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">cur_template</span><span class="p">,</span> <span class="n">path_cache</span><span class="p">,</span> <span class="n">required_fields</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determine values for template fields based on an entities cached paths.</span>
 
 <span class="sd">    :param entity:          The entity to search for fields for</span>
@@ -2234,7 +2234,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_template_ancestors</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return templates branch of the template tree, ordered from first template</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return templates branch of the template tree, ordered from first template</span>
 <span class="sd">    below the project root down to and including the input template.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO this would probably be better as the Template&#39;s responsibility</span>

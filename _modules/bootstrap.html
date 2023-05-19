@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bootstrap &mdash; tk-core v0.20.18 documentation</title>
+  <title>bootstrap &mdash; tk-core v0.20.19 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> v0.20.19.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -226,7 +226,7 @@
 <div class="viewcode-block" id="Bootstrap.init"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">shotgun</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">configuration_descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the hook.</span>
 
 <span class="sd">        This method is called right after the bootstrap manager reads this hook and passes in</span>
@@ -249,7 +249,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">configuration_descriptor</span> <span class="o">=</span> <span class="n">configuration_descriptor</span></div>
 
 <div class="viewcode-block" id="Bootstrap.can_cache_bundle"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.can_cache_bundle">[docs]</a>    <span class="k">def</span> <span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates if a bundle can be cached by the :meth:`populate_bundle_cache_entry` method.</span>
 
 <span class="sd">        This method is invoked when the bootstrap manager wants to a bundle used by a configuration.</span>
@@ -265,7 +265,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Bootstrap.populate_bundle_cache_entry"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.populate_bundle_cache_entry">[docs]</a>    <span class="k">def</span> <span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Populates an entry from the bundle cache.</span>
 
 <span class="sd">        This method will be invoked for every bundle for which :meth:`can_cache_bundle`</span>

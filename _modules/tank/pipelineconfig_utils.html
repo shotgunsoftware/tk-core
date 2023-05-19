@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.20.18 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.20.19 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.18.<br>
+    <b>tk-core</b> v0.20.19.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -236,7 +236,7 @@
 
 
 <span class="k">def</span> <span class="nf">has_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns ``True`` if the pipeline configuration contains a core descriptor</span>
 <span class="sd">    file.</span>
 
@@ -248,7 +248,7 @@
 
 
 <span class="k">def</span> <span class="nf">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns true if the pipeline configuration contains a localized API</span>
 
 <span class="sd">    :param pipeline_config_path: path to a pipeline configuration root folder</span>
@@ -267,7 +267,7 @@
 
 
 <span class="k">def</span> <span class="nf">is_pipeline_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns true if the path points to the root of a pipeline configuration</span>
 
 <span class="sd">    :param pipeline_config_path: path to a pipeline configuration root folder</span>
@@ -279,7 +279,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.</span>
 
 <span class="sd">    :param pipeline_config_path: path to a pipeline configuration root folder</span>
@@ -310,7 +310,7 @@
 <span class="k">def</span> <span class="nf">get_core_descriptor</span><span class="p">(</span>
     <span class="n">pipeline_config_path</span><span class="p">,</span> <span class="n">shotgun_connection</span><span class="p">,</span> <span class="n">bundle_cache_fallback_paths</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a descriptor object for the uri/dict defined in the config&#39;s</span>
 <span class="sd">    ``core_api.yml`` file (if it exists).</span>
 
@@ -373,7 +373,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_path_to_current_core</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the local path of the currently executing code, assuming that this code is</span>
 <span class="sd">    located inside a standard toolkit install setup. If the code that is running is part</span>
 <span class="sd">    of a localized pipeline configuration, the pipeline config root path</span>
@@ -399,7 +399,7 @@
 
 
 <span class="k">def</span> <span class="nf">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an InstalledConfigurationDescriptor for the pipeline configuration</span>
 <span class="sd">    at the given location.</span>
 
@@ -420,7 +420,7 @@
 
 
 <div class="viewcode-block" id="get_core_python_path_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_core_python_path_for_config">[docs]</a><span class="k">def</span> <span class="nf">get_core_python_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the location of the Toolkit library associated with the given pipeline configuration.</span>
 
 <span class="sd">    :param pipeline_config_path: path to a pipeline configuration</span>
@@ -437,7 +437,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the core api install location associated with the given pipeline configuration.</span>
 
 <span class="sd">    In the case of a localized PC, it just returns the given path.</span>
@@ -467,7 +467,7 @@
 
 
 <div class="viewcode-block" id="get_sgtk_module_path"><a class="viewcode-back" href="../../core.html#sgtk.get_sgtk_module_path">[docs]</a><span class="k">def</span> <span class="nf">get_sgtk_module_path</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the path to ``sgtk`` module. This path can be used by another process to update its</span>
 <span class="sd">    ``PYTHONPATH`` and use the same ``sgtk`` module as the process invoking this method.</span>
 
@@ -499,7 +499,7 @@
 
 
 <div class="viewcode-block" id="get_python_interpreter_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_python_interpreter_for_config">[docs]</a><span class="k">def</span> <span class="nf">get_python_interpreter_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves the path to the Python interpreter for a given pipeline configuration</span>
 <span class="sd">    path.</span>
 
@@ -535,7 +535,7 @@
 
 
 <span class="k">def</span> <span class="nf">resolve_all_os_paths_to_core</span><span class="p">(</span><span class="n">core_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a core path on the current os platform,</span>
 <span class="sd">    return paths for all platforms,</span>
 <span class="sd">    as cached in the install_locations system file</span>
@@ -547,7 +547,7 @@
 
 
 <span class="k">def</span> <span class="nf">resolve_all_os_paths_to_config</span><span class="p">(</span><span class="n">pc_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a pipeline configuration path on the current os platform,</span>
 <span class="sd">    return paths for all platforms, as cached in the install_locations system file</span>
 
@@ -557,7 +557,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_config_install_location</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a pipeline configuration, return the location</span>
 <span class="sd">    on the current platform.</span>
 
@@ -579,7 +579,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_install_locations</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a pipeline configuration OR core location, return paths on all platforms.</span>
 
 <span class="sd">    :param path: Path to a pipeline configuration on disk.</span>
@@ -634,7 +634,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_currently_running_api_version</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the version number string for the core API,</span>
 <span class="sd">    based on the code that is currently executing.</span>
 
@@ -648,7 +648,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_core_api_version</span><span class="p">(</span><span class="n">core_install_root</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the version string for the core api associated with this config.</span>
 <span class="sd">    This method is &#39;forgiving&#39; and in the case no associated core API can be</span>
 <span class="sd">    found for this location, &#39;unknown&#39; will be returned rather than</span>
@@ -664,7 +664,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method.</span>
 <span class="sd">    Returns the version given a manifest.</span>
 
@@ -681,7 +681,7 @@
 
 
 <span class="k">def</span> <span class="nf">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method. Returns the path to the config&#39;s core_api.yml file.</span>
 <span class="sd">    (May not exist)</span>
 
