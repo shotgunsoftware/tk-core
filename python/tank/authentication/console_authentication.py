@@ -28,8 +28,12 @@ from .errors import (
     ConsoleLoginNotSupportedError,
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import is_sso_enabled_on_site, is_unified_login_flow2_enabled_on_site, is_autodesk_identity_enabled_on_site
-from .unified_login_flow2 import authentication as ulf2_auth
+from .sso_saml2 import (
+    is_sso_enabled_on_site,
+    is_unified_login_flow2_enabled_on_site,
+    is_autodesk_identity_enabled_on_site,
+)
+from .unified_login_flow2 import authentication as ulf2_authentication
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
@@ -75,6 +79,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
         """
         logger.debug("Requesting password on command line.")
+        print("[ShotGrid Authentication]\n")
         while True:
             # Get the SG URL from the user or from the given hostname
             try:
@@ -133,23 +138,38 @@ class ConsoleAuthenticationHandlerBase(object):
 
     def _authenticate_unified_login_flow2(self, hostname, login, http_proxy):
         print()
-        print("The authentication to {sg_url} requires to open your local web browser".format(sg_url=hostname))
-        print()
-        print("When the authentication is completed, you can close your web browser and come back to this window")
-        print()
+        print(
+            "The authentication to {sg_url} requires to use your web browser.\n"
+            "\n"
+            'After pressing "continue", your web browser will open shortly '
+            "targeting your selected ShotGrid site.\n"
+            "\n"
+            "If you are not already authenticated to {sg_url} in the browser,"
+            "you will first need to authenticate.\n"
+            "\n"
+            "Then, you will be prompted to review the access request.\n"
+            'Select "Approve" and come back to this application.'
+            "\n".format(sg_url=hostname)
+        )
+
         self._read_clean_input("Press enter when you are ready to continue")
+        print("\n")  # Always have 2 empty lines after a prompt
+        print(
+            "Your browser will open shortly.\n"
+            "Once you approved the access request, come back to this "
+            "application"
+        )
         print()
-        print("A browser window will open shortly and ask you to authenticate to your SG site")
-        print("Once authenticated, please \"Authorize\" the access and close the tab")
-        session_info = ulf2_auth.process(
-            hostname, http_proxy=http_proxy,
-            browser_open_callback = lambda u: webbrowser.open(u)
+        session_info = ulf2_authentication.process(
+            hostname,
+            http_proxy=http_proxy,
+            product="toolkit",  # Same as "PRODUCT_IDENTIFIER" from LoginDialog
+            browser_open_callback=lambda u: webbrowser.open(u),
         )
 
         print()
         if not session_info:
             raise AuthenticationError("The web authentication failed.")
-
 
         print("The web authentication succeed, now processing.")
         return session_info
@@ -158,22 +178,38 @@ class ConsoleAuthenticationHandlerBase(object):
         if not is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
             return self._authenticate_legacy
 
-        if is_autodesk_identity_enabled_on_site(hostname, http_proxy) or is_sso_enabled_on_site(hostname, http_proxy):
+        if is_autodesk_identity_enabled_on_site(
+            hostname, http_proxy
+        ) or is_sso_enabled_on_site(hostname, http_proxy):
             return self._authenticate_unified_login_flow2
 
         # We have 2 choices here
-        print()
-        print("The ShotGrid site support two authentication methods:")
-        print(" 1. Legacy method using login/password")
-        print(" 2. App Session Launcher using your local web browser")
-        print()
-        method = self._get_keyboard_input("Select a method (1 or 2)", default_value="2")
+        # Let's see which method the user chose previously for this site
+        # Then prompt them to chose
+
+        method_saved = session_cache.get_preferred_method(hostname)
+        print(
+            "\n"
+            "The ShotGrid site support two authentication methods:\n"
+            " 1. App Session Launcher using your local web browser\n"
+            " 2. Legacy method using login/password\n"
+        )
+
+        method = self._get_keyboard_input(
+            "Select a method (1 or 2)",
+            default_value="1" if method_saved == "credentials" else "2",
+        )
+
         if method == "1":
-            return self._authenticate_legacy
-        elif method == "2":
+            session_cache.set_preferred_method(hostname, "unified_login_flow2")
             return self._authenticate_unified_login_flow2
+        elif method == "2":
+            session_cache.set_preferred_method(hostname, "credentials")
+            return self._authenticate_legacy
         else:
-            raise AuthenticationError("Unsupported authentication method choice {m}".format(m=method))
+            raise AuthenticationError(
+                "Unsupported authentication method choice {m}".format(m=method)
+            )
 
     def _get_sg_url(self, hostname, http_proxy):
         """
@@ -235,6 +271,8 @@ class ConsoleAuthenticationHandlerBase(object):
         user_input = None
         while not user_input:
             user_input = self._read_clean_input(text) or default_value
+
+        print()
         # Strip whitespace before and after user input.
         return user_input
 
@@ -295,8 +333,20 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         if self._fixed_host:
             return hostname
 
-        print("Please enter your login credentials.")
-        return self._get_keyboard_input("Host", hostname)
+        recent_hosts = session_cache.get_recent_hosts()
+        # If we have a recent host and it's not in the list, add it.
+        # This can happen if a user logs on and while the process is running the
+        # host is removed from the host list.
+        if hostname and hostname not in recent_hosts:
+            recent_hosts.insert(0, hostname)
+
+        if len(recent_hosts) > 1:
+            print("List of you recent ShotGrid sites:")
+            for sg_url in recent_hosts:
+                print("  *", sg_url)
+            print()
+
+        return self._get_keyboard_input("Enter a SG site URL", hostname)
 
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
