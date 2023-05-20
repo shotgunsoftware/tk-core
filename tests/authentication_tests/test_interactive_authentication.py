@@ -549,3 +549,81 @@ class InteractiveTests(ShotgunTestBase):
                     None,
                 ),
             )
+
+    @patch(
+        "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
+        return_value=False,
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_sso_enabled_on_site",
+        return_value=False,
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
+        return_value=True,
+    )
+    @patch(
+        "tank.authentication.session_cache.generate_session_token", return_value=None
+    )
+    @patch(
+        "tank.authentication.session_cache.get_recent_hosts",
+        return_value=[
+            "https://site1.shotgunstudio.com",
+            "https://site2.shotgunstudio.com",
+            "https://site3.shotgunstudio.com",
+        ],
+    )
+    def test_console_unified_login_flow2(self, *unused_mocks):
+        """
+        The SG site supports 2 methods: ULF2 and legacy
+
+        TODO: same with embedded browser and ULF2 . Same with renew
+        """
+
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+
+        # First select the legacy method
+        with patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                "\n",  # Select default SG site (site1)
+                "2",  # Select "legacy" auth method
+                "username",
+            ],
+        ), patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
+            return_value="password",
+        ):
+            self.assertEqual(
+                handler.authenticate("https://site3.shotgunstudio.com", None, None),
+                ("https://site3.shotgunstudio.com", "username", None, None),
+            )
+
+        # Then repeat the operation but select the ULF2 method
+        with patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                "https://site1.shotgunstudio.com",
+                "1",  # Select "ULF2" auth method
+                "",  # OK to continue
+            ],
+        ), patch(
+            "tank.authentication.unified_login_flow2.authentication.process",
+            return_value=("https://site1.shotgunstudio.com", "ULF2!", None, None),
+        ):
+
+            self.assertEqual(
+                handler.authenticate(None, None, None),
+                ("https://site1.shotgunstudio.com", "ULF2!", None, None),
+            )
+
+    # @patch("tank.authentication.interactive_authentication._get_ui_state")
+    # @interactive
+    # @suppress_generated_code_qt_warnings
+    # def test_session_renewal_console(self, _get_ui_state_mock):
+    #     """
+    #     Interactively test for session renewal with the GUI.
+    #     """
+    #     # Doing this forces the prompting code to use the console.
+    #     _get_ui_state_mock.return_value = False
+    #     self._test_session_renewal(test_console=True)
