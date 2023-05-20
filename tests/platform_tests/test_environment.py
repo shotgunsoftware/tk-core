@@ -10,14 +10,13 @@
 
 import os
 import sys
+import copy
 
 from tank.errors import TankError
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank_vendor import yaml
 from tank.platform.environment import Environment
-
-import copy
 
 
 class TestEnvironment(TankTestBase):
