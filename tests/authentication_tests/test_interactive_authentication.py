@@ -30,12 +30,14 @@ from tank.authentication import (
     console_authentication,
     ConsoleLoginNotSupportedError,
     ConsoleLoginWithSSONotSupportedError,
+    errors,
     interactive_authentication,
     invoker,
     user_impl,
 )
 
 import tank
+import tank_vendor.shotgun_api3
 
 
 @skip_if_pyside_missing
@@ -334,7 +336,6 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
         return_value=" password ",
     )
-    @suppress_generated_code_qt_warnings
     def test_console_auth_with_whitespace(self, *mocks):
         """
         Makes sure that authentication strips whitespaces on the command line.
@@ -349,6 +350,67 @@ class InteractiveTests(ShotgunTestBase):
             (None, "username", " password "),
         )
         self.assertEqual(handler._get_2fa_code(), "2fa code")
+
+    @patch(
+        "tank.authentication.console_authentication.is_sso_enabled_on_site",
+        return_value=False,
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
+        return_value=False,
+    )
+    @patch(
+        "tank.authentication.session_cache.generate_session_token",
+        side_effect=[
+            tank_vendor.shotgun_api3.MissingTwoFactorAuthenticationFault(),
+            "my_session_token_39",
+        ],
+    )
+    @patch(
+        "tank.authentication.console_authentication.input",
+        side_effect=[
+            "",  # Select default login
+            "2fa code",
+        ],
+    )
+    @patch(
+        "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
+        return_value="password",
+    )
+    def test_console_auth_2fa(self, *mocks):
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+        self.assertEqual(
+            handler.authenticate("https://test.shotgunstudio.com", "username", None),
+            ("https://test.shotgunstudio.com", "username", "my_session_token_39", None),
+        )
+
+    @patch(
+        "tank.authentication.sso_saml2.utils._get_site_infos",
+        return_value={
+            "unified_login_flow_enabled2": False,
+        },
+    )
+    @patch(
+        "tank.authentication.console_authentication.ConsoleRenewSessionHandler._get_password",
+        side_effect=[
+            "password",
+            EOFError(), # Simulate an error
+        ]
+    )
+    @patch(
+        "tank.authentication.session_cache.generate_session_token",
+        return_value="my_session_token_97",
+    )
+    def test_console_renewal(self, *mocks):
+        handler = console_authentication.ConsoleRenewSessionHandler()
+        self.assertEqual(
+            handler.authenticate("https://test.shotgunstudio.com", "username", None),
+            ("https://test.shotgunstudio.com", "username", "my_session_token_97", None),
+        )
+
+        # Then repeat the operation with an exception for password
+        with self.assertRaises(errors.AuthenticationCancelled):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
 
     @patch(
         "tank.authentication.console_authentication.input",
@@ -374,14 +436,6 @@ class InteractiveTests(ShotgunTestBase):
             handler.authenticate(None, None, None)
 
     @patch(
-        "tank.authentication.console_authentication.input",
-        side_effect=["  https://test-sso.shotgunstudio.com "],
-    )
-    @patch(
-        "tank.authentication.console_authentication.is_sso_enabled_on_site",
-        return_value=True,
-    )
-    @patch(
         "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
         return_value=False,
     )
@@ -391,9 +445,19 @@ class InteractiveTests(ShotgunTestBase):
         Ensure that an exception is thrown should we attempt console authentication
         on an SSO-enabled site.
         """
-        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
-        with self.assertRaises(ConsoleLoginNotSupportedError):
-            handler.authenticate(None, None, None)
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+        for option in [(True, True), (True, False), (False, True)]:
+            with patch(
+                "tank.authentication.console_authentication.is_sso_enabled_on_site",
+                return_value=option[0],
+            ), patch(
+                "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
+                return_value=option[1],
+            ):
+                with self.assertRaises(ConsoleLoginNotSupportedError):
+                    handler.authenticate(
+                        "https://test-sso.shotgunstudio.com", None, None
+                    )
 
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
@@ -474,7 +538,6 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.sso_saml2.utils._get_site_infos",
         return_value={
             "unified_login_flow_enabled2": True,
-            "user_authentication_method": "default",
         },
     )
     @patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
@@ -551,16 +614,10 @@ class InteractiveTests(ShotgunTestBase):
             )
 
     @patch(
-        "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
-        return_value=False,
-    )
-    @patch(
-        "tank.authentication.console_authentication.is_sso_enabled_on_site",
-        return_value=False,
-    )
-    @patch(
-        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
-        return_value=True,
+        "tank.authentication.sso_saml2.utils._get_site_infos",
+        return_value={
+            "unified_login_flow_enabled2": True,
+        },
     )
     @patch(
         "tank.authentication.session_cache.generate_session_token", return_value=None
@@ -574,12 +631,6 @@ class InteractiveTests(ShotgunTestBase):
         ],
     )
     def test_console_unified_login_flow2(self, *unused_mocks):
-        """
-        The SG site supports 2 methods: ULF2 and legacy
-
-        TODO: same with embedded browser and ULF2 . Same with renew
-        """
-
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
 
         # First select the legacy method
@@ -603,27 +654,108 @@ class InteractiveTests(ShotgunTestBase):
         with patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                "https://site1.shotgunstudio.com",
+                "",  # Select default site -> site4
                 "1",  # Select "ULF2" auth method
                 "",  # OK to continue
             ],
         ), patch(
             "tank.authentication.unified_login_flow2.authentication.process",
-            return_value=("https://site1.shotgunstudio.com", "ULF2!", None, None),
+            return_value=("https://site4.shotgunstudio.com", "ULF2!", None, None),
         ):
-
             self.assertEqual(
-                handler.authenticate(None, None, None),
-                ("https://site1.shotgunstudio.com", "ULF2!", None, None),
+                handler.authenticate("https://site4.shotgunstudio.com", None, None),
+                ("https://site4.shotgunstudio.com", "ULF2!", None, None),
             )
 
-    # @patch("tank.authentication.interactive_authentication._get_ui_state")
-    # @interactive
-    # @suppress_generated_code_qt_warnings
-    # def test_session_renewal_console(self, _get_ui_state_mock):
-    #     """
-    #     Interactively test for session renewal with the GUI.
-    #     """
-    #     # Doing this forces the prompting code to use the console.
-    #     _get_ui_state_mock.return_value = False
-    #     self._test_session_renewal(test_console=True)
+        # Alternate fixed_host value for code coverage
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+
+        # Then repeat the operation having the site configured with Oxygen
+        with patch(
+            "tank.authentication.sso_saml2.utils._get_user_authentication_method",
+            return_value="oxygen",
+        ), patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                # No method to select as there is only one option
+                "",  # OK to continue
+            ],
+        ), patch(
+            "tank.authentication.unified_login_flow2.authentication.process",
+            return_value="ULF2 result 9867",
+        ):
+            self.assertEqual(
+                handler.authenticate("https://site4.shotgunstudio.com", None, None),
+                "ULF2 result 9867",
+            )
+
+        # Then, one more small test for coverage
+        with patch(
+            "tank.authentication.sso_saml2.utils._get_user_authentication_method",
+            return_value="oxygen",
+        ), patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                "",  # OK to continue
+            ],
+        ), patch(
+            "tank.authentication.unified_login_flow2.authentication.process",
+            return_value=None, # Simulate an authentication error
+        ):
+            with self.assertRaises(errors.AuthenticationError):
+                handler._authenticate_unified_login_flow2("https://site4.shotgunstudio.com", None, None)
+
+        # Finally, disable ULF2 method and ensure legacy cred methods is
+        # automatically selected
+        with patch(
+            "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
+            return_value=False,
+        ), patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                # No method to select as there is only one option
+                "username",
+            ],
+        ), patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
+            return_value="password",
+        ):
+            self.assertEqual(
+                handler.authenticate("https://site3.shotgunstudio.com", None, None),
+                ("https://site3.shotgunstudio.com", "username", None, None),
+            )
+
+    @patch(
+        "tank.authentication.sso_saml2.utils._get_site_infos",
+        return_value={
+            "unified_login_flow_enabled2": True,
+        },
+    )
+    def test_console_get_auth_method(self, *unused_mocks):
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+
+        with patch(
+            "tank.authentication.console_authentication.input",
+            return_value="1",
+        ):
+            self.assertEqual(
+                handler._get_auth_method("https://host.shotgunstudio.com", None),
+                handler._authenticate_unified_login_flow2
+            )
+
+        with patch(
+            "tank.authentication.console_authentication.input",
+            return_value="2",
+        ):
+            self.assertEqual(
+                handler._get_auth_method("https://host.shotgunstudio.com", None),
+                handler._authenticate_legacy
+            )
+
+        for wrong_value in ["0", "3", "-1", "42", "wrong"]:
+            with patch(
+                "tank.authentication.console_authentication.input",
+                return_value=wrong_value,
+            ):
+                with self.assertRaises(errors.AuthenticationError):
+                    handler._get_auth_method("https://host.shotgunstudio.com", None)
