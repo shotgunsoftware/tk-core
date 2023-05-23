@@ -554,6 +554,10 @@ class InteractiveTests(ShotgunTestBase):
             None,
         ),
     )
+    @patch(
+        "tank.authentication.session_cache.get_preferred_method",
+        return_value=None,
+    )
     def test_login_dialog_unified_login_flow2(self, *unused_mocks):
         with self._login_dialog(
             True,
@@ -730,6 +734,10 @@ class InteractiveTests(ShotgunTestBase):
         return_value={
             "unified_login_flow_enabled2": True,
         },
+    )
+    @patch(
+        "tank.authentication.session_cache.get_preferred_method",
+        return_value=None,
     )
     def test_console_get_auth_method(self, *unused_mocks):
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
