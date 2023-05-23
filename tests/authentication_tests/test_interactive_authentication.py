@@ -421,14 +421,14 @@ class InteractiveTests(ShotgunTestBase):
         # Test window close event
         with self._login_dialog(False) as ld:
             # First, simulate user clicks on the No button
-            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.No
+            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.No
 
             self.assertEqual(ld.close(), False)
             self.assertIsNone(ld.my_result)
             self.assertEqual(ld.isVisible(), True)
 
             # Then, simulate user clicks on the Yes button
-            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.Yes
+            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
 
             self.assertEqual(ld.close(), True)
             self.assertEqual(ld.my_result, QtGui.QDialog.Rejected)
@@ -443,14 +443,14 @@ class InteractiveTests(ShotgunTestBase):
             )
 
             # First, simulate user clicks on the No button
-            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.No
+            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.No
 
             self.assertIsNone(ld.keyPressEvent(event))
             self.assertIsNone(ld.my_result)
             self.assertEqual(ld.isVisible(), True)
 
             # Then, simulate user clicks on the Yes button
-            ld.confirm_box.exec = lambda: QtGui.QMessageBox.StandardButton.Yes
+            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
 
             # Test Escape key
             self.assertIsNone(ld.keyPressEvent(event))
