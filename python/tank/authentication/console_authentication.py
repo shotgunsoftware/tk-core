@@ -164,7 +164,7 @@ class ConsoleAuthenticationHandlerBase(object):
             hostname,
             http_proxy=http_proxy,
             product="toolkit",  # Same as "PRODUCT_IDENTIFIER" from LoginDialog
-            browser_open_callback=lambda u: webbrowser.open(u),
+            browser_open_callback=webbrowser.open,
         )
 
         print()
