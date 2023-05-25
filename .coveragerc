@@ -19,6 +19,10 @@ omit=
     *tank/authentication/ui/*
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
+    # Hard to test The following class as it is really implement a network protocol
+    # Not impossible but not a priority
+    *tank/authentication/unified_login_flow2/*
+
 
 [paths]
 # This allows to merge coverage from different disk locations. This is

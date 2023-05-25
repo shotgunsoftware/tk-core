@@ -34,6 +34,29 @@ class Ui_LoginDialog(object):
 "    padding-right: 15px;\n"
 "}\n"
 "\n"
+"QPushButton::menu-indicator {\n"
+"    subcontrol-position: right center;\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item {\n"
+"    padding: 15px;\n"
+"    border: 1px solid transparent;\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item:disabled {\n"
+"    color: rgb(160, 160, 160);\n"
+"    font-style: italic;\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item:selected {\n"
+"    border-color: rgb(54, 60, 66);\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item:pressed\n"
+"{\n"
+"    border-color: rgb(192, 192, 192);\n"
+"}\n"
+"\n"
 "QLineEdit, QComboBox\n"
 "{\n"
 "    background-color: rgb(29, 31, 34);\n"
@@ -161,14 +184,16 @@ class Ui_LoginDialog(object):
         self.password.setObjectName("password")
         self.verticalLayout_7.addWidget(self.password)
         self.message = QtGui.QLabel(self.credentials)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.message.sizePolicy().hasHeightForWidth())
         self.message.setSizePolicy(sizePolicy)
         self.message.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.message.setWordWrap(True)
+        self.message.setTextFormat(QtCore.Qt.RichText)
         self.message.setMargin(4)
+        self.message.setOpenExternalLinks(True)
         self.message.setObjectName("message")
         self.verticalLayout_7.addWidget(self.message)
         spacerItem = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
@@ -188,6 +213,11 @@ class Ui_LoginDialog(object):
         self.forgot_password_link.setObjectName("forgot_password_link")
         self.links.addWidget(self.forgot_password_link)
         self.button_layout.addLayout(self.links)
+        self.button_options = QtGui.QPushButton(self.login_page)
+        self.button_options.setAutoDefault(False)
+        self.button_options.setFlat(True)
+        self.button_options.setObjectName("button_options")
+        self.button_layout.addWidget(self.button_options)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout.addItem(spacerItem1)
         self.sign_in = QtGui.QPushButton(self.login_page)
@@ -196,7 +226,7 @@ class Ui_LoginDialog(object):
         self.sign_in.setFlat(True)
         self.sign_in.setObjectName("sign_in")
         self.button_layout.addWidget(self.sign_in)
-        self.button_layout.setStretch(1, 1)
+        self.button_layout.setStretch(2, 1)
         self.verticalLayout_3.addLayout(self.button_layout)
         self.stackedWidget.addWidget(self.login_page)
         self._2fa_page = QtGui.QWidget()
@@ -340,6 +370,35 @@ class Ui_LoginDialog(object):
         self.button_layout_3.addWidget(self.verify_backup)
         self.verticalLayout_6.addLayout(self.button_layout_3)
         self.stackedWidget.addWidget(self.backup_page)
+        self.ulf2_page = QtGui.QWidget()
+        self.ulf2_page.setObjectName("ulf2_page")
+        self.verticalLayout_21 = QtGui.QVBoxLayout(self.ulf2_page)
+        self.verticalLayout_21.setContentsMargins(20, 20, 20, 20)
+        self.verticalLayout_21.setObjectName("verticalLayout_21")
+        self.ulf2_msg = QtGui.QLabel(self.ulf2_page)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ulf2_msg.sizePolicy().hasHeightForWidth())
+        self.ulf2_msg.setSizePolicy(sizePolicy)
+        self.ulf2_msg.setStyleSheet("padding-left: 40px; padding-left: 40px;padding-right: 40px;")
+        self.ulf2_msg.setAlignment(QtCore.Qt.AlignCenter)
+        self.ulf2_msg.setWordWrap(True)
+        self.ulf2_msg.setObjectName("ulf2_msg")
+        self.verticalLayout_21.addWidget(self.ulf2_msg)
+        self.ulf2_msg_back = QtGui.QLabel(self.ulf2_page)
+        self.ulf2_msg_back.setAlignment(QtCore.Qt.AlignCenter)
+        self.ulf2_msg_back.setWordWrap(True)
+        self.ulf2_msg_back.setObjectName("ulf2_msg_back")
+        self.verticalLayout_21.addWidget(self.ulf2_msg_back)
+        spacerItem6 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_21.addItem(spacerItem6)
+        self.ulf2_msg_help = QtGui.QLabel(self.ulf2_page)
+        self.ulf2_msg_help.setAlignment(QtCore.Qt.AlignCenter)
+        self.ulf2_msg_help.setWordWrap(True)
+        self.ulf2_msg_help.setObjectName("ulf2_msg_help")
+        self.verticalLayout_21.addWidget(self.ulf2_msg_help)
+        self.stackedWidget.addWidget(self.ulf2_page)
         self.verticalLayout_2.addWidget(self.stackedWidget)
         self.verticalLayout_2.setStretch(0, 1)
 
@@ -355,6 +414,7 @@ class Ui_LoginDialog(object):
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
         self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"#\" style=\"color:#c0c1c3;\">Forgot your password?</a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.button_options.setText(QtGui.QApplication.translate("LoginDialog", "See other options", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Enter the code generated by the Google Authenticator or Duo Mobile app.", None, QtGui.QApplication.UnicodeUTF8))
@@ -369,6 +429,9 @@ class Ui_LoginDialog(object):
         self.use_app.setText(QtGui.QApplication.translate("LoginDialog", "Use Google App", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_backup.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
+        self.ulf2_msg.setText(QtGui.QApplication.translate("LoginDialog", "Check your default web browser to continue logging in.", None, QtGui.QApplication.UnicodeUTF8))
+        self.ulf2_msg_back.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"#\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Cancel & return to the login page</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.ulf2_msg_help.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p>If you are having trouble logging in with the browser, <a href=\"{url}\"><span style=\" text-decoration: underline; color:#c0c1c3;\">select this support link</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
 from .recent_box import RecentBox

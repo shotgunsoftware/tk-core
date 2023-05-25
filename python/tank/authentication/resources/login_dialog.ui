@@ -43,6 +43,29 @@ QPushButton
     padding-right: 15px;
 }
 
+QPushButton::menu-indicator {
+    subcontrol-position: right center;
+}
+
+QPushButton QMenu::item {
+    padding: 15px;
+    border: 1px solid transparent;
+}
+
+QPushButton QMenu::item:disabled {
+    color: rgb(160, 160, 160);
+    font-style: italic;
+}
+
+QPushButton QMenu::item:selected {
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton QMenu::item:pressed
+{
+    border-color: rgb(192, 192, 192);
+}
+
 QLineEdit, QComboBox
 {
     background-color: rgb(29, 31, 34);
@@ -231,7 +254,7 @@ QPushButton.main:pressed
           <item>
            <widget class="QLabel" name="message">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -267,7 +290,7 @@ QPushButton.main:pressed
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout" stretch="0,1,0">
+        <layout class="QHBoxLayout" name="button_layout" stretch="0,0,1,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -296,6 +319,19 @@ QPushButton.main:pressed
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="button_options">
+           <property name="text">
+            <string>See other options</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="sign_in_hspacer">
@@ -656,6 +692,74 @@ QPushButton.main:pressed
           </widget>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="ulf2_page">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
+       <property name="margin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="ulf2_msg">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">padding-left: 40px; padding-left: 40px;padding-right: 40px;</string>
+         </property>
+         <property name="text">
+          <string>Check your default web browser to continue logging in.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="ulf2_msg_back">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;#&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Cancel &amp; return to the login page&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="ulf2_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="ulf2_msg_help">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you are having trouble logging in with the browser, &lt;a href=&quot;{url}&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;select this support link&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
