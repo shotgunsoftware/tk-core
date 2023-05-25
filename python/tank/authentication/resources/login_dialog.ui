@@ -19,11 +19,14 @@
     <height>296</height>
    </size>
   </property>
+  <property name="windowTitle">
+   <string>ShotGrid Login</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">
 QWidget
 {
-    background-color:  rgb(36, 39, 42);
+    background-color: rgb(36, 39, 42);
     color: rgb(192, 192, 192);
     selection-background-color: rgb(168, 123, 43);
     selection-color: rgb(230, 230, 230);
@@ -45,13 +48,13 @@ QLineEdit, QComboBox
     border: 1px solid rgb(54, 60, 66);
     border-radius: 2px;
     padding: 5px;
-     font-size: 12px;
+    font-size: 12px;
 }
 
 QComboBox
 {
-    margin-left: 3;
-    margin-right: 3
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 QComboBox:focus, QLineEdit:focus
@@ -65,17 +68,15 @@ QComboBox:drop-down:button {
 
 QComboBox:down-arrow {
     image: url(:/shotgun_authentication/down-arrow.png);
-
 }
 
-QLineEdit:Disabled {
+QLineEdit:disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
 }
 
 QComboBox::drop-down:disabled {
     border-width: 0px;
-
 }
 
 QComboBox::down-arrow:disabled {
@@ -85,7 +86,14 @@ QComboBox::down-arrow:disabled {
 QComboBox::disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
-}</string>
+}
+
+QPushButton.main
+{
+    background-color: rgb(35, 165, 225);
+    color: rgb(248, 248, 248);
+}
+</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -246,12 +254,6 @@ QComboBox::disabled {
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QWidget
-{
-    color: rgb(192, 193, 195);
-}</string>
-             </property>
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://mystudio.shotgrid.autodesk.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Forgot your password?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -283,9 +285,6 @@ QComboBox::disabled {
          </item>
          <item>
           <widget class="QPushButton" name="cancel">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="text">
             <string>Cancel</string>
            </property>
@@ -299,10 +298,6 @@ QComboBox::disabled {
          </item>
          <item>
           <widget class="QPushButton" name="sign_in">
-           <property name="styleSheet">
-            <string notr="true">color: rgb(248, 248, 248);
-background-color: rgb(35, 165, 225);</string>
-           </property>
            <property name="text">
             <string>Sign In</string>
            </property>
@@ -314,6 +309,9 @@ background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="flat">
             <bool>true</bool>
+           </property>
+           <property name="class" stdset="0">
+            <string>main</string>
            </property>
           </widget>
          </item>
@@ -457,9 +455,6 @@ background-color: rgb(35, 165, 225);</string>
          </item>
          <item>
           <widget class="QPushButton" name="cancel_tfa">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="text">
             <string>Cancel</string>
            </property>
@@ -479,10 +474,6 @@ background-color: rgb(35, 165, 225);</string>
              <height>0</height>
             </size>
            </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(248, 248, 248);
-background-color: rgb(35, 165, 225);</string>
-           </property>
            <property name="text">
             <string>Verify</string>
            </property>
@@ -494,6 +485,9 @@ background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="flat">
             <bool>true</bool>
+           </property>
+           <property name="class" stdset="0">
+            <string>main</string>
            </property>
           </widget>
          </item>
@@ -656,10 +650,6 @@ background-color: rgb(35, 165, 225);</string>
              <height>0</height>
             </size>
            </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(248, 248, 248);
-background-color: rgb(35, 165, 225);</string>
-           </property>
            <property name="text">
             <string>Verify</string>
            </property>
@@ -671,6 +661,9 @@ background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="flat">
             <bool>true</bool>
+           </property>
+           <property name="class" stdset="0">
+            <string>main</string>
            </property>
           </widget>
          </item>

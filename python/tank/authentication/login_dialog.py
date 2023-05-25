@@ -163,7 +163,9 @@ class LoginDialog(QtGui.QDialog):
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
-            self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
+            self._sso_saml2 = SsoSaml2Toolkit(
+                "ShotGrid Web Login", qt_modules=qt_modules
+            )
         except SsoSaml2MissingQtModuleError as e:
             logger.warning("Web login not supported due to missing Qt module: %s" % e)
             self._sso_saml2 = None
@@ -183,9 +185,6 @@ class LoginDialog(QtGui.QDialog):
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
         self.ui.setupUi(self)
-
-        # Set the title
-        self.setWindowTitle("ShotGrid Login")
 
         # Assign credentials
         self._http_proxy = http_proxy

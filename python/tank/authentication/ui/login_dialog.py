@@ -17,7 +17,7 @@ class Ui_LoginDialog(object):
         LoginDialog.setStyleSheet("\n"
 "QWidget\n"
 "{\n"
-"    background-color:  rgb(36, 39, 42);\n"
+"    background-color: rgb(36, 39, 42);\n"
 "    color: rgb(192, 192, 192);\n"
 "    selection-background-color: rgb(168, 123, 43);\n"
 "    selection-color: rgb(230, 230, 230);\n"
@@ -39,13 +39,13 @@ class Ui_LoginDialog(object):
 "    border: 1px solid rgb(54, 60, 66);\n"
 "    border-radius: 2px;\n"
 "    padding: 5px;\n"
-"     font-size: 12px;\n"
+"    font-size: 12px;\n"
 "}\n"
 "\n"
 "QComboBox\n"
 "{\n"
-"    margin-left: 3;\n"
-"    margin-right: 3\n"
+"    margin-left: 3px;\n"
+"    margin-right: 3px;\n"
 "}\n"
 "\n"
 "QComboBox:focus, QLineEdit:focus\n"
@@ -59,17 +59,15 @@ class Ui_LoginDialog(object):
 "\n"
 "QComboBox:down-arrow {\n"
 "    image: url(:/shotgun_authentication/down-arrow.png);\n"
-"\n"
 "}\n"
 "\n"
-"QLineEdit:Disabled {\n"
+"QLineEdit:disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
 "}\n"
 "\n"
 "QComboBox::drop-down:disabled {\n"
 "    border-width: 0px;\n"
-"\n"
 "}\n"
 "\n"
 "QComboBox::down-arrow:disabled {\n"
@@ -79,7 +77,14 @@ class Ui_LoginDialog(object):
 "QComboBox::disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
-"}")
+"}\n"
+"\n"
+"QPushButton.main\n"
+"{\n"
+"    background-color: rgb(35, 165, 225);\n"
+"    color: rgb(248, 248, 248);\n"
+"}\n"
+"")
         LoginDialog.setModal(True)
         self.verticalLayout_2 = QtGui.QVBoxLayout(LoginDialog)
         self.verticalLayout_2.setContentsMargins(20, 20, 20, 20)
@@ -150,10 +155,6 @@ class Ui_LoginDialog(object):
         self.links.setObjectName("links")
         self.forgot_password_link = QtGui.QLabel(self.login_page)
         self.forgot_password_link.setCursor(QtCore.Qt.PointingHandCursor)
-        self.forgot_password_link.setStyleSheet("QWidget\n"
-"{\n"
-"    color: rgb(192, 193, 195);\n"
-"}")
         self.forgot_password_link.setTextFormat(QtCore.Qt.RichText)
         self.forgot_password_link.setMargin(4)
         self.forgot_password_link.setOpenExternalLinks(False)
@@ -163,14 +164,11 @@ class Ui_LoginDialog(object):
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout.addItem(spacerItem1)
         self.cancel = QtGui.QPushButton(self.login_page)
-        self.cancel.setStyleSheet("")
         self.cancel.setAutoDefault(False)
         self.cancel.setFlat(True)
         self.cancel.setObjectName("cancel")
         self.button_layout.addWidget(self.cancel)
         self.sign_in = QtGui.QPushButton(self.login_page)
-        self.sign_in.setStyleSheet("color: rgb(248, 248, 248);\n"
-"background-color: rgb(35, 165, 225);")
         self.sign_in.setAutoDefault(True)
         self.sign_in.setDefault(True)
         self.sign_in.setFlat(True)
@@ -241,15 +239,12 @@ class Ui_LoginDialog(object):
         spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout_2.addItem(spacerItem3)
         self.cancel_tfa = QtGui.QPushButton(self._2fa_page)
-        self.cancel_tfa.setStyleSheet("")
         self.cancel_tfa.setAutoDefault(False)
         self.cancel_tfa.setFlat(True)
         self.cancel_tfa.setObjectName("cancel_tfa")
         self.button_layout_2.addWidget(self.cancel_tfa)
         self.verify_2fa = QtGui.QPushButton(self._2fa_page)
         self.verify_2fa.setMinimumSize(QtCore.QSize(65, 0))
-        self.verify_2fa.setStyleSheet("color: rgb(248, 248, 248);\n"
-"background-color: rgb(35, 165, 225);")
         self.verify_2fa.setAutoDefault(False)
         self.verify_2fa.setDefault(True)
         self.verify_2fa.setFlat(True)
@@ -326,8 +321,6 @@ class Ui_LoginDialog(object):
         self.button_layout_3.addWidget(self.cancel_backup)
         self.verify_backup = QtGui.QPushButton(self.backup_page)
         self.verify_backup.setMinimumSize(QtCore.QSize(65, 0))
-        self.verify_backup.setStyleSheet("color: rgb(248, 248, 248);\n"
-"background-color: rgb(35, 165, 225);")
         self.verify_backup.setAutoDefault(True)
         self.verify_backup.setDefault(True)
         self.verify_backup.setFlat(True)
@@ -346,26 +339,30 @@ class Ui_LoginDialog(object):
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
+        LoginDialog.setWindowTitle(QtGui.QApplication.translate("LoginDialog", "ShotGrid Login", None, QtGui.QApplication.UnicodeUTF8))
         self.site.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "site", None, QtGui.QApplication.UnicodeUTF8))
         self.login.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
-        self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgrid.autodesk.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"#\" style=\"color:#c0c1c3;\">Forgot your password?</a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
+        self.sign_in.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Enter the code generated by the Google Authenticator or Duo Mobile app.", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "2fa code", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter code", None, QtGui.QApplication.UnicodeUTF8))
         self.use_backup.setText(QtGui.QApplication.translate("LoginDialog", "Use backup code", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel_tfa.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_2fa.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
+        self.verify_2fa.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_message_2.setText(QtGui.QApplication.translate("LoginDialog", "Please enter one of your backup codes.", None, QtGui.QApplication.UnicodeUTF8))
         self.backup_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "backup code", None, QtGui.QApplication.UnicodeUTF8))
         self.backup_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter backup code", None, QtGui.QApplication.UnicodeUTF8))
         self.use_app.setText(QtGui.QApplication.translate("LoginDialog", "Use Google App", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel_backup.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
+        self.verify_backup.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
 from .recent_box import RecentBox
