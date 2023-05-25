@@ -36,6 +36,7 @@ QWidget
 QPushButton
 {
     background-color: transparent;
+    border: 1px solid transparent;
     border-radius: 2px;
     padding: 8px;
     padding-left: 15px;
@@ -55,6 +56,21 @@ QComboBox
 {
     margin-left: 3px;
     margin-right: 3px;
+}
+
+QPushButton:focus
+{
+    border-color: rgb(48, 167, 227);
+    outline: none;
+}
+
+QPushButton:hover {
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton:pressed
+{
+    border-color: rgb(192, 192, 192);
 }
 
 QComboBox:focus, QLineEdit:focus
@@ -91,7 +107,18 @@ QComboBox::disabled {
 QPushButton.main
 {
     background-color: rgb(35, 165, 225);
+    border-color: rgb(36, 39, 42);
     color: rgb(248, 248, 248);
+}
+
+QPushButton.main:focus, QPushButton.main:hover
+{
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton.main:pressed
+{
+    border-color: rgb(248, 248, 248);
 }
 </string>
   </property>
@@ -240,7 +267,7 @@ QPushButton.main
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout" stretch="0,1,0,0">
+        <layout class="QHBoxLayout" name="button_layout" stretch="0,1,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -282,19 +309,6 @@ QPushButton.main
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancel">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="sign_in">
@@ -423,7 +437,7 @@ QPushButton.main
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -452,19 +466,6 @@ QPushButton.main
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancel_tfa">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="verify_2fa">
@@ -596,7 +597,7 @@ QPushButton.main
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -628,19 +629,6 @@ QPushButton.main
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="cancel_backup">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="verify_backup">
@@ -695,54 +683,5 @@ QPushButton.main
  <resources>
   <include location="resources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>cancel_tfa</sender>
-   <signal>clicked()</signal>
-   <receiver>LoginDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancel_backup</sender>
-   <signal>clicked()</signal>
-   <receiver>LoginDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancel</sender>
-   <signal>clicked()</signal>
-   <receiver>LoginDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

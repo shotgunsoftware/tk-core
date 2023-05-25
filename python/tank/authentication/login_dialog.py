@@ -285,12 +285,46 @@ class LoginDialog(QtGui.QDialog):
                 % self._get_current_site()
             )
 
+        # Initialize exit confirm message box
+        self.confirm_box = QtGui.QMessageBox(
+            QtGui.QMessageBox.Question,
+            "ShotGrid Login",  # title
+            "Would you like to cancel your request?",  # text
+            buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            parent=self,
+        )
+
+        self.confirm_box.setInformativeText(
+            "The authentication is still in progress and closing this window "
+            "will result in canceling your request."
+        )
+
     def __del__(self):
         """
         Destructor.
         """
         # We want to clean up any running qthread.
         self._query_task.wait()
+
+    def _confirm_exit(self):
+        return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
+        # PySide uses "exec_" instead of "exec" because "exec" is a reserved
+        # keyword in Python 2.
+
+    def closeEvent(self, event):
+        if not self._confirm_exit():
+            event.ignore()
+            return
+
+        return super(LoginDialog, self).closeEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            if not self._confirm_exit():
+                event.ignore()
+                return
+
+        return super(LoginDialog, self).keyPressEvent(event)
 
     def _get_current_site(self):
         """
