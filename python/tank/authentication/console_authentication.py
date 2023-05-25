@@ -34,7 +34,7 @@ from .sso_saml2 import (
     is_unified_login_flow2_enabled_on_site,
     is_autodesk_identity_enabled_on_site,
 )
-from .unified_login_flow2 import authentication as ulf2_authentication
+from . import unified_login_flow2
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
@@ -163,7 +163,7 @@ class ConsoleAuthenticationHandlerBase(object):
             "application."
         )
         print()
-        session_info = ulf2_authentication.process(
+        session_info = unified_login_flow2.process(
             hostname,
             http_proxy=http_proxy,
             product="toolkit",  # Same as "PRODUCT_IDENTIFIER" from LoginDialog

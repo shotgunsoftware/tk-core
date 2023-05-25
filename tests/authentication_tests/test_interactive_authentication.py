@@ -808,7 +808,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=True,
     )
     @mock.patch(
-        "tank.authentication.unified_login_flow2.authentication.process",
+        "tank.authentication.unified_login_flow2.process",
         return_value=(
             "https://host.shotgunstudio.com",
             "user_login",
@@ -1030,7 +1030,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.authentication.process",
+            "tank.authentication.unified_login_flow2.process",
             return_value=("https://site4.shotgunstudio.com", "ULF2!", None, None),
         ):
             self.assertEqual(
@@ -1052,7 +1052,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.authentication.process",
+            "tank.authentication.unified_login_flow2.process",
             return_value="ULF2 result 9867",
         ):
             self.assertEqual(
@@ -1070,7 +1070,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.authentication.process",
+            "tank.authentication.unified_login_flow2.process",
             return_value=None,  # Simulate an authentication error
         ):
             with self.assertRaises(errors.AuthenticationError):

@@ -32,7 +32,7 @@ from ..util import login
 from ..util import LocalFileStorageManager
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
-from .unified_login_flow2 import authentication as ulf2_authentication
+from . import unified_login_flow2
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
@@ -929,7 +929,7 @@ class ULF2_AuthTask(QtCore.QThread):
 
     def run(self):
         try:
-            self.session_info = ulf2_authentication.process(
+            self.session_info = unified_login_flow2.process(
                 self._sg_url,
                 http_proxy=self._http_proxy,
                 product=self._product,
