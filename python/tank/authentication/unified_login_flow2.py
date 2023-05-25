@@ -19,6 +19,7 @@ from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
+from .. import platform as sgtk_platform
 from ..util.shotgun import connection
 
 from .. import LogManager
@@ -37,18 +38,12 @@ class AuthenticationError(errors.AuthenticationError):
 def process(
     sg_url,
     http_proxy=None,
-    product=None,
     browser_open_callback=None,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
-
-    if not product and "TK_AUTH_PRODUCT" in os.environ:
-        product = os.environ["TK_AUTH_PRODUCT"]
-
     logger.debug("Trigger Authentication on {url}".format(url=sg_url))
 
-    assert product
     assert callable(browser_open_callback)
     assert callable(keep_waiting_callback)
 
@@ -74,7 +69,7 @@ def process(
         # method="POST", # see bellow
         data=urllib.parse.urlencode(
             {
-                "appName": product,
+                "appName": get_product_name(),
                 "machineId": platform.node(),
             }
         ).encode(),
@@ -260,6 +255,28 @@ def process(
         response.json["sessionToken"],
         None,  # Extra metadata - useless here
     )
+
+
+def get_product_name():
+    if "TK_AUTH_PRODUCT" in os.environ:
+        return os.environ["TK_AUTH_PRODUCT"]
+
+    try:
+        engine = sgtk_platform.current_engine()
+        product = engine.host_info["name"]
+    except (AttributeError, TypeError, KeyError):
+        pass
+    else:
+        if product.lower() == "desktop":
+            product = "ShotGrid Desktop"
+
+        if engine.host_info.get("version", "unknown") != "unknown":
+            product += " {version}".format(**engine.host_info)
+
+        return product
+
+    # Fallback to default/worst case value
+    return "ShotGrid Toolkit"
 
 
 def _get_content_type(headers):
