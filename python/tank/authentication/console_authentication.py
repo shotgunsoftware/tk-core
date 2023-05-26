@@ -86,7 +86,12 @@ class ConsoleAuthenticationHandlerBase(object):
                 elif site_i.autodesk_identity_enabled:
                     raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
-            auth_fn = self._get_auth_method(hostname, site_i)
+            method_selected = self._get_auth_method(hostname, site_i)
+            if method_selected == constants.METHOD_ULF2:
+                auth_fn = self._authenticate_unified_login_flow2
+            else:  # basic
+                auth_fn = self._authenticate_legacy
+
             try:
                 return auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
@@ -175,28 +180,22 @@ class ConsoleAuthenticationHandlerBase(object):
 
     def _get_auth_method(self, hostname, site_i):
         if not site_i.unified_login_flow2_enabled:
-            return self._authenticate_legacy
+            return constants.METHOD_BASIC
 
         if site_i.autodesk_identity_enabled or site_i.sso_enabled:
-            return self._authenticate_unified_login_flow2
+            return constants.METHOD_ULF2
 
         # We have 2 choices here
         methods = {
-            "1": {
-                "value": constants.METHOD_ULF2,
-                "function": self._authenticate_unified_login_flow2,
-            },
-            "2": {
-                "value": constants.METHOD_BASIC,
-                "function": self._authenticate_legacy,
-            },
+            "1": constants.METHOD_ULF2,
+            "2": constants.METHOD_BASIC,
         }
 
         # Let's see which method the user chose previously for this site
         method_saved = session_cache.get_preferred_method(hostname)
         method_default = "1"
         for k, v in methods.items():
-            if v["value"] == method_saved:
+            if v == method_saved:
                 method_default = k
                 break
 
@@ -219,8 +218,8 @@ class ConsoleAuthenticationHandlerBase(object):
                 "Unsupported authentication method choice {m}".format(m=method)
             )
 
-        session_cache.set_preferred_method(hostname, method["value"])
-        return method["function"]
+        session_cache.set_preferred_method(hostname, method)
+        return method
 
     def _get_sg_url(self, hostname, http_proxy):
         """

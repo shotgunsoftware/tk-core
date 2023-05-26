@@ -1103,7 +1103,7 @@ class InteractiveTests(ShotgunTestBase):
         ):
             self.assertEqual(
                 handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                handler._authenticate_unified_login_flow2,
+                auth_constants.METHOD_ULF2,
             )
 
         with mock.patch(
@@ -1112,7 +1112,7 @@ class InteractiveTests(ShotgunTestBase):
         ):
             self.assertEqual(
                 handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                handler._authenticate_legacy,
+                auth_constants.METHOD_BASIC,
             )
 
         with mock.patch(
@@ -1124,7 +1124,7 @@ class InteractiveTests(ShotgunTestBase):
         ):
             self.assertEqual(
                 handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                handler._authenticate_legacy,
+                auth_constants.METHOD_BASIC,
             )
 
         for wrong_value in ["0", "3", "-1", "42", "wrong"]:
