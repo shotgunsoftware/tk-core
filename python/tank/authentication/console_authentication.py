@@ -108,9 +108,13 @@ class ConsoleAuthenticationHandlerBase(object):
                 "Logged In",
                 properties={
                     "authentication_method": site_i.user_authentication_method,
-                    "Method": constants.method_resolve.get(method_selected),
-                    "mode": "console",
-                    "Action": isinstance(self, ConsoleRenewSessionHandler),
+                    "authentication_experience": constants.method_resolve.get(
+                        method_selected
+                    ),
+                    "authentication_interface": "console",
+                    "authentication_renewal": isinstance(
+                        self, ConsoleRenewSessionHandler
+                    ),
                 },
             )
 

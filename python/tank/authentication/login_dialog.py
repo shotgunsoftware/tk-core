@@ -668,9 +668,9 @@ class LoginDialog(QtGui.QDialog):
             "Logged In",
             properties={
                 "authentication_method": self.site_info.user_authentication_method,
-                "Method": auth_constants.method_resolve.get(self.method_selected),
-                "mode": "qt_dialog",
-                "Action": self._is_session_renewal,
+                "authentication_experience": auth_constants.method_resolve.get(self.method_selected),
+                "authentication_interface": "qt_dialog",
+                "authentication_renewal": self._is_session_renewal,
             },
         )
 
