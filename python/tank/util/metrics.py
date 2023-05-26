@@ -621,6 +621,7 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Panel"),
         EVENT_NAME_FORMAT % (GROUP_PROJECTS, "Viewed Project Commands"),
         EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Command"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Software"),

@@ -31,6 +31,8 @@ from .errors import (
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 from . import site_info
 from . import unified_login_flow2
+from ..util import metrics_cache
+from ..util.metrics import EventMetric
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
@@ -93,12 +95,26 @@ class ConsoleAuthenticationHandlerBase(object):
                 auth_fn = self._authenticate_legacy
 
             try:
-                return auth_fn(hostname, login, http_proxy)
+                result = auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
                 print("Login failed: %s" % error)
                 print()
+                return
+
+            metrics_cache.log(
+                EventMetric.GROUP_TOOLKIT,
+                "Logged In",
+                properties={
+                    "authentication_method": site_i.user_authentication_method,
+                    "Method": constants.method_resolve.get(method_selected),
+                    "mode": "console",
+                    "Action": isinstance(self, ConsoleRenewSessionHandler),
+                },
+            )
+
+            return result
 
     def _authenticate_legacy(self, hostname, login, http_proxy):
         # Get the credentials from the user
