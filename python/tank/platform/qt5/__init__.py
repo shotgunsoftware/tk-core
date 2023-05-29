@@ -9,4 +9,4 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # This module will be populated during engine initialization with modules available for Qt 5 if
-# PySide 2 is accessible.
+# PySide 2 or PyQt5 is accessible.

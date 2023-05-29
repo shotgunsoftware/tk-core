@@ -277,9 +277,15 @@ class QtImporter(object):
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
-        QtWebEngineWidgets = self._import_module_by_name(
-            "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
-        )
+
+        # We have the potential for a deadlock in Maya 2018 on Windows if this
+        # is imported. We set the env var from the tk-maya engine when we
+        # detect that we are in this situation.
+        QtWebEngineWidgets = None
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
+            QtWebEngineWidgets = self._import_module_by_name(
+                "PySide2", "QtWebEngineWidgets"
+            )
 
         return (
             "PySide2",
@@ -332,6 +338,35 @@ class QtImporter(object):
             self._to_version_tuple(QtCore.QT_VERSION_STR),
         )
 
+    def _import_pyqt5(self):
+        """
+        Imports PyQt5.
+
+        :returns: The (binding name, binding version, modules) tuple.
+        """
+        from PyQt5 import QtCore, QtGui, QtWidgets
+        import PyQt5
+        from .pyqt5_patcher import PyQt5Patcher
+
+        QtCore, QtGui = PyQt5Patcher.patch(QtCore, QtGui, QtWidgets, PyQt5)
+        QtNetwork = self._import_module_by_name("PyQt5", "QtNetwork")
+        QtWebEngineWidgets = self._import_module_by_name("PyQt5", "QtWebEngineWidgets")
+
+        PyQt5.__version__ = QtCore.PYQT_VERSION_STR
+
+        return (
+            "PyQt5",
+            PyQt5.__version__,
+            PyQt5,
+            {
+                "QtCore": QtCore,
+                "QtGui": QtGui,
+                "QtNetwork": QtNetwork,
+                "QtWebEngineWidgets": QtWebEngineWidgets,
+            },
+            self._to_version_tuple(QtCore.QT_VERSION_STR),
+        )
+
     def _to_version_tuple(self, version_str):
         """
         Converts a version string with the dotted notation into a tuple
@@ -349,6 +384,7 @@ class QtImporter(object):
             - PySide2
             - PySide
             - PyQt4
+            - PyQt5
 
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
             no binding is avaialble.
@@ -373,8 +409,6 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-        # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
-
         # Now try PySide 1
         if interface_version_requested == self.QT4:
             try:
@@ -389,6 +423,15 @@ class QtImporter(object):
             try:
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
+                return pyqt
+            except ImportError:
+                pass
+
+        # Then finally try PyQt5
+        if interface_version_requested == self.QT5:
+            try:
+                pyqt = self._import_pyqt5()
+                logger.debug("Imported PyQt5.")
                 return pyqt
             except ImportError:
                 pass
