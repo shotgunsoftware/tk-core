@@ -30,6 +30,7 @@ from tank_vendor.shotgun_api3 import (
 )
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
+from . import constants
 from .errors import AuthenticationError
 from .. import LogManager
 from ..util.shotgun import connection
@@ -544,8 +545,11 @@ def get_preferred_method(host):
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
     document = _try_load_site_authentication_file(info_path)
-    method = document[_PREFERRED_METHOD]
-    return method.strip() if method else method
+    method_name = document[_PREFERRED_METHOD]
+    if not method_name:
+        return
+
+    return constants.method_resolve_reverse(method_name.strip())
 
 
 def set_preferred_method(host, method):
@@ -556,16 +560,19 @@ def set_preferred_method(host, method):
     :param method: The prefered authentication method for specified host.
     """
     host = host.strip()
-    method = method.strip()
+
+    method_name = constants.method_resolve.get(method)
+    if not method_name:
+        return
 
     file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    if current_user_file[_PREFERRED_METHOD] == method:
+    if current_user_file[_PREFERRED_METHOD] == method_name:
         return
 
-    current_user_file[_PREFERRED_METHOD] = method
+    current_user_file[_PREFERRED_METHOD] = method_name
     _write_yaml_file(file_path, current_user_file)
 
 

@@ -20,6 +20,7 @@ at any point.
 """
 from __future__ import print_function
 
+from . import constants
 from . import session_cache
 from .. import LogManager
 from .errors import (
@@ -184,10 +185,26 @@ class ConsoleAuthenticationHandlerBase(object):
             return self._authenticate_unified_login_flow2
 
         # We have 2 choices here
-        # Let's see which method the user chose previously for this site
-        # Then prompt them to chose
+        methods = {
+            "1": {
+                "value": constants.METHOD_ULF2,
+                "function": self._authenticate_unified_login_flow2,
+            },
+            "2": {
+                "value": constants.METHOD_BASIC,
+                "function": self._authenticate_legacy,
+            },
+        }
 
+        # Let's see which method the user chose previously for this site
         method_saved = session_cache.get_preferred_method(hostname)
+        method_default = "1"
+        for k, v in methods.items():
+            if v["value"] == method_saved:
+                method_default = k
+                break
+
+        # Then prompt them to chose
         print(
             "\n"
             "The ShotGrid site support two authentication methods:\n"
@@ -195,21 +212,19 @@ class ConsoleAuthenticationHandlerBase(object):
             " 2. Legacy method using login/password\n"
         )
 
-        method = self._get_keyboard_input(
+        method_selected = self._get_keyboard_input(
             "Select a method (1 or 2)",
-            default_value="1" if method_saved == "credentials" else "2",
+            default_value=method_default,
         )
 
-        if method == "1":
-            session_cache.set_preferred_method(hostname, "unified_login_flow2")
-            return self._authenticate_unified_login_flow2
-        elif method == "2":
-            session_cache.set_preferred_method(hostname, "credentials")
-            return self._authenticate_legacy
-        else:
+        method = methods.get(method_selected)
+        if not method:
             raise AuthenticationError(
                 "Unsupported authentication method choice {m}".format(m=method)
             )
+
+        session_cache.set_preferred_method(hostname, method["value"])
+        return method["function"]
 
     def _get_sg_url(self, hostname, http_proxy):
         """
