@@ -140,25 +140,27 @@ class ConsoleAuthenticationHandlerBase(object):
     def _authenticate_unified_login_flow2(self, hostname, login, http_proxy):
         print()
         print(
-            "The authentication to {sg_url} requires to use your web browser.\n"
+            "Authenticating to {sg_url} requires your web browser.\n"
             "\n"
-            'After pressing "continue", your web browser will open shortly '
-            "targeting your selected ShotGrid site.\n"
+            'After selecting "continue", your default web browser will open '
+            "and prompt you to authenticate to {sg_url} if you are not already "
+            "authenticated to this site in the browser.\n"
             "\n"
-            "If you are not already authenticated to {sg_url} in the browser,"
-            "you will first need to authenticate.\n"
+            "Then, you will be prompted to approve the authentication request "
+            "and return to this application.\n"
             "\n"
-            "Then, you will be prompted to review the access request.\n"
             'Select "Approve" and come back to this application.'
             "\n".format(sg_url=hostname)
         )
 
-        self._read_clean_input("Press enter when you are ready to continue")
+        self._read_clean_input("Press enter when you are ready to continue.")
         print("\n")  # Always have 2 empty lines after a prompt
         print(
-            "Your browser will open shortly.\n"
-            "Once you approved the access request, come back to this "
-            "application"
+            "Stand by... your default browser will open shortly for you to "
+            "approve the authentication request.\n"
+            "\n"
+            "After approving the authentication request, return to this "
+            "application."
         )
         print()
         session_info = ulf2_authentication.process(
@@ -172,7 +174,10 @@ class ConsoleAuthenticationHandlerBase(object):
         if not session_info:
             raise AuthenticationError("The web authentication failed.")
 
-        print("The web authentication succeed, now processing.")
+        print(
+            "Success! The web authentication has been approved and your "
+            "application is ready to use."
+        )
         return session_info
 
     def _get_auth_method(self, hostname, http_proxy):
@@ -356,12 +361,15 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
             recent_hosts.insert(0, hostname)
 
         if len(recent_hosts) > 1:
-            print("List of you recent ShotGrid sites:")
+            print("Recent ShotGrid sites:")
             for sg_url in recent_hosts:
                 print("  *", sg_url)
             print()
 
-        return self._get_keyboard_input("Enter a SG site URL", hostname)
+        return self._get_keyboard_input(
+            "Enter the ShotGrid site URL for authentication",
+            hostname,
+        )
 
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
