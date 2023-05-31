@@ -12,6 +12,7 @@ import json
 import os
 import platform
 import random
+import sys
 import time
 
 import tank
@@ -272,6 +273,10 @@ def get_product_name():
 
         return product
 
+    # current_engine is not set in SGD at login time...
+    if os.path.splitext(os.path.basename(sys.argv[0]))[0].lower() == "shotgun":
+        return "ShotGrid Desktop"
+
     # Fallback to default/worst case value
     return "ShotGrid Toolkit"
 
@@ -416,7 +421,6 @@ def build_user_agent():
 
 if __name__ == "__main__":
     import argparse
-    import sys
     import webbrowser
 
     parser = argparse.ArgumentParser()
