@@ -33,15 +33,13 @@ from ..util import LocalFileStorageManager
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from . import unified_login_flow2
+from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
-    is_autodesk_identity_enabled_on_site,
-    is_sso_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
-    is_unified_login_flow2_enabled_on_site,
 )
+
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
@@ -81,36 +79,13 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
     to avoid blocking the main GUI thread.
     """
 
-    def __init__(self, parent, http_proxy=None):
+    def __init__(self, parent, site_info_instance, http_proxy=None):
         """
         Constructor.
         """
         QtCore.QThread.__init__(self, parent)
-        self._url_to_test = ""
-        self._sso_enabled = False
-        self._unified_login_flow_enabled = False
-        self._unified_login_flow2_enabled = False
+        self._site_info = site_info_instance
         self._http_proxy = http_proxy
-
-    @property
-    def sso_enabled(self):
-        """returns: `True` if SSO is enabled, `False` otherwise."""
-        return self._sso_enabled
-
-    @property
-    def autodesk_identity_enabled(self):
-        """returns: `True` if Identity is enabled, `False` otherwise."""
-        return self._autodesk_identity_enabled
-
-    @property
-    def unified_login_flow_enabled(self):
-        """returns: `True` if ULF is enabled, `False` otherwise."""
-        return self._unified_login_flow_enabled
-
-    @property
-    def unified_login_flow2_enabled(self):
-        """returns: `True` if ULF2 is enabled, `False` otherwise."""
-        return self._unified_login_flow2_enabled
 
     @property
     def url_to_test(self):
@@ -125,20 +100,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        # The site information is cached, so those three calls do not add
-        # any significant overhead.
-        self._sso_enabled = is_sso_enabled_on_site(self.url_to_test, self._http_proxy)
-        self._autodesk_identity_enabled = is_autodesk_identity_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-        self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-
-        self._unified_login_flow2_enabled = is_unified_login_flow2_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-
+        self._site_info.reload(self._url_to_test, self._http_proxy)
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -331,7 +293,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
-        self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
+        self.site_info = site_info.SiteInfo()
+
+        self._query_task = QuerySiteAndUpdateUITask(self, self.site_info, http_proxy)
         self._query_task.finished.connect(self._toggle_web)
         self._update_ui_according_to_site_support()
 
@@ -502,8 +466,8 @@ class LoginDialog(QtGui.QDialog):
         # are showing and what was detected on the potential target site.
 
         # With a SSO site, we have no choice but to use the web to login.
-        can_use_web = self._query_task.sso_enabled
-        can_use_ulf2 = self._query_task.unified_login_flow2_enabled
+        can_use_web = self.site_info.sso_enabled
+        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -513,12 +477,12 @@ class LoginDialog(QtGui.QDialog):
             logger.info("Using the standard login dialog with the ShotGrid Desktop")
         else:
             if _is_running_in_desktop():
-                can_use_web = can_use_web or self._query_task.autodesk_identity_enabled
+                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
 
             # If we have full support for Web-based login, or if we enable it in our
             # environment, use the Unified Login Flow for all authentication modes.
             if get_shotgun_authenticator_support_web_login():
-                can_use_web = can_use_web or self._query_task.unified_login_flow_enabled
+                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
         if can_use_ulf2:
             if method_selected:

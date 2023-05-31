@@ -29,11 +29,7 @@ from .errors import (
     ConsoleLoginNotSupportedError,
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import (
-    is_sso_enabled_on_site,
-    is_unified_login_flow2_enabled_on_site,
-    is_autodesk_identity_enabled_on_site,
-)
+from . import site_info
 from . import unified_login_flow2
 from ..util.shotgun.connection import sanitize_url
 
@@ -77,17 +73,20 @@ class ConsoleAuthenticationHandlerBase(object):
 
             hostname = sanitize_url(hostname)
 
-            if not is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
+            site_i = site_info.SiteInfo()
+            site_i.reload(hostname, http_proxy)
+
+            if not site_i.unified_login_flow2_enabled:
                 # Will raise an exception if using a username/password pair is
                 # not supported by the ShotGrid server.
                 # Which is the case when using SSO or Autodesk Identity.
 
-                if is_sso_enabled_on_site(hostname, http_proxy):
+                if site_i.sso_enabled:
                     raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
-                elif is_autodesk_identity_enabled_on_site(hostname, http_proxy):
+                elif site_i.autodesk_identity_enabled:
                     raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
-            auth_fn = self._get_auth_method(hostname, http_proxy)
+            auth_fn = self._get_auth_method(hostname, site_i)
             try:
                 return auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
@@ -174,13 +173,11 @@ class ConsoleAuthenticationHandlerBase(object):
         )
         return session_info
 
-    def _get_auth_method(self, hostname, http_proxy):
-        if not is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
+    def _get_auth_method(self, hostname, site_i):
+        if not site_i.unified_login_flow2_enabled:
             return self._authenticate_legacy
 
-        if is_autodesk_identity_enabled_on_site(
-            hostname, http_proxy
-        ) or is_sso_enabled_on_site(hostname, http_proxy):
+        if site_i.autodesk_identity_enabled or site_i.sso_enabled:
             return self._authenticate_unified_login_flow2
 
         # We have 2 choices here

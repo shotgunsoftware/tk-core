@@ -351,12 +351,8 @@ class InteractiveTests(ShotgunTestBase):
         self.assertEqual(handler._get_2fa_code(), "2fa code")
 
     @mock.patch(
-        "tank.authentication.console_authentication.is_sso_enabled_on_site",
-        return_value=False,
-    )
-    @mock.patch(
-        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
-        return_value=False,
+        "tank.authentication.site_info._get_site_infos",
+        return_value={},
     )
     @mock.patch(
         "tank.authentication.session_cache.generate_session_token",
@@ -384,7 +380,7 @@ class InteractiveTests(ShotgunTestBase):
         )
 
     @mock.patch(
-        "tank.authentication.sso_saml2.utils._get_site_infos",
+        "tank.authentication.site_info._get_site_infos",
         return_value={
             "unified_login_flow2_enabled": False,
         },
@@ -416,12 +412,10 @@ class InteractiveTests(ShotgunTestBase):
         side_effect=["  https://test-sso.shotgunstudio.com "],
     )
     @mock.patch(
-        "tank.authentication.console_authentication.is_sso_enabled_on_site",
-        return_value=True,
-    )
-    @mock.patch(
-        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
-        return_value=False,
+        "tank.authentication.site_info._get_site_infos",
+        return_value={
+            "user_authentication_method": "saml2",
+        },
     )
     @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
@@ -434,24 +428,18 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
             handler.authenticate(None, None, None)
 
-    @mock.patch(
-        "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
-        return_value=False,
-    )
-    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
-        for option in [(True, True), (True, False), (False, True)]:
+        for option in ["oxygen", "saml2"]:
             with mock.patch(
-                "tank.authentication.console_authentication.is_sso_enabled_on_site",
-                return_value=option[0],
-            ), mock.patch(
-                "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
-                return_value=option[1],
+                "tank.authentication.site_info._get_site_infos",
+                return_value={
+                    "user_authentication_method": option,
+                },
             ):
                 with self.assertRaises(ConsoleLoginNotSupportedError):
                     handler.authenticate(
@@ -487,7 +475,7 @@ class InteractiveTests(ShotgunTestBase):
 
     @suppress_generated_code_qt_warnings
     @mock.patch(
-        "tank.authentication.sso_saml2.utils._get_site_infos",
+        "tank.authentication.site_info._get_site_infos",
         return_value={},
     )
     @mock.patch(
@@ -624,7 +612,7 @@ class InteractiveTests(ShotgunTestBase):
     def test_login_dialog_method_selected(self, *unused_mocks):
         # First - basic
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_site_infos",
+            "tank.authentication.site_info._get_site_infos",
             return_value={},
         ), self._login_dialog(
             True,
@@ -635,7 +623,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Then Web login
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_site_infos",
+            "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
@@ -646,7 +634,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Then Web login but env override
         with mock.patch("os.environ.get", return_value="1"), mock.patch(
-            "tank.authentication.sso_saml2.utils._get_site_infos",
+            "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
@@ -657,7 +645,7 @@ class InteractiveTests(ShotgunTestBase):
 
     @suppress_generated_code_qt_warnings
     @mock.patch(
-        "tank.authentication.sso_saml2.utils._get_site_infos",
+        "tank.authentication.site_info._get_site_infos",
         return_value={},
     )
     @mock.patch(
@@ -753,7 +741,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=True,
     )
     @mock.patch(
-        "tank.authentication.sso_saml2.utils._get_site_infos",
+        "tank.authentication.site_info._get_site_infos",
         return_value={
             "user_authentication_method": "oxygen",
             "unified_login_flow_enabled": True,
@@ -825,7 +813,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # First basic and ULF2 methods
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_site_infos",
+            "tank.authentication.site_info._get_site_infos",
             return_value={
                 "unified_login_flow2_enabled": True,
             },
@@ -900,7 +888,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Test SGTK_FORCE_STANDARD_LOGIN_DIALOG override
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_site_infos",
+            "tank.authentication.site_info._get_site_infos",
             return_value={
                 "unified_login_flow2_enabled": True,
             },
@@ -916,7 +904,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Then Web login vs ULF2
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_site_infos",
+            "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
@@ -976,7 +964,7 @@ class InteractiveTests(ShotgunTestBase):
             )
 
     @mock.patch(
-        "tank.authentication.sso_saml2.utils._get_site_infos",
+        "tank.authentication.site_info._get_site_infos",
         return_value={
             "unified_login_flow2_enabled": True,
         },
@@ -1034,9 +1022,12 @@ class InteractiveTests(ShotgunTestBase):
 
         # Then repeat the operation having the site configured with Oxygen
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_user_authentication_method",
-            return_value="oxygen",
-        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "user_authentication_method": "oxygen",
+                "unified_login_flow2_enabled": True,
+            },
+        ), patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 # No method to select as there is only one option
@@ -1053,9 +1044,12 @@ class InteractiveTests(ShotgunTestBase):
 
         # Then, one more small test for coverage
         with mock.patch(
-            "tank.authentication.sso_saml2.utils._get_user_authentication_method",
-            return_value="oxygen",
-        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "user_authentication_method": "oxygen",
+                "unified_login_flow2_enabled": True,
+            },
+        ), patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # OK to continue
@@ -1072,9 +1066,9 @@ class InteractiveTests(ShotgunTestBase):
         # Finally, disable ULF2 method and ensure legacy cred methods is
         # automatically selected
         with mock.patch(
-            "tank.authentication.console_authentication.is_unified_login_flow2_enabled_on_site",
-            return_value=False,
-        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={},
+        ), patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 # No method to select as there is only one option
@@ -1090,16 +1084,17 @@ class InteractiveTests(ShotgunTestBase):
             )
 
     @mock.patch(
-        "tank.authentication.sso_saml2.utils._get_site_infos",
-        return_value={
-            "unified_login_flow2_enabled": True,
-        },
-    )
-    @mock.patch(
         "tank.authentication.session_cache.get_preferred_method",
         return_value=None,
     )
     def test_console_get_auth_method(self, *unused_mocks):
+        from tank.authentication.site_info import SiteInfo
+
+        site_i = SiteInfo()
+        site_i._infos = {
+            "unified_login_flow2_enabled": True,
+        }
+
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
 
         with mock.patch(
@@ -1107,7 +1102,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value="1",
         ):
             self.assertEqual(
-                handler._get_auth_method("https://host.shotgunstudio.com", None),
+                handler._get_auth_method("https://host.shotgunstudio.com", site_i),
                 handler._authenticate_unified_login_flow2,
             )
 
@@ -1116,7 +1111,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value="2",
         ):
             self.assertEqual(
-                handler._get_auth_method("https://host.shotgunstudio.com", None),
+                handler._get_auth_method("https://host.shotgunstudio.com", site_i),
                 handler._authenticate_legacy,
             )
 
@@ -1128,7 +1123,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value="",
         ):
             self.assertEqual(
-                handler._get_auth_method("https://host.shotgunstudio.com", None),
+                handler._get_auth_method("https://host.shotgunstudio.com", site_i),
                 handler._authenticate_legacy,
             )
 
@@ -1138,4 +1133,4 @@ class InteractiveTests(ShotgunTestBase):
                 return_value=wrong_value,
             ):
                 with self.assertRaises(errors.AuthenticationError):
-                    handler._get_auth_method("https://host.shotgunstudio.com", None)
+                    handler._get_auth_method("https://host.shotgunstudio.com", site_i)
