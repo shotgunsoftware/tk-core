@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Shotgun Software Inc.
+# Copyright (c) 2023 Autodesk.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -7,8 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-# Authentication method constants
 
 METHOD_BASIC = 0x01
 METHOD_WEB_LOGIN = 0x02
