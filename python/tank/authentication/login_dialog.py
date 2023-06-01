@@ -681,27 +681,27 @@ class LoginDialog(QtGui.QDialog):
                 profile_location=profile_location,
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
-            if res == QtGui.QDialog.Accepted:
-                return self._sso_saml2.get_session_data()
-            else:
-                return None
+            if res != QtGui.QDialog.Accepted:
+                return
+
+            return self._sso_saml2.get_session_data()
 
         res = self.exec_()
+        if res != QtGui.QDialog.Accepted:
+            return
 
-        if res == QtGui.QDialog.Accepted:
-            if self._use_local_browser and self._ulf2_task:
-                return self._ulf2_task.session_info
+        if self._use_local_browser and self._ulf2_task:
+            return self._ulf2_task.session_info
 
-            if self._session_metadata and self._sso_saml2:
-                return self._sso_saml2.get_session_data()
-            return (
-                self._get_current_site(),
-                self._get_current_user(),
-                self._new_session_token,
-                None,
-            )
-        else:
-            return None
+        if self._session_metadata and self._sso_saml2:
+            return self._sso_saml2.get_session_data()
+
+        return (
+            self._get_current_site(),
+            self._get_current_user(),
+            self._new_session_token,
+            None,
+        )
 
     def _set_error_message(self, widget, message):
         """
