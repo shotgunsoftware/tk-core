@@ -23,9 +23,9 @@ from .core.utils import (  # noqa
     get_saml_claims_expiration,
     get_session_expiration,
     _decode_cookies,
-    _get_shotgun_user_id,
-    _sanitize_http_proxy,
+    _get_shotgun_user_id
 )
+from ..utils import sanitize_http_proxy
 
 
 # Cache the servers infos for 30 seconds.
@@ -61,7 +61,7 @@ def _get_site_infos(url, http_proxy=None):
         # key/scriptname pair or a session_token. The token is only used in
         # calls which need to be authenticated. The 'info' call does not
         # require authentication.
-        http_proxy = _sanitize_http_proxy(http_proxy).netloc
+        http_proxy = sanitize_http_proxy(http_proxy).netloc
         if http_proxy:
             get_logger().debug(
                 "Using HTTP proxy to connect to the SG server: %s", http_proxy
