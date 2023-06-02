@@ -195,6 +195,7 @@ class LoginDialog(QtGui.QDialog):
         self._is_session_renewal = is_session_renewal
         self._session_metadata = session_metadata
 
+        self.host_selected = None
         self.method_selected = auth_constants.METHOD_BASIC
 
         self._ulf2_task = None
@@ -494,6 +495,9 @@ class LoginDialog(QtGui.QDialog):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
+
+        site = self._query_task.url_to_test
+
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
         # With a SSO site, we have no choice but to use the web to login.
@@ -516,8 +520,6 @@ class LoginDialog(QtGui.QDialog):
                 can_use_web = can_use_web or self._query_task.unified_login_flow_enabled
 
         if can_use_ulf2:
-            site = self._query_task.url_to_test
-
             if method_selected:
                 # Selecting requested mode (credentials, web_legacy or unified_login_flow2)
                 session_cache.set_preferred_method(site, method_selected)
@@ -534,10 +536,14 @@ class LoginDialog(QtGui.QDialog):
         else:
             method_selected = auth_constants.METHOD_BASIC
 
-        if method_selected == self.method_selected:
-            # Nothing to do
+        if site == self.host_selected and method_selected == self.method_selected:
+            # We don't want to go further if the UI is already configured for
+            # this site and this mode.
+            # This prevents erasing any error message when various events would
+            # toggle this method
             return
 
+        self.host_selected = site
         self.method_selected = method_selected
 
         # if we are switching from one mode (using the web) to another (not using
