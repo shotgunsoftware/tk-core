@@ -49,12 +49,14 @@ logger = LogManager.get_logger(__name__)
 # Name used to identify the client application when connecting via SSO to Shotugn.
 PRODUCT_IDENTIFIER = "toolkit"
 
-# Checking for SSO support on a site takes a few moments. When the user enters
-# a Shotgun site URL, we check for SSO support (and update the GUI) only after
-# the user has stopped for longer than the delay (in ms).
-USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
+# Requesting the site's information (including SSO support) takes a few moments.
+# When the user enters a ShotGrid site URL, we check for authentication methods
+# (and update the GUI) only after the user has stopped for longer than the delay
+# (in ms).
+USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST = 300
 
-# Let's put at 5 seconds the maximum time we might wait for a SSO check thread.
+# Let's put at 5 seconds the maximum time we might wait for a site's information
+# request thread.
 THREAD_WAIT_TIMEOUT_MS = 5000
 
 
@@ -72,7 +74,8 @@ def _is_running_in_desktop():
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
     """
-    This class uses a different thread to query if SSO is enabled or not.
+    This class uses a different thread to query the site's information and find
+    out whether SSO is enabled or not.
 
     We use a different thread due to the time the call can take, and
     to avoid blocking the main GUI thread.
@@ -225,13 +228,13 @@ class LoginDialog(QtGui.QDialog):
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 
-        # Timer to update the GUI according to the URL, if SSO is supported or not.
+        # Timer to update the GUI according to the URL.
         # This is to make the UX smoother, as we do not check after each character
         # typed, but instead wait for a period of inactivity from the user.
         self._url_changed_timer = QtCore.QTimer(self)
         self._url_changed_timer.setSingleShot(True)
         self._url_changed_timer.timeout.connect(
-            self._update_ui_according_to_sso_support
+            self._update_ui_according_to_site_support
         )
 
         # If the host is fixed, disable the site textbox.
@@ -321,7 +324,7 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.ulf2_msg_back.linkActivated.connect(self._ulf2_back_pressed)
 
-        # While the user is typing, check the SSOness of the site so we can
+        # While the user is typing, request the site's information so we can
         # show or hide the login and password fields.
         self.ui.site.lineEdit().textEdited.connect(self._site_url_changing)
         # If a site has been selected, we need to update the login field.
@@ -330,13 +333,13 @@ class LoginDialog(QtGui.QDialog):
 
         self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
         self._query_task.finished.connect(self._toggle_web)
-        self._update_ui_according_to_sso_support()
+        self._update_ui_according_to_site_support()
 
-        # We want to wait until we know if the site uses SSO or not, to avoid
+        # We want to wait until we know what is supported by the site, to avoid
         # flickering GUI.
         if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
             logger.warning(
-                "Timed out awaiting check for SSO support on the site: %s"
+                "Timed out awaiting requesting information: %s"
                 % self._get_current_site()
             )
 
@@ -422,9 +425,10 @@ class LoginDialog(QtGui.QDialog):
         """
         return six.ensure_str(self.ui.login.currentText().strip())
 
-    def _update_ui_according_to_sso_support(self):
+    def _update_ui_according_to_site_support(self):
         """
-        Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
+        Updates the GUI according to the site's information, hiding or showing
+        the username/password fields.
         """
         self._query_task.url_to_test = self._get_current_site()
         self._query_task.start()
@@ -433,7 +437,7 @@ class LoginDialog(QtGui.QDialog):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
-        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
+        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST)
 
     def _on_site_changed(self):
         """
@@ -442,7 +446,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.ui.login.clear()
         self._populate_user_dropdown(self._get_current_site())
-        self._update_ui_according_to_sso_support()
+        self._update_ui_according_to_site_support()
 
     def _populate_user_dropdown(self, site):
         """
@@ -731,12 +735,12 @@ class LoginDialog(QtGui.QDialog):
         """
         Validate the values, accepting if login is successful and display an error message if not.
         """
-        # Wait for any ongoing SSO check thread.
+        # Wait for any ongoing Site Configuration check thread.
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
                 logger.warning(
-                    "Timed out awaiting check for SSO support on the site: %s"
+                    "Timed out awaiting configuration information on the site: %s"
                     % self._get_current_site()
                 )
         finally:
