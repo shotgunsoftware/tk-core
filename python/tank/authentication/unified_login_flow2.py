@@ -27,6 +27,9 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
+PRODUCT_DEFAULT = "ShotGrid Toolkit"
+PRODUCT_DESKTOP = "ShotGrid Desktop"
+
 
 class AuthenticationError(errors.AuthenticationError):
     def __init__(self, msg, ulf2_errno=None, payload=None, parent_exception=None):
@@ -269,7 +272,7 @@ def get_product_name():
         pass
     else:
         if product.lower() == "desktop":
-            product = "ShotGrid Desktop"
+            product = PRODUCT_DESKTOP
 
         if engine.host_info.get("version", "unknown") != "unknown":
             product += " {version}".format(**engine.host_info)
@@ -278,10 +281,10 @@ def get_product_name():
 
     # current_engine is not set in SGD at login time...
     if os.path.splitext(os.path.basename(sys.argv[0]))[0].lower() == "shotgun":
-        return "ShotGrid Desktop"
+        return PRODUCT_DESKTOP
 
     # Fallback to default/worst case value
-    return "ShotGrid Toolkit"
+    return PRODUCT_DEFAULT
 
 
 def _get_content_type(headers):
