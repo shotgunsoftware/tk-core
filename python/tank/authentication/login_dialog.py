@@ -426,10 +426,8 @@ class LoginDialog(QtGui.QDialog):
         """
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
         """
-        # Only update the GUI if we were able to initialize the sam2sso module.
-        if self._sso_saml2:
-            self._query_task.url_to_test = self._get_current_site()
-            self._query_task.start()
+        self._query_task.url_to_test = self._get_current_site()
+        self._query_task.start()
 
     def _site_url_changing(self, text):
         """
