@@ -140,7 +140,9 @@ class CachedConfiguration(Configuration):
             % (storage_roots.roots_file, storage_roots.required_roots)
         )
 
-        (_, unmapped_roots) = storage_roots.get_local_storages(self._sg_connection)
+        (_, unmapped_roots) = storage_roots.get_local_storages(
+            self._sg_connection, self._project_id
+        )
 
         # get a list of all defined storage roots without a corresponding SG
         # local storage defined
@@ -271,7 +273,6 @@ class CachedConfiguration(Configuration):
         self._config_writer.ensure_project_scaffold()
         # copy the configuration into place
         try:
-
             # make sure the config is locally available.
 
             # Do not separate these three lines of code or reorder them.
@@ -328,13 +329,12 @@ class CachedConfiguration(Configuration):
             )
 
             # make sure roots file reflects current paths
-            self._config_writer.update_roots_file(self._descriptor)
+            self._config_writer.update_roots_file(self._descriptor, self._project_id)
 
             # and lastly install core
             self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
-
             log.debug(
                 "An exception was raised when trying to install the config descriptor %r. "
                 "Exception traceback details: %s"

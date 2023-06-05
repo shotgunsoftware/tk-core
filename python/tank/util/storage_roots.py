@@ -127,7 +127,7 @@ class StorageRoots(object):
         return storage_roots
 
     @classmethod
-    def write(cls, sg_connection, config_folder, storage_roots):
+    def write(cls, sg_connection, config_folder, storage_roots, project_id=None):
         """
         Given a ``StorageRoots`` object, write it's metadata to the standard
         roots location within the supplied config folder. The method will write
@@ -145,7 +145,7 @@ class StorageRoots(object):
         """
 
         (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
-            sg_connection
+            sg_connection, project_id
         )
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
@@ -172,7 +172,6 @@ class StorageRoots(object):
         roots_metadata = storage_roots.metadata
 
         for root_name, root_info in storage_roots:
-
             # get the cached SG storage dict
             sg_local_storage = local_storage_lookup[root_name]
 
@@ -300,7 +299,7 @@ class StorageRoots(object):
     ############################################################################
     # public methods
 
-    def get_local_storages(self, sg_connection):
+    def get_local_storages(self, sg_connection, project_id=None):
         """
         Returns a tuple of information about the required storage roots and how
         they map to local storages in SG.
@@ -366,8 +365,36 @@ class StorageRoots(object):
 
         # create the SG connection and query
         log.debug("Querying SG local storages...")
-        sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
-        log.debug("Query returned %s storages." % (len(sg_storages)))
+
+        # try to query storage root fields for specific project
+        project_storages = sg_connection.find_one(
+            "Project",
+            [["id", "is", project_id]],
+            [
+                "sg_windows_storage_root_path",
+                "sg_mac_storage_root_path",
+                "sg_linux_storage_root_path",
+            ],
+        )
+
+        # fall back to default behaviour if we're not inside a project
+        if not project_storages:
+            sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
+            log.debug("Query returned %s global site storages." % (len(sg_storages)))
+
+        else:
+            # single element list since only one primary storage
+            sg_storages = [{}]
+            sg_storages[0]["code"] = "primary"
+            sg_storages[0]["windows_path"] = project_storages[
+                "sg_windows_storage_root_path"
+            ]
+            sg_storages[0]["mac_path"] = project_storages["sg_mac_storage_root_path"]
+            sg_storages[0]["linux_path"] = project_storages[
+                "sg_linux_storage_root_path"
+            ]
+
+            log.debug("Project-specific storage root paths found: %s" % sg_storages[0])
 
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
@@ -375,13 +402,12 @@ class StorageRoots(object):
         sg_storages_by_id = {}
         sg_storages_by_name = {}
         for sg_storage in sg_storages:
-            id = sg_storage["id"]
-            name = sg_storage["code"]
+            id = sg_storage.get("id")
+            name = sg_storage.get("code")
             sg_storages_by_id[id] = sg_storage
             sg_storages_by_name[name] = sg_storage
 
         for root_name, root_info in self:
-
             # see if the shotgun storage id is specified explicitly in the
             # roots.yml file.
             root_storage_id = root_info.get("shotgun_storage_id")
@@ -433,12 +459,10 @@ class StorageRoots(object):
             # populated with the expected platform keys
             for root_name, root_info in self:
                 for platform_key in self.PLATFORM_KEYS:
-
                     if platform_key not in root_info:
                         # platform key not defined for root. add it
                         root_info[platform_key] = None
         else:
-
             # no roots required by this configuration. add a default storage
             # requirement
             root_name = self.LEGACY_DEFAULT_STORAGE_NAME
@@ -556,7 +580,6 @@ class StorageRoots(object):
         # iterate over each storage root required by the configuration. try to
         # identify the default root.
         for root_name, root_info in self:
-
             log.debug("Processing storage: %s - %s" % (root_name, root_info))
 
             # store a shotgun path for each root definition. sanitize path data
@@ -576,7 +599,6 @@ class StorageRoots(object):
         # no default storage root defined explicitly. try to identify one if
         # there are storage roots defined
         if self.required_roots and not self._default_storage_name:
-
             log.debug("No default storage explicitly defined...")
 
             # if there is only one, then that is the default

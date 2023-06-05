@@ -140,7 +140,6 @@ class ConfigurationWriter(object):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
             if os.path.exists(configuration_payload):
-
                 config_backup_root = os.path.join(
                     config_path, "install", "config.backup"
                 )
@@ -319,7 +318,6 @@ class ConfigurationWriter(object):
             )
 
         with filesystem.auto_created_yml(sg_code_location) as fh:
-
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")
@@ -497,16 +495,18 @@ class ConfigurationWriter(object):
 
         return pipeline_config_path
 
-    def update_roots_file(self, config_descriptor):
+    def update_roots_file(self, config_descriptor, project_id=None):
         """
         Updates roots.yml based on local storage defs in shotgun.
 
         :param config_descriptor: Config descriptor object
         """
-
         config_folder = os.path.join(self._path.current_os, "config")
         StorageRoots.write(
-            self._sg_connection, config_folder, config_descriptor.storage_roots
+            self._sg_connection,
+            config_folder,
+            config_descriptor.storage_roots,
+            project_id,
         )
 
     def is_transaction_pending(self):
