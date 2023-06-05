@@ -25,6 +25,7 @@ from .. import constants
 from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc  # noqa
 from .ui import login_dialog
+from . import constants as auth_constants
 from . import session_cache
 from ..util.shotgun import connection
 from ..util import login
@@ -478,7 +479,7 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_web(self, menu_action=None):
+    def _toggle_web(self, method_selected=None):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
@@ -506,18 +507,18 @@ class LoginDialog(QtGui.QDialog):
         if self._query_task.unified_login_flow2_enabled:
             site = self._query_task.url_to_test
 
-            if menu_action:
+            if method_selected:
                 # Selecting requested mode (credentials, web_legacy or unified_login_flow2)
-                if menu_action == "unified_login_flow2":
+                if method_selected == auth_constants.METHOD_ULF2:
                     use_local_browser = True
 
-                session_cache.set_preferred_method(site, menu_action)
+                session_cache.set_preferred_method(site, method_selected)
             elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 # Selecting legacy auth by default
                 pass
             else:
                 method = session_cache.get_preferred_method(site)
-                if not method or method == "unified_login_flow2":
+                if not method or method == auth_constants.METHOD_ULF2:
                     # Select Unified Login Flow 2
                     use_local_browser = True
 
@@ -590,13 +591,13 @@ class LoginDialog(QtGui.QDialog):
         self.menu_action_legacy.setEnabled(self._use_local_browser)
 
     def _menu_activated_action_ulf2(self):
-        self._toggle_web(menu_action="unified_login_flow2")
+        self._toggle_web(method_selected=auth_constants.METHOD_ULF2)
 
     def _menu_activated_action_web_legacy(self):
-        self._toggle_web(menu_action="web_legacy")
+        self._toggle_web(method_selected=auth_constants.METHOD_WEB_LOGIN)
 
     def _menu_activated_action_login_creds(self):
-        self._toggle_web(menu_action="credentials")
+        self._toggle_web(method_selected=auth_constants.METHOD_BASIC)
 
     def _current_page_changed(self, index):
         """
