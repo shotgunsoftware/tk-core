@@ -1027,7 +1027,7 @@ class InteractiveTests(ShotgunTestBase):
                 "user_authentication_method": "oxygen",
                 "unified_login_flow2_enabled": True,
             },
-        ), patch(
+        ), mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 # No method to select as there is only one option
@@ -1049,7 +1049,7 @@ class InteractiveTests(ShotgunTestBase):
                 "user_authentication_method": "oxygen",
                 "unified_login_flow2_enabled": True,
             },
-        ), patch(
+        ), mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # OK to continue
@@ -1068,7 +1068,7 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={},
-        ), patch(
+        ), mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 # No method to select as there is only one option
@@ -1090,47 +1090,58 @@ class InteractiveTests(ShotgunTestBase):
     def test_console_get_auth_method(self, *unused_mocks):
         from tank.authentication.site_info import SiteInfo
 
-        site_i = SiteInfo()
-        site_i._infos = {
-            "unified_login_flow2_enabled": True,
-        }
-
-        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
-
-        with mock.patch(
-            "tank.authentication.console_authentication.input",
-            return_value="1",
+        with mock.patch.object(
+            tank_vendor.shotgun_api3.Shotgun,
+            "info",
+            return_value={
+                "unified_login_flow2_enabled": True,
+            },
         ):
-            self.assertEqual(
-                handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                auth_constants.METHOD_ULF2,
+            site_i = SiteInfo()
+            # Call the reload with info hooked for code coverage
+            site_i.reload(
+                "https://host.shotgunstudio.com",
+                http_proxy="http://proxy.local:3128",
             )
 
-        with mock.patch(
-            "tank.authentication.console_authentication.input",
-            return_value="2",
-        ):
-            self.assertEqual(
-                handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                auth_constants.METHOD_BASIC,
-            )
+            handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
 
-        with mock.patch(
-            "tank.authentication.session_cache.get_preferred_method",
-            return_value=auth_constants.METHOD_BASIC,
-        ), mock.patch(
-            "tank.authentication.console_authentication.input",
-            return_value="",
-        ):
-            self.assertEqual(
-                handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                auth_constants.METHOD_BASIC,
-            )
-
-        for wrong_value in ["0", "3", "-1", "42", "wrong"]:
             with mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value=wrong_value,
+                return_value="1",
             ):
-                with self.assertRaises(errors.AuthenticationError):
-                    handler._get_auth_method("https://host.shotgunstudio.com", site_i)
+                self.assertEqual(
+                    handler._get_auth_method("https://host.shotgunstudio.com", site_i),
+                    auth_constants.METHOD_ULF2,
+                )
+
+            with mock.patch(
+                "tank.authentication.console_authentication.input",
+                return_value="2",
+            ):
+                self.assertEqual(
+                    handler._get_auth_method("https://host.shotgunstudio.com", site_i),
+                    auth_constants.METHOD_BASIC,
+                )
+
+            with mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_BASIC,
+            ), mock.patch(
+                "tank.authentication.console_authentication.input",
+                return_value="",
+            ):
+                self.assertEqual(
+                    handler._get_auth_method("https://host.shotgunstudio.com", site_i),
+                    auth_constants.METHOD_BASIC,
+                )
+
+            for wrong_value in ["0", "3", "-1", "42", "wrong"]:
+                with mock.patch(
+                    "tank.authentication.console_authentication.input",
+                    return_value=wrong_value,
+                ):
+                    with self.assertRaises(errors.AuthenticationError):
+                        handler._get_auth_method(
+                            "https://host.shotgunstudio.com", site_i
+                        )
