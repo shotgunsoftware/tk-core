@@ -77,8 +77,8 @@ class ConsoleAuthenticationHandlerBase(object):
         :returns: The (hostname, login, session_token, session_metadata) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
-
         """
+
         logger.debug("Requesting password on command line.")
         print("[ShotGrid Authentication]\n")
         while True:

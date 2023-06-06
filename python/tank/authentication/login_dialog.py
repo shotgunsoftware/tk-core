@@ -496,6 +496,7 @@ class LoginDialog(QtGui.QDialog):
 
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
+
         # With a SSO site, we have no choice but to use the web to login.
         can_use_web = self._query_task.sso_enabled
         can_use_ulf2 = self._query_task.unified_login_flow2_enabled
