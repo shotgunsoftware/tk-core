@@ -44,21 +44,6 @@ from tank_vendor.six.moves import input
 logger = LogManager.get_logger(__name__)
 
 
-def _assert_console_session_is_supported(hostname, http_proxy):
-    """
-    Simple utility method which will raise an exception if using a
-    username/password pair is not supported by the Shotgun server.
-    Which is the case when using SSO or Autodesk Identity.
-    """
-    if is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
-        # OK we support that in console
-        pass
-    elif is_sso_enabled_on_site(hostname, http_proxy):
-        raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
-    elif is_autodesk_identity_enabled_on_site(hostname, http_proxy):
-        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
-
-
 class ConsoleAuthenticationHandlerBase(object):
     """
     Base class for authenticating on the console. It will take care of the credential retrieval loop,
@@ -91,7 +76,16 @@ class ConsoleAuthenticationHandlerBase(object):
                 raise AuthenticationCancelled()
 
             hostname = sanitize_url(hostname)
-            _assert_console_session_is_supported(hostname, http_proxy)
+
+            if not is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
+                # Will raise an exception if using a username/password pair is
+                # not supported by the ShotGrid server.
+                # Which is the case when using SSO or Autodesk Identity.
+
+                if is_sso_enabled_on_site(hostname, http_proxy):
+                    raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+                elif is_autodesk_identity_enabled_on_site(hostname, http_proxy):
+                    raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
             auth_fn = self._get_auth_method(hostname, http_proxy)
             try:
