@@ -81,6 +81,11 @@ def _get_site_infos(url, http_proxy=None):
             # python-api v3.0.41
             sg.config.rpc_attempt_interval = 0
             infos = sg.info()
+
+            # Short term retro compatibility
+            if "unified_login_flow_enabled2" in infos and "unified_login_flow2_enabled" not in infos:
+                infos["unified_login_flow2_enabled"] = infos["unified_login_flow_enabled2"]
+
             INFOS_CACHE[url] = (time.time(), infos)
         else:
             get_logger().info("Infos for site '%s' found in cache", url)
@@ -127,12 +132,12 @@ def is_unified_login_flow2_enabled_on_site(url, http_proxy=None):
     :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
     """
     infos = _get_site_infos(url, http_proxy)
-    if "unified_login_flow_enabled2" in infos:
+    if "unified_login_flow2_enabled" in infos:
         get_logger().debug("unified_login_flow_enabled for {u}: {v}".format(
             u = url,
-            v = infos["unified_login_flow_enabled2"],
+            v = infos["unified_login_flow2_enabled"],
         ))
-        return infos["unified_login_flow_enabled2"]
+        return infos["unified_login_flow2_enabled"]
     return False
 
 # pylint: disable=invalid-name

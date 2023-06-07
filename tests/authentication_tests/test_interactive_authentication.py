@@ -386,7 +386,7 @@ class InteractiveTests(ShotgunTestBase):
     @patch(
         "tank.authentication.sso_saml2.utils._get_site_infos",
         return_value={
-            "unified_login_flow_enabled2": False,
+            "unified_login_flow2_enabled": False,
         },
     )
     @patch(
@@ -831,7 +831,7 @@ class InteractiveTests(ShotgunTestBase):
         with patch(
             "tank.authentication.sso_saml2.utils._get_site_infos",
             return_value={
-                "unified_login_flow_enabled2": True,
+                "unified_login_flow2_enabled": True,
             },
         ), patch.object(
             QtGui.QDialog,
@@ -908,7 +908,7 @@ class InteractiveTests(ShotgunTestBase):
         with patch(
             "tank.authentication.sso_saml2.utils._get_site_infos",
             return_value={
-                "unified_login_flow_enabled2": True,
+                "unified_login_flow2_enabled": True,
             },
         ), patch("os.environ.get", return_value="1",), self._login_dialog(
             True,
@@ -924,7 +924,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
-                "unified_login_flow_enabled2": True,
+                "unified_login_flow2_enabled": True,
             },
         ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
             self.assertFalse(ld.menu_action_legacy.isVisible())
@@ -984,7 +984,7 @@ class InteractiveTests(ShotgunTestBase):
     @patch(
         "tank.authentication.sso_saml2.utils._get_site_infos",
         return_value={
-            "unified_login_flow_enabled2": True,
+            "unified_login_flow2_enabled": True,
         },
     )
     @patch(
@@ -1098,7 +1098,7 @@ class InteractiveTests(ShotgunTestBase):
     @patch(
         "tank.authentication.sso_saml2.utils._get_site_infos",
         return_value={
-            "unified_login_flow_enabled2": True,
+            "unified_login_flow2_enabled": True,
         },
     )
     @patch(
