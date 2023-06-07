@@ -149,7 +149,7 @@ class Ui_LoginDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.logo.sizePolicy().hasHeightForWidth())
         self.logo.setSizePolicy(sizePolicy)
-        self.logo.setMaximumSize(QtCore.QSize(250, 72))
+        self.logo.setMaximumSize(QtCore.QSize(350, 72))
         self.logo.setText("")
         self.logo.setPixmap(QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png"))
         self.logo.setAlignment(QtCore.Qt.AlignCenter)

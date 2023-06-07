@@ -170,7 +170,7 @@ QPushButton.main:pressed
        </property>
        <property name="maximumSize">
         <size>
-         <width>250</width>
+         <width>350</width>
          <height>72</height>
         </size>
        </property>
