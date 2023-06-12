@@ -378,21 +378,25 @@ class StorageRoots(object):
         )
 
         # fall back to default behaviour if we're not inside a project
-        if not project_storages:
+        # or if no project-specific storage has been set
+        if not project_storages or (
+            not project_storages["sg_windows_storage_root_path"]
+            and not project_storages["sg_mac_storage_root_path"]
+            and not project_storages["sg_linux_storage_root_path"]
+        ):
             sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
             log.debug("Query returned %s global site storages." % (len(sg_storages)))
 
+        # project-specific storage available
         else:
-            # single element list since only one primary storage
-            sg_storages = [{}]
-            sg_storages[0]["code"] = "primary"
-            sg_storages[0]["windows_path"] = project_storages[
+            # single storage which defaults to primary
+            sg_storage = {"code": "primary"}
+            sg_storage["windows_path"] = project_storages[
                 "sg_windows_storage_root_path"
             ]
-            sg_storages[0]["mac_path"] = project_storages["sg_mac_storage_root_path"]
-            sg_storages[0]["linux_path"] = project_storages[
-                "sg_linux_storage_root_path"
-            ]
+            sg_storage["mac_path"] = project_storages["sg_mac_storage_root_path"]
+            sg_storage["linux_path"] = project_storages["sg_linux_storage_root_path"]
+            sg_storages = [sg_storage]
 
             log.debug("Project-specific storage root paths found: %s" % sg_storages[0])
 
