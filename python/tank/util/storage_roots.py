@@ -380,9 +380,9 @@ class StorageRoots(object):
         # fall back to default behaviour if we're not inside a project
         # or if no project-specific storage has been set
         if not project_storages or (
-            not project_storages["sg_windows_storage_root_path"]
-            and not project_storages["sg_mac_storage_root_path"]
-            and not project_storages["sg_linux_storage_root_path"]
+            not project_storages.get("sg_windows_storage_root_path")
+            and not project_storages.get("sg_mac_storage_root_path")
+            and not project_storages.get("sg_linux_storage_root_path")
         ):
             sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
             log.debug("Query returned %s global site storages." % (len(sg_storages)))
