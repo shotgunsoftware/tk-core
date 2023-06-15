@@ -15,7 +15,7 @@ import imp
 class PySide6Patcher(PySide2Patcher):
     """
     PySide6 backwards compatibility layer for use with PySide code.
-    
+
     Patches PySide6 so it can be API compatible with PySide. This is the first step to provide
     support for PySide6. The next step will be to deprecate Qt4/PySide, and make Qt6/PySide6
     the default base qt module.
@@ -101,13 +101,13 @@ class PySide6Patcher(PySide2Patcher):
                     original_QPixmap.__init__(self)
                 else:
                     original_QPixmap.__init__(self, *args, **kwargs)
-            
+
             @staticmethod
             def grabWindow(window=0, x=0, y=0, width=-1, height=-1):
                 screen = QtGui.QApplication.primaryScreen()
                 return screen.grabWindow(window, x, y, width, height)
 
-        
+
         QtGui.QPixmap = QPixmap
 
     @classmethod
@@ -125,7 +125,7 @@ class PySide6Patcher(PySide2Patcher):
             if len(args) == 1 and args[0] is None:
                 return original_QLabel_setPixmap(self, QtGui.QPixmap())
             return original_QLabel_setPixmap(self, *args, **kwargs)
-        
+
         QtGui.QLabel.setPixmap = setPixmap
 
     @classmethod
@@ -205,7 +205,7 @@ class PySide6Patcher(PySide2Patcher):
                 screen = widget.screen()
 
             return screen.availableGeometry()
-        
+
         def screenNumber(self, widget):
             """Provide QDesktopWidget method through QScreen."""
 
@@ -294,7 +294,7 @@ class PySide6Patcher(PySide2Patcher):
                         else:
                             opts = original_QRegularExpression.NoPatternOption
                         original_QRegularExpression.__init__(self, args[0], options=opts)
-                
+
                 self.isEmpty = lambda *args, **kwargs: QRegularExpression.isEmpty(self, *args, **kwargs)
                 self.indexIn = lambda *args, **kwargs: QRegularExpression.indexIn(self, *args, **kwargs)
                 self.matchedLength = lambda *args, **kwargs: QRegularExpression.matchedLength(self, *args, **kwargs)
@@ -318,7 +318,7 @@ class PySide6Patcher(PySide2Patcher):
                 re_match = re.match(subject, offset)
                 start = re_match.capturedStart(0)
                 return start
-           
+
             @staticmethod
             def setCaseSensitivity(re, value):
                 """Patch QRegExp setCaseSensitivity method."""
@@ -328,9 +328,9 @@ class PySide6Patcher(PySide2Patcher):
                     options |= original_QRegularExpression.CaseInsensitiveOption
                 else:
                     options &= ~original_QRegularExpression.CaseInsensitiveOption
-                re.setPatternOptions(options) 
+                re.setPatternOptions(options)
 
-            @staticmethod 
+            @staticmethod
             def matchedLength(re):
                 """
                 This cannot be patched.
@@ -371,14 +371,14 @@ class PySide6Patcher(PySide2Patcher):
 
         # Class must be set last
         QtCore.QRegularExpression = QRegularExpression
-        
+
     @classmethod
     def patch(cls):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
 
         Note that when referring to PySide and Qt version, these are equivalent:
-        
+
             PySide == Qt4, PySide2 == Qt5, Qt6 == PySide6
 
         :param QtCore: The QtCore module for PySide6.
