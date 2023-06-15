@@ -133,7 +133,7 @@ def is_unified_login_flow2_enabled_on_site(url, http_proxy=None):
     """
     infos = _get_site_infos(url, http_proxy)
     if "unified_login_flow2_enabled" in infos:
-        get_logger().debug("unified_login_flow_enabled for {u}: {v}".format(
+        get_logger().debug("unified_login_flow2_enabled for {u}: {v}".format(
             u = url,
             v = infos["unified_login_flow2_enabled"],
         ))
