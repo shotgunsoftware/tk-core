@@ -110,6 +110,23 @@ class SiteInfo(object):
         self._url = url
         self._infos = infos
 
+        logger.debug("Site info for {url}".format(url=self._url))
+        logger.debug(
+            "  user_authentication_method: {value}".format(
+                value=self.user_authentication_method,
+            )
+        )
+        logger.debug(
+            "  unified_login_flow_enabled: {value}".format(
+                value=self.unified_login_flow_enabled,
+            )
+        )
+        logger.debug(
+            "  unified_login_flow2_enabled: {value}".format(
+                value=self.unified_login_flow2_enabled,
+            )
+        )
+
     @property
     def user_authentication_method(self):
         """
@@ -121,16 +138,7 @@ class SiteInfo(object):
                     could not reach the site.
         """
 
-        if "user_authentication_method" not in self._infos:
-            return
-
-        logger.debug(
-            "User authentication method for %s: %s",
-            self._url,
-            self._infos["user_authentication_method"],
-        )
-
-        return self._infos["user_authentication_method"]
+        return self._infos.get("user_authentication_method")
 
     @property
     def autodesk_identity_enabled(self):
@@ -160,16 +168,8 @@ class SiteInfo(object):
 
         :returns:   A boolean indicating if the unified login flow is enabled or not.
         """
-        if "unified_login_flow_enabled" not in self._infos:
-            return False
 
-        logger.debug(
-            "unified_login_flow_enabled for %s: %s",
-            self._url,
-            self._infos["unified_login_flow_enabled"],
-        )
-
-        return self._infos["unified_login_flow_enabled"]
+        return self._infos.get("unified_login_flow_enabled", False)
 
     @property
     def unified_login_flow2_enabled(self):
@@ -181,14 +181,4 @@ class SiteInfo(object):
         :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
         """
 
-        if "unified_login_flow2_enabled" not in self._infos:
-            return False
-
-        logger.debug(
-            "unified_login_flow2_enabled for {u}: {v}".format(
-                u=self._url,
-                v=self._infos["unified_login_flow2_enabled"],
-            )
-        )
-
-        return self._infos["unified_login_flow2_enabled"]
+        return self._infos.get("unified_login_flow2_enabled", False)
