@@ -341,19 +341,10 @@ class LoginDialog(QtGui.QDialog):
                 % self._get_current_site()
             )
 
-        # Initialize exit confirm message box
-        self.confirm_box = QtGui.QMessageBox(
-            QtGui.QMessageBox.Question,
-            "ShotGrid Login",  # title
-            "Would you like to cancel your request?",  # text
-            buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-            parent=self,
-        )
+        # Initialize an empty confirm message box; see the _confirm_exit method
+        # for details
+        self.confirm_box = None
 
-        self.confirm_box.setInformativeText(
-            "The authentication is still in progress and closing this window "
-            "will result in canceling your request."
-        )
 
     def __del__(self):
         """
@@ -363,6 +354,27 @@ class LoginDialog(QtGui.QDialog):
         self._query_task.wait()
 
     def _confirm_exit(self):
+        if not self.confirm_box:
+            # Initialize exit confirm message box
+            self.confirm_box = QtGui.QMessageBox(
+                QtGui.QMessageBox.Question,
+                "ShotGrid Login",  # title
+                "Would you like to cancel your request?",  # text
+                buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                parent=self,
+                # Could not be done in the constructor because of the parent
+                # parameter.
+                # When using Nuke, passing the parent parameter in the
+                # constructor made Nuke crash.
+                # We need the parent reference to have the message box re-using
+                # this dialog's style.
+            )
+
+            self.confirm_box.setInformativeText(
+                "The authentication is still in progress and closing this window "
+                "will result in canceling your request."
+            )
+
         return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
         # PySide uses "exec_" instead of "exec" because "exec" is a reserved
         # keyword in Python 2.
