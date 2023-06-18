@@ -347,13 +347,15 @@ class LoginDialog(QtGui.QDialog):
             "ShotGrid Login",  # title
             "Would you like to cancel your request?",  # text
             buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-            ## parent=self,
-            # Could not be done in the constructor because of the parent
-            # parameter.
-            # When using Nuke, passing the parent parameter in the
-            # constructor made Nuke crash.
-            # We need the parent reference to have the message box re-using
-            # this dialog's style.
+            # parent=self,
+            # Passing the parent parameter here, in the constructor, makes
+            # Nuke versions<=13 crash.
+            # Two ways to resolve that:
+            #  #1. Create the QMessageBox later (not in the constructor)
+            #  #2. Pass the QDialog stylesheet to the QMessageBox since I did
+            #      not see any other consequence by not passing the parent
+            #      parameter.
+            # I chose solution #1, se bellow.
         )
 
         self.confirm_box.setInformativeText(
@@ -362,7 +364,6 @@ class LoginDialog(QtGui.QDialog):
         )
 
         self.confirm_box.setStyleSheet(self.styleSheet())
-
 
     def __del__(self):
         """
