@@ -283,6 +283,10 @@ def get_product_name():
     if os.path.splitext(os.path.basename(sys.argv[0]))[0].lower() == "shotgun":
         return PRODUCT_DESKTOP
 
+    #Flame
+    if "SHOTGUN_FLAME_CONFIGPATH" in os.environ and "SHOTGUN_FLAME_VERSION" in os.environ:
+        return "Flame {SHOTGUN_FLAME_VERSION}".format(**os.environ)
+
     # Fallback to default/worst case value
     return PRODUCT_DEFAULT
 
