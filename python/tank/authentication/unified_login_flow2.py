@@ -95,61 +95,41 @@ def process(
             ),
         )
 
-    try:
-        ret = browser_open_callback(browser_url)
-        if not ret:
-            raise errors.AuthenticationError("Unable to open local browser")
+    ret = browser_open_callback(browser_url)
+    if not ret:
+        raise errors.AuthenticationError("Unable to open local browser")
 
-        logger.debug("awaiting browser login...")
+    logger.debug("awaiting browser login...")
 
-        sleep_time = 2
-        request_timeout = 180  # 5 minutes
-        request = urllib.request.Request(
-            urllib.parse.urljoin(
-                sg_url,
-                "/internal_api/app_session_request/{session_id}".format(
-                    session_id=session_id,
-                ),
+    sleep_time = 2
+    request_timeout = 180  # 5 minutes
+    request = urllib.request.Request(
+        urllib.parse.urljoin(
+            sg_url,
+            "/internal_api/app_session_request/{session_id}".format(
+                session_id=session_id,
             ),
-            # method="PUT",
-        )
+        ),
+        # method="PUT",
+    )
 
-        # Hook for Python 2
-        request.get_method = lambda: "PUT"
+    # Hook for Python 2
+    request.get_method = lambda: "PUT"
 
-        t0 = time.time()
-        while keep_waiting_callback() and time.time() - t0 < request_timeout:
-            response = http_request(url_opener, request)
-            if response.code == http_client.NOT_FOUND:
-                raise errors.AuthenticationError(
-                    "Request has maybe expired or proto error",
-                    response.json,
-                )
-
-            if "approved" not in response.json or not response.json["approved"]:
-                time.sleep(sleep_time)
-                continue
-
-            break
-    finally:
-        # Delete the request (be a nice bot and clean up your own mess)
-        try:
-            url_opener.open(
-                urllib.request.Request(
-                    urllib.parse.urljoin(
-                        sg_url,
-                        "/internal_api/app_session_request/{session_id}".format(
-                            session_id=session_id,
-                        ),
-                    ),
-                    # method="DELETE",
-                )
+    t0 = time.time()
+    while keep_waiting_callback() and time.time() - t0 < request_timeout:
+        response = http_request(url_opener, request)
+        if response.code == http_client.NOT_FOUND:
+            raise errors.AuthenticationError(
+                "Request has maybe expired or proto error",
+                response.json,
             )
 
-            # Hook for Python 2
-            request.get_method = lambda: "DELETE"
-        except urllib.error.URLError:
-            pass
+        if "approved" not in response.json or not response.json["approved"]:
+            time.sleep(sleep_time)
+            continue
+
+        break
 
     if "approved" not in response.json:
         raise errors.AuthenticationError("Never approved")
