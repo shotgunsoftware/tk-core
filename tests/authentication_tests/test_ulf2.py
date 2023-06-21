@@ -240,7 +240,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Proto error - invalid response data - no sessionRequestId key",
+            "Proto error - token is empty",
         )
 
         # 400 with error in json
