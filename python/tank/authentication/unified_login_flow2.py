@@ -13,6 +13,7 @@ import os
 import platform
 import time
 
+import tank
 from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
@@ -55,6 +56,8 @@ def process(
 
     url_opener = urllib.request.build_opener(*url_handlers)
 
+    user_agent = build_user_agent().encode(errors="ignore")
+
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
         # method="POST", # see bellow
@@ -64,6 +67,9 @@ def process(
                 "machineId": platform.node(),
             }
         ).encode(),
+        headers={
+            "User-Agent": user_agent,
+        },
     )
 
     # Hook for Python 2
@@ -104,7 +110,10 @@ def process(
                 session_id=session_id,
             ),
         ),
-        # method="PUT",
+        # method="PUT", # see bellow
+        headers={
+            "User-Agent": user_agent,
+        },
     )
 
     # Hook for Python 2
@@ -243,6 +252,15 @@ def _build_proxy_addr(http_proxy):
         auth_string=auth_string,
         proxy_port=proxy_port,
         proxy_server=proxy_server,
+    )
+
+
+def build_user_agent():
+    return "tk-core/{tank_ver} {py_impl}/{py_ver} ({platform})".format(
+        platform=platform.platform(),
+        py_impl=platform.python_implementation(),
+        py_ver=platform.python_version(),
+        tank_ver=tank.__version__,
     )
 
 
