@@ -43,12 +43,12 @@ def process(
     url_handlers = [urllib.request.HTTPHandler]
     if http_proxy:
         proxy_addr = _build_proxy_addr(http_proxy)
-        sg_url = urllib.parse.urlparse(sg_url)
+        sg_url_parsed = urllib.parse.urlparse(sg_url)
 
         url_handlers.append(
             urllib.request.ProxyHandler(
                 {
-                    sg_url.scheme: proxy_addr,
+                    sg_url_parsed.scheme: proxy_addr,
                 }
             )
         )
@@ -224,6 +224,9 @@ def _build_proxy_addr(http_proxy):
     # Expected format: foo:bar@123.456.789.012:3456
 
     proxy_port = 8080
+
+    proxy_user = None
+    proxy_pass = None
 
     # check if we're using authentication. Start from the end since
     # there might be @ in the user's password.

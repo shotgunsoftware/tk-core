@@ -65,6 +65,26 @@ class ULF2Tests(ShotgunTestBase):
             )
 
 
+    def test_build_proxy_addr(self):
+        self.assertEqual(
+            unified_login_flow2._build_proxy_addr("10.20.30.40"),
+            "http://10.20.30.40:8080",
+        )
+
+        with self.assertRaises(ValueError):
+            unified_login_flow2._build_proxy_addr("10.20.30.40:string")
+
+        self.assertEqual(
+            unified_login_flow2._build_proxy_addr("10.20.30.40:3128"),
+            "http://10.20.30.40:3128",
+        )
+
+        self.assertEqual(
+            unified_login_flow2._build_proxy_addr("u:p@10.20.30.40"),
+            "http://u:p@10.20.30.40:8080",
+        )
+
+
 class ULF2APITests(ShotgunTestBase):
     def setUp(self):
         self.httpd = MyTCPServer()
@@ -105,6 +125,10 @@ class ULF2APITests(ShotgunTestBase):
                 self.api_url,
                 product="my_app",
                 browser_open_callback=url_opener,
+                http_proxy="{fqdn}:{port}".format( # For code coverage
+                    fqdn=self.httpd.server_address[0],
+                    port=self.httpd.server_address[1],
+                ),
             ),
             (self.api_url, "john", "to123", None),
         )
