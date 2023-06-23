@@ -355,7 +355,7 @@ class LoginDialog(QtGui.QDialog):
             #  #2. Pass the QDialog stylesheet to the QMessageBox since I did
             #      not see any other consequence by not passing the parent
             #      parameter.
-            # I chose solution #1, se bellow.
+            # I chose solution #1, se below.
         )
 
         self.confirm_box.setInformativeText(
