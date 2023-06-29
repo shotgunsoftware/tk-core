@@ -18,6 +18,7 @@ from ..errors import TankError
 from . import filesystem
 from . import ShotgunPath
 from . import yaml_cache
+from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -127,7 +128,9 @@ class StorageRoots(object):
         return storage_roots
 
     @classmethod
-    def write(cls, sg_connection, config_folder, storage_roots, project_id=None):
+    def write(
+        cls, sg_connection, config_folder, storage_roots, config_path, project_id=None
+    ):
         """
         Given a ``StorageRoots`` object, write it's metadata to the standard
         roots location within the supplied config folder. The method will write
@@ -145,7 +148,7 @@ class StorageRoots(object):
         """
 
         (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
-            sg_connection, project_id
+            sg_connection, config_path, project_id
         )
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
@@ -299,7 +302,7 @@ class StorageRoots(object):
     ############################################################################
     # public methods
 
-    def get_local_storages(self, sg_connection, project_id=None):
+    def get_local_storages(self, sg_connection, config_path, project_id=None):
         """
         Returns a tuple of information about the required storage roots and how
         they map to local storages in SG.
@@ -366,39 +369,24 @@ class StorageRoots(object):
         # create the SG connection and query
         log.debug("Querying SG local storages...")
 
-        # try to query storage root fields for specific project
-        project_storages = sg_connection.find_one(
-            "Project",
-            [["id", "is", project_id]],
-            [
-                "sg_windows_storage_root_path",
-                "sg_mac_storage_root_path",
-                "sg_linux_storage_root_path",
-            ],
-        )
+        # execute the get_storage_roots core hook
+        try:
+            from .. import sgtk_from_path
 
-        # fall back to default behaviour if we're not inside a project
-        # or if no project-specific storage has been set
-        if not project_storages or (
-            not project_storages.get("sg_windows_storage_root_path")
-            and not project_storages.get("sg_mac_storage_root_path")
-            and not project_storages.get("sg_linux_storage_root_path")
-        ):
-            sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
-            log.debug("Query returned %s global site storages." % (len(sg_storages)))
+            tk = sgtk_from_path(config_path.current_os)
 
-        # project-specific storage available
-        else:
-            # single storage which defaults to primary
-            sg_storage = {"code": "primary"}
-            sg_storage["windows_path"] = project_storages[
-                "sg_windows_storage_root_path"
-            ]
-            sg_storage["mac_path"] = project_storages["sg_mac_storage_root_path"]
-            sg_storage["linux_path"] = project_storages["sg_linux_storage_root_path"]
-            sg_storages = [sg_storage]
-
-            log.debug("Project-specific storage root paths found: %s" % sg_storages[0])
+            sg_storages = tk.execute_core_hook_method(
+                constants.GET_STORAGE_ROOTS_HOOK_NAME,
+                "execute",
+                sg_connection=sg_connection,
+                local_storage_fields=local_storage_fields,
+                project_id=project_id,
+            )
+        except Exception as e:
+            # Catch errors to not kill our thread, log them for debug purpose.
+            log.debug(
+                "%s hook failed with %s" % (constants.GET_STORAGE_ROOTS_HOOK_NAME, e)
+            )
 
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
