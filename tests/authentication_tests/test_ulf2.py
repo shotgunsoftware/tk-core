@@ -19,7 +19,19 @@ from tank_test.tank_test_base import (
 
 from tank.authentication import (
     unified_login_flow2,
+    errors,
 )
+
+from tank_vendor.six.moves import urllib
+
+import errno
+import http.client
+import http.server
+import json
+import logging
+import os
+import random
+import threading
 
 
 class ULF2Tests(ShotgunTestBase):
@@ -51,3 +63,447 @@ class ULF2Tests(ShotgunTestBase):
                 browser_open_callback=lambda: True,
                 keep_waiting_callback=None,
             )
+
+
+class ULF2APITests(ShotgunTestBase):
+    def setUp(self):
+        self.httpd = MyTCPServer()
+        self.httpd.start()
+
+        self.api_url = "http://{fqdn}:{port}".format(
+            fqdn=self.httpd.server_address[0],
+            port=self.httpd.server_address[1],
+        )
+
+
+    def tearDown(self):
+        if self.httpd:
+            self.httpd.stop()
+
+
+    def test_valid(self):
+        # Register the proper HTTP server API responses
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": {"sessionRequestId": "a1b2c3"}
+        }
+        self.httpd.router[
+            "[PUT]/internal_api/app_session_request/a1b2c3"
+        ] = lambda request: {
+            "json": {
+                "approved": True,
+                "sessionToken": "to123",
+                "userLogin": "john",
+            },
+        }
+
+        def url_opener(url):
+            os.environ["test_f444c4820c16e8"] = url
+            return True
+
+        self.assertEqual(
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=url_opener,
+            ),
+            (self.api_url, "john", "to123", None),
+        )
+
+        self.assertEqual(
+            os.environ["test_f444c4820c16e8"],
+            self.api_url + "/app_session_request/a1b2c3",
+        )
+
+
+    def test_not_reachable(self):
+        # Shutdown the HTTP server
+        self.httpd.stop()
+        self.httpd.server_close()  # To unbind the port
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertIsInstance(cm.exception.args[1].reason, ConnectionRefusedError)
+        self.assertEqual(cm.exception.args[1].reason.errno, errno.ECONNREFUSED)
+
+
+    def test_post_request(self):
+        # First test with an empty HTTP server
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(repr(cm.exception.args[1]), "<HTTPError 404: 'Not Found'>")
+
+        # Then, make the server return a 500
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "code": 500
+        }
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            repr(cm.exception.args[1]),
+            "<HTTPError 500: 'Internal Server Error'>",
+        )
+
+        # Now, make the server crash
+        def api_handler1(request):
+            raise AttributeError("test")
+
+        self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
+        with self.assertRaises(http.client.RemoteDisconnected) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0],
+            "Remote end closed connection without response",
+        )
+
+        # Unsupported method
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "code": 501
+        }
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            repr(cm.exception.args[1]), "<HTTPError 501: 'Not Implemented'>"
+        )
+
+        # 200 with valide empty json
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": {}
+        }
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0],
+            "Proto error - invalid response data - no sessionRequestId key",
+        )
+
+        # 400 with error in json
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "code": 400,
+            "json": {"message": "missing parameters"},
+        }
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertIn(
+            cm.exception.args[0],
+            [
+                "Proto error - invalid response data - not JSON",
+
+                # Windows...
+                "Request denied",
+            ],
+        )
+
+        # Send a 200 with JSON content type but not valid JSON
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "data": b"test1",
+            "headers": {"Content-Type": "application/json"}
+        }
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0],
+            "Proto error - invalid response data - not JSON"
+        )
+
+        # Finaly, send a 200 with a sessionRequestId
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": {"sessionRequestId": "a1b2c3"}
+        }
+
+        # Expect a 404 on the PUT request
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            repr(cm.exception.args[1]), "<HTTPError 404: 'Not Found'>"
+        )
+
+
+    def test_browser_error(self):
+        # Install a proper POST request handler
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": {"sessionRequestId": "a1b2c3"}
+        }
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: False,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "Unable to open local browser",
+        )
+
+
+    def test_param_product(self):
+        def api_handler1(request):
+            os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
+            return {"json": {"sessionRequestId": "a1b2c3"}}
+
+        # Install a proper POST request handler
+        self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="app_2a37c59",
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "Never approved"
+        )
+
+        self.assertEqual(
+            os.environ["test_96272fea51"], "app_2a37c59",
+        )
+
+        # Cleanup for next test
+        del(os.environ["test_96272fea51"])
+
+        os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "Never approved"
+        )
+
+        self.assertEqual(
+            os.environ["test_96272fea51"], "software_8b1a7bd",
+        )
+
+
+    def test_put_request(self):
+        # Install a proper POST request handler
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": {"sessionRequestId": "a1b2c3"}
+        }
+
+        def url_opener(url):
+            os.environ["test_8979b275121ac8"] = url
+            return True
+
+        # Now, make the server crash on the PUT request
+        def api_handler1(request):
+            raise AttributeError("test")
+
+        self.httpd.router["[PUT]/internal_api/app_session_request/a1b2c3"] = api_handler1
+        with self.assertRaises(http.client.RemoteDisconnected) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=url_opener,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "Remote end closed connection without response"
+        )
+
+        # Proove the PUT request was called
+        self.assertEqual(
+            os.environ["test_8979b275121ac8"],
+            self.api_url + "/app_session_request/a1b2c3",
+        )
+
+        # Unsupported method
+        self.httpd.router[
+            "[PUT]/internal_api/app_session_request/a1b2c3"
+        ] = lambda request: {"json": {"approved": False}}
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
+            )
+
+        self.assertEqual(cm.exception.args[0], "Never approved")
+
+        self.httpd.router[
+            "[PUT]/internal_api/app_session_request/a1b2c3"
+        ] = lambda request: {"json": {}}
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
+            )
+
+        self.assertEqual(cm.exception.args[0], "Never approved")
+
+
+class MyTCPServer(http.server.HTTPServer):
+    """
+    Random port listen
+    Specific handler (router)
+    Thread
+    """
+
+    def __init__(self):
+        super().__init__(
+            ("localhost", 8000),  # server_address
+            MyHttpHandler,  # RequestHandlerClass
+            bind_and_activate=False,
+        )
+
+        bound = False
+        port_tries = 0
+        while not bound:
+            port_tries += 1
+            port = random.randrange(8000, 9000)
+            logging.debug("Try port: {}".format(port))
+            self.server_address = ("localhost", port)
+
+            try:
+                self.server_bind()
+                bound = True
+            except OSError as err:
+                if err.errno != errno.EADDRINUSE:
+                    raise
+
+                if port_tries >= 10:
+                    raise
+
+                # let's try another port
+                continue
+
+        self.server_activate()
+
+        # For dynamic bindings
+        self.router = {}
+
+        self.thread = threading.Thread(target=self.serve_forever)
+
+    def start(self):
+        self.thread.start()
+
+    def stop(self):
+        self.shutdown()
+
+        if self.thread:
+            self.thread.join()
+
+
+class MyHttpHandler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, request, client_address, server, directory=None):
+        self.__server = server
+        super().__init__(request, client_address, server, directory=directory)
+
+    def log_message(self, fmt, *args):
+        # If debug
+        # super().log_message(fmt, *args)
+        # else:
+        pass
+
+    def do_POST(self):
+        return self.handle_request("POST")
+
+    def do_PUT(self):
+        return self.handle_request("PUT")
+
+    def handle_request(self, method):
+        parsed_url = urllib.parse.urlparse(self.path)
+
+        callback = "[{method}]{path}".format(
+            method=method,
+            path=parsed_url.path,
+        )
+
+        if callback not in self.__server.router:
+            self.send_response(http.client.NOT_FOUND)
+            self.end_headers()
+            return
+
+        request = {
+            "method": method,
+            "path": parsed_url.path,
+            "args": {},
+        }
+
+        length = int(self.headers["Content-Length"])
+        if length > 0:
+            request["data"] = self.rfile.read(length)
+
+        contentType = self.headers.get("Content-Type", "")
+        if contentType.startswith("application/json"):
+            request["json"] = json.loads(request["data"])
+
+        if contentType.startswith("application/x-www-form-urlencoded"):
+            request["args"] = urllib.parse.parse_qs(request["data"])
+
+        response = self.__server.router[callback](request)
+
+        self.send_response(response.get("code", 200))
+
+        if "headers" not in response:
+            response["headers"] = {}
+
+        if "json" in response and "Content-Type" not in response["headers"]:
+            response["headers"]["Content-Type"] = "application/json"
+
+        for k, v in response.get("headers", {}).items():
+            self.send_header(k, v)
+
+        self.end_headers()
+        if "json" in response:
+            self.wfile.write(json.dumps(response["json"]).encode("utf-8"))
+        elif "data" in response:
+            self.wfile.write(response["data"])
+
+        # TODO - work with encoding instead of hardcoded utf-8
