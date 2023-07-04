@@ -214,6 +214,19 @@ class ULF2APITests(ShotgunTestBase):
             repr(cm.exception.args[1]), "<HTTPError 501: 'Not Implemented'>"
         )
 
+        # 200 but no json
+        self.httpd.router[
+            "[POST]/internal_api/app_session_request"
+        ] = lambda request: {}
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(cm.exception.args[0], "No json")
+
         # 200 with valide empty json
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {}

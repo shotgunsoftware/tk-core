@@ -197,6 +197,8 @@ def http_request(opener, req):
         response = exc.fp
     except urllib.error.URLError as exc:
         raise errors.AuthenticationError(exc.reason, exc)
+    except AssertionError:
+        raise errors.AuthenticationError("No json")
 
     if response.code == http_client.FORBIDDEN:
         logger.error("response: {resp}".format(resp=response.read()))
