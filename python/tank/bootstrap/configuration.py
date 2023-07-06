@@ -283,14 +283,15 @@ class Configuration(object):
         project_user = None
 
         # If the project core's authentication code found a user...
-        # (Note that in the following code, a user with no login is a script user.)
+        # (Note that in the following code, a user with no login or a user with a sudo_as_login is a script user.)
+
         if default_user:
             # If the project uses a script user, we'll use that.
             if not default_user.login:
                 log.debug("User retrieved for the project is a script user.")
                 project_user = default_user
             # If the project didn't use a script, but the bootstrap did, we'll keep using it.
-            elif not bootstrap_user_login:
+            elif not bootstrap_user_login or bootstrap_user.sudo_as_login:
                 # We'll keep using the bootstrap user. This is because configurations like tk-
                 # config-basic or tk-config-default are meant to be used with whatever credentials
                 # were used during bootstrapping when used with a CachedDescriptor. The bootstrap

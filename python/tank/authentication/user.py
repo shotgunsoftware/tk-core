@@ -79,6 +79,10 @@ class ShotgunUser(object):
         """
         return self._impl.get_login()
 
+    @property
+    def sudo_as_login(self):
+        return self._impl.get_sudo_as_login()
+
     def resolve_entity(self):
         """
         Resolves the Shotgun entity associated with this user.
