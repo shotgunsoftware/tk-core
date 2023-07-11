@@ -119,15 +119,16 @@ def process(
                 response.json,
             )
 
-        if "approved" not in response.json or not response.json["approved"]:
+        if response.json.get("approved", None) is None:
             time.sleep(sleep_time)
             continue
 
         break
 
-    if "approved" not in response.json:
+    approved = response.json.get("approved", None)
+    if approved is None:
         raise errors.AuthenticationError("Never approved")
-    elif not response.json["approved"]:
+    elif not approved:
         raise errors.AuthenticationError("Rejected")
 
     logger.debug("Request approved")
