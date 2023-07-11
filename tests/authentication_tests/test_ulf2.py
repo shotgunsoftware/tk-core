@@ -14,6 +14,7 @@ Unit tests for Unified Login Flow 2 authentication.
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
+    mock,
     ShotgunTestBase,
 )
 
@@ -100,7 +101,8 @@ class ULF2APITests(ShotgunTestBase):
             self.httpd.stop()
 
 
-    def test_valid(self):
+    @mock.patch("time.sleep")
+    def test_valid(self, *mocks):
         # Register the proper HTTP server API responses
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {"sessionRequestId": "a1b2c3"}
@@ -138,7 +140,8 @@ class ULF2APITests(ShotgunTestBase):
         )
 
 
-    def test_not_reachable(self):
+    @mock.patch("time.sleep")
+    def test_not_reachable(self, *mocks):
         # Shutdown the HTTP server
         self.httpd.stop()
         self.httpd.server_close()  # To unbind the port
@@ -154,7 +157,67 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(cm.exception.parent_exception.reason.errno, errno.ECONNREFUSED)
 
 
-    def test_post_request(self):
+    @mock.patch("time.sleep")
+    def test_fault_tolerance(self, *mocks):
+        def api_post_handler(request):
+            try_num = int(os.environ.get("API_POST_RUN_NUM", "0")) + 1
+            os.environ["API_POST_RUN_NUM"] = str(try_num)
+
+            if try_num == 1:
+                return {"code": http.client.INTERNAL_SERVER_ERROR}
+            elif try_num == 2:
+                raise NotImplementedError("Server, please crash!")
+            elif try_num == 3:
+                return {"code": http.client.BAD_GATEWAY}
+
+            return {
+                "json": {
+                    "sessionRequestId": "a1b2c3",
+                },
+            }
+
+        def api_put_handler(request):
+            try_num = int(os.environ.get("API_PUT_RUN_NUM", "0")) + 1
+            os.environ["API_PUT_RUN_NUM"] = str(try_num)
+
+            if try_num == 1:
+                return {"code": http.client.INTERNAL_SERVER_ERROR}
+            elif try_num == 2:
+                raise NotImplementedError("Server, please crash!")
+            elif try_num == 3:
+                return {"code": http.client.BAD_GATEWAY}
+            elif try_num == 4:
+                return {"json": {}}
+            elif try_num == 5:
+                return {"code": http.client.BAD_GATEWAY}
+            elif try_num == 6:
+                return {"code": http.client.GATEWAY_TIMEOUT}
+            elif try_num == 7:
+                return {"code": http.client.SERVICE_UNAVAILABLE}
+
+            return {
+                "json": {
+                    "approved": True,
+                    "sessionToken": "to123",
+                    "userLogin": "john",
+                },
+            }
+
+        self.httpd.router["[POST]/internal_api/app_session_request"] = api_post_handler
+        self.httpd.router["[PUT]/internal_api/app_session_request/a1b2c3"] = api_put_handler
+
+        self.assertEqual(
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            ),
+            (self.api_url, "john", "to123", None),
+        )
+
+
+    @mock.patch("time.sleep")
+    def test_post_request(self, *mocks):
         # First test with an empty HTTP server
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
@@ -186,15 +249,19 @@ class ULF2APITests(ShotgunTestBase):
             raise AttributeError("test")
 
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
-        with self.assertRaises(http.client.RemoteDisconnected) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
+        self.assertIsInstance(
+            cm.exception.parent_exception,
+            http.client.RemoteDisconnected,
+        )
         self.assertEqual(
-            cm.exception.args[0],
+            cm.exception.parent_exception.args[0],
             "Remote end closed connection without response",
         )
 
@@ -224,7 +291,10 @@ class ULF2APITests(ShotgunTestBase):
                 browser_open_callback=lambda url: True,
             )
 
-        self.assertEqual(cm.exception.args[0], "No json")
+        self.assertEqual(
+            cm.exception.args[0],
+            "Unexpected response from the ShotGrid site; content is not JSON"
+        )
 
         # 200 with valid empty json
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
@@ -239,7 +309,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Proto error - token is empty",
+            "Unexpected response from the ShotGrid site; No sessionRequestId item",
         )
 
         # 400 with error in json
@@ -254,14 +324,9 @@ class ULF2APITests(ShotgunTestBase):
                 browser_open_callback=lambda url: True,
             )
 
-        self.assertIn(
+        self.assertEquals(
             cm.exception.args[0],
-            [
-                "Proto error - invalid response data - not JSON",
-
-                # Windows...
-                "Request denied",
-            ],
+            "Unable to create an authentication request"
         )
 
         # Send a 200 with JSON content type but not valid JSON
@@ -279,7 +344,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Proto error - invalid response data - not JSON"
+            "Unable to decode JSON content",
         )
 
         # Send a 200 with JSON but not a dict
@@ -296,7 +361,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Proto error - invalid response data - not JSON"
+            "Unexpected response from the ShotGrid site; content is not JSON"
         )
 
         # Finaly, send a 200 with a sessionRequestId
@@ -380,7 +445,8 @@ class ULF2APITests(ShotgunTestBase):
         )
 
 
-    def test_put_request(self):
+    @mock.patch("time.sleep")
+    def test_put_request(self, *mocks):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {"sessionRequestId": "a1b2c3"}
@@ -395,15 +461,20 @@ class ULF2APITests(ShotgunTestBase):
             raise AttributeError("test")
 
         self.httpd.router["[PUT]/internal_api/app_session_request/a1b2c3"] = api_handler1
-        with self.assertRaises(http.client.RemoteDisconnected) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
                 browser_open_callback=url_opener,
             )
 
+        self.assertIsInstance(
+            cm.exception.parent_exception,
+            http.client.RemoteDisconnected,
+        )
         self.assertEqual(
-            cm.exception.args[0], "Remote end closed connection without response"
+            cm.exception.parent_exception.args[0],
+            "Remote end closed connection without response",
         )
 
         # Proove the PUT request was called
