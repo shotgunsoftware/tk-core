@@ -283,6 +283,23 @@ class ULF2APITests(ShotgunTestBase):
             "Proto error - invalid response data - not JSON"
         )
 
+        # Send a 200 with JSON but not a dict
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": True
+        }
+
+        with self.assertRaises(errors.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0],
+            "Proto error - invalid response data - not JSON"
+        )
+
         # Finaly, send a 200 with a sessionRequestId
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {"sessionRequestId": "a1b2c3"}

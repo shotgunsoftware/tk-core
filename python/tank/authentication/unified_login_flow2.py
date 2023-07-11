@@ -213,7 +213,7 @@ def http_request(opener, req):
     try:
         data = json.load(response)
         assert isinstance(data, dict)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, AssertionError):
         raise errors.AuthenticationError(
             "Proto error - invalid response data - not JSON"
         )
