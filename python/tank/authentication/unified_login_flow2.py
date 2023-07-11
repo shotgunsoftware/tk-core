@@ -24,6 +24,13 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
+class AuthenticationError(errors.AuthenticationError):
+    def __init__(self, msg, ulf2_errno=None, payload=None, parent_exception=None):
+        errors.AuthenticationError.__init__(self, msg)
+        self.ulf2_errno = ulf2_errno
+        self.payload = payload
+        self.parent_exception = parent_exception
+
 
 def process(
     sg_url,
@@ -77,11 +84,11 @@ def process(
 
     response = http_request(url_opener, request)
     if response.code != http_client.OK:
-        raise errors.AuthenticationError("Request denied", response.json)
+        raise AuthenticationError("Request denied", payload=response.json)
 
     session_id = response.json.get("sessionRequestId")
     if not session_id:
-        raise errors.AuthenticationError("Proto error - token is empty")
+        raise AuthenticationError("Proto error - token is empty")
 
     logger.debug("session ID: {session_id}".format(session_id=session_id))
 
@@ -97,7 +104,7 @@ def process(
 
     ret = browser_open_callback(browser_url)
     if not ret:
-        raise errors.AuthenticationError("Unable to open local browser")
+        raise AuthenticationError("Unable to open local browser")
 
     logger.debug("awaiting browser login...")
 
@@ -123,9 +130,9 @@ def process(
     while keep_waiting_callback() and time.time() - t0 < request_timeout:
         response = http_request(url_opener, request)
         if response.code == http_client.NOT_FOUND:
-            raise errors.AuthenticationError(
+            raise AuthenticationError(
                 "Request has maybe expired or proto error",
-                response.json,
+                payload=response.json,
             )
 
         if response.json.get("approved", None) is None:
@@ -136,18 +143,18 @@ def process(
 
     approved = response.json.get("approved", None)
     if approved is None:
-        raise errors.AuthenticationError("Never approved")
+        raise AuthenticationError("Never approved")
     elif not approved:
-        raise errors.AuthenticationError("Rejected")
+        raise AuthenticationError("Rejected")
 
     logger.debug("Request approved")
     try:
         assert response.json["sessionToken"]
         assert response.json["userLogin"]
     except KeyError:
-        raise errors.AuthenticationError("proto error")
+        raise AuthenticationError("proto error")
     except AssertionError:
-        raise errors.AuthenticationError("proto error, empty token")
+        raise AuthenticationError("proto error, empty token")
 
     logger.debug("Session token: {sessionToken}".format(**response.json))
 
@@ -173,32 +180,32 @@ def http_request(opener, req):
         assert _get_content_type(response.headers) == "application/json"
     except urllib.error.HTTPError as exc:
         if _get_content_type(exc.headers) != "application/json":
-            raise errors.AuthenticationError(
+            raise AuthenticationError(
                 "Unexpected response from {url}".format(url=exc.url),
-                exc,
+                parent_exception=exc,
             )
 
         response = exc.fp
     except urllib.error.URLError as exc:
-        raise errors.AuthenticationError(exc.reason, exc)
+        raise AuthenticationError(exc.reason, parent_exception=exc)
     except AssertionError:
-        raise errors.AuthenticationError("No json")
+        raise AuthenticationError("No json")
 
     if response.code == http_client.FORBIDDEN:
         logger.error("response: {resp}".format(resp=response.read()))
-        raise errors.AuthenticationError(
+        raise AuthenticationError(
             "Proto error - invalid response data - not JSON"
         )
 
     if response.code == http_client.NOT_FOUND:
         logger.error("response: {resp}".format(resp=response.read()))
-        raise errors.AuthenticationError("Authentication denied")
+        raise AuthenticationError("Authentication denied")
 
     try:
         data = json.load(response)
         assert isinstance(data, dict)
     except (json.JSONDecodeError, AssertionError):
-        raise errors.AuthenticationError(
+        raise AuthenticationError(
             "Proto error - invalid response data - not JSON"
         )
 

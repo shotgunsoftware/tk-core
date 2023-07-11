@@ -19,7 +19,6 @@ from tank_test.tank_test_base import (
 
 from tank.authentication import (
     unified_login_flow2,
-    errors,
 )
 
 from tank_vendor.six.moves import urllib
@@ -144,33 +143,33 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.stop()
         self.httpd.server_close()  # To unbind the port
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
-        self.assertIsInstance(cm.exception.args[1].reason, ConnectionRefusedError)
-        self.assertEqual(cm.exception.args[1].reason.errno, errno.ECONNREFUSED)
+        self.assertIsInstance(cm.exception.parent_exception.reason, ConnectionRefusedError)
+        self.assertEqual(cm.exception.parent_exception.reason.errno, errno.ECONNREFUSED)
 
 
     def test_post_request(self):
         # First test with an empty HTTP server
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
-        self.assertEqual(repr(cm.exception.args[1]), "<HTTPError 404: 'Not Found'>")
+        self.assertEqual(repr(cm.exception.parent_exception), "<HTTPError 404: 'Not Found'>")
 
         # Then, make the server return a 500
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "code": 500
         }
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -178,7 +177,7 @@ class ULF2APITests(ShotgunTestBase):
             )
 
         self.assertEqual(
-            repr(cm.exception.args[1]),
+            repr(cm.exception.parent_exception),
             "<HTTPError 500: 'Internal Server Error'>",
         )
 
@@ -203,7 +202,7 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "code": 501
         }
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -211,14 +210,14 @@ class ULF2APITests(ShotgunTestBase):
             )
 
         self.assertEqual(
-            repr(cm.exception.args[1]), "<HTTPError 501: 'Not Implemented'>"
+            repr(cm.exception.parent_exception), "<HTTPError 501: 'Not Implemented'>"
         )
 
         # 200 but no json
         self.httpd.router[
             "[POST]/internal_api/app_session_request"
         ] = lambda request: {}
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -227,11 +226,11 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(cm.exception.args[0], "No json")
 
-        # 200 with valide empty json
+        # 200 with valid empty json
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {}
         }
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -248,7 +247,7 @@ class ULF2APITests(ShotgunTestBase):
             "code": 400,
             "json": {"message": "missing parameters"},
         }
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -271,7 +270,7 @@ class ULF2APITests(ShotgunTestBase):
             "headers": {"Content-Type": "application/json"}
         }
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -288,7 +287,7 @@ class ULF2APITests(ShotgunTestBase):
             "json": True
         }
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -306,7 +305,7 @@ class ULF2APITests(ShotgunTestBase):
         }
 
         # Expect a 404 on the PUT request
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -314,7 +313,7 @@ class ULF2APITests(ShotgunTestBase):
             )
 
         self.assertEqual(
-            repr(cm.exception.args[1]), "<HTTPError 404: 'Not Found'>"
+            repr(cm.exception.parent_exception), "<HTTPError 404: 'Not Found'>"
         )
 
 
@@ -324,7 +323,7 @@ class ULF2APITests(ShotgunTestBase):
             "json": {"sessionRequestId": "a1b2c3"}
         }
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -344,7 +343,7 @@ class ULF2APITests(ShotgunTestBase):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="app_2a37c59",
@@ -365,7 +364,7 @@ class ULF2APITests(ShotgunTestBase):
 
         os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 browser_open_callback=lambda url: True,
@@ -417,7 +416,7 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router[
             "[PUT]/internal_api/app_session_request/a1b2c3"
         ] = lambda request: {"json": {"approved": False}}
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
@@ -431,7 +430,7 @@ class ULF2APITests(ShotgunTestBase):
             "[PUT]/internal_api/app_session_request/a1b2c3"
         ] = lambda request: {"json": {}}
 
-        with self.assertRaises(errors.AuthenticationError) as cm:
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 product="my_app",
