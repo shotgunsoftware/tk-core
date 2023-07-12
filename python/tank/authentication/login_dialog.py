@@ -886,6 +886,11 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
 
     def _ulf2_process(self, site):
+        if self._ulf2_task:
+            # Multi-Thread failsafe
+            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
+            self._ulf2_task.stop_when_possible()
+
         self._ulf2_task = ULF2_AuthTask(
             self,
             site,
