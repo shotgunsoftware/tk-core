@@ -414,7 +414,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(cm.exception.args[0], "Never approved")
+        self.assertEqual(cm.exception.args[0], "The request has never been approved.Mock")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
@@ -433,7 +433,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(cm.exception.args[0], "Never approved")
+        self.assertEqual(cm.exception.args[0], "The request has never been approved.Mock")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
@@ -492,7 +492,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
 
-        self.assertEqual(cm.exception.args[0], "Never approved")
+        self.assertEqual(cm.exception.args[0], "The request has never been approved.Mock")
 
         self.httpd.router[
             "[PUT]/internal_api/app_session_request/a1b2c3"
@@ -506,7 +506,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
 
-        self.assertEqual(cm.exception.args[0], "Never approved")
+        self.assertEqual(cm.exception.args[0], "The request has never been approved.Mock")
 
 
 class MyTCPServer(http.server.HTTPServer):
