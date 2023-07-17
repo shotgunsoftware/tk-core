@@ -302,7 +302,6 @@ def http_request(opener, req, max_attempts=4):
                 logger.debug(
                     "HTTP request failed to reach the server on attempt {attempt}/{max_attempts}".format(
                         attempt=attempt,
-                        code=exc.code,
                         max_attempts=max_attempts,
                     ),
                     exc_info=exc,
@@ -319,7 +318,6 @@ def http_request(opener, req, max_attempts=4):
                 logger.debug(
                     "HTTP request failed to reach the server on attempt {attempt}/{max_attempts}".format(
                         attempt=attempt,
-                        code=exc.code,
                         max_attempts=max_attempts,
                     ),
                     exc_info=exc,
