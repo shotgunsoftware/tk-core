@@ -277,6 +277,7 @@ if __name__ == "__main__":
 
     result = process(
         args.sg_url,
+        product="Test Script",
         browser_open_callback=lambda u: webbrowser.open(u),
     )
     if not result:
