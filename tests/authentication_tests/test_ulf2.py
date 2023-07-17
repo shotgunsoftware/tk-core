@@ -64,7 +64,6 @@ class ULF2Tests(ShotgunTestBase):
                 keep_waiting_callback=None,
             )
 
-
     def test_build_proxy_addr(self):
         self.assertEqual(
             unified_login_flow2._build_proxy_addr("10.20.30.40"),
@@ -95,11 +94,9 @@ class ULF2APITests(ShotgunTestBase):
             port=self.httpd.server_address[1],
         )
 
-
     def tearDown(self):
         if self.httpd:
             self.httpd.stop()
-
 
     @mock.patch("time.sleep")
     def test_valid(self, *mocks):
@@ -126,7 +123,7 @@ class ULF2APITests(ShotgunTestBase):
                 self.api_url,
                 product="my_app",
                 browser_open_callback=url_opener,
-                http_proxy="{fqdn}:{port}".format( # For code coverage
+                http_proxy="{fqdn}:{port}".format(  # For code coverage
                     fqdn=self.httpd.server_address[0],
                     port=self.httpd.server_address[1],
                 ),
@@ -138,7 +135,6 @@ class ULF2APITests(ShotgunTestBase):
             os.environ["test_f444c4820c16e8"],
             self.api_url + "/app_session_request/a1b2c3",
         )
-
 
     @mock.patch("time.sleep")
     def test_not_reachable(self, *mocks):
@@ -153,9 +149,10 @@ class ULF2APITests(ShotgunTestBase):
                 browser_open_callback=lambda url: True,
             )
 
-        self.assertIsInstance(cm.exception.parent_exception.reason, ConnectionRefusedError)
+        self.assertIsInstance(
+            cm.exception.parent_exception.reason, ConnectionRefusedError
+        )
         self.assertEqual(cm.exception.parent_exception.reason.errno, errno.ECONNREFUSED)
-
 
     @mock.patch("time.sleep")
     def test_fault_tolerance(self, *mocks):
@@ -204,7 +201,9 @@ class ULF2APITests(ShotgunTestBase):
             }
 
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_post_handler
-        self.httpd.router["[PUT]/internal_api/app_session_request/a1b2c3"] = api_put_handler
+        self.httpd.router[
+            "[PUT]/internal_api/app_session_request/a1b2c3"
+        ] = api_put_handler
 
         self.assertEqual(
             unified_login_flow2.process(
@@ -214,7 +213,6 @@ class ULF2APITests(ShotgunTestBase):
             ),
             (self.api_url, "john", "to123", None),
         )
-
 
     @mock.patch("time.sleep")
     def test_post_request(self, *mocks):
@@ -226,7 +224,9 @@ class ULF2APITests(ShotgunTestBase):
                 browser_open_callback=lambda url: True,
             )
 
-        self.assertEqual(repr(cm.exception.parent_exception), "<HTTPError 404: 'Not Found'>")
+        self.assertEqual(
+            repr(cm.exception.parent_exception), "<HTTPError 404: 'Not Found'>"
+        )
 
         # Then, make the server return a 500
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
@@ -293,7 +293,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site; content is not JSON"
+            "Unexpected response from the ShotGrid site; content is not JSON",
         )
 
         # 200 with valid empty json
@@ -325,14 +325,13 @@ class ULF2APITests(ShotgunTestBase):
             )
 
         self.assertEquals(
-            cm.exception.args[0],
-            "Unable to create an authentication request"
+            cm.exception.args[0], "Unable to create an authentication request"
         )
 
         # Send a 200 with JSON content type but not valid JSON
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "data": b"test1",
-            "headers": {"Content-Type": "application/json"}
+            "headers": {"Content-Type": "application/json"},
         }
 
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
@@ -361,7 +360,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site; content is not JSON"
+            "Unexpected response from the ShotGrid site; content is not JSON",
         )
 
         # Finaly, send a 200 with a sessionRequestId
@@ -381,7 +380,6 @@ class ULF2APITests(ShotgunTestBase):
             repr(cm.exception.parent_exception), "<HTTPError 404: 'Not Found'>"
         )
 
-
     def test_browser_error(self):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
@@ -396,9 +394,9 @@ class ULF2APITests(ShotgunTestBase):
             )
 
         self.assertEqual(
-            cm.exception.args[0], "Unable to open local browser",
+            cm.exception.args[0],
+            "Unable to open local browser",
         )
-
 
     def test_param_product(self):
         def api_handler1(request):
@@ -416,16 +414,15 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "Never approved"
-        )
+        self.assertEqual(cm.exception.args[0], "Never approved")
 
         self.assertEqual(
-            os.environ["test_96272fea51"], "app_2a37c59",
+            os.environ["test_96272fea51"],
+            "app_2a37c59",
         )
 
         # Cleanup for next test
-        del(os.environ["test_96272fea51"])
+        del os.environ["test_96272fea51"]
 
         os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
 
@@ -436,14 +433,12 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "Never approved"
-        )
+        self.assertEqual(cm.exception.args[0], "Never approved")
 
         self.assertEqual(
-            os.environ["test_96272fea51"], "software_8b1a7bd",
+            os.environ["test_96272fea51"],
+            "software_8b1a7bd",
         )
-
 
     @mock.patch("time.sleep")
     def test_put_request(self, *mocks):
@@ -460,7 +455,9 @@ class ULF2APITests(ShotgunTestBase):
         def api_handler1(request):
             raise AttributeError("test")
 
-        self.httpd.router["[PUT]/internal_api/app_session_request/a1b2c3"] = api_handler1
+        self.httpd.router[
+            "[PUT]/internal_api/app_session_request/a1b2c3"
+        ] = api_handler1
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,

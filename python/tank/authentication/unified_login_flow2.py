@@ -25,12 +25,14 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
+
 class AuthenticationError(errors.AuthenticationError):
     def __init__(self, msg, ulf2_errno=None, payload=None, parent_exception=None):
         errors.AuthenticationError.__init__(self, msg)
         self.ulf2_errno = ulf2_errno
         self.payload = payload
         self.parent_exception = parent_exception
+
 
 def process(
     sg_url,
@@ -85,9 +87,11 @@ def process(
     request.get_method = lambda: "POST"
 
     response = http_request(url_opener, request)
-    logger.debug("Initial network request returned HTTP code {code}".format(
-        code=response.code,
-    ))
+    logger.debug(
+        "Initial network request returned HTTP code {code}".format(
+            code=response.code,
+        )
+    )
 
     response_code_major = response.code // 100
     if response_code_major == 5:
@@ -123,15 +127,21 @@ def process(
         )
 
     elif not isinstance(getattr(response, "json", None), dict):
-        logger.error("Unexpected response from the ShotGrid site. Expecting a JSON dict")
+        logger.error(
+            "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+        )
         raise AuthenticationError("Unexpected response from the ShotGrid site")
 
     session_id = response.json.get("sessionRequestId")
     if not session_id:
-        logger.error("Unexpected response from the ShotGrid site. Expecting a sessionRequestId item")
+        logger.error(
+            "Unexpected response from the ShotGrid site. Expecting a sessionRequestId item"
+        )
         raise AuthenticationError("Unexpected response from the ShotGrid site")
 
-    logger.debug("Authentication Request ID: {session_id}".format(session_id=session_id))
+    logger.debug(
+        "Authentication Request ID: {session_id}".format(session_id=session_id)
+    )
 
     browser_url = response.json.get("url")
     if not browser_url:
@@ -169,7 +179,11 @@ def process(
 
     approved = False
     t0 = time.time()
-    while approved is False and keep_waiting_callback() and time.time() - t0 < request_timeout:
+    while (
+        approved is False
+        and keep_waiting_callback()
+        and time.time() - t0 < request_timeout
+    ):
         time.sleep(sleep_time)
 
         response = http_request(url_opener, request)
@@ -217,7 +231,9 @@ def process(
             )
 
         elif not isinstance(getattr(response, "json", None), dict):
-            logger.error("Unexpected response from the ShotGrid site. Expecting a JSON dict")
+            logger.error(
+                "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+            )
             raise AuthenticationError("Unexpected response from the ShotGrid site")
 
         approved = response.json.get("approved", False)
@@ -267,7 +283,7 @@ def http_request(opener, req, max_attempts=4):
         try:
             response = opener.open(req)
         except urllib.error.HTTPError as exc:
-            if attempt < max_attempts and exc.code//100 == 5:
+            if attempt < max_attempts and exc.code // 100 == 5:
                 logger.debug(
                     "HTTP request returned a {code} code on attempt {attempt}/{max_attempts}".format(
                         attempt=attempt,
