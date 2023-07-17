@@ -23,9 +23,12 @@ import sgtk
 from tank.errors import TankError
 from tank.util import is_windows
 
-from mock import patch
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
 
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 from tank_test.mock_appstore import patch_app_store
 
 
@@ -103,7 +106,7 @@ class TestPipelineConfig(TankTestBase):
                 raise OSError("os.rename is disabled")
             return unmocked_os_rename(src, dst)
 
-        with patch("os.rename", side_effect=mocked_rename):
+        with mock.patch("os.rename", side_effect=mocked_rename):
             # And push again
             push_cmd.execute({"target_id": cloned_pc_id})
             sgtk.sgtk_from_path(temp_pc_dir)

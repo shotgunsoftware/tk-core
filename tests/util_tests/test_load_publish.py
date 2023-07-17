@@ -12,8 +12,6 @@ from __future__ import with_statement
 import os
 import sys
 
-from mock import patch, call
-
 import sgtk
 from tank import context, errors
 from tank.util import is_linux, is_macos, is_windows

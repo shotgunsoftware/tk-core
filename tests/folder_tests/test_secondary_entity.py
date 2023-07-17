@@ -9,9 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import unittest
 import shutil
-from mock import Mock
 import tank
 from tank_vendor import yaml
 from tank import TankError

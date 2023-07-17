@@ -14,11 +14,14 @@ import shutil
 import datetime
 from tank_vendor.six.moves import urllib
 
-from mock import patch, MagicMock
-
 import tank
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+    ShotgunTestBase,
+)
+
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 
@@ -645,7 +648,7 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         download_result = open(self.download_source, "rb").read()
         target_dir = os.path.join(self.download_destination, "attachment")
         attachment_id = 764876347
-        self.mockgun.download_attachment = MagicMock()
+        self.mockgun.download_attachment = mock.MagicMock()
         try:
             # fail forever, and ensure exception is raised.
             self.mockgun.download_attachment.side_effect = Exception("Test Exception")
@@ -677,7 +680,7 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         """
         target_dir = os.path.join(self.download_destination, "url")
         try:
-            with patch("tank.util.shotgun.download.download_url") as download_url_mock:
+            with mock.patch("tank.util.shotgun.download.download_url") as download_url_mock:
                 # Fail forever, and ensure exception is raised.
                 download_url_mock.side_effect = Exception("Test Exception")
                 with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):

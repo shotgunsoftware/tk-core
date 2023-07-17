@@ -15,9 +15,10 @@ import base64
 import pytest
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
-
-from mock import patch
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 from tank.authentication import user, user_impl, errors
 from tank_vendor.shotgun_api3 import AuthenticationFault
@@ -207,9 +208,9 @@ class UserTests(ShotgunTestBase):
             }
             user_impl.ScriptUser.from_dict(script_user_with_unknown_data)
 
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    @patch("tank.authentication.interactive_authentication.renew_session")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_failure(
         self, renew_session_mock, call_rpc_mock, server_caps_mock
     ):
@@ -228,9 +229,9 @@ class UserTests(ShotgunTestBase):
         with self.assertRaises(AuthenticationFault):
             sg._call_rpc()
 
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    @patch("tank.authentication.interactive_authentication.renew_session")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_on_old_connection(
         self, renew_session_mock, call_rpc_mock, server_caps_mock
     ):
@@ -301,7 +302,7 @@ class UserTests(ShotgunTestBase):
     def _test_resolve_entity(
         self, class_name, entity_type, field_name, field_value, factory, error_type
     ):
-        with patch(
+        with mock.patch(
             "tank.authentication.user_impl.%s.create_sg_connection" % class_name,
             return_value=self.mockgun,
         ):

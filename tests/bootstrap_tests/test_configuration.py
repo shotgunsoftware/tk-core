@@ -13,10 +13,13 @@ from __future__ import with_statement
 import uuid
 import os
 import sys
-from mock import patch, Mock
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, temp_env_var
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    TankTestBase,
+)
 
 from tank.bootstrap import constants
 from sgtk.bootstrap.cached_configuration import CachedConfiguration
@@ -76,7 +79,7 @@ class TestConfiguration(TestConfigurationBase):
         configuration = Configuration(None, None)
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=default_user,
         ):
@@ -102,12 +105,12 @@ class TestConfiguration(TestConfigurationBase):
         default_user = self._create_session_user("default_user")
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=default_user,
         ):
             # Python 2.6 doesn't support multi-expression with statement, so nest the calls instead.
-            with patch(
+            with mock.patch(
                 "tank_vendor.shotgun_authentication.deserialize_user",
                 wraps=tank_vendor.shotgun_authentication.deserialize_user,
             ) as deserialize_wrapper:
@@ -135,7 +138,7 @@ class TestConfiguration(TestConfigurationBase):
         script_user = self._create_script_user("api_script")
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=script_user,
         ):
@@ -160,7 +163,7 @@ class TestConfiguration(TestConfigurationBase):
             "default_user", "https://test-2.shotgunstudio.com"
         )
 
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=project_user,
         ):
@@ -184,7 +187,7 @@ class TestConfiguration(TestConfigurationBase):
         script_user_for_project = self._create_script_user("api_script_for_project")
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=script_user_for_project,
         ):
@@ -211,7 +214,7 @@ class TestConfiguration(TestConfigurationBase):
         user_for_project = self._create_session_user("project_user")
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=user_for_project,
         ):
@@ -290,7 +293,7 @@ class TestSSOClaims(TestConfigurationBase):
         self._configuration.update_configuration()
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=project_user,
         ):
@@ -312,7 +315,7 @@ class TestSSOClaims(TestConfigurationBase):
         bootstrap_user.is_claims_renewal_active = lambda: True
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=project_user,
         ):
@@ -336,7 +339,7 @@ class TestSSOClaims(TestConfigurationBase):
         bootstrap_user.is_claims_renewal_active = lambda: True
 
         # Create a default user.
-        with patch(
+        with mock.patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=script_user,
         ):
@@ -425,9 +428,9 @@ class TestBakedConfiguration(TestConfigurationBase):
         if sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             del os.environ[sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user")
-    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
-    @patch(
+    @mock.patch("tank.authentication.ShotgunAuthenticator.get_user")
+    @mock.patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
+    @mock.patch(
         "sgtk.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command"
     )
     def test_build_and_use(

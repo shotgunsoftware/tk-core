@@ -12,10 +12,11 @@ from __future__ import with_statement
 
 import os
 
-from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule  # noqa
-
-from mock import patch
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 from tank.util.system_settings import SystemSettings
 
@@ -31,6 +32,6 @@ class SystemSettingsTests(ShotgunTestBase):
         """
         http_proxy = "foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
 
-        with patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
+        with mock.patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
             settings = SystemSettings()
             self.assertEqual(settings.http_proxy, http_proxy)
