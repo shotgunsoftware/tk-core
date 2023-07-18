@@ -293,7 +293,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site; content is not JSON",
+            "Unexpected response from the ShotGrid site",
         )
 
         # 200 with valid empty json
@@ -309,7 +309,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site; No sessionRequestId item",
+            "Unexpected response from the ShotGrid site",
         )
 
         # 400 with error in json
@@ -360,7 +360,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site; content is not JSON",
+            "Unexpected response from the ShotGrid site",
         )
 
         # Finaly, send a 200 with a sessionRequestId
