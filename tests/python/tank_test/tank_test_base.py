@@ -31,13 +31,8 @@ from collections import defaultdict
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
-from tank_vendor import six
-if six.PY2:
-    import unittest2 as unittest
-    import mock
-else:
-    import unittest as unittest
-    from unittest import mock
+import unittest
+from unittest import mock
 
 import sgtk
 import tank
