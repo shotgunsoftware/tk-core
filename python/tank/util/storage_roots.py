@@ -18,7 +18,6 @@ from ..errors import TankError
 from . import filesystem
 from . import ShotgunPath
 from . import yaml_cache
-from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -128,9 +127,7 @@ class StorageRoots(object):
         return storage_roots
 
     @classmethod
-    def write(
-        cls, sg_connection, config_folder, storage_roots, config_path, project_id=None
-    ):
+    def write(cls, sg_connection, config_folder, storage_roots):
         """
         Given a ``StorageRoots`` object, write it's metadata to the standard
         roots location within the supplied config folder. The method will write
@@ -148,7 +145,7 @@ class StorageRoots(object):
         """
 
         (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
-            sg_connection, config_path, project_id
+            sg_connection
         )
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
@@ -175,6 +172,7 @@ class StorageRoots(object):
         roots_metadata = storage_roots.metadata
 
         for root_name, root_info in storage_roots:
+
             # get the cached SG storage dict
             sg_local_storage = local_storage_lookup[root_name]
 
@@ -302,7 +300,7 @@ class StorageRoots(object):
     ############################################################################
     # public methods
 
-    def get_local_storages(self, sg_connection, config_path, project_id=None):
+    def get_local_storages(self, sg_connection):
         """
         Returns a tuple of information about the required storage roots and how
         they map to local storages in SG.
@@ -368,25 +366,8 @@ class StorageRoots(object):
 
         # create the SG connection and query
         log.debug("Querying SG local storages...")
-
-        # execute the get_storage_roots core hook
-        try:
-            from .. import sgtk_from_path
-
-            tk = sgtk_from_path(config_path.current_os)
-
-            sg_storages = tk.execute_core_hook_method(
-                constants.GET_STORAGE_ROOTS_HOOK_NAME,
-                "execute",
-                sg_connection=sg_connection,
-                local_storage_fields=local_storage_fields,
-                project_id=project_id,
-            )
-        except Exception as e:
-            # Catch errors to not kill our thread, log them for debug purpose.
-            log.debug(
-                "%s hook failed with %s" % (constants.GET_STORAGE_ROOTS_HOOK_NAME, e)
-            )
+        sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
+        log.debug("Query returned %s storages." % (len(sg_storages)))
 
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
@@ -394,12 +375,13 @@ class StorageRoots(object):
         sg_storages_by_id = {}
         sg_storages_by_name = {}
         for sg_storage in sg_storages:
-            id = sg_storage.get("id")
-            name = sg_storage.get("code")
+            id = sg_storage["id"]
+            name = sg_storage["code"]
             sg_storages_by_id[id] = sg_storage
             sg_storages_by_name[name] = sg_storage
 
         for root_name, root_info in self:
+
             # see if the shotgun storage id is specified explicitly in the
             # roots.yml file.
             root_storage_id = root_info.get("shotgun_storage_id")
@@ -451,10 +433,12 @@ class StorageRoots(object):
             # populated with the expected platform keys
             for root_name, root_info in self:
                 for platform_key in self.PLATFORM_KEYS:
+
                     if platform_key not in root_info:
                         # platform key not defined for root. add it
                         root_info[platform_key] = None
         else:
+
             # no roots required by this configuration. add a default storage
             # requirement
             root_name = self.LEGACY_DEFAULT_STORAGE_NAME
@@ -572,6 +556,7 @@ class StorageRoots(object):
         # iterate over each storage root required by the configuration. try to
         # identify the default root.
         for root_name, root_info in self:
+
             log.debug("Processing storage: %s - %s" % (root_name, root_info))
 
             # store a shotgun path for each root definition. sanitize path data
@@ -591,6 +576,7 @@ class StorageRoots(object):
         # no default storage root defined explicitly. try to identify one if
         # there are storage roots defined
         if self.required_roots and not self._default_storage_name:
+
             log.debug("No default storage explicitly defined...")
 
             # if there is only one, then that is the default

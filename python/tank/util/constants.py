@@ -27,9 +27,6 @@ STUDIO_HOOK_SG_CONNECTION_SETTINGS = "sg_connection.py"
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 
-# hook to get storage roots
-GET_STORAGE_ROOTS_HOOK_NAME = "get_storage_roots"
-
 # hook that is executed before a publish is registered in sg.
 TANK_PUBLISH_HOOK_NAME = "before_register_publish"
 
