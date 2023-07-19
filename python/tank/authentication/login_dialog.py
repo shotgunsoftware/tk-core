@@ -347,13 +347,23 @@ class LoginDialog(QtGui.QDialog):
             "ShotGrid Login",  # title
             "Would you like to cancel your request?",  # text
             buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-            parent=self,
+            # parent=self,
+            # Passing the parent parameter here, in the constructor, makes
+            # Nuke versions<=13 crash.
+            # Two ways to resolve that:
+            #  #1. Create the QMessageBox later (not in the constructor)
+            #  #2. Pass the QDialog stylesheet to the QMessageBox since I did
+            #      not see any other consequence by not passing the parent
+            #      parameter.
+            # I chose solution #1, se below.
         )
 
         self.confirm_box.setInformativeText(
             "The authentication is still in progress and closing this window "
             "will result in canceling your request."
         )
+
+        self.confirm_box.setStyleSheet(self.styleSheet())
 
     def __del__(self):
         """
