@@ -30,7 +30,7 @@ class ModifyDefaultStorageRoot(Hook):
         )
 
         # if project-specific storage available, set as default
-        if project_storage_name and project_storage_name["sg_storage_root_name"]:
+        if project_storage_name and project_storage_name.get("sg_storage_root_name"):
             storage_roots._default_storage_name = project_storage_name[
                 "sg_storage_root_name"
             ]
