@@ -32,8 +32,8 @@ PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 
-# hook to modify default storage root based on project root
-MODIFY_DEFAULT_STORAGE_ROOT_HOOK_NAME = "modify_default_storage_root"
+# hook to modify default storage root
+DEFAULT_STORAGE_ROOT_HOOK_NAME = "default_storage_root"
 
 # special path or dev descriptor token that can be used
 # as a replacement for the path to a pipeline configuration

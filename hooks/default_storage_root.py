@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Shotgun Software Inc.
+# Copyright (c) 2023 Autodesk.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -18,7 +18,7 @@ from tank import Hook
 log = sgtk.LogManager.get_logger(__name__)
 
 
-class ModifyDefaultStorageRoot(Hook):
+class DefaultStorageRoot(Hook):
     def execute(self, storage_roots, project_id=None):
         """
         Executes right after constructing a pipeline configuration during
