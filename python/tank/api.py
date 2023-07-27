@@ -71,8 +71,7 @@ class Sgtk(object):
         except Exception as e:
             # Catch errors to not kill our thread, log them for debug purpose.
             log.debug(
-                "%s hook failed with %s"
-                % (constants.DEFAULT_STORAGE_ROOT_HOOK_NAME, e)
+                "%s hook failed with %s" % (constants.DEFAULT_STORAGE_ROOT_HOOK_NAME, e)
             )
 
         try:
