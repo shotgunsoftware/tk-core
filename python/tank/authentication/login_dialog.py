@@ -357,7 +357,8 @@ class LoginDialog(QtGui.QDialog):
             #      parameter.
             # I chose solution #1, se below.
         )
-
+        # force the QMessageBox to be on top of other dialogs.
+        self.confirm_box.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.confirm_box.setInformativeText(
             "The authentication is still in progress and closing this window "
             "will result in canceling your request."
