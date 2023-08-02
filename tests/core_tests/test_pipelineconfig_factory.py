@@ -16,8 +16,13 @@ from tank.api import Tank
 from tank.util import is_windows
 from tank.errors import TankInitError
 from sgtk.util import ShotgunPath
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
-from mock import patch
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    TankTestBase,
+)
+
 import tank_vendor.six.moves.cPickle as pickle
 from tank_vendor.shotgun_api3.lib import sgsix
 
@@ -514,18 +519,18 @@ class TestLookupCache(ShotgunTestBase):
         """
         The cache's schema has changed, ensure it stays backwards compatible.
         """
-        with patch(
+        with mock.patch(
             "tank.util.shotgun.get_sg_connection", return_value=self.mockgun
-        ) as mock:
+        ) as mock1:
             # Force read from Shotgun, a connection must be made to Shotgun.
-            mock.reset_mock()
+            mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(True)
-            self.assertTrue(mock.called)
+            self.assertTrue(mock1.called)
 
             # Do not force read from Shotgun, there should be a cache hit.
-            mock.reset_mock()
+            mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(False)
-            self.assertFalse(mock.called)
+            self.assertFalse(mock1.called)
 
             cache_data = sgtk.pipelineconfig_factory._load_lookup_cache()
             # The new paths_v2 sections should be in there.
@@ -539,9 +544,9 @@ class TestLookupCache(ShotgunTestBase):
 
             # Do not force read from Shotgun, but since the cache is not present
             # it should be loaded from Shotgun.
-            mock.reset_mock()
+            mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(False)
-            self.assertTrue(mock.called)
+            self.assertTrue(mock1.called)
 
 
 class TestTankFromWithSiteConfig(TankTestBase):

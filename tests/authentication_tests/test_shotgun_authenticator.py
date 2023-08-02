@@ -9,13 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
-from mock import patch
 import os
 import base64
 
 from tank_vendor import six
 
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
+
 from tank_test.tank_test_base import setUpModule  # noqa
 
 from tank.authentication import (
@@ -44,9 +47,9 @@ class CustomDefaultManager(DefaultsManager):
 
 
 class ShotgunAuthenticatorTests(ShotgunTestBase):
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank.authentication.session_cache.generate_session_token")
-    @patch("tank.util.LocalFileStorageManager.get_global_root")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank.authentication.session_cache.generate_session_token")
+    @mock.patch("tank.util.LocalFileStorageManager.get_global_root")
     def test_create_session_user(
         self, get_global_root, generate_session_token_mock, server_caps_mock
     ):
@@ -126,7 +129,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         connection = session_user.create_sg_connection()
         self.assertEqual(connection.config.session_token, "session_token")
 
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     def test_create_script_user(self, server_caps_mock):
         """
         Makes sure that create_script_user does correct input validation.
@@ -151,14 +154,14 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         self.assertEqual(connection.config.script_name, "api_script")
         self.assertEqual(connection.config.api_key, "api_key")
 
-    @patch("tank.authentication.session_cache.get_current_host", return_value=None)
+    @mock.patch("tank.authentication.session_cache.get_current_host", return_value=None)
     def test_no_current_host(self, _):
         """
         Makes sure the login is None when there is no host.
         """
         self.assertIsNone(DefaultsManager().get_login())
 
-    @patch("tank.authentication.session_cache.generate_session_token")
+    @mock.patch("tank.authentication.session_cache.generate_session_token")
     def test_get_default_user(self, generate_session_token_mock):
         """
         Makes sure get_default_user handles all the edge cases.

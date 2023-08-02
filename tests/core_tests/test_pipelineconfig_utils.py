@@ -12,8 +12,6 @@ import os
 import inspect
 import sys
 
-from mock import patch
-
 import sgtk
 import tank
 
@@ -26,16 +24,19 @@ from tank import (
 )
 from tank.util import ShotgunPath, is_windows
 
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
-
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    temp_env_var,
+)
 
 class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
     """
     Tests the case where a Windows config location uses double slashes.
     """
 
-    @patch("tank.pipelineconfig_utils._get_install_locations")
+    @mock.patch("tank.pipelineconfig_utils._get_install_locations")
     def test_config_path_cleanup(self, get_install_locations_mock):
         """
         Check that any glitches in the path are correctly cleaned up.
@@ -171,7 +172,7 @@ class TestPipelineConfigUtils(ShotgunTestBase):
 
         # Patch os.path.exists since /i/wish/this/was/python3 is obviously not a real
         # file name.
-        with patch("os.path.exists", return_value=True):
+        with mock.patch("os.path.exists", return_value=True):
             with temp_env_var(SGTK_TEST_INTERPRETER="/i/wish/this/was/python3"):
                 self.assertEqual(
                     pipelineconfig_utils.get_python_interpreter_for_config(config_root),

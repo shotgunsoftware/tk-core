@@ -11,9 +11,12 @@
 from __future__ import with_statement
 
 import os
-from mock import patch
 
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
+
 from tank_test.tank_test_base import setUpModule  # noqa
 
 from tank.authentication import session_cache
@@ -214,7 +217,7 @@ class SessionCacheTests(ShotgunTestBase):
     def test_url_cleanup(self):
 
         # Make sure that if a file has the url saved incorrectly...
-        with patch("sgtk.util.shotgun.connection.sanitize_url", wraps=lambda x: x):
+        with mock.patch("sgtk.util.shotgun.connection.sanitize_url", wraps=lambda x: x):
             session_cache.set_current_host("https://host.cleaned.up.on.read/")
             # ... then sure we indeed disabled cleanup and that the malformed value was written to disk...
             self.assertEqual(

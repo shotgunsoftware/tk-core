@@ -13,15 +13,17 @@ from __future__ import with_statement
 import os
 import fnmatch
 import stat
-from mock import patch
 import sgtk
 from sgtk.pipelineconfig_utils import get_metadata
 from tank.util import is_windows
 from shutil import copytree
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import temp_env_var
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    temp_env_var,
+)
 
 
 # Copied from Python 2.7's source code.
@@ -127,7 +129,7 @@ class TestBackups(ShotgunTestBase):
                 self.core_backup_folder_path = core
 
             # Update the configuration, but don't clean up backups
-            with patch.object(
+            with mock.patch.object(
                 sgtk.bootstrap.resolver.CachedConfiguration,
                 "_cleanup_backup_folders",
                 new=dont_cleanup_backup_folders,
@@ -201,7 +203,7 @@ class TestBackups(ShotgunTestBase):
                 self.config_backup_folder_path = config
                 self.core_backup_folder_path = core
 
-            with patch.object(
+            with mock.patch.object(
                 sgtk.bootstrap.resolver.CachedConfiguration,
                 "_cleanup_backup_folders",
                 new=dont_cleanup_backup_folders,

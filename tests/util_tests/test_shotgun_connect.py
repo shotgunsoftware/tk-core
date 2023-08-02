@@ -12,13 +12,15 @@ from __future__ import with_statement
 import threading
 import unittest
 
-from mock import patch
-
 import tank
 from tank import errors
 
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    temp_env_var,
+)
 from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
@@ -26,7 +28,7 @@ from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 from tank.util.shotgun.connection import sanitize_url
 
 
-@patch(
+@mock.patch(
     "tank.util.shotgun.connection.__get_api_core_config_location",
     return_value="unknown_path_location",
 )
@@ -235,14 +237,14 @@ class ConnectionSettingsTestCases:
             tank.set_authenticated_user(None)
 
             # Prevents from connecting to Shotgun.
-            self._server_caps_mock = patch(
+            self._server_caps_mock = mock.patch(
                 "tank_vendor.shotgun_api3.Shotgun.server_caps"
             )
             self._server_caps_mock.start()
             self.addCleanup(self._server_caps_mock.stop)
 
             # Avoids crash because we're not in a pipeline configuration.
-            self._get_api_core_config_location_mock = patch(
+            self._get_api_core_config_location_mock = mock.patch(
                 "tank.util.shotgun.connection.__get_api_core_config_location",
                 return_value="unused_path_location",
             )
@@ -250,7 +252,7 @@ class ConnectionSettingsTestCases:
             self.addCleanup(self._get_api_core_config_location_mock.stop)
 
             # Mocks app store script user credentials retrieval
-            self._get_app_store_key_from_shotgun_mock = patch(
+            self._get_app_store_key_from_shotgun_mock = mock.patch(
                 "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore."
                 "_IODescriptorAppStore__get_app_store_key_from_shotgun",
                 return_value=("abc", "123"),
@@ -358,9 +360,9 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         """
         Mock information coming from shotgun.yml for pre-authentication framework authentication.
         """
-        with patch("tank.util.shotgun.connection.__get_sg_config_data") as mock:
+        with mock.patch("tank.util.shotgun.connection.__get_sg_config_data") as mock1:
             # Mocks shotgun.yml content, which we use for authentication.
-            mock.return_value = {
+            mock1.return_value = {
                 "host": site,
                 "api_script": "1234",
                 "api_key": "1234",
@@ -371,7 +373,7 @@ class LegacyAuthConnectionSettings(ConnectionSettingsTestCases.Impl):
                 source_store_proxy
                 != ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING
             ):
-                mock.return_value["app_store_http_proxy"] = source_store_proxy
+                mock1.return_value["app_store_http_proxy"] = source_store_proxy
 
             ConnectionSettingsTestCases.Impl._run_test(
                 self,
@@ -397,9 +399,9 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         """
         Mock information coming from the Shotgun user and shotgun.yml for authentication.
         """
-        with patch("tank.util.shotgun.connection.__get_sg_config_data") as mock:
+        with mock.patch("tank.util.shotgun.connection.__get_sg_config_data") as mock1:
             # Mocks shotgun.yml content
-            mock.return_value = {
+            mock1.return_value = {
                 # We're supposed to read only the proxy settings for the appstore
                 "host": "https://this_should_not_be_read.shotgunstudio.com",
                 "api_script": "1234",
@@ -411,7 +413,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
                 source_store_proxy
                 != ConnectionSettingsTestCases.FOLLOW_HTTP_PROXY_SETTING
             ):
-                mock.return_value["app_store_http_proxy"] = source_store_proxy
+                mock1.return_value["app_store_http_proxy"] = source_store_proxy
 
             # Mocks a user being authenticated.
             user = ShotgunUser(
