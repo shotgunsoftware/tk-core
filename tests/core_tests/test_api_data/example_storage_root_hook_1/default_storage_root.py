@@ -12,8 +12,6 @@
 Hook that gets executed during Toolkit initialization.
 This hook makes it possible to modify the default storage root.
 """
-import os
-
 import sgtk
 from tank import Hook
 
