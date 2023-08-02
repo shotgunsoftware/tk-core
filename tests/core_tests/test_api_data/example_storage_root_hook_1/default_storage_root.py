@@ -39,7 +39,7 @@ class DefaultStorageRoot(Hook):
         project_storage_name = sg_data["sg_storage_root_name"]
 
         # check if local storage exists on SG site
-        local_storage = self.parent.shotgun.find_one(
+        local_storage = self.parent.shotgun.find(
             "LocalStorage", [["code", "is", project_storage_name]]
         )
         if not local_storage:

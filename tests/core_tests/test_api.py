@@ -10,7 +10,7 @@
 
 import os
 
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 
 import tank
@@ -524,6 +524,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         """
         Project-specific root is retrieved from custom ShotGrid project field.
         """
+        self.tk.shotgun.create("LocalStorage", {"code": "project_specific_root"})
         with patch.object(
             self.tk.shotgun,
             "find_one",
@@ -537,6 +538,32 @@ class TestDefaultStorageRootHook(TankTestBase):
             self.assertEqual(
                 tk2.pipeline_configuration.get_primary_data_root_name(),
                 "project_specific_root",
+            )
+
+    @patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__), "test_api_data/example_storage_root_hook_1"
+        ),
+    )
+    def test_roots_with_invalid_storage_in_project_field(self, *mocks):
+        """
+        Local storage assigned to project in custom field isn't defined.
+        Fall back to global root.
+        """
+        with patch.object(
+            self.tk.shotgun,
+            "find_one",
+            return_value={
+                "type": "Project",
+                "id": 1,
+                "sg_storage_root_name": "project_specific_root",
+            },
+        ):
+            tk2 = tank.sgtk_from_path(self.project_root)
+            self.assertEqual(
+                tk2.pipeline_configuration.get_primary_data_root_name(),
+                self.primary_root_name,
             )
 
     @patch(
