@@ -505,6 +505,55 @@ class TestApiProperties(TankTestBase):
         self.assertEqual(self.tk.project_path, self.project_root)
 
 
+class TestDefaultStorageRootHook(TankTestBase):
+    """
+    Test the custom implementation of the default_storage_root hook
+    which sets the default root to a project-specific root.
+    """
+
+    @patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__), "test_api_data/example_storage_root_hook_1"
+        ),
+    )
+    def test_roots_with_custom_project_field(self, *mocks):
+        """
+        Project-specific root is retrieved from custom ShotGrid project field.
+        """
+        with patch.object(
+            self.tk.shotgun,
+            "find_one",
+            return_value={
+                "type": "Project",
+                "id": 1,
+                "sg_storage_root_name": "project_specific_root",
+            },
+        ):
+            tk2 = tank.sgtk_from_path(self.project_root)
+            self.assertEqual(
+                tk2.pipeline_configuration.get_primary_data_root_name(),
+                "project_specific_root",
+            )
+
+    @patch("os.getenv", return_value="project_specific_root")
+    @patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__), "test_api_data/example_storage_root_hook_2"
+        ),
+    )
+    def test_roots_with_environment_variable(self, *mocks):
+        """
+        Project-specific root is retrieved from environment variables.
+        """
+        tk2 = tank.sgtk_from_path(self.project_root)
+        self.assertEqual(
+            tk2.pipeline_configuration.get_primary_data_root_name(),
+            "project_specific_root",
+        )
+
+
 class TestApiCache(TankTestBase):
     """
     Test the built in instance cache
