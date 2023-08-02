@@ -24,14 +24,21 @@ class DefaultStorageRoot(Hook):
     def execute(self, storage_roots, project_id=None):
         """
         Custom implementation sets default root to project-specific storage root stored
-        in an environment variable called "[project_id]_STORAGE_ROOT"
+        in an environment variable called "STORAGE_ROOT_[project_id]"
         """
+        if not project_id:
+            return
+
         # query project-specific storage root's name
         project_storage_name = os.getenv("STORAGE_ROOT_%d" % project_id)
+
+        # check if variable has been set
+        if not project_storage_name:
+            log.debug("Using global storage root.")
+            return
+
         # if project-specific storage available, set as default
-        if project_storage_name:
-            storage_roots._default_storage_name = project_storage_name
-            log.debug(
-                "Project-specific storage root set to default: %s"
-                % project_storage_name
-            )
+        storage_roots._default_storage_name = project_storage_name
+        log.debug(
+            "Project-specific storage root set to default: %s" % project_storage_name
+        )

@@ -24,28 +24,9 @@ class DefaultStorageRoot(Hook):
         Executes right after constructing a pipeline configuration during
         Toolkit initialization.
 
-        If you have a different storage root per project, here's an example
-        that allows you to switch between each storage root depending on
-        which project you're on. This custom implementation sets the default
-        root to a project-specific storage root stored in a custom project
-        field on your ShotGrid site called "Storage Root Name"::
-
-            # query project-specific storage root's name
-            project_storage_name = self.parent.shotgun.find_one(
-                "Project",
-                [["id", "is", project_id]],
-                ["sg_storage_root_name"],
-            )
-
-            # if project-specific storage available, set as default
-            if project_storage_name and project_storage_name.get("sg_storage_root_name"):
-                storage_roots._default_storage_name = project_storage_name[
-                    "sg_storage_root_name"
-                ]
-                log.debug(
-                    "Project-specific storage root set to default: %s"
-                    % project_storage_name["sg_storage_root_name"]
-                )
+        You can find example implementations in the tests/core_tests/test_api_data
+        folder which allow you to switch between storages if you have a different
+        storage root per project.
 
         The default implementation does nothing.
 

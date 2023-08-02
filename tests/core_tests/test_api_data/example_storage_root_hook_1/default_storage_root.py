@@ -25,18 +25,32 @@ class DefaultStorageRoot(Hook):
         in a custom project field on ShotGrid site called "Storage Root Name"
         """
         # query project-specific storage root's name
-        project_storage_name = self.parent.shotgun.find_one(
+        sg_data = self.parent.shotgun.find_one(
             "Project",
             [["id", "is", project_id]],
             ["sg_storage_root_name"],
         )
 
-        # if project-specific storage available, set as default
-        if project_storage_name and project_storage_name.get("sg_storage_root_name"):
-            storage_roots._default_storage_name = project_storage_name[
-                "sg_storage_root_name"
-            ]
+        # check if custom field was set and filled
+        if not sg_data or not sg_data.get("sg_storage_root_name"):
+            log.debug("Using global storage root.")
+            return
+
+        project_storage_name = sg_data["sg_storage_root_name"]
+
+        # check if local storage exists on SG site
+        local_storage = self.parent.shotgun.find_one(
+            "LocalStorage", [["code", "is", project_storage_name]]
+        )
+        if not local_storage:
             log.debug(
-                "Project-specific storage root set to default: %s"
-                % project_storage_name["sg_storage_root_name"]
+                "The local file storage %s for project %d is not defined for this operating system."
+                % (project_storage_name, project_id)
             )
+            return
+
+        # project-specific storage available, set as default
+        storage_roots._default_storage_name = project_storage_name
+        log.debug(
+            "Project-specific storage root set to default: %s" % project_storage_name
+        )

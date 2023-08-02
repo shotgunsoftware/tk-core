@@ -511,6 +511,9 @@ class TestDefaultStorageRootHook(TankTestBase):
     which sets the default root to a project-specific root.
     """
 
+    def setUp(self):
+        super(TestDefaultStorageRootHook, self).setUp()
+
     @patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
@@ -536,7 +539,22 @@ class TestDefaultStorageRootHook(TankTestBase):
                 "project_specific_root",
             )
 
-    @patch("os.getenv", return_value="project_specific_root")
+    @patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__), "test_api_data/example_storage_root_hook_1"
+        ),
+    )
+    def test_roots_with_no_custom_project_field(self, *mocks):
+        """
+        Test fallback behaviour if no custom project field set.
+        """
+        tk2 = tank.sgtk_from_path(self.project_root)
+        self.assertEqual(
+            tk2.pipeline_configuration.get_primary_data_root_name(),
+            self.primary_root_name,
+        )
+
     @patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
@@ -547,10 +565,35 @@ class TestDefaultStorageRootHook(TankTestBase):
         """
         Project-specific root is retrieved from environment variables.
         """
+        with patch.dict(
+            os.environ,
+            {
+                "STORAGE_ROOT_"
+                + str(
+                    self.pipeline_configuration.get_project_id()
+                ): "project_specific_root"
+            },
+        ):
+            tk2 = tank.sgtk_from_path(self.project_root)
+            self.assertEqual(
+                tk2.pipeline_configuration.get_primary_data_root_name(),
+                "project_specific_root",
+            )
+
+    @patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__), "test_api_data/example_storage_root_hook_2"
+        ),
+    )
+    def test_roots_with_no_environment_variable(self, *mocks):
+        """
+        Test fallback behaviour if no environment variable set.
+        """
         tk2 = tank.sgtk_from_path(self.project_root)
         self.assertEqual(
             tk2.pipeline_configuration.get_primary_data_root_name(),
-            "project_specific_root",
+            self.primary_root_name,
         )
 
 
