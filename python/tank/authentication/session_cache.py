@@ -30,6 +30,7 @@ from tank_vendor.shotgun_api3 import (
 )
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
+from . import constants
 from .errors import AuthenticationError
 from .. import LogManager
 from ..util.shotgun import connection
@@ -41,6 +42,7 @@ _CURRENT_HOST = "current_host"
 _RECENT_HOSTS = "recent_hosts"
 _CURRENT_USER = "current_user"
 _RECENT_USERS = "recent_users"
+_PREFERRED_METHOD = "method"
 _USERS = "users"
 _LOGIN = "login"
 _SESSION_METADATA = "session_metadata"
@@ -159,8 +161,9 @@ def _try_load_yaml_file(file_path):
     if not os.path.exists(file_path):
         logger.debug("Yaml file missing: %s" % file_path)
         return {}
+
+    config_file = None
     try:
-        config_file = None
         # Open the file and read it.
         config_file = open(file_path, "r")
         result = yaml.load(config_file, Loader=yaml.FullLoader)
@@ -218,6 +221,7 @@ def _try_load_site_authentication_file(file_path):
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
     content.setdefault(_RECENT_USERS, [])
+    content.setdefault(_PREFERRED_METHOD, None)
 
     for user in content[_USERS]:
         user[_LOGIN] = user[_LOGIN].strip()
@@ -528,6 +532,48 @@ def get_recent_users(site):
     document = _try_load_site_authentication_file(info_path)
     logger.debug("Recent users are: %s", document[_RECENT_USERS])
     return _get_recent_items(document, _RECENT_USERS, _CURRENT_USER, "users")
+
+
+def get_preferred_method(host):
+    """
+    Returns the prefered authentication method for the given host.
+
+    :param host: Host to fetch the current for.
+
+    :returns: The authentication method for this host or None if not set.
+    """
+    # Retrieve the cached info file location from the host
+    info_path = _get_site_authentication_file_location(host)
+    document = _try_load_site_authentication_file(info_path)
+    method_name = document[_PREFERRED_METHOD]
+    if not method_name:
+        return
+
+    return constants.method_resolve_reverse(method_name.strip())
+
+
+def set_preferred_method(host, method):
+    """
+    Saves the authentication method for a given host.
+
+    :param host: Host to save the current user for.
+    :param method: The prefered authentication method for specified host.
+    """
+    host = host.strip()
+
+    method_name = constants.method_resolve.get(method)
+    if not method_name:
+        return
+
+    file_path = _get_site_authentication_file_location(host)
+    _ensure_folder_for_file(file_path)
+
+    current_user_file = _try_load_site_authentication_file(file_path)
+    if current_user_file[_PREFERRED_METHOD] == method_name:
+        return
+
+    current_user_file[_PREFERRED_METHOD] = method_name
+    _write_yaml_file(file_path, current_user_file)
 
 
 @LogManager.log_timing

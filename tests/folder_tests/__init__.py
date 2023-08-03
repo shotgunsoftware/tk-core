@@ -1,7 +1,7 @@
 import os
 import unittest
 import shutil
-from mock import Mock, patch
+
 import tank
 from tank_vendor import yaml
 from tank import TankError

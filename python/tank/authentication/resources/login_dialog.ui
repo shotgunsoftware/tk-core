@@ -19,11 +19,14 @@
     <height>296</height>
    </size>
   </property>
+  <property name="windowTitle">
+   <string>ShotGrid Login</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">
 QWidget
 {
-    background-color:  rgb(36, 39, 42);
+    background-color: rgb(36, 39, 42);
     color: rgb(192, 192, 192);
     selection-background-color: rgb(168, 123, 43);
     selection-color: rgb(230, 230, 230);
@@ -33,10 +36,34 @@ QWidget
 QPushButton
 {
     background-color: transparent;
+    border: 1px solid transparent;
     border-radius: 2px;
     padding: 8px;
     padding-left: 15px;
     padding-right: 15px;
+}
+
+QPushButton::menu-indicator {
+    subcontrol-position: right center;
+}
+
+QPushButton QMenu::item {
+    padding: 15px;
+    border: 1px solid transparent;
+}
+
+QPushButton QMenu::item:disabled {
+    color: rgb(160, 160, 160);
+    font-style: italic;
+}
+
+QPushButton QMenu::item:selected {
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton QMenu::item:pressed
+{
+    border-color: rgb(192, 192, 192);
 }
 
 QLineEdit, QComboBox
@@ -45,13 +72,28 @@ QLineEdit, QComboBox
     border: 1px solid rgb(54, 60, 66);
     border-radius: 2px;
     padding: 5px;
-     font-size: 12px;
+    font-size: 12px;
 }
 
 QComboBox
 {
-    margin-left: 3;
-    margin-right: 3
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+QPushButton:focus
+{
+    border-color: rgb(48, 167, 227);
+    outline: none;
+}
+
+QPushButton:hover {
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton:pressed
+{
+    border-color: rgb(192, 192, 192);
 }
 
 QComboBox:focus, QLineEdit:focus
@@ -65,17 +107,15 @@ QComboBox:drop-down:button {
 
 QComboBox:down-arrow {
     image: url(:/shotgun_authentication/down-arrow.png);
-
 }
 
-QLineEdit:Disabled {
+QLineEdit:disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
 }
 
 QComboBox::drop-down:disabled {
     border-width: 0px;
-
 }
 
 QComboBox::down-arrow:disabled {
@@ -85,7 +125,25 @@ QComboBox::down-arrow:disabled {
 QComboBox::disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
-}</string>
+}
+
+QPushButton.main
+{
+    background-color: rgb(35, 165, 225);
+    border-color: rgb(36, 39, 42);
+    color: rgb(248, 248, 248);
+}
+
+QPushButton.main:focus, QPushButton.main:hover
+{
+    border-color: rgb(54, 60, 66);
+}
+
+QPushButton.main:pressed
+{
+    border-color: rgb(248, 248, 248);
+}
+</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -196,7 +254,7 @@ QComboBox::disabled {
           <item>
            <widget class="QLabel" name="message">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -232,7 +290,7 @@ QComboBox::disabled {
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout" stretch="0,1,0,0">
+        <layout class="QHBoxLayout" name="button_layout" stretch="0,0,1,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -245,12 +303,6 @@ QComboBox::disabled {
             <widget class="QLabel" name="forgot_password_link">
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QWidget
-{
-    color: rgb(192, 193, 195);
-}</string>
              </property>
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://mystudio.shotgrid.autodesk.com/user/forgot_password&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Forgot your password?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -269,6 +321,19 @@ QComboBox::disabled {
           </layout>
          </item>
          <item>
+          <widget class="QPushButton" name="button_options">
+           <property name="text">
+            <string>See other options</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="sign_in_hspacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -282,27 +347,7 @@ QComboBox::disabled {
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="cancel">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="sign_in">
-           <property name="styleSheet">
-            <string notr="true">color: rgb(248, 248, 248);
-background-color: rgb(35, 165, 225);</string>
-           </property>
            <property name="text">
             <string>Sign In</string>
            </property>
@@ -314,6 +359,9 @@ background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="flat">
             <bool>true</bool>
+           </property>
+           <property name="class" stdset="0">
+            <string>main</string>
            </property>
           </widget>
          </item>
@@ -425,7 +473,7 @@ background-color: rgb(35, 165, 225);</string>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_2" stretch="0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -456,32 +504,12 @@ background-color: rgb(35, 165, 225);</string>
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="cancel_tfa">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="verify_2fa">
            <property name="minimumSize">
             <size>
              <width>65</width>
              <height>0</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(248, 248, 248);
-background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="text">
             <string>Verify</string>
@@ -494,6 +522,9 @@ background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="flat">
             <bool>true</bool>
+           </property>
+           <property name="class" stdset="0">
+            <string>main</string>
            </property>
           </widget>
          </item>
@@ -602,7 +633,7 @@ background-color: rgb(35, 165, 225);</string>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="button_layout_3" stretch="0,0,0">
          <property name="spacing">
           <number>10</number>
          </property>
@@ -636,29 +667,12 @@ background-color: rgb(35, 165, 225);</string>
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="cancel_backup">
-           <property name="text">
-            <string>Cancel</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="verify_backup">
            <property name="minimumSize">
             <size>
              <width>65</width>
              <height>0</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">color: rgb(248, 248, 248);
-background-color: rgb(35, 165, 225);</string>
            </property>
            <property name="text">
             <string>Verify</string>
@@ -672,9 +686,80 @@ background-color: rgb(35, 165, 225);</string>
            <property name="flat">
             <bool>true</bool>
            </property>
+           <property name="class" stdset="0">
+            <string>main</string>
+           </property>
           </widget>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="ulf2_page">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
+       <property name="margin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="ulf2_msg">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">padding-left: 40px; padding-left: 40px;padding-right: 40px;</string>
+         </property>
+         <property name="text">
+          <string>Check your default web browser to continue logging in.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="ulf2_msg_back">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;#&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Cancel &amp; return to the login page&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="ulf2_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="ulf2_msg_help">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you are having trouble logging in with the browser, &lt;a href=&quot;{url}&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;select this support link&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -702,54 +787,5 @@ background-color: rgb(35, 165, 225);</string>
  <resources>
   <include location="resources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>cancel_tfa</sender>
-   <signal>clicked()</signal>
-   <receiver>LoginDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancel_backup</sender>
-   <signal>clicked()</signal>
-   <receiver>LoginDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancel</sender>
-   <signal>clicked()</signal>
-   <receiver>LoginDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>159</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

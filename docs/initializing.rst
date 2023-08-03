@@ -362,8 +362,8 @@ to certain software integrations, you can specify this:
 
 The above configuration will only be used when the Maya and Nuke plugins bootstrap.
 
-.. warning:: If you don't specify a plugin id for your Pipeline Configuration, it will be ignored
-    by the boostrap. We recommend using ``basic.*`` as a default.
+.. warning:: For **project-bound configurations**, if you don't specify a plugin id for your Pipeline Configuration, it will be ignored
+    by the boostrap. That said, we recommend using ``basic.*`` as a default in the *plugin Ids* field on the Pipeline Configuration for project-bound configurations. For **non-project-bound configurations**, the Pipeline Configuration will be ignored by the boostrap when *plugin Ids* is defined.
 
 
 Self contained configurations

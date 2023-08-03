@@ -11,12 +11,11 @@
 from __future__ import with_statement
 import os
 
-from mock import patch, call
-
 import tank
 from tank import context, errors
 from tank.util import is_windows
 from tank_test.tank_test_base import (
+    mock,
     TankTestBase,
     setUpModule,
     only_run_on_windows,
@@ -80,7 +79,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         Checks that if local storage is disabled that we raise a more user friendly error
         than a CRUD message.
         """
-        with patch.object(
+        with mock.patch.object(
             self.tk.shotgun,
             "create",
             side_effect=Exception("[Attachment.local_storage] does not exist"),
@@ -146,7 +145,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths(self, create_mock):
         """Tests the passing of urls via the path."""
 
@@ -181,7 +180,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         )
         self.assertEqual("pathcache" not in sg_dict, True)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths_host(self, create_mock):
         """Tests the passing of urls via the path."""
 
@@ -208,7 +207,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         )
         self.assertEqual("pathcache" not in sg_dict, True)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_local_storage_publish(self, create_mock):
         """
         Tests that we generate local file links when publishing to a known storage
@@ -242,7 +241,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertTrue("pathcache" not in sg_dict)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_freeform_publish(self, create_mock):
         """
         Tests that we generate url file:// links for freeform paths
@@ -338,10 +337,10 @@ class TestShotgunRegisterPublish(TankTestBase):
         def raise_value_error(*arg, **kwargs):
             raise ValueError("Failed")
 
-        with patch(
+        with mock.patch(
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_value_error,
-        ) as mock:
+        ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
 
                 publish_data = tank.util.register_publish(
@@ -373,10 +372,10 @@ class TestShotgunRegisterPublish(TankTestBase):
         def raise_io_error(*arg, **kwargs):
             open("/this/file/does/not/exist/or/we/are/very/unlucky.txt", "r")
 
-        with patch(
+        with mock.patch(
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_io_error,
-        ) as mock:
+        ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
 
                 publish_data = tank.util.register_publish(
@@ -438,7 +437,7 @@ class TestMultiRoot(TankTestBase):
         self.mockgun.server_caps = server_capsMock()
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
@@ -468,7 +467,7 @@ class TestMultiRoot(TankTestBase):
 
 
 class TestCalcPathCache(TankTestBase):
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_case_difference(self, get_local_storage_roots):
         """
         Case that root case is different between input path and that in roots file.
@@ -490,7 +489,7 @@ class TestCalcPathCache(TankTestBase):
         assert path_cache == expected
 
     @only_run_on_windows
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_win_drive_letter(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
@@ -515,7 +514,7 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("project_code/3d/Assets", path_cache)
 
     @only_run_on_windows
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_win_unc(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
@@ -538,7 +537,7 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("project_code/3d/Assets", path_cache)
 
     @only_run_on_nix
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_nix(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
@@ -561,7 +560,7 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("primary", root_name)
             self.assertEqual("project_code/3d/Assets", path_cache)
 
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_project_names_only_current_project(self, get_local_storage_roots):
         """
         Test _calc_path_cache with project_names as a single list containing the
@@ -590,7 +589,7 @@ class TestCalcPathCache(TankTestBase):
         assert root_name == "primary"
         assert path_cache == expected
 
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_project_names_multiple(self, get_local_storage_roots):
         """
         Test _calc_path_cache with project_names as a list of more than one.
@@ -658,7 +657,7 @@ class TestCalcPathCacheProjectWithSlash(TankTestBase):
             {"project_tank_name": "foo/bar"}
         )
 
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_multi_project_root(self, get_local_storage_roots):
         """
         Testing path cache calculations for project names with slashes

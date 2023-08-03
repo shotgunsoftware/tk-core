@@ -18,7 +18,7 @@ from __future__ import print_function
 import os
 import tempfile
 
-import unittest2
+import unittest
 from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
 
@@ -204,4 +204,4 @@ class BootstrapHookTests(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    ret_val = unittest.main(failfast=True, verbosity=2)

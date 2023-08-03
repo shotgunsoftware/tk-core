@@ -19,10 +19,12 @@ import shutil
 import contextlib
 import logging
 
-from mock import Mock, patch, call
-
-from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+    temp_env_var,
+)
 
 from tank import path_cache
 from tank import folder
@@ -129,7 +131,7 @@ class TestInit(TestPathCache):
             self.tk.pipeline_configuration.get_project_id(),
             self.tk.pipeline_configuration.get_shotgun_id(),
         )
-        with patch.object(
+        with mock.patch.object(
             self.tk.pipeline_configuration, "get_plugin_id", return_value="basic.maya"
         ):
             self.assertEqual(
@@ -139,7 +141,7 @@ class TestInit(TestPathCache):
                 ),
             )
 
-        with patch.object(
+        with mock.patch.object(
             self.tk.pipeline_configuration, "get_plugin_id", return_value=None
         ):
             self.assertEqual(
@@ -1128,11 +1130,11 @@ class TestPathCacheDelete(TankTestBase):
         add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
 
         # Wrap some methods in a mock so we can track their usage.
-        self._pc._do_full_sync = Mock(wraps=self._pc._do_full_sync)
-        self._pc._import_filesystem_location_entry = Mock(
+        self._pc._do_full_sync = mock.Mock(wraps=self._pc._do_full_sync)
+        self._pc._import_filesystem_location_entry = mock.Mock(
             wraps=self._pc._import_filesystem_location_entry
         )
-        self._pc._remove_filesystem_location_entities = Mock(
+        self._pc._remove_filesystem_location_entities = mock.Mock(
             wraps=self._pc._remove_filesystem_location_entities
         )
 
@@ -1432,7 +1434,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
         self.assertEqual(record_count, 3)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_full_shotgun_retrieval(self, find_mock):
         """
         Tests that _get_filesystem_location_entities creates expected query structures
@@ -1481,7 +1483,7 @@ class TestPathCacheBatchOperation(TankTestBase):
 
         self.assertEqual(entities, find_return_payload)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_batched_shotgun_retrieval(self, find_mock):
         """
         Tests that _get_filesystem_location_entities creates expected query structures
@@ -1519,7 +1521,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         expected_calls = []
         for x in range(8):
             expected_calls.append(
-                call(
+                mock.call(
                     "FilesystemLocation",
                     expected_ids[x],
                     [

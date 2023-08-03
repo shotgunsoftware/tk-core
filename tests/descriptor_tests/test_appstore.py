@@ -17,9 +17,11 @@ from __future__ import with_statement
 import os
 import json
 
-from mock import patch
-
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -43,15 +45,15 @@ class TestAppStoreLabels(ShotgunTestBase):
         super(TestAppStoreLabels, self).setUp()
 
         # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
-        self._get_app_store_key_from_shotgun_mock = patch(
+        self._get_app_store_key_from_shotgun_mock = mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__create_sg_app_store_connection",
             return_value=(self.mockgun, None),
         )
         self._get_app_store_key_from_shotgun_mock.start()
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_label_support(self, find_mock, find_one_mock):
         """
         Tests the label syntax and that it restricts versions correctly
@@ -323,8 +325,8 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         mock.reset_mock()
         self.assertEqual(mock.call_count, 0)
 
-    @patch("tank_vendor.shotgun_api3.Shotgun")
-    @patch("tank_vendor.six.moves.urllib.request.urlopen")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun")
+    @mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
     def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
         """
         Tests that we can prevent connection to the app store based on usage

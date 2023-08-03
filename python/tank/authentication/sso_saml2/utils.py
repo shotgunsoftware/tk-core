@@ -81,6 +81,11 @@ def _get_site_infos(url, http_proxy=None):
             # python-api v3.0.41
             sg.config.rpc_attempt_interval = 0
             infos = sg.info()
+
+            # Short term retro compatibility
+            if "unified_login_flow_enabled2" in infos and "unified_login_flow2_enabled" not in infos:
+                infos["unified_login_flow2_enabled"] = infos["unified_login_flow_enabled2"]
+
             INFOS_CACHE[url] = (time.time(), infos)
         else:
             get_logger().info("Infos for site '%s' found in cache", url)
@@ -114,6 +119,26 @@ def _get_user_authentication_method(url, http_proxy=None):
         user_authentication_method = infos["user_authentication_method"]
     return user_authentication_method
 
+
+def is_unified_login_flow2_enabled_on_site(url, http_proxy=None):
+    """
+    Check to see if the web site uses the unified login flow 2.
+
+    This setting appeared in the Shotgun 8.50 serie, being rarely disabled.
+
+    :param url:            Url of the site to query.
+    :param http_proxy:     HTTP proxy to use, if any.
+
+    :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
+    """
+    infos = _get_site_infos(url, http_proxy)
+    if "unified_login_flow2_enabled" in infos:
+        get_logger().debug("unified_login_flow2_enabled for {u}: {v}".format(
+            u = url,
+            v = infos["unified_login_flow2_enabled"],
+        ))
+        return infos["unified_login_flow2_enabled"]
+    return False
 
 # pylint: disable=invalid-name
 def is_unified_login_flow_enabled_on_site(url, http_proxy=None):

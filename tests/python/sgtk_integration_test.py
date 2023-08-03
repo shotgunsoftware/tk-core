@@ -22,9 +22,8 @@ import subprocess
 import threading
 import time
 import copy
-import random
 
-import unittest2
+import unittest
 
 import sgtk
 from sgtk.util import sgre as re
@@ -34,7 +33,7 @@ from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor import yaml
 
 
-class SgtkIntegrationTest(unittest2.TestCase):
+class SgtkIntegrationTest(unittest.TestCase):
     """
     Base class for integration tests. Each integration test should be invoke in its own subprocess.
 

@@ -9,9 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
-from mock import patch
 
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
+
 from tank_test.tank_test_base import setUpModule  # noqa
 
 
@@ -24,9 +27,9 @@ class ShotgunWrapperTests(ShotgunTestBase):
     Tests the user_impl module.
     """
 
-    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank.authentication.interactive_authentication.renew_session")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal(
         self, renew_session_mock, server_caps_mock, _call_rpc_mock
     ):
@@ -59,9 +62,9 @@ class ShotgunWrapperTests(ShotgunTestBase):
         self.assertEqual(_call_rpc_mock.call_count, 2)
         self.assertEqual(id(mocked_result), id(test_result))
 
-    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank.authentication.interactive_authentication.renew_session")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal_failure(
         self, renew_session_mock, server_caps_mock, _call_rpc_mock
     ):
@@ -90,10 +93,10 @@ class ShotgunWrapperTests(ShotgunTestBase):
         self.assertTrue(renew_session_mock.called)
         self.assertEqual(_call_rpc_mock.call_count, 1)
 
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank.authentication.interactive_authentication.renew_session")
-    @patch("tank.authentication.session_cache.get_session_data")
-    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank.authentication.interactive_authentication.renew_session")
+    @mock.patch("tank.authentication.session_cache.get_session_data")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     def test_successfull_session_cache_snooping(
         self,
         _call_rpc_mock,
@@ -138,10 +141,10 @@ class ShotgunWrapperTests(ShotgunTestBase):
         # We should have talked to the server twice.
         self.assertEqual(_call_rpc_mock.call_count, 2)
 
-    @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @patch("tank.authentication.interactive_authentication.renew_session")
-    @patch("tank.authentication.session_cache.get_session_data")
-    @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank.authentication.interactive_authentication.renew_session")
+    @mock.patch("tank.authentication.session_cache.get_session_data")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     def test_failed_session_cache_snooping(
         self,
         _call_rpc_mock,

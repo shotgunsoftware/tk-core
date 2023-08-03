@@ -18,9 +18,13 @@ from tank import TankError
 import copy
 import sys
 import datetime
-from mock import patch
-from tank_test.tank_test_base import ShotgunTestBase
+
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
+
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 from tank_vendor import six
 
@@ -1248,7 +1252,7 @@ class TestTimestampKey(ShotgunTestBase):
         with self.assertRaisesRegex(TankError, "Invalid type"):
             key.str_from_value(1)
 
-    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
+    @mock.patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")
     def test_now_default_value(self, _get_time_mock):
         """
         Makes sure that a default value is proprely generated when the now default
@@ -1261,7 +1265,7 @@ class TestTimestampKey(ShotgunTestBase):
         # Convert to a string and compare the result.
         self.assertEqual(key.str_from_value(None), self._datetime_string)
 
-    @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_utc_time")
+    @mock.patch("tank.templatekey.TimestampKey._TimestampKey__get_current_utc_time")
     def test_utc_now_default_value(self, _get_utc_time_mock):
         """
         Makes sure that a default value is proprely generated when the utc_now default

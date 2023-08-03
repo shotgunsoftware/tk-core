@@ -12,13 +12,16 @@ from __future__ import with_statement
 import os
 
 import sgtk
-from mock import patch, Mock
 
 from sgtk.bootstrap import ToolkitManager
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    TankTestBase,
+    temp_env_var,
+)
 
 
 class TestErrorHandling(ShotgunTestBase):
@@ -39,7 +42,10 @@ class TestErrorHandling(ShotgunTestBase):
 
 
 class TestFunctionality(ShotgunTestBase):
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user",
+        return_value=mock.Mock(),
+    )
     def test_pipeline_config_id_env_var(self, _):
         """
         Tests the SHOTGUN_PIPELINE_CONFIGURATION_ID being picked up at init
@@ -55,7 +61,9 @@ class TestFunctionality(ShotgunTestBase):
             mgr = ToolkitManager()
             self.assertEqual(mgr.pipeline_configuration, None)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_get_entity_from_environment(self, _):
         """
         Ensure the ToolkitManager can extract the entities from the environment
@@ -82,7 +90,9 @@ class TestFunctionality(ShotgunTestBase):
         with temp_env_var(SHOTGUN_ENTITY_TYPE="Shot", SHOTGUN_ENTITY_ID="invalid"):
             self.assertEqual(mgr.get_entity_from_environment(), None)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_shotgun_bundle_cache(self, _):
         """
         Ensures ToolkitManager deals property with bundle cache from the user and from
@@ -128,7 +138,9 @@ class TestFunctionality(ShotgunTestBase):
             set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
         )
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_serialization(self, _):
         """
         Ensures we're serializing the manager properly.
@@ -339,9 +351,9 @@ class TestGetPipelineConfigs(TankTestBase):
         config = configs[0]
         self.assertEqual(config["name"], "Doe Dev")
 
-    @patch(
+    @mock.patch(
         "tank.bootstrap.resolver.ConfigurationResolver._create_config_descriptor",
-        return_value=Mock(),
+        return_value=mock.Mock(),
     )
     def test_latest_tracking_descriptor(self, _):
         """
@@ -367,7 +379,7 @@ class TestGetPipelineConfigs(TankTestBase):
         configs = mgr.get_pipeline_configurations(self._project)
 
         config = configs[0]
-        self.assertTrue(isinstance(config["descriptor"], Mock))
+        self.assertTrue(isinstance(config["descriptor"], mock.Mock))
         self.assertEqual(
             config["descriptor_source_uri"],
             "sgtk:descriptor:app_store?name=tk-config-basic",

@@ -11,8 +11,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from mock import patch
-
 from tank.util.metrics import (
     MetricsQueueSingleton,
     MetricsDispatchWorkerThread,
@@ -25,14 +23,19 @@ from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
 
 import tank
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    TankTestBase,
+)
+
 from tank.authentication import ShotgunAuthenticator
 
 import os
 import json
 import time
 import threading
-import unittest2
+import unittest
 from tank_vendor import six
 from tank_vendor.six.moves import urllib
 
@@ -207,12 +210,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         tank.set_authenticated_user(None)
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
         # Avoids crash because we're not in a pipeline configuration.
-        self._get_api_core_config_location_mock = patch(
+        self._get_api_core_config_location_mock = mock.patch(
             "tank.util.shotgun.connection.__get_api_core_config_location",
             return_value="unused_path_location",
         )
@@ -220,7 +223,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.addCleanup(self._get_api_core_config_location_mock.stop)
 
         # Mocks app store script user credentials retrieval
-        self._get_app_store_key_from_shotgun_mock = patch(
+        self._get_app_store_key_from_shotgun_mock = mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
             return_value=("abc", "123"),
         )
@@ -231,7 +234,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch("tank_vendor.six.moves.urllib.request.urlopen")
+        self._urlopen_mock = mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -780,7 +783,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch(
+        self._urlopen_mock = mock.patch(
             "tank_vendor.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
@@ -844,7 +847,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch(
+        self._urlopen_mock = mock.patch(
             "tank_vendor.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
@@ -885,7 +888,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(avg_time_ms < max_interval)
 
 
-class TestMetricsQueueSingleton(unittest2.TestCase):
+class TestMetricsQueueSingleton(unittest.TestCase):
     """Cases testing tank.util.metrics.MetricsQueueSingleton class."""
 
     def test_singleton(self):
@@ -913,7 +916,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
         super(TestMetricsDeprecatedFunctions, self).setUp()
 
         # Setting up the mocked method
-        self._metrics_queue_singleton_log_mock = patch(
+        self._metrics_queue_singleton_log_mock = mock.patch(
             "tank.util.metrics.MetricsQueueSingleton.log"
         )
         self._mocked_method = self._metrics_queue_singleton_log_mock.start()
@@ -1091,7 +1094,7 @@ class TestBundleMetrics(TankTestBase):
     def _de_authenticate(self):
         tank.set_authenticated_user(None)
 
-    @patch("tank.util.metrics.MetricsDispatcher.start")
+    @mock.patch("tank.util.metrics.MetricsDispatcher.start")
     def test_bundle_metrics(self, patched_start):
         """
         Test metrics logged by bundles.
@@ -1203,7 +1206,7 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
 
-    @patch("urllib.open")
+    @mock.patch("urllib.open")
     def test_log_metrics_hook(self, patched):
         """
         Test the log_metric hook is fired when logging metrics
@@ -1225,7 +1228,7 @@ class TestBundleMetrics(TankTestBase):
             # Call the original hook
             return exec_core_hook(hook_name, hook_method, **kwargs)
 
-        with patch("tank.api.Sgtk.execute_core_hook_method") as mocked:
+        with mock.patch("tank.api.Sgtk.execute_core_hook_method") as mocked:
             mocked.side_effect = log_hook
             engine.log_metric("Hook test")
             # Make sure the dispatcher has some time to wake up
@@ -1242,14 +1245,14 @@ class TestBundleMetrics(TankTestBase):
 from tank.util.metrics import PlatformInfo
 
 
-class TestPlatformInfo(unittest2.TestCase):
+class TestPlatformInfo(unittest.TestCase):
     def setUp(self):
         super(TestPlatformInfo, self).setUp()
         # reset un-cache PlatformInfo cached value
         PlatformInfo._PlatformInfo__cached_platform_info = None
 
-    @patch("platform.system", return_value="Windows")
-    @patch("platform.release", return_value="XP")
+    @mock.patch("platform.system", return_value="Windows")
+    @mock.patch("platform.release", return_value="XP")
     def test_as_windows(self, mocked_release, mocked_system):
         """
         Tests as a Windows XP system
@@ -1261,8 +1264,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_release.called)
 
-    @patch("platform.system", return_value="Darwin")
-    @patch("platform.mac_ver", return_value=("10.7.5", ("", "", ""), "i386"))
+    @mock.patch("platform.system", return_value="Darwin")
+    @mock.patch("platform.mac_ver", return_value=("10.7.5", ("", "", ""), "i386"))
     def test_as_osx(self, mocked_mac_ver, mocked_system):
         """
         Tests as some OSX Lion system
@@ -1274,8 +1277,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_mac_ver.called)
 
-    @patch("platform.system", return_value="Linux")
-    @patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
+    @mock.patch("platform.system", return_value="Linux")
+    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
     def test_as_linux(self, mocked_system, mocked_linux_distribution):
         """
         Tests as a Linux Debian system
@@ -1287,8 +1290,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_linux_distribution.called)
 
-    @patch("platform.system", return_value="BSD")
-    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    @mock.patch("platform.system", return_value="BSD")
+    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
         """
         Tests a fake unsupported system
@@ -1301,8 +1304,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertFalse(mocked_linux_distribution.called)
 
-    @patch("platform.system", return_value="Linux")
-    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    @mock.patch("platform.system", return_value="Linux")
+    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_linux_without_distribution(
         self, mocked_linux_distribution, mocked_system
     ):
@@ -1316,8 +1319,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_linux_distribution.called)
 
-    @patch("platform.system", return_value="Darwin")
-    @patch("platform.mac_ver", side_effect=Exception)
+    @mock.patch("platform.system", return_value="Darwin")
+    @mock.patch("platform.mac_ver", side_effect=Exception)
     def test_as_mac_without_mac_version(self, mocked_mac_ver, mocked_system):
         """
         Tests handling of an exception caused by the 'mac_ver' method.
@@ -1329,8 +1332,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_mac_ver.called)
 
-    @patch("platform.system", return_value="Windows")
-    @patch("platform.release", side_effect=Exception)
+    @mock.patch("platform.system", return_value="Windows")
+    @mock.patch("platform.release", side_effect=Exception)
     def test_as_mac_without_release(self, mocked_release, mocked_system):
         """
         Tests handling of an exception caused by the 'release' method.
@@ -1342,8 +1345,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_release.called)
 
-    @patch("platform.system", side_effect=Exception)
-    @patch("platform.release", side_effect=Exception)
+    @mock.patch("platform.system", side_effect=Exception)
+    @mock.patch("platform.release", side_effect=Exception)
     def test_system(self, mocked_release, mocked_system):
         """
         Tests handling of an exception caused by the 'system' method.

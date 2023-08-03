@@ -12,7 +12,7 @@ import copy
 import os
 import time
 
-import unittest2
+import unittest
 import tank
 from tank import TankError
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
@@ -29,7 +29,7 @@ from tank.templatekey import (
 from tank_vendor.shotgun_api3.lib import sgsix
 
 
-class TestTemplate(unittest2.TestCase):
+class TestTemplate(unittest.TestCase):
     """Base class for tests of Template.
     Do no add tests to this class directly."""
 
@@ -284,7 +284,7 @@ class TestMissingKeys(TestTemplate):
         self.assertEqual(["Shot"], result)
 
 
-class TestSplitPath(unittest2.TestCase):
+class TestSplitPath(unittest.TestCase):
     def test_mixed_sep(self):
         "tests that split works with mixed seperators"
         input_path = r"hoken/poken\moken//doken"

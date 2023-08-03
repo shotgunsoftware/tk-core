@@ -11,13 +11,13 @@
 
 # Read pip and python location from the command-line or use defaults.
 if [ -z "$1" ]; then
-    export PIP=pip3.7
+    export PIP=pip3
 else
     export PIP=$1
 fi
 
 if [ -z "$2" ]; then
-    export PYTHON=python3.7
+    export PYTHON=python3
 else
     export PYTHON=$2
 fi
@@ -49,7 +49,6 @@ def main():
     try:
         for mod_name in [
             "mock",
-            "unittest2",
             "coverage",
         ]:
             mod_imported = importlib.import_module(mod_name)

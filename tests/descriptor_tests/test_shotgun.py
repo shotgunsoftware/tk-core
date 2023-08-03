@@ -11,8 +11,12 @@
 import os
 
 import sgtk
-from mock import patch
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
+
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 
 class TestShotgunIODescriptor(ShotgunTestBase):
@@ -165,7 +169,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         self.assertEqual(name_proj_desc.system_name, "p22_aaa111")
         self.assertEqual(name_proj_desc.version, "v123")
 
-    @patch("sgtk.util.shotgun.download_and_unpack_attachment")
+    @mock.patch("sgtk.util.shotgun.download_and_unpack_attachment")
     def test_resolve_id(self, _call_rpc_mock):
         """
         Test downloading shotgun descriptor based on id
@@ -198,7 +202,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         desc.ensure_local()
         self.assertEqual(desc.get_path(), expected_path)
 
-    @patch("sgtk.util.shotgun.download_and_unpack_attachment")
+    @mock.patch("sgtk.util.shotgun.download_and_unpack_attachment")
     def test_resolve_name_and_project(self, _call_rpc_mock):
         """
         Test downloading descriptor based on name
@@ -232,7 +236,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         desc.ensure_local()
         self.assertEqual(desc.get_path(), expected_path)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_id(self, find_mock):
         """
         Tests resolving the latest descriptor based on id
@@ -284,7 +288,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_name(self, find_mock):
         """
         Tests resolving the latest descriptor based on name
@@ -336,7 +340,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_name_and_proj(self, find_mock):
         """
         Tests resolving the latest descriptor based on name and project
@@ -398,7 +402,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_find_invalid_attachment(self, find_mock):
         """
         Tests resolving an attachment which doesn't have an uploaded attachment
@@ -438,7 +442,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         self.assertEqual(desc.version, "v0")
         self.assertRaises(sgtk.descriptor.TankDescriptorError, desc.find_latest_version)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_missing_record(self, find_mock):
         """
         Tests behavior when a shotgun record is missing

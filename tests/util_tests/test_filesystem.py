@@ -12,11 +12,14 @@ from __future__ import with_statement
 
 import os
 from tank.util import is_linux, is_macos, is_windows
-from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
+
 import tank.util.filesystem as fs
 
-from mock import patch
 import subprocess  # noqa
 import shutil
 import stat
@@ -203,7 +206,7 @@ class TestFileSystem(TankTestBase):
         self.assertTrue(
             os.path.exists(os.path.join(copy_test_dst_folder, copy_test_basename))
         )
-        self.assertEquals(fs.SKIP_LIST_DEFAULT, skip_list_copy)
+        self.assertEqual(fs.SKIP_LIST_DEFAULT, skip_list_copy)
 
         # Clean up this test
         fs.safe_delete_folder(copy_test_dst_folder)
@@ -220,7 +223,7 @@ class TestFileSystem(TankTestBase):
         self.assertTrue(
             os.path.exists(os.path.join(copy_test_dst_folder, copy_test_basename))
         )
-        self.assertEquals(skip_list, skip_list_copy)
+        self.assertEqual(skip_list, skip_list_copy)
 
         # Clean up everything
         fs.safe_delete_folder(copy_test_root_folder)
@@ -251,7 +254,7 @@ class TestOpenInFileBrowser(TankTestBase):
         self.assertRaises(ValueError, fs.open_file_browser, "bad_path")
         self.assertRaises(ValueError, fs.open_file_browser, "")
 
-    @patch("subprocess.call", return_value=0)
+    @mock.patch("subprocess.call", return_value=0)
     def test_folder(self, subprocess_mock):
         """
         Tests opening a folder
@@ -268,14 +271,14 @@ class TestOpenInFileBrowser(TankTestBase):
         elif is_windows():
             self.assertEqual(args[0], ["cmd.exe", "/C", "start", self.test_folder])
 
-    @patch("subprocess.call", return_value=1234)
+    @mock.patch("subprocess.call", return_value=1234)
     def test_failed_folder(self, _):
         """
         Test failing opening folder
         """
         self.assertRaises(RuntimeError, fs.open_file_browser, self.test_folder)
 
-    @patch("subprocess.call", return_value=0)
+    @mock.patch("subprocess.call", return_value=0)
     def test_file(self, subprocess_mock):
         """
         Tests opening a file
@@ -292,7 +295,7 @@ class TestOpenInFileBrowser(TankTestBase):
         elif is_windows():
             self.assertEqual(args[0], ["explorer", "/select,", self.test_file])
 
-    @patch("subprocess.call", return_value=1234)
+    @mock.patch("subprocess.call", return_value=1234)
     def test_failed_file(self, _):
         """
         Test failing opening folder on mac/linux
@@ -300,7 +303,7 @@ class TestOpenInFileBrowser(TankTestBase):
         if not is_windows():
             self.assertRaises(RuntimeError, fs.open_file_browser, self.test_file)
 
-    @patch("subprocess.call", return_value=0)
+    @mock.patch("subprocess.call", return_value=0)
     def test_sequence(self, subprocess_mock):
         """
         Tests opening a folder

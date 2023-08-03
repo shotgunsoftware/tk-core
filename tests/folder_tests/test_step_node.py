@@ -11,13 +11,15 @@
 import os
 import unittest
 import shutil
-from mock import Mock, patch
 import tank
 from tank_vendor import yaml
 from tank import TankError
 from tank import hook
 from tank import folder
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
 
@@ -444,7 +446,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
             self.FolderIOReceiverBackup
         )
 
-    @patch("tank.util.login.get_current_user")
+    @mock.patch("tank.util.login.get_current_user")
     def test_shot(self, get_current_user):
         """Tests paths used in making a shot are as expected."""
 
@@ -466,7 +468,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
 
         assert_paths_to_create(expected_paths)
 
-    @patch("tank.util.login.get_current_user")
+    @mock.patch("tank.util.login.get_current_user")
     def test_step_a(self, get_current_user):
         """Tests paths used in making a shot are as expected."""
 

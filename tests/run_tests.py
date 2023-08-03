@@ -45,7 +45,7 @@ test_python_path = os.path.join(test_python_path, "third_party")
 print("Adding tests/python/third_party location to python_path: %s" % test_python_path)
 sys.path = [test_python_path] + sys.path
 
-import unittest2 as unittest
+import unittest as unittest
 
 
 class TankTestRunner(object):
