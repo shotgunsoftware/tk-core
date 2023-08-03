@@ -24,8 +24,9 @@ class DefaultStorageRoot(Hook):
         Executes right after constructing a pipeline configuration during
         Toolkit initialization.
 
-        You can find example implementations in the tests/core_tests/test_api_data
-        folder which allow you to switch between storages if you have a different
+        You can find example implementations in the
+        tests/core_tests/test_default_storage_root_hook_data folder which
+        allow you to switch between storages if you have a different
         storage root per project.
 
         The default implementation does nothing.
