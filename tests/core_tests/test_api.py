@@ -10,8 +10,6 @@
 
 import os
 
-from unittest.mock import Mock, patch
-
 
 import tank
 from tank.api import Tank
@@ -19,6 +17,10 @@ from tank.template import TemplatePath, TemplateString
 from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
 from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 
 class TestInit(TankTestBase):
@@ -381,7 +383,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
             "{Shot}/{version}/filename.{seq_num}", keys, root_path=self.project_root
         )
 
-    @patch("tank.api.glob.iglob")
+    @mock.patch("tank.api.glob.iglob")
     def assert_glob(self, fields, expected_glob, skip_keys, mock_glob):
         # want to ensure that value returned from glob is returned
         expected = [os.path.join(self.project_root, "shot_1", "001", "filename.00001")]
@@ -514,7 +516,7 @@ class TestDefaultStorageRootHook(TankTestBase):
     def setUp(self):
         super(TestDefaultStorageRootHook, self).setUp()
 
-    @patch(
+    @mock.patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__), "test_api_data/example_storage_root_hook_1"
@@ -525,7 +527,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         Project-specific root is retrieved from custom ShotGrid project field.
         """
         self.tk.shotgun.create("LocalStorage", {"code": "project_specific_root"})
-        with patch.object(
+        with mock.patch.object(
             self.tk.shotgun,
             "find_one",
             return_value={
@@ -540,7 +542,7 @@ class TestDefaultStorageRootHook(TankTestBase):
                 "project_specific_root",
             )
 
-    @patch(
+    @mock.patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__), "test_api_data/example_storage_root_hook_1"
@@ -551,7 +553,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         Local storage assigned to project in custom field isn't defined.
         Fall back to global root.
         """
-        with patch.object(
+        with mock.patch.object(
             self.tk.shotgun,
             "find_one",
             return_value={
@@ -566,7 +568,7 @@ class TestDefaultStorageRootHook(TankTestBase):
                 self.primary_root_name,
             )
 
-    @patch(
+    @mock.patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__), "test_api_data/example_storage_root_hook_1"
@@ -582,7 +584,7 @@ class TestDefaultStorageRootHook(TankTestBase):
             self.primary_root_name,
         )
 
-    @patch(
+    @mock.patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__), "test_api_data/example_storage_root_hook_2"
@@ -592,7 +594,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         """
         Project-specific root is retrieved from environment variables.
         """
-        with patch.dict(
+        with mock.patch.dict(
             os.environ,
             {
                 "STORAGE_ROOT_"
@@ -607,7 +609,7 @@ class TestDefaultStorageRootHook(TankTestBase):
                 "project_specific_root",
             )
 
-    @patch(
+    @mock.patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__), "test_api_data/example_storage_root_hook_2"
