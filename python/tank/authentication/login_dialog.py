@@ -295,8 +295,6 @@ class LoginDialog(QtGui.QDialog):
         )
         menu.addAction(self.menu_action_legacy)
 
-        menu.addAction("Forgot your password?", self._link_activated)
-
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.stackedWidget.currentChanged.connect(self._current_page_changed)
@@ -589,7 +587,10 @@ class LoginDialog(QtGui.QDialog):
                 )
             )
 
-        self.ui.forgot_password_link.setVisible(not can_use_ulf2)
+        self.ui.forgot_password_link.setVisible(
+            method_selected == auth_constants.METHOD_BASIC
+        )
+
         self.ui.button_options.setVisible(can_use_ulf2)
         self.menu_action_ulf.setVisible(can_use_web)
         self.menu_action_legacy.setVisible(not can_use_web)
