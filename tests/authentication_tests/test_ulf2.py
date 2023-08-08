@@ -31,6 +31,7 @@ import json
 import logging
 import os
 import random
+import sys
 import threading
 
 
@@ -39,27 +40,23 @@ class ULF2Tests(ShotgunTestBase):
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product=None,
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product="my_app",
                 browser_open_callback=None,
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product="my_app",
                 browser_open_callback="Test",
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product="my_app",
                 browser_open_callback=lambda: True,
                 keep_waiting_callback=None,
             )
@@ -124,7 +121,6 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=url_opener,
                 http_proxy="{fqdn}:{port}".format(  # For code coverage
                     fqdn=self.httpd.server_address[0],
@@ -148,7 +144,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -212,7 +207,6 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             ),
             (self.api_url, "john", "to123", None),
@@ -224,7 +218,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -239,7 +232,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -256,7 +248,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -276,7 +267,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -291,7 +281,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -307,7 +296,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -324,7 +312,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -341,7 +328,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -358,7 +344,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -398,7 +383,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -418,7 +402,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: False,
             )
 
@@ -427,6 +410,7 @@ class ULF2APITests(ShotgunTestBase):
             "Unable to open local browser",
         )
 
+    @mock.patch.dict(os.environ)
     def test_param_product(self):
         def api_handler1(request):
             os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
@@ -440,10 +424,10 @@ class ULF2APITests(ShotgunTestBase):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
 
+        # Validate the default product name
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="app_2a37c59",
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,
             )
@@ -452,12 +436,80 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             os.environ["test_96272fea51"],
-            "app_2a37c59",
+            unified_login_flow2.PRODUCT_DEFAULT,
         )
 
         # Cleanup for next test
         del os.environ["test_96272fea51"]
 
+        # Validate the FLAME product name
+        os.environ["SHOTGUN_FLAME_CONFIGPATH"] = "/flame"
+        os.environ["SHOTGUN_FLAME_VERSION"] = "1.2.3"
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            "Flame 1.2.3",
+        )
+
+        # Cleanup for next test
+        del os.environ["test_96272fea51"]
+
+        # Validate ShotGrid Desktop
+        with mock.patch.object(
+            sys,
+            "argv",
+            [os.path.join("Applications", "ShotGun.exe")],
+        ), self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            unified_login_flow2.PRODUCT_DESKTOP,
+        )
+
+        # Cleanup for next test
+        del os.environ["test_96272fea51"]
+
+        # Validate Engine host info
+        class MyEngine:
+            host_info = {
+                "name": "desktop",
+                "version": "3.2.1",
+            }
+
+        with mock.patch(
+            "tank.platform.current_engine", MyEngine,
+        ), self.assertRaises(
+            unified_login_flow2.AuthenticationError,
+        ) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            "ShotGrid Desktop 3.2.1",
+        )
+
+        # Validate the TK_AUTH_PRODUCT environment variable
         os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
 
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
@@ -498,7 +550,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=url_opener,
             )
 
@@ -524,7 +575,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
@@ -538,7 +588,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
