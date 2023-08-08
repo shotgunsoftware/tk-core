@@ -21,7 +21,7 @@ omit=
     *tank/platform/qt5/*
     # Hard to test The following class as it is really implement a network protocol
     # Not impossible but not a priority
-    *tank/authentication/unified_login_flow2/*
+    *tank/authentication/unified_login_flow2.py
 
 
 [paths]

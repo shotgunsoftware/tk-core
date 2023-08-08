@@ -631,8 +631,7 @@ class InteractiveTests(ShotgunTestBase):
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is lcegacy credentials
-            self.assertFalse(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
         # Then Web login
         with mock.patch(
@@ -643,8 +642,7 @@ class InteractiveTests(ShotgunTestBase):
             },
         ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
             # Ensure current method set is web login
-            self.assertTrue(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
         # Then Web login but env override
         with mock.patch("os.environ.get", return_value="1"), mock.patch(
@@ -655,8 +653,7 @@ class InteractiveTests(ShotgunTestBase):
             },
         ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
             # Ensure current method set is web login
-            self.assertFalse(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
     @suppress_generated_code_qt_warnings
     @mock.patch(
@@ -786,8 +783,7 @@ class InteractiveTests(ShotgunTestBase):
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is web login
-            self.assertTrue(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
             # Trigger Sign-In
             ld._ok_pressed()
@@ -808,7 +804,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=True,
     )
     @mock.patch(
-        "tank.authentication.unified_login_flow2.authentication.process",
+        "tank.authentication.unified_login_flow2.process",
         return_value=(
             "https://host.shotgunstudio.com",
             "user_login",
@@ -849,15 +845,13 @@ class InteractiveTests(ShotgunTestBase):
             self.assertTrue(ld.menu_action_ulf2.isVisible())
 
             # Ensure current method set is ufl2
-            self.assertFalse(ld._use_web)
-            self.assertTrue(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
 
             # Trigger login credentials
             ld._menu_activated_action_login_creds()
 
             # Ensure current method set is lcegacy credentials
-            self.assertFalse(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
             # Trigger ULF2 again
             ld._menu_activated_action_ulf2()
@@ -918,8 +912,7 @@ class InteractiveTests(ShotgunTestBase):
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is lcegacy credentials
-            self.assertFalse(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
         # Then Web login vs ULF2
         with mock.patch(
@@ -935,15 +928,13 @@ class InteractiveTests(ShotgunTestBase):
             self.assertTrue(ld.menu_action_ulf2.isVisible())
 
             # Ensure current method set is ufl2
-            self.assertFalse(ld._use_web)
-            self.assertTrue(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
 
             # Select web login method
             ld._menu_activated_action_web_legacy()
 
             # Ensure current method set is web login
-            self.assertTrue(ld._use_web)
-            self.assertFalse(ld._use_local_browser)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
             # Trigger ULF2 again
             ld._menu_activated_action_ulf2()
@@ -1030,7 +1021,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.authentication.process",
+            "tank.authentication.unified_login_flow2.process",
             return_value=("https://site4.shotgunstudio.com", "ULF2!", None, None),
         ):
             self.assertEqual(
@@ -1052,7 +1043,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.authentication.process",
+            "tank.authentication.unified_login_flow2.process",
             return_value="ULF2 result 9867",
         ):
             self.assertEqual(
@@ -1070,7 +1061,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.authentication.process",
+            "tank.authentication.unified_login_flow2.process",
             return_value=None,  # Simulate an authentication error
         ):
             with self.assertRaises(errors.AuthenticationError):

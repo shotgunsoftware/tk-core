@@ -16,10 +16,10 @@ import time
 from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
-from .. import errors
-from ...util.shotgun import connection
+from . import errors
+from ..util.shotgun import connection
 
-from ... import LogManager
+from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
