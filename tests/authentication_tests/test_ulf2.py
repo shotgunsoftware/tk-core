@@ -39,27 +39,23 @@ class ULF2Tests(ShotgunTestBase):
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product=None,
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product="my_app",
                 browser_open_callback=None,
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product="my_app",
                 browser_open_callback="Test",
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                product="my_app",
                 browser_open_callback=lambda: True,
                 keep_waiting_callback=None,
             )
@@ -121,7 +117,6 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=url_opener,
                 http_proxy="{fqdn}:{port}".format(  # For code coverage
                     fqdn=self.httpd.server_address[0],
@@ -145,7 +140,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -208,7 +202,6 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             ),
             (self.api_url, "john", "to123", None),
@@ -220,7 +213,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -235,7 +227,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -252,7 +243,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -272,7 +262,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -287,7 +276,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -303,7 +291,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -320,7 +307,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -337,7 +323,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -354,7 +339,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -372,7 +356,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
             )
 
@@ -389,7 +372,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: False,
             )
 
@@ -409,7 +391,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="app_2a37c59",
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,
             )
@@ -418,15 +399,16 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             os.environ["test_96272fea51"],
-            "app_2a37c59",
+            unified_login_flow2.PRODUCT_DEFAULT,
         )
 
         # Cleanup for next test
         del os.environ["test_96272fea51"]
 
-        os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
-
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+        with mock.patch.dict(
+            os.environ,
+            {"TK_AUTH_PRODUCT": "software_8b1a7bd"},
+        ), self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 browser_open_callback=lambda url: True,
@@ -461,7 +443,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=url_opener,
             )
 
@@ -487,7 +468,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
@@ -501,7 +481,6 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                product="my_app",
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
