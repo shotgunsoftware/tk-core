@@ -26,14 +26,11 @@ class TestDefaultStorageRootHook(TankTestBase):
     which sets the default root to a project-specific root.
     """
 
-    def setUp(self):
-        super(TestDefaultStorageRootHook, self).setUp()
-
     @mock.patch(
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__),
-            "test_default_storage_root_hook_data/example_storage_root_hook_1",
+            "test_default_storage_root_hook/example1",
         ),
     )
     def test_roots_with_custom_project_field(self, *mocks):
@@ -60,7 +57,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__),
-            "test_default_storage_root_hook_data/example_storage_root_hook_1",
+            "test_default_storage_root_hook/example1",
         ),
     )
     def test_roots_with_invalid_storage_in_project_field(self, *mocks):
@@ -87,7 +84,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__),
-            "test_default_storage_root_hook_data/example_storage_root_hook_1",
+            "test_default_storage_root_hook/example1",
         ),
     )
     def test_roots_with_no_custom_project_field(self, *mocks):
@@ -104,7 +101,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__),
-            "test_default_storage_root_hook_data/example_storage_root_hook_2",
+            "test_default_storage_root_hook/example2",
         ),
     )
     def test_roots_with_environment_variable(self, *mocks):
@@ -130,7 +127,7 @@ class TestDefaultStorageRootHook(TankTestBase):
         "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
         return_value=os.path.join(
             os.path.dirname(__file__),
-            "test_default_storage_root_hook_data/example_storage_root_hook_2",
+            "test_default_storage_root_hook/example2",
         ),
     )
     def test_roots_with_no_environment_variable(self, *mocks):
