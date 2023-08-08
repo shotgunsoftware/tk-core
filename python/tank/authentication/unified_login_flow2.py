@@ -11,8 +11,10 @@
 import json
 import os
 import platform
+import random
 import time
 
+import tank
 from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
@@ -22,6 +24,14 @@ from ..util.shotgun import connection
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
+
+
+class AuthenticationError(errors.AuthenticationError):
+    def __init__(self, msg, ulf2_errno=None, payload=None, parent_exception=None):
+        errors.AuthenticationError.__init__(self, msg)
+        self.ulf2_errno = ulf2_errno
+        self.payload = payload
+        self.parent_exception = parent_exception
 
 
 def process(
@@ -36,6 +46,8 @@ def process(
     if not product and "TK_AUTH_PRODUCT" in os.environ:
         product = os.environ["TK_AUTH_PRODUCT"]
 
+    logger.debug("Trigger Authentication on {url}".format(url=sg_url))
+
     assert product
     assert callable(browser_open_callback)
     assert callable(keep_waiting_callback)
@@ -43,17 +55,19 @@ def process(
     url_handlers = [urllib.request.HTTPHandler]
     if http_proxy:
         proxy_addr = _build_proxy_addr(http_proxy)
-        sg_url = urllib.parse.urlparse(sg_url)
+        sg_url_parsed = urllib.parse.urlparse(sg_url)
 
         url_handlers.append(
             urllib.request.ProxyHandler(
                 {
-                    sg_url.scheme: proxy_addr,
+                    sg_url_parsed.scheme: proxy_addr,
                 }
             )
         )
 
     url_opener = urllib.request.build_opener(*url_handlers)
+
+    user_agent = build_user_agent().encode(errors="ignore")
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
@@ -64,28 +78,72 @@ def process(
                 "machineId": platform.node(),
             }
         ).encode(),
+        headers={
+            "User-Agent": user_agent,
+        },
     )
 
     # Hook for Python 2
     request.get_method = lambda: "POST"
 
-    try:
-        response = http_request(url_opener, request)
-        if response.code != http_client.OK:
-            raise errors.AuthenticationError("Request denied", response.json)
+    response = http_request(url_opener, request)
+    logger.debug(
+        "Initial network request returned HTTP code {code}".format(
+            code=response.code,
+        )
+    )
 
-        session_id = response.json["sessionRequestId"]
-    except KeyError:
-        raise errors.AuthenticationError(
-            "Proto error - invalid response data - no sessionRequestId key"
+    response_code_major = response.code // 100
+    if response_code_major == 5:
+        raise AuthenticationError(
+            "Unable to establish a stable communication with the ShotGrid site",
+            payload=getattr(response, "json", response),
+            parent_exception=getattr(response, "exception", None),
         )
 
+    elif response_code_major == 4:
+        if response.code == http_client.FORBIDDEN and hasattr(response, "json"):
+            logger.debug(
+                "HTTP response Forbidden: {data}".format(data=response.json),
+                exc_info=getattr(response, "exception", None),
+            )
+            raise AuthenticationError(
+                "Unable to create an authentication request. The feature does "
+                "not seem to be enabled on the ShotGrid site",
+                parent_exception=getattr(response, "exception", None),
+                payload=response.json,
+            )
+
+        raise AuthenticationError(
+            "Unable to create an authentication request",
+            parent_exception=response.exception,
+        )
+
+    elif response.code != http_client.OK:
+        raise AuthenticationError(
+            "Unexpected response from the ShotGrid site",
+            payload=getattr(response, "json", response),
+            parent_exception=getattr(response, "exception", None),
+        )
+
+    elif not isinstance(getattr(response, "json", None), dict):
+        logger.error(
+            "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+        )
+        raise AuthenticationError("Unexpected response from the ShotGrid site")
+
+    session_id = response.json.get("sessionRequestId")
     if not session_id:
-        raise errors.AuthenticationError("Proto error - token is empty")
+        logger.error(
+            "Unexpected response from the ShotGrid site. Expecting a sessionRequestId item"
+        )
+        raise AuthenticationError("Unexpected response from the ShotGrid site")
 
-    logger.debug("session ID: {session_id}".format(session_id=session_id))
+    logger.debug(
+        "Authentication Request ID: {session_id}".format(session_id=session_id)
+    )
 
-    browser_url = response.json.get("url", None)
+    browser_url = response.json.get("url")
     if not browser_url:
         # Retro compatibility with ShotGrid versions <v8.53.0.1993
         browser_url = urllib.parse.urljoin(
@@ -95,75 +153,104 @@ def process(
             ),
         )
 
-    try:
-        ret = browser_open_callback(browser_url)
-        if not ret:
-            raise errors.AuthenticationError("Unable to open local browser")
+    ret = browser_open_callback(browser_url)
+    if not ret:
+        raise AuthenticationError("Unable to open local browser")
 
-        logger.debug("awaiting browser login...")
+    logger.debug("Awaiting request approval from the browser...")
 
-        sleep_time = 2
-        request_timeout = 180  # 5 minutes
-        request = urllib.request.Request(
-            urllib.parse.urljoin(
-                sg_url,
-                "/internal_api/app_session_request/{session_id}".format(
-                    session_id=session_id,
-                ),
+    sleep_time = 2
+    request_timeout = 180  # 5 minutes
+    request = urllib.request.Request(
+        urllib.parse.urljoin(
+            sg_url,
+            "/internal_api/app_session_request/{session_id}".format(
+                session_id=session_id,
             ),
-            # method="PUT",
-        )
+        ),
+        # method="PUT", # see bellow
+        headers={
+            "User-Agent": user_agent,
+        },
+    )
 
-        # Hook for Python 2
-        request.get_method = lambda: "PUT"
+    # Hook for Python 2
+    request.get_method = lambda: "PUT"
 
-        t0 = time.time()
-        while keep_waiting_callback() and time.time() - t0 < request_timeout:
-            response = http_request(url_opener, request)
-            if response.code == http_client.NOT_FOUND:
-                raise errors.AuthenticationError(
-                    "Request has maybe expired or proto error",
-                    response.json,
-                )
+    approved = False
+    t0 = time.time()
+    while (
+        approved is False
+        and keep_waiting_callback()
+        and time.time() - t0 < request_timeout
+    ):
+        time.sleep(sleep_time)
 
-            if "approved" not in response.json or not response.json["approved"]:
-                time.sleep(sleep_time)
-                continue
+        response = http_request(url_opener, request)
 
-            break
-    finally:
-        # Delete the request (be a nice bot and clean up your own mess)
-        try:
-            url_opener.open(
-                urllib.request.Request(
-                    urllib.parse.urljoin(
-                        sg_url,
-                        "/internal_api/app_session_request/{session_id}".format(
-                            session_id=session_id,
-                        ),
-                    ),
-                    # method="DELETE",
-                )
+        response_code_major = response.code // 100
+        if response_code_major == 5:
+            logger.debug(
+                "HTTP response {code}: {data}".format(
+                    code=response.code,
+                    data=getattr(response, "json", response),
+                ),
+                exc_info=getattr(response, "exception", None),
             )
 
-            # Hook for Python 2
-            request.get_method = lambda: "DELETE"
-        except urllib.error.URLError:
-            pass
+            raise AuthenticationError(
+                "Unable to establish a stable communication with the ShotGrid site",
+                payload=getattr(response, "json", response),
+                parent_exception=getattr(response, "exception", None),
+            )
 
-    if "approved" not in response.json:
-        raise errors.AuthenticationError("Never approved")
-    elif not response.json["approved"]:
-        raise errors.AuthenticationError("Rejected")
+        elif response_code_major == 4:
+            logger.debug(
+                "HTTP response {code}: {data}".format(
+                    code=response.code,
+                    data=getattr(response, "json", response),
+                ),
+                exc_info=getattr(response, "exception", None),
+            )
+
+            if response.code == http_client.NOT_FOUND and hasattr(response, "json"):
+                raise AuthenticationError(
+                    "The request has been rejected or has expired."
+                )
+
+            raise AuthenticationError(
+                "Unexpected response from the ShotGrid site",
+                parent_exception=getattr(response, "exception", None),
+            )
+
+        elif response.code != http_client.OK:
+            raise AuthenticationError(
+                "Request denied",
+                payload=getattr(response, "json", response),
+                parent_exception=getattr(response, "exception", None),
+            )
+
+        elif not isinstance(getattr(response, "json", None), dict):
+            logger.error(
+                "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+            )
+            raise AuthenticationError("Unexpected response from the ShotGrid site")
+
+        approved = response.json.get("approved", False)
+
+    if not approved:
+        raise AuthenticationError("The request has never been approved")
 
     logger.debug("Request approved")
     try:
         assert response.json["sessionToken"]
         assert response.json["userLogin"]
-    except KeyError:
-        raise errors.AuthenticationError("proto error")
-    except AssertionError:
-        raise errors.AuthenticationError("proto error, empty token")
+    except (KeyError, AssertionError):
+        logger.debug(
+            "Unexpected response from the ShotGrid site",
+            exc_info=True,
+        )
+        raise AuthenticationError("Unexpected response from the ShotGrid site")
 
     logger.debug("Session token: {sessionToken}".format(**response.json))
 
@@ -183,40 +270,75 @@ def _get_content_type(headers):
         return headers.get_content_type()
 
 
-def http_request(opener, req):
-    try:
-        response = opener.open(req)
-        assert _get_content_type(response.headers) == "application/json"
-    except urllib.error.HTTPError as exc:
-        if _get_content_type(exc.headers) != "application/json":
-            raise errors.AuthenticationError(
-                "Unexpected response from {url}".format(url=exc.url),
-                exc,
+def http_request(opener, req, max_attempts=4):
+    attempt = 0
+    backoff = 0.75  # Seconds to wait before retry, times the attempt number
+
+    response = None
+    while response is None and attempt < max_attempts:
+        if attempt:
+            time.sleep(float(attempt) * backoff * random.uniform(1, 3))
+
+        attempt += 1
+        try:
+            response = opener.open(req)
+        except urllib.error.HTTPError as exc:
+            if attempt < max_attempts and exc.code // 100 == 5:
+                logger.debug(
+                    "HTTP request returned a {code} code on attempt {attempt}/{max_attempts}".format(
+                        attempt=attempt,
+                        code=exc.code,
+                        max_attempts=max_attempts,
+                    ),
+                    exc_info=exc,
+                )
+                continue
+
+            response = exc.fp
+            response.exception = exc
+
+        except urllib.error.URLError as exc:
+            if attempt < max_attempts and isinstance(exc.reason, ConnectionError):
+                logger.debug(
+                    "HTTP request failed to reach the server on attempt {attempt}/{max_attempts}".format(
+                        attempt=attempt,
+                        max_attempts=max_attempts,
+                    ),
+                    exc_info=exc,
+                )
+                continue
+
+            raise AuthenticationError(
+                "Unable to communicate with the SG site",
+                parent_exception=exc,
             )
 
-        response = exc.fp
-    except urllib.error.URLError as exc:
-        raise errors.AuthenticationError(exc.reason, exc)
+        except ConnectionError as exc:
+            if attempt < max_attempts:
+                logger.debug(
+                    "HTTP request failed to reach the server on attempt {attempt}/{max_attempts}".format(
+                        attempt=attempt,
+                        max_attempts=max_attempts,
+                    ),
+                    exc_info=exc,
+                )
+                continue
 
-    if response.code == http_client.FORBIDDEN:
-        logger.error("response: {resp}".format(resp=response.read()))
-        raise errors.AuthenticationError(
-            "Proto error - invalid response data - not JSON"
-        )
+            raise AuthenticationError(
+                "Unable to communicate with the SG site",
+                parent_exception=exc,
+            )
 
-    if response.code == http_client.NOT_FOUND:
-        logger.error("response: {resp}".format(resp=response.read()))
-        raise errors.AuthenticationError("Authentication denied")
+    if _get_content_type(response.headers) == "application/json":
+        try:
+            response.json = json.load(response)
+        except json.JSONDecodeError as exc:
+            # ideally, we want a warning here. Not an excetpion
+            raise AuthenticationError(
+                "Unable to decode JSON content",
+                parent_exception=exc,
+            )
 
-    try:
-        data = json.load(response)
-        assert isinstance(data, dict)
-    except json.JSONDecodeError:
-        raise errors.AuthenticationError(
-            "Proto error - invalid response data - not JSON"
-        )
-
-    response.json = data
     return response
 
 
@@ -224,6 +346,9 @@ def _build_proxy_addr(http_proxy):
     # Expected format: foo:bar@123.456.789.012:3456
 
     proxy_port = 8080
+
+    proxy_user = None
+    proxy_pass = None
 
     # check if we're using authentication. Start from the end since
     # there might be @ in the user's password.
@@ -266,6 +391,15 @@ def _build_proxy_addr(http_proxy):
     )
 
 
+def build_user_agent():
+    return "tk-core/{tank_ver} {py_impl}/{py_ver} ({platform})".format(
+        platform=platform.platform(),
+        py_impl=platform.python_implementation(),
+        py_ver=platform.python_version(),
+        tank_ver=tank.__version__,
+    )
+
+
 if __name__ == "__main__":
     import argparse
     import sys
@@ -277,6 +411,7 @@ if __name__ == "__main__":
 
     result = process(
         args.sg_url,
+        product="Test Script",
         browser_open_callback=lambda u: webbrowser.open(u),
     )
     if not result:

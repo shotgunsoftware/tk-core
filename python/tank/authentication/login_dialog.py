@@ -918,7 +918,14 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
         if self._ulf2_task.exception:
-            self._set_error_message(self.ui.message, self._ulf2_task.exception)
+            self._set_error_message(
+                self.ui.message,
+                "Authentication error - %s" % self._ulf2_task.exception,
+            )
+            logger.debug(
+                "ULF2 authentication issue",
+                exc_info=self._ulf2_task.exception,
+            )
             self._ulf2_task = None
             return
 
