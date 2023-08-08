@@ -24,6 +24,9 @@ class DefaultStorageRoot(Hook):
         Custom implementation sets default root to project-specific storage root stored
         in a custom project field on ShotGrid site called "Storage Root Name"
         """
+        if not project_id:
+            return
+
         # query project-specific storage root's name
         sg_data = self.parent.shotgun.find_one(
             "Project",
