@@ -84,15 +84,19 @@ def process(
         raise errors.AuthenticationError("Proto error - token is empty")
 
     logger.debug("session ID: {session_id}".format(session_id=session_id))
-    try:
-        ret = browser_open_callback(
-            urllib.parse.urljoin(
-                sg_url,
-                "/app_session_request/{session_id}".format(
-                    session_id=session_id,
-                ),
+
+    browser_url = response.json.get("url", None)
+    if not browser_url:
+        # Retro compatibility with ShotGrid versions <v8.53.0.1993
+        browser_url = urllib.parse.urljoin(
+            sg_url,
+            "/app_session_request/{session_id}".format(
+                session_id=session_id,
             ),
         )
+
+    try:
+        ret = browser_open_callback(browser_url)
         if not ret:
             raise errors.AuthenticationError("Unable to open local browser")
 

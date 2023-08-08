@@ -82,8 +82,8 @@ def _get_site_infos(url, http_proxy=None):
             sg.config.rpc_attempt_interval = 0
             infos = sg.info()
 
-            # Short term retro compatibility
             if "unified_login_flow_enabled2" in infos and "unified_login_flow2_enabled" not in infos:
+                # Retro compatibility with ShotGrid versions < 8.51.0.1628
                 infos["unified_login_flow2_enabled"] = infos["unified_login_flow_enabled2"]
 
             INFOS_CACHE[url] = (time.time(), infos)
