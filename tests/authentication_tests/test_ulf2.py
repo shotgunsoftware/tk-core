@@ -381,46 +381,51 @@ class ULF2APITests(ShotgunTestBase):
         )
 
     def test_param_product(self):
-        def api_handler1(request):
-            os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
-            return {"json": {"sessionRequestId": "a1b2c3"}}
+        try:
+            def api_handler1(request):
+                os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
+                return {"json": {"sessionRequestId": "a1b2c3"}}
 
-        # Install a proper POST request handler
-        self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
+            # Install a proper POST request handler
+            self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
-                self.api_url,
-                browser_open_callback=lambda url: True,
-                keep_waiting_callback=lambda: False,
+            with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+                unified_login_flow2.process(
+                    self.api_url,
+                    browser_open_callback=lambda url: True,
+                    keep_waiting_callback=lambda: False,
+                )
+
+            self.assertEqual(cm.exception.args[0], "The request has never been approved")
+
+            self.assertEqual(
+                os.environ["test_96272fea51"],
+                unified_login_flow2.PRODUCT_DEFAULT,
             )
 
-        self.assertEqual(cm.exception.args[0], "The request has never been approved")
+            # Cleanup for next test
+            del os.environ["test_96272fea51"]
 
-        self.assertEqual(
-            os.environ["test_96272fea51"],
-            unified_login_flow2.PRODUCT_DEFAULT,
-        )
+            os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
+            try:
+                with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+                    unified_login_flow2.process(
+                        self.api_url,
+                        browser_open_callback=lambda url: True,
+                        keep_waiting_callback=lambda: False,
+                    )
+            finally:
+                del os.environ["TK_AUTH_PRODUCT"]
 
-        # Cleanup for next test
-        del os.environ["test_96272fea51"]
+            self.assertEqual(cm.exception.args[0], "The request has never been approved")
 
-        with mock.patch.dict(
-            os.environ,
-            {"TK_AUTH_PRODUCT": "software_8b1a7bd"},
-        ), self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
-                self.api_url,
-                browser_open_callback=lambda url: True,
-                keep_waiting_callback=lambda: False,
+            self.assertEqual(
+                os.environ["test_96272fea51"],
+                "software_8b1a7bd",
             )
-
-        self.assertEqual(cm.exception.args[0], "The request has never been approved")
-
-        self.assertEqual(
-            os.environ["test_96272fea51"],
-            "software_8b1a7bd",
-        )
+        finally:
+            if "test_96272fea51" in os.environ:
+                del os.environ["test_96272fea51"]
 
     @mock.patch("time.sleep")
     def test_put_request(self, *mocks):
