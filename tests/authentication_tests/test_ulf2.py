@@ -31,6 +31,7 @@ import json
 import logging
 import os
 import random
+import sys
 import threading
 
 
@@ -380,52 +381,126 @@ class ULF2APITests(ShotgunTestBase):
             "Unable to open local browser",
         )
 
+    @mock.patch.dict(os.environ)
     def test_param_product(self):
-        try:
-            def api_handler1(request):
-                os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
-                return {"json": {"sessionRequestId": "a1b2c3"}}
+        def api_handler1(request):
+            os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
+            return {"json": {"sessionRequestId": "a1b2c3"}}
 
-            # Install a proper POST request handler
-            self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
+        # Install a proper POST request handler
+        self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
 
-            with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-                unified_login_flow2.process(
-                    self.api_url,
-                    browser_open_callback=lambda url: True,
-                    keep_waiting_callback=lambda: False,
-                )
-
-            self.assertEqual(cm.exception.args[0], "The request has never been approved")
-
-            self.assertEqual(
-                os.environ["test_96272fea51"],
-                unified_login_flow2.PRODUCT_DEFAULT,
+        # Validate the default product name
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
             )
 
-            # Cleanup for next test
-            del os.environ["test_96272fea51"]
+        self.assertEqual(
+            cm.exception.args[0], "The request has never been approved"
+        )
 
-            os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
-            try:
-                with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-                    unified_login_flow2.process(
-                        self.api_url,
-                        browser_open_callback=lambda url: True,
-                        keep_waiting_callback=lambda: False,
-                    )
-            finally:
-                del os.environ["TK_AUTH_PRODUCT"]
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            unified_login_flow2.PRODUCT_DEFAULT,
+        )
 
-            self.assertEqual(cm.exception.args[0], "The request has never been approved")
+        # Cleanup for next test
+        del os.environ["test_96272fea51"]
 
-            self.assertEqual(
-                os.environ["test_96272fea51"],
-                "software_8b1a7bd",
+        # Validate the FLAME product name
+        os.environ["SHOTGUN_FLAME_CONFIGPATH"] = "/flame"
+        os.environ["SHOTGUN_FLAME_VERSION"] = "1.2.3"
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
             )
-        finally:
-            if "test_96272fea51" in os.environ:
-                del os.environ["test_96272fea51"]
+
+        self.assertEqual(
+            cm.exception.args[0], "The request has never been approved"
+        )
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            "Flame 1.2.3",
+        )
+
+        # Cleanup for next test
+        del os.environ["test_96272fea51"]
+
+        # Validate ShotGrid Desktop
+        with mock.patch.object(
+            sys, "argv", [os.path.join("Applications", "ShotGun.exe")],
+        ), self.assertRaises(
+            unified_login_flow2.AuthenticationError
+        ) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "The request has never been approved"
+        )
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            unified_login_flow2.PRODUCT_DESKTOP,
+        )
+
+        # Cleanup for next test
+        del os.environ["test_96272fea51"]
+
+        # Validate Engine host info
+        class MyEngine:
+            host_info = {
+                "name": "desktop",
+                "version": "3.2.1",
+            }
+
+        with mock.patch(
+            "tank.platform.current_engine", MyEngine,
+        ), self.assertRaises(
+            unified_login_flow2.AuthenticationError,
+        ) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "The request has never been approved"
+        )
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            "ShotGrid Desktop 3.2.1",
+        )
+
+        # Validate the TK_AUTH_PRODUCT environment variable
+        os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
+
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                browser_open_callback=lambda url: True,
+                keep_waiting_callback=lambda: False,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0], "The request has never been approved"
+        )
+
+        self.assertEqual(
+            os.environ["test_96272fea51"],
+            "software_8b1a7bd",
+        )
 
     @mock.patch("time.sleep")
     def test_put_request(self, *mocks):
