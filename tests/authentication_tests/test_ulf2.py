@@ -457,7 +457,9 @@ class ULF2APITests(ShotgunTestBase):
                 "version": "3.2.1",
             }
 
-        with mock.patch("tank.platform.current_engine", MyEngine,), self.assertRaises(
+        with mock.patch(
+            "tank.platform.current_engine", MyEngine,
+        ), self.assertRaises(
             unified_login_flow2.AuthenticationError,
         ) as cm:
             unified_login_flow2.process(
