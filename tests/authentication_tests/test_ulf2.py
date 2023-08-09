@@ -398,9 +398,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "The request has never been approved"
-        )
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
@@ -420,9 +418,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "The request has never been approved"
-        )
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
@@ -434,19 +430,17 @@ class ULF2APITests(ShotgunTestBase):
 
         # Validate ShotGrid Desktop
         with mock.patch.object(
-            sys, "argv", [os.path.join("Applications", "ShotGun.exe")],
-        ), self.assertRaises(
-            unified_login_flow2.AuthenticationError
-        ) as cm:
+            sys,
+            "argv",
+            [os.path.join("Applications", "ShotGun.exe")],
+        ), self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
                 browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "The request has never been approved"
-        )
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
@@ -463,9 +457,7 @@ class ULF2APITests(ShotgunTestBase):
                 "version": "3.2.1",
             }
 
-        with mock.patch(
-            "tank.platform.current_engine", MyEngine,
-        ), self.assertRaises(
+        with mock.patch("tank.platform.current_engine", MyEngine,), self.assertRaises(
             unified_login_flow2.AuthenticationError,
         ) as cm:
             unified_login_flow2.process(
@@ -474,9 +466,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "The request has never been approved"
-        )
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
@@ -493,9 +483,7 @@ class ULF2APITests(ShotgunTestBase):
                 keep_waiting_callback=lambda: False,
             )
 
-        self.assertEqual(
-            cm.exception.args[0], "The request has never been approved"
-        )
+        self.assertEqual(cm.exception.args[0], "The request has never been approved")
 
         self.assertEqual(
             os.environ["test_96272fea51"],
