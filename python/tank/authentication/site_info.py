@@ -174,4 +174,4 @@ class SiteInfo(object):
         :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
         """
 
-        return self._infos.get("unified_login_flow2_enabled", False)
+        return self._infos.get("app_session_launcher_enabled", False)
