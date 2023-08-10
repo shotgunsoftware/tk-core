@@ -153,7 +153,9 @@ def process(
             ),
         )
 
-    ret = browser_open_callback(browser_url)
+    #ret = browser_open_callback(browser_url)
+    print("URL: ", browser_url)
+    ret = True
     if not ret:
         raise AuthenticationError("Unable to open local browser")
 
