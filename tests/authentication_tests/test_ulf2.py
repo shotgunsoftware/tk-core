@@ -102,7 +102,10 @@ class ULF2APITests(ShotgunTestBase):
     def test_valid(self, *mocks):
         # Register the proper HTTP server API responses
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
-            "json": {"sessionRequestId": "a1b2c3"}
+            "json": {
+                "sessionRequestId": "a1b2c3",
+                "url": "https://1.2.3.4/click_me/a1b2c3",
+            }
         }
         self.httpd.router[
             "[PUT]/internal_api/app_session_request/a1b2c3"
@@ -133,7 +136,7 @@ class ULF2APITests(ShotgunTestBase):
 
         self.assertEqual(
             os.environ["test_f444c4820c16e8"],
-            self.api_url + "/app_session_request/a1b2c3",
+            "https://1.2.3.4/click_me/a1b2c3",
         )
 
     @mock.patch("time.sleep")
@@ -170,6 +173,7 @@ class ULF2APITests(ShotgunTestBase):
             return {
                 "json": {
                     "sessionRequestId": "a1b2c3",
+                    "url": "https://1.2.3.4/click_me/a1b2c3",
                 },
             }
 
@@ -365,7 +369,10 @@ class ULF2APITests(ShotgunTestBase):
 
         # Finaly, send a 200 with a sessionRequestId
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
-            "json": {"sessionRequestId": "a1b2c3"}
+            "json": {
+                "sessionRequestId": "a1b2c3",
+                "url": "https://1.2.3.4/click_me",
+            }
         }
 
         # Expect a 404 on the PUT request
@@ -383,7 +390,10 @@ class ULF2APITests(ShotgunTestBase):
     def test_browser_error(self):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
-            "json": {"sessionRequestId": "a1b2c3"}
+            "json": {
+                "sessionRequestId": "a1b2c3",
+                "url": "https://1.2.3.4/click_me",
+            }
         }
 
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
@@ -401,7 +411,12 @@ class ULF2APITests(ShotgunTestBase):
     def test_param_product(self):
         def api_handler1(request):
             os.environ["test_96272fea51"] = request["args"][b"appName"][0].decode()
-            return {"json": {"sessionRequestId": "a1b2c3"}}
+            return {
+                "json": {
+                    "sessionRequestId": "a1b2c3",
+                    "url": "https://1.2.3.4/click_me",
+                },
+            }
 
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
@@ -444,7 +459,10 @@ class ULF2APITests(ShotgunTestBase):
     def test_put_request(self, *mocks):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
-            "json": {"sessionRequestId": "a1b2c3"}
+            "json": {
+                "sessionRequestId": "a1b2c3",
+                "url": "https://1.2.3.4/click_me/a1b2c3",
+            }
         }
 
         def url_opener(url):
@@ -477,7 +495,7 @@ class ULF2APITests(ShotgunTestBase):
         # Proove the PUT request was called
         self.assertEqual(
             os.environ["test_8979b275121ac8"],
-            self.api_url + "/app_session_request/a1b2c3",
+            "https://1.2.3.4/click_me/a1b2c3",
         )
 
         # Unsupported method

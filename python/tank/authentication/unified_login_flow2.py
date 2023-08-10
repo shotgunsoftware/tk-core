@@ -139,19 +139,16 @@ def process(
         )
         raise AuthenticationError("Unexpected response from the ShotGrid site")
 
+    browser_url = response.json.get("url")
+    if not browser_url:
+        logger.error(
+            "Unexpected response from the ShotGrid site. Expecting a url item"
+        )
+        raise AuthenticationError("Unexpected response from the ShotGrid site")
+
     logger.debug(
         "Authentication Request ID: {session_id}".format(session_id=session_id)
     )
-
-    browser_url = response.json.get("url")
-    if not browser_url:
-        # Retro compatibility with ShotGrid versions <v8.53.0.1993
-        browser_url = urllib.parse.urljoin(
-            sg_url,
-            "/app_session_request/{session_id}".format(
-                session_id=session_id,
-            ),
-        )
 
     ret = browser_open_callback(browser_url)
     if not ret:
