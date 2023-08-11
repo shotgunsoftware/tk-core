@@ -276,7 +276,8 @@ def get_product_name():
         engine = sgtk_platform.current_engine()
         product = engine.host_info["name"]
     except (AttributeError, TypeError, KeyError):
-        pass
+        logger.debug("Unable to retrieve the host_info from the current_engine")
+        # Most likely because the engine is not initialized yet
     else:
         if product.lower() == "desktop":
             product = PRODUCT_DESKTOP
