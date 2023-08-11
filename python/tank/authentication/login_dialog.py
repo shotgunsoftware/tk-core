@@ -857,6 +857,7 @@ class LoginDialog(QtGui.QDialog):
             self,
             site,
             http_proxy=self._http_proxy,
+            product=unified_login_flow2.get_product_name(),
         )
         self._ulf2_task.finished.connect(self._ulf2_task_finished)
         self._ulf2_task.start()
@@ -905,12 +906,13 @@ class LoginDialog(QtGui.QDialog):
 class ULF2_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
-    def __init__(self, parent, sg_url, http_proxy=None):
+    def __init__(self, parent, sg_url, http_proxy=None, product=None):
         super(ULF2_AuthTask, self).__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url
         self._http_proxy = http_proxy
+        self._product = product
 
         # Result object
         self.session_info = None
@@ -921,6 +923,7 @@ class ULF2_AuthTask(QtCore.QThread):
             self.session_info = unified_login_flow2.process(
                 self._sg_url,
                 http_proxy=self._http_proxy,
+                product=self._product,
                 browser_open_callback=lambda u: QtGui.QDesktopServices.openUrl(u),
                 keep_waiting_callback=self.should_continue,
             )
