@@ -269,7 +269,13 @@ def get_product_name():
         engine = sgtk_platform.current_engine()
         product = engine.host_info["name"]
     except (AttributeError, TypeError, KeyError):
+        # Maybe engine is not initialized yet, or does not provide a name...
         pass
+    except Exception:
+        logger.warning("Unable to retrieve engine.host_info", exc_info=True)
+        # We are aware of a issue accessing the host_info attribute with Photoshop.
+        # The host_info attribute is retrieved by the websocket communication between TK and PS.
+        # In some rare cases, this communication does not work from inside this thread.
     else:
         if product.lower() == "desktop":
             product = PRODUCT_DESKTOP
