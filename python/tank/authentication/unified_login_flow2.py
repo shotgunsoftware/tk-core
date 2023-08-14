@@ -41,21 +41,17 @@ class AuthenticationError(errors.AuthenticationError):
 
 def process(
     sg_url,
+    *,
     http_proxy=None,
     product=None,
-    browser_open_callback=None,
+    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
-    """
-    :param product: **mandatory** - string
-      In most cases, the parameter should be the result of the get_product_name
-      function.
-      This is not provided as a default behavior to make developers aware of
-      threading issues. One example is with Photoshop, the engine.host_info attribute is retrieved from PS in a WebSocket communication. The code is thread safe for Python threading but not designed to be used with QThreads. See SG-31490 for more information.
-    """
-
     sg_url = connection.sanitize_url(sg_url)
     logger.debug("Trigger Authentication on {url}".format(url=sg_url))
+
+    if product is None:
+        product = get_product_name()
 
     assert product
     assert callable(browser_open_callback)

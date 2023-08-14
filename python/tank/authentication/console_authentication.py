@@ -164,7 +164,6 @@ class ConsoleAuthenticationHandlerBase(object):
         session_info = unified_login_flow2.process(
             hostname,
             http_proxy=http_proxy,
-            product=unified_login_flow2.get_product_name(),
             browser_open_callback=webbrowser.open,
         )
 
