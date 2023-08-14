@@ -127,7 +127,9 @@ and copy it to your configuration's ``core/hooks`` folder.
 
 .. note::
     A core hook cannot be executed before Toolkit (the :class:`Sgtk` instance) has
-    been initialized. Any customization of the core behavior must be added afterwards.
+    been initialized. This happens when :meth:`ToolkitManager.bootstrap_engine` is
+    called during ShotGrid Desktop bootstrap. Any customization of the core behavior
+    must be added afterwards.
 
 Here is the list of hooks that be taken over in the Toolkit core.
 
