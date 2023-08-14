@@ -275,7 +275,8 @@ def get_product_name():
     try:
         engine = sgtk_platform.current_engine()
         product = engine.host_info["name"]
-    except (AttributeError, TypeError, KeyError):
+        assert product and isinstance(product, str)
+    except (AttributeError, TypeError, KeyError, AssertionError):
         logger.debug("Unable to retrieve the host_info from the current_engine")
         # Most likely because the engine is not initialized yet
     else:
