@@ -33,15 +33,13 @@ from ..util import LocalFileStorageManager
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from . import unified_login_flow2
+from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
-    is_autodesk_identity_enabled_on_site,
-    is_sso_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
-    is_unified_login_flow2_enabled_on_site,
 )
+
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
@@ -49,12 +47,14 @@ logger = LogManager.get_logger(__name__)
 # Name used to identify the client application when connecting via SSO to Shotugn.
 PRODUCT_IDENTIFIER = "toolkit"
 
-# Checking for SSO support on a site takes a few moments. When the user enters
-# a Shotgun site URL, we check for SSO support (and update the GUI) only after
-# the user has stopped for longer than the delay (in ms).
-USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
+# Requesting the site's information (including SSO support) takes a few moments.
+# When the user enters a ShotGrid site URL, we check for authentication methods
+# (and update the GUI) only after the user has stopped for longer than the delay
+# (in ms).
+USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST = 300
 
-# Let's put at 5 seconds the maximum time we might wait for a SSO check thread.
+# Let's put at 5 seconds the maximum time we might wait for a site's information
+# request thread.
 THREAD_WAIT_TIMEOUT_MS = 5000
 
 
@@ -72,42 +72,20 @@ def _is_running_in_desktop():
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
     """
-    This class uses a different thread to query if SSO is enabled or not.
+    This class uses a different thread to query the site's information and find
+    out whether SSO is enabled or not.
 
     We use a different thread due to the time the call can take, and
     to avoid blocking the main GUI thread.
     """
 
-    def __init__(self, parent, http_proxy=None):
+    def __init__(self, parent, site_info_instance, http_proxy=None):
         """
         Constructor.
         """
         QtCore.QThread.__init__(self, parent)
-        self._url_to_test = ""
-        self._sso_enabled = False
-        self._unified_login_flow_enabled = False
-        self._unified_login_flow2_enabled = False
+        self._site_info = site_info_instance
         self._http_proxy = http_proxy
-
-    @property
-    def sso_enabled(self):
-        """returns: `True` if SSO is enabled, `False` otherwise."""
-        return self._sso_enabled
-
-    @property
-    def autodesk_identity_enabled(self):
-        """returns: `True` if Identity is enabled, `False` otherwise."""
-        return self._autodesk_identity_enabled
-
-    @property
-    def unified_login_flow_enabled(self):
-        """returns: `True` if ULF is enabled, `False` otherwise."""
-        return self._unified_login_flow_enabled
-
-    @property
-    def unified_login_flow2_enabled(self):
-        """returns: `True` if ULF2 is enabled, `False` otherwise."""
-        return self._unified_login_flow2_enabled
 
     @property
     def url_to_test(self):
@@ -122,20 +100,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        # The site information is cached, so those three calls do not add
-        # any significant overhead.
-        self._sso_enabled = is_sso_enabled_on_site(self.url_to_test, self._http_proxy)
-        self._autodesk_identity_enabled = is_autodesk_identity_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-        self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-
-        self._unified_login_flow2_enabled = is_unified_login_flow2_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-
+        self._site_info.reload(self._url_to_test, self._http_proxy)
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -225,13 +190,13 @@ class LoginDialog(QtGui.QDialog):
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 
-        # Timer to update the GUI according to the URL, if SSO is supported or not.
+        # Timer to update the GUI according to the URL.
         # This is to make the UX smoother, as we do not check after each character
         # typed, but instead wait for a period of inactivity from the user.
         self._url_changed_timer = QtCore.QTimer(self)
         self._url_changed_timer.setSingleShot(True)
         self._url_changed_timer.timeout.connect(
-            self._update_ui_according_to_sso_support
+            self._update_ui_according_to_site_support
         )
 
         # If the host is fixed, disable the site textbox.
@@ -321,22 +286,24 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.ulf2_msg_back.linkActivated.connect(self._ulf2_back_pressed)
 
-        # While the user is typing, check the SSOness of the site so we can
+        # While the user is typing, request the site's information so we can
         # show or hide the login and password fields.
         self.ui.site.lineEdit().textEdited.connect(self._site_url_changing)
         # If a site has been selected, we need to update the login field.
         self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
-        self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
-        self._query_task.finished.connect(self._toggle_web)
-        self._update_ui_according_to_sso_support()
+        self.site_info = site_info.SiteInfo()
 
-        # We want to wait until we know if the site uses SSO or not, to avoid
+        self._query_task = QuerySiteAndUpdateUITask(self, self.site_info, http_proxy)
+        self._query_task.finished.connect(self._toggle_web)
+        self._update_ui_according_to_site_support()
+
+        # We want to wait until we know what is supported by the site, to avoid
         # flickering GUI.
         if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
             logger.warning(
-                "Timed out awaiting check for SSO support on the site: %s"
+                "Timed out awaiting requesting information: %s"
                 % self._get_current_site()
             )
 
@@ -422,20 +389,19 @@ class LoginDialog(QtGui.QDialog):
         """
         return six.ensure_str(self.ui.login.currentText().strip())
 
-    def _update_ui_according_to_sso_support(self):
+    def _update_ui_according_to_site_support(self):
         """
-        Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
+        Updates the GUI according to the site's information, hiding or showing
+        the username/password fields.
         """
-        # Only update the GUI if we were able to initialize the sam2sso module.
-        if self._sso_saml2:
-            self._query_task.url_to_test = self._get_current_site()
-            self._query_task.start()
+        self._query_task.url_to_test = self._get_current_site()
+        self._query_task.start()
 
     def _site_url_changing(self, text):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
-        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
+        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST)
 
     def _on_site_changed(self):
         """
@@ -444,7 +410,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.ui.login.clear()
         self._populate_user_dropdown(self._get_current_site())
-        self._update_ui_according_to_sso_support()
+        self._update_ui_according_to_site_support()
 
     def _populate_user_dropdown(self, site):
         """
@@ -498,9 +464,10 @@ class LoginDialog(QtGui.QDialog):
 
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
+
         # With a SSO site, we have no choice but to use the web to login.
-        can_use_web = self._query_task.sso_enabled
-        can_use_ulf2 = self._query_task.unified_login_flow2_enabled
+        can_use_web = self.site_info.sso_enabled
+        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -510,12 +477,12 @@ class LoginDialog(QtGui.QDialog):
             logger.info("Using the standard login dialog with the ShotGrid Desktop")
         else:
             if _is_running_in_desktop():
-                can_use_web = can_use_web or self._query_task.autodesk_identity_enabled
+                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
 
             # If we have full support for Web-based login, or if we enable it in our
             # environment, use the Unified Login Flow for all authentication modes.
             if get_shotgun_authenticator_support_web_login():
-                can_use_web = can_use_web or self._query_task.unified_login_flow_enabled
+                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
         if can_use_ulf2:
             if method_selected:
@@ -732,12 +699,12 @@ class LoginDialog(QtGui.QDialog):
         """
         Validate the values, accepting if login is successful and display an error message if not.
         """
-        # Wait for any ongoing SSO check thread.
+        # Wait for any ongoing Site Configuration check thread.
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
                 logger.warning(
-                    "Timed out awaiting check for SSO support on the site: %s"
+                    "Timed out awaiting configuration information on the site: %s"
                     % self._get_current_site()
                 )
         finally:

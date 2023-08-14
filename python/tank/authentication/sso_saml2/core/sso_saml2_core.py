@@ -33,7 +33,6 @@ from .errors import (
 from .utils import (
     _decode_cookies,
     _encode_cookies,
-    _sanitize_http_proxy,
     get_csrf_key,
     get_csrf_token,
     get_logger,
@@ -41,6 +40,7 @@ from .utils import (
     get_session_id,
     get_user_name,
 )
+from ...utils import sanitize_http_proxy
 
 try:
     from .username_password_dialog import UsernamePasswordDialog
@@ -614,7 +614,7 @@ class SsoSaml2Core(object):
 
         qt_cookies = []
         if self._session is not None:
-            parsed = _sanitize_http_proxy(self._session.http_proxy)
+            parsed = sanitize_http_proxy(self._session.http_proxy)
             if parsed.netloc:
                 self._logger.debug(
                     "Using HTTP proxy: %s://%s", parsed.scheme, parsed.netloc

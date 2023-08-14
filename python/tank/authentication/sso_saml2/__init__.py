@@ -30,13 +30,12 @@ from .sso_saml2_toolkit import SsoSaml2Toolkit  # noqa
 
 # Functions
 from .utils import (  # noqa
-    get_logger,
     get_saml_claims_expiration,
     has_sso_info_in_cookies,
     has_unified_login_flow_info_in_cookies,
-    is_sso_enabled_on_site,
-    is_autodesk_identity_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
-    is_unified_login_flow2_enabled_on_site,
+)
+
+from .core.utils import (  # noqa
+    get_logger,
     set_logger_parent,
 )

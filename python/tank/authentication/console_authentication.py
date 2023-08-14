@@ -29,11 +29,7 @@ from .errors import (
     ConsoleLoginNotSupportedError,
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import (
-    is_sso_enabled_on_site,
-    is_unified_login_flow2_enabled_on_site,
-    is_autodesk_identity_enabled_on_site,
-)
+from . import site_info
 from . import unified_login_flow2
 from ..util.shotgun.connection import sanitize_url
 
@@ -42,21 +38,6 @@ import webbrowser
 from tank_vendor.six.moves import input
 
 logger = LogManager.get_logger(__name__)
-
-
-def _assert_console_session_is_supported(hostname, http_proxy):
-    """
-    Simple utility method which will raise an exception if using a
-    username/password pair is not supported by the Shotgun server.
-    Which is the case when using SSO or Autodesk Identity.
-    """
-    if is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
-        # OK we support that in console
-        pass
-    elif is_sso_enabled_on_site(hostname, http_proxy):
-        raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
-    elif is_autodesk_identity_enabled_on_site(hostname, http_proxy):
-        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
 
 class ConsoleAuthenticationHandlerBase(object):
@@ -77,8 +58,8 @@ class ConsoleAuthenticationHandlerBase(object):
         :returns: The (hostname, login, session_token, session_metadata) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
-
         """
+
         logger.debug("Requesting password on command line.")
         print("[ShotGrid Authentication]\n")
         while True:
@@ -91,9 +72,26 @@ class ConsoleAuthenticationHandlerBase(object):
                 raise AuthenticationCancelled()
 
             hostname = sanitize_url(hostname)
-            _assert_console_session_is_supported(hostname, http_proxy)
 
-            auth_fn = self._get_auth_method(hostname, http_proxy)
+            site_i = site_info.SiteInfo()
+            site_i.reload(hostname, http_proxy)
+
+            if not site_i.unified_login_flow2_enabled:
+                # Will raise an exception if using a username/password pair is
+                # not supported by the ShotGrid server.
+                # Which is the case when using SSO or Autodesk Identity.
+
+                if site_i.sso_enabled:
+                    raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+                elif site_i.autodesk_identity_enabled:
+                    raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
+
+            method_selected = self._get_auth_method(hostname, site_i)
+            if method_selected == constants.METHOD_ULF2:
+                auth_fn = self._authenticate_unified_login_flow2
+            else:  # basic
+                auth_fn = self._authenticate_legacy
+
             try:
                 return auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
@@ -180,32 +178,24 @@ class ConsoleAuthenticationHandlerBase(object):
         )
         return session_info
 
-    def _get_auth_method(self, hostname, http_proxy):
-        if not is_unified_login_flow2_enabled_on_site(hostname, http_proxy):
-            return self._authenticate_legacy
+    def _get_auth_method(self, hostname, site_i):
+        if not site_i.unified_login_flow2_enabled:
+            return constants.METHOD_BASIC
 
-        if is_autodesk_identity_enabled_on_site(
-            hostname, http_proxy
-        ) or is_sso_enabled_on_site(hostname, http_proxy):
-            return self._authenticate_unified_login_flow2
+        if site_i.autodesk_identity_enabled or site_i.sso_enabled:
+            return constants.METHOD_ULF2
 
         # We have 2 choices here
         methods = {
-            "1": {
-                "value": constants.METHOD_ULF2,
-                "function": self._authenticate_unified_login_flow2,
-            },
-            "2": {
-                "value": constants.METHOD_BASIC,
-                "function": self._authenticate_legacy,
-            },
+            "1": constants.METHOD_ULF2,
+            "2": constants.METHOD_BASIC,
         }
 
         # Let's see which method the user chose previously for this site
         method_saved = session_cache.get_preferred_method(hostname)
         method_default = "1"
         for k, v in methods.items():
-            if v["value"] == method_saved:
+            if v == method_saved:
                 method_default = k
                 break
 
@@ -228,8 +218,8 @@ class ConsoleAuthenticationHandlerBase(object):
                 "Unsupported authentication method choice {m}".format(m=method)
             )
 
-        session_cache.set_preferred_method(hostname, method["value"])
-        return method["function"]
+        session_cache.set_preferred_method(hostname, method)
+        return method
 
     def _get_sg_url(self, hostname, http_proxy):
         """
