@@ -367,6 +367,25 @@ class ULF2APITests(ShotgunTestBase):
             "Unexpected response from the ShotGrid site",
         )
 
+        # Send a 200 with sessionRequestId but not url field
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
+            "json": {
+                "sessionRequestId": "a1b2c3",
+            }
+        }
+
+        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
+            unified_login_flow2.process(
+                self.api_url,
+                product="my_app",
+                browser_open_callback=lambda url: True,
+            )
+
+        self.assertEqual(
+            cm.exception.args[0],
+            "Unexpected response from the ShotGrid site",
+        )
+
         # Finaly, send a 200 with a sessionRequestId
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {
