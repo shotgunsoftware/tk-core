@@ -487,4 +487,8 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-5/qpainter.html#RenderHint-enum
         qt_gui_shim.QPainter.HighQualityAntialiasing = qt_gui_shim.QPainter.Antialiasing
 
+        # QPaelette Background is obsolete. Use Window instead.
+        # https://doc.qt.io/qt-5/qpalette.html#ColorRole-enum
+        qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
+
         return qt_core_shim, qt_gui_shim
