@@ -483,7 +483,7 @@ class PySide6Patcher(PySide2Patcher):
         # QHeaderView method rename
         qt_gui_shim.QHeaderView.setResizeMode = qt_gui_shim.QHeaderView.setSectionResizeMode
 
-        # QPainter HighQualityAntialiasing is obsolet. Use Antiasliasing instead.
+        # QPainter HighQualityAntialiasing is obsolete. Use Antiasliasing instead.
         # https://doc.qt.io/qt-5/qpainter.html#RenderHint-enum
         qt_gui_shim.QPainter.HighQualityAntialiasing = qt_gui_shim.QPainter.Antialiasing
 
