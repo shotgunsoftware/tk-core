@@ -857,7 +857,6 @@ class LoginDialog(QtGui.QDialog):
             self,
             site,
             http_proxy=self._http_proxy,
-            product=PRODUCT_IDENTIFIER,
         )
         self._ulf2_task.finished.connect(self._ulf2_task_finished)
         self._ulf2_task.start()
@@ -906,13 +905,20 @@ class LoginDialog(QtGui.QDialog):
 class ULF2_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
-    def __init__(self, parent, sg_url, http_proxy=None, product=None):
+    def __init__(self, parent, sg_url, http_proxy=None):
         super(ULF2_AuthTask, self).__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url
         self._http_proxy = http_proxy
-        self._product = product
+
+        self._product = unified_login_flow2.get_product_name()
+        # This is processed here, in the main thread, to prevent threading
+        # issues.
+        # One know problem is with Photoshop, the engine.host_info attribute is
+        # retrieved from PS in a WebSocket communication.
+        # The code is thread safe for Python threading but not designed to be
+        # used with QThreads. See SG-31490 for more information.
 
         # Result object
         self.session_info = None

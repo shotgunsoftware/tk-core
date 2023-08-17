@@ -12,6 +12,7 @@ import json
 import os
 import platform
 import random
+import sys
 import time
 
 import tank
@@ -19,11 +20,15 @@ from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
+from .. import platform as sgtk_platform
 from ..util.shotgun import connection
 
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
+
+PRODUCT_DEFAULT = "ShotGrid Toolkit"
+PRODUCT_DESKTOP = "ShotGrid Desktop"
 
 
 class AuthenticationError(errors.AuthenticationError):
@@ -36,17 +41,17 @@ class AuthenticationError(errors.AuthenticationError):
 
 def process(
     sg_url,
+    *,
     http_proxy=None,
     product=None,
-    browser_open_callback=None,
+    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
-
-    if not product and "TK_AUTH_PRODUCT" in os.environ:
-        product = os.environ["TK_AUTH_PRODUCT"]
-
     logger.debug("Trigger Authentication on {url}".format(url=sg_url))
+
+    if product is None:
+        product = get_product_name()
 
     assert product
     assert callable(browser_open_callback)
@@ -259,6 +264,41 @@ def process(
     )
 
 
+def get_product_name():
+    if "TK_AUTH_PRODUCT" in os.environ:
+        return os.environ["TK_AUTH_PRODUCT"]
+
+    try:
+        engine = sgtk_platform.current_engine()
+        product = engine.host_info["name"]
+        assert product and isinstance(product, str)
+    except (AttributeError, TypeError, KeyError, AssertionError):
+        logger.debug("Unable to retrieve the host_info from the current_engine")
+        # Most likely because the engine is not initialized yet
+    else:
+        if product.lower() == "desktop":
+            product = PRODUCT_DESKTOP
+
+        if engine.host_info.get("version", "unknown") != "unknown":
+            product += " {version}".format(**engine.host_info)
+
+        return product
+
+    # current_engine is not set in SGD at login time...
+    if os.path.splitext(os.path.basename(sys.argv[0]))[0].lower() == "shotgun":
+        return PRODUCT_DESKTOP
+
+    # Flame
+    if (
+        "SHOTGUN_FLAME_CONFIGPATH" in os.environ
+        and "SHOTGUN_FLAME_VERSION" in os.environ
+    ):
+        return "Flame {SHOTGUN_FLAME_VERSION}".format(**os.environ)
+
+    # Fallback to default/worst case value
+    return PRODUCT_DEFAULT
+
+
 def _get_content_type(headers):
     if six.PY2:
         value = headers.get("content-type", "text/plain")
@@ -399,7 +439,6 @@ def build_user_agent():
 
 if __name__ == "__main__":
     import argparse
-    import sys
     import webbrowser
 
     parser = argparse.ArgumentParser()
