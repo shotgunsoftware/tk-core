@@ -109,7 +109,10 @@ class IODescriptorGit(IODescriptorDownloadable):
         # first probe to check that git exists in our PATH
         self.is_git_available()
 
-        str_cmd = " ".join(commands)
+        if not isinstance(commands, str):
+            str_cmd = " ".join(commands)
+        else:
+            str_cmd = commands
 
         log.debug("Executing command '%s' using subprocess module." % str_cmd)
 
