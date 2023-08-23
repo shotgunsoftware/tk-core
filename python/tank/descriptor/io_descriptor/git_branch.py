@@ -149,7 +149,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
         """
-        log.info(f"Downloading {self.get_system_name()}:{self._version}")
+        log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
 
         depth = None
         is_latest_commit = self._is_latest_commit()

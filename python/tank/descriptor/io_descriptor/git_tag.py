@@ -78,7 +78,7 @@ class IODescriptorGitTag(IODescriptorGit):
                 self._version = self._get_latest_by_pattern(None)
             else:
                 self._version = self._get_latest_by_pattern(raw_version)
-            log.info(f"{self.get_system_name()}-{raw_version} resolved as {self._version}")
+            log.info("{}-{} resolved as {}".format(self.get_system_name(), raw_version, self._version))
         else:
             self._version = raw_version
 
@@ -146,7 +146,7 @@ class IODescriptorGitTag(IODescriptorGit):
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
         """
-        log.info(f"Downloading {self.get_system_name()}:{self._version}")
+        log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
 
         try:
             # clone the repo, checkout the given tag

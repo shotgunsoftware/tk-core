@@ -74,11 +74,11 @@ class _IODescriptorGitCache(type):
         else:
             version =  descriptor_dict['version']
 
-        id_ = f"{descriptor_dict['type']}-{descriptor_dict['path']}-{version}"
+        id_ = "{}-{}-{}".format(descriptor_dict['type'], descriptor_dict['path'], version)
 
         cached_time, self = cls._instances.get(id_, (-1, None))
         if cached_time < floored_time:
-            log.debug(f"{cached_time}, {floored_time}, {id_}")
+            log.debug("{} {} cache expired: cachedTime:{}".format(self, id_, cached_time))
             self = super().__call__(descriptor_dict, sg_connection, bundle_type)
             cls._instances[id_] = (floored_time, self)
 
@@ -286,9 +286,9 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         if self._descriptor_dict.get("type") == "git_branch" and not is_latest_commit:
             depth = ""
         else:
-            depth = f"--depth {depth}" if depth else ""
+            depth = "--depth {}".format(depth) if depth else ""
 
-        ref = f"-b {ref}" if ref else ""
-        cmd = f'git clone --no-hardlinks -q "{self._path}" {ref} "{target_path}" {depth}'
+        ref = "-b {}".format(ref) if ref else ""
+        cmd = 'git clone --no-hardlinks -q "{}" {} "{}" {}'.format(self._path, ref, target_path, depth)
 
         return cmd
