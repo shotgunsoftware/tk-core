@@ -63,22 +63,29 @@ class TankGitError(TankError):
 
 class _IODescriptorGitCache(type):
     """Use as metaclass. Caches object instances for 2min."""
+
     _instances = {}
 
     def __call__(cls, descriptor_dict, sg_connection, bundle_type):
         now = int(time() / 100)
         floored_time = now - now % 2  # Cache is valid for 2min
 
-        if descriptor_dict["type"] == "git_branch": # cant fetch last commit here, too soon
+        if (
+            descriptor_dict["type"] == "git_branch"
+        ):  # cant fetch last commit here, too soon
             version = descriptor_dict.get("version") or descriptor_dict["branch"]
         else:
-            version =  descriptor_dict['version']
+            version = descriptor_dict["version"]
 
-        id_ = "{}-{}-{}".format(descriptor_dict['type'], descriptor_dict['path'], version)
+        id_ = "{}-{}-{}".format(
+            descriptor_dict["type"], descriptor_dict["path"], version
+        )
 
         cached_time, self = cls._instances.get(id_, (-1, None))
         if cached_time < floored_time:
-            log.debug("{} {} cache expired: cachedTime:{}".format(self, id_, cached_time))
+            log.debug(
+                "{} {} cache expired: cachedTime:{}".format(self, id_, cached_time)
+            )
             self = super().__call__(descriptor_dict, sg_connection, bundle_type)
             cls._instances[id_] = (floored_time, self)
 
@@ -261,7 +268,6 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         # copy descriptor into target.
         shutil.copytree(self.get_path(), target_path)
 
-
     def _get_git_clone_commands(
         self, target_path, depth=None, ref=None, is_latest_commit=None
     ):
@@ -289,6 +295,8 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
             depth = "--depth {}".format(depth) if depth else ""
 
         ref = "-b {}".format(ref) if ref else ""
-        cmd = 'git clone --no-hardlinks -q "{}" {} "{}" {}'.format(self._path, ref, target_path, depth)
+        cmd = 'git clone --no-hardlinks -q "{}" {} "{}" {}'.format(
+            self._path, ref, target_path, depth
+        )
 
         return cmd
