@@ -256,23 +256,13 @@ class IODescriptorGit(IODescriptorDownloadable):
         # complications in cleanup scenarios and with file copying. We want
         # each repo that we clone to be completely independent on a filesystem level.
         log.debug("Git Cloning %r into %s" % (self, target_path))
-        depth = "--depth %s" % depth if depth else ""
-        ref = "-b %s" % ref if ref else ""
-        cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
-            self._path,
-            ref,
-            target_path,
-            depth,
-        )
-        if self._descriptor_dict.get("type") == "git_branch":
-            if not is_latest_commit:
-                if "--depth" in cmd:
-                    depth = ""
-                    cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
-                        self._path,
-                        ref,
-                        target_path,
-                        depth,
-                    )
+
+        if self._descriptor_dict.get("type") == "git_branch" and not is_latest_commit:
+            depth = ""
+        else:
+            depth = f"--depth {depth}" if depth else ""
+
+        ref = f"-b {ref}" if ref else ""
+        cmd = f'git clone --no-hardlinks -q "{self._path}" {ref} "{target_path}" {depth}'
 
         return cmd
