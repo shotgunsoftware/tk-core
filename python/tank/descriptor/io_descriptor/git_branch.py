@@ -209,21 +209,6 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "Latest version will be used." % self
             )
 
-        try:
-            # clone the repo, get the latest commit hash
-            # for the given branch
-            commands = [
-                'checkout -q "%s"' % self._branch,
-                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch,
-            ]
-            git_hash = self._tmp_clone_then_execute_git_commands(commands)
-
-        except Exception as e:
-            raise TankDescriptorError(
-                "Could not get latest commit for %s, "
-                "branch %s: %s" % (self._path, self._branch, e)
-            )
-
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = sgutils.ensure_str(git_hash)

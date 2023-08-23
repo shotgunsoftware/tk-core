@@ -8,9 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import uuid
-import shutil
-import tempfile
+import shlex
 import subprocess
 
 from .downloadable import IODescriptorDownloadable
@@ -87,6 +85,48 @@ class IODescriptorGit(IODescriptorDownloadable):
         if self._path.endswith("/") or self._path.endswith("\\"):
             self._path = self._path[:-1]
 
+    def is_git_available(self):
+        log.debug("Checking that git exists and can be executed...")
+        try:
+            output = _check_output(["git", "--version"])
+        except SubprocessCalledProcessError:
+            log.exception("Unexpected error:")
+            raise TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            )
+        else:
+            log.debug("Git installed: %s" % output)
+            return True
+
+    def _execute_git_commands(self, commands):
+        # first probe to check that git exists in our PATH
+        self.is_git_available()
+
+        str_cmd = " ".join(commands)
+
+        log.debug("Executing command '%s' using subprocess module." % str_cmd)
+
+        # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
+        # just hang waiting for credentials to be entered on the missing terminal.
+        # I would have expected Windows to give an error about stdin being close and
+        # aborting the git command but at least on Windows 10 that is not the case.
+        environ = os.environ.copy()
+        if _can_hide_terminal():
+            environ["GIT_TERMINAL_PROMPT"] = "0"
+
+        try:
+            output = _check_output(commands, env=environ)
+        except SubprocessCalledProcessError as e:
+            raise TankGitError(
+                "Error executing git operation '%s': %s (Return code %s)"
+                % (str_cmd, e.output, e.returncode)
+            )
+        else:
+            output = output.strip().strip("'")
+            log.debug("Execution successful. stderr/stdout: '%s'" % output)
+            return output
+
     @LogManager.log_timing
     def _clone_then_execute_git_commands(
         self, target_path, commands, depth=None, ref=None, is_latest_commit=None
@@ -127,124 +167,16 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         filesystem.ensure_folder_exists(parent_folder)
 
-        # first probe to check that git exists in our PATH
-        log.debug("Checking that git exists and can be executed...")
-        try:
-            output = _check_output(["git", "--version"])
-        except:
-            log.exception("Unexpected error:")
-            raise TankGitError(
-                "Cannot execute the 'git' command. Please make sure that git is "
-                "installed on your system and that the git executable has been added to the PATH."
-            )
-
-        log.debug("Git installed: %s" % output)
-
         # Make sure all git commands are correct according to the descriptor type
-        cmd = self._validate_git_commands(
+        cmd = self._get_git_clone_commands(
             target_path, depth=depth, ref=ref, is_latest_commit=is_latest_commit
         )
+        self._execute_git_commands(cmd)
 
-        run_with_os_system = True
+        full_commands = ["git", "-C", shlex.quote(target_path)]
+        full_commands.extend(commands)
 
-        # We used to call only os.system here. On macOS and Linux this behaved correctly,
-        # i.e. if stdin was open you would be prompted on the terminal and if not then an
-        # error would be raised. This is the best we could do.
-        #
-        # However, for Windows, os.system actually pops a terminal, which is annoying, especially
-        # if you don't require to authenticate. To avoid this popup, we will first launch
-        # git through the subprocess module and instruct it to not show a terminal for the
-        # subprocess.
-        #
-        # If that fails, then we'll assume that it failed because credentials were required.
-        # Unfortunately, we can't tell why it failed.
-        #
-        # Note: We only try this workflow if we can actually hide the terminal on Windows.
-        # If we can't there's no point doing all of this and we should just use
-        # os.system.
-        if is_windows() and _can_hide_terminal():
-            log.debug("Executing command '%s' using subprocess module." % cmd)
-            try:
-                # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
-                # just hang waiting for credentials to be entered on the missing terminal.
-                # I would have expected Windows to give an error about stdin being close and
-                # aborting the git command but at least on Windows 10 that is not the case.
-                environ = {}
-                environ.update(os.environ)
-                environ["GIT_TERMINAL_PROMPT"] = "0"
-                _check_output(cmd, env=environ)
-
-                # If that works, we're done and we don't need to use os.system.
-                run_with_os_system = False
-                status = 0
-            except SubprocessCalledProcessError:
-                log.debug("Subprocess call failed.")
-
-        if run_with_os_system:
-            # Make sure path and repo path are quoted.
-            log.debug("Executing command '%s' using os.system" % cmd)
-            log.debug(
-                "Note: in a terminal environment, this may prompt for authentication"
-            )
-            status = os.system(cmd)
-
-        log.debug("Command returned exit code %s" % status)
-        if status != 0:
-            raise TankGitError(
-                "Error executing git operation. The git command '%s' "
-                "returned error code %s." % (cmd, status)
-            )
-        log.debug("Git clone into '%s' successful." % target_path)
-
-        # clone worked ok! Now execute git commands on this repo
-
-        output = None
-
-        for command in commands:
-            # we use git -C to specify the working directory where to execute the command
-            # this option was added in as part of git 1.9
-            # and solves an issue with UNC paths on windows.
-            full_command = 'git -C "%s" %s' % (target_path, command)
-            log.debug("Executing '%s'" % full_command)
-
-            try:
-                output = _check_output(full_command, shell=True)
-
-                # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                output = output.strip().strip("'")
-
-            except SubprocessCalledProcessError as e:
-                raise TankGitError(
-                    f"Error executing GIT operation '{full_command}': {e.output}"
-                    f" (Return code {e.returncode}). "
-                    " Supported GIT version: 1.9+."
-                )
-            log.debug("Execution successful. stderr/stdout: '%s'" % output)
-
-        # return the last returned stdout/stderr
-        return output
-
-    def _tmp_clone_then_execute_git_commands(self, commands, depth=None, ref=None):
-        """
-        Clone into a temp location and executes the given
-        list of git commands.
-
-        For more details, see :meth:`_clone_then_execute_git_commands`.
-
-        :param commands: list git commands to execute, e.g. ['checkout x']
-        :returns: stdout and stderr of the last command executed as a string
-        """
-        clone_tmp = os.path.join(
-            tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex
-        )
-        filesystem.ensure_folder_exists(clone_tmp)
-        try:
-            return self._clone_then_execute_git_commands(
-                clone_tmp, commands, depth, ref
-            )
-        finally:
-            log.debug("Cleaning up temp location '%s'" % clone_tmp)
-            shutil.rmtree(clone_tmp, ignore_errors=True)
+        return self._execute_git_commands(full_commands)
 
     def get_system_name(self):
         """
@@ -268,8 +200,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         can_connect = True
         try:
             log.debug("%r: Probing if a connection to git can be established..." % self)
-            # clone repo into temp folder
-            self._tmp_clone_then_execute_git_commands([], depth=1)
+            self._execute_git_commands(["git", "ls-remote", shlex.quote(self._path)])
             log.debug("...connection established")
         except Exception as e:
             log.debug("...could not establish connection: %s" % e)
@@ -303,7 +234,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             skip_list=skip_list or [],
         )
 
-    def _validate_git_commands(
+    def _get_git_clone_commands(
         self, target_path, depth=None, ref=None, is_latest_commit=None
     ):
         """

@@ -211,29 +211,15 @@ class IODescriptorGitTag(IODescriptorGit):
         return latest_tag
 
     def _fetch_tags(self):
-        try:
-            # clone the repo, list all tags
-            # for the repository, across all branches
-            commands = ["ls-remote -q --tags %s" % self._path]
-            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split(
-                "\n"
-            )
-            regex = re.compile(".*refs/tags/([^^]*)$")
-            git_tags = []
-            for tag in tags:
-                m = regex.match(sgutils.ensure_str(tag))
-                if m:
-                    git_tags.append(m.group(1))
+        output = self._execute_git_commands(["git", "ls-remote", "--tags", self._path])
 
-        except Exception as e:
-            raise TankDescriptorError(
-                "Could not get list of tags for %s: %s" % (self._path, e)
-            )
+        regex = re.compile(".*refs/tags/([^^/]+)$")
 
-        if len(git_tags) == 0:
-            raise TankDescriptorError(
-                "Git repository %s doesn't have any tags!" % self._path
-            )
+        git_tags = []
+        for line in output.splitlines():
+            m = regex.match(six.ensure_str(line))
+            if m:
+                git_tags.append(m.group(1))
 
         return git_tags
 
@@ -243,13 +229,17 @@ class IODescriptorGitTag(IODescriptorGit):
         :returns: IODescriptorGitTag object
         """
         tags = self._fetch_tags()
-        latest_tag = self._find_latest_tag_by_pattern(tags, pattern=None)
-        if latest_tag is None:
+        if not tags:
             raise TankDescriptorError(
                 "Git repository %s doesn't have any tags!" % self._path
             )
 
-        return latest_tag
+        tupled_tags = []
+        for t in tags:
+            items = t.lstrip("v").split(".")
+            tupled_tags.append(tuple(int(item) if item.isdigit() else item for item in items))
+
+        return sorted(tupled_tags)[-1]
 
     def get_latest_cached_version(self, constraint_pattern=None):
         """
