@@ -78,7 +78,11 @@ class IODescriptorGitTag(IODescriptorGit):
                 self._version = self._get_latest_by_pattern(None)
             else:
                 self._version = self._get_latest_by_pattern(raw_version)
-            log.info("{}-{} resolved as {}".format(self.get_system_name(), raw_version, self._version))
+            log.info(
+                "{}-{} resolved as {}".format(
+                    self.get_system_name(), raw_version, self._version
+                )
+            )
         else:
             self._version = raw_version
 
@@ -215,7 +219,9 @@ class IODescriptorGitTag(IODescriptorGit):
         return latest_tag
 
     def _fetch_tags(self):
-        output = self._execute_git_commands(["git", "ls-remote", "-q", "--tags", self._path])
+        output = self._execute_git_commands(
+            ["git", "ls-remote", "-q", "--tags", self._path]
+        )
 
         git_tags = []
         for line in output.splitlines():
@@ -235,7 +241,9 @@ class IODescriptorGitTag(IODescriptorGit):
         tupled_tags = []
         for t in self._tags:
             items = t.lstrip("v").split(".")
-            tupled_tags.append(tuple(int(item) if item.isdigit() else item for item in items))
+            tupled_tags.append(
+                tuple(int(item) if item.isdigit() else item for item in items)
+            )
 
         return sorted(tupled_tags)[-1]
 

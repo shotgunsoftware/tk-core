@@ -100,7 +100,9 @@ class IODescriptorGitBranch(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(bundle_cache_root, "gitbranch", name, self.get_short_version())
+        return os.path.join(
+            bundle_cache_root, "gitbranch", name, self.get_short_version()
+        )
 
     def get_version(self):
         """Returns the full commit sha."""
@@ -112,7 +114,9 @@ class IODescriptorGitBranch(IODescriptorGit):
 
     def get_latest_commit(self):
         """Fetch the latest commit on a specific branch"""
-        output = self._execute_git_commands(["git", "ls-remote", self._path, self._branch])
+        output = self._execute_git_commands(
+            ["git", "ls-remote", self._path, self._branch]
+        )
         latest_commit = output.split("\t")[0]
 
         if not latest_commit:
@@ -158,7 +162,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
-            commands = [f'checkout', '-q', self._version]
+            commands = [f"checkout", "-q", self._version]
             self._clone_then_execute_git_commands(
                 self._get_primary_cache_path(),
                 commands,
