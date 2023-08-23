@@ -72,6 +72,21 @@ class MockResponse(object):
         self.msg = status_message
         self.headers = headers
 
+    def close(self):
+        """
+        This method is called by tempfile.__del__ starting in Python 3.9.
+        We create if here to avoid an exception and warning message
+        ##[warning]Exception ignored in: <function _TemporaryFileCloser.__del__ at 0x10be9f310>
+
+        Traceback (most recent call last):
+        File "/Users/runner/hostedtoolcache/Python/3.9.17/x64/lib/python3.9/tempfile.py", line 445, in __del__
+            self.close()
+        File "/Users/runner/hostedtoolcache/Python/3.9.17/x64/lib/python3.9/tempfile.py", line 438, in close
+            self.file.close()
+        AttributeError: 'MockResponse' object has no attribute 'close'
+        """
+        pass
+
     def read(self):
         """
         Return the body of the page, mimicking the response object's behavior.
