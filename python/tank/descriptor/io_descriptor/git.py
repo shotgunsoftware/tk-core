@@ -88,10 +88,15 @@ class IODescriptorGit(IODescriptorDownloadable):
 
     def is_git_available(self):
         log.debug("Checking that git exists and can be executed...")
+
+        if IS_WINDOWS:
+            cmd = "where"
+        else:
+            cmd = "which"
+
         try:
-            output = _check_output(["git", "--version"])
+            output = _check_output([cmd, "git"])
         except SubprocessCalledProcessError:
-            log.exception("Unexpected error:")
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
