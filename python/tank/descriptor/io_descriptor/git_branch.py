@@ -96,24 +96,19 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param bundle_cache_root: Bundle cache root path
         :return: Path to bundle cache location
         """
-        # If the descriptor is an integer change the version to a string type
-        if isinstance(self._version, int):
-            self._version = str(self._version)
-        # to be MAXPATH-friendly, we only use the first seven chars
-        short_hash = self._version[:7]
-
         # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(bundle_cache_root, "gitbranch", name, short_hash)
+        return os.path.join(bundle_cache_root, "gitbranch", name, self.get_short_version())
 
     def get_version(self):
-        """
-        Returns the version number string for this item, .e.g 'v1.2.3'
-        or the branch name 'master'
-        """
+        """Returns the full commit sha."""
         return self._version
+
+    def get_short_version(self):
+        """Returns the short commit sha."""
+        return self._version[:7]
 
     def get_latest_commit(self):
         """Fetch the latest commit on a specific branch"""
