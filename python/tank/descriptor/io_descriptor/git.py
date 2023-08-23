@@ -32,7 +32,8 @@ def _can_hide_terminal():
         subprocess.STARTF_USESHOWWINDOW
         subprocess.SW_HIDE
         return True
-    except Exception:
+    except AttributeError as e:
+        log.debug("Terminal cant be hidden: %s" % e)
         return False
 
 
@@ -202,7 +203,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             log.debug("%r: Probing if a connection to git can be established..." % self)
             self._execute_git_commands(["git", "ls-remote", shlex.quote(self._path)])
             log.debug("...connection established")
-        except Exception as e:
+        except (OSError, SubprocessCalledProcessError) as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

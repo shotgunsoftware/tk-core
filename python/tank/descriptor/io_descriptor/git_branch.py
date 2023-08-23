@@ -10,7 +10,7 @@
 import os
 import copy
 
-from .git import IODescriptorGit, TankGitError, _check_output
+from .git import IODescriptorGit, TankGitError
 from ..errors import TankDescriptorError
 from ... import LogManager
 
@@ -18,6 +18,8 @@ try:
     from tank_vendor import sgutils
 except ImportError:
     from tank_vendor import six as sgutils
+
+from ...util.process import SubprocessCalledProcessError
 
 log = LogManager.get_logger(__name__)
 
@@ -171,7 +173,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 ref=self._branch,
                 is_latest_commit=is_latest_commit,
             )
-        except Exception as e:
+        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
