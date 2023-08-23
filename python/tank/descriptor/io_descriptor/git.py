@@ -121,8 +121,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # I would have expected Windows to give an error about stdin being close and
         # aborting the git command but at least on Windows 10 that is not the case.
         environ = os.environ.copy()
-        if _can_hide_terminal():
-            environ["GIT_TERMINAL_PROMPT"] = "0"
+        environ["GIT_TERMINAL_PROMPT"] = "0"
 
         try:
             output = _check_output(commands, env=environ)
