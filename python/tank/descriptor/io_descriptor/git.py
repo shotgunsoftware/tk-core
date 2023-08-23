@@ -12,6 +12,8 @@ import platform
 import shutil
 import subprocess
 
+from time import time
+
 from .downloadable import IODescriptorDownloadable
 from ... import LogManager
 from ...util.process import subprocess_check_output, SubprocessCalledProcessError
@@ -59,7 +61,31 @@ class TankGitError(TankError):
     pass
 
 
-class IODescriptorGit(IODescriptorDownloadable):
+class _IODescriptorGitCache(type):
+    """Use as metaclass. Caches object instances for 2min."""
+    _instances = {}
+
+    def __call__(cls, descriptor_dict, sg_connection, bundle_type):
+        now = int(time() / 100)
+        floored_time = now - now % 2  # Cache is valid for 2min
+
+        if descriptor_dict["type"] == "git_branch": # cant fetch last commit here, too soon
+            version = descriptor_dict.get("version") or descriptor_dict["branch"]
+        else:
+            version =  descriptor_dict['version']
+
+        id_ = f"{descriptor_dict['type']}-{descriptor_dict['path']}-{version}"
+
+        cached_time, self = cls._instances.get(id_, (-1, None))
+        if cached_time < floored_time:
+            log.debug(f"{cached_time}, {floored_time}, {id_}")
+            self = super().__call__(descriptor_dict, sg_connection, bundle_type)
+            cls._instances[id_] = (floored_time, self)
+
+        return self
+
+
+class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache):
     """
     Base class for git descriptors.
 
