@@ -266,7 +266,10 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         # make sure item exists locally
         self.ensure_local()
         # copy descriptor into target.
-        shutil.copytree(self.get_path(), target_path)
+        shutil.copytree(self.get_path(),
+                        target_path,
+                        ignore=shutil.ignore_patterns(*(skip_list or [])),
+                        dirs_exist_ok=True)
 
     def _get_git_clone_commands(
         self, target_path, depth=None, ref=None, is_latest_commit=None
