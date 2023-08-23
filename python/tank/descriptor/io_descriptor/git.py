@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import shlex
+import platform
 import shutil
 import subprocess
 
@@ -20,6 +20,7 @@ from ..errors import TankError
 from ...util import is_windows
 
 log = LogManager.get_logger(__name__)
+IS_WINDOWS = platform.system() == "Windows"
 
 
 def _can_hide_terminal():
