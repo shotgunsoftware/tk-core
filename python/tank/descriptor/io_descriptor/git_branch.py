@@ -115,25 +115,31 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         return self._version
 
-    def _is_latest_commit(self, version, branch):
+    def get_latest_commit(self):
+        output = self._execute_git_commands(["git", "ls-remote", self._path, self._branch])
+        latest_commit = output.split("\t")[0]
+
+        if not latest_commit:
+            raise TankDescriptorError(
+                "Could not get latest commit for %s, branch %s"
+                % (self._path, self._branch)
+            )
+
+        return sgutils.ensure_str(latest_commit)
+
+    def get_latest_short_commit(self):
+        return self.get_latest_commit()[:7]
+
+    def _is_latest_commit(self):
         """
         Check if the git_branch descriptor is pointing to the
         latest commit version.
         """
         # first probe to check that git exists in our PATH
         log.debug("Checking if the version is pointing to the latest commit...")
-        try:
-            output = _check_output(["git", "ls-remote", self._path, branch])
-        except:
-            log.exception("Unexpected error:")
-            raise TankGitError(
-                "Cannot execute the 'git' command. Please make sure that git is "
-                "installed on your system and that the git executable has been added to the PATH."
-            )
-        latest_commit = output.split("\t")
-        short_latest_commit = latest_commit[0][:7]
+        short_latest_commit = self.get_latest_short_commit()
 
-        if short_latest_commit != version[:7]:
+        if short_latest_commit != self._version[:7]:
             return False
         log.debug(
             "This version is pointing to the latest commit %s, lets enable shallow clones"
@@ -159,7 +165,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         the git branch descriptor is to be downloaded to.
         """
         depth = None
-        is_latest_commit = self._is_latest_commit(self._version, self._branch)
+        is_latest_commit = self._is_latest_commit()
         if is_latest_commit:
             depth = 1
         try:
@@ -213,7 +219,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = sgutils.ensure_str(git_hash)
+        new_loc_dict["version"] = self.get_latest_commit()
         desc = IODescriptorGitBranch(
             new_loc_dict, self._sg_connection, self._bundle_type
         )
