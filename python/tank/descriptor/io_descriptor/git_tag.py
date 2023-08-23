@@ -249,12 +249,12 @@ class IODescriptorGitTag(IODescriptorGit):
 
         tupled_tags = []
         for t in self._tags:
-            items = t.lstrip("v").split(".")
+            items = t.split(".")
             tupled_tags.append(
                 tuple(int(item) if item.isdigit() else item for item in items)
             )
 
-        return sorted(tupled_tags)[-1]
+        return ".".join(map(str, sorted(tupled_tags)[-1]))
 
     def get_latest_cached_version(self, constraint_pattern=None):
         """
