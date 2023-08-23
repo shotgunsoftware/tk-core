@@ -141,26 +141,17 @@ class IODescriptorGitTag(IODescriptorGit):
         """Returns the tag name."""
         return self._version
 
-    def _download_local(self, destination_path):
+    def download_local(self):
         """
-        Retrieves this version to local repo.
-        Will exit early if app already exists local.
-
-        This will connect to remote git repositories.
-        Depending on how git is configured, https repositories
-        requiring credentials may result in a shell opening up
-        requesting username and password.
-
-        The git repo will be cloned into the local cache and
-        will then be adjusted to point at the relevant tag.
-
-        :param destination_path: The destination path on disk to which
-        the git tag descriptor is to be downloaded to.
+        Downloads the data represented by the descriptor into the primary bundle
+        cache path.
         """
+        log.info(f"Downloading {self.get_system_name()}:{self._version}")
+
         try:
             # clone the repo, checkout the given tag
             self._clone_then_execute_git_commands(
-                destination_path, [], depth=1, ref=self._version
+                self._get_primary_cache_path(), [], depth=1, ref=self._version
             )
         except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
