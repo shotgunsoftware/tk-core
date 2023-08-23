@@ -66,9 +66,21 @@ class IODescriptorGitTag(IODescriptorGit):
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
-        self._version = descriptor_dict.get("version")
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
+
+        raw_version = descriptor_dict.get("version")
+        raw_version_is_latest = raw_version == "latest"
+
+        if "x" in raw_version or raw_version_is_latest:
+            self._tags = self._fetch_tags()
+            if raw_version_is_latest:
+                self._version = self._get_latest_by_pattern(None)
+            else:
+                self._version = self._get_latest_by_pattern(raw_version)
+            log.info(f"{self.get_system_name()}-{raw_version} resolved as {self._version}")
+        else:
+            self._version = raw_version
 
     def __str__(self):
         """
@@ -126,9 +138,7 @@ class IODescriptorGitTag(IODescriptorGit):
         return paths
 
     def get_version(self):
-        """
-        Returns the version number string for this item, .e.g 'v1.2.3'
-        """
+        """Returns the tag name."""
         return self._version
 
     def _download_local(self, destination_path):
@@ -200,41 +210,39 @@ class IODescriptorGitTag(IODescriptorGit):
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
         :returns: IODescriptorGitTag object
         """
-        git_tags = self._fetch_tags()
-        latest_tag = self._find_latest_tag_by_pattern(git_tags, pattern)
-        if latest_tag is None:
-            raise TankDescriptorError(
-                "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s"
-                % (self.get_system_name(), pattern, ", ".join(git_tags))
-            )
+        if not pattern:
+            latest_tag = self._get_latest_tag()
+        else:
+            latest_tag = self._find_latest_tag_by_pattern(self._tags, pattern)
+            if latest_tag is None:
+                raise TankDescriptorError(
+                    "'%s' does not have a version matching the pattern '%s'. "
+                    "Available versions are: %s"
+                    % (self.get_system_name(), pattern, ", ".join(self._tags))
+                )
 
         return latest_tag
 
     def _fetch_tags(self):
-        output = self._execute_git_commands(["git", "ls-remote", "--tags", self._path])
+        output = self._execute_git_commands(["git", "ls-remote", "-q", "--tags", self._path])
 
         git_tags = []
         for line in output.splitlines():
-            m = regex.match(six.ensure_str(line))
+            m = TAG_REGEX.match(sgutils.ensure_str(line))
             if m:
                 git_tags.append(m.group(1))
 
         return git_tags
 
-    def _get_latest_version(self):
-        """
-        Returns a descriptor object that represents the latest version.
-        :returns: IODescriptorGitTag object
-        """
-        tags = self._fetch_tags()
-        if not tags:
+    def _get_latest_tag(self):
+        """Get latest tag name. Compare them as version numbers."""
+        if not self._tags:
             raise TankDescriptorError(
                 "Git repository %s doesn't have any tags!" % self._path
             )
 
         tupled_tags = []
-        for t in tags:
+        for t in self._tags:
             items = t.lstrip("v").split(".")
             tupled_tags.append(tuple(int(item) if item.isdigit() else item for item in items))
 
