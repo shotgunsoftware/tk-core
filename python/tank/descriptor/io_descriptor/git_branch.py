@@ -62,7 +62,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict, required=["type", "path", "version", "branch"], optional=[]
+            descriptor_dict, required=["type", "path", "branch"], optional=["version"]
         )
 
         # call base class
@@ -74,8 +74,8 @@ class IODescriptorGitBranch(IODescriptorGit):
         # have a path to a repo
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
-        self._version = descriptor_dict.get("version")
         self._branch = six.ensure_str(descriptor_dict.get("branch"))
+        self._version = descriptor_dict.get("version") or self.get_latest_commit()
 
     def __str__(self):
         """
@@ -112,6 +112,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         return self._version
 
     def get_latest_commit(self):
+        """Fetch the latest commit on a specific branch"""
         output = self._execute_git_commands(["git", "ls-remote", self._path, self._branch])
         latest_commit = output.split("\t")[0]
         return six.ensure_str(latest_commit)
@@ -128,7 +129,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         log.debug("Checking if the version is pointing to the latest commit...")
         short_latest_commit = self.get_latest_short_commit()
 
-        if short_latest_commit != self._version[:7]:
+        if short_latest_commit != self.get_short_version():
             return False
         log.debug(
             "This version is pointing to the latest commit %s, lets enable shallow clones"
