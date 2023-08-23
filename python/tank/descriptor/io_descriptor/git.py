@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import shlex
+import shutil
 import subprocess
 
 from .downloadable import IODescriptorDownloadable
@@ -16,7 +17,6 @@ from ... import LogManager
 from ...util.process import subprocess_check_output, SubprocessCalledProcessError
 
 from ..errors import TankError
-from ...util import filesystem
 from ...util import is_windows
 
 log = LogManager.get_logger(__name__)
@@ -172,8 +172,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         """
         # ensure *parent* folder exists
         parent_folder = os.path.dirname(target_path)
-
-        filesystem.ensure_folder_exists(parent_folder)
+        os.makedirs(parent_folder, exist_ok=True)
 
         # Make sure all git commands are correct according to the descriptor type
         cmd = self._get_git_clone_commands(
@@ -232,15 +231,8 @@ class IODescriptorGit(IODescriptorDownloadable):
         # make sure item exists locally
         self.ensure_local()
         # copy descriptor into target.
-        # the skip list contains .git folders by default, so pass in []
-        # to turn that restriction off. In the case of the git descriptor,
-        # we want to transfer this folder as well.
-        filesystem.copy_folder(
-            self.get_path(),
-            target_path,
-            # Make we do not pass none or we will be getting the default skip list.
-            skip_list=skip_list or [],
-        )
+        shutil.copytree(self.get_path(), target_path)
+
 
     def _get_git_clone_commands(
         self, target_path, depth=None, ref=None, is_latest_commit=None
