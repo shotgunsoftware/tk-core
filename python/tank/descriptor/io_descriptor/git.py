@@ -181,10 +181,11 @@ class IODescriptorGit(IODescriptorDownloadable):
         )
         self._execute_git_commands(cmd)
 
-        full_commands = ["git", "-C", shlex.quote(target_path)]
-        full_commands.extend(commands)
+        if commands:
+            full_commands = ["git", "-C", os.path.normpath(target_path)]
+            full_commands.extend(commands)
 
-        return self._execute_git_commands(full_commands)
+            return self._execute_git_commands(full_commands)
 
     def get_system_name(self):
         """
