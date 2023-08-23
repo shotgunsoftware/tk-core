@@ -73,7 +73,6 @@ class IODescriptorGitTag(IODescriptorGit):
         raw_version_is_latest = raw_version == "latest"
 
         if "x" in raw_version or raw_version_is_latest:
-            self._tags = self._fetch_tags()
             if raw_version_is_latest:
                 self._version = self._get_latest_by_pattern(None)
             else:
@@ -92,6 +91,16 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git, tag v1.2.3
         return "%s, Tag %s" % (self._path, self._version)
+
+    @property
+    def _tags(self):
+        """Fetch tags if necessary."""
+        try:
+            return self.__tags
+        except AttributeError:
+            log.info("Fetch tags for {}".format(self.get_system_name()))
+            self.__tags = self._fetch_tags()
+        return self.__tags
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
