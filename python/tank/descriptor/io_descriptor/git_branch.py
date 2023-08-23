@@ -144,22 +144,13 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         return True
 
-    def _download_local(self, destination_path):
+    def download_local(self):
         """
-        Retrieves this version to local repo.
-        Will exit early if app already exists local.
-
-        This will connect to remote git repositories.
-        Depending on how git is configured, https repositories
-        requiring credentials may result in a shell opening up
-        requesting username and password.
-
-        The git repo will be cloned into the local cache and
-        will then be adjusted to point at the relevant commit.
-
-        :param destination_path: The destination path on disk to which
-        the git branch descriptor is to be downloaded to.
+        Downloads the data represented by the descriptor into the primary bundle
+        cache path.
         """
+        log.info(f"Downloading {self.get_system_name()}:{self._version}")
+
         depth = None
         is_latest_commit = self._is_latest_commit()
         if is_latest_commit:
@@ -167,9 +158,9 @@ class IODescriptorGitBranch(IODescriptorGit):
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
-            commands = ['checkout -q "%s"' % self._version]
+            commands = [f'checkout', '-q', self._version]
             self._clone_then_execute_git_commands(
-                destination_path,
+                self._get_primary_cache_path(),
                 commands,
                 depth=depth,
                 ref=self._branch,
