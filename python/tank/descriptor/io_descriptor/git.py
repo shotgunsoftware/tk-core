@@ -209,7 +209,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         can_connect = True
         try:
             log.debug("%r: Probing if a connection to git can be established..." % self)
-            self._execute_git_commands(["git", "ls-remote", shlex.quote(self._path)])
+            self._execute_git_commands(["git", "ls-remote", "--heads", self._path])
             log.debug("...connection established")
         except (OSError, SubprocessCalledProcessError) as e:
             log.debug("...could not establish connection: %s" % e)
