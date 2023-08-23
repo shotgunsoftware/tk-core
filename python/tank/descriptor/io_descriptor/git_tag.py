@@ -176,10 +176,7 @@ class IODescriptorGitTag(IODescriptorGit):
 
         :returns: IODescriptorGitTag object
         """
-        if constraint_pattern:
-            tag_name = self._get_latest_by_pattern(constraint_pattern)
-        else:
-            tag_name = self._get_latest_version()
+        tag_name = self._get_latest_by_pattern(constraint_pattern)
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = sgutils.ensure_str(tag_name)
