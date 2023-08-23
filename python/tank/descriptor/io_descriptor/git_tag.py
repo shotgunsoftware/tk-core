@@ -20,6 +20,8 @@ from ...util.process import SubprocessCalledProcessError
 
 log = LogManager.get_logger(__name__)
 
+TAG_REGEX = re.compile(".*refs/tags/([^^/]+)$")
+
 
 class IODescriptorGitTag(IODescriptorGit):
     """
@@ -207,8 +209,6 @@ class IODescriptorGitTag(IODescriptorGit):
 
     def _fetch_tags(self):
         output = self._execute_git_commands(["git", "ls-remote", "--tags", self._path])
-
-        regex = re.compile(".*refs/tags/([^^/]+)$")
 
         git_tags = []
         for line in output.splitlines():
