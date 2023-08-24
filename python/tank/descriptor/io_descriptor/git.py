@@ -18,7 +18,7 @@ from .downloadable import IODescriptorDownloadable
 from ... import LogManager
 from ...util.process import subprocess_check_output, SubprocessCalledProcessError
 
-from ..errors import TankError
+from ..errors import TankError, TankDescriptorError
 from ...util import is_windows
 
 log = LogManager.get_logger(__name__)
@@ -272,6 +272,28 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
             ignore=shutil.ignore_patterns(*(skip_list or [])),
             dirs_exist_ok=True,
         )
+
+    @property
+    def _normalized_path(self):
+        if os.path.isdir(self._path):
+            return os.path.dirname(self._path) if self._path.endswith(".git") else self._path
+        else:
+            return self._path
+
+    def _path_is_local(self):
+        """
+        Check if path value is an existing folder, and if contain a .git folder.
+        """
+        if os.path.isdir(self._path):
+            output = self._execute_git_commands(["git", "-C", os.path.normpath(self._normalized_path), "status", "--short"])
+            if output.startswith("fatal: not a git repository"):
+                raise TankDescriptorError(
+                    "Folder is not a git repository: {}".format(self._path)
+                )
+            else:
+                return True
+
+        return False
 
     def _get_git_clone_commands(
         self, target_path, depth=None, ref=None, is_latest_commit=None
