@@ -10,6 +10,7 @@
 import os
 import copy
 import re
+import shutil
 
 from .git import IODescriptorGit, TankGitError
 from ..errors import TankDescriptorError
@@ -159,17 +160,27 @@ class IODescriptorGitTag(IODescriptorGit):
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
         """
-        log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
+        target_path = self._get_primary_cache_path()
 
-        try:
-            # clone the repo, checkout the given tag
-            self._clone_then_execute_git_commands(
-                self._get_primary_cache_path(), [], depth=1, ref=self._version
+        if self._path_is_local() and not self.exists_local():
+            log.info("Copying {}:{}".format(self.get_system_name(), self._version))
+            shutil.copytree(
+                self._normalized_path,
+                target_path,
+                dirs_exist_ok=True,
             )
-        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
-            raise TankDescriptorError(
-                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
-            )
+        else:
+            log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
+            try:
+                # clone the repo, checkout the given tag
+                self._clone_then_execute_git_commands(
+                    target_path, [], depth=1, ref=self._version
+                )
+            except (TankGitError, OSError, SubprocessCalledProcessError) as e:
+                raise TankDescriptorError(
+                    "Could not download %s, "
+                    "tag %s: %s" % (self._path, self._version, e)
+                )
 
     def get_latest_version(self, constraint_pattern=None):
         """
