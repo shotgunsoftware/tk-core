@@ -334,11 +334,10 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         if self._descriptor_dict.get("type") == "git_branch" and not is_latest_commit:
             depth = None
 
-        cmd = ['git', 'clone', '--no-hardlinks', '-q']
+        cmd = ["git", "clone", "--no-hardlinks", "-q"]
 
         if ref:
             cmd.extend(["-b", str(ref)])
-
 
         if depth:
             cmd.extend(["--depth", str(depth)])
