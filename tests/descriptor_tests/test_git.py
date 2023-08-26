@@ -62,7 +62,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         }
 
         desc = self._create_desc(location_dict, True)
-        self.assertEqual(desc.version, "ac71eac21baa8b5d26b44d3deb554110ae879d61")
+        self.assertEqual(desc.version, "e1c03faed94346ad77fad2e700edcff1e449f6f4")
 
         location_dict = {"type": "git", "path": self.git_repo_uri}
 
@@ -176,7 +176,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
 
         self.assertEqual(
-            latest_desc.version, "ac71eac21baa8b5d26b44d3deb554110ae879d61"
+            latest_desc.version, "e1c03faed94346ad77fad2e700edcff1e449f6f4"
         )
         self.assertEqual(latest_desc.get_path(), None)
 
@@ -185,7 +185,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(
             latest_desc.get_path(),
             os.path.join(
-                self.bundle_cache, "gitbranch", "tk-config-default.git", "ac71eac"
+                self.bundle_cache, "gitbranch", "tk-config-default.git", "e1c03fa"
             ),
         )
 
