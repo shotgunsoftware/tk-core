@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import platform
-import shutil
 import subprocess
 
 from time import time
@@ -19,6 +18,7 @@ from ... import LogManager
 from ...util.process import subprocess_check_output, SubprocessCalledProcessError
 
 from ..errors import TankError, TankDescriptorError
+from ...util import filesystem
 from ...util import is_windows
 
 log = LogManager.get_logger(__name__)
@@ -270,12 +270,9 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         # make sure item exists locally
         self.ensure_local()
         # copy descriptor into target.
-        shutil.copytree(
-            self.get_path(),
-            target_path,
-            ignore=shutil.ignore_patterns(*(skip_list or [])),
-            dirs_exist_ok=True,
-        )
+        filesystem.copy_folder(self.get_path(),
+                               target_path,
+                               skip_list=skip_list or [])
 
     def _normalize_path(self, path):
         if path.endswith("/") or  path.endswith("\\"):
