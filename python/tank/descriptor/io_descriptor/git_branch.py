@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
-import shutil
 
 from .git import IODescriptorGit, TankGitError
 from ..errors import TankDescriptorError
@@ -149,43 +148,33 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         return True
 
-    def download_local(self):
+    def _download_local(self, target_path):
         """
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
         """
-        target_path = self._get_primary_cache_path()
+        log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
 
-        if self._path_is_local() and not self.exists_local():
-            log.info("Copying {}:{}".format(self.get_system_name(), self._version))
-            shutil.copytree(
-                self._normalized_path,
+        depth = None
+        is_latest_commit = self._is_latest_commit()
+        if is_latest_commit:
+            depth = 1
+        try:
+            # clone the repo, switch to the given branch
+            # then reset to the given commit
+            commands = [f"checkout", "-q", self._version]
+            self._clone_then_execute_git_commands(
                 target_path,
-                dirs_exist_ok=True,
+                commands,
+                depth=depth,
+                ref=self._branch,
+                is_latest_commit=is_latest_commit,
             )
-        else:
-            log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
-
-            depth = None
-            is_latest_commit = self._is_latest_commit()
-            if is_latest_commit:
-                depth = 1
-            try:
-                # clone the repo, switch to the given branch
-                # then reset to the given commit
-                commands = [f"checkout", "-q", self._version]
-                self._clone_then_execute_git_commands(
-                    target_path,
-                    commands,
-                    depth=depth,
-                    ref=self._branch,
-                    is_latest_commit=is_latest_commit,
-                )
-            except (TankGitError, OSError, SubprocessCalledProcessError) as e:
-                raise TankDescriptorError(
-                    "Could not download %s, branch %s, "
-                    "commit %s: %s" % (self._path, self._branch, self._version, e)
-                )
+        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
+            raise TankDescriptorError(
+                "Could not download %s, branch %s, "
+                "commit %s: %s" % (self._path, self._branch, self._version, e)
+            )
 
     def get_latest_version(self, constraint_pattern=None):
         """
