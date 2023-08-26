@@ -114,11 +114,15 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
             descriptor_dict, sg_connection, bundle_type
         )
 
-        self._path = descriptor_dict.get("path")
-        # strip trailing slashes - this is so that when we build
-        # the name later (using os.basename) we construct it correctly.
-        if self._path.endswith("/") or self._path.endswith("\\"):
-            self._path = self._path[:-1]
+        _path = self._normalize_path(descriptor_dict.get("path"))
+
+        if self._path_is_local(_path):
+            self._path = self._execute_git_commands(["git", "-C", _path, "remote", "get-url", "origin"])
+            log.debug("Get remote url from local repo: {} -> {}".format(_path, self._path))
+            filtered_local_data = {k: v for k, v in self._fetch_local_data(_path).items() if k not in descriptor_dict}
+            descriptor_dict.update(filtered_local_data)
+        else:
+            self._path = _path
 
     def is_git_available(self):
         log.debug("Checking that git exists and can be executed...")
@@ -273,24 +277,37 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
             dirs_exist_ok=True,
         )
 
-    @property
-    def _normalized_path(self):
-        if os.path.isdir(self._path):
-            return os.path.dirname(self._path) if self._path.endswith(".git") else self._path
+    def _normalize_path(self, path):
+        if path.endswith("/") or  path.endswith("\\"):
+            new_path = path[:-1]
         else:
-            return self._path
+            new_path = path
 
-    def _path_is_local(self):
+        if os.path.isdir(new_path):
+            if not new_path.endswith(".git"):
+                new_path = os.path.join(new_path, ".git")
+
+        return new_path
+
+    def _path_is_local(self, path):
         """
         Check if path value is an existing folder, and if contain a .git folder.
         """
-        if os.path.isdir(self._path):
-            output = self._execute_git_commands(["git", "-C", os.path.normpath(self._normalized_path), "status", "--short"])
+        if os.path.isdir(path):
+            output = self._execute_git_commands(
+                [
+                    "git",
+                    "-C",
+                    os.path.normpath(path),
+                    "rev-parse",
+                    "--git-dir",
+                ]
+            )
             if output.startswith("fatal: not a git repository"):
                 raise TankDescriptorError(
-                    "Folder is not a git repository: {}".format(self._path)
+                    "Folder is not a git repository: {}".format(path)
                 )
-            else:
+            elif output == ".":
                 return True
 
         return False
@@ -327,3 +344,6 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         )
 
         return cmd
+
+    def _fetch_local_data(self, path):
+        return {}

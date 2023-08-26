@@ -303,3 +303,11 @@ class IODescriptorGitTag(IODescriptorGit):
 
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
+
+    def _fetch_local_data(self, path):
+        version = self._execute_git_commands(
+            ["git", "-C", os.path.normpath(path), "describe", "--tags", "--abbrev=0"])
+
+        local_data = {"version": version}
+        log.debug("Get local repo data: {}".format(local_data))
+        return local_data

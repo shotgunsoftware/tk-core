@@ -250,3 +250,14 @@ class IODescriptorGitBranch(IODescriptorGit):
         else:
             # no cached version exists
             return None
+
+    def _fetch_local_data(self, path):
+        version = self._execute_git_commands(
+            [ "git", "-C", os.path.normpath(path), "rev-parse", "HEAD"])
+
+        branch = self._execute_git_commands(
+            [ "git", "-C", os.path.normpath(path), "branch", "--show-current"])
+
+        local_data = {"version": version, "branch": branch}
+        log.debug("Get local repo data: {}".format(local_data))
+        return local_data
