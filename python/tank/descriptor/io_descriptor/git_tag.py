@@ -167,8 +167,7 @@ class IODescriptorGitTag(IODescriptorGit):
             )
         except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
-                "Could not download %s, "
-                "tag %s: %s" % (self._path, self._version, e)
+                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -295,7 +294,8 @@ class IODescriptorGitTag(IODescriptorGit):
 
     def _fetch_local_data(self, path):
         version = self._execute_git_commands(
-            ["git", "-C", os.path.normpath(path), "describe", "--tags", "--abbrev=0"])
+            ["git", "-C", os.path.normpath(path), "describe", "--tags", "--abbrev=0"]
+        )
 
         local_data = {"version": version}
         log.debug("Get local repo data: {}".format(local_data))
