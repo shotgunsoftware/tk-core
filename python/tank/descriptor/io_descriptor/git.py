@@ -155,12 +155,7 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         # first probe to check that git exists in our PATH
         self.is_git_available()
 
-        if not isinstance(commands, str):
-            str_cmd = " ".join(commands)
-        else:
-            str_cmd = commands
-
-        log.debug("Executing command '%s' using subprocess module." % str_cmd)
+        log.debug("Executing command '%s' using subprocess module." % commands)
 
         # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
         # just hang waiting for credentials to be entered on the missing terminal.
@@ -174,7 +169,7 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         except SubprocessCalledProcessError as e:
             raise TankGitError(
                 "Error executing git operation '%s': %s (Return code %s)"
-                % (str_cmd, e.output, e.returncode)
+                % (commands, e.output, e.returncode)
             )
         else:
             output = output.strip().strip("'")
@@ -337,14 +332,19 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         log.debug("Git Cloning %r into %s" % (self, target_path))
 
         if self._descriptor_dict.get("type") == "git_branch" and not is_latest_commit:
-            depth = ""
-        else:
-            depth = "--depth {}".format(depth) if depth else ""
+            depth = None
 
-        ref = "-b {}".format(ref) if ref else ""
-        cmd = 'git clone --no-hardlinks -q "{}" {} "{}" {}'.format(
-            self._path, ref, target_path, depth
-        )
+        cmd = ['git', 'clone', '--no-hardlinks', '-q']
+
+        if ref:
+            cmd.extend(["-b", str(ref)])
+
+
+        if depth:
+            cmd.extend(["--depth", str(depth)])
+
+        cmd.append(self._path)
+        cmd.append(os.path.normpath(target_path))
 
         return cmd
 
