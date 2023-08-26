@@ -117,9 +117,17 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         _path = self._normalize_path(descriptor_dict.get("path"))
 
         if self._path_is_local(_path):
-            self._path = self._execute_git_commands(["git", "-C", _path, "remote", "get-url", "origin"])
-            log.debug("Get remote url from local repo: {} -> {}".format(_path, self._path))
-            filtered_local_data = {k: v for k, v in self._fetch_local_data(_path).items() if k not in descriptor_dict}
+            self._path = self._execute_git_commands(
+                ["git", "-C", _path, "remote", "get-url", "origin"]
+            )
+            log.debug(
+                "Get remote url from local repo: {} -> {}".format(_path, self._path)
+            )
+            filtered_local_data = {
+                k: v
+                for k, v in self._fetch_local_data(_path).items()
+                if k not in descriptor_dict
+            }
             descriptor_dict.update(filtered_local_data)
         else:
             self._path = _path
@@ -270,12 +278,10 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         # make sure item exists locally
         self.ensure_local()
         # copy descriptor into target.
-        filesystem.copy_folder(self.get_path(),
-                               target_path,
-                               skip_list=skip_list or [])
+        filesystem.copy_folder(self.get_path(), target_path, skip_list=skip_list or [])
 
     def _normalize_path(self, path):
-        if path.endswith("/") or  path.endswith("\\"):
+        if path.endswith("/") or path.endswith("\\"):
             new_path = path[:-1]
         else:
             new_path = path
