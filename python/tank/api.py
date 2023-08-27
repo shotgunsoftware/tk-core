@@ -283,7 +283,7 @@ class Sgtk(object):
             if data == "":
                 data = None
         except Exception as e:
-            log.debug("Cant get documentation url: %s" %e)
+            log.debug("Cant get documentation url: %s" % e)
             data = None
 
         return data

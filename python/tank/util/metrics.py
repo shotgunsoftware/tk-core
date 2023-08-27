@@ -108,7 +108,6 @@ class PlatformInfo(object):
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
             os_version = "%s %s" % (distribution, major_version_str)
 
-
         except Exception:
             log.debug("Cant get Linux version.", exc_info=True)
             pass
@@ -175,7 +174,6 @@ class PlatformInfo(object):
 
             else:
                 os_info["OS"] = "Unsupported system: (%s)" % (system)
-
 
         except Exception:
             # On any exception we fallback to default value

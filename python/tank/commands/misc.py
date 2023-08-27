@@ -71,7 +71,9 @@ class ClearCacheAction(Action):
                 try:
                     os.remove(full_path)
                 except OSError as e:
-                    log.warning("Could not delete cache file '%s'! // %s" % (full_path, e))
+                    log.warning(
+                        "Could not delete cache file '%s'! // %s" % (full_path, e)
+                    )
 
         log.info("The SG menu cache has been cleared.")
 

@@ -191,6 +191,7 @@ class Engine(TankBundle):
         try:
             from ..authentication.ui import qt_abstraction
         except ImportError:
+
             class qt_abstraction:
                 pass
 

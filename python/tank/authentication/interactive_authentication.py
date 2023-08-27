@@ -46,7 +46,7 @@ logger = LogManager.get_logger(__name__)
 try:
     from .ui.qt_abstraction import QtGui
 except ImportError as e:
-    logger.debug("Cant import QtGui: %s" %e)
+    logger.debug("Cant import QtGui: %s" % e)
     QtGui = None
 
 
@@ -70,7 +70,7 @@ def _get_current_os_user():
             pwd_entry = pwd.getpwuid(os.geteuid())
             return pwd_entry[0]
         except Exception as e:
-            logger.debug("Cant get current user: %s" %e)
+            logger.debug("Cant get current user: %s" % e)
             return None
 
 

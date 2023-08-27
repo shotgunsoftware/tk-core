@@ -450,7 +450,8 @@ class Hook(object):
         except Exception as e:
             raise TankError(
                 "Cannot load framework %s for %r - it does not have a "
-                "valid engine property! // %s" % (framework_instance_name, self.__parent, e)
+                "valid engine property! // %s"
+                % (framework_instance_name, self.__parent, e)
             )
 
         return framework.load_framework(

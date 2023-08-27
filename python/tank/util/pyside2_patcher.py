@@ -23,6 +23,7 @@ import webbrowser
 
 from .. import constants, LogManager
 from .platforms import is_linux, is_macos, is_windows
+
 log = LogManager.get_logger(__name__)
 
 

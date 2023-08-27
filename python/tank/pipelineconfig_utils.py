@@ -260,7 +260,9 @@ def get_core_path_for_config(pipeline_config_path):
         studio_folder = os.path.normpath(studio_folder)
         return studio_folder
     except Exception:
-        logger.debug("Cant get core path for config %s" % pipeline_config_path, exc_info=True)
+        logger.debug(
+            "Cant get core path for config %s" % pipeline_config_path, exc_info=True
+        )
         return None
 
 
