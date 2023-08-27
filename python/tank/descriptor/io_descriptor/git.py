@@ -73,7 +73,11 @@ class _IODescriptorGitCache(type):
         if (
             descriptor_dict["type"] == "git_branch"
         ):  # cant fetch last commit here, too soon
-            version = "-".join(filter(None, [descriptor_dict.get("version"), descriptor_dict["branch"]]))
+            version = "-".join(
+                filter(
+                    None, [descriptor_dict.get("version"), descriptor_dict["branch"]]
+                )
+            )
         else:
             version = descriptor_dict["version"]
 
