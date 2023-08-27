@@ -91,7 +91,7 @@ class IODescriptorDownloadable(IODescriptorBase):
         target_parent = os.path.dirname(target)
         try:
             filesystem.ensure_folder_exists(target_parent)
-        except Exception as e:
+        except OSError as e:
             if not os.path.exists(target_parent):
                 log.error("Failed to create directory %s: %s" % (target_parent, e))
                 raise TankDescriptorIOError(
@@ -104,7 +104,7 @@ class IODescriptorDownloadable(IODescriptorBase):
             # download completed without issue. Now create settings folder
             metadata_folder = self._get_metadata_folder(temporary_path)
             filesystem.ensure_folder_exists(metadata_folder)
-        except Exception as e:
+        except OSError as e:
             # something went wrong during the download, remove the temporary files.
             log.error(
                 "Failed to download into path %s: %s. Attempting to remove it."
@@ -141,7 +141,7 @@ class IODescriptorDownloadable(IODescriptorBase):
                 % target
             )
 
-        except Exception as e:
+        except OSError as e:
 
             # if the target path already exists, this means someone else is either
             # moving things right now or have moved it already, so we are ok.
@@ -188,7 +188,7 @@ class IODescriptorDownloadable(IODescriptorBase):
                     filesystem.safe_delete_folder(temporary_path)
                     move_succeeded = True
 
-                except Exception as e:
+                except OSError as e:
                     # something during the copy went wrong. Attempt to roll back the target
                     # so we aren't left with any corrupt bundle cache items.
                     if os.path.exists(target):

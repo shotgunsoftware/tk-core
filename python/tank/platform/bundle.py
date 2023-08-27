@@ -1065,7 +1065,8 @@ class TankBundle(object):
         # therefore get an error.
         try:
             engine_name = self.engine.name
-        except:
+        except AttributeError as e:
+            self.logger.debug("Cant get engine name: %s" % e)
             engine_name = None
 
         return engine_name

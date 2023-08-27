@@ -399,7 +399,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             summary = sg_version_data.get("description")
             url = sg_version_data.get("sg_detailed_release_notes").get("url")
         except Exception:
-            pass
+            log.exception("Cant get changelog.")
         return (summary, url)
 
     def _download_local(self, destination_path):

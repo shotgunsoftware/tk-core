@@ -143,7 +143,7 @@ class SwitchAppAction(Action):
                 env_name, writable=True
             )
             env.set_yaml_preserve_mode(preserve_yaml)
-        except Exception as e:
+        except TankError as e:
             raise TankError(
                 "Environment '%s' could not be loaded! Error reported: %s"
                 % (env_name, e)

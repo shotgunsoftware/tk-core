@@ -86,7 +86,7 @@ class CacheYamlAction(Action):
 
         try:
             fh = open(pickle_path, "wb")
-        except Exception as e:
+        except OSError as e:
             raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
 
         try:

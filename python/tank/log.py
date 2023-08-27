@@ -304,7 +304,7 @@ class LogManager(object):
 
             try:
                 os.rename(self.baseFilename, temp_backup_name)
-            except:
+            except OSError:
                 # It failed, so we'll simply append from now on.
                 log.debug(
                     "Cannot rotate log file '%s'. Logging will continue to this file, "
@@ -319,7 +319,7 @@ class LogManager(object):
             # so doRollover can do its work.
             try:
                 os.rename(temp_backup_name, self.baseFilename)
-            except:
+            except OSError:
                 # For some reason we couldn't move the backup in its place.
                 log.debug(
                     "Unexpected issue while rotating log file '%s'. Logging will continue to this file, "
@@ -344,7 +344,7 @@ class LogManager(object):
             # disable rollover and append to the current log.
             try:
                 RotatingFileHandler.doRollover(self)
-            except:
+            except OSError:
                 # Something probably failed trying to rollover the backups,
                 # since the code above proved that in theory the main log file
                 # should be renamable. In any case, we didn't succeed in renaming,

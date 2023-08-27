@@ -21,9 +21,8 @@ import inspect
 from tank_test.tank_test_base import *
 import tank
 from tank.errors import TankError, TankHookMethodDoesNotExistError
-from tank.platform import application, constants, validation
+from tank.platform import application, validation
 from tank.template import Template
-from tank.deploy import descriptor
 from tank_vendor import six
 from tank_vendor.six import StringIO
 

@@ -34,7 +34,8 @@ def _can_hide_terminal():
         subprocess.STARTF_USESHOWWINDOW
         subprocess.SW_HIDE
         return True
-    except Exception:
+    except AttributeError as e:
+        log.debug("Terminal cant be hidden: %s" % e)
         return False
 
 
@@ -131,7 +132,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         log.debug("Checking that git exists and can be executed...")
         try:
             output = _check_output(["git", "--version"])
-        except:
+        except SubprocessCalledProcessError:
             log.exception("Unexpected error:")
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
@@ -291,7 +292,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             # clone repo into temp folder
             self._tmp_clone_then_execute_git_commands([], depth=1)
             log.debug("...connection established")
-        except Exception as e:
+        except (OSError, SubprocessCalledProcessError) as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

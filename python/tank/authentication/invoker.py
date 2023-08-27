@@ -30,7 +30,8 @@ logger = LogManager.get_logger(__name__)
 # fully in place to record it.
 try:
     from .ui.qt_abstraction import QtCore, QtGui
-except Exception:
+except ImportError as e:
+    logger.debug("Cant import QtCore/QtGui: %s" % e)
     QtCore, QtGui = None, None
 
 

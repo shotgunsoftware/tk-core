@@ -213,7 +213,7 @@ class DumpConfigAction(Action):
                 log.info(
                     "Environment written to: %s" % (os.path.abspath(params["file"]))
                 )
-        except Exception as e:
+        except TankError as e:
             import traceback
 
             traceback.print_exc()
@@ -244,7 +244,7 @@ class DumpConfigAction(Action):
                     )
             try:
                 fh = open(path, "w")
-            except Exception as e:
+            except OSError as e:
                 raise TankError(
                     "Unable to open file: %s\n" "  Error reported: %s" % (path, e)
                 )

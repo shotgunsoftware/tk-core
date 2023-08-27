@@ -26,7 +26,7 @@ class QtImporter(object):
     .. code-block:: python
         try:
             importer = QtImporter()
-        except Exception as e:
+        except ImportError as e:
             print "Couldn't import a Qt Wrapper: " % (e,)
         else:
             importer.QtGui.QApplication([])
@@ -42,13 +42,16 @@ class QtImporter(object):
 
         :param interface_version_request: Indicates which version of the Qt API is requested.
         """
-        (
-            self._binding_name,
-            self._binding_version,
-            self._binding,
-            self._modules,
-            self._qt_version_tuple,
-        ) = self._import_modules(interface_version_requested)
+        try:
+            (
+                self._binding_name,
+                self._binding_version,
+                self._binding,
+                self._modules,
+                self._qt_version_tuple,
+            ) = self._import_modules(interface_version_requested)
+        except ImportError:
+            raise
 
     @property
     def QtCore(self):
@@ -437,14 +440,16 @@ class QtImporter(object):
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PySide2 as PySide: %s" % e)
                 pass
         elif interface_version_requested == self.QT5:
             try:
                 pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")
                 return pyside2
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PySide2: %s" % e)
                 pass
         elif interface_version_requested == self.QT6:
             # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
@@ -459,7 +464,8 @@ class QtImporter(object):
                 pyside = self._import_pyside()
                 logger.debug("Imported PySide1.")
                 return pyside
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PySide1: %s" % e)
                 pass
 
         # Now try PyQt4
@@ -468,9 +474,8 @@ class QtImporter(object):
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
                 return pyqt
-            except ImportError:
+            except ImportError as e:
+                logger.debug("Cant import PyQt4: %s" % e)
                 pass
 
-        logger.debug("No Qt matching that interface was found.")
-
-        return (None, None, None, None, None)
+        raise ImportError("No Qt matching that interface was found.")

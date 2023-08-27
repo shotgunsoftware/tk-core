@@ -54,5 +54,6 @@ class GetCurrentLogin(Hook):
 
                 pwd_entry = pwd.getpwuid(os.geteuid())
                 return pwd_entry[0]
-            except:
+            except Exception:
+                self.logger.debug("GetCurrentLogin hook failed.", exc_info=True)
                 return None

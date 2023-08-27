@@ -13,12 +13,10 @@ Module to support Web login via a web browser and automated session renewal.
 
 from __future__ import print_function
 
-# pylint: disable=import-error
-from ...ui.qt_abstraction import QtCore, QtGui
-
-# No point in proceeding if QtGui is None.
-if QtGui is None:
-    raise ImportError("Unable to import QtGui")
+try:
+    from ...ui.qt_abstraction import QtCore, QtGui
+except ImportError:
+    raise
 
 
 class UsernamePasswordDialog(QtGui.QDialog):
