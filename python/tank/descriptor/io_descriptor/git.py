@@ -73,13 +73,11 @@ class _IODescriptorGitCache(type):
         if (
             descriptor_dict["type"] == "git_branch"
         ):  # cant fetch last commit here, too soon
-            version = descriptor_dict.get("version") or descriptor_dict["branch"]
+            version = "-".join(filter(None, [descriptor_dict.get("version"), descriptor_dict["branch"]]))
         else:
             version = descriptor_dict["version"]
 
-        id_ = "{}-{}-{}".format(
-            descriptor_dict["type"], descriptor_dict["path"], version
-        )
+        id_ = "-".join([descriptor_dict["type"], descriptor_dict["path"], version])
 
         cached_time, self = cls._instances.get(id_, (-1, None))
         if cached_time < floored_time:
