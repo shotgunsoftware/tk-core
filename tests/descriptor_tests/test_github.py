@@ -72,6 +72,14 @@ class MockResponse(object):
         self.msg = status_message
         self.headers = headers
 
+    def close(self):
+        """
+        This method needs to be defined starting with Python 3.9 to prevent a
+        warning message:
+          [warning]Exception ignored in: <function _TemporaryFileCloser.__del__ at 0x10be9f310>
+        """
+        pass
+
     def read(self):
         """
         Return the body of the page, mimicking the response object's behavior.
