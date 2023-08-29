@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
-from tank_vendor.six.moves import queue
+from tank_vendor.third_party.six.moves import queue
 import sys
 
 

@@ -21,8 +21,8 @@ from tank_test.tank_test_base import (
 )
 
 from tank.authentication import user, user_impl, errors
-from tank_vendor.shotgun_api3 import AuthenticationFault
-from tank_vendor import six
+from tank_vendor.third_party.shotgun_api3 import AuthenticationFault
+from tank_vendor.third_party import six
 
 # Create a set of valid cookies, for SSO and Web related tests.
 # For a Web session, we detect the presence of the shotgun_current_session_expiration cookie.
@@ -208,8 +208,8 @@ class UserTests(ShotgunTestBase):
             }
             user_impl.ScriptUser.from_dict(script_user_with_unknown_data)
 
-    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun._call_rpc")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_failure(
         self, renew_session_mock, call_rpc_mock, server_caps_mock
@@ -229,8 +229,8 @@ class UserTests(ShotgunTestBase):
         with self.assertRaises(AuthenticationFault):
             sg._call_rpc()
 
-    @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
-    @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun.server_caps")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun._call_rpc")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_on_old_connection(
         self, renew_session_mock, call_rpc_mock, server_caps_mock

@@ -15,7 +15,7 @@ from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
 
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 log = LogManager.get_logger(__name__)
 

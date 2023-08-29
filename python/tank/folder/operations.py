@@ -17,7 +17,7 @@ from .configuration import FolderConfiguration
 from .folder_io import FolderIOReceiver
 from .folder_types import EntityLinkTypeMismatch
 from ..errors import TankError
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 
 def create_single_folder_item(

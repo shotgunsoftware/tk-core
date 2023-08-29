@@ -236,7 +236,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         desc.ensure_local()
         self.assertEqual(desc.get_path(), expected_path)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_id(self, find_mock):
         """
         Tests resolving the latest descriptor based on id
@@ -288,7 +288,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_name(self, find_mock):
         """
         Tests resolving the latest descriptor based on name
@@ -340,7 +340,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_name_and_proj(self, find_mock):
         """
         Tests resolving the latest descriptor based on name and project
@@ -402,7 +402,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_find_invalid_attachment(self, find_mock):
         """
         Tests resolving an attachment which doesn't have an uploaded attachment
@@ -442,7 +442,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         self.assertEqual(desc.version, "v0")
         self.assertRaises(sgtk.descriptor.TankDescriptorError, desc.find_latest_version)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_missing_record(self, find_mock):
         """
         Tests behavior when a shotgun record is missing

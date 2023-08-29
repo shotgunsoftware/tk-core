@@ -21,7 +21,7 @@ from .expression_tokens import (
     CurrentStepExpressionToken,
     CurrentTaskExpressionToken,
 )
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 
 def resolve_shotgun_filters(filters, sg_data):

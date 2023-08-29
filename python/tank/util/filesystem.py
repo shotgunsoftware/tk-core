@@ -24,7 +24,7 @@ from contextlib import contextmanager
 
 from .. import LogManager
 from .platforms import is_linux, is_macos, is_windows
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 log = LogManager.get_logger(__name__)
 

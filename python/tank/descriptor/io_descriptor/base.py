@@ -18,7 +18,7 @@ from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
-from tank_vendor.six.moves import map, urllib
+from tank_vendor.third_party.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
 

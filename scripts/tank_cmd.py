@@ -39,11 +39,11 @@ from tank.authentication import IncompleteCredentials
 from tank.authentication import CoreDefaultsManager
 from tank.commands import constants as command_constants
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
+from tank_vendor.sgsix import normalize_platform
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")

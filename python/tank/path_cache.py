@@ -22,10 +22,9 @@ import itertools
 
 # use api json to cover py 2.5
 # todo - replace with proper external library
-from tank_vendor import shotgun_api3
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import range
+from tank_vendor.third_party import shotgun_api3, six
+from tank_vendor import sgsix
+from tank_vendor.third_party.six.moves import range
 
 json = shotgun_api3.shotgun.json
 

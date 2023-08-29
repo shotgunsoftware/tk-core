@@ -36,14 +36,14 @@ import json
 import time
 import threading
 import unittest
-from tank_vendor import six
-from tank_vendor.six.moves import urllib
+from tank_vendor.third_party import six
+from tank_vendor.third_party.six.moves import urllib
 
 
 if six.PY2:
     LINUX_DISTRIBUTION_FUNCTION = "platform.linux_distribution"
 else:
-    LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
+    LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.third_party.distro.linux_distribution"
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -210,7 +210,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         tank.set_authenticated_user(None)
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun.server_caps")
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
@@ -234,7 +234,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
+        self._urlopen_mock = mock.patch("tank_vendor.third_party.six.moves.urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -784,7 +784,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = mock.patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+            "tank_vendor.third_party.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -848,7 +848,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = mock.patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+            "tank_vendor.third_party.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()

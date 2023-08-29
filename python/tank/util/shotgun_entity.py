@@ -14,7 +14,7 @@ Utilities relating to Shotgun entities
 
 from . import constants, sgre as re
 from ..errors import TankError
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.

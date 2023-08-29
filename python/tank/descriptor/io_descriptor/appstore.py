@@ -13,10 +13,10 @@ Toolkit App Store Descriptor.
 """
 
 import os
-from tank_vendor.six.moves import urllib
+from tank_vendor.third_party.six.moves import urllib
 import fnmatch
-from tank_vendor.six.moves import http_client
-from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor.third_party.six.moves import http_client
+from tank_vendor.third_party import httplib2
 
 from ...util import shotgun
 from ...util import pickle
@@ -35,8 +35,8 @@ from .downloadable import IODescriptorDownloadable
 from ...constants import SUPPORT_URL
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3
-from tank_vendor import six
+from tank_vendor.third_party import shotgun_api3
+from tank_vendor.third_party import six
 
 json = shotgun_api3.shotgun.json
 

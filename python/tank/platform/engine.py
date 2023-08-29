@@ -23,7 +23,7 @@ import inspect
 import weakref
 import threading
 
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin

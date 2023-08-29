@@ -22,14 +22,14 @@ are not part of the public Sgtk API.
 from collections import deque
 from threading import Event, Thread, Lock
 import platform
-from tank_vendor.six.moves import urllib
-from tank_vendor import six
+from tank_vendor.third_party.six.moves import urllib
+from tank_vendor.third_party import six
 from copy import deepcopy
 
 from . import constants, sgre as re
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3, six
+from tank_vendor.third_party import shotgun_api3, six
 
 json = shotgun_api3.shotgun.json
 
@@ -42,7 +42,7 @@ json = shotgun_api3.shotgun.json
 if six.PY2:
     import platform as distro
 else:
-    from tank_vendor import distro
+    from tank_vendor.third_party import distro
 
 ###############################################################################
 

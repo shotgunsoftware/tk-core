@@ -30,7 +30,7 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor import sgsix
 
 
 class ProjectSetupParameters(object):

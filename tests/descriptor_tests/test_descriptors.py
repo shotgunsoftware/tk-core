@@ -35,7 +35,7 @@ from tank.descriptor import (
 )
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
-from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
+from tank_vendor.third_party.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
 
 

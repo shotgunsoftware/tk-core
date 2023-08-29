@@ -14,7 +14,7 @@ Logic for publishing files to Shotgun.
 from __future__ import with_statement
 
 import os
-from tank_vendor.six.moves import urllib
+from tank_vendor.third_party.six.moves import urllib
 import pprint
 
 from .publish_util import (
@@ -28,7 +28,7 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 log = LogManager.get_logger(__name__)
 

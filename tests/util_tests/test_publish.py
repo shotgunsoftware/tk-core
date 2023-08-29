@@ -145,7 +145,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths(self, create_mock):
         """Tests the passing of urls via the path."""
 
@@ -180,7 +180,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         )
         self.assertEqual("pathcache" not in sg_dict, True)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths_host(self, create_mock):
         """Tests the passing of urls via the path."""
 
@@ -207,7 +207,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         )
         self.assertEqual("pathcache" not in sg_dict, True)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_local_storage_publish(self, create_mock):
         """
         Tests that we generate local file links when publishing to a known storage
@@ -241,7 +241,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertTrue("pathcache" not in sg_dict)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_freeform_publish(self, create_mock):
         """
         Tests that we generate url file:// links for freeform paths
@@ -338,7 +338,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             raise ValueError("Failed")
 
         with mock.patch(
-            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            "tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_value_error,
         ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
@@ -373,7 +373,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             open("/this/file/does/not/exist/or/we/are/very/unlucky.txt", "r")
 
         with mock.patch(
-            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
+            "tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_io_error,
         ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
@@ -437,7 +437,7 @@ class TestMultiRoot(TankTestBase):
         self.mockgun.server_caps = server_capsMock()
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun.server_caps")
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 

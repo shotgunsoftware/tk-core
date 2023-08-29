@@ -9,12 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
+from tank_vendor.third_party.six.moves import urllib
 from . import filesystem
 from .platforms import is_linux, is_macos, is_windows
 from .. import LogManager
 from ..errors import TankError
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor import sgsix
 
 log = LogManager.get_logger(__name__)
 

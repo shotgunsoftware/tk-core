@@ -125,7 +125,7 @@ class TestSetupProject(TankTestBase):
             )
         )
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.upload")
     @mock.patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
     def test_setup_distributed_project(
         self, resolve_all_os_paths_to_core_mock, upload_mock

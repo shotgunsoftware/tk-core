@@ -26,7 +26,7 @@ from tank_test.tank_test_base import (
 )
 
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 
 class TestTemplateKey(ShotgunTestBase):

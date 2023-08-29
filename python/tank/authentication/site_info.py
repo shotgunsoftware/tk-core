@@ -13,7 +13,7 @@ import time
 
 from . import utils
 
-from tank_vendor import shotgun_api3
+from tank_vendor.third_party import shotgun_api3
 
 from .. import LogManager
 

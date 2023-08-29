@@ -238,7 +238,7 @@ class ConnectionSettingsTestCases:
 
             # Prevents from connecting to Shotgun.
             self._server_caps_mock = mock.patch(
-                "tank_vendor.shotgun_api3.Shotgun.server_caps"
+                "tank_vendor.third_party.shotgun_api3.Shotgun.server_caps"
             )
             self._server_caps_mock.start()
             self.addCleanup(self._server_caps_mock.stop)

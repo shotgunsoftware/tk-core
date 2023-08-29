@@ -31,7 +31,7 @@
 # This module contains addtional functions and variables to supplement the six
 # module for python 2/3 compatibility.
 
-from . import six
+from tank_vendor.third_party import six
 import io
 import sys
 
@@ -54,7 +54,7 @@ if six.PY3:
     import ssl
     ShotgunSSLError = ssl.SSLError
 else:
-    from .httplib2 import SSLHandshakeError
+    from httplib2 import SSLHandshakeError
     ShotgunSSLError = SSLHandshakeError
 
 

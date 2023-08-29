@@ -23,8 +23,8 @@ from tank_test.tank_test_base import (
     TankTestBase,
 )
 
-import tank_vendor.six.moves.cPickle as pickle
-from tank_vendor.shotgun_api3.lib import sgsix
+import tank_vendor.third_party.six.moves.cPickle as pickle
+from tank_vendor import sgsix
 
 
 class TestTankFromPath(TankTestBase):

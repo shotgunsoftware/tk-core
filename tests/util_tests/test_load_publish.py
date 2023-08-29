@@ -16,8 +16,8 @@ import sgtk
 from tank import context, errors
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase, setUpModule
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.third_party import six
+from tank_vendor import sgsix
 
 
 class TestCoreHook(TankTestBase):

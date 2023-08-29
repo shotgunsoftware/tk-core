@@ -26,7 +26,7 @@ from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 core_logger = LogManager.get_logger(__name__)
 

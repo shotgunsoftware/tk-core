@@ -16,7 +16,7 @@ import os
 import glob
 
 from tank_vendor import yaml
-import tank_vendor.six.moves.cPickle as pickle
+import tank_vendor.third_party.six.moves.cPickle as pickle
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
@@ -32,7 +32,7 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 log = LogManager.get_logger(__name__)
 
