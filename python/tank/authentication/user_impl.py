@@ -20,7 +20,11 @@ at any point.
 """
 
 from .shotgun_wrapper import ShotgunWrapper
-from tank_vendor.third_party.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
+from tank_vendor.third_party.shotgun_api3 import (
+    Shotgun,
+    AuthenticationFault,
+    ProtocolError,
+)
 from tank_vendor.third_party import six
 from tank_vendor.third_party.six.moves import http_client
 

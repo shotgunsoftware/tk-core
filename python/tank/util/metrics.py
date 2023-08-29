@@ -23,7 +23,6 @@ from collections import deque
 from threading import Event, Thread, Lock
 import platform
 from tank_vendor.third_party.six.moves import urllib
-from tank_vendor.third_party import six
 from copy import deepcopy
 
 from . import constants, sgre as re
