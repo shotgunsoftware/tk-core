@@ -19,3 +19,4 @@ echo "==============================================================="
 echo Launching $PIP
 touch $cwd/third_party/__init__.py
 $PIP install --target=$cwd/third_party -r $cwd/requirements.txt
+rm -rf $cwd/third_party/*.dist-info
