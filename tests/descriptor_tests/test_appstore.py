@@ -52,8 +52,8 @@ class TestAppStoreLabels(ShotgunTestBase):
         self._get_app_store_key_from_shotgun_mock.start()
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
 
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find_one")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_label_support(self, find_mock, find_one_mock):
         """
         Tests the label syntax and that it restricts versions correctly
@@ -325,8 +325,8 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         mock.reset_mock()
         self.assertEqual(mock.call_count, 0)
 
-    @mock.patch("tank_vendor.shotgun_api3.Shotgun")
-    @mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
+    @mock.patch("tank_vendor.third_party.shotgun_api3.Shotgun")
+    @mock.patch("tank_vendor.third_party.six.moves.urllib.request.urlopen")
     def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
         """
         Tests that we can prevent connection to the app store based on usage

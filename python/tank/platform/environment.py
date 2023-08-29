@@ -26,8 +26,8 @@ from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.third_party import six
+from tank_vendor import sgsix
 
 logger = LogManager.get_logger(__name__)
 

@@ -18,7 +18,7 @@ dynamic tokens such as $something.
 import os
 
 from ...errors import TankError
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 
 class SymlinkToken(object):

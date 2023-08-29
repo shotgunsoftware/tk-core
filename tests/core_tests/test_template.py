@@ -26,7 +26,7 @@ from tank.templatekey import (
     TimestampKey,
 )
 
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor import sgsix
 
 
 class TestTemplate(unittest.TestCase):

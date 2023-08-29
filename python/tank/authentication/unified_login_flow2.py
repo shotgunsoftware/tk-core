@@ -16,8 +16,8 @@ import sys
 import time
 
 import tank
-from tank_vendor import six
-from tank_vendor.six.moves import http_client, urllib
+from tank_vendor.third_party import six
+from tank_vendor.third_party.six.moves import http_client, urllib
 
 from . import errors
 from .. import platform as sgtk_platform

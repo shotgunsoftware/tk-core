@@ -29,7 +29,7 @@ from functools import wraps
 
 from collections import defaultdict
 
-from tank_vendor.shotgun_api3.lib import mockgun
+from tank_vendor.third_party.shotgun_api3.lib import mockgun
 
 import unittest
 from unittest import mock

@@ -19,8 +19,8 @@ at any point.
 """
 import os
 import sys
-from tank_vendor import shotgun_api3
-from tank_vendor import six
+from tank_vendor.third_party import shotgun_api3
+from tank_vendor.third_party import six
 from .. import constants
 from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc  # noqa

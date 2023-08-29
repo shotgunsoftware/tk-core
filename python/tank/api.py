@@ -26,8 +26,8 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
-from tank_vendor import six
-from tank_vendor.six.moves import zip
+from tank_vendor.third_party import six
+from tank_vendor.third_party.six.moves import zip
 
 log = LogManager.get_logger(__name__)
 

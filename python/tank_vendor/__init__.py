@@ -7,3 +7,7 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import os.path
+import sys
+
+sys.path.append( os.path.join(os.path.dirname(__file__), "third_party"))

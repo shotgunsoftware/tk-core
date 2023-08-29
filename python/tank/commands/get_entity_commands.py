@@ -16,7 +16,7 @@ from ..util import is_linux, is_macos, is_windows
 import itertools
 import operator
 import os
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor import sgsix
 
 
 def execute_tank_command(pipeline_config_path, args):

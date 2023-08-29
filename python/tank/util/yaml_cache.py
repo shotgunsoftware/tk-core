@@ -18,7 +18,7 @@ from __future__ import with_statement
 import os
 import copy
 import threading
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 from tank_vendor import yaml
 from ..errors import TankError, TankUnreadableFileError, TankFileDoesNotExistError

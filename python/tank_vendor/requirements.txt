@@ -1,0 +1,5 @@
+httplib2>=0.19.1
+certifi>=2023.07.22
+six==1.13.0
+distro==1.4
+shotgun-api3==3.3.7

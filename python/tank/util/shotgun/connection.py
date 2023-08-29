@@ -16,10 +16,10 @@ from __future__ import with_statement
 
 import os
 import threading
-from tank_vendor.six.moves import urllib
+from tank_vendor.third_party.six.moves import urllib
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3
+from tank_vendor.third_party import shotgun_api3
 
 from ..errors import UnresolvableCoreConfigurationError
 from ...errors import TankError

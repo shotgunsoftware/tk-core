@@ -15,8 +15,8 @@ Methods for resolving publish data into local representations
 from __future__ import with_statement
 
 import os
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import urllib
+from tank_vendor import sgsix
+from tank_vendor.third_party.six.moves import urllib
 import pprint
 
 from .publish_util import get_cached_local_storages

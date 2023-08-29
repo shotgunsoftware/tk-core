@@ -38,7 +38,7 @@ from tank.authentication import (
 )
 
 import tank
-import tank_vendor.shotgun_api3
+import tank_vendor.third_party.shotgun_api3
 
 
 @skip_if_pyside_missing
@@ -357,7 +357,7 @@ class InteractiveTests(ShotgunTestBase):
     @mock.patch(
         "tank.authentication.session_cache.generate_session_token",
         side_effect=[
-            tank_vendor.shotgun_api3.MissingTwoFactorAuthenticationFault(),
+            tank_vendor.third_party.shotgun_api3.MissingTwoFactorAuthenticationFault(),
             "my_session_token_39",
         ],
     )
@@ -655,8 +655,8 @@ class InteractiveTests(ShotgunTestBase):
     @mock.patch(
         "tank.authentication.session_cache.generate_session_token",
         side_effect=[
-            tank_vendor.shotgun_api3.MissingTwoFactorAuthenticationFault(),
-            tank_vendor.shotgun_api3.MissingTwoFactorAuthenticationFault(),
+            tank_vendor.third_party.shotgun_api3.MissingTwoFactorAuthenticationFault(),
+            tank_vendor.third_party.shotgun_api3.MissingTwoFactorAuthenticationFault(),
             "my_session_token_39",
         ],
     )
@@ -1091,7 +1091,7 @@ class InteractiveTests(ShotgunTestBase):
         from tank.authentication.site_info import SiteInfo
 
         with mock.patch.object(
-            tank_vendor.shotgun_api3.Shotgun,
+            tank_vendor.third_party.shotgun_api3.Shotgun,
             "info",
             return_value={
                 "app_session_launcher_enabled": True,

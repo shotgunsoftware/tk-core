@@ -22,7 +22,7 @@ from tank.authentication import (
     unified_login_flow2,
 )
 
-from tank_vendor.six.moves import urllib
+from tank_vendor.third_party.six.moves import urllib
 
 import errno
 import http.client

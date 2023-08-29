@@ -17,7 +17,7 @@ from .. import path_cache
 from .. import folder
 
 from .action_base import Action
-from tank_vendor.six.moves import input
+from tank_vendor.third_party.six.moves import input
 
 
 class SynchronizePathCache(Action):

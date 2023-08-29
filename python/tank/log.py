@@ -230,7 +230,7 @@ import weakref
 import uuid
 from functools import wraps
 from . import constants
-from tank_vendor import six
+from tank_vendor.third_party import six
 
 
 class LogManager(object):
