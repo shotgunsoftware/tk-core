@@ -37,7 +37,6 @@ from .lib.six.moves import map
 
 from .lib.six.moves import http_cookiejar  # used for attachment upload
 import datetime
-import errno
 import logging
 import uuid                                # used for attachment upload
 import os
@@ -123,7 +122,7 @@ except ImportError as e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.3.5"
+__version__ = "3.3.6"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -851,14 +850,17 @@ class Shotgun(object):
             Defaults to ``["id"]``.
         :param int order: Optional list of fields to order the results by. List has the format::
 
-            [{'field_name':'foo', 'direction':'asc'}, {'field_name':'bar', 'direction':'desc'}]
+                [
+                    {'field_name':'foo', 'direction':'asc'},
+                    {'field_name':'bar', 'direction':'desc'}
+                ]
 
             Defaults to sorting by ``id`` in ascending order.
         :param str filter_operator: Operator to apply to the filters. Supported values are ``"all"``
             and ``"any"``. These are just another way of defining if the query is an AND or OR
             query. Defaults to ``"all"``.
         :param bool retired_only: Optional boolean when ``True`` will return only entities that have
-            been retried. Defaults to ``False`` which returns only entities which have not been
+            been retired. Defaults to ``False`` which returns only entities which have not been
             retired. There is no option to return both retired and non-retired entities in the
             same query.
         :param bool include_archived_projects: Optional boolean flag to include entities whose projects
@@ -866,7 +868,11 @@ class Shotgun(object):
         :param additional_filter_presets: Optional list of presets to further filter the result
             set, list has the form::
 
-                [{"preset_name": <preset_name>, <optional_param1>: <optional_value1>, ... }]
+                [{
+                    "preset_name": <preset_name>,
+                    <optional_param1>: <optional_value1>,
+                    ...
+                }]
 
             Note that these filters are ANDed together and ANDed with the 'filter'
             argument.
@@ -875,6 +881,9 @@ class Shotgun(object):
             :ref:`additional_filter_presets`
         :returns: Dictionary representing a single matching entity with the requested fields,
             and the defaults ``"id"`` and ``"type"`` which are always included.
+
+            .. seealso:: :ref:`entity-fields`
+
         :rtype: dict
         """
 
@@ -911,7 +920,7 @@ class Shotgun(object):
              {'code': 'Wet Gopher', 'id': 149, 'sg_asset_type': 'Character', 'type': 'Asset'}]
 
         You can drill through single entity links to filter on fields or display linked fields.
-        This is often called "deep linking" or using "dot syntax".
+        This is often called "deep linking" or using "dot notation".
 
             .. seealso:: :ref:`filter_syntax`
 
@@ -934,15 +943,21 @@ class Shotgun(object):
         :param str entity_type: Shotgun entity type to find.
         :param list filters: list of filters to apply to the query.
 
-            .. seealso:: :ref:`filter_syntax`
+            .. seealso:: :ref:`filter_syntax`, :ref:`combining-related-queries`
 
         :param list fields: Optional list of fields to include in each entity record returned.
             Defaults to ``["id"]``.
+
+            .. seealso:: :ref:`combining-related-queries`
+            
         :param list order: Optional list of dictionaries defining how to order the results of the
             query. Each dictionary contains the ``field_name`` to order by and  the ``direction``
             to sort::
 
-                [{'field_name':'foo', 'direction':'asc'}, {'field_name':'bar', 'direction':'desc'}]
+                [
+                    {'field_name':'foo', 'direction':'asc'},
+                    {'field_name':'bar', 'direction':'desc'}
+                ]
 
             Defaults to sorting by ``id`` in ascending order.
         :param str filter_operator: Operator to apply to the filters. Supported values are ``"all"``
@@ -954,7 +969,7 @@ class Shotgun(object):
             parameter to control how your query results are paged. Defaults to ``0`` which returns
             all entities that match.
         :param bool retired_only: Optional boolean when ``True`` will return only entities that have
-            been retried. Defaults to ``False`` which returns only entities which have not been
+            been retired. Defaults to ``False`` which returns only entities which have not been
             retired. There is no option to return both retired and non-retired entities in the
             same query.
         :param bool include_archived_projects: Optional boolean flag to include entities whose projects
@@ -962,7 +977,11 @@ class Shotgun(object):
         :param additional_filter_presets: Optional list of presets to further filter the result
             set, list has the form::
 
-                [{"preset_name": <preset_name>, <optional_param1>: <optional_value1>, ... }]
+                [{
+                    "preset_name": <preset_name>,
+                    <optional_param1>: <optional_value1>,
+                    ...
+                }]
 
             Note that these filters are ANDed together and ANDed with the 'filter'
             argument.
@@ -971,6 +990,9 @@ class Shotgun(object):
             :ref:`additional_filter_presets`
         :returns: list of dictionaries representing each entity with the requested fields, and the
             defaults ``"id"`` and ``"type"`` which are always included.
+
+            .. seealso:: :ref:`entity-fields`
+
         :rtype: list
         """
 
@@ -1333,10 +1355,16 @@ class Shotgun(object):
             to the server automatically.
         :param list return_fields: Optional list of additional field values to return from the new
             entity. Defaults to ``id`` field.
+
+            .. seealso:: :ref:`combining-related-queries`
+
         :returns: Shotgun entity dictionary containing the field/value pairs of all of the fields
             set from the ``data`` parameter as well as the defaults ``type`` and ``id``. If any
             additional fields were provided using the ``return_fields`` parameter, these would be
             included as well.
+
+            .. seealso:: :ref:`entity-fields`
+
         :rtype: dict
         """
 
@@ -3326,7 +3354,7 @@ class Shotgun(object):
         .. deprecated:: 3.0.0
            Use :meth:`~shotgun_api3.Shotgun.schema_field_read` instead.
         """
-        raise ShotgunError("Deprecated: use schema_field_read('type':'%s') instead" % entity_type)
+        raise ShotgunError("Deprecated: use schema_field_read('%s') instead" % entity_type)
 
     def entity_types(self):
         """
@@ -4091,14 +4119,7 @@ class Shotgun(object):
                     if e.code == 503:
                         raise ShotgunError("Got a 503 response when uploading to %s: %s" % (storage_url, e))
                     raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
-            except urllib.error.URLError as e:
-                if e.errno == errno.ETIMEDOUT and attempt != max_attempts:
-                    time.sleep(float(attempt) * backoff)
-                    # If there is a timeout we will only allow one retry
-                    attempt = max_attempts
-                    continue
-                
-                raise ShotgunError("Error when uploading to %s: %s" % (storage_url, e))
+
             else:
                 break
 
