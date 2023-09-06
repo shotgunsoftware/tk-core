@@ -1,3 +1,5 @@
+Useless change
+
 [![VFX Platform](https://img.shields.io/badge/vfxplatform-2020-yellow.svg)](http://www.vfxplatform.com/)
 [![Python 2.7 3.7](https://img.shields.io/badge/python-2.7%20%7C%203.7-blue.svg)](https://www.python.org/)
 [![Reference Documentation](http://img.shields.io/badge/doc-reference-blue.svg)](http://developer.shotgridsoftware.com/tk-core)
