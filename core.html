@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.20.22 documentation</title>
+  <title>Core &mdash; tk-core v0.20.24 documentation</title>
   
 
   
@@ -175,7 +175,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.22.<br>
+    <b>tk-core</b> v0.20.24.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -1428,7 +1428,7 @@ when copying files between different user sandboxes. Example:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
 <span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;Dirk Gently&#39;}</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">create_copy_for_user</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;HumanUser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;John Snow&#39;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span><span class="o">.</span><span class="n">user</span>
 <span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;John Snow&#39;}</span>
@@ -2172,6 +2172,13 @@ being loaded. For more details and examples, see the <a class="reference interna
 <p>The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
 want to take over a certain behavior, copy the hook found inside the core’s <a class="reference external" href="https://github.com/shotgunsoftware/tk-core/tree/master/hooks">hooks</a> folder
 and copy it to your configuration’s <code class="docutils literal notranslate"><span class="pre">core/hooks</span></code> folder.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A core hook cannot be executed before Toolkit (the <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance) has
+been initialized. This happens when <code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.bootstrap_engine()</span></code> is
+called during ShotGrid Desktop bootstrap. Any customization of the core behavior
+must be added afterwards.</p>
+</div>
 <p>Here is the list of hooks that be taken over in the Toolkit core.</p>
 <div class="section" id="module-before_register_publish">
 <span id="before-register-publish-py"></span><h4>before_register_publish.py<a class="headerlink" href="#module-before_register_publish" title="Permalink to this headline">¶</a></h4>

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cache_location &mdash; tk-core v0.20.22 documentation</title>
+  <title>cache_location &mdash; tk-core v0.20.24 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.22.<br>
+    <b>tk-core</b> v0.20.24.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -253,7 +253,7 @@
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)):</span>
             <span class="c1"># there is a custom version of the legacy hook path_cache</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
@@ -354,7 +354,7 @@
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)):</span>
             <span class="c1"># there is a custom version of the legacy hook path_cache</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
