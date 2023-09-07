@@ -369,9 +369,6 @@ class TestStringKey(ShotgunTestBase):
         """
         Test subset_format parameter
         """
-        import os
-
-        os.environ["PYTHONIOENCODING"] = "utf8"
 
         if sys.version_info < (2, 6):
             # subset format not supported in py25
@@ -398,10 +395,10 @@ class TestStringKey(ShotgunTestBase):
         # basic test
         tests.append(
             {
-                "short": "\u3042foo ",
+                "short": "@foo ",
                 "full": "foobar",
                 "template": StringKey(
-                    "field_name", subset="(.{3}).*", subset_format="\u3042{0} "
+                    "field_name", subset="(.{3}).*", subset_format="@{0} "
                 ),
             }
         )
