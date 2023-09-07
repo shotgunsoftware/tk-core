@@ -395,10 +395,10 @@ class TestStringKey(ShotgunTestBase):
         # basic test
         tests.append(
             {
-                "short": "@foo ",
+                "short": "\u3042foo ",
                 "full": "foobar",
                 "template": StringKey(
-                    "field_name", subset="(.{3}).*", subset_format="@{0} "
+                    "field_name", subset="(.{3}).*", subset_format="\u3042{0} "
                 ),
             }
         )
@@ -428,7 +428,7 @@ class TestStringKey(ShotgunTestBase):
         )
 
         for test in tests:
-            print(test)
+            # print(test)  # Causes UnicodeEncodeError on Windows
 
             short = test["short"]
             full = test["full"]
