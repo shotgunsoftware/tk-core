@@ -369,7 +369,7 @@ class TestStringKey(ShotgunTestBase):
         """
         Test subset_format parameter
         """
-        import  os
+        import os
 
         os.environ["PYTHONIOENCODING"] = "utf8"
 
