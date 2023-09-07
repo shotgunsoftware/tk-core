@@ -369,6 +369,9 @@ class TestStringKey(ShotgunTestBase):
         """
         Test subset_format parameter
         """
+        import  os
+
+        os.environ["PYTHONIOENCODING"] = "utf8"
 
         if sys.version_info < (2, 6):
             # subset format not supported in py25
