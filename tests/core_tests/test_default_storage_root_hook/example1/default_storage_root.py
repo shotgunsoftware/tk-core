@@ -19,7 +19,7 @@ log = sgtk.LogManager.get_logger(__name__)
 
 
 class DefaultStorageRoot(Hook):
-    def execute(self, storage_roots, project_id=None):
+    def execute(self, storage_roots, project_id=None, metadata=None):
         """
         Custom implementation sets default root to project-specific storage root stored
         in a custom project field on ShotGrid site called "Storage Root Name"
@@ -51,6 +51,10 @@ class DefaultStorageRoot(Hook):
                 % (project_storage_name, project_id)
             )
             return
+        # Modify the folder creation metadata, this make sure to register the new storage root
+        # path on disk as FilesystemLocation entities in SG.
+        if metadata:
+            metadata.update({"root_name": project_storage_name})
 
         # project-specific storage available, set as default
         storage_roots._default_storage_name = project_storage_name
