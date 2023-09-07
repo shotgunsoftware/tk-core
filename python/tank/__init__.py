@@ -154,4 +154,4 @@ from .commands import list_commands, get_command, SgtkSystemCommand, CommandInte
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
 
 # expose the support url
-from .constants import SUPPORT_URL as support_url
+from .constants import SUPPORT_URL as support_url, DEFAULT_STORAGE_ROOT_HOOK_NAME
