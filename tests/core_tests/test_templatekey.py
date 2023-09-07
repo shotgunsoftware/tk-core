@@ -428,8 +428,6 @@ class TestStringKey(ShotgunTestBase):
         )
 
         for test in tests:
-            print(test)
-
             short = test["short"]
             full = test["full"]
             template_field = test["template"]
