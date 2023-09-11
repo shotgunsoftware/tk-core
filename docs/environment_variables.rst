@@ -16,7 +16,7 @@ Overrides the location where Toolkit stores data, which includes bootstrap data 
 
 ``SGTK_PREFERENCES_LOCATION``
 -----------------------------
-Allows you to store your configuration file somewhere else on your computer or on your network. See the `documentation here <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#toolkit-configuration-file>`_.
+Allows you to store your configuration file somewhere else on your computer or on your network. See the `documentation here <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#toolkit-configuration-file>`_.
 
 ``TK_BOOTSTRAP_CONFIG_OVERRIDE``
 --------------------------------
@@ -41,7 +41,7 @@ Bundle cache
 
 ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``
 ---------------------------------------
-Path that lets a user specify bundle cache fallbacks to go look for a bundle in case it is now found in the bundle cache. This is part of the :ref:`bootstrap_api`. Also see `ShotGrid Integrations Admin guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#managing-updates-via-manual-download>`_.
+Path that lets a user specify bundle cache fallbacks to go look for a bundle in case it is now found in the bundle cache. This is part of the :ref:`bootstrap_api`. Also see `ShotGrid Integrations Admin guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#managing-updates-via-manual-download>`_.
 
 ``SHOTGUN_BUNDLE_CACHE_PATH``
 -----------------------------
@@ -58,11 +58,11 @@ File resolving
 
 ``SHOTGUN_PATH_<WINDOWS|MAC|LINUX>_<STORAGENAME>``
 --------------------------------------------------
-Specifies your local storage root on different operating systems. See `Resolving local file links <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#resolving-local-file-links>`_.
+Specifies your local storage root on different operating systems. See `Resolving local file links <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#resolving-local-file-links>`_.
 
 ``SHOTGUN_PATH_<WINDOWS|MAC|LINUX>``
 ------------------------------------
-Resolves a ``file://`` URL on different operating systems. See `Resolving file URLS <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#resolving-file-urls>`_.
+Resolves a ``file://`` URL on different operating systems. See `Resolving file URLS <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#resolving-file-urls>`_.
 
 
 Thumbnail display for ShotGrid Desktop
@@ -71,4 +71,4 @@ Thumbnail display for ShotGrid Desktop
 ``SGTK_PROJ_THUMB_OLD``
 -----------------------
 
-When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in ShotGrid Desktop <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#configuring-the-thumbnail-display-in-shotgrid-desktop>`_
+When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in ShotGrid Desktop <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-the-thumbnail-display-in-shotgrid-desktop>`_

@@ -47,7 +47,7 @@ def resolve_publish_path(tk, sg_publish_data):
 
     **Published File Path Resolution**
 
-    For more information on the published file path resolution, see our `Admin Guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#Configuring%20published%20file%20path%20resolution>`_.
+    For more information on the published file path resolution, see our `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
     **Parameters**
 
