@@ -76,7 +76,7 @@ def consume():
     Iterate the environment to find all the cached metrics
     """
 
-    keys = [ k for k in os.environ if k.lower().startswith("sgtk_metric_cache_") ]
+    keys = [k for k in os.environ if k.lower().startswith("sgtk_metric_cache_")]
     # This extra complicated step is to prevent the following issue in Py2
     # RuntimeError: dictionary changed size during iteration
 
