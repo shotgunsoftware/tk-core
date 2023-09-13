@@ -27,9 +27,11 @@ from .ui import resources_rc  # noqa
 from .ui import login_dialog
 from . import constants as auth_constants
 from . import session_cache
+from ..util.metrics import EventMetric
 from ..util.shotgun import connection
 from ..util import login
 from ..util import LocalFileStorageManager
+from ..util import metrics_cache
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from . import unified_login_flow2
@@ -660,6 +662,17 @@ class LoginDialog(QtGui.QDialog):
         res = self.exec_()
         if res != QtGui.QDialog.Accepted:
             return
+
+        metrics_cache.log(
+            EventMetric.GROUP_TOOLKIT,
+            "Logged In",
+            properties={
+                "authentication_method": self.site_info.user_authentication_method,
+                "authentication_experience": auth_constants.method_resolve.get(self.method_selected),
+                "authentication_interface": "qt_dialog",
+                "authentication_renewal": self._is_session_renewal,
+            },
+        )
 
         if self.method_selected == auth_constants.METHOD_ULF2:
             if not self._ulf2_task:

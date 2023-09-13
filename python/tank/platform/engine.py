@@ -41,6 +41,7 @@ from .errors import (
 from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
+from ..util import metrics_cache
 from ..log import LogManager
 
 from . import application
@@ -3202,6 +3203,8 @@ def _start_engine(engine_name, tk, old_context, new_context):
         # register this engine as the current engine
         set_current_engine(engine)
 
+    metrics_cache.consume()
+
     return engine
 
 
@@ -3337,6 +3340,8 @@ def start_shotgun_engine(tk, entity_type, context):
 
     # register this engine as the current engine
     set_current_engine(obj)
+
+    metrics_cache.consume()
 
     return obj
 
