@@ -75,7 +75,7 @@ def consume():
     """
 
     for cache_key in os.environ:
-        if not cache_key.startswith("sgtk_metric_cache_"):
+        if not cache_key.lower().startswith("sgtk_metric_cache_"):
             continue
 
         try:
