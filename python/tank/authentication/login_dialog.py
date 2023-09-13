@@ -941,7 +941,7 @@ class ULF2_AuthTask(QtCore.QThread):
         try:
             self.session_info = unified_login_flow2.process(
                 self._sg_url,
-                lambda u: QtGui.QDesktopServices.openUrl(u), # browser_open_callback
+                lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
                 http_proxy=self._http_proxy,
                 product=self._product,
                 keep_waiting_callback=self.should_continue,
