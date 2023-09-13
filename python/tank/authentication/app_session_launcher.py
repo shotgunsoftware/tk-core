@@ -16,7 +16,6 @@ import sys
 import time
 
 import tank
-from tank_vendor import six
 from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
@@ -62,9 +61,10 @@ class AuthenticationError(errors.AuthenticationError):
 
 def process(
     sg_url,
-    browser_open_callback,
+    *,
     http_proxy=None,
     product=None,
+    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
@@ -103,7 +103,7 @@ def process(
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
-        # method="POST", # see below
+        method="POST",
         data=urllib.parse.urlencode(
             {
                 "appName": product,
@@ -114,9 +114,6 @@ def process(
             "User-Agent": user_agent,
         },
     )
-
-    # Hook for Python 2
-    request.get_method = lambda: "POST"
 
     response = http_request(url_opener, request)
     logger.debug(
@@ -201,6 +198,10 @@ def process(
         "/internal_api/app_session_request/{session_id}".format(
             session_id=session_id,
         ),
+        method="PUT",
+        headers={
+            "User-Agent": user_agent,
+        },
     )
 
     approved = False
@@ -355,14 +356,6 @@ def get_product_name():
     return PRODUCT_DEFAULT
 
 
-def _get_content_type(headers):
-    if six.PY2:
-        value = headers.get("content-type", "text/plain")
-        return value.split(";", 1)[0].lower()
-    else:
-        return headers.get_content_type()
-
-
 def http_request(opener, req, max_attempts=4):
     attempt = 0
     backoff = 0.75  # Seconds to wait before retry, times the attempt number
@@ -422,7 +415,7 @@ def http_request(opener, req, max_attempts=4):
                 parent_exception=exc,
             )
 
-    if _get_content_type(response.headers) == "application/json":
+    if response.headers.get_content_type() == "application/json":
         try:
             response.json = json.load(response)
         except json.JSONDecodeError as exc:
