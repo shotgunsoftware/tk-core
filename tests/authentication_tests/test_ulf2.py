@@ -37,27 +37,22 @@ import threading
 
 class ULF2Tests(ShotgunTestBase):
     def test_process_parameters(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
+                None, # browser_open_callback
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                browser_open_callback=None,
+                "Test", # browser_open_callback
             )
 
         with self.assertRaises(AssertionError):
             unified_login_flow2.process(
                 "https://test.shotgunstudio.com",
-                browser_open_callback="Test",
-            )
-
-        with self.assertRaises(AssertionError):
-            unified_login_flow2.process(
-                "https://test.shotgunstudio.com",
-                browser_open_callback=lambda: True,
+                lambda: True, # browser_open_callback
                 keep_waiting_callback=None,
             )
 
@@ -170,7 +165,7 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=url_opener,
+                url_opener,  # browser_open_callback
                 http_proxy="{fqdn}:{port}".format(  # For code coverage
                     fqdn=self.httpd.server_address[0],
                     port=self.httpd.server_address[1],
@@ -193,7 +188,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertIsInstance(
@@ -256,7 +251,7 @@ class ULF2APITests(ShotgunTestBase):
         self.assertEqual(
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             ),
             (self.api_url, "john", "to123", None),
         )
@@ -267,7 +262,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -281,7 +276,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -297,7 +292,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertIsInstance(
@@ -316,7 +311,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -330,7 +325,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -345,7 +340,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -361,7 +356,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -377,7 +372,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -393,7 +388,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -411,7 +406,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -431,7 +426,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
             )
 
         self.assertEqual(
@@ -450,7 +445,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: False,
+                lambda url: False, # browser_open_callback
             )
 
         self.assertEqual(
@@ -475,8 +470,8 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
+                lambda url: True, # browser_open_callback
                 product="app_2a37c59",
-                browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,
             )
 
@@ -511,7 +506,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=url_opener,
+                url_opener, # browser_open_callback
             )
 
         self.assertIsInstance(
@@ -536,7 +531,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
 
@@ -549,7 +544,7 @@ class ULF2APITests(ShotgunTestBase):
         with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
             unified_login_flow2.process(
                 self.api_url,
-                browser_open_callback=lambda url: True,
+                lambda url: True, # browser_open_callback
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
 
