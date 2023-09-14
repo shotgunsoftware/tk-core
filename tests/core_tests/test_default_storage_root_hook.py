@@ -39,13 +39,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         """
         self.tk.shotgun.create("LocalStorage", {"code": "project_specific_root"})
         with mock.patch.object(
-            self.tk.shotgun,
-            "find_one",
-            return_value={
-                "type": "Project",
-                "id": 1,
-                "sg_storage_root_name": "project_specific_root",
-            },
+                self.tk.shotgun,
+                "find_one",
+                return_value={
+                    "type": "Project",
+                    "id": 1,
+                    "sg_storage_root_name": "project_specific_root",
+                },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -66,13 +66,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         Fall back to global root.
         """
         with mock.patch.object(
-            self.tk.shotgun,
-            "find_one",
-            return_value={
-                "type": "Project",
-                "id": 1,
-                "sg_storage_root_name": "project_specific_root",
-            },
+                self.tk.shotgun,
+                "find_one",
+                return_value={
+                    "type": "Project",
+                    "id": 1,
+                    "sg_storage_root_name": "project_specific_root",
+                },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -109,13 +109,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         Project-specific root is retrieved from environment variables.
         """
         with mock.patch.dict(
-            os.environ,
-            {
-                "STORAGE_ROOT_"
-                + str(
-                    self.pipeline_configuration.get_project_id()
-                ): "project_specific_root"
-            },
+                os.environ,
+                {
+                    "STORAGE_ROOT_"
+                    + str(
+                        self.pipeline_configuration.get_project_id()
+                    ): "project_specific_root"
+                },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -146,3 +146,86 @@ class TestDefaultStorageRootHook(TankTestBase):
         Test that raises an exception to pass code coverage.
         """
         tank.sgtk_from_path(self.project_root)
+
+    @mock.patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__),
+            "test_default_storage_root_hook/example3",
+        ),
+    )
+    def test_win_roots_with_custom_project_field(self, *mocks):
+        """
+        Project-specific windows root is retrieved from custom ShotGrid project field.
+        """
+        self.tk.shotgun.create("LocalStorage", {"code": "primary_mapped",
+                                                "windows_path": "P:\\Foo\\test_root", })
+
+        with mock.patch.object(
+                self.tk.shotgun,
+                "find_one",
+                return_value={
+                    "type": "Project",
+                    "id": 1,
+                    "sg_storage_root_name": "P:\\Foo\\test_root",
+                },
+        ):
+            tk2 = tank.sgtk_from_path(self.project_root)
+            self.assertEqual(
+                tk2.pipeline_configuration.get_primary_data_root_name(),
+                "primary_mapped",
+            )
+
+    @mock.patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__),
+            "test_default_storage_root_hook/example3",
+        ),
+    )
+    def test_win_roots_with_invalid_storage_in_project_field(self, *mocks):
+        """
+        Local storage assigned to project in custom field isn't defined.
+        Fall back to global root.
+        """
+        # This is needed because the purpose of this test is to demonstrate that when we dont have a StorageEntity in SG, the find_one() query is going to fallback
+        # in the default global storage, so we cannot mock the response, that's why Minna use find() in the second query in her hook, so this mock is useless below,
+        # put that into the comments for this commit and the ticket.
+        # Ok, now I think different, the mock below is needed in order to the hook to find the sg_storage_root_name, but the LocalStorage hasn't been defined in SG, so
+        # the second query find() should return none. And this is going to fallback in the 'unit-tests' global storage name.
+        # StorageEntity was or not created
+        with mock.patch.object(
+                self.tk.shotgun,
+                "find_one",
+                return_value={
+                    "type": "Project",
+                    "id": 1,
+                    "sg_storage_root_name": "P:\\Foo\\test_root",
+                },
+        ):
+            tk2 = tank.sgtk_from_path(self.project_root)
+            self.assertEqual(
+                tk2.pipeline_configuration.get_primary_data_root_name(),
+                self.primary_root_name,
+            )
+
+    @mock.patch(
+        "sgtk.pipelineconfig.PipelineConfiguration.get_core_hooks_location",
+        return_value=os.path.join(
+            os.path.dirname(__file__),
+            "test_default_storage_root_hook/example3",
+        ),
+    )
+    def test_win_roots_with_no_custom_project_field(self, *mocks):
+        """
+        Test fallback behaviour if no custom project field set.
+        """
+        #
+        self.tk.shotgun.create("LocalStorage", {"code": "primary_mapped", "windows_path": "P:\\Foo\\test_root"})
+        tk2 = tank.sgtk_from_path(self.project_root)
+        # The test will fallback into the default global storage, the first find is going to take care of that since
+        # is going to be empty because we're not mocking the Project field here
+        self.assertEqual(
+            tk2.pipeline_configuration.get_primary_data_root_name(),
+            self.primary_root_name,
+        )
