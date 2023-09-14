@@ -167,7 +167,7 @@ class TestDefaultStorageRootHook(TankTestBase):
                 return_value={
                     "type": "Project",
                     "id": 1,
-                    "sg_storage_root_name": "P:\\Foo\\test_root",
+                    "sg_projects_root": "P:\\Foo\\test_root",
                 },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
@@ -194,7 +194,7 @@ class TestDefaultStorageRootHook(TankTestBase):
                 return_value={
                     "type": "Project",
                     "id": 1,
-                    "sg_storage_root_name": "P:\\Foo\\test_root",
+                    "sg_projects_root": "P:\\Foo\\test_root",
                 },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
