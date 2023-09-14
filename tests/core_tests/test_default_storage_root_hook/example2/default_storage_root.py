@@ -21,7 +21,7 @@ log = sgtk.LogManager.get_logger(__name__)
 
 
 class DefaultStorageRoot(Hook):
-    def execute(self, storage_roots, project_id=None):
+    def execute(self, storage_roots, project_id=None, metadata=None):
         """
         Custom implementation sets default root to project-specific storage root stored
         in an environment variable called "STORAGE_ROOT_[project_id]"

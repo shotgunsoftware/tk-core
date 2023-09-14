@@ -19,7 +19,7 @@ log = sgtk.LogManager.get_logger(__name__)
 
 
 class DefaultStorageRoot(Hook):
-    def execute(self, storage_roots, project_id=None):
+    def execute(self, storage_roots, project_id=None, metadata=None):
         """
         Executes right after constructing a pipeline configuration during
         Toolkit initialization.
@@ -33,5 +33,6 @@ class DefaultStorageRoot(Hook):
 
         :param ``StorageRoots`` storage_roots: The storage roots for the project.
         :param int project_id: id of the project toolkit is being initialized in
+        :param dict metadata: Contents of the Project configuration file.
         """
         pass
