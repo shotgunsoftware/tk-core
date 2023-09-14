@@ -21,7 +21,7 @@ log = sgtk.LogManager.get_logger(__name__)
 class DefaultStorageRoot(Hook):
     def execute(self, storage_roots, project_id=None, metadata=None):
         """
-        Custom implementation sets default root to project-specific storage root stored
+        Custom implementation sets default root to project-specific storage root name stored
         in a custom project field on ShotGrid site called "Storage Root Name"
         """
         if not project_id:
