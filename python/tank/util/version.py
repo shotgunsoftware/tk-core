@@ -7,13 +7,14 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import sys
 
 from . import sgre as re
 from ..errors import TankError
 
-try:
+if sys.version_info[0:2] >= (3, 10):
     from packaging import version
-except ModuleNotFoundError:
+else:
     from distutils.version import LooseVersion
 
 
@@ -161,11 +162,11 @@ def _compare_versions(a, b):
     # as follows:
     # We're using packaging.version if available since distutils is now deprecated.
     try:
-        try:
+        if sys.version_info[0:2] >= (3, 10):
             version_a = version.parse(a).release
             version_b = version.parse(b).release
             LooseVersion = version.parse  # compatibility for Python<3.10
-        except NameError:
+        else:
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
 
