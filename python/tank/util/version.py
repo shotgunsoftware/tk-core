@@ -9,9 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import sys
 
-if sys.version_info[0:2] >= (3, 10):
-    from packaging import version as LooseVersion
-else:
+try:
+    from packaging.version import parse as LooseVersion
+except:
     from distutils.version import LooseVersion
 
 from . import sgre as re
