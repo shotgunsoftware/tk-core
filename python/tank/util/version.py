@@ -162,10 +162,10 @@ def _compare_versions(a, b):
     # as follows:
     # We're using packaging.version if available since distutils is now deprecated.
     try:
-        if sys.version_info[0:2] >= (3, 10):
+        try:
             version_a = LooseVersion(a).release
             version_b = LooseVersion(b).release
-        else:
+        except AttributeError:
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
 
