@@ -9,13 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import sys
 
-from . import sgre as re
-from ..errors import TankError
-
 if sys.version_info[0:2] >= (3, 10):
-    from packaging import version
+    from packaging import version as LooseVersion
 else:
     from distutils.version import LooseVersion
+
+from . import sgre as re
+from ..errors import TankError
 
 
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
@@ -163,9 +163,8 @@ def _compare_versions(a, b):
     # We're using packaging.version if available since distutils is now deprecated.
     try:
         if sys.version_info[0:2] >= (3, 10):
-            version_a = version.parse(a).release
-            version_b = version.parse(b).release
-            LooseVersion = version.parse  # compatibility for Python<3.10
+            version_a = LooseVersion(a).release
+            version_b = LooseVersion(b).release
         else:
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
