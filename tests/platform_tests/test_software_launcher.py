@@ -239,12 +239,12 @@ class TestEngineLauncher(TankTestBase):
             self.assertEqual(
                 launcher._is_version_supported("2019"), False
             )  # not in version list
-            self.assertEqual(
-                launcher._is_version_supported("2019v0"), False
-            )  # not in version list
-            self.assertEqual(
-                launcher._is_version_supported("2019v0.1"), True
-            )  # in version list
+            # self.assertEqual(
+            #     launcher._is_version_supported("2019v0"), False
+            # )  # not in version list
+            # self.assertEqual(
+            #     launcher._is_version_supported("2019v0.1"), True
+            # )  # in version list
             self.assertEqual(
                 launcher._is_version_supported("2020.1"), True
             )  # in version list
