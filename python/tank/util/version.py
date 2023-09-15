@@ -11,7 +11,7 @@ import sys
 
 try:
     from packaging.version import parse as LooseVersion
-except:
+except (ImportError, ModuleNotFoundError):
     from distutils.version import LooseVersion
 
 from . import sgre as re
@@ -168,6 +168,8 @@ def _compare_versions(a, b):
         except AttributeError:
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
+        except Exception as e:
+            raise TankError("Invalid version {}".format(e))
 
         version_num_a = []
         version_num_b = []
