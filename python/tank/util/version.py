@@ -8,9 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from distutils.version import LooseVersion
 from . import sgre as re
 from ..errors import TankError
+
+try:
+    from packaging import version
+except ModuleNotFoundError:
+    from distutils.version import LooseVersion
+
 
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 
@@ -154,11 +159,16 @@ def _compare_versions(a, b):
     # In Python 3, LooseVersion comparisons between versions where a non-numeric
     # version component is compared to a numeric one fail.  We'll work around this
     # as follows:
-    # First, try to use LooseVersion for comparison.  This should work in
-    # most cases.
+    # We're using packaging.version if available since distutils is now deprecated.
     try:
-        version_a = LooseVersion(a).version
-        version_b = LooseVersion(b).version
+        try:
+            version_a = version.parse(a).release
+            version_b = version.parse(b).release
+            LooseVersion = version.parse  # compatibility for Python<3.10
+        except NameError:
+            version_a = LooseVersion(a).version
+            version_b = LooseVersion(b).version
+
         version_num_a = []
         version_num_b = []
         # taking only the integers of the version to make comparison

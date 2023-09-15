@@ -14,7 +14,7 @@
 # IMPORTANT: These requirements should be in sync with tk-toolchain install_requires
 
 # Required for the --with-coverage option
-coverage==7.1.0
+coverage==7.2.7
 
 # The Shotgun Desktop does not include setuptools, which comes with pip. Make
 # sure they are installed in case the tests are run with this python.

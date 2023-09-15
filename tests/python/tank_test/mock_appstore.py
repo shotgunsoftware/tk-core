@@ -31,7 +31,7 @@ from sgtk.util import sgre as re
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
-from distutils.version import LooseVersion
+from packaging import version
 
 
 class MockStore(object):
@@ -290,7 +290,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         )
         latest = "v0.0.0"
         for version in versions:
-            if LooseVersion(version) > LooseVersion(latest):
+            if version.parse(version) > version.parse(latest):
                 latest = version
 
         return self.create(latest)

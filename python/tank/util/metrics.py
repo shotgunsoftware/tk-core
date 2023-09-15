@@ -424,7 +424,7 @@ class MetricsDispatchWorkerThread(Thread):
         )
 
         # Run until halted
-        while not self._halt_event.isSet():
+        while not self._halt_event.is_set():
 
             # get the next available metric and dispatch it
             try:
