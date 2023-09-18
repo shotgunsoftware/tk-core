@@ -128,8 +128,8 @@ def _compare_versions(a, b):
 
     :rtype: bool
     """
-    if b is None:
-        # a is always newer than None
+    if b in [None, "Undefined"]:
+        # a is always newer than None or `Undefined`
         return True
 
     if _is_git_commit(a) and not _is_git_commit(b):
@@ -166,8 +166,6 @@ def _compare_versions(a, b):
         except AttributeError:
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
-        except Exception as e:
-            raise TankError("Invalid version {}".format(e))
 
         version_num_a = []
         version_num_b = []
