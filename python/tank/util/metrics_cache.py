@@ -26,11 +26,10 @@ Instead, we store the records in the environment as JSON text
 """
 
 import hashlib
-import json
 import os
 
+from . import json
 from . import metrics
-from .. import platform
 
 from .. import LogManager
 
@@ -51,13 +50,16 @@ def log(group, name, properties=None, log_once=False, bundle=None):
     if bundle is not None:
         kwargs["bundle"] = bundle
 
-    if platform.current_engine():
+    # import here to prevent circular dependency
+    from ..platform.engine import current_engine
+
+    if current_engine():
         # We don't need to cache in this situation, Let's simply forward the
         # order
         return metrics.EventMetric.log(*args, **kwargs)
 
     try:
-        cached_data = json.dumps((args, kwargs))
+        cached_data = json.json.dumps([args, kwargs])
     except TypeError:
         logger.debug("Unable to cache metric. Can not be JSON encoded")
         return
@@ -74,10 +76,11 @@ def consume():
     Iterate the environment to find all the cached metrics
     """
 
-    for cache_key in os.environ:
-        if not cache_key.lower().startswith("sgtk_metric_cache_"):
-            continue
+    keys = [k for k in os.environ if k.lower().startswith("sgtk_metric_cache_")]
+    # This extra complicated step is to prevent the following issue in Py2
+    # RuntimeError: dictionary changed size during iteration
 
+    for cache_key in keys:
         try:
             cached_data = os.environ.pop(cache_key)
         except KeyError:
@@ -86,7 +89,7 @@ def consume():
 
         try:
             data = json.loads(cached_data)
-        except json.JSONDecodeError:
+        except json.json.JSONDecodeError:
             logger.debug("Unable to decode cached metric")
             continue
 

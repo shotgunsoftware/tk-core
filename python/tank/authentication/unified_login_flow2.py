@@ -41,10 +41,9 @@ class AuthenticationError(errors.AuthenticationError):
 
 def process(
     sg_url,
-    *,
+    browser_open_callback,
     http_proxy=None,
     product=None,
-    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
