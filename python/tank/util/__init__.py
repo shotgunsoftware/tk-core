@@ -22,6 +22,7 @@ from .version import (
     is_version_newer,
     is_version_older_or_equal,
     is_version_newer_or_equal,
+    suppress_known_deprecation,
 )
 
 from .shotgun_entity import get_sg_entity_name_field

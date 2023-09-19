@@ -31,8 +31,9 @@ from sgtk.util import sgre as re
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
+from tank.util import suppress_known_deprecation
 try:
-    from packaging.version import parse as LooseVersion
+    from setuptools._distutils.version import LooseVersion
 except (ImportError, ModuleNotFoundError):
     from distutils.version import LooseVersion
 
@@ -292,9 +293,10 @@ class TankMockStoreDescriptor(IODescriptorBase):
             self._type, self.get_system_name()
         )
         latest = "v0.0.0"
-        for version in versions:
-            if LooseVersion(version) > LooseVersion(latest):
-                latest = version
+        with suppress_known_deprecation():
+            for version in versions:
+                if LooseVersion(version) > LooseVersion(latest):
+                    latest = version
 
         return self.create(latest)
 

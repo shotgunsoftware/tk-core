@@ -7,8 +7,11 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import warnings
+import contextlib
+
 try:
-    from packaging.version import parse as LooseVersion
+    from setuptools._distutils.version import LooseVersion
 except (ImportError, ModuleNotFoundError):
     from distutils.version import LooseVersion
 
@@ -119,6 +122,20 @@ def is_version_number(version):
         return False
 
 
+@contextlib.contextmanager
+def suppress_known_deprecation():
+    """
+    Imported function from setuptools.distutils module
+    """
+    with warnings.catch_warnings(record=True) as ctx:
+        warnings.filterwarnings(
+            action='default',
+            category=DeprecationWarning,
+            message="distutils Version classes are deprecated.",
+        )
+        yield ctx
+
+
 def _compare_versions(a, b):
     """
     Tests if version a is newer than version b.
@@ -158,44 +175,42 @@ def _compare_versions(a, b):
     # In Python 3, LooseVersion comparisons between versions where a non-numeric
     # version component is compared to a numeric one fail.  We'll work around this
     # as follows:
-    # We're using packaging.version if available since distutils is now deprecated.
+    # First, try to use LooseVersion for comparison.  This should work in
+    # most cases.
     try:
-        try:
-            version_a = LooseVersion(a).release
-            version_b = LooseVersion(b).release
-        except AttributeError:
+        with suppress_known_deprecation():
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
 
-        version_num_a = []
-        version_num_b = []
-        # taking only the integers of the version to make comparison
-        for version in version_a:
-            if isinstance(version, (int)):
-                version_num_a.append(version)
-            elif version == "-":
-                break
-        for version in version_b:
-            if isinstance(version, (int)):
-                version_num_b.append(version)
-            elif version == "-":
-                break
+            version_num_a = []
+            version_num_b = []
+            # taking only the integers of the version to make comparison
+            for version in version_a:
+                if isinstance(version, (int)):
+                    version_num_a.append(version)
+                elif version == "-":
+                    break
+            for version in version_b:
+                if isinstance(version, (int)):
+                    version_num_b.append(version)
+                elif version == "-":
+                    break
 
-        # Comparing equal number versions with with one of them with '-' appended, if a version
-        # has '-' appended it's older than the same version with '-' at the end
-        if version_num_a == version_num_b:
-            if "-" in a and "-" not in b:
-                return False  # False, version a is older than b
-            elif "-" in b and "-" not in a:
-                return True  # True, version a is older than b
+            # Comparing equal number versions with with one of them with '-' appended, if a version
+            # has '-' appended it's older than the same version with '-' at the end
+            if version_num_a == version_num_b:
+                if "-" in a and "-" not in b:
+                    return False  # False, version a is older than b
+                elif "-" in b and "-" not in a:
+                    return True  # True, version a is older than b
+                else:
+                    return LooseVersion(a) > LooseVersion(
+                        b
+                    )  # If both has '-' compare '-rcx' versions
             else:
                 return LooseVersion(a) > LooseVersion(
                     b
-                )  # If both has '-' compare '-rcx' versions
-        else:
-            return LooseVersion(a) > LooseVersion(
-                b
-            )  # If they are different numeric versions
+                )  # If they are different numeric versions
     except TypeError:
         # To mimick the behavior in Python 2.7 as closely as possible, we will
         # If LooseVersion comparison didn't work, try to extract a numeric
