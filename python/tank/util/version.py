@@ -129,7 +129,7 @@ def suppress_known_deprecation():
     """
     with warnings.catch_warnings(record=True) as ctx:
         warnings.filterwarnings(
-            action='default',
+            action="default",
             category=DeprecationWarning,
             message="distutils Version classes are deprecated.",
         )
