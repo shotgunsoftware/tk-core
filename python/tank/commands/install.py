@@ -127,7 +127,7 @@ class InstallAppAction(Action):
             log.info("")
             log.info(
                 "For more information about app development, see "
-                "https://developer.shotgridsoftware.com/2e5ed7bb/?title=Developing+apps"
+                "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_SGTK_DEVELOPER_APP"
             )
             log.info("")
             log.info("")
@@ -175,7 +175,7 @@ class InstallAppAction(Action):
             )
             log.info("")
             log.info(
-                "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+                "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PC_TOOLKIT_APPS"
             )
             log.info("")
             log.info("To install an app store app, use the following syntax:")
@@ -479,7 +479,7 @@ class InstallEngineAction(Action):
             )
             log.info("")
             log.info(
-                "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+                "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PC_TOOLKIT_APPS"
             )
             log.info("")
             log.info("To install an app store engine, use the following syntax:")

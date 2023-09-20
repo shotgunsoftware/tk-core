@@ -155,10 +155,10 @@ class CoreUpdateAction(Action):
         log.info("")
         log.info("For more information, please see the Toolkit documentation:")
         log.info(
-            "https://developer.shotgridsoftware.com/3414fbb3/?title=Desktop+Startup"
+            "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PC_FRAMEWORK_DESKTOPSTARTUP"
         )
         log.info(
-            "https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Integration+Components"
+            "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PC_TOOLKIT_FRAMEWORKS"
         )
         log.info("")
 
