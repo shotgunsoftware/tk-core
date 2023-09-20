@@ -10,6 +10,10 @@
 
 from ...errors import TankError
 from .entity import Entity
+from ... import constants
+from ...log import LogManager
+
+log = LogManager.get_logger(__name__)
 
 
 class Project(Entity):
@@ -28,6 +32,21 @@ class Project(Entity):
         :param metadata: Contents of configuration file.
         :returns: :class:`Entity` instance.
         """
+        # execute default_storage_root hook to modify the metadata storage root 'root_name'
+        # if there's any Project custom field in SG overriding the default storage root.
+        try:
+            tk.execute_core_hook_method(
+                constants.DEFAULT_STORAGE_ROOT_HOOK_NAME,
+                "execute",
+                storage_roots=tk.pipeline_configuration._storage_roots,
+                project_id=tk.pipeline_configuration.get_project_id(),
+                metadata=metadata,
+            )
+        except Exception as e:
+            # Catch errors to not kill our thread, log them for debug purpose.
+            log.debug(
+                "%s hook failed with %s" % (constants.DEFAULT_STORAGE_ROOT_HOOK_NAME, e)
+            )
         storage_name = metadata.get("root_name", None)
         if storage_name is None:
             raise TankError(
