@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.20.24 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.20.25 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.24.<br>
+    <b>tk-core</b> v0.20.25.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -244,6 +244,7 @@
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 <span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">EventMetric</span>
 <span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">MetricsDispatcher</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">metrics_cache</span>
 <span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">application</span>
@@ -3405,6 +3406,8 @@
         <span class="c1"># register this engine as the current engine</span>
         <span class="n">set_current_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 
+    <span class="n">metrics_cache</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+
     <span class="k">return</span> <span class="n">engine</span>
 
 
@@ -3540,6 +3543,8 @@
 
     <span class="c1"># register this engine as the current engine</span>
     <span class="n">set_current_engine</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="n">metrics_cache</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">obj</span>
 

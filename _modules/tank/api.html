@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.20.24 documentation</title>
+  <title>tank.api &mdash; tk-core v0.20.25 documentation</title>
   
 
   
@@ -123,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.24.<br>
+    <b>tk-core</b> v0.20.25.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -262,6 +262,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span> <span class="o">=</span> <span class="n">project_path</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span> <span class="o">=</span> <span class="n">pipelineconfig_factory</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">project_path</span><span class="p">)</span>
+
+        <span class="c1"># execute default_storage_root hook</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
+                <span class="n">constants</span><span class="o">.</span><span class="n">DEFAULT_STORAGE_ROOT_HOOK_NAME</span><span class="p">,</span>
+                <span class="s2">&quot;execute&quot;</span><span class="p">,</span>
+                <span class="n">storage_roots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">_storage_roots</span><span class="p">,</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_id</span><span class="p">(),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Catch errors to not kill our thread, log them for debug purpose.</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> hook failed with </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">DEFAULT_STORAGE_ROOT_HOOK_NAME</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__templates</span> <span class="o">=</span> <span class="n">read_templates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="p">)</span>
