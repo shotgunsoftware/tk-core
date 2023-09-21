@@ -118,6 +118,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-bundle_init">bundle_init.py</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-cache_location">cache_location.py</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-context_change">context_change.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-default_storage_root">default_storage_root.py</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-engine_init">engine_init.py</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ensure_folder_exists">ensure_folder_exists.py</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-get_current_login">get_current_login.py</a></li>
@@ -2477,6 +2478,41 @@ from the old one, you’ll need to compare the two arguments using the
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>previous_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a>) – The previous context of the engine.</li>
 <li><strong>current_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a>) – The current context of the engine.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-default_storage_root">
+<span id="default-storage-root-py"></span><h4>default_storage_root.py<a class="headerlink" href="#module-default_storage_root" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed during Toolkit initialization.
+This hook makes it possible to modify the default storage root.</p>
+<dl class="class">
+<dt id="default_storage_root.DefaultStorageRoot">
+<em class="property">class </em><code class="descclassname">default_storage_root.</code><code class="descname">DefaultStorageRoot</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/default_storage_root.html#DefaultStorageRoot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#default_storage_root.DefaultStorageRoot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="default_storage_root.DefaultStorageRoot.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>storage_roots</em>, <em>project_id=None</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/default_storage_root.html#DefaultStorageRoot.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#default_storage_root.DefaultStorageRoot.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes right after constructing a pipeline configuration during
+Toolkit initialization.</p>
+<p>You can find example implementations in the
+<a class="reference external" href="https://github.com/shotgunsoftware/tk-core/tree/master/tests/core_tests/test_default_storage_root_hook">tests/core_tests/test_default_storage_root_hook</a>
+folder which allow you to switch between storages if you have a
+different storage root per project.</p>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>storage_roots</strong> (<em>StorageRoots</em>) – The storage roots for the project.</li>
+<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – id of the project toolkit is being initialized in</li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Contents of the Project configuration file.</li>
 </ul>
 </td>
 </tr>
