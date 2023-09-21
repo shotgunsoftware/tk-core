@@ -169,7 +169,7 @@ context_change.py
     :members:
 
 default_storage_root.py
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: default_storage_root
 .. autoclass:: default_storage_root.DefaultStorageRoot
