@@ -25,9 +25,9 @@ class DefaultStorageRoot(Hook):
         Toolkit initialization.
 
         You can find example implementations in the
-        tests/core_tests/test_default_storage_root_hook folder which
-        allow you to switch between storages if you have a different
-        storage root per project.
+        `tests/core_tests/test_default_storage_root_hook <https://github.com/shotgunsoftware/tk-core/tree/master/tests/core_tests/test_default_storage_root_hook>`_
+        folder which allow you to switch between storages if you have a
+        different storage root per project.
 
         The default implementation does nothing.
 
