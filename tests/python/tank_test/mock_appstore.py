@@ -289,6 +289,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         )
         latest = "v0.0.0"
         with suppress_known_deprecation():
+            # Supress `distutils Version classes are deprecated.` for Python 3.10
             for version in versions:
                 if LooseVersion(version) > LooseVersion(latest):
                     latest = version

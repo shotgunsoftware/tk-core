@@ -180,6 +180,7 @@ def _compare_versions(a, b):
     # most cases.
     try:
         with suppress_known_deprecation():
+            # Supress `distutils Version classes are deprecated.` for Python 3.10
             version_a = LooseVersion(a).version
             version_b = LooseVersion(b).version
 
