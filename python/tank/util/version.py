@@ -12,7 +12,7 @@ import contextlib
 
 try:
     from setuptools._distutils.version import LooseVersion
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     from distutils.version import LooseVersion
 
 from . import sgre as re

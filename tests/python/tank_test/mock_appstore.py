@@ -34,7 +34,7 @@ from tank.platform.environment import InstalledEnvironment
 from tank.util import suppress_known_deprecation
 try:
     from setuptools._distutils.version import LooseVersion
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     from distutils.version import LooseVersion
 
 
