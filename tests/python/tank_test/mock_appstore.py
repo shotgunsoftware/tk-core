@@ -14,16 +14,11 @@ Unit tests tank updates.
 
 from __future__ import with_statement
 
-import os
-import logging
 import functools
-import tempfile
+import sys
 
 import mock
 
-from .tank_test_base import TankTestBase, setUpModule
-
-import sgtk
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor import create_descriptor
@@ -32,9 +27,9 @@ from sgtk.util import sgre as re
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
 from tank.util import suppress_known_deprecation
-try:
+if sys.version_info[0:2] >= (3, 10):
     from setuptools._distutils.version import LooseVersion
-except ImportError:
+else:
     from distutils.version import LooseVersion
 
 

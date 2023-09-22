@@ -9,10 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import warnings
 import contextlib
+import sys
 
-try:
+if sys.version_info[0:2] >= (3, 10):
     from setuptools._distutils.version import LooseVersion
-except ImportError:
+else:
     from distutils.version import LooseVersion
 
 from . import sgre as re
