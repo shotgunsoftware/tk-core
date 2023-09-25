@@ -51,10 +51,6 @@ class QtImporter(object):
             self._qt_version_tuple,
         ) = self._import_modules(interface_version_requested)
 
-        logger.info("QT version: {v}".format(v=self._qt_version_tuple))
-        print("QT version: {v}".format(v=self._qt_version_tuple))
-
-
     @property
     def QtCore(self):
         """
@@ -361,7 +357,7 @@ class QtImporter(object):
             "PySide6.QtWebEngineWidgets", "QtWebEngineWidgets"
         )
 
-        QtWebEngineCore =  self._import_module_by_name(
+        QtWebEngineCore = self._import_module_by_name(
             "PySide6.QtWebEngineCore", "QtWebEngineCore"
         )
 
