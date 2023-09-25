@@ -51,6 +51,10 @@ class QtImporter(object):
             self._qt_version_tuple,
         ) = self._import_modules(interface_version_requested)
 
+        logger.info("QT version: {v}".format(v=self._qt_version_tuple))
+        print("QT version: {v}".format(v=self._qt_version_tuple))
+
+
     @property
     def QtCore(self):
         """
@@ -85,6 +89,13 @@ class QtImporter(object):
         :returns: QtWebEngineWidgets module, if available.
         """
         return self._modules["QtWebEngineWidgets"] if self._modules else None
+
+    @property
+    def QtWebEngineCore(self):
+        """
+        :returns: QtWebEngineCore module, if available.
+        """
+        return self._modules["QtWebEngineCore"] if self._modules else None
 
     @property
     def binding(self):
@@ -350,6 +361,10 @@ class QtImporter(object):
             "PySide6.QtWebEngineWidgets", "QtWebEngineWidgets"
         )
 
+        QtWebEngineCore =  self._import_module_by_name(
+            "PySide6.QtWebEngineCore", "QtWebEngineCore"
+        )
+
         return (
             PySide6.__name__,
             PySide6.__version__,
@@ -360,6 +375,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
+                "QtWebEngineCore": QtWebEngineCore,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )

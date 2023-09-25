@@ -33,7 +33,15 @@ from ..util import login
 from ..util import LocalFileStorageManager
 from ..util import metrics_cache
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
+from .ui.qt_abstraction import (
+    QtGui,
+    QtCore,
+    QtNetwork,
+    QtWebKit,
+    QtWebEngineCore,
+    QtWebEngineWidgets,
+)
+
 from . import unified_login_flow2
 from . import site_info
 from .sso_saml2 import (
@@ -142,7 +150,9 @@ class LoginDialog(QtGui.QDialog):
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
+            "QtWebEngineCore": QtWebEngineCore,
         }
+
         try:
             self._sso_saml2 = SsoSaml2Toolkit(
                 "ShotGrid Web Login", qt_modules=qt_modules
