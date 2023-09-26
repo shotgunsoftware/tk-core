@@ -178,7 +178,7 @@ def skip_if_pyside(found=True):
         found_pyside = _has_pyside()
         msg = "PySide found" if found else "PySide missing"
         return unittest.skipIf(found_pyside == found, msg)(func)
-    
+
     return _skip_if_pyside
 
 def _has_pyside2():
@@ -203,7 +203,7 @@ def skip_if_pyside2(found=True):
         found_pyside2 = _has_pyside2()
         msg = "PySide2 found" if found else "PySide2 missing"
         return unittest.skipIf(found_pyside2 == found, msg)(func)
-    
+
     return _skip_if_pyside2
 
 def _has_pyqt4():
@@ -253,7 +253,7 @@ def skip_if_pyside6(found=True):
         found_pyside6 = _has_pyside6()
         msg = "PySide6 found" if found else "PySide6 missing"
         return unittest.skipIf(found_pyside6 == found, msg)(func)
-    
+
     return _skip_if_pyside6
 
 def suppress_generated_code_qt_warnings(func):

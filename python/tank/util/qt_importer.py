@@ -411,7 +411,7 @@ class QtImporter(object):
             - PySide
             - PyQt4
             - PySide6
-        
+
         PySide6 is attempted to be imported last at the moment because it is is not yet fully
         supported. If a DCC requires PySide6, it can run with the current level of support,
         but be warned that you may encounter issues.
