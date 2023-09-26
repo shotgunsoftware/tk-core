@@ -13,6 +13,7 @@ Qt version abstraction layer.
 """
 
 import os
+import pkgutil
 
 from ..log import LogManager
 
@@ -372,10 +373,17 @@ class QtImporter(object):
 
         import PySide6
 
-        modules = dir(PySide6)
+        sub_modules = pkgutil.iter_modules(PySide6.__path__)
         modules_dict = {}
-        for module in modules:
-            modules_dict[module] = getattr(PySide6, module)
+        for module in sub_modules:
+            module_name = module.name
+            try:
+                wrapper = __import__("PySide6", globals(), locals(), [module_name])
+                if hasattr(wrapper, module_name):
+                    modules_dict[module_name] = getattr(wrapper, module_name)
+            except Exception as e:
+                logger.debug("'%s' was skipped: %s", module_name, e)
+                pass
 
         return (
             PySide6.__name__,
