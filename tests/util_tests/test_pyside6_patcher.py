@@ -8,12 +8,6 @@
 # agreement to the ShotGrid Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk.
 
-# import sys
-# sys.path.append("C:\\python_libs")
-# import ptvsd
-# ptvsd.enable_attach()
-# ptvsd.wait_for_attach()
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
