@@ -22,6 +22,7 @@ from tank_test.tank_test_base import (
 
 from tank.util import pyside6_patcher
 
+
 @skip_if_pyside6(found=False)
 class PySide6PatcherTests(TankTestBase):
     """Tests PySide6 patcher functionality."""
