@@ -350,12 +350,12 @@ class QtImporter(object):
         import PySide6
         from .pyside6_patcher import PySide6Patcher
 
-        QtCore, QtGui = PySide6Patcher.patch()
+        QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
         QtNetwork = self._import_module_by_name("PySide6", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide6.QtWebKitWidgets", "QtWebKit")
-        QtWebEngineWidgets = self._import_module_by_name(
-            "PySide6.QtWebEngineWidgets", "QtWebEngineWidgets"
-        )
+        # QtWebEngineWidgets = self._import_module_by_name(
+        #     "PySide6.QtWebEngineWidgets", "QtWebEngineWidgets"
+        # )
 
         QtWebEngineCore = self._import_module_by_name(
             "PySide6.QtWebEngineCore", "QtWebEngineCore"

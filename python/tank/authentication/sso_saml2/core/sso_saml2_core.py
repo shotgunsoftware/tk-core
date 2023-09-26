@@ -172,9 +172,9 @@ class SsoSaml2Core(object):
         QtWebEngineWidgets = self._QtWebEngineWidgets = qt_modules.get(
             "QtWebEngineWidgets"
         )  # noqa
-        QtWebEngineCore = self._QtWebEngineCore = qt_modules.get(
-            "QtWebEngineCore"
-        )  # noqa
+        # QtWebEngineCore = self._QtWebEngineCore = qt_modules.get(
+        #     "QtWebEngineCore"
+        # )  # noqa
 
         if QtCore is None:
             raise SsoSaml2MissingQtCore("The QtCore module is unavailable")
@@ -191,14 +191,19 @@ class SsoSaml2Core(object):
             )
 
         if QtWebEngineWidgets:
-            if QtWebEngineCore:
-                # PySide 6
-                QWebEnginePage = QtWebEngineCore.QWebEnginePage
-                QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
-            else:
-                # PySide 2
-                QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
-                QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
+            # if QtWebEngineCore:
+            #     # PySide 6
+            #     QWebEnginePage = QtWebEngineCore.QWebEnginePage
+            #     QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+            # else:
+            #     # PySide 2
+            #     QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
+            #     QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
+            QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
+            QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
+        else:
+            QWebEnginePage = None
+            QWebEngineProfile = None
 
         # If PySide2 is being used, we need to make  extra checks to ensure
         # that needed components are indeed present.
@@ -214,7 +219,7 @@ class SsoSaml2Core(object):
         # - Maya 2017
         #     missing the 'QSslConfiguration' class. Likely compiled without SSL
         #     support.
-        if not hasattr(
+        if QWebEngineProfile and not hasattr(
             QWebEngineProfile, "cookieStore"
         ):
             raise SsoSaml2IncompletePySide2(

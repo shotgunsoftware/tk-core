@@ -38,7 +38,7 @@ from .ui.qt_abstraction import (
     QtCore,
     QtNetwork,
     QtWebKit,
-    QtWebEngineCore,
+    # QtWebEngineCore,
     QtWebEngineWidgets,
 )
 
@@ -150,7 +150,7 @@ class LoginDialog(QtGui.QDialog):
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
-            "QtWebEngineCore": QtWebEngineCore,
+            # "QtWebEngineCore": QtWebEngineCore,
         }
 
         try:
