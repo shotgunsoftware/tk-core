@@ -399,10 +399,14 @@ class QtImporter(object):
     def _import_modules(self, interface_version_requested):
         """
         Tries to import different Qt binding implementation in the following order:
-            - PySide6
             - PySide2
             - PySide
             - PyQt4
+            - PySide6
+        
+        PySide6 is attempted to be imported last at the moment because it is is not yet fully
+        supported. If a DCC requires PySide6, it can run with the current level of support,
+        but be warned that you may encounter issues.
 
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
             no binding is avaialble.
