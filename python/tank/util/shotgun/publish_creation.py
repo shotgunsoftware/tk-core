@@ -305,7 +305,22 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         if not dry_run:
             # upload thumbnails
             log.debug("Publish: Uploading thumbnails")
+            print()
+            print()
+            print("tk:", tk)
+            print("context:", context)
+            print("path:", path)
+            print("name:", name)
+            print("version:", version_number)
+            print("kwargs:", kwargs)
+            print()
+            print()
             if thumbnail_path and os.path.exists(thumbnail_path):
+                print("thumbnail_path:", thumbnail_path)
+                import traceback
+                traceback.print_stack()
+                print()
+                print()
 
                 # publish
                 tk.shotgun.upload_thumbnail(
