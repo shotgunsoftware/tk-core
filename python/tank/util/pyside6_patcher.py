@@ -502,4 +502,4 @@ class PySide6Patcher(PySide2Patcher):
         qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
         qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
-        return qt_core_shim, qt_gui_shim
+        return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim
