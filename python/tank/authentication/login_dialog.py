@@ -38,7 +38,6 @@ from .ui.qt_abstraction import (
     QtCore,
     QtNetwork,
     QtWebKit,
-    # QtWebEngineCore,
     QtWebEngineWidgets,
 )
 
@@ -150,9 +149,7 @@ class LoginDialog(QtGui.QDialog):
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
-            # "QtWebEngineCore": QtWebEngineCore,
         }
-
         try:
             self._sso_saml2 = SsoSaml2Toolkit(
                 "ShotGrid Web Login", qt_modules=qt_modules

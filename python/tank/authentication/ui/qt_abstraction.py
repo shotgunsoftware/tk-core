@@ -21,10 +21,4 @@ QtWebKit = _importer.QtWebKit
 QtNetwork = _importer.QtNetwork
 QtWebEngineWidgets = _importer.QtWebEngineWidgets
 qt_version_tuple = _importer.qt_version_tuple
-
-# if qt_version_tuple[0] < 6:
-#     QtWebEngineCore = None
-# else:
-#     QtWebEngineCore = _importer.QtWebEngineCore
-
 del _importer

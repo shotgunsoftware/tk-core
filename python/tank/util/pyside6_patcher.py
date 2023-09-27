@@ -391,7 +391,12 @@ class PySide6Patcher(PySide2Patcher):
 
         import PySide6
         from PySide6 import (
-            QtCore, QtGui, QtWidgets, QtOpenGL, QtWebEngineWidgets, QtWebEngineCore
+            QtCore,
+            QtGui,
+            QtWidgets,
+            QtOpenGL,
+            QtWebEngineWidgets,
+            QtWebEngineCore,
         )
 
         # First create new modules to act as the PySide modules
@@ -498,7 +503,7 @@ class PySide6Patcher(PySide2Patcher):
         qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
 
         # QtWwebEngineWidgets
-        # ------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
         qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 

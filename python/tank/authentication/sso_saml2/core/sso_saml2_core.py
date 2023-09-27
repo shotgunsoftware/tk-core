@@ -172,9 +172,6 @@ class SsoSaml2Core(object):
         QtWebEngineWidgets = self._QtWebEngineWidgets = qt_modules.get(
             "QtWebEngineWidgets"
         )  # noqa
-        # QtWebEngineCore = self._QtWebEngineCore = qt_modules.get(
-        #     "QtWebEngineCore"
-        # )  # noqa
 
         if QtCore is None:
             raise SsoSaml2MissingQtCore("The QtCore module is unavailable")
@@ -190,21 +187,6 @@ class SsoSaml2Core(object):
                 "The QtWebKit or QtWebEngineWidgets modules are unavailable"
             )
 
-        if QtWebEngineWidgets:
-            # if QtWebEngineCore:
-            #     # PySide 6
-            #     QWebEnginePage = QtWebEngineCore.QWebEnginePage
-            #     QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
-            # else:
-            #     # PySide 2
-            #     QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
-            #     QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
-            QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
-            QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
-        else:
-            QWebEnginePage = None
-            QWebEngineProfile = None
-
         # If PySide2 is being used, we need to make  extra checks to ensure
         # that needed components are indeed present.
         #
@@ -219,8 +201,8 @@ class SsoSaml2Core(object):
         # - Maya 2017
         #     missing the 'QSslConfiguration' class. Likely compiled without SSL
         #     support.
-        if QWebEngineProfile and not hasattr(
-            QWebEngineProfile, "cookieStore"
+        if QtWebEngineWidgets and not hasattr(
+            QtWebEngineWidgets.QWebEngineProfile, "cookieStore"
         ):
             raise SsoSaml2IncompletePySide2(
                 "Missing method QtWebEngineWidgets.QWebEngineProfile.cookieStore()"
@@ -293,7 +275,7 @@ class SsoSaml2Core(object):
 
         else:
 
-            class TKWebPageQtWebEngine(QWebEnginePage):
+            class TKWebPageQtWebEngine(QtWebEngineWidgets.QWebEnginePage):
                 """
                 Wrapper class to better control the behaviour when clicking on links
                 in the Qt5 web browser. If we are asked to open a new tab/window, then
@@ -345,7 +327,7 @@ class SsoSaml2Core(object):
                     if self._profile is None:
                         QtGui.QDesktopServices.openUrl(url)
                         return False
-                    return QWebEnginePage.acceptNavigationRequest(
+                    return QtWebEngineWidgets.QWebEnginePage.acceptNavigationRequest(
                         self, url, n_type, is_mainframe
                     )
 
@@ -395,7 +377,7 @@ class SsoSaml2Core(object):
                 self.on_authentication_required
             )
         else:
-            self._profile = QWebEngineProfile.defaultProfile()
+            self._profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
             self._logger.debug(
                 "Initial WebEngineProfile storage location: %s",
                 self._profile.persistentStoragePath(),
@@ -463,7 +445,7 @@ class SsoSaml2Core(object):
             # The cookies will be cleared if there are no prior session in
             # method 'update_browser_from_session' if needed.
             self._profile.setPersistentCookiesPolicy(
-                QWebEngineProfile.ForcePersistentCookies
+                QtWebEngineWidgets.QWebEngineProfile.ForcePersistentCookies
             )
             self._cookie_jar = QtNetwork.QNetworkCookieJar()
             self._profile.cookieStore().cookieAdded.connect(self._on_cookie_added)
