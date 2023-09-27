@@ -25,6 +25,7 @@ import contextlib
 import atexit
 import uuid
 import datetime
+import importlib.util
 from functools import wraps
 
 from collections import defaultdict
@@ -49,6 +50,10 @@ __all__ = [
     "tank",
     "interactive",
     "skip_if_pyside_missing",
+    "skip_if_pyside",
+    "skip_if_pyside2",
+    "skip_if_pyside6",
+    "skip_if_pyqt4",
 ]
 
 
@@ -145,12 +150,111 @@ def _is_pyside_missing():
 
 def skip_if_pyside_missing(func):
     """
-    Decorated that allows to skips a test if PySide is missing.
+    Decorator that allows to skip tests if no version of PySide is found.
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
 
+def _has_pyside():
+    """
+    Tests if PySide is avalable.
+    :returns: True if PySide is available, False otherwise.
+    """
+    pyside_spec = importlib.util.find_spec("PySide")
+    found = pyside_spec is not None
+    return found
+
+def skip_if_pyside(found=True):
+    """
+    Decorator that allows to skip tests based on if PySide module found or not.
+    :param func: Function to be decorated.
+    :param found: True will skip if PySide is found, else will skip if PySide not found
+        (e.g. missing). Default to skip if PySide found.
+    :returns: The decorated function.
+    """
+
+    def _skip_if_pyside(func):
+        found_pyside = _has_pyside()
+        msg = "PySide found" if found else "PySide missing"
+        return unittest.skipIf(found_pyside == found, msg)(func)
+
+    return _skip_if_pyside
+
+def _has_pyside2():
+    """
+    Tests if PySide2 is avalable.
+    :returns: True if PySide2 is available, False otherwise.
+    """
+    pyside2_spec = importlib.util.find_spec("PySide2")
+    found = pyside2_spec is not None
+    return found
+
+def skip_if_pyside2(found=True):
+    """
+    Decorator that allows to skip tests based on if PySide2 module found or not.
+    :param func: Function to be decorated.
+    :param found: True will skip if PySide2 is found, else will skip if PySide2 not found
+        (e.g. missing). Default to skip if PySide2 found.
+    :returns: The decorated function.
+    """
+
+    def _skip_if_pyside2(func):
+        found_pyside2 = _has_pyside2()
+        msg = "PySide2 found" if found else "PySide2 missing"
+        return unittest.skipIf(found_pyside2 == found, msg)(func)
+
+    return _skip_if_pyside2
+
+def _has_pyqt4():
+    """
+    Tests if PyQt4 is avalable.
+    :returns: True if PyQt4 is available, False otherwise.
+    """
+    pyqt4_spec = importlib.util.find_spec("PyQt4")
+    found = pyqt4_spec is not None
+    return found
+
+def skip_if_pyqt4(found=True):
+    """
+    Decorator that allows to skip tests based on if PyQt4 module found or not.
+    :param func: Function to be decorated.
+    :param found: True will skip if PyQt4 is found, else will skip if PyQt4 not found
+        (e.g. missing). Default to skip if PyQt4 found.
+    :returns: The decorated function.
+    """
+
+    def _skip_if_pyqt4(func):
+        found_pyqt4= _has_pyqt4()
+        msg = "PyQt4 found" if found else "PyQt4 missing"
+        return unittest.skipIf(found_pyqt4 == found, msg)(func)
+
+    return _skip_if_pyqt4
+
+def _has_pyside6():
+    """
+    Tests if PySide6 is avalable.
+    :returns: True if PySide6 is available, False otherwise.
+    """
+    pyside6_spec = importlib.util.find_spec("PySide6")
+    found = pyside6_spec is not None
+    return found
+
+def skip_if_pyside6(found=True):
+    """
+    Decorator that allows to skip tests if PySide6 is missing.
+    :param func: Function to be decorated.
+    :param found: True will skip if PySide2 is found, else will skip if PySide2 not found
+        (e.g. missing). Default to skip if PySide2 found.
+    :returns: The decorated function.
+    """
+
+    def _skip_if_pyside6(func):
+        found_pyside6 = _has_pyside6()
+        msg = "PySide6 found" if found else "PySide6 missing"
+        return unittest.skipIf(found_pyside6 == found, msg)(func)
+
+    return _skip_if_pyside6
 
 def suppress_generated_code_qt_warnings(func):
     """
