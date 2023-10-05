@@ -86,6 +86,9 @@ echo "Copying Shotgun API to the required location..."
 # Copy the files to the destination
 cp -R $DEST_REPO/shotgun_api3 $DEST/..
 
+# Copy the software_credits file
+cp $DEST_REPO/software_credits $DEST/software_credits
+
 # Move to the git repo to generate the sha and write it to the $DEST
 pushd $DEST_REPO
 git rev-parse HEAD > $DEST/commit_id
