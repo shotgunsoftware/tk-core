@@ -208,6 +208,21 @@ class UserTests(ShotgunTestBase):
             }
             user_impl.ScriptUser.from_dict(script_user_with_unknown_data)
 
+    @mock.patch(
+        "tank_vendor.shotgun_api3.Shotgun._call_rpc",
+        side_effect=ConnectionRefusedError(),
+    )
+    def test_are_credentials_expired(
+        self, call_rpc_mock,
+    ):
+        """
+        Makes sure the are_credentials_expired method can survive a
+        ConnectionRefusedError.
+        """
+
+        su = self._create_test_user()
+        self.assertTrue(su.are_credentials_expired())
+
     @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
