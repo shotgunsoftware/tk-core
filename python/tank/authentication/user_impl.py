@@ -322,7 +322,7 @@ class SessionUser(ShotgunUserImpl):
                 http_proxy=self.get_http_proxy(),
             )
         except ConnectionRefusedError:
-            logger.warn(
+            logger.warning(
                 "Unable to contact {host}".format(
                     host=self.get_host(),
                 )
