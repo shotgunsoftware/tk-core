@@ -11,10 +11,14 @@ import warnings
 import contextlib
 import sys
 
-if sys.version_info[0:2] >= (3, 10):
-    from setuptools._distutils.version import LooseVersion
-else:
+if sys.version_info[0:2] < (3, 10):
     from distutils.version import LooseVersion
+else:
+    try:
+        from setuptools._distutils.version import LooseVersion
+    except ModuleNotFoundError:
+        # Known issue with VRED 16. Unable to load the setuptools module
+        from distutils.version import LooseVersion
 
 from . import sgre as re
 from ..errors import TankError
