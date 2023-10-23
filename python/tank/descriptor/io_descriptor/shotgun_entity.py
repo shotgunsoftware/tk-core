@@ -135,14 +135,47 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         # ensure version is an int if specified
         try:
-            self._version = (
-                int(descriptor_dict["version"])
-                if "version" in descriptor_dict
-                else None
-            )
-        except ValueError:
+            
+            if "version" in descriptor_dict:
+                version_data = descriptor_dict["version"]
+
+                if isinstance(version_data, dict):
+                    # support for multiple sites with different version for each
+                    # 
+                    # bundle-name:
+                    #   location:
+                    #     type: shotgun
+                    #     entity_type: EntityType
+                    #     name: the-name
+                    #     version: 
+                    #       studio.shotgunstudio.com: 321987
+                    #       studio.shotgrid.autodesk.com: 123456
+                    #     field: field_name
+
+                    # first, get site only; https://www.FOO.com:8080 -> www.foo.com
+                    base_url = (
+                        urllib.parse.urlparse(self._sg_connection.base_url)
+                        .netloc.split(":")[0]
+                        .lower()
+                    )
+
+                    if base_url in version_data:
+                        self._version = int(version_data[base_url])
+                    else:
+                        message = (
+                            "Version key in descriptor is dict "
+                            "but not keyed by site url %s"
+                        )
+                        raise ValueError(message % base_url)
+
+                else:
+                    self._version = int(version_data)
+            else:
+                self._version = None
+
+        except ValueError as e:
             raise TankDescriptorError(
-                "Invalid version in descriptor %s" % descriptor_dict
+                "Invalid version in descriptor %s: %s" % (descriptor_dict, str(e))
             )
 
     def _get_bundle_cache_path(self, bundle_cache_root):
