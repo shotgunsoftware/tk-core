@@ -84,7 +84,7 @@ following order:
 
     - Windows: ``%APPDATA%\Shotgun\desktop\config\config.ini``
     - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
-    - Linux: ``~/shotgun/desktop/config/config.ini``
+    - Linux: ``~/.shotgun/desktop/config/config.ini``
 
     Note that the ``SHOTGUN_HOME`` environment variable can impact the location
     of the ShotGrid Toolkit preferences file.
