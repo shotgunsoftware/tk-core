@@ -135,19 +135,19 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         # ensure version is an int if specified
         try:
-            
+
             if "version" in descriptor_dict:
                 version_data = descriptor_dict["version"]
 
                 if isinstance(version_data, dict):
                     # support for multiple sites with different version for each
-                    # 
+                    #
                     # bundle-name:
                     #   location:
                     #     type: shotgun
                     #     entity_type: EntityType
                     #     name: the-name
-                    #     version: 
+                    #     version:
                     #       studio.shotgunstudio.com: 321987
                     #       studio.shotgrid.autodesk.com: 123456
                     #     field: field_name

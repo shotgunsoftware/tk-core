@@ -94,6 +94,29 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             }
         )
 
+
+        # test version id dict not keyed by site
+        _test_raises_error(
+            {
+                "type": "shotgun",
+                "version": {"not.a.site": 123},
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": "123",
+            }
+        )
+
+        # test version id dict not int
+        _test_raises_error(
+            {
+                "type": "shotgun",
+                "version": {"not.a.site": "nan"},
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": "123",
+            }
+        )
+
         # cannot specify both id and name
         _test_raises_error(
             {
@@ -146,6 +169,20 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             {
                 "type": "shotgun",
                 "version": "123",
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "aaa111",
+            }
+        )
+
+        self.assertEqual(name_desc.system_name, "aaa111")
+        self.assertEqual(name_desc.version, "v123")
+
+
+        name_desc = self._create_desc(
+            {
+                "type": "shotgun",
+                "version": {"unit_test_mock_sg": 123},
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "name": "aaa111",
