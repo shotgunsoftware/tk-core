@@ -94,7 +94,6 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             }
         )
 
-
         # test version id dict not keyed by site
         _test_raises_error(
             {
@@ -110,7 +109,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         _test_raises_error(
             {
                 "type": "shotgun",
-                "version": {"not.a.site": "nan"},
+                "version": {"unit_test_mock_sg": "nan"},
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "id": "123",
@@ -177,7 +176,6 @@ class TestShotgunIODescriptor(ShotgunTestBase):
 
         self.assertEqual(name_desc.system_name, "aaa111")
         self.assertEqual(name_desc.version, "v123")
-
 
         name_desc = self._create_desc(
             {
