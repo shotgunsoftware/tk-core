@@ -11,7 +11,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    skip_if_pyside6,
+)
 
 from tank.authentication.sso_saml2 import SsoSaml2Toolkit
 
