@@ -13,11 +13,10 @@
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
-from tank.authentication.sso_saml2 import (
-    SsoSaml2Toolkit,
-)
+from tank.authentication.sso_saml2 import SsoSaml2Toolkit
 
 
+@skip_if_pyside_missing
 class WebLoginTests(ShotgunTestBase):
     def test_web_login(self):
         from tank.authentication.ui import qt_abstraction
