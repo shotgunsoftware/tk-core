@@ -13,7 +13,7 @@
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
-    skip_if_pyside6,
+    skip_if_pyside_missing,
 )
 
 from tank.authentication.sso_saml2 import SsoSaml2Toolkit
