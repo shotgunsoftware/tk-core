@@ -19,8 +19,7 @@ omit=
     *tank/authentication/ui/*
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
-  # disable PySide6 code coverage for now
-  - "**tank/util/pyside6_patcher.py"
+
 
 [paths]
 # This allows to merge coverage from different disk locations. This is

@@ -43,7 +43,7 @@ class WebLoginTests(ShotgunTestBase):
             },
         )
 
-        ## coverage
+        # coverage
         obj._view.page().createWindow(None)
 
         # And do nothing more... so coverage is happy
