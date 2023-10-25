@@ -20,16 +20,19 @@ from tank_test.tank_test_base import (
 from tank.authentication.sso_saml2 import SsoSaml2Toolkit
 
 
-@only_run_on_nix # This test issues a seg fault on Windows somehow...
+@only_run_on_nix  # This test issues a seg fault on Windows somehow...
 @skip_if_pyside_missing
 class WebLoginTests(ShotgunTestBase):
     def test_web_login(self):
         from tank.authentication.ui import qt_abstraction
 
+        # Call function for coverage
+        qt_abstraction.QtWebEngineCore
+
         if qt_abstraction.QtGui.QApplication.instance() is None:
             self._app = qt_abstraction.QtGui.QApplication([])
 
-        SsoSaml2Toolkit(
+        obj = SsoSaml2Toolkit(
             "Test Web Login",
             qt_modules={
                 "QtCore": qt_abstraction.QtCore,
@@ -39,5 +42,8 @@ class WebLoginTests(ShotgunTestBase):
                 "QtWebEngineWidgets": qt_abstraction.QtWebEngineWidgets,
             },
         )
+
+        ## coverage
+        obj._view.page().createWindow(None)
 
         # And do nothing more... so coverage is happy

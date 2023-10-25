@@ -340,7 +340,7 @@ class QtImporter(object):
             self._to_version_tuple(QtCore.QT_VERSION_STR),
         )
 
-    def _import_pyside6_as_pyside(self):
+    def _import_pyside6_as_pyside(self):  # pragma: no cover
         """
         Import PySide6 and expose its modules through the Qt4 (PySide) interface.
 

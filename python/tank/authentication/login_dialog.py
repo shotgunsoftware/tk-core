@@ -33,13 +33,7 @@ from ..util import login
 from ..util import LocalFileStorageManager
 from ..util import metrics_cache
 from .errors import AuthenticationError
-from .ui.qt_abstraction import (
-    QtGui,
-    QtCore,
-    QtNetwork,
-    QtWebKit,
-    QtWebEngineWidgets,
-)
+from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 
 from . import unified_login_flow2
 from . import site_info
