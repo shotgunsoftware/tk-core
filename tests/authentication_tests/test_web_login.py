@@ -20,9 +20,13 @@ from tank_test.tank_test_base import (
 from tank.authentication.sso_saml2 import SsoSaml2Toolkit
 
 
-@only_run_on_nix  # This test issues a seg fault on Windows somehow...
+@only_run_on_nix  # This test issues a seg-fault on Windows
 @skip_if_pyside_missing
 class WebLoginTests(ShotgunTestBase):
+    """
+    The main goal of these test is to add code coverage.
+    """
+
     def test_web_login(self):
         from tank.authentication.ui import qt_abstraction
 
@@ -43,13 +47,9 @@ class WebLoginTests(ShotgunTestBase):
         # coverage
         obj._core._view.page().createWindow(None)
 
-        # And do nothing more... so coverage is happy
-
     def test_qt6_coverage(self):
         from tank.util import qt_importer
 
         qt_imp = qt_importer.QtImporter()
-        try:
+        with self.assertRaises(KeyError):
             qt_imp.QtWebEngineCore
-        except KeyError:
-            pass
