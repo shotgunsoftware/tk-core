@@ -275,7 +275,7 @@ class SsoSaml2Core(object):
 
         else:
 
-            class TKWebPageQt5(QtWebEngineWidgets.QWebEnginePage):
+            class TKWebPageQtWebEngine(QtWebEngineWidgets.QWebEnginePage):
                 """
                 Wrapper class to better control the behaviour when clicking on links
                 in the Qt5 web browser. If we are asked to open a new tab/window, then
@@ -286,8 +286,8 @@ class SsoSaml2Core(object):
                     """
                     Class Constructor.
                     """
-                    get_logger().debug("TKWebPageQt5.__init__")
-                    super(TKWebPageQt5, self).__init__(profile, parent)
+                    get_logger().debug("TKWebPageQtWebEngine.__init__")
+                    super(TKWebPageQtWebEngine, self).__init__(profile, parent)
                     self._profile = profile
                     self._developer_mode = developer_mode
 
@@ -295,7 +295,7 @@ class SsoSaml2Core(object):
                     """
                     Class Destructor.
                     """
-                    get_logger().debug("TKWebPageQt5.__del__")
+                    get_logger().debug("TKWebPageQtWebEngine.__del__")
 
                 def mainFrame(self):
                     """
@@ -316,7 +316,7 @@ class SsoSaml2Core(object):
                     """
                     if self._developer_mode:
                         get_logger().debug(
-                            "TKWebPageQt5.acceptNavigationRequest: %s (%s)",
+                            "TKWebPageQtWebEngine.acceptNavigationRequest: %s (%s)",
                             url.toString(),
                             n_type,
                         )
@@ -336,10 +336,10 @@ class SsoSaml2Core(object):
                     When a link leading to a new window/tab is clicked, this method is
                     called.
                     """
-                    get_logger().debug("TKWebPageQt5.createWindow: %s", window_type)
+                    get_logger().debug("TKWebPageQtWebEngine.createWindow: %s", window_type)
                     # Here we return a new page with no profile, that will be used solely
                     # to trigger the call to the external browser.
-                    return TKWebPageQt5(None, self.parent())
+                    return TKWebPageQtWebEngine(None, self.parent())
 
                 def certificateError(self, certificate_error):
                     """
@@ -347,7 +347,7 @@ class SsoSaml2Core(object):
                     For the time being, we ignore all certificate errors.
                     """
                     get_logger().debug(
-                        "TKWebPageQt5.certificateError: %s", certificate_error
+                        "TKWebPageQtWebEngine.certificateError: %s", certificate_error
                     )
                     return True
 
@@ -384,7 +384,7 @@ class SsoSaml2Core(object):
             )
             self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
             self._view.setPage(
-                TKWebPageQt5(self._profile, self._dialog, self._developer_mode)
+                TKWebPageQtWebEngine(self._profile, self._dialog, self._developer_mode)
             )
             self._view.page().authenticationRequired.connect(
                 self.on_authentication_required
@@ -439,7 +439,7 @@ class SsoSaml2Core(object):
             self._view.settings().setUserStyleSheetUrl(url)
         else:
             self._logger.debug(
-                "We are in a Qt5 environment, registering cookie handlers."
+                "We are in a QtWebEngine environment, registering cookie handlers."
             )
             # We want to persist cookies accross sessions.
             # The cookies will be cleared if there are no prior session in

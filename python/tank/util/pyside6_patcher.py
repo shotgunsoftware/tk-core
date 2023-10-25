@@ -390,11 +390,19 @@ class PySide6Patcher(PySide2Patcher):
         """
 
         import PySide6
-        from PySide6 import QtCore, QtGui, QtWidgets, QtOpenGL
+        from PySide6 import (
+            QtCore,
+            QtGui,
+            QtWidgets,
+            QtOpenGL,
+            QtWebEngineWidgets,
+            QtWebEngineCore,
+        )
 
         # First create new modules to act as the PySide modules
         qt_core_shim = imp.new_module("PySide.QtCore")
         qt_gui_shim = imp.new_module("PySide.QtGui")
+        qt_web_engine_widgets_shim = imp.new_module("PySide.QtWebEnginWidgets")
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
         # in PySide.
@@ -412,6 +420,9 @@ class PySide6Patcher(PySide2Patcher):
         # compatibility with Qt4
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
         cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
+
+        # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
+        cls._move_attributes(qt_web_engine_widgets_shim, QtWebEngineWidgets, dir(QtWebEngineWidgets))
 
         # Patch classes from PySide6 to PySide, as done for PySide2 (these will call the
         # PySide2 patcher methods.)
@@ -491,4 +502,9 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-5/qpalette.html#ColorRole-enum
         qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
 
-        return qt_core_shim, qt_gui_shim
+        # QtWwebEngineWidgets
+        # ----------------------------------------------------------------------
+        qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
+        qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+
+        return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim

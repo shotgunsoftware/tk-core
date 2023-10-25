@@ -87,6 +87,13 @@ class QtImporter(object):
         return self._modules["QtWebEngineWidgets"] if self._modules else None
 
     @property
+    def QtWebEngineCore(self):
+        """
+        :returns: QtWebEngineCore module, if available.
+        """
+        return self._modules["QtWebEngineCore"] if self._modules else None
+
+    @property
     def binding(self):
         """
         :returns: The PySide* or PyQt* root module.
@@ -333,7 +340,7 @@ class QtImporter(object):
             self._to_version_tuple(QtCore.QT_VERSION_STR),
         )
 
-    def _import_pyside6_as_pyside(self):
+    def _import_pyside6_as_pyside(self):  # pragma: no cover
         """
         Import PySide6 and expose its modules through the Qt4 (PySide) interface.
 
@@ -343,12 +350,9 @@ class QtImporter(object):
         import PySide6
         from .pyside6_patcher import PySide6Patcher
 
-        QtCore, QtGui = PySide6Patcher.patch()
+        QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
         QtNetwork = self._import_module_by_name("PySide6", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide6.QtWebKitWidgets", "QtWebKit")
-        QtWebEngineWidgets = self._import_module_by_name(
-            "PySide6.QtWebEngineWidgets", "QtWebEngineWidgets"
-        )
 
         return (
             PySide6.__name__,
