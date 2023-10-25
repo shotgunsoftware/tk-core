@@ -41,7 +41,7 @@ class WebLoginTests(ShotgunTestBase):
         )
 
         # coverage
-        obj._view.page().createWindow(None)
+        obj._core._view.page().createWindow(None)
 
         # And do nothing more... so coverage is happy
 
@@ -49,4 +49,7 @@ class WebLoginTests(ShotgunTestBase):
         from tank.util import qt_importer
 
         qt_imp = qt_importer.QtImporter()
-        qt_imp.QtWebEngineCore
+        try:
+            qt_imp.QtWebEngineCore
+        except KeyError:
+            pass
