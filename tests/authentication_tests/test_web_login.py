@@ -26,9 +26,6 @@ class WebLoginTests(ShotgunTestBase):
     def test_web_login(self):
         from tank.authentication.ui import qt_abstraction
 
-        # Call function for coverage
-        qt_abstraction.QtWebEngineCore
-
         if qt_abstraction.QtGui.QApplication.instance() is None:
             self._app = qt_abstraction.QtGui.QApplication([])
 
@@ -47,3 +44,9 @@ class WebLoginTests(ShotgunTestBase):
         obj._view.page().createWindow(None)
 
         # And do nothing more... so coverage is happy
+
+    def test_qt6_coverage(self):
+        from tank.util import qt_importer
+
+        qt_imp = qt_importer.QtImporter()
+        qt_imp.QtWebEngineCore
