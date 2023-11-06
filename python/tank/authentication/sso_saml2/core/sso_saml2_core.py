@@ -710,7 +710,7 @@ class SsoSaml2Core(object):
         if self._developer_mode:
             self._logger.debug(
                 "_on_cookie_added: %s",
-                cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm),
+                cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly),
             )
         self._cookie_jar.insertCookie(cookie)
 
@@ -725,7 +725,7 @@ class SsoSaml2Core(object):
         if self._developer_mode:
             self._logger.debug(
                 "_on_cookie_deleted: %s",
-                cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm),
+                cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly),
             )
         self._cookie_jar.deleteCookie(cookie)
 
