@@ -786,6 +786,33 @@ class InteractiveTests(ShotgunTestBase):
             self.assertIsNone(ld.result())
 
     @suppress_generated_code_qt_warnings
+    def test_web_login_not_supported(self):
+        # Ensure that Web Login methos is not selected in UI when config is set
+        # to web login but client does not support it
+
+        with mock.patch(
+            "tank.authentication.login_dialog.ULF2_AuthTask.start"
+        ), mock.patch(
+            "tank.authentication.login_dialog._is_running_in_desktop",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+            return_value=False,
+        ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=auth_constants.METHOD_WEB_LOGIN,
+        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "app_session_launcher_enabled": True,
+            },
+        ), self._login_dialog(
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+
+    @suppress_generated_code_qt_warnings
     @mock.patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
     @mock.patch(
         "tank.authentication.login_dialog._is_running_in_desktop",
