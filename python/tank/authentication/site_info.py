@@ -115,7 +115,7 @@ class SiteInfo(object):
             )
         )
         logger.debug(
-            "  unified_login_flow2_enabled: {value}".format(
+            "  app_session_launcher_enabled: {value}".format(
                 value=self.unified_login_flow2_enabled,
             )
         )

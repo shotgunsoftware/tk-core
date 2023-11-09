@@ -14,8 +14,8 @@ METHOD_ULF2 = 0x03
 
 method_resolve = {
     METHOD_BASIC: "credentials",
-    METHOD_WEB_LOGIN: "web_legacy",
-    METHOD_ULF2: "unified_login_flow2",
+    METHOD_WEB_LOGIN: "qt_web_login",
+    METHOD_ULF2: "app_session_launcher",
 }
 
 
