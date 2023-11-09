@@ -493,21 +493,21 @@ class LoginDialog(QtGui.QDialog):
             elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 # Selecting legacy auth by default
                 method_selected = auth_constants.METHOD_BASIC
-            else:
-                method_selected = session_cache.get_preferred_method(site)
-                if (
-                    method_selected == auth_constants.METHOD_WEB_LOGIN
-                    and not can_use_web
-                ):
-                    method_selected = None
 
-                if not method_selected:
-                    # Select Unified Login Flow 2
-                    method_selected = auth_constants.METHOD_ULF2
-        elif can_use_web:
-            method_selected = auth_constants.METHOD_WEB_LOGIN
-        else:
-            method_selected = auth_constants.METHOD_BASIC
+            if not method_selected:
+                method_selected = session_cache.get_preferred_method(site)
+
+            if (
+                method_selected == auth_constants.METHOD_WEB_LOGIN
+                and not can_use_web
+            ):
+                method_selected = None
+
+        if not method_selected:
+            if can_use_web:
+                method_selected = auth_constants.METHOD_WEB_LOGIN
+            else:
+                method_selected = auth_constants.METHOD_BASIC
 
         if site == self.host_selected and method_selected == self.method_selected:
             # We don't want to go further if the UI is already configured for
