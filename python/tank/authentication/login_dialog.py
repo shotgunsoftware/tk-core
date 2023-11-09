@@ -244,17 +244,17 @@ class LoginDialog(QtGui.QDialog):
             menu,
         )
         self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
-        menu.addAction(self.menu_action_ulf2)
 
         self.menu_action_ulf = QtGui.QAction(
-            "Authenticate with the ShotGrid Desktop browser (legacy)",
+            "Authenticate with the ShotGrid Desktop browser",
             menu,
         )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
         menu.addAction(self.menu_action_ulf)
+        menu.addAction(self.menu_action_ulf2)
 
         self.menu_action_legacy = QtGui.QAction(
-            "Authenticate with your legacy login credentials",
+            "Authenticate with your login credentials",
             menu,
         )
         self.menu_action_legacy.triggered.connect(
@@ -546,7 +546,7 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message.setText("Sign in using the Web.")
             else:
                 self.ui.message.setText(
-                    "<p>Authenticate with the ShotGrid Desktop browser (legacy).</p>"
+                    "<p>Authenticate with the ShotGrid Desktop browser.</p>"
                     '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
                         url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
                     )
