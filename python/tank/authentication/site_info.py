@@ -115,7 +115,7 @@ class SiteInfo(object):
             )
         )
         logger.debug(
-            "  app_session_launcher_enabled: {value}".format(
+            "  authentication_app_session_launcher_enabled: {value}".format(
                 value=self.unified_login_flow2_enabled,
             )
         )
@@ -174,4 +174,6 @@ class SiteInfo(object):
         :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
         """
 
-        return self._infos.get("app_session_launcher_enabled", False)
+        return self._infos.get(
+            "authentication_app_session_launcher_enabled", False
+        ) or self._infos.get("app_session_launcher_enabled", False)
