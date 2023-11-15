@@ -633,7 +633,9 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
         # Then Web login but env override
-        with mock.patch("os.environ.get", return_value="1"), mock.patch(
+        with mock.patch.dict(
+            "os.environ", {"SGTK_FORCE_STANDARD_LOGIN_DIALOG": "1"}
+        ), mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
@@ -894,9 +896,8 @@ class InteractiveTests(ShotgunTestBase):
             return_value={
                 "app_session_launcher_enabled": True,
             },
-        ), mock.patch(
-            "os.environ.get",
-            return_value="1",
+        ), mock.patch.dict(
+            "os.environ", {"SGTK_FORCE_STANDARD_LOGIN_DIALOG": "1"}
         ), self._login_dialog(
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
