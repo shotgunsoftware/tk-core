@@ -493,15 +493,19 @@ class LoginDialog(QtGui.QDialog):
             elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 # Selecting legacy auth by default
                 method_selected = auth_constants.METHOD_BASIC
-
-            if not method_selected:
+            else:
                 method_selected = session_cache.get_preferred_method(site)
 
-            if (
-                method_selected == auth_constants.METHOD_WEB_LOGIN
-                and not can_use_web
-            ):
-                method_selected = None
+        if not method_selected and os.environ.get("SGTK_DEFAULT_AUTH_METHOD"):
+            method_selected = auth_constants.method_resolve_reverse(
+                os.environ.get("SGTK_DEFAULT_AUTH_METHOD")
+            )
+
+        if (
+            method_selected == auth_constants.METHOD_WEB_LOGIN
+            and not can_use_web
+        ):
+            method_selected = None
 
         if not method_selected:
             if can_use_web:
