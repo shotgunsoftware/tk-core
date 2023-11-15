@@ -89,7 +89,7 @@ class InteractiveTests(ShotgunTestBase):
         QtGui.QApplication.processEvents()
 
     @contextlib.contextmanager
-    def _login_dialog(self, is_session_renewal, **kwargs):
+    def _login_dialog(self, is_session_renewal=False, **kwargs):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
@@ -116,20 +116,20 @@ class InteractiveTests(ShotgunTestBase):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        with self._login_dialog(is_session_renewal=False) as ld:
+        with self._login_dialog() as ld:
             self.assertEqual(ld.ui.site.currentText(), "")
 
-        with self._login_dialog(is_session_renewal=False, login="login") as ld:
+        with self._login_dialog(login="login") as ld:
             self.assertEqual(ld.ui.site.currentText(), "")
 
         # Makes sure the focus is set to the password even tough we've only specified the hostname
         # because the current os user name is the default.
-        with self._login_dialog(is_session_renewal=False, hostname="host") as ld:
+        with self._login_dialog(hostname="host") as ld:
             # window needs to be activated to get focus.
             self.assertTrue(ld.ui.password.hasFocus())
 
         with self._login_dialog(
-            is_session_renewal=False, hostname="host", login="login"
+            hostname="host", login="login"
         ) as ld:
             self.assertTrue(ld.ui.password.hasFocus())
 
@@ -454,7 +454,7 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication.ui.qt_abstraction import QtGui
 
-        with self._login_dialog(is_session_renewal=False) as ld:
+        with self._login_dialog() as ld:
             # For each widget in the ui, make sure that the text is properly cleaned
             # up when widget loses focus.
             for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
@@ -484,7 +484,7 @@ class InteractiveTests(ShotgunTestBase):
     )
     def test_ui_error_management(self, *unused_mocks):
         # Empty of invalid site
-        with self._login_dialog(False) as ld:
+        with self._login_dialog() as ld:
             ld.ERROR_MSG_FORMAT = "[Error135]%s"
 
             # Trigger Sign-In
@@ -497,7 +497,6 @@ class InteractiveTests(ShotgunTestBase):
 
         # Empty login
         with self._login_dialog(
-            False,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             ld.ERROR_MSG_FORMAT = "[Error357]%s"
@@ -513,7 +512,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Empty password
         with self._login_dialog(
-            False, hostname="https://host.shotgunstudio.com", login="john"
+            hostname="https://host.shotgunstudio.com", login="john"
         ) as ld:
             ld.ERROR_MSG_FORMAT = "[Error579]%s"
 
@@ -530,7 +529,6 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.login_dialog.QtGui.QDesktopServices.openUrl",
             return_value=False,
         ), self._login_dialog(
-            False,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             ld.ERROR_MSG_FORMAT = "[Error246]%s"
@@ -552,7 +550,7 @@ class InteractiveTests(ShotgunTestBase):
         from tank.authentication.ui.qt_abstraction import QtGui, QtCore
 
         # Test window close event
-        with self._login_dialog(False) as ld:
+        with self._login_dialog() as ld:
             # First, simulate user clicks on the No button
             ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.No
 
@@ -571,7 +569,7 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.login_dialog.ULF2_AuthTask.start",
             return_value=False,
-        ), self._login_dialog(False) as ld:
+        ), self._login_dialog() as ld:
             event = QtGui.QKeyEvent(
                 QtGui.QKeyEvent.KeyPress,
                 QtCore.Qt.Key_Escape,
@@ -615,7 +613,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.site_info._get_site_infos",
             return_value={},
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is lcegacy credentials
@@ -628,7 +626,9 @@ class InteractiveTests(ShotgunTestBase):
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
             },
-        ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
+        ), self._login_dialog(
+            is_session_renewal=True, hostname="https://host.shotgunstudio.com",
+        ) as ld:
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
@@ -639,7 +639,9 @@ class InteractiveTests(ShotgunTestBase):
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
             },
-        ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
+        ), self._login_dialog(
+            is_session_renewal=True, hostname="https://host.shotgunstudio.com",
+        ) as ld:
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
@@ -668,7 +670,7 @@ class InteractiveTests(ShotgunTestBase):
             "exec_",
             return_value=QtGui.QDialog.Accepted,
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Fill password field
@@ -767,7 +769,7 @@ class InteractiveTests(ShotgunTestBase):
             "exec_",
             return_value=QtGui.QDialog.Accepted,
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is web login
@@ -822,7 +824,7 @@ class InteractiveTests(ShotgunTestBase):
             "exec_",
             return_value=QtGui.QDialog.Accepted,
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="http://host.shotgunstudio.com",  # HTTP only for code coverage
             fixed_host=True,  # Only for coverage purposes
         ) as ld:
@@ -896,7 +898,7 @@ class InteractiveTests(ShotgunTestBase):
             "os.environ.get",
             return_value="1",
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is lcegacy credentials
@@ -910,7 +912,10 @@ class InteractiveTests(ShotgunTestBase):
                 "unified_login_flow_enabled": True,
                 "app_session_launcher_enabled": True,
             },
-        ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
+        ), self._login_dialog(
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
             self.assertFalse(ld.menu_action_legacy.isVisible())
             self.assertTrue(ld.menu_action_ulf.isVisible())
             self.assertTrue(ld.menu_action_ulf2.isVisible())
