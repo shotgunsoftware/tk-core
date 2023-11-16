@@ -244,17 +244,17 @@ class LoginDialog(QtGui.QDialog):
             menu,
         )
         self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
-        menu.addAction(self.menu_action_ulf2)
 
         self.menu_action_ulf = QtGui.QAction(
-            "Authenticate with the ShotGrid Desktop browser (legacy)",
+            "Authenticate with the ShotGrid Desktop browser",
             menu,
         )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
         menu.addAction(self.menu_action_ulf)
+        menu.addAction(self.menu_action_ulf2)
 
         self.menu_action_legacy = QtGui.QAction(
-            "Authenticate with your legacy login credentials",
+            "Authenticate with your login credentials",
             menu,
         )
         self.menu_action_legacy.triggered.connect(
@@ -495,19 +495,23 @@ class LoginDialog(QtGui.QDialog):
                 method_selected = auth_constants.METHOD_BASIC
             else:
                 method_selected = session_cache.get_preferred_method(site)
-                if (
-                    method_selected == auth_constants.METHOD_WEB_LOGIN
-                    and not can_use_web
-                ):
-                    method_selected = None
 
-                if not method_selected:
-                    # Select Unified Login Flow 2
-                    method_selected = auth_constants.METHOD_ULF2
-        elif can_use_web:
-            method_selected = auth_constants.METHOD_WEB_LOGIN
-        else:
-            method_selected = auth_constants.METHOD_BASIC
+        if not method_selected and os.environ.get("SGTK_DEFAULT_AUTH_METHOD"):
+            method_selected = auth_constants.method_resolve_reverse(
+                os.environ.get("SGTK_DEFAULT_AUTH_METHOD")
+            )
+
+        if (
+            method_selected == auth_constants.METHOD_WEB_LOGIN
+            and not can_use_web
+        ):
+            method_selected = None
+
+        if not method_selected:
+            if can_use_web:
+                method_selected = auth_constants.METHOD_WEB_LOGIN
+            else:
+                method_selected = auth_constants.METHOD_BASIC
 
         if site == self.host_selected and method_selected == self.method_selected:
             # We don't want to go further if the UI is already configured for
@@ -546,7 +550,7 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message.setText("Sign in using the Web.")
             else:
                 self.ui.message.setText(
-                    "<p>Authenticate with the ShotGrid Desktop browser (legacy).</p>"
+                    "<p>Authenticate with the ShotGrid Desktop browser.</p>"
                     '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
                         url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
                     )

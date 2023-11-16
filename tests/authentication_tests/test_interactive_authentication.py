@@ -810,7 +810,64 @@ class InteractiveTests(ShotgunTestBase):
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+
+    @suppress_generated_code_qt_warnings
+    def test_login_dialog_default_auth_method(self):
+        with mock.patch(
+            "tank.authentication.login_dialog.ULF2_AuthTask.start"
+        ), mock.patch(
+            "tank.authentication.login_dialog._is_running_in_desktop",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=None,
+        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "user_authentication_method": "oxygen",
+                "unified_login_flow_enabled": True,
+                "app_session_launcher_enabled": True,
+            },
+        ):
+            with self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+
+            with mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+            }), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+
+            with mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "credentials",
+            }), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+
+            with mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "test_me", # Invalid value
+            }), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+
+            with mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_WEB_LOGIN,
+            ), mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+            }), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
     @suppress_generated_code_qt_warnings
     @mock.patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
@@ -863,17 +920,14 @@ class InteractiveTests(ShotgunTestBase):
             self.assertFalse(ld.menu_action_ulf.isVisible())
             self.assertTrue(ld.menu_action_ulf2.isVisible())
 
-            # Ensure current method set is ufl2
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
-
-            # Trigger login credentials
-            ld._menu_activated_action_login_creds()
-
-            # Ensure current method set is lcegacy credentials
+            # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
             # Trigger ULF2 again
             ld._menu_activated_action_ulf2()
+
+            # Ensure current method set is ufl2
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
 
             # Trigger Sign-In
             ld._ok_pressed()
@@ -948,17 +1002,14 @@ class InteractiveTests(ShotgunTestBase):
             self.assertTrue(ld.menu_action_ulf.isVisible())
             self.assertTrue(ld.menu_action_ulf2.isVisible())
 
-            # Ensure current method set is ufl2
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
-
-            # Select web login method
-            ld._menu_activated_action_web_legacy()
-
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
             # Trigger ULF2 again
             ld._menu_activated_action_ulf2()
+
+            # Ensure current method set is ufl2
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
 
             # Trigger Sign-In
             ld._ok_pressed()
