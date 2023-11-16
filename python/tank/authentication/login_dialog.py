@@ -495,6 +495,12 @@ class LoginDialog(QtGui.QDialog):
                 method_selected = auth_constants.METHOD_BASIC
             else:
                 method_selected = session_cache.get_preferred_method(site)
+                if (
+                    method_selected == auth_constants.METHOD_WEB_LOGIN
+                    and not can_use_web
+                ):
+                    method_selected = None
+
                 if not method_selected:
                     # Select Unified Login Flow 2
                     method_selected = auth_constants.METHOD_ULF2
