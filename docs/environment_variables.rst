@@ -26,6 +26,18 @@ Low level bypass to set the configuration desciptor URI that the bootstrap API s
 ------------
 Controls debug logging.
 
+.. _environment_variables_authentication:
+
+Authentication
+==============
+
+``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
+------------------------------------
+Always display the traditional authentication (login and password fields) in the
+login window dialog even when the ShotGrid site has other authentication methods
+enabled.
+
+
 ``TK_SHOTGRID_DEFAULT_LOGIN``
 -----------------------------
 Indicates the default Autodesk Identity account to use to pre-fill the login window dialog. This is purely for the convenience of the user and has no other use or side-effects.
