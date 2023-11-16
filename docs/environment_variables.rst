@@ -46,6 +46,10 @@ Always display the traditional authentication (login and password fields) in the
 login window dialog even when the ShotGrid site has other authentication methods
 enabled.
 
+``TK_AUTH_PRODUCT``
+-------------------
+Provide a custom application name When using the "App Session Launcher"
+authentication instead of relying on the autodetected name.
 
 ``TK_SHOTGRID_DEFAULT_LOGIN``
 -----------------------------
