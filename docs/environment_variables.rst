@@ -31,6 +31,15 @@ Controls debug logging.
 Authentication
 ==============
 
+``SGTK_DEFAULT_AUTH_METHOD``
+----------------------------
+Specifies which authentication method should be selected if none is selected yet.
+Available values are `credentials`, `qt_web_login`, and `app_session_launcher`.
+
+Note: this variable does not overrides the session cache. If a valid method has
+been recorded in the session cache, this method will be selected instead of the
+one provided by `SGTK_DEFAULT_AUTH_METHOD`.
+
 ``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
 ------------------------------------
 Always display the traditional authentication (login and password fields) in the
