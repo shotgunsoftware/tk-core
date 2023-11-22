@@ -489,7 +489,7 @@ class LoginDialog(QtGui.QDialog):
 
         if can_use_ulf2:
             if method_selected:
-                # Selecting requested mode (credentials, web_legacy or unified_login_flow2)
+                # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
                 session_cache.set_preferred_method(site, method_selected)
             elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 # Selecting legacy auth by default
