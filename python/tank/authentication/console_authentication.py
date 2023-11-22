@@ -90,7 +90,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
             method_selected = self._get_auth_method(hostname, site_i)
             if method_selected == constants.METHOD_ULF2:
-                auth_fn = self._authenticate_unified_login_flow2
+                auth_fn = self._authenticate_app_session_launcher
             else:  # basic
                 auth_fn = self._authenticate_legacy
 
@@ -155,7 +155,7 @@ class ConsoleAuthenticationHandlerBase(object):
                 None,
             )
 
-    def _authenticate_unified_login_flow2(self, hostname, login, http_proxy):
+    def _authenticate_app_session_launcher(self, hostname, login, http_proxy):
         print()
         print(
             "Authenticating to {sg_url} requires your web browser.\n"

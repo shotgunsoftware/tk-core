@@ -1235,7 +1235,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value=None,  # Simulate an authentication error
         ):
             with self.assertRaises(errors.AuthenticationError):
-                handler._authenticate_unified_login_flow2(
+                handler._authenticate_app_session_launcher(
                     "https://site4.shotgunstudio.com", None, None
                 )
 
