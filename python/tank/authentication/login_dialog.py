@@ -959,7 +959,7 @@ class ULF2_AuthTask(QtCore.QThread):
         except AuthenticationError as err:
             self.exception = err
         except Exception:
-            logger.exception("Unknown error from unified_login_flow2")
+            logger.exception("Unknown error from App Session Launcher")
             self.exception = AuthenticationError("Unknown authentication error")
 
     def should_continue(self):
