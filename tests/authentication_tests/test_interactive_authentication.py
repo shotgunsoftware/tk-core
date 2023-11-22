@@ -988,7 +988,7 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.session_cache.get_recent_users",
         return_value=["john", "bob"],
     )
-    def test_login_dialog_unified_login_flow2(self, *unused_mocks):
+    def test_login_dialog_app_session_launcher(self, *unused_mocks):
         from tank.authentication.ui.qt_abstraction import QtGui
 
         # First basic and ULF2 methods
@@ -1156,7 +1156,7 @@ class InteractiveTests(ShotgunTestBase):
             "https://site3.shotgunstudio.com",
         ],
     )
-    def test_console_unified_login_flow2(self, *unused_mocks):
+    def test_console_app_session_launcher(self, *unused_mocks):
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
 
         # First select the legacy method

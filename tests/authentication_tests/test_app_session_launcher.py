@@ -35,7 +35,7 @@ import sys
 import threading
 
 
-class ULF2Tests(ShotgunTestBase):
+class AppSessionLauncherTests(ShotgunTestBase):
     def test_process_parameters(self):
         with self.assertRaises(AssertionError):
             app_session_launcher.process(
@@ -125,7 +125,7 @@ class ULF2Tests(ShotgunTestBase):
         )
 
 
-class ULF2APITests(ShotgunTestBase):
+class AppSessionLauncherAPITests(ShotgunTestBase):
     def setUp(self):
         self.httpd = MyTCPServer()
         self.httpd.start()
