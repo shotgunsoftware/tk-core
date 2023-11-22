@@ -903,7 +903,7 @@ class LoginDialog(QtGui.QDialog):
 
     def _ulf2_back_pressed(self):
         """
-        Cancel Unified Login Flow 2 authentication and switch page back to login
+        Cancel App Session Launcher authentication and switch page back to login
         """
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
