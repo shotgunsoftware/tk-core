@@ -486,7 +486,7 @@ class LoginDialog(QtGui.QDialog):
             if get_shotgun_authenticator_support_web_login():
                 can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
-        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
+        can_use_ulf2 = self.site_info.app_session_launcher_enabled
         if can_use_ulf2:
             if method_selected:
                 # Selecting requested mode (credentials, qt_web_login or app_session_launcher)

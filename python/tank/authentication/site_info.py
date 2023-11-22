@@ -116,7 +116,7 @@ class SiteInfo(object):
         )
         logger.debug(
             "  authentication_app_session_launcher_enabled: {value}".format(
-                value=self.unified_login_flow2_enabled,
+                value=self.app_session_launcher_enabled,
             )
         )
 
@@ -165,13 +165,15 @@ class SiteInfo(object):
         return self._infos.get("unified_login_flow_enabled", False)
 
     @property
-    def unified_login_flow2_enabled(self):
+    def app_session_launcher_enabled(self):
         """
-        Check to see if the web site uses the unified login flow 2.
+        Check to see if the SG site has the App Session Launcher authentication
+        enabled.
 
         This setting appeared in the Shotgun 8.50 serie, being rarely disabled.
 
-        :returns:   A boolean indicating if the unified login flow 2 is enabled or not.
+        :returns:   A boolean indicating if the App Session Launcher is enabled
+                    or not.
         """
 
         return self._infos.get(

@@ -78,7 +78,7 @@ class ConsoleAuthenticationHandlerBase(object):
             site_i = site_info.SiteInfo()
             site_i.reload(hostname, http_proxy)
 
-            if not site_i.unified_login_flow2_enabled:
+            if not site_i.app_session_launcher_enabled:
                 # Will raise an exception if using a username/password pair is
                 # not supported by the ShotGrid server.
                 # Which is the case when using SSO or Autodesk Identity.
@@ -198,7 +198,7 @@ class ConsoleAuthenticationHandlerBase(object):
         return session_info
 
     def _get_auth_method(self, hostname, site_i):
-        if not site_i.unified_login_flow2_enabled:
+        if not site_i.app_session_launcher_enabled:
             return constants.METHOD_BASIC
 
         if site_i.autodesk_identity_enabled or site_i.sso_enabled:
