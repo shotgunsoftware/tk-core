@@ -30,7 +30,7 @@ from .errors import (
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 from . import site_info
-from . import unified_login_flow2
+from . import app_session_launcher
 from ..util import metrics_cache
 from ..util.metrics import EventMetric
 from ..util.shotgun.connection import sanitize_url
@@ -181,7 +181,7 @@ class ConsoleAuthenticationHandlerBase(object):
             "application."
         )
         print()
-        session_info = unified_login_flow2.process(
+        session_info = app_session_launcher.process(
             hostname,
             webbrowser.open,  # browser_open_callback
             http_proxy=http_proxy,

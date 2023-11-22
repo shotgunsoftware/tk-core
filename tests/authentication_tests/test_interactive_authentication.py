@@ -972,7 +972,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=True,
     )
     @mock.patch(
-        "tank.authentication.unified_login_flow2.process",
+        "tank.authentication.app_session_launcher.process",
         return_value=(
             "https://host.shotgunstudio.com",
             "user_login",
@@ -1185,7 +1185,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.process",
+            "tank.authentication.app_session_launcher.process",
             return_value=("https://site4.shotgunstudio.com", "ULF2!", None, None),
         ):
             self.assertEqual(
@@ -1210,7 +1210,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.process",
+            "tank.authentication.app_session_launcher.process",
             return_value="ULF2 result 9867",
         ):
             self.assertEqual(
@@ -1231,7 +1231,7 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.process",
+            "tank.authentication.app_session_launcher.process",
             return_value=None,  # Simulate an authentication error
         ):
             with self.assertRaises(errors.AuthenticationError):
@@ -1333,7 +1333,7 @@ class InteractiveTests(ShotgunTestBase):
         ulf2_task = login_dialog.ULF2_AuthTask(None, "https://host.shotgunstudio.com")
 
         with mock.patch(
-            "tank.authentication.unified_login_flow2.http_request",
+            "tank.authentication.app_session_launcher.http_request",
             side_effect=Exception("My Error 45!"),
         ), self.assertLogs(
             login_dialog.logger.name, level="DEBUG",

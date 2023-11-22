@@ -34,7 +34,7 @@ from ..util import LocalFileStorageManager
 from ..util import metrics_cache
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
-from . import unified_login_flow2
+from . import app_session_launcher
 from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
@@ -950,7 +950,7 @@ class ULF2_AuthTask(QtCore.QThread):
         self._sg_url = sg_url
         self._http_proxy = http_proxy
 
-        self._product = unified_login_flow2.get_product_name()
+        self._product = app_session_launcher.get_product_name()
         # This is processed here, in the main thread, to prevent threading
         # issues.
         # One know problem is with Photoshop, the engine.host_info attribute is
@@ -964,7 +964,7 @@ class ULF2_AuthTask(QtCore.QThread):
 
     def run(self):
         try:
-            self.session_info = unified_login_flow2.process(
+            self.session_info = app_session_launcher.process(
                 self._sg_url,
                 lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
                 http_proxy=self._http_proxy,
