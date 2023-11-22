@@ -843,7 +843,7 @@ class InteractiveTests(ShotgunTestBase):
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             with mock.patch(
                 "tank.authentication.login_dialog._is_running_in_desktop",
@@ -1019,7 +1019,7 @@ class InteractiveTests(ShotgunTestBase):
             ld._menu_activated_action_ulf2()
 
             # Ensure current method set is ufl2
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
             ld._ok_pressed()
@@ -1101,7 +1101,7 @@ class InteractiveTests(ShotgunTestBase):
             ld._menu_activated_action_ulf2()
 
             # Ensure current method set is ufl2
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
             ld._ok_pressed()
@@ -1297,12 +1297,12 @@ class InteractiveTests(ShotgunTestBase):
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                    auth_constants.METHOD_ULF2,
+                    auth_constants.METHOD_ASL,
                 )
 
             for option in [
                 auth_constants.METHOD_BASIC,
-                auth_constants.METHOD_ULF2,
+                auth_constants.METHOD_ASL,
             ]:
                 with mock.patch(
                     "tank.authentication.session_cache.get_preferred_method",

@@ -89,7 +89,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
             method_selected = self._get_auth_method(hostname, site_i)
-            if method_selected == constants.METHOD_ULF2:
+            if method_selected == constants.METHOD_ASL:
                 auth_fn = self._authenticate_app_session_launcher
             else:  # basic
                 auth_fn = self._authenticate_legacy
@@ -202,12 +202,12 @@ class ConsoleAuthenticationHandlerBase(object):
             return constants.METHOD_BASIC
 
         if site_i.autodesk_identity_enabled or site_i.sso_enabled:
-            return constants.METHOD_ULF2
+            return constants.METHOD_ASL
 
         # We have 2 choices here
         methods = {
             "1": constants.METHOD_BASIC,
-            "2": constants.METHOD_ULF2,
+            "2": constants.METHOD_ASL,
         }
 
         # Let's see which method the user chose previously for this site

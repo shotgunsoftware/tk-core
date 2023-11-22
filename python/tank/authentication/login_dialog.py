@@ -543,7 +543,7 @@ class LoginDialog(QtGui.QDialog):
         # In web-based authentication, the web form is in charge of obtaining
         # and validating the user credentials.
 
-        if self.method_selected == auth_constants.METHOD_ULF2:
+        if self.method_selected == auth_constants.METHOD_ASL:
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
@@ -590,7 +590,7 @@ class LoginDialog(QtGui.QDialog):
         self.menu_action_legacy.setVisible(not can_use_web)
 
         self.menu_action_ulf2.setEnabled(
-            self.method_selected != auth_constants.METHOD_ULF2
+            self.method_selected != auth_constants.METHOD_ASL
         )
         self.menu_action_ulf.setEnabled(
             self.method_selected != auth_constants.METHOD_WEB_LOGIN
@@ -600,7 +600,7 @@ class LoginDialog(QtGui.QDialog):
         )
 
     def _menu_activated_action_ulf2(self):
-        self._toggle_web(method_selected=auth_constants.METHOD_ULF2)
+        self._toggle_web(method_selected=auth_constants.METHOD_ASL)
 
     def _menu_activated_action_web_legacy(self):
         self._toggle_web(method_selected=auth_constants.METHOD_WEB_LOGIN)
@@ -699,7 +699,7 @@ class LoginDialog(QtGui.QDialog):
             },
         )
 
-        if self.method_selected == auth_constants.METHOD_ULF2:
+        if self.method_selected == auth_constants.METHOD_ASL:
             if not self._ulf2_task:
                 logger.error(
                     "Unable to retrieve the authentication result but authentication succeeded"
@@ -801,7 +801,7 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self.method_selected == auth_constants.METHOD_ULF2:
+            if self.method_selected == auth_constants.METHOD_ASL:
                 return self._ulf2_process(site)
             elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
                 profile_location = LocalFileStorageManager.get_site_root(
