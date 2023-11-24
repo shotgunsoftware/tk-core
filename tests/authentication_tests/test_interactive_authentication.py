@@ -916,6 +916,53 @@ class InteractiveTests(ShotgunTestBase):
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
     @suppress_generated_code_qt_warnings
+    def test_login_dialog_method_selected_session_cache(self):
+        with mock.patch(
+            "tank.authentication.login_dialog.ULF2_AuthTask.start"
+        ), mock.patch(
+                "tank.authentication.login_dialog._is_running_in_desktop",
+                return_value=True,
+        ), mock.patch(
+            "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "user_authentication_method": "oxygen",
+                "unified_login_flow_enabled": True,
+                "app_session_launcher_enabled": True,
+            },
+        ):
+            # credentials but web login is available
+            with mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_BASIC,
+            ), mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+            }), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+
+
+            # qt_web_login but method is not available
+            with  mock.patch(
+                "tank.authentication.login_dialog._is_running_in_desktop",
+                return_value=False,
+            ), mock.patch(
+                "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+                return_value=False,
+            ), mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_WEB_LOGIN,
+            ), mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+            }), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+
+    @suppress_generated_code_qt_warnings
     @mock.patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
     @mock.patch(
         "tank.authentication.login_dialog._is_running_in_desktop",
