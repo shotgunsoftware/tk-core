@@ -469,7 +469,6 @@ class LoginDialog(QtGui.QDialog):
 
         # With a SSO site, we have no choice but to use the web to login.
         can_use_web = self.site_info.sso_enabled
-        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -486,6 +485,7 @@ class LoginDialog(QtGui.QDialog):
             if get_shotgun_authenticator_support_web_login():
                 can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
+        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
         if can_use_ulf2:
             if method_selected:
                 # Selecting requested mode (credentials, web_legacy or unified_login_flow2)
