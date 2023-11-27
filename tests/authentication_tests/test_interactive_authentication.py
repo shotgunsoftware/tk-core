@@ -813,7 +813,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
     @suppress_generated_code_qt_warnings
-    def test_login_dialog_default_auth_method(self):
+    def test_login_dialog_method_selected_default(self):
         with mock.patch(
             "tank.authentication.login_dialog.ULF2_AuthTask.start"
         ), mock.patch(
