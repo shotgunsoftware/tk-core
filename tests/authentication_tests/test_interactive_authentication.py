@@ -944,9 +944,8 @@ class InteractiveTests(ShotgunTestBase):
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
 
-
             # qt_web_login but method is not available
-            with  mock.patch(
+            with mock.patch(
                 "tank.authentication.login_dialog._is_running_in_desktop",
                 return_value=False,
             ), mock.patch(
