@@ -869,6 +869,20 @@ class InteractiveTests(ShotgunTestBase):
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
+            # Test default value web login but web login is not possible
+            with mock.patch.dict("os.environ", {
+                "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
+            }), mock.patch(
+                "tank.authentication.login_dialog._is_running_in_desktop",
+                return_value=False,
+            ), mock.patch(
+                "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+                return_value=False,
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+
     @suppress_generated_code_qt_warnings
     @mock.patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
     @mock.patch(
