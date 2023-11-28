@@ -1248,4 +1248,4 @@ class InteractiveTests(ShotgunTestBase):
         self.assertIn("My Error 45!", cm.output[0])
 
         self.assertIsInstance(ulf2_task.exception, errors.AuthenticationError)
-        self.assertEquals(ulf2_task.exception.args[0], "Unknown authentication error")
+        self.assertEqual(ulf2_task.exception.args[0], "Unknown authentication error")
