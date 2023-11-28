@@ -1072,7 +1072,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "\n",  # Select default SG site (site1)
-                "2",  # Select "legacy" auth method
+                "1",  # Select "legacy" auth method
                 "username",
             ],
         ), mock.patch(
@@ -1089,7 +1089,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # Select default site -> site4
-                "1",  # Select "ULF2" auth method
+                "2",  # Select "ULF2" auth method
                 "",  # OK to continue
             ],
         ), mock.patch(
