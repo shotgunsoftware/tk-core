@@ -1024,7 +1024,7 @@ class InteractiveTests(ShotgunTestBase):
             # Trigger Sign-In
             ld._ok_pressed()
 
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
 
             # check that UI displays the UFL2 pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
@@ -1034,15 +1034,15 @@ class InteractiveTests(ShotgunTestBase):
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
-            self.assertIsNone(ld._ulf2_task)
+            self.assertIsNone(ld._asl_task)
 
             # Trigger Sign-In
             ld._ok_pressed()
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
 
             # Simulate ULF2 Thread run
-            ld._ulf2_task.run()
-            ld._ulf2_task_finished()
+            ld._asl_task.run()
+            ld._asl_task_finished()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
@@ -1106,7 +1106,7 @@ class InteractiveTests(ShotgunTestBase):
             # Trigger Sign-In
             ld._ok_pressed()
 
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
 
             # check that UI displays the UFL2 pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
@@ -1116,21 +1116,21 @@ class InteractiveTests(ShotgunTestBase):
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
-            self.assertIsNone(ld._ulf2_task)
+            self.assertIsNone(ld._asl_task)
 
             # Trigger Sign-In
             ld._ok_pressed()
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
 
             # Simulate ULF2 Thread run
-            ld._ulf2_task.run()
-            ld._ulf2_task_finished()
+            ld._asl_task.run()
+            ld._asl_task_finished()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
 
             self.assertEqual(
-                ld._ulf2_task.session_info,
+                ld._asl_task.session_info,
                 (
                     "https://host.shotgunstudio.com",
                     "user_login",

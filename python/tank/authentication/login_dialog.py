@@ -165,7 +165,7 @@ class LoginDialog(QtGui.QDialog):
         self.host_selected = None
         self.method_selected = auth_constants.METHOD_BASIC
 
-        self._ulf2_task = None
+        self._asl_task = None
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -352,11 +352,11 @@ class LoginDialog(QtGui.QDialog):
             event.ignore()
             return
 
-        if self._ulf2_task:
-            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
-            self._ulf2_task.stop_when_possible()
-            self._ulf2_task.wait()
-            self._ulf2_task = None
+        if self._asl_task:
+            self._asl_task.finished.disconnect(self._asl_task_finished)
+            self._asl_task.stop_when_possible()
+            self._asl_task.wait()
+            self._asl_task = None
 
         return super(LoginDialog, self).closeEvent(event)
 
@@ -366,11 +366,11 @@ class LoginDialog(QtGui.QDialog):
                 event.ignore()
                 return
 
-        if self._ulf2_task:
-            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
-            self._ulf2_task.stop_when_possible()
-            self._ulf2_task.wait()
-            self._ulf2_task = None
+        if self._asl_task:
+            self._asl_task.finished.disconnect(self._asl_task_finished)
+            self._asl_task.stop_when_possible()
+            self._asl_task.wait()
+            self._asl_task = None
 
         return super(LoginDialog, self).keyPressEvent(event)
 
@@ -700,13 +700,13 @@ class LoginDialog(QtGui.QDialog):
         )
 
         if self.method_selected == auth_constants.METHOD_ASL:
-            if not self._ulf2_task:
+            if not self._asl_task:
                 logger.error(
                     "Unable to retrieve the authentication result but authentication succeeded"
                 )
                 return
 
-            return self._ulf2_task.session_info
+            return self._asl_task.session_info
 
         elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
             if not self._session_metadata or not self._sso_saml2:
@@ -891,13 +891,13 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
 
     def _ulf2_process(self, site):
-        self._ulf2_task = ULF2_AuthTask(
+        self._asl_task = ULF2_AuthTask(
             self,
             site,
             http_proxy=self._http_proxy,
         )
-        self._ulf2_task.finished.connect(self._ulf2_task_finished)
-        self._ulf2_task.start()
+        self._asl_task.finished.connect(self._asl_task_finished)
+        self._asl_task.start()
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.ulf2_page)
 
@@ -909,31 +909,31 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
         logger.info("Cancelling web authentication")
 
-        if self._ulf2_task:
-            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
-            self._ulf2_task.stop_when_possible()
-            self._ulf2_task = None
+        if self._asl_task:
+            self._asl_task.finished.disconnect(self._asl_task_finished)
+            self._asl_task.stop_when_possible()
+            self._asl_task = None
 
-    def _ulf2_task_finished(self):
-        if not self._ulf2_task:
+    def _asl_task_finished(self):
+        if not self._asl_task:
             # Multi-Thread failsafe
             return
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
-        if self._ulf2_task.exception:
+        if self._asl_task.exception:
             self._set_error_message(
                 self.ui.message,
-                "Authentication error - %s" % self._ulf2_task.exception,
+                "Authentication error - %s" % self._asl_task.exception,
             )
             logger.debug(
                 "ULF2 authentication issue",
-                exc_info=self._ulf2_task.exception,
+                exc_info=self._asl_task.exception,
             )
-            self._ulf2_task = None
+            self._asl_task = None
             return
 
-        if not self._ulf2_task.session_info:
+        if not self._asl_task.session_info:
             # The task got interrupted somehow.
             return
 
