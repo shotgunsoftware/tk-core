@@ -250,17 +250,18 @@ class LoginDialog(QtGui.QDialog):
             menu,
         )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
-        menu.addAction(self.menu_action_ulf)
-        menu.addAction(self.menu_action_ulf2)
 
         self.menu_action_legacy = QtGui.QAction(
-            "Authenticate with the classic credentials form",
+            "Authenticate with Legacy ShotGrid Login Credentials",
             menu,
         )
         self.menu_action_legacy.triggered.connect(
             self._menu_activated_action_login_creds
         )
+
         menu.addAction(self.menu_action_legacy)
+        menu.addAction(self.menu_action_ulf)
+        menu.addAction(self.menu_action_ulf2)
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
