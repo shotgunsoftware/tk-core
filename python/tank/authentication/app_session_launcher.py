@@ -32,9 +32,9 @@ PRODUCT_DESKTOP = "ShotGrid Desktop"
 
 
 class AuthenticationError(errors.AuthenticationError):
-    def __init__(self, msg, ulf2_errno=None, payload=None, parent_exception=None):
+    def __init__(self, msg, asl_errno=None, payload=None, parent_exception=None):
         errors.AuthenticationError.__init__(self, msg)
-        self.ulf2_errno = ulf2_errno
+        self.asl_errno = asl_errno
         self.payload = payload
         self.parent_exception = parent_exception
 
