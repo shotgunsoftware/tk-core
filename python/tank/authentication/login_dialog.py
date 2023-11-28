@@ -472,6 +472,7 @@ class LoginDialog(QtGui.QDialog):
 
         # With a SSO site, we have no choice but to use the web to login.
         can_use_web = self.site_info.sso_enabled
+        can_use_asl = self.site_info.app_session_launcher_enabled
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -488,16 +489,14 @@ class LoginDialog(QtGui.QDialog):
             if get_shotgun_authenticator_support_web_login():
                 can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
-        can_use_asl = self.site_info.app_session_launcher_enabled
-        if can_use_asl:
-            if method_selected:
-                # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
-                self.method_selected_user = method_selected
-            elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-                # Selecting legacy auth by default
-                method_selected = auth_constants.METHOD_BASIC
-            else:
-                method_selected = session_cache.get_preferred_method(site)
+        if method_selected:
+            # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
+            self.method_selected_user = method_selected
+        elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+            # Selecting legacy auth by default
+            method_selected = auth_constants.METHOD_BASIC
+        else:
+            method_selected = session_cache.get_preferred_method(site)
 
         # Make sure that the method_selected is currently supported
         if (
@@ -588,9 +587,9 @@ class LoginDialog(QtGui.QDialog):
             method_selected == auth_constants.METHOD_BASIC
         )
 
-        self.ui.button_options.setVisible(can_use_asl)
+        self.ui.button_options.setVisible(can_use_web or can_use_asl)
+        self.menu_action_asl.setVisible(can_use_asl)
         self.menu_action_ulf.setVisible(can_use_web)
-        self.menu_action_legacy.setVisible(not can_use_web)
 
         self.menu_action_asl.setEnabled(
             self.method_selected != auth_constants.METHOD_ASL

@@ -1090,7 +1090,7 @@ class InteractiveTests(ShotgunTestBase):
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
-            self.assertFalse(ld.menu_action_legacy.isVisible())
+            self.assertTrue(ld.menu_action_legacy.isVisible())
             self.assertTrue(ld.menu_action_ulf.isVisible())
             self.assertTrue(ld.menu_action_asl.isVisible())
 
