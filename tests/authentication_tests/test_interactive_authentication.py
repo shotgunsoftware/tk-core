@@ -1229,3 +1229,23 @@ class InteractiveTests(ShotgunTestBase):
                         handler._get_auth_method(
                             "https://host.shotgunstudio.com", site_i
                         )
+
+    def test_ulf2_auth_task_errors(self):
+        # Mainly for code coverage
+
+        from tank.authentication import login_dialog
+        ulf2_task = login_dialog.ULF2_AuthTask(None, "https://host.shotgunstudio.com")
+
+        with mock.patch(
+            "tank.authentication.unified_login_flow2.http_request",
+            side_effect=Exception("My Error 45!"),
+        ), self.assertLogs(
+            login_dialog.logger.name, level="DEBUG",
+        ) as cm:
+            ulf2_task.run()
+
+        self.assertIn("Unknown error from the App Session Launcher", cm.output[0])
+        self.assertIn("My Error 45!", cm.output[0])
+
+        self.assertIsInstance(ulf2_task.exception, errors.AuthenticationError)
+        self.assertEquals(ulf2_task.exception.args[0], "Unknown authentication error")
