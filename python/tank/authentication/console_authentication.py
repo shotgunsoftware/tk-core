@@ -222,7 +222,7 @@ class ConsoleAuthenticationHandlerBase(object):
         print(
             "\n"
             "The ShotGrid site support two authentication methods:\n"
-            " 1. Authenticate with App Session Launcher method using your local web browser\n"
+            " 1. Authenticate with the App Session Launcher using your default web browser\n"
             " 2. Authenticate with the traditional credentials form\n"
         )
 

@@ -240,7 +240,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.button_options.setVisible(False)
 
         self.menu_action_ulf2 = QtGui.QAction(
-            "Authenticate with App Session Launcher",
+            "Authenticate with the App Session Launcher",
             menu,
         )
         self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
@@ -533,7 +533,7 @@ class LoginDialog(QtGui.QDialog):
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
             self.ui.message.setText(
-                "<p>Authenticate with App Session Launcher.</p>"
+                "<p>Authenticate with the App Session Launcher.</p>"
                 "<p>After selecting <b>Sign In</b>, your default web browser will "
                 "prompt you to approve the authentication request from your "
                 "ShotGrid site.</p>"
@@ -959,7 +959,7 @@ class ULF2_AuthTask(QtCore.QThread):
         except AuthenticationError as err:
             self.exception = err
         except Exception:
-            logger.exception("Unknown error from App Session Launcher")
+            logger.exception("Unknown error from the App Session Launcher")
             self.exception = AuthenticationError("Unknown authentication error")
 
     def should_continue(self):
