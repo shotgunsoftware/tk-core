@@ -1196,7 +1196,7 @@ class InteractiveTests(ShotgunTestBase):
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                    auth_constants.METHOD_ULF2,
+                    auth_constants.METHOD_BASIC,
                 )
 
             with mock.patch(
@@ -1205,20 +1205,24 @@ class InteractiveTests(ShotgunTestBase):
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                    auth_constants.METHOD_BASIC,
+                    auth_constants.METHOD_ULF2,
                 )
 
-            with mock.patch(
-                "tank.authentication.session_cache.get_preferred_method",
-                return_value=auth_constants.METHOD_BASIC,
-            ), mock.patch(
-                "tank.authentication.console_authentication.input",
-                return_value="",
-            ):
-                self.assertEqual(
-                    handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                    auth_constants.METHOD_BASIC,
-                )
+            for option in [
+                auth_constants.METHOD_BASIC,
+                auth_constants.METHOD_ULF2,
+            ]:
+                with mock.patch(
+                    "tank.authentication.session_cache.get_preferred_method",
+                    return_value=option,
+                ), mock.patch(
+                    "tank.authentication.console_authentication.input",
+                    return_value="",
+                ):
+                    self.assertEqual(
+                        handler._get_auth_method("https://host.shotgunstudio.com", site_i),
+                        option,
+                    )
 
             for wrong_value in ["0", "3", "-1", "42", "wrong"]:
                 with mock.patch(
