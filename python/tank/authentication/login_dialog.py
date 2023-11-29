@@ -891,7 +891,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
 
     def _asl_process(self, site):
-        self._asl_task = ULF2_AuthTask(
+        self._asl_task = ASL_AuthTask(
             self,
             site,
             http_proxy=self._http_proxy,
@@ -940,11 +940,11 @@ class LoginDialog(QtGui.QDialog):
         self.accept()
 
 
-class ULF2_AuthTask(QtCore.QThread):
+class ASL_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
     def __init__(self, parent, sg_url, http_proxy=None):
-        super(ULF2_AuthTask, self).__init__(parent)
+        super(ASL_AuthTask, self).__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url

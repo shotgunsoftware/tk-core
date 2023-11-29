@@ -567,7 +567,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Test escape key event
         with mock.patch(
-            "tank.authentication.login_dialog.ULF2_AuthTask.start",
+            "tank.authentication.login_dialog.ASL_AuthTask.start",
             return_value=False,
         ), self._login_dialog() as ld:
             event = QtGui.QKeyEvent(
@@ -791,7 +791,7 @@ class InteractiveTests(ShotgunTestBase):
         # to web login but client does not support it
 
         with mock.patch(
-            "tank.authentication.login_dialog.ULF2_AuthTask.start"
+            "tank.authentication.login_dialog.ASL_AuthTask.start"
         ), mock.patch(
             "tank.authentication.login_dialog._is_running_in_desktop",
             return_value=True,
@@ -815,7 +815,7 @@ class InteractiveTests(ShotgunTestBase):
     @suppress_generated_code_qt_warnings
     def test_login_dialog_method_selected_default(self):
         with mock.patch(
-            "tank.authentication.login_dialog.ULF2_AuthTask.start"
+            "tank.authentication.login_dialog.ASL_AuthTask.start"
         ), mock.patch(
             "tank.authentication.login_dialog._is_running_in_desktop",
             return_value=True,
@@ -962,7 +962,7 @@ class InteractiveTests(ShotgunTestBase):
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
 
     @suppress_generated_code_qt_warnings
-    @mock.patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
+    @mock.patch("tank.authentication.login_dialog.ASL_AuthTask.start")
     @mock.patch(
         "tank.authentication.login_dialog._is_running_in_desktop",
         return_value=True,
@@ -1330,7 +1330,7 @@ class InteractiveTests(ShotgunTestBase):
         # Mainly for code coverage
 
         from tank.authentication import login_dialog
-        ulf2_task = login_dialog.ULF2_AuthTask(None, "https://host.shotgunstudio.com")
+        ulf2_task = login_dialog.ASL_AuthTask(None, "https://host.shotgunstudio.com")
 
         with mock.patch(
             "tank.authentication.app_session_launcher.http_request",
