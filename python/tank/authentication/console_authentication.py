@@ -206,8 +206,8 @@ class ConsoleAuthenticationHandlerBase(object):
 
         # We have 2 choices here
         methods = {
-            "1": constants.METHOD_ULF2,
-            "2": constants.METHOD_BASIC,
+            "1": constants.METHOD_BASIC,
+            "2": constants.METHOD_ULF2,
         }
 
         # Let's see which method the user chose previously for this site
@@ -222,8 +222,8 @@ class ConsoleAuthenticationHandlerBase(object):
         print(
             "\n"
             "The ShotGrid site support two authentication methods:\n"
-            " 1. App Session Launcher using your local web browser\n"
-            " 2. Legacy method using login/password\n"
+            " 1. Authenticate with Legacy ShotGrid Login Credentials\n"
+            " 2. Authenticate with the App Session Launcher using your default web browser\n"
         )
 
         method_selected = self._get_keyboard_input(
