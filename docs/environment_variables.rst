@@ -33,11 +33,11 @@ Authentication
 
 ``SGTK_DEFAULT_AUTH_METHOD``
 ----------------------------
-Specifies which authentication method should be selected if none is selected yet.
+Specifies which authentication method should be selected if none are selected yet.
 Available values are `credentials`, `qt_web_login`, and `app_session_launcher`.
 
-Note: this variable does not overrides the session cache. If a valid method has
-been recorded in the session cache, this method will be selected instead of the
+Note: this variable does not override the session cache. If a valid method has
+been recorded in the session cache, this method will be prioritized over the
 one provided by `SGTK_DEFAULT_AUTH_METHOD`.
 
 ``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
@@ -48,8 +48,8 @@ enabled.
 
 ``TK_AUTH_PRODUCT``
 -------------------
-Provide a custom application name When using the "App Session Launcher"
-authentication instead of relying on the autodetected name.
+Provide a custom application name when using the "App Session Launcher"
+authentication instead of relying on an autodetected name.
 
 ``TK_SHOTGRID_DEFAULT_LOGIN``
 -----------------------------
