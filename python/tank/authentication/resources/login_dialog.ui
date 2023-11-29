@@ -729,7 +729,7 @@ QPushButton.main:pressed
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="ulf2_msg_back">
+        <widget class="QLabel" name="asl_msg_back">
          <property name="text">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;#&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#c0c1c3;&quot;&gt;Cancel &amp; return to the login page&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>

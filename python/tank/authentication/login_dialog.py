@@ -287,7 +287,7 @@ class LoginDialog(QtGui.QDialog):
             )
         )
 
-        self.ui.ulf2_msg_back.linkActivated.connect(self._ulf2_back_pressed)
+        self.ui.asl_msg_back.linkActivated.connect(self._ulf2_back_pressed)
 
         # While the user is typing, request the site's information so we can
         # show or hide the login and password fields.
