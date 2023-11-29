@@ -1016,7 +1016,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
             # Trigger ULF2 again
-            ld._menu_activated_action_ulf2()
+            ld._menu_activated_action_asl()
 
             # Ensure current method set is ufl2
             self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
@@ -1098,7 +1098,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
             # Trigger ULF2 again
-            ld._menu_activated_action_ulf2()
+            ld._menu_activated_action_asl()
 
             # Ensure current method set is ufl2
             self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)

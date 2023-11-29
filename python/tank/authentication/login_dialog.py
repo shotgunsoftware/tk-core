@@ -243,7 +243,7 @@ class LoginDialog(QtGui.QDialog):
             "Authenticate with the App Session Launcher",
             menu,
         )
-        self.menu_action_asl.triggered.connect(self._menu_activated_action_ulf2)
+        self.menu_action_asl.triggered.connect(self._menu_activated_action_asl)
 
         self.menu_action_ulf = QtGui.QAction(
             "Authenticate with the ShotGrid browser",
@@ -599,7 +599,7 @@ class LoginDialog(QtGui.QDialog):
             self.method_selected != auth_constants.METHOD_BASIC
         )
 
-    def _menu_activated_action_ulf2(self):
+    def _menu_activated_action_asl(self):
         self._toggle_web(method_selected=auth_constants.METHOD_ASL)
 
     def _menu_activated_action_web_legacy(self):
