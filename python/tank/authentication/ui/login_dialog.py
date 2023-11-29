@@ -393,11 +393,11 @@ class Ui_LoginDialog(object):
         self.verticalLayout_21.addWidget(self.asl_msg_back)
         spacerItem6 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_21.addItem(spacerItem6)
-        self.ulf2_msg_help = QtGui.QLabel(self.asl_page)
-        self.ulf2_msg_help.setAlignment(QtCore.Qt.AlignCenter)
-        self.ulf2_msg_help.setWordWrap(True)
-        self.ulf2_msg_help.setObjectName("ulf2_msg_help")
-        self.verticalLayout_21.addWidget(self.ulf2_msg_help)
+        self.asl_msg_help = QtGui.QLabel(self.asl_page)
+        self.asl_msg_help.setAlignment(QtCore.Qt.AlignCenter)
+        self.asl_msg_help.setWordWrap(True)
+        self.asl_msg_help.setObjectName("asl_msg_help")
+        self.verticalLayout_21.addWidget(self.asl_msg_help)
         self.stackedWidget.addWidget(self.asl_page)
         self.verticalLayout_2.addWidget(self.stackedWidget)
         self.verticalLayout_2.setStretch(0, 1)
@@ -431,7 +431,7 @@ class Ui_LoginDialog(object):
         self.verify_backup.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
         self.ulf2_msg.setText(QtGui.QApplication.translate("LoginDialog", "Check your default web browser to continue logging in.", None, QtGui.QApplication.UnicodeUTF8))
         self.asl_msg_back.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"#\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Cancel & return to the login page</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.ulf2_msg_help.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p>If you are having trouble logging in with the browser, <a href=\"{url}\"><span style=\" text-decoration: underline; color:#c0c1c3;\">select this support link</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.asl_msg_help.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p>If you are having trouble logging in with the browser, <a href=\"{url}\"><span style=\" text-decoration: underline; color:#c0c1c3;\">select this support link</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
 from .recent_box import RecentBox

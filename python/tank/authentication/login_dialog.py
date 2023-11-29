@@ -280,9 +280,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
-        self.ui.ulf2_msg_help.setOpenExternalLinks(True)
-        self.ui.ulf2_msg_help.setText(
-            self.ui.ulf2_msg_help.text().format(
+        self.ui.asl_msg_help.setOpenExternalLinks(True)
+        self.ui.asl_msg_help.setText(
+            self.ui.asl_msg_help.text().format(
                 url=constants.SUPPORT_URL,
             )
         )
