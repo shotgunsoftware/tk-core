@@ -1030,7 +1030,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
-            ld._ulf2_back_pressed()
+            ld._asl_back_pressed()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
@@ -1112,7 +1112,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
-            ld._ulf2_back_pressed()
+            ld._asl_back_pressed()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)

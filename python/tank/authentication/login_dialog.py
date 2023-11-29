@@ -287,7 +287,7 @@ class LoginDialog(QtGui.QDialog):
             )
         )
 
-        self.ui.asl_msg_back.linkActivated.connect(self._ulf2_back_pressed)
+        self.ui.asl_msg_back.linkActivated.connect(self._asl_back_pressed)
 
         # While the user is typing, request the site's information so we can
         # show or hide the login and password fields.
@@ -901,7 +901,7 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.stackedWidget.setCurrentWidget(self.ui.asl_page)
 
-    def _ulf2_back_pressed(self):
+    def _asl_back_pressed(self):
         """
         Cancel App Session Launcher authentication and switch page back to login
         """
