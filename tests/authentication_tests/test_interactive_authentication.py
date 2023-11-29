@@ -1027,7 +1027,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
 
             # check that UI displays the UFL2 pending screen
-            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
             ld._ulf2_back_pressed()
@@ -1109,7 +1109,7 @@ class InteractiveTests(ShotgunTestBase):
             self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
 
             # check that UI displays the UFL2 pending screen
-            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
             ld._ulf2_back_pressed()

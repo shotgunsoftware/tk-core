@@ -899,7 +899,7 @@ class LoginDialog(QtGui.QDialog):
         self._asl_task.finished.connect(self._asl_task_finished)
         self._asl_task.start()
 
-        self.ui.stackedWidget.setCurrentWidget(self.ui.ulf2_page)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.asl_page)
 
     def _ulf2_back_pressed(self):
         """
