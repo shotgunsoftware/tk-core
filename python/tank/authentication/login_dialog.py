@@ -486,8 +486,8 @@ class LoginDialog(QtGui.QDialog):
             if get_shotgun_authenticator_support_web_login():
                 can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
-        can_use_ulf2 = self.site_info.app_session_launcher_enabled
-        if can_use_ulf2:
+        can_use_asl = self.site_info.app_session_launcher_enabled
+        if can_use_asl:
             if method_selected:
                 # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
                 session_cache.set_preferred_method(site, method_selected)
@@ -560,7 +560,7 @@ class LoginDialog(QtGui.QDialog):
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
 
-            if not can_use_ulf2:
+            if not can_use_asl:
                 # Old text
                 self.ui.message.setText("Sign in using the Web.")
             else:
@@ -585,7 +585,7 @@ class LoginDialog(QtGui.QDialog):
             method_selected == auth_constants.METHOD_BASIC
         )
 
-        self.ui.button_options.setVisible(can_use_ulf2)
+        self.ui.button_options.setVisible(can_use_asl)
         self.menu_action_ulf.setVisible(can_use_web)
         self.menu_action_legacy.setVisible(not can_use_web)
 
