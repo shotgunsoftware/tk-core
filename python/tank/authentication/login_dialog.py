@@ -927,7 +927,7 @@ class LoginDialog(QtGui.QDialog):
                 "Authentication error - %s" % self._asl_task.exception,
             )
             logger.debug(
-                "ULF2 authentication issue",
+                "App Session Launcher authentication issue",
                 exc_info=self._asl_task.exception,
             )
             self._asl_task = None
