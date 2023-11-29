@@ -742,7 +742,7 @@ QPushButton.main:pressed
         </widget>
        </item>
        <item>
-        <spacer name="ulf2_spacer">
+        <spacer name="asl_spacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
