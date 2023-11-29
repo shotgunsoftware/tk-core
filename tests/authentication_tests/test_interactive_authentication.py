@@ -586,7 +586,7 @@ class InteractiveTests(ShotgunTestBase):
             # Then, simulate user clicks on the Yes button
             ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
 
-            # Initialize the ULF2 process - mostly for coverage
+            # Initialize the ASL process - mostly for coverage
             ld._asl_process("https://host.shotgunstudio.com")
 
             # Test Escape key
@@ -991,7 +991,7 @@ class InteractiveTests(ShotgunTestBase):
     def test_login_dialog_app_session_launcher(self, *unused_mocks):
         from tank.authentication.ui.qt_abstraction import QtGui
 
-        # First basic and ULF2 methods
+        # First basic and ASL methods
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
@@ -1015,7 +1015,7 @@ class InteractiveTests(ShotgunTestBase):
             # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
-            # Trigger ULF2 again
+            # Trigger ASL again
             ld._menu_activated_action_asl()
 
             # Ensure current method set is ufl2
@@ -1024,7 +1024,7 @@ class InteractiveTests(ShotgunTestBase):
             # Trigger Sign-In
             ld._ok_pressed()
 
-            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
             # check that UI displays the UFL2 pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
@@ -1038,9 +1038,9 @@ class InteractiveTests(ShotgunTestBase):
 
             # Trigger Sign-In
             ld._ok_pressed()
-            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # Simulate ULF2 Thread run
+            # Simulate ASL Thread run
             ld._asl_task.run()
             ld._asl_task_finished()
 
@@ -1078,7 +1078,7 @@ class InteractiveTests(ShotgunTestBase):
             # Ensure current method set is lcegacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
-        # Then Web login vs ULF2
+        # Then Web login vs ASL
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
@@ -1097,7 +1097,7 @@ class InteractiveTests(ShotgunTestBase):
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
-            # Trigger ULF2 again
+            # Trigger ASL again
             ld._menu_activated_action_asl()
 
             # Ensure current method set is ufl2
@@ -1106,7 +1106,7 @@ class InteractiveTests(ShotgunTestBase):
             # Trigger Sign-In
             ld._ok_pressed()
 
-            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
             # check that UI displays the UFL2 pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
@@ -1120,9 +1120,9 @@ class InteractiveTests(ShotgunTestBase):
 
             # Trigger Sign-In
             ld._ok_pressed()
-            self.assertIsNotNone(ld._asl_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # Simulate ULF2 Thread run
+            # Simulate ASL Thread run
             ld._asl_task.run()
             ld._asl_task_finished()
 
@@ -1176,21 +1176,21 @@ class InteractiveTests(ShotgunTestBase):
                 ("https://site3.shotgunstudio.com", "username", None, None),
             )
 
-        # Then repeat the operation but select the ULF2 method
+        # Then repeat the operation but select the ASL method
         with mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # Select default site -> site4
-                "2",  # Select "ULF2" auth method
+                "2",  # Select App Session Launcher option
                 "",  # OK to continue
             ],
         ), mock.patch(
             "tank.authentication.app_session_launcher.process",
-            return_value=("https://site4.shotgunstudio.com", "ULF2!", None, None),
+            return_value=("https://site4.shotgunstudio.com", "ASL!", None, None),
         ):
             self.assertEqual(
                 handler.authenticate("https://site4.shotgunstudio.com", None, None),
-                ("https://site4.shotgunstudio.com", "ULF2!", None, None),
+                ("https://site4.shotgunstudio.com", "ASL!", None, None),
             )
 
         # Alternate fixed_host value for code coverage
@@ -1211,11 +1211,11 @@ class InteractiveTests(ShotgunTestBase):
             ],
         ), mock.patch(
             "tank.authentication.app_session_launcher.process",
-            return_value="ULF2 result 9867",
+            return_value="ASL result 9867",
         ):
             self.assertEqual(
                 handler.authenticate("https://site4.shotgunstudio.com", None, None),
-                "ULF2 result 9867",
+                "ASL result 9867",
             )
 
         # Then, one more small test for coverage
@@ -1239,7 +1239,7 @@ class InteractiveTests(ShotgunTestBase):
                     "https://site4.shotgunstudio.com", None, None
                 )
 
-        # Finally, disable ULF2 method and ensure legacy cred methods is
+        # Finally, disable ASL method and ensure legacy cred methods is
         # automatically selected
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
