@@ -470,7 +470,6 @@ class LoginDialog(QtGui.QDialog):
 
         # With a SSO site, we have no choice but to use the web to login.
         can_use_web = self.site_info.sso_enabled
-        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -487,6 +486,7 @@ class LoginDialog(QtGui.QDialog):
             if get_shotgun_authenticator_support_web_login():
                 can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
+        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
         if can_use_ulf2:
             if method_selected:
                 # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
@@ -497,14 +497,28 @@ class LoginDialog(QtGui.QDialog):
             else:
                 method_selected = session_cache.get_preferred_method(site)
 
+        # Make sure that the method_selected is currently supported
+        if (
+            method_selected == auth_constants.METHOD_BASIC and can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_ULF2 and not can_use_ulf2
+        ):
+            method_selected = None
+
         if not method_selected and os.environ.get("SGTK_DEFAULT_AUTH_METHOD"):
             method_selected = auth_constants.method_resolve_reverse(
                 os.environ.get("SGTK_DEFAULT_AUTH_METHOD")
             )
 
+        # Make sure that the method_selected is currently supported
         if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN
-            and not can_use_web
+            method_selected == auth_constants.METHOD_BASIC and can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_ULF2 and not can_use_ulf2
         ):
             method_selected = None
 
