@@ -802,7 +802,7 @@ class LoginDialog(QtGui.QDialog):
         success = False
         try:
             if self.method_selected == auth_constants.METHOD_ASL:
-                return self._ulf2_process(site)
+                return self._asl_process(site)
             elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
                 profile_location = LocalFileStorageManager.get_site_root(
                     site, LocalFileStorageManager.CACHE
@@ -890,7 +890,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
 
-    def _ulf2_process(self, site):
+    def _asl_process(self, site):
         self._asl_task = ULF2_AuthTask(
             self,
             site,

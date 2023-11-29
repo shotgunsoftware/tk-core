@@ -587,7 +587,7 @@ class InteractiveTests(ShotgunTestBase):
             ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
 
             # Initialize the ULF2 process - mostly for coverage
-            ld._ulf2_process("https://host.shotgunstudio.com")
+            ld._asl_process("https://host.shotgunstudio.com")
 
             # Test Escape key
             self.assertIsNone(ld.keyPressEvent(event))
