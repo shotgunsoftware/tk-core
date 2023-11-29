@@ -1010,7 +1010,7 @@ class InteractiveTests(ShotgunTestBase):
 
             self.assertTrue(ld.menu_action_legacy.isVisible())
             self.assertFalse(ld.menu_action_ulf.isVisible())
-            self.assertTrue(ld.menu_action_ulf2.isVisible())
+            self.assertTrue(ld.menu_action_asl.isVisible())
 
             # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
@@ -1092,7 +1092,7 @@ class InteractiveTests(ShotgunTestBase):
         ) as ld:
             self.assertFalse(ld.menu_action_legacy.isVisible())
             self.assertTrue(ld.menu_action_ulf.isVisible())
-            self.assertTrue(ld.menu_action_ulf2.isVisible())
+            self.assertTrue(ld.menu_action_asl.isVisible())
 
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
