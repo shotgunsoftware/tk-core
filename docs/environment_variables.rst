@@ -31,12 +31,25 @@ Controls debug logging.
 Authentication
 ==============
 
+``SGTK_DEFAULT_AUTH_METHOD``
+----------------------------
+Specifies which authentication method should be selected if none are selected yet.
+Available values are `credentials`, `qt_web_login`, and `app_session_launcher`.
+
+Note: this variable does not override the session cache. If a valid method has
+been recorded in the session cache, this method will be prioritized over the
+one provided by `SGTK_DEFAULT_AUTH_METHOD`.
+
 ``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
 ------------------------------------
 Always display the traditional authentication (login and password fields) in the
 login window dialog even when the ShotGrid site has other authentication methods
 enabled.
 
+``TK_AUTH_PRODUCT``
+-------------------
+Provide a custom application name when using the "App Session Launcher"
+authentication instead of relying on an autodetected name.
 
 ``TK_SHOTGRID_DEFAULT_LOGIN``
 -----------------------------
