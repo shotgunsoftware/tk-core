@@ -178,4 +178,4 @@ class SiteInfo(object):
 
         return self._infos.get(
             "authentication_app_session_launcher_enabled", False
-        ) or self._infos.get("app_session_launcher_enabled", False)
+        )
