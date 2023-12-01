@@ -253,7 +253,6 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_version() method correctly responds as expected
         to a broken network connection and a 404 or 500 error from the Github API.
         """
-        breakpoint()
         with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             desc = self._create_desc()
 
