@@ -196,11 +196,64 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
             self.assertEqual(call_args[0].full_url, target_url)
             self.assertEqual(desc2.version, "v1.2.3")
 
+    def test_get_latest_release_private_repository_no_env_var(self):
+        """
+        Test that the get_latest_version() as before but with a private repository.
+        No environmenta variable is set.
+        """
+        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
+            # Make sure that the correct URL is requested, and the response is correctly
+            # parsed for the latest tag name.
+            urlopen_mock.return_value = MockResponse("releases_latest")
+            desc = self._create_desc(
+                {**self.default_location_dict, "private": "true"}, True
+            )
+            desc2 = desc.find_latest_version()
+            # Make sure the right URL was hit.
+            target_url = "https://api.github.com/repos/{o}/{r}/releases/latest"
+            target_url = target_url.format(
+                o=self.default_location_dict["organization"],
+                r=self.default_location_dict["repository"],
+            )
+            _, call_args, _ = urlopen_mock.mock_calls[0]
+            self.assertEqual(call_args[0].headers, {})
+            self.assertEqual(call_args[0].full_url, target_url)
+            self.assertEqual(desc2.version, "v1.2.3")
+
+    def test_get_latest_release_private_repository_with_env_var(self):
+        """
+        Test that the get_latest_version() as before but with a private repository.
+        Environmenta variable is set.
+        """
+        os.environ["SG_GITHUB_TOKEN_SHOTGUNSOFTWARE"] = "1234567890"
+        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
+            # Make sure that the correct URL is requested, and the response is correctly
+            # parsed for the latest tag name.
+            urlopen_mock.return_value = MockResponse("releases_latest")
+            desc = self._create_desc(
+                {**self.default_location_dict, "private": "true"}, True
+            )
+            desc2 = desc.find_latest_version()
+            # Make sure the right URL was hit.
+            target_url = "https://api.github.com/repos/{o}/{r}/releases/latest"
+            target_url = target_url.format(
+                o=self.default_location_dict["organization"],
+                r=self.default_location_dict["repository"],
+            )
+            _, call_args, _ = urlopen_mock.mock_calls[0]
+            self.assertEqual(
+                call_args[0].headers, {"Authorization": "Bearer 1234567890"}
+            )
+            self.assertEqual(call_args[0].full_url, target_url)
+            self.assertEqual(desc2.version, "v1.2.3")
+        os.environ.pop("SG_GITHUB_TOKEN_SHOTGUNSOFTWARE")
+
     def test_get_release_failure(self):
         """
         Test that the get_latest_version() method correctly responds as expected
         to a broken network connection and a 404 or 500 error from the Github API.
         """
+        breakpoint()
         with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             desc = self._create_desc()
 
