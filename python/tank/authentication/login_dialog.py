@@ -558,16 +558,12 @@ class LoginDialog(QtGui.QDialog):
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
 
-            if not can_use_asl:
-                # Old text
-                self.ui.message.setText("Sign in using the Web.")
-            else:
-                self.ui.message.setText(
-                    "<p>Authenticate with the ShotGrid browser.</p>"
-                    '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
-                        url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
-                    )
+            self.ui.message.setText(
+                "<p>Authenticate with the ShotGrid browser.</p>"
+                '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
+                    url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
                 )
+            )
         else:  # auth_constants.METHOD_BASIC
             self.ui.login.setVisible(True)
             self.ui.password.setVisible(True)
