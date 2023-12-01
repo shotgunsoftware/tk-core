@@ -503,7 +503,7 @@ class LoginDialog(QtGui.QDialog):
         ) or (
             method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
         ) or (
-            method_selected == auth_constants.METHOD_ULF2 and not can_use_ulf2
+            method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
 
@@ -518,7 +518,7 @@ class LoginDialog(QtGui.QDialog):
         ) or (
             method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
         ) or (
-            method_selected == auth_constants.METHOD_ULF2 and not can_use_ulf2
+            method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
 

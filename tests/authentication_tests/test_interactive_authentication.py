@@ -900,7 +900,7 @@ class InteractiveTests(ShotgunTestBase):
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
-            # app_session_launcher but method ULF2 not available
+            # app_session_launcher but method ASL not available
             with mock.patch.dict("os.environ", {
                 "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
             }), mock.patch(
@@ -918,7 +918,7 @@ class InteractiveTests(ShotgunTestBase):
     @suppress_generated_code_qt_warnings
     def test_login_dialog_method_selected_session_cache(self):
         with mock.patch(
-            "tank.authentication.login_dialog.ULF2_AuthTask.start"
+            "tank.authentication.login_dialog.ASL_AuthTask.start"
         ), mock.patch(
                 "tank.authentication.login_dialog._is_running_in_desktop",
                 return_value=True,
@@ -942,7 +942,7 @@ class InteractiveTests(ShotgunTestBase):
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # qt_web_login but method is not available
             with mock.patch(
@@ -959,7 +959,7 @@ class InteractiveTests(ShotgunTestBase):
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
     @suppress_generated_code_qt_warnings
     @mock.patch("tank.authentication.login_dialog.ASL_AuthTask.start")
