@@ -12,10 +12,11 @@ from __future__ import with_statement
 
 import os
 
-from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule  # noqa
-
-from mock import patch
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 from tank.util import EnvironmentVariableFileLookupError
 from tank.util.user_settings import UserSettings
@@ -146,7 +147,7 @@ class UserSettingsTests(ShotgunTestBase):
                 "default_site": "https://${SGTK_TEST_SHOTGUN_SITE}.shotgunstudio.com"
             }
         )
-        with patch.dict(os.environ, {"SGTK_TEST_SHOTGUN_SITE": "shotgun_site"}):
+        with mock.patch.dict(os.environ, {"SGTK_TEST_SHOTGUN_SITE": "shotgun_site"}):
             settings = UserSettings()
             self.assertEqual(
                 settings.default_site, "https://shotgun_site.shotgunstudio.com"
@@ -156,10 +157,10 @@ class UserSettingsTests(ShotgunTestBase):
         """
         Test environment variables being set to files that don't exist.
         """
-        with patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": "/a/b/c"}):
+        with mock.patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": "/a/b/c"}):
             with self.assertRaisesRegex(EnvironmentVariableFileLookupError, "/a/b/c"):
                 UserSettings()
 
-        with patch.dict(os.environ, {"SGTK_DESKTOP_CONFIG_LOCATION": "/d/e/f"}):
+        with mock.patch.dict(os.environ, {"SGTK_DESKTOP_CONFIG_LOCATION": "/d/e/f"}):
             with self.assertRaisesRegex(EnvironmentVariableFileLookupError, "/d/e/f"):
                 UserSettings()

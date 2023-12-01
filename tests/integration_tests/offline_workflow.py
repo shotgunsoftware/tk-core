@@ -15,7 +15,7 @@ zipped config can be bootstrap into without requiring to download anything from 
 
 from __future__ import print_function
 
-import unittest2
+import unittest
 import os
 import sys
 
@@ -24,7 +24,6 @@ from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
 
 
-@unittest2.skipIf(sys.version_info[0] > 2, "shell engine is not Python 3 compatible.")
 class OfflineWorkflow(SgtkIntegrationTest):
 
     OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
@@ -136,4 +135,4 @@ class OfflineWorkflow(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    ret_val = unittest.main(failfast=True, verbosity=2)

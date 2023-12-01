@@ -14,7 +14,7 @@ import json
 import os
 import sys
 
-from unittest2 import TestCase
+from unittest import TestCase
 from sgtk.util import json as tk_json
 from sgtk.util import pickle
 

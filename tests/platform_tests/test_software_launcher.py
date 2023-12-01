@@ -13,10 +13,11 @@ from __future__ import with_statement
 import logging
 import os
 
-from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule  # noqa
-
-from mock import PropertyMock, patch
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
 
 from tank.platform import create_engine_launcher
 from tank.platform import SoftwareLauncher
@@ -178,7 +179,7 @@ class TestEngineLauncher(TankTestBase):
         min_version_method = (
             "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
         )
-        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+        with mock.patch(min_version_method, new_callable=mock.PropertyMock) as min_version_mock:
 
             min_version_mock.return_value = "2017.2"
 
@@ -225,7 +226,7 @@ class TestEngineLauncher(TankTestBase):
         min_version_method = (
             "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
         )
-        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+        with mock.patch(min_version_method, new_callable=mock.PropertyMock) as min_version_mock:
 
             min_version_mock.return_value = "2019"
 

@@ -14,14 +14,16 @@ import os
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
 from sgtk.util import ShotgunPath
 from tank.util import is_macos, is_windows
 from tank_vendor import yaml
-from mock import patch, MagicMock
 
 
 class TestConfigurationWriterBase(ShotgunTestBase):
@@ -191,7 +193,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
             fh.write(path)
 
         # We're going to pretend the interpreter location exists
-        with patch("os.path.exists", return_value=True):
+        with mock.patch("os.path.exists", return_value=True):
             # Check that our descriptors sees the value we just wrote to disk
             self.assertEqual(descriptor.python_interpreter, path)
         # Copy the descriptor to its location.

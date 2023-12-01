@@ -23,11 +23,9 @@ import urllib
 # to import as in Python 2, and fall back to Python 3 locations if the imports
 # fail.
 try:
-    import urlparse
-    from urllib import unquote
+    from urllib import unquote_plus
 except ImportError:
-    import urllib.parse as urlparse
-    from urllib.parse import unquote
+    from urllib.parse import unquote_plus
 try:
     from http.cookies import SimpleCookie
 except ImportError:
@@ -174,35 +172,6 @@ def _get_cookie_from_prefix(encoded_cookies, cookie_prefix):
     return value
 
 
-def _sanitize_http_proxy(http_proxy):
-    """
-    Returns a parsed url (a la urlparse).
-
-    We want to support both the proxy notation expected by
-    Shotgun:                      username:password@hostname:port (a.k.a. netloc)
-    Qt's QtNetwork.QNetworkProxy: scheme://username:password@hostname:port (a.k.a. scheme://netloc)
-
-    :param http_proxy: URL of the proxy. If the URL does not start with a scheme,
-                       'http://' will be automatically appended before being parsed.
-
-    :returns: A 6-tuple of the different URL components. See urlparse.urlparse.
-    """
-    http_proxy = http_proxy or ""
-    http_proxy = http_proxy.lower().strip()
-
-    if http_proxy and not (
-        http_proxy.startswith("http://") or http_proxy.startswith("https://")
-    ):
-        get_logger().debug("Assuming the proxy to be HTTP")
-        alt_http_proxy = "http://%s" % http_proxy
-        parsed_url = urlparse.urlparse(alt_http_proxy)
-        # We want to ensure that the resulting URL is valid.
-        if parsed_url.netloc:
-            http_proxy = alt_http_proxy
-
-    return urlparse.urlparse(http_proxy)
-
-
 def get_saml_claims_expiration(encoded_cookies):
     """
     Obtain the expiration time of the saml claims from the Shotgun cookies.
@@ -252,7 +221,7 @@ def get_user_name(encoded_cookies):
         encoded_cookies, "shotgun_current_user_login"
     ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     if user_name is not None:
-        user_name = unquote(user_name)
+        user_name = unquote_plus(user_name)
     return user_name
 
 

@@ -10,7 +10,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from unittest2 import TestCase, skipIf
+from unittest import TestCase, skipIf
 import sgtk
 from tank_vendor import six
 
@@ -96,6 +96,7 @@ class TestUnicode(TestCase):
             '이사이트에서는개발자가',
             'およびその他の教育リソース'
             '工作流技术总监或将要设置工作流并希望开发',
+            'Martin Tlustý',
         ]
 
         for login in logins:

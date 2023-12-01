@@ -10,15 +10,16 @@
 
 import os
 
-from mock import Mock, patch
-
-
 import tank
 from tank.api import Tank
 from tank.template import TemplatePath, TemplateString
 from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
 
 
 class TestInit(TankTestBase):
@@ -381,7 +382,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
             "{Shot}/{version}/filename.{seq_num}", keys, root_path=self.project_root
         )
 
-    @patch("tank.api.glob.iglob")
+    @mock.patch("tank.api.glob.iglob")
     def assert_glob(self, fields, expected_glob, skip_keys, mock_glob):
         # want to ensure that value returned from glob is returned
         expected = [os.path.join(self.project_root, "shot_1", "001", "filename.00001")]
@@ -457,7 +458,7 @@ class TestApiProperties(TankTestBase):
         """
         self.assertEqual(
             self.tk.documentation_url,
-            "https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide",
+            "https://help.autodesk.com/view/SGDEV/ENU/?contextId=SA_INTEGRATIONS_USER_GUIDE",
         )
 
     def test_shotgun_url_property(self):

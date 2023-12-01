@@ -12,7 +12,7 @@
 Unit tests for interactive authentication.
 """
 
-from unittest2 import TestCase
+from unittest import TestCase
 import logging
 
 from tank_vendor import shotgun_authentication

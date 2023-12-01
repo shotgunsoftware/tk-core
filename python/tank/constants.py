@@ -32,6 +32,9 @@ PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 
+# hook to modify default storage root
+DEFAULT_STORAGE_ROOT_HOOK_NAME = "default_storage_root"
+
 # special path or dev descriptor token that can be used
 # as a replacement for the path to a pipeline configuration
 PIPELINE_CONFIG_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
@@ -84,6 +87,8 @@ TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
 
 # URL for contacting support
 SUPPORT_URL = "https://knowledge.autodesk.com/contact-support"
+
+DOCUMENTATION_URL_LEGACY_AUTHENTICATION = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials"
 
 # environment variable to hold external pipeline config data
 ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"

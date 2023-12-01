@@ -18,9 +18,7 @@ Integration with Shotgun API.
 
 from .core import SsoSaml2Core  # noqa
 
-from .utils import (  # noqa
-    is_sso_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
+from .core.utils import (  # noqa
     set_logger_parent,
 )
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -11,13 +11,13 @@
 
 # Read pip and python location from the command-line or use defaults.
 if [ -z "$1" ]; then
-    export PIP=pip2.6
+    export PIP=pip3
 else
     export PIP=$1
 fi
 
 if [ -z "$2" ]; then
-    export PYTHON=python2.6
+    export PYTHON=python3
 else
     export PYTHON=$2
 fi
@@ -39,29 +39,26 @@ echo "==========================="
 echo Launching $PYTHON
 $PYTHON - <<EOF
 
-from __future__ import print_function
-
 import sys
 sys.path.insert(0, 'third_party')
 
-def main():
-    # Ensures the ordereddict module was installed, which is required to run the tests on Python
-    # 2.6
-    try:
-        import ordereddict
-    except ImportError:
-        print("Upgrade failed because 'ordereddict' could not be imported.")
-        print("Please run this script from Python 2.6.")
-        return
+import importlib
 
+def main():
     # Ensures other modules required by the unit tests work!
     try:
-        import mock
-        import unittest2
-        import coverage
+        for mod_name in [
+            "mock",
+            "coverage",
+        ]:
+            mod_imported = importlib.import_module(mod_name)
+            if not mod_imported.__file__.startswith("third_party/"):
+                raise Exception(f"Require to run in a Python environment not having the {mod_name} already installed")
+
         print("Upgrade successful!")
         print()
         print("Run 'git add third_party' to add changes made to the repo to the next commit.")
     except Exception as e:
         print("Upgrade failed! %s" % e)
+        sys.exit(1)
 main()

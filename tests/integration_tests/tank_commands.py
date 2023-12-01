@@ -19,12 +19,14 @@ import re
 import sys
 import shutil
 
-import unittest2
-from mock import Mock, patch
+import unittest
 from tank.util import is_linux, is_macos, is_windows, filesystem
 from tank.util import yaml_cache, zip
 
 from sgtk_integration_test import SgtkIntegrationTest
+from tank_test.tank_test_base import (
+    mock,
+)
 
 import sgtk
 
@@ -83,7 +85,7 @@ class TankCommands(SgtkIntegrationTest):
         )
         os.makedirs(install_core_folder)
 
-        cw.write_shotgun_file(Mock(get_path=lambda: "does_not_exist"))
+        cw.write_shotgun_file(mock.Mock(get_path=lambda: "does_not_exist"))
         cw.write_install_location_file()
 
         sgtk.util.filesystem.copy_folder(
@@ -108,7 +110,7 @@ class TankCommands(SgtkIntegrationTest):
 
         sgtk.set_authenticated_user(self.user)
 
-        with patch(
+        with mock.patch(
             "tank.pipelineconfig_utils.resolve_all_os_paths_to_core",
             return_value=sgtk.util.ShotgunPath.from_current_os_path(
                 self.legacy_bootstrap_core
@@ -529,4 +531,4 @@ class TankCommands(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    ret_val = unittest.main(failfast=True, verbosity=2)

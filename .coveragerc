@@ -20,6 +20,7 @@ omit=
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
 
+
 [paths]
 # This allows to merge coverage from different disk locations. This is
 # needed because when the integration tests run the core is copied

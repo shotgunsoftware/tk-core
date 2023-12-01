@@ -54,7 +54,7 @@ in parallel with production.
 
 
 .. note:: To read more about the default configurations offered with Toolkit, see
-    the `ShotGrid integrations admin guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide>`_.
+    the `ShotGrid integrations admin guide <https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_INTEGRATIONS_INTEGRATIONS_ADMIN_GUIDE>`_.
 
 
 The Toolkit startup
@@ -362,8 +362,8 @@ to certain software integrations, you can specify this:
 
 The above configuration will only be used when the Maya and Nuke plugins bootstrap.
 
-.. warning:: If you don't specify a plugin id for your Pipeline Configuration, it will be ignored
-    by the boostrap. We recommend using ``basic.*`` as a default.
+.. warning:: For **project-bound configurations**, if you don't specify a plugin id for your Pipeline Configuration, it will be ignored
+    by the boostrap. That said, we recommend using ``basic.*`` as a default in the *plugin Ids* field on the Pipeline Configuration for project-bound configurations. For **non-project-bound configurations**, the Pipeline Configuration will be ignored by the boostrap when *plugin Ids* is defined.
 
 
 Self contained configurations

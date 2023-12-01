@@ -12,11 +12,17 @@ from __future__ import with_statement
 import os
 import sgtk
 
-import unittest2
-
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, SealedMock
+import unittest
 
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    SealedMock,
+    ShotgunTestBase,
+    TankTestBase,
+)
+
+
 from tank.errors import TankError
 from tank.descriptor import (
     CheckVersionConstraintsError,
@@ -28,8 +34,6 @@ from tank.descriptor import (
     CoreDescriptor,
 )
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
-
-from mock import Mock, patch
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
@@ -43,9 +47,9 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
 
         class CoreConfigDescriptorWithoutFeatures(ConfigDescriptor):
             def resolve_core_descriptor(self):
-                io_desc = Mock()
+                io_desc = mock.Mock()
                 io_desc.get_manifest.return_value = dict()
-                sg_connection = Mock()
+                sg_connection = mock.Mock()
                 bundle_cache_root_override = None
                 fallback_roots = None
                 return CoreDescriptor(
@@ -60,9 +64,9 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
 
         class CoreConfigDescriptorWithFeatures(ConfigDescriptor):
             def resolve_core_descriptor(self):
-                io_desc = Mock()
+                io_desc = mock.Mock()
                 io_desc.get_manifest.return_value = dict(features=dict(two="2"))
-                sg_connection = Mock()
+                sg_connection = mock.Mock()
                 bundle_cache_root_override = None
                 fallback_roots = None
                 return CoreDescriptor(
@@ -477,14 +481,14 @@ class TestDescriptorSupport(TankTestBase):
         """
         # Nested patches because Python 2.5 doesn't support multiple arguments to the `with`
         # keyword.
-        with patch(
+        with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             "._IODescriptorAppStore__create_sg_app_store_connection",
             side_effect=sgtk.descriptor.TankAppStoreError(
                 "This is my unit test exception."
             ),
         ):
-            with patch(
+            with mock.patch(
                 "tank.descriptor.io_descriptor.appstore.log.debug"
             ) as log_debug_mock:
                 descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
@@ -669,7 +673,7 @@ class TestDescriptorSupport(TankTestBase):
         )
 
 
-class TestConstraintValidation(unittest2.TestCase):
+class TestConstraintValidation(unittest.TestCase):
     """
     Tests for console utilities.
     """
@@ -708,7 +712,7 @@ class TestConstraintValidation(unittest2.TestCase):
         )
 
         # Mock the get_manifest method so it uses our fake info.yml file.
-        desc._io_descriptor.get_manifest = Mock(
+        desc._io_descriptor.get_manifest = mock.Mock(
             return_value={
                 "requires_shotgun_version": version_constraints.get("min_sg"),
                 "requires_core_version": version_constraints.get("min_core"),
@@ -768,7 +772,7 @@ class TestConstraintValidation(unittest2.TestCase):
             "Requires at least Core API .* but currently installed version is v6.6.5",
         )
 
-    @patch(
+    @mock.patch(
         "tank.pipelineconfig_utils.get_currently_running_api_version",
         return_value="v6.6.5",
     )
@@ -861,11 +865,11 @@ class TestConstraintValidation(unittest2.TestCase):
             r"Requires at least SG Desktop.* but currently installed version is .*\.",
         )
 
-    @patch(
+    @mock.patch(
         "tank.descriptor.descriptor_bundle.BundleDescriptor._get_sg_version",
         return_value="6.6.5",
     )
-    @patch(
+    @mock.patch(
         "tank.pipelineconfig_utils.get_currently_running_api_version",
         return_value="v5.5.4",
     )
@@ -923,12 +927,12 @@ class TestConstraintValidation(unittest2.TestCase):
         )
 
 
-class TestFeaturesApi(unittest2.TestCase):
+class TestFeaturesApi(unittest.TestCase):
     def _create_core_desc(self, io_descriptor):
         """
         Helper method which creates an io_descriptor
         """
-        sg_connection = Mock()
+        sg_connection = mock.Mock()
         bundle_cache_root_override = None
         fallback_roots = None
         return sgtk.descriptor.CoreDescriptor(
@@ -939,7 +943,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures a missing manifest is handled properly.
         """
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.side_effect = TankMissingManifestError()
         desc = self._create_core_desc(io_desc)
 
@@ -951,7 +955,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures a missing features section is handled properly.
         """
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = {}
         desc = self._create_core_desc(io_desc)
 
@@ -963,7 +967,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures a missing feature is handled properly.
         """
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = dict(features={})
         desc = self._create_core_desc(io_desc)
 
@@ -976,7 +980,7 @@ class TestFeaturesApi(unittest2.TestCase):
         Ensures an available feature is handled properly.
         """
         features = dict(two="2", foo="bar", zero=0)
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = dict(features=features)
         desc = self._create_core_desc(io_desc)
 
@@ -1003,7 +1007,7 @@ class TestFeaturesApi(unittest2.TestCase):
         ) as fh:
             info = yaml.safe_load(fh)
 
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = info
         desc = self._create_core_desc(io_desc)
 

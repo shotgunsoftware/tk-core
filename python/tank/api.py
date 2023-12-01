@@ -60,6 +60,20 @@ class Sgtk(object):
         else:
             self.__pipeline_config = pipelineconfig_factory.from_path(project_path)
 
+        # execute default_storage_root hook
+        try:
+            self.execute_core_hook_method(
+                constants.DEFAULT_STORAGE_ROOT_HOOK_NAME,
+                "execute",
+                storage_roots=self.pipeline_configuration._storage_roots,
+                project_id=self.pipeline_configuration.get_project_id(),
+            )
+        except Exception as e:
+            # Catch errors to not kill our thread, log them for debug purpose.
+            log.debug(
+                "%s hook failed with %s" % (constants.DEFAULT_STORAGE_ROOT_HOOK_NAME, e)
+            )
+
         try:
             self.__templates = read_templates(self.__pipeline_config)
         except TankError as e:

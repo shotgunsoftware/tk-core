@@ -299,11 +299,9 @@ class TankQDialog(TankDialogBase):
                 if p is None:
                     formatted = "Undefined"
                 elif show_type:
-                    formatted = "%s %s" % (p.get("type"), p.get("name"))
+                    formatted = "{} {}".format(p.get("type"), p.get("name"))
                 else:
-                    formatted = "%s" % p.get("name")
-
-                formatted = six.ensure_str(formatted)
+                    formatted = "{}".format(p.get("name"))
 
                 return formatted
 

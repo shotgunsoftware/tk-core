@@ -41,6 +41,7 @@ from .errors import (
 from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
+from ..util import metrics_cache
 from ..log import LogManager
 
 from . import application
@@ -49,6 +50,7 @@ from . import validation
 from . import events
 from . import qt
 from . import qt5
+from . import qt6
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
@@ -92,6 +94,7 @@ class Engine(TankBundle):
         self.__created_qt_dialogs = []
         self.__qt_debug_info = {}
         self.__has_qt5 = False
+        self.__has_qt6 = False
 
         self.__commands_that_need_prefixing = []
 
@@ -178,6 +181,11 @@ class Engine(TankBundle):
         self.__has_qt5 = len(qt5_base) > 0
         for name, value in qt5_base.items():
             setattr(qt5, name, value)
+
+        qt6_base = self.__define_qt6_base()
+        self.__has_qt6 = len(qt6_base) > 0
+        for name, value in qt6_base.items():
+            setattr(qt6, name, value)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -622,6 +630,16 @@ class Engine(TankBundle):
         :returns bool: boolean value indicating if Qt 5 is available.
         """
         return self.__has_qt5
+
+    @property
+    def has_qt6(self):
+        """
+        Indicates that the host application has access to Qt 6 and that the ``sgtk.platform.qt6`` module
+        has been populated with the Qt 6 modules and information.
+
+        :returns bool: boolean value indicating if Qt 6 is available.
+        """
+        return self.__has_qt6
 
     @property
     def has_qt4(self):
@@ -2167,6 +2185,17 @@ class Engine(TankBundle):
         """
         return QtImporter(interface_version_requested=QtImporter.QT5).base
 
+    def __define_qt6_base(self):
+        """
+        This will be called at initialization to discover every PySide6 module. It should provide
+        every Qt modules available as well as two extra attributes, ``__name__`` and
+        ``__version__``, which refer to the name of the binding and it's version, e.g.
+        PySide6 and 6.2.7
+
+        :returns: A dictionary with all the modules, __version__ and __name__.
+        """
+        return QtImporter(interface_version_requested=QtImporter.QT6).base
+
     def _initialize_dark_look_and_feel(self):
         """
         Initializes a standard toolkit look and feel using a combination of
@@ -3174,6 +3203,8 @@ def _start_engine(engine_name, tk, old_context, new_context):
         # register this engine as the current engine
         set_current_engine(engine)
 
+    metrics_cache.consume()
+
     return engine
 
 
@@ -3309,6 +3340,8 @@ def start_shotgun_engine(tk, entity_type, context):
 
     # register this engine as the current engine
     set_current_engine(obj)
+
+    metrics_cache.consume()
 
     return obj
 

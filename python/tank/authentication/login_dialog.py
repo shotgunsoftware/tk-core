@@ -21,23 +21,27 @@ import os
 import sys
 from tank_vendor import shotgun_api3
 from tank_vendor import six
+from .. import constants
 from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc  # noqa
 from .ui import login_dialog
+from . import constants as auth_constants
 from . import session_cache
+from ..util.metrics import EventMetric
 from ..util.shotgun import connection
 from ..util import login
 from ..util import LocalFileStorageManager
+from ..util import metrics_cache
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
+from . import unified_login_flow2
+from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
-    is_autodesk_identity_enabled_on_site,
-    is_sso_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
 )
+
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
@@ -45,12 +49,14 @@ logger = LogManager.get_logger(__name__)
 # Name used to identify the client application when connecting via SSO to Shotugn.
 PRODUCT_IDENTIFIER = "toolkit"
 
-# Checking for SSO support on a site takes a few moments. When the user enters
-# a Shotgun site URL, we check for SSO support (and update the GUI) only after
-# the user has stopped for longer than the delay (in ms).
-USER_INPUT_DELAY_BEFORE_SSO_CHECK = 300
+# Requesting the site's information (including SSO support) takes a few moments.
+# When the user enters a ShotGrid site URL, we check for authentication methods
+# (and update the GUI) only after the user has stopped for longer than the delay
+# (in ms).
+USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST = 300
 
-# Let's put at 5 seconds the maximum time we might wait for a SSO check thread.
+# Let's put at 5 seconds the maximum time we might wait for a site's information
+# request thread.
 THREAD_WAIT_TIMEOUT_MS = 5000
 
 
@@ -68,36 +74,20 @@ def _is_running_in_desktop():
 
 class QuerySiteAndUpdateUITask(QtCore.QThread):
     """
-    This class uses a different thread to query if SSO is enabled or not.
+    This class uses a different thread to query the site's information and find
+    out whether SSO is enabled or not.
 
     We use a different thread due to the time the call can take, and
     to avoid blocking the main GUI thread.
     """
 
-    def __init__(self, parent, http_proxy=None):
+    def __init__(self, parent, site_info_instance, http_proxy=None):
         """
         Constructor.
         """
         QtCore.QThread.__init__(self, parent)
-        self._url_to_test = ""
-        self._sso_enabled = False
-        self._unified_login_flow_enabled = False
+        self._site_info = site_info_instance
         self._http_proxy = http_proxy
-
-    @property
-    def sso_enabled(self):
-        """returns: `True` if SSO is enabled, `False` otherwise."""
-        return self._sso_enabled
-
-    @property
-    def autodesk_identity_enabled(self):
-        """returns: `True` if Identity is enabled, `False` otherwise."""
-        return self._autodesk_identity_enabled
-
-    @property
-    def unified_login_flow_enabled(self):
-        """returns: `True` if ULF is enabled, `False` otherwise."""
-        return self._unified_login_flow_enabled
 
     @property
     def url_to_test(self):
@@ -112,16 +102,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        # The site information is cached, so those three calls do not add
-        # any significant overhead.
-        self._sso_enabled = is_sso_enabled_on_site(self.url_to_test, self._http_proxy)
-        self._autodesk_identity_enabled = is_autodesk_identity_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-        self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(
-            self.url_to_test, self._http_proxy
-        )
-
+        self._site_info.reload(self._url_to_test, self._http_proxy)
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -163,7 +144,9 @@ class LoginDialog(QtGui.QDialog):
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
-            self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
+            self._sso_saml2 = SsoSaml2Toolkit(
+                "ShotGrid Web Login", qt_modules=qt_modules
+            )
         except SsoSaml2MissingQtModuleError as e:
             logger.warning("Web login not supported due to missing Qt module: %s" % e)
             self._sso_saml2 = None
@@ -178,14 +161,15 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
         self._session_metadata = session_metadata
-        self._use_web = False
+
+        self.host_selected = None
+        self.method_selected = auth_constants.METHOD_BASIC
+
+        self._ulf2_task = None
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
         self.ui.setupUi(self)
-
-        # Set the title
-        self.setWindowTitle("ShotGrid Login")
 
         # Assign credentials
         self._http_proxy = http_proxy
@@ -208,13 +192,13 @@ class LoginDialog(QtGui.QDialog):
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
 
-        # Timer to update the GUI according to the URL, if SSO is supported or not.
+        # Timer to update the GUI according to the URL.
         # This is to make the UX smoother, as we do not check after each character
         # typed, but instead wait for a period of inactivity from the user.
         self._url_changed_timer = QtCore.QTimer(self)
         self._url_changed_timer.setSingleShot(True)
         self._url_changed_timer.timeout.connect(
-            self._update_ui_according_to_sso_support
+            self._update_ui_according_to_site_support
         )
 
         # If the host is fixed, disable the site textbox.
@@ -250,6 +234,35 @@ class LoginDialog(QtGui.QDialog):
         # Select the right first page.
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
+        # Initialize Options menu
+        menu = QtGui.QMenu(self.ui.button_options)
+        self.ui.button_options.setMenu(menu)
+        self.ui.button_options.setVisible(False)
+
+        self.menu_action_ulf2 = QtGui.QAction(
+            "Authenticate with the App Session Launcher",
+            menu,
+        )
+        self.menu_action_ulf2.triggered.connect(self._menu_activated_action_ulf2)
+
+        self.menu_action_ulf = QtGui.QAction(
+            "Authenticate with the ShotGrid browser",
+            menu,
+        )
+        self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
+
+        self.menu_action_legacy = QtGui.QAction(
+            "Authenticate with Legacy ShotGrid Login Credentials",
+            menu,
+        )
+        self.menu_action_legacy.triggered.connect(
+            self._menu_activated_action_login_creds
+        )
+
+        menu.addAction(self.menu_action_legacy)
+        menu.addAction(self.menu_action_ulf)
+        menu.addAction(self.menu_action_ulf2)
+
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.stackedWidget.currentChanged.connect(self._current_page_changed)
@@ -267,24 +280,60 @@ class LoginDialog(QtGui.QDialog):
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
-        # While the user is typing, check the SSOness of the site so we can
+        self.ui.ulf2_msg_help.setOpenExternalLinks(True)
+        self.ui.ulf2_msg_help.setText(
+            self.ui.ulf2_msg_help.text().format(
+                url=constants.SUPPORT_URL,
+            )
+        )
+
+        self.ui.ulf2_msg_back.linkActivated.connect(self._ulf2_back_pressed)
+
+        # While the user is typing, request the site's information so we can
         # show or hide the login and password fields.
         self.ui.site.lineEdit().textEdited.connect(self._site_url_changing)
         # If a site has been selected, we need to update the login field.
         self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
-        self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
-        self._query_task.finished.connect(self._toggle_web)
-        self._update_ui_according_to_sso_support()
+        self.site_info = site_info.SiteInfo()
 
-        # We want to wait until we know if the site uses SSO or not, to avoid
+        self._query_task = QuerySiteAndUpdateUITask(self, self.site_info, http_proxy)
+        self._query_task.finished.connect(self._toggle_web)
+        self._update_ui_according_to_site_support()
+
+        # We want to wait until we know what is supported by the site, to avoid
         # flickering GUI.
         if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
             logger.warning(
-                "Timed out awaiting check for SSO support on the site: %s"
+                "Timed out awaiting requesting information: %s"
                 % self._get_current_site()
             )
+
+        # Initialize exit confirm message box
+        self.confirm_box = QtGui.QMessageBox(
+            QtGui.QMessageBox.Question,
+            "ShotGrid Login",  # title
+            "Would you like to cancel your request?",  # text
+            buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            # parent=self,
+            # Passing the parent parameter here, in the constructor, makes
+            # Nuke versions<=13 crash.
+            # Two ways to resolve that:
+            #  #1. Create the QMessageBox later (not in the constructor)
+            #  #2. Pass the QDialog stylesheet to the QMessageBox since I did
+            #      not see any other consequence by not passing the parent
+            #      parameter.
+            # I chose solution #1, se below.
+        )
+        # force the QMessageBox to be on top of other dialogs.
+        self.confirm_box.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.confirm_box.setInformativeText(
+            "The authentication is still in progress and closing this window "
+            "will result in canceling your request."
+        )
+
+        self.confirm_box.setStyleSheet(self.styleSheet())
 
     def __del__(self):
         """
@@ -292,6 +341,38 @@ class LoginDialog(QtGui.QDialog):
         """
         # We want to clean up any running qthread.
         self._query_task.wait()
+
+    def _confirm_exit(self):
+        return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
+        # PySide uses "exec_" instead of "exec" because "exec" is a reserved
+        # keyword in Python 2.
+
+    def closeEvent(self, event):
+        if not self._confirm_exit():
+            event.ignore()
+            return
+
+        if self._ulf2_task:
+            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
+            self._ulf2_task.stop_when_possible()
+            self._ulf2_task.wait()
+            self._ulf2_task = None
+
+        return super(LoginDialog, self).closeEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            if not self._confirm_exit():
+                event.ignore()
+                return
+
+        if self._ulf2_task:
+            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
+            self._ulf2_task.stop_when_possible()
+            self._ulf2_task.wait()
+            self._ulf2_task = None
+
+        return super(LoginDialog, self).keyPressEvent(event)
 
     def _get_current_site(self):
         """
@@ -311,20 +392,19 @@ class LoginDialog(QtGui.QDialog):
         """
         return six.ensure_str(self.ui.login.currentText().strip())
 
-    def _update_ui_according_to_sso_support(self):
+    def _update_ui_according_to_site_support(self):
         """
-        Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
+        Updates the GUI according to the site's information, hiding or showing
+        the username/password fields.
         """
-        # Only update the GUI if we were able to initialize the sam2sso module.
-        if self._sso_saml2:
-            self._query_task.url_to_test = self._get_current_site()
-            self._query_task.start()
+        self._query_task.url_to_test = self._get_current_site()
+        self._query_task.start()
 
     def _site_url_changing(self, text):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
-        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
+        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST)
 
     def _on_site_changed(self):
         """
@@ -333,7 +413,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.ui.login.clear()
         self._populate_user_dropdown(self._get_current_site())
-        self._update_ui_according_to_sso_support()
+        self._update_ui_according_to_site_support()
 
     def _populate_user_dropdown(self, site):
         """
@@ -359,7 +439,7 @@ class LoginDialog(QtGui.QDialog):
         """
         self.sender().setText(self.sender().text().strip())
 
-    def _link_activated(self, site):
+    def _link_activated(self, site=None):
         """
         Clicked when the user presses on the "Forgot your password?" link.
         """
@@ -378,14 +458,18 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_web(self):
+    def _toggle_web(self, method_selected=None):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
+
+        site = self._query_task.url_to_test
+
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
+
         # With a SSO site, we have no choice but to use the web to login.
-        use_web = self._query_task.sso_enabled
+        can_use_web = self.site_info.sso_enabled
 
         # The user may decide to force the use of the old dialog:
         # - due to graphical issues with Qt and its WebEngine
@@ -395,28 +479,134 @@ class LoginDialog(QtGui.QDialog):
             logger.info("Using the standard login dialog with the ShotGrid Desktop")
         else:
             if _is_running_in_desktop():
-                logger.info("Using the Web Login with the ShotGrid Desktop")
-                use_web = use_web or self._query_task.autodesk_identity_enabled
+                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
 
             # If we have full support for Web-based login, or if we enable it in our
             # environment, use the Unified Login Flow for all authentication modes.
             if get_shotgun_authenticator_support_web_login():
-                use_web = use_web or self._query_task.unified_login_flow_enabled
+                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
+
+        can_use_ulf2 = self.site_info.unified_login_flow2_enabled
+        if can_use_ulf2:
+            if method_selected:
+                # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
+                session_cache.set_preferred_method(site, method_selected)
+            elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+                # Selecting legacy auth by default
+                method_selected = auth_constants.METHOD_BASIC
+            else:
+                method_selected = session_cache.get_preferred_method(site)
+
+        # Make sure that the method_selected is currently supported
+        if (
+            method_selected == auth_constants.METHOD_BASIC and can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_ULF2 and not can_use_ulf2
+        ):
+            method_selected = None
+
+        if not method_selected and os.environ.get("SGTK_DEFAULT_AUTH_METHOD"):
+            method_selected = auth_constants.method_resolve_reverse(
+                os.environ.get("SGTK_DEFAULT_AUTH_METHOD")
+            )
+
+        # Make sure that the method_selected is currently supported
+        if (
+            method_selected == auth_constants.METHOD_BASIC and can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
+        ) or (
+            method_selected == auth_constants.METHOD_ULF2 and not can_use_ulf2
+        ):
+            method_selected = None
+
+        if not method_selected:
+            if can_use_web:
+                method_selected = auth_constants.METHOD_WEB_LOGIN
+            else:
+                method_selected = auth_constants.METHOD_BASIC
+
+        if site == self.host_selected and method_selected == self.method_selected:
+            # We don't want to go further if the UI is already configured for
+            # this site and this mode.
+            # This prevents erasing any error message when various events would
+            # toggle this method
+            return
+
+        self.host_selected = site
+        self.method_selected = method_selected
 
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.
         # In web-based authentication, the web form is in charge of obtaining
         # and validating the user credentials.
-        if self._use_web != use_web:
-            self._use_web = not self._use_web
-            if self._use_web:
-                self.ui.message.setText("Sign in using the Web.")
-                self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
-            else:
-                self.ui.message.setText("Please enter your credentials.")
 
-            self.ui.login.setVisible(not self._use_web)
-            self.ui.password.setVisible(not self._use_web)
+        if self.method_selected == auth_constants.METHOD_ULF2:
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+            self.ui.login.setVisible(False)
+            self.ui.password.setVisible(False)
+            self.ui.message.setText(
+                "<p>Authenticate with the App Session Launcher.</p>"
+                "<p>After selecting <b>Sign In</b>, your default web browser will "
+                "prompt you to approve the authentication request from your "
+                "ShotGrid site.</p>"
+            )
+        elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
+            logger.info("Using the Web Login with the ShotGrid Desktop")
+
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+            self.ui.login.setVisible(False)
+            self.ui.password.setVisible(False)
+
+            if not can_use_ulf2:
+                # Old text
+                self.ui.message.setText("Sign in using the Web.")
+            else:
+                self.ui.message.setText(
+                    "<p>Authenticate with the ShotGrid browser.</p>"
+                    '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
+                        url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
+                    )
+                )
+        else:  # auth_constants.METHOD_BASIC
+            self.ui.login.setVisible(True)
+            self.ui.password.setVisible(True)
+            self.ui.message.setText(
+                "Please enter your credentials"
+                " - "
+                '<a style="color:#c0c1c3;" href="{url}">Learn more here</a>'.format(
+                    url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
+                )
+            )
+
+        self.ui.forgot_password_link.setVisible(
+            method_selected == auth_constants.METHOD_BASIC
+        )
+
+        self.ui.button_options.setVisible(can_use_ulf2)
+        self.menu_action_ulf.setVisible(can_use_web)
+        self.menu_action_legacy.setVisible(not can_use_web)
+
+        self.menu_action_ulf2.setEnabled(
+            self.method_selected != auth_constants.METHOD_ULF2
+        )
+        self.menu_action_ulf.setEnabled(
+            self.method_selected != auth_constants.METHOD_WEB_LOGIN
+        )
+        self.menu_action_legacy.setEnabled(
+            self.method_selected != auth_constants.METHOD_BASIC
+        )
+
+    def _menu_activated_action_ulf2(self):
+        self._toggle_web(method_selected=auth_constants.METHOD_ULF2)
+
+    def _menu_activated_action_web_legacy(self):
+        self._toggle_web(method_selected=auth_constants.METHOD_WEB_LOGIN)
+
+    def _menu_activated_action_login_creds(self):
+        self._toggle_web(method_selected=auth_constants.METHOD_BASIC)
 
     def _current_page_changed(self, index):
         """
@@ -489,24 +679,50 @@ class LoginDialog(QtGui.QDialog):
                 profile_location=profile_location,
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
-            if res == QtGui.QDialog.Accepted:
-                return self._sso_saml2.get_session_data()
-            else:
-                return None
+            if res != QtGui.QDialog.Accepted:
+                return
+
+            return self._sso_saml2.get_session_data()
 
         res = self.exec_()
+        if res != QtGui.QDialog.Accepted:
+            return
 
-        if res == QtGui.QDialog.Accepted:
-            if self._session_metadata and self._sso_saml2:
-                return self._sso_saml2.get_session_data()
-            return (
-                self._get_current_site(),
-                self._get_current_user(),
-                self._new_session_token,
-                None,
-            )
-        else:
-            return None
+        metrics_cache.log(
+            EventMetric.GROUP_TOOLKIT,
+            "Logged In",
+            properties={
+                "authentication_method": self.site_info.user_authentication_method,
+                "authentication_experience": auth_constants.method_resolve.get(self.method_selected),
+                "authentication_interface": "qt_dialog",
+                "authentication_renewal": self._is_session_renewal,
+            },
+        )
+
+        if self.method_selected == auth_constants.METHOD_ULF2:
+            if not self._ulf2_task:
+                logger.error(
+                    "Unable to retrieve the authentication result but authentication succeeded"
+                )
+                return
+
+            return self._ulf2_task.session_info
+
+        elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
+            if not self._session_metadata or not self._sso_saml2:
+                logger.error(
+                    "Unable to retrieve the authentication result but authentication succeeded"
+                )
+                return
+
+            return self._sso_saml2.get_session_data()
+
+        return (
+            self._get_current_site(),
+            self._get_current_user(),
+            self._new_session_token,
+            None,
+        )
 
     def _set_error_message(self, widget, message):
         """
@@ -521,12 +737,12 @@ class LoginDialog(QtGui.QDialog):
         """
         Validate the values, accepting if login is successful and display an error message if not.
         """
-        # Wait for any ongoing SSO check thread.
+        # Wait for any ongoing Site Configuration check thread.
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
                 logger.warning(
-                    "Timed out awaiting check for SSO support on the site: %s"
+                    "Timed out awaiting configuration information on the site: %s"
                     % self._get_current_site()
                 )
         finally:
@@ -545,11 +761,12 @@ class LoginDialog(QtGui.QDialog):
             return
 
         # Cleanup the URL and update the GUI.
-        if self._use_web and site.startswith("http://"):
-            site = "https" + site[4:]
-        self.ui.site.setEditText(site)
+        if self.method_selected != auth_constants.METHOD_BASIC:
+            if site.startswith("http://"):
+                site = "https" + site[4:]
+            self.ui.site.setEditText(site)
 
-        if not self._use_web:
+        if self.method_selected == auth_constants.METHOD_BASIC:
             if len(login) == 0:
                 self._set_error_message(
                     self.ui.message, "Please enter your login name."
@@ -584,7 +801,9 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self._use_web and self._sso_saml2:
+            if self.method_selected == auth_constants.METHOD_ULF2:
+                return self._ulf2_process(site)
+            elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
                 profile_location = LocalFileStorageManager.get_site_root(
                     site, LocalFileStorageManager.CACHE
                 )
@@ -670,3 +889,96 @@ class LoginDialog(QtGui.QDialog):
         Switches to the main two factor authentication page.
         """
         self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
+
+    def _ulf2_process(self, site):
+        self._ulf2_task = ULF2_AuthTask(
+            self,
+            site,
+            http_proxy=self._http_proxy,
+        )
+        self._ulf2_task.finished.connect(self._ulf2_task_finished)
+        self._ulf2_task.start()
+
+        self.ui.stackedWidget.setCurrentWidget(self.ui.ulf2_page)
+
+    def _ulf2_back_pressed(self):
+        """
+        Cancel Unified Login Flow 2 authentication and switch page back to login
+        """
+
+        self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
+        logger.info("Cancelling web authentication")
+
+        if self._ulf2_task:
+            self._ulf2_task.finished.disconnect(self._ulf2_task_finished)
+            self._ulf2_task.stop_when_possible()
+            self._ulf2_task = None
+
+    def _ulf2_task_finished(self):
+        if not self._ulf2_task:
+            # Multi-Thread failsafe
+            return
+
+        self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
+
+        if self._ulf2_task.exception:
+            self._set_error_message(
+                self.ui.message,
+                "Authentication error - %s" % self._ulf2_task.exception,
+            )
+            logger.debug(
+                "ULF2 authentication issue",
+                exc_info=self._ulf2_task.exception,
+            )
+            self._ulf2_task = None
+            return
+
+        if not self._ulf2_task.session_info:
+            # The task got interrupted somehow.
+            return
+
+        self.accept()
+
+
+class ULF2_AuthTask(QtCore.QThread):
+    progressing = QtCore.Signal(str)
+
+    def __init__(self, parent, sg_url, http_proxy=None):
+        super(ULF2_AuthTask, self).__init__(parent)
+        self.should_stop = False
+
+        self._sg_url = sg_url
+        self._http_proxy = http_proxy
+
+        self._product = unified_login_flow2.get_product_name()
+        # This is processed here, in the main thread, to prevent threading
+        # issues.
+        # One know problem is with Photoshop, the engine.host_info attribute is
+        # retrieved from PS in a WebSocket communication.
+        # The code is thread safe for Python threading but not designed to be
+        # used with QThreads. See SG-31490 for more information.
+
+        # Result object
+        self.session_info = None
+        self.exception = None
+
+    def run(self):
+        try:
+            self.session_info = unified_login_flow2.process(
+                self._sg_url,
+                lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
+                http_proxy=self._http_proxy,
+                product=self._product,
+                keep_waiting_callback=self.should_continue,
+            )
+        except AuthenticationError as err:
+            self.exception = err
+        except Exception:
+            logger.exception("Unknown error from the App Session Launcher")
+            self.exception = AuthenticationError("Unknown authentication error")
+
+    def should_continue(self):
+        return not self.should_stop
+
+    def stop_when_possible(self):
+        self.should_stop = True

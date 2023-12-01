@@ -125,6 +125,12 @@ The Toolkit core comes with a set of hooks that can help you tweak how the core 
 want to take over a certain behavior, copy the hook found inside the core's `hooks <https://github.com/shotgunsoftware/tk-core/tree/master/hooks>`_ folder
 and copy it to your configuration's ``core/hooks`` folder.
 
+.. note::
+    A core hook cannot be executed before Toolkit (the :class:`Sgtk` instance) has
+    been initialized. This happens when :meth:`ToolkitManager.bootstrap_engine` is
+    called during ShotGrid Desktop bootstrap. Any customization of the core behavior
+    must be added afterwards.
+
 Here is the list of hooks that be taken over in the Toolkit core.
 
 before_register_publish.py
@@ -160,6 +166,13 @@ context_change.py
 
 .. automodule:: context_change
 .. autoclass:: context_change.ContextChange
+    :members:
+
+default_storage_root.py
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: default_storage_root
+.. autoclass:: default_storage_root.DefaultStorageRoot
     :members:
 
 engine_init.py
@@ -377,27 +390,12 @@ The following exceptions are raised by the Toolkit Core API classes:
     :inherited-members:
     :members:
 
-.. autoclass:: TankFileDoesNotExistError
-    :show-inheritance:
-    :inherited-members:
-    :members:
-
-.. autoclass:: TankInvalidInterpreterLocationError
-    :show-inheritance:
-    :inherited-members:
-    :members:
-
 .. autoclass:: TankInvalidCoreLocationError
     :show-inheritance:
     :inherited-members:
     :members:
 
 .. autoclass:: TankNotPipelineConfigurationError
-    :show-inheritance:
-    :inherited-members:
-    :members:
-
-.. autoclass:: TankUnreadableFileError
     :show-inheritance:
     :inherited-members:
     :members:

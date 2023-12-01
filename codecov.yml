@@ -1,0 +1,8 @@
+
+ignore:
+  # ignore generated QT files
+  - "**tank/authentication/ui/login_dialog.py"
+  - "**tank/authentication/ui/resources_rc.py"
+
+  # disable PySide6 code coverage for now
+  - "**tank/util/pyside6_patcher.py"

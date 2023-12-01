@@ -20,6 +20,7 @@ at any point.
 """
 from __future__ import print_function
 
+from . import constants
 from . import session_cache
 from .. import LogManager
 from .errors import (
@@ -28,23 +29,17 @@ from .errors import (
     ConsoleLoginNotSupportedError,
 )
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import is_sso_enabled_on_site
+from . import site_info
+from . import unified_login_flow2
+from ..util import metrics_cache
+from ..util.metrics import EventMetric
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
+import webbrowser
 from tank_vendor.six.moves import input
 
 logger = LogManager.get_logger(__name__)
-
-
-def _assert_console_session_is_supported(hostname, http_proxy):
-    """
-    Simple utility method which will raise an exception if using a
-    username/password pair is not supported by the Shotgun server.
-    Which is the case when using SSO or Autodesk Identity.
-    """
-    if is_sso_enabled_on_site(hostname, http_proxy):
-        raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
 
 
 class ConsoleAuthenticationHandlerBase(object):
@@ -65,49 +60,196 @@ class ConsoleAuthenticationHandlerBase(object):
         :returns: The (hostname, login, session_token, session_metadata) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
-
         """
+
         logger.debug("Requesting password on command line.")
+        print("[ShotGrid Authentication]\n")
         while True:
-            # Get the credentials from the user
+            # Get the SG URL from the user or from the given hostname
             try:
-                hostname, login, password = self._get_user_credentials(
-                    hostname, login, http_proxy
-                )
+                hostname = self._get_sg_url(hostname, http_proxy)
             except EOFError:
-                # Insert a \n on the current line so the print is displayed on a new time.
+                # Insert a \n on the current line so the print is displayed on a new line.
                 print()
                 raise AuthenticationCancelled()
 
+            hostname = sanitize_url(hostname)
+
+            site_i = site_info.SiteInfo()
+            site_i.reload(hostname, http_proxy)
+
+            if not site_i.unified_login_flow2_enabled:
+                # Will raise an exception if using a username/password pair is
+                # not supported by the ShotGrid server.
+                # Which is the case when using SSO or Autodesk Identity.
+
+                if site_i.sso_enabled:
+                    raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+                elif site_i.autodesk_identity_enabled:
+                    raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
+
+            method_selected = self._get_auth_method(hostname, site_i)
+            if method_selected == constants.METHOD_ULF2:
+                auth_fn = self._authenticate_unified_login_flow2
+            else:  # basic
+                auth_fn = self._authenticate_legacy
+
             try:
-                try:
-                    # Try to generate a session token and return the user info.
-                    return (
-                        hostname,
-                        login,
-                        session_cache.generate_session_token(
-                            hostname, login, password, http_proxy
-                        ),
-                        None,
-                    )
-                except MissingTwoFactorAuthenticationFault:
-                    # session_token was None, we need 2fa.
-                    code = self._get_2fa_code()
-                    # Ask again for a token using 2fa this time. If this throws an AuthenticationError because
-                    # the code is invalid or already used, it will be caught by the except clause beneath.
-                    return (
-                        hostname,
-                        login,
-                        session_cache.generate_session_token(
-                            hostname, login, password, http_proxy, auth_token=code
-                        ),
-                        None,
-                    )
+                result = auth_fn(hostname, login, http_proxy)
             except AuthenticationError as error:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
                 print("Login failed: %s" % error)
                 print()
+                return
+
+            metrics_cache.log(
+                EventMetric.GROUP_TOOLKIT,
+                "Logged In",
+                properties={
+                    "authentication_method": site_i.user_authentication_method,
+                    "authentication_experience": constants.method_resolve.get(
+                        method_selected
+                    ),
+                    "authentication_interface": "console",
+                    "authentication_renewal": isinstance(
+                        self, ConsoleRenewSessionHandler
+                    ),
+                },
+            )
+
+            return result
+
+    def _authenticate_legacy(self, hostname, login, http_proxy):
+        # Get the credentials from the user
+        try:
+            hostname, login, password = self._get_user_credentials(
+                hostname, login, http_proxy
+            )
+        except EOFError:
+            # Insert a \n on the current line so the print is displayed on a new line.
+            print()
+            raise AuthenticationCancelled()
+
+        try:
+            # Try to generate a session token and return the user info.
+            return (
+                hostname,
+                login,
+                session_cache.generate_session_token(
+                    hostname, login, password, http_proxy
+                ),
+                None,
+            )
+        except MissingTwoFactorAuthenticationFault:
+            # session_token was None, we need 2fa.
+            code = self._get_2fa_code()
+            # Ask again for a token using 2fa this time. If this throws an AuthenticationError because
+            # the code is invalid or already used, it will be caught by the except clause beneath.
+            return (
+                hostname,
+                login,
+                session_cache.generate_session_token(
+                    hostname, login, password, http_proxy, auth_token=code
+                ),
+                None,
+            )
+
+    def _authenticate_unified_login_flow2(self, hostname, login, http_proxy):
+        print()
+        print(
+            "Authenticating to {sg_url} requires your web browser.\n"
+            "\n"
+            'After selecting "continue", your default web browser will open '
+            "and prompt you to authenticate to {sg_url} if you are not already "
+            "authenticated to this site in the browser.\n"
+            "\n"
+            "Then, you will be prompted to approve the authentication request "
+            "and return to this application.\n"
+            "\n"
+            'Select "Approve" and come back to this application.'
+            "\n".format(sg_url=hostname)
+        )
+
+        self._read_clean_input("Press enter when you are ready to continue.")
+        print("\n")  # Always have 2 empty lines after a prompt
+        print(
+            "Stand by... your default browser will open shortly for you to "
+            "approve the authentication request.\n"
+            "\n"
+            "After approving the authentication request, return to this "
+            "application."
+        )
+        print()
+        session_info = unified_login_flow2.process(
+            hostname,
+            webbrowser.open,  # browser_open_callback
+            http_proxy=http_proxy,
+        )
+
+        print()
+        if not session_info:
+            raise AuthenticationError("The web authentication failed.")
+
+        print(
+            "Success! The web authentication has been approved and your "
+            "application is ready to use."
+        )
+        return session_info
+
+    def _get_auth_method(self, hostname, site_i):
+        if not site_i.unified_login_flow2_enabled:
+            return constants.METHOD_BASIC
+
+        if site_i.autodesk_identity_enabled or site_i.sso_enabled:
+            return constants.METHOD_ULF2
+
+        # We have 2 choices here
+        methods = {
+            "1": constants.METHOD_BASIC,
+            "2": constants.METHOD_ULF2,
+        }
+
+        # Let's see which method the user chose previously for this site
+        method_saved = session_cache.get_preferred_method(hostname)
+        method_default = "1"
+        for k, v in methods.items():
+            if v == method_saved:
+                method_default = k
+                break
+
+        # Then prompt them to chose
+        print(
+            "\n"
+            "The ShotGrid site support two authentication methods:\n"
+            " 1. Authenticate with Legacy ShotGrid Login Credentials\n"
+            " 2. Authenticate with the App Session Launcher using your default web browser\n"
+        )
+
+        method_selected = self._get_keyboard_input(
+            "Select a method (1 or 2)",
+            default_value=method_default,
+        )
+
+        method = methods.get(method_selected)
+        if not method:
+            raise AuthenticationError(
+                "Unsupported authentication method choice {m}".format(m=method)
+            )
+
+        session_cache.set_preferred_method(hostname, method)
+        return method
+
+    def _get_sg_url(self, hostname, http_proxy):
+        """
+        Prompts the user for the SG host.
+        :param host Host to authenticate for.
+        :param http_proxy: Proxy to connect to when authenticating.
+        :returns: The hostname.
+        :raises AuthenticationCancelled: If the user cancels the authentication process,
+                this exception will be thrown.
+        """
+        raise NotImplementedError
 
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
@@ -158,6 +300,8 @@ class ConsoleAuthenticationHandlerBase(object):
         user_input = None
         while not user_input:
             user_input = self._read_clean_input(text) or default_value
+
+        print()
         # Strip whitespace before and after user input.
         return user_input
 
@@ -183,6 +327,9 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
     renew_session methods.
     """
 
+    def _get_sg_url(self, hostname, http_proxy):
+        return hostname
+
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Reads the user password from the keyboard.
@@ -192,8 +339,6 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         :returns: The (hostname, login, plain text password) tuple.
         """
         print("%s, your current session has expired." % login)
-
-        _assert_console_session_is_supported(hostname, http_proxy)
 
         print("Please enter your password to renew your session for %s" % hostname)
         return hostname, login, self._get_password()
@@ -213,6 +358,28 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         super(ConsoleLoginHandler, self).__init__()
         self._fixed_host = fixed_host
 
+    def _get_sg_url(self, hostname, http_proxy):
+        if self._fixed_host:
+            return hostname
+
+        recent_hosts = session_cache.get_recent_hosts()
+        # If we have a recent host and it's not in the list, add it.
+        # This can happen if a user logs on and while the process is running the
+        # host is removed from the host list.
+        if hostname and hostname not in recent_hosts:
+            recent_hosts.insert(0, hostname)
+
+        if len(recent_hosts) > 1:
+            print("Recent ShotGrid sites:")
+            for sg_url in recent_hosts:
+                print("  *", sg_url)
+            print()
+
+        return self._get_keyboard_input(
+            "Enter the ShotGrid site URL for authentication",
+            hostname,
+        )
+
     def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Reads the user credentials from the keyboard.
@@ -222,14 +389,8 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :returns: A tuple of (login, password) strings.
         """
         if self._fixed_host:
-            _assert_console_session_is_supported(hostname, http_proxy)
             print("Please enter your login credentials for %s" % hostname)
-
-        else:
-            print("Please enter your login credentials.")
-            hostname = self._get_keyboard_input("Host", hostname)
-            _assert_console_session_is_supported(hostname, http_proxy)
 
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
-        return sanitize_url(hostname), login, password
+        return hostname, login, password

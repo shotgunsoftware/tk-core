@@ -13,13 +13,16 @@ from __future__ import with_statement
 import itertools
 import os
 import sys
-from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
 from tank_vendor.shotgun_api3.lib import sgsix
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
+from tank.bootstrap import constants
 
 
 class TestResolverBase(TankTestBase):
@@ -247,7 +250,7 @@ class TestPluginMatching(TestResolverBase):
         self.assertFalse(_match_plugin_helper(None))
         self.assertFalse(_match_plugin_helper("foo.maya"))
 
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_single_matching_id(self, _):
         """
         Picks the sandbox with the right plugin id.
@@ -314,7 +317,7 @@ class TestFallbackHandling(TestResolverBase):
             "name": "tk-config-test",
         }
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_base_config(self, find_mock):
         """
         Tests the direct config resolve, which doesn't talk to Shotgun
@@ -326,7 +329,7 @@ class TestFallbackHandling(TestResolverBase):
         # make sure we didn't talk to shotgun
         self.assertEqual(find_mock.called, False)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_latest_base_config(self, find_mock):
         """
         Tests the direct config resolve for a descriptor with no version number set
@@ -340,6 +343,47 @@ class TestFallbackHandling(TestResolverBase):
         # make sure we didn't talk to shotgun
         self.assertEqual(find_mock.called, False)
 
+class TestAutoUpdate(TestResolverBase):
+    """
+    A test class for the config resolved when
+    SG Desktop is launched to startup the tk-desktop
+    engine on a site or Project context.
+    """
+    def setUp(self):
+        super(TestAutoUpdate, self).setUp()
+        self.resolver._plugin_id = 'basic.desktop'
+
+    @mock.patch("sys.version_info", return_value=mock.Mock())
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_autoupdate_config(self, find_mock, _):
+        """
+        Tests that the configuration resolved is the maximum tk-config-basic
+        version supporting Python 2 when SG Desktop is used to startup the
+        tk-desktop engine on a Site or Project context.
+        """
+
+        # Mock Python2 Version
+        sys.version_info = [2, 7, 16, 'final', 0]
+        self.assertEqual(sys.version_info[0], 2)
+
+        # test latest version of config by omitting version number
+        config_latest = {"type": "app_store", "name": "tk-config-test"}
+        # Maximum tk-config-basic version supporting Python 2.
+        version = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
+        # expected config
+        expected_config = {
+            'type': 'app_store',
+            'name': 'tk-config-test',
+            'version': version,
+        }
+
+        # Test the configuration resolved is the Maximum tk-config-basic
+        # version supporting Python 2 when auto-update is triggered.
+        config = self.resolver.resolve_not_found_sg_configuration(config_latest, self.mockgun)
+        self.assertEqual(config._descriptor.get_dict(), expected_config)
+
+        # make sure we didn't talk to shotgun
+        self.assertEqual(find_mock.called, False)
 
 class TestResolverPriority(TestResolverBase):
     """
@@ -430,7 +474,7 @@ class TestResolverPriority(TestResolverBase):
 
         :param str expected_path: Expected value for the current platform's path.
         """
-        with patch("os.path.isdir", return_value=True):
+        with mock.patch("os.path.isdir", return_value=True):
             config = self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=None,
                 fallback_config_descriptor=self.config_1,
@@ -535,7 +579,7 @@ class TestResolverPriority(TestResolverBase):
         self.assertEqual(primaries[0]["project"], self._project)
         self.assertEqual(primaries[0]["plugin_ids"], None)
 
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_more_recent_pipeline_is_shadowed(self, _):
         """
         When two pipeline configurations could have be chosen during resolve_shotgun_configuration
@@ -615,7 +659,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
     Tests the field priority between descriptor, xxx_path and uploaded_config
     """
 
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_path_override(self, _):
         """
         If pipeline config paths are defined, these take precedence over the descriptor field.
@@ -834,7 +878,7 @@ class TestResolverSiteConfig(TestResolverBase):
             bundle_cache_fallback_paths=[self.install_root],
         )
 
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_resolve_installed_from_sg(self, _):
         """
         When a path is set, we have an installed configuration.
@@ -991,7 +1035,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
 
 class TestResolveWithFilter(TestResolverBase):
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_existing_pc_ic(self, _):
         """
         Resolve an existing pipeline configuration by id.
@@ -1009,7 +1053,7 @@ class TestResolveWithFilter(TestResolverBase):
 
         self.assertEqual(config._path.current_os, "sg_path")
 
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_non_existing_pc_ic(self, _):
         """
         Resolve a non-existent pipeline configuration by id should fail.
@@ -1024,7 +1068,7 @@ class TestResolveWithFilter(TestResolverBase):
                 current_login="john.smith",
             )
 
-    @patch("os.path.isdir", return_value=True)
+    @mock.patch("os.path.isdir", return_value=True)
     def test_resolve_by_name(self, _):
         """
         Ensure that specifying for pipeline by name works.
@@ -1142,7 +1186,7 @@ class TestErrorHandling(TestResolverBase):
             descriptor="sgtk:descriptor:app_store?name=tk-unknown-config",
         )
 
-        with patch(
+        with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore.has_remote_access",
             return_value=False,
         ):

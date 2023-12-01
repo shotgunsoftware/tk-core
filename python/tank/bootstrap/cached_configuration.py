@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import traceback
 import pprint
 
@@ -17,7 +18,7 @@ from . import constants
 from ..descriptor import create_descriptor, Descriptor
 from .errors import TankBootstrapError, TankMissingTankNameError
 
-from ..util import filesystem
+from ..util import filesystem, version
 
 from tank_vendor import yaml
 from .configuration import Configuration

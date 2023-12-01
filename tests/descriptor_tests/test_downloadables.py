@@ -12,7 +12,6 @@ from __future__ import print_function
 from functools import reduce
 import multiprocessing
 import os
-from mock import patch
 import sys
 import tempfile
 import time
@@ -22,8 +21,13 @@ import zipfile
 import contextlib
 import pytest
 
-from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    skip_if_git_missing,
+    temp_env_var,
+)
 
 import sgtk
 import tank
@@ -293,16 +297,16 @@ class Implementation(object):
         io_descriptor_app_store = (
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
         )
-        with patch(
+        with mock.patch(
             "%s._IODescriptorAppStore__create_sg_app_store_connection"
             % io_descriptor_app_store,
             return_value=(self.mockgun, None),
         ):
-            with patch(
+            with mock.patch(
                 "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
                 return_value=self._metadata,
             ):
-                with patch(
+                with mock.patch(
                     "tank.util.shotgun.download_and_unpack_attachment",
                     side_effect=self._download_and_unpack_attachment,
                 ):
@@ -326,7 +330,7 @@ class Implementation(object):
                 desc = self._create_desc(location)
         else:
             desc = self._create_desc(location)
-        with patch(
+        with mock.patch(
             "tank.util.shotgun.download_and_unpack_attachment",
             side_effect=self._download_and_unpack_attachment,
         ):
@@ -599,14 +603,14 @@ class Implementation(object):
 
         # ensure that an exception raised while downloading the descriptor to a
         # temporary folder will raise a TankDescriptorError
-        with patch(
+        with mock.patch(
             "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
             side_effect=_raise_exception,
         ):
             with self.assertRaises(tank.descriptor.errors.TankDescriptorIOError):
                 self._download_git_branch_bundle()
 
-    @patch("os.rename", side_effect=_raise_exception)
+    @mock.patch("os.rename", side_effect=_raise_exception)
     def test_descriptor_rename_error_fallbacks(self, *_):
         """
         Tests that an error during the rename operation kicks in various fallbacks.
@@ -644,8 +648,8 @@ class Implementation(object):
         tmp_files_after = os.listdir(tmp_location)
         self.assertEqual(tmp_files_after, tmp_files_before)
 
-    @patch("tank.util.filesystem.move_folder")
-    @patch("os.rename", side_effect=_raise_exception)
+    @mock.patch("tank.util.filesystem.move_folder")
+    @mock.patch("os.rename", side_effect=_raise_exception)
     def test_descriptor_rename_fallback_failure(self, rename_mock, move_mock):
         """
         Tests the expected behaviour when a rename fails and then 'plan B' fallback also fails.

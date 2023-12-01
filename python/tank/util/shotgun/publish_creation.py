@@ -58,7 +58,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     and try to locate a suitable storage. Failing that, it will fall back on a
     register the path as a ``file://`` url. For more information on
     this resolution logic, see our
-    `Admin Guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#Configuring%20published%20file%20path%20resolution>`_.
+    `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
     .. note:: Shotgun follows a convention where the name passed to the register publish method is used
               to control how things are grouped together. When Shotgun and Toolkit groups things together,

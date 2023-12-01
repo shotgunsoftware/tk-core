@@ -195,7 +195,7 @@ Applications
 
 Toolkit Apps are tools that can execute in multiple DCC environments.
 
-.. note:: For an introduction to App development, see https://developer.shotgridsoftware.com/2e5ed7bb/?title=Developing+apps
+.. note:: For an introduction to App development, see https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_SGTK_DEVELOPER_APP
 
 A good way to get started with App development is to clone our starter github repository
 https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
