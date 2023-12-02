@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; tk-core v0.20.26 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.20.28 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -30,7 +30,7 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-    <a href='http://developer.shotgridsoftware.com'>
+    <a href='http://developers.shotgridsoftware.com'>
     
         <img style='width: 191px;
                 height: 60px;
@@ -71,6 +71,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-preferences-location"><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-bootstrap-config-override"><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-debug"><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#authentication">Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-default-auth-method"><code class="docutils literal notranslate"><span class="pre">SGTK_DEFAULT_AUTH_METHOD</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-force-standard-login-dialog"><code class="docutils literal notranslate"><span class="pre">SGTK_FORCE_STANDARD_LOGIN_DIALOG</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tk-auth-product"><code class="docutils literal notranslate"><span class="pre">TK_AUTH_PRODUCT</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-shotgrid-default-login"><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_DEFAULT_LOGIN</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-shotgrid-sso-domain"><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_SSO_DOMAIN</span></code></a></li>
 </ul>
@@ -113,12 +119,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.26.<br>
+    <b>tk-core</b> v0.20.28.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://developer.shotgridsoftware.com'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://developers.shotgridsoftware.com'>The ShotGrid developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -175,6 +181,28 @@
 <section id="tk-debug">
 <h3><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code><a class="headerlink" href="#tk-debug" title="Permalink to this heading"></a></h3>
 <p>Controls debug logging.</p>
+</section>
+</section>
+<section id="authentication">
+<span id="environment-variables-authentication"></span><h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this heading"></a></h2>
+<section id="sgtk-default-auth-method">
+<h3><code class="docutils literal notranslate"><span class="pre">SGTK_DEFAULT_AUTH_METHOD</span></code><a class="headerlink" href="#sgtk-default-auth-method" title="Permalink to this heading"></a></h3>
+<p>Specifies which authentication method should be selected if none are selected yet.
+Available values are <cite>credentials</cite>, <cite>qt_web_login</cite>, and <cite>app_session_launcher</cite>.</p>
+<p>Note: this variable does not override the session cache. If a valid method has
+been recorded in the session cache, this method will be prioritized over the
+one provided by <cite>SGTK_DEFAULT_AUTH_METHOD</cite>.</p>
+</section>
+<section id="sgtk-force-standard-login-dialog">
+<h3><code class="docutils literal notranslate"><span class="pre">SGTK_FORCE_STANDARD_LOGIN_DIALOG</span></code><a class="headerlink" href="#sgtk-force-standard-login-dialog" title="Permalink to this heading"></a></h3>
+<p>Always display the traditional authentication (login and password fields) in the
+login window dialog even when the ShotGrid site has other authentication methods
+enabled.</p>
+</section>
+<section id="tk-auth-product">
+<h3><code class="docutils literal notranslate"><span class="pre">TK_AUTH_PRODUCT</span></code><a class="headerlink" href="#tk-auth-product" title="Permalink to this heading"></a></h3>
+<p>Provide a custom application name when using the “App Session Launcher”
+authentication instead of relying on an autodetected name.</p>
 </section>
 <section id="tk-shotgrid-default-login">
 <h3><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_DEFAULT_LOGIN</span></code><a class="headerlink" href="#tk-shotgrid-default-login" title="Permalink to this heading"></a></h3>
