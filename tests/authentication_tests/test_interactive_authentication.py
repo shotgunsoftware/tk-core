@@ -382,7 +382,7 @@ class InteractiveTests(ShotgunTestBase):
     @mock.patch(
         "tank.authentication.site_info._get_site_infos",
         return_value={
-            "app_session_launcher_enabled": False,
+            "authentication_app_session_launcher_enabled": False,
         },
     )
     @mock.patch(
@@ -804,7 +804,7 @@ class InteractiveTests(ShotgunTestBase):
         ), mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), self._login_dialog(
             is_session_renewal=True,
@@ -830,7 +830,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ):
             with self._login_dialog(
@@ -908,7 +908,7 @@ class InteractiveTests(ShotgunTestBase):
                 return_value={
                     "user_authentication_method": "oxygen",
                     "unified_login_flow_enabled": True,
-                    "app_session_launcher_enabled": False,
+                    "authentication_app_session_launcher_enabled": False,
                 },
             ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
@@ -930,7 +930,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ):
             # credentials but web login is available
@@ -995,7 +995,7 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch.object(
             QtGui.QDialog,
@@ -1067,7 +1067,7 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch.dict(
             "os.environ", {"SGTK_FORCE_STANDARD_LOGIN_DIALOG": "1"}
@@ -1084,7 +1084,7 @@ class InteractiveTests(ShotgunTestBase):
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), self._login_dialog(
             is_session_renewal=True,
@@ -1142,7 +1142,7 @@ class InteractiveTests(ShotgunTestBase):
     @mock.patch(
         "tank.authentication.site_info._get_site_infos",
         return_value={
-            "app_session_launcher_enabled": True,
+            "authentication_app_session_launcher_enabled": True,
         },
     )
     @mock.patch(
@@ -1201,7 +1201,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch(
             "tank.authentication.console_authentication.input",
@@ -1223,7 +1223,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch(
             "tank.authentication.console_authentication.input",
@@ -1270,7 +1270,7 @@ class InteractiveTests(ShotgunTestBase):
             tank_vendor.shotgun_api3.Shotgun,
             "info",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ):
             site_i = SiteInfo()
