@@ -19,7 +19,7 @@ from tank_test.tank_test_base import (
 )
 
 from tank.authentication import (
-    unified_login_flow2,
+    app_session_launcher,
 )
 
 from tank_vendor.six.moves import urllib
@@ -35,22 +35,22 @@ import sys
 import threading
 
 
-class ULF2Tests(ShotgunTestBase):
+class AppSessionLauncherTests(ShotgunTestBase):
     def test_process_parameters(self):
         with self.assertRaises(AssertionError):
-            unified_login_flow2.process(
+            app_session_launcher.process(
                 "https://test.shotgunstudio.com",
                 None,  # browser_open_callback
             )
 
         with self.assertRaises(AssertionError):
-            unified_login_flow2.process(
+            app_session_launcher.process(
                 "https://test.shotgunstudio.com",
                 "Test",  # browser_open_callback
             )
 
         with self.assertRaises(AssertionError):
-            unified_login_flow2.process(
+            app_session_launcher.process(
                 "https://test.shotgunstudio.com",
                 lambda: True,  # browser_open_callback
                 keep_waiting_callback=None,
@@ -58,20 +58,20 @@ class ULF2Tests(ShotgunTestBase):
 
     def test_build_proxy_addr(self):
         self.assertEqual(
-            unified_login_flow2._build_proxy_addr("10.20.30.40"),
+            app_session_launcher._build_proxy_addr("10.20.30.40"),
             "http://10.20.30.40:8080",
         )
 
         with self.assertRaises(ValueError):
-            unified_login_flow2._build_proxy_addr("10.20.30.40:string")
+            app_session_launcher._build_proxy_addr("10.20.30.40:string")
 
         self.assertEqual(
-            unified_login_flow2._build_proxy_addr("10.20.30.40:3128"),
+            app_session_launcher._build_proxy_addr("10.20.30.40:3128"),
             "http://10.20.30.40:3128",
         )
 
         self.assertEqual(
-            unified_login_flow2._build_proxy_addr("u:p@10.20.30.40"),
+            app_session_launcher._build_proxy_addr("u:p@10.20.30.40"),
             "http://u:p@10.20.30.40:8080",
         )
 
@@ -79,15 +79,15 @@ class ULF2Tests(ShotgunTestBase):
     def test_get_product_name(self):
         # Validate the default product name
         self.assertEqual(
-            unified_login_flow2.get_product_name(),
-            unified_login_flow2.PRODUCT_DEFAULT,
+            app_session_launcher.get_product_name(),
+            app_session_launcher.PRODUCT_DEFAULT,
         )
 
         # Validate the FLAME product name
         os.environ["SHOTGUN_FLAME_CONFIGPATH"] = "/flame"
         os.environ["SHOTGUN_FLAME_VERSION"] = "1.2.3"
         self.assertEqual(
-            unified_login_flow2.get_product_name(),
+            app_session_launcher.get_product_name(),
             "Flame 1.2.3",
         )
 
@@ -98,8 +98,8 @@ class ULF2Tests(ShotgunTestBase):
             [os.path.join("Applications", "ShotGun.exe")],
         ):
             self.assertEqual(
-                unified_login_flow2.get_product_name(),
-                unified_login_flow2.PRODUCT_DESKTOP,
+                app_session_launcher.get_product_name(),
+                app_session_launcher.PRODUCT_DESKTOP,
             )
 
         # Validate Engine host info
@@ -113,19 +113,19 @@ class ULF2Tests(ShotgunTestBase):
             "tank.platform.current_engine", MyEngine,
         ):
             self.assertEqual(
-                unified_login_flow2.get_product_name(),
+                app_session_launcher.get_product_name(),
                 "ShotGrid Desktop 3.2.1",
             )
 
         # Validate the TK_AUTH_PRODUCT environment variable
         os.environ["TK_AUTH_PRODUCT"] = "software_8b1a7bd"
         self.assertEqual(
-            unified_login_flow2.get_product_name(),
+            app_session_launcher.get_product_name(),
             "software_8b1a7bd",
         )
 
 
-class ULF2APITests(ShotgunTestBase):
+class AppSessionLauncherAPITests(ShotgunTestBase):
     def setUp(self):
         self.httpd = MyTCPServer()
         self.httpd.start()
@@ -163,7 +163,7 @@ class ULF2APITests(ShotgunTestBase):
             return True
 
         self.assertEqual(
-            unified_login_flow2.process(
+            app_session_launcher.process(
                 self.api_url,
                 url_opener,  # browser_open_callback
                 http_proxy="{fqdn}:{port}".format(  # For code coverage
@@ -185,8 +185,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.stop()
         self.httpd.server_close()  # To unbind the port
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -249,7 +249,7 @@ class ULF2APITests(ShotgunTestBase):
         ] = api_put_handler
 
         self.assertEqual(
-            unified_login_flow2.process(
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             ),
@@ -259,8 +259,8 @@ class ULF2APITests(ShotgunTestBase):
     @mock.patch("time.sleep")
     def test_post_request(self, *mocks):
         # First test with an empty HTTP server
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -273,8 +273,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "code": 500
         }
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -289,8 +289,8 @@ class ULF2APITests(ShotgunTestBase):
             raise AttributeError("test")
 
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -308,8 +308,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "code": 501
         }
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -322,8 +322,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router[
             "[POST]/internal_api/app_session_request"
         ] = lambda request: {}
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -337,8 +337,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {
             "json": {}
         }
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -353,8 +353,8 @@ class ULF2APITests(ShotgunTestBase):
             "code": 400,
             "json": {"message": "missing parameters"},
         }
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -369,8 +369,8 @@ class ULF2APITests(ShotgunTestBase):
             "headers": {"Content-Type": "application/json"},
         }
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -385,8 +385,8 @@ class ULF2APITests(ShotgunTestBase):
             "json": True
         }
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -403,8 +403,8 @@ class ULF2APITests(ShotgunTestBase):
             }
         }
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -423,8 +423,8 @@ class ULF2APITests(ShotgunTestBase):
         }
 
         # Expect a 404 on the PUT request
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
             )
@@ -442,8 +442,8 @@ class ULF2APITests(ShotgunTestBase):
             }
         }
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: False,  # browser_open_callback
             )
@@ -467,8 +467,8 @@ class ULF2APITests(ShotgunTestBase):
         # Install a proper POST request handler
         self.httpd.router["[POST]/internal_api/app_session_request"] = api_handler1
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
                 product="app_2a37c59",
@@ -503,8 +503,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router[
             "[PUT]/internal_api/app_session_request/a1b2c3"
         ] = api_handler1
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 url_opener,  # browser_open_callback
             )
@@ -528,8 +528,8 @@ class ULF2APITests(ShotgunTestBase):
         self.httpd.router[
             "[PUT]/internal_api/app_session_request/a1b2c3"
         ] = lambda request: {"json": {"approved": False}}
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
@@ -541,8 +541,8 @@ class ULF2APITests(ShotgunTestBase):
             "[PUT]/internal_api/app_session_request/a1b2c3"
         ] = lambda request: {"json": {}}
 
-        with self.assertRaises(unified_login_flow2.AuthenticationError) as cm:
-            unified_login_flow2.process(
+        with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
+            app_session_launcher.process(
                 self.api_url,
                 lambda url: True,  # browser_open_callback
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout

@@ -10,12 +10,12 @@
 
 METHOD_BASIC = 0x01
 METHOD_WEB_LOGIN = 0x02
-METHOD_ULF2 = 0x03
+METHOD_ASL = 0x03
 
 method_resolve = {
     METHOD_BASIC: "credentials",
     METHOD_WEB_LOGIN: "qt_web_login",
-    METHOD_ULF2: "app_session_launcher",
+    METHOD_ASL: "app_session_launcher",
 }
 
 
