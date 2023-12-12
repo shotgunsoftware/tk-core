@@ -14,7 +14,7 @@ resources:
     - repository: templates
       type: github
       name: shotgunsoftware/tk-ci-tools
-      ref: refs/heads/master
+      ref: SG-31854_Update_Build_ResourcesSh_Scripts_To_Prevent_Making_Invisible_Changes_To_All_Png_Files
       endpoint: shotgunsoftware
 
 # We want builds to trigger for 3 reasons:
