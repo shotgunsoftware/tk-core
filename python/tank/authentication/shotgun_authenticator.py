@@ -106,7 +106,9 @@ class ShotgunAuthenticator(object):
             # Not all credentials were found, so there is no default user.
             return None
 
-    def get_user_from_prompt(self, host=None, login=None, http_proxy=None, is_host_fixed=None):
+    def get_user_from_prompt(
+        self, host=None, login=None, http_proxy=None, is_host_fixed=None
+    ):
         """
         Display a UI prompt (QT based UI if possible but may fall back on console)
 
