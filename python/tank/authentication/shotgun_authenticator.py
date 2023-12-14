@@ -106,11 +106,18 @@ class ShotgunAuthenticator(object):
             # Not all credentials were found, so there is no default user.
             return None
 
-    def get_user_from_prompt(self):
+    def get_user_from_prompt(
+        self, host=None, login=None, http_proxy=None, is_host_fixed=None
+    ):
         """
         Display a UI prompt (QT based UI if possible but may fall back on console)
 
-        The DefaultsManager is called to pre-fill the host and login name.
+        The DefaultsManager is called to pre-fill the host, login name, http_proxy and is_host_fixed if not provided.
+
+        :param host: Shotgun host to log in to. If None, the default host will be used.
+        :param login: Shotgun user login. If None, the default login will be used.
+        :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
+        :param is_host_fixed: Weither the host is fixed or not. If None, the default value will be used.
 
         :raises AuthenticationCancelled: If the user cancels the authentication process,
                                          an AuthenticationCancelled is thrown.
@@ -123,10 +130,10 @@ class ShotgunAuthenticator(object):
             session_token,
             session_metadata,
         ) = interactive_authentication.authenticate(
-            self._defaults_manager.get_host(),
-            self._defaults_manager.get_login(),
-            self._defaults_manager.get_http_proxy(),
-            self._defaults_manager.is_host_fixed(),
+            host or self._defaults_manager.get_host(),
+            login or self._defaults_manager.get_login(),
+            http_proxy or self._defaults_manager.get_http_proxy(),
+            is_host_fixed or self._defaults_manager.is_host_fixed(),
         )
         return self.create_session_user(
             login=login,
