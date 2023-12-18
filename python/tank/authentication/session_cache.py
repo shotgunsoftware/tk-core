@@ -221,7 +221,9 @@ def _try_load_site_authentication_file(file_path):
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
     content.setdefault(_RECENT_USERS, [])
-    content.setdefault(_PREFERRED_METHOD, None)
+
+    if content.get(_PREFERRED_METHOD, "not null") is None:
+        del(content[_PREFERRED_METHOD])
 
     for user in content[_USERS]:
         user[_LOGIN] = user[_LOGIN].strip()
@@ -552,7 +554,7 @@ def get_preferred_method(host):
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
     document = _try_load_site_authentication_file(info_path)
-    method_name = document[_PREFERRED_METHOD]
+    method_name = document.get(_PREFERRED_METHOD)
     if not method_name:
         return
 
@@ -576,7 +578,7 @@ def set_preferred_method(host, method):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    if current_user_file[_PREFERRED_METHOD] == method_name:
+    if current_user_file.get(_PREFERRED_METHOD) == method_name:
         return
 
     current_user_file[_PREFERRED_METHOD] = method_name

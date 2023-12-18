@@ -164,6 +164,7 @@ class LoginDialog(QtGui.QDialog):
 
         self.host_selected = None
         self.method_selected = auth_constants.METHOD_BASIC
+        self.method_selected_user = None
 
         self._asl_task = None
 
@@ -464,6 +465,7 @@ class LoginDialog(QtGui.QDialog):
         """
 
         site = self._query_task.url_to_test
+        self.method_selected_user = None
 
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
@@ -490,7 +492,7 @@ class LoginDialog(QtGui.QDialog):
         if can_use_asl:
             if method_selected:
                 # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
-                session_cache.set_preferred_method(site, method_selected)
+                self.method_selected_user = method_selected
             elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 # Selecting legacy auth by default
                 method_selected = auth_constants.METHOD_BASIC
@@ -506,6 +508,7 @@ class LoginDialog(QtGui.QDialog):
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
+            self.method_selected_user = None
 
         if not method_selected and os.environ.get("SGTK_DEFAULT_AUTH_METHOD"):
             method_selected = auth_constants.method_resolve_reverse(
@@ -777,6 +780,10 @@ class LoginDialog(QtGui.QDialog):
                 self._set_error_message(self.ui.message, "Please enter your password.")
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
                 return
+
+        # Memorize the chosen method in session cache
+        if self.method_selected_user:
+            session_cache.set_preferred_method(site, self.method_selected_user)
 
         try:
             self._authenticate(self.ui.message, site, login, password)
