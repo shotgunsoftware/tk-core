@@ -379,7 +379,8 @@ When using a ``path`` descriptor in production, you can include paths to multipl
 
     sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c:\path\to\app
 
-Environment variables can be included in paths:
+Environment variables can be included in paths, they will be expanded using :py:func:`os.path.expandvars` and :py:func:`os.path.expanduser`.
+This is only supported in ``dev`` and ``path`` descriptors.
 
 .. code-block:: yaml
 
