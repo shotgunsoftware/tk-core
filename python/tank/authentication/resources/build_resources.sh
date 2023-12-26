@@ -49,5 +49,5 @@ echo "building user interfaces..."
 build_ui login_dialog
 
 ## build resources
-#echo "building resources..."
-#build_res resources
+echo "building resources..."
+build_res resources
