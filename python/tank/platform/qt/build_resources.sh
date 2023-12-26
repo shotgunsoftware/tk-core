@@ -14,7 +14,7 @@
 PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 
 # Remove any problematic profiles from pngs.
-for f in *.png; do mogrify $f; done
+#for f in *.png; do mogrify $f; done
 
 # The path to output all built .py files to:
 UI_PYTHON_PATH=.
@@ -27,7 +27,7 @@ function build_qt {
     $1 $2 > $UI_PYTHON_PATH/$3.py
 
     # replace PySide imports with local imports and remove line containing Created by date
-    sed -i $UI_PYTHON_PATH/$3.py -e "s/from PySide import/from . import/g" -e "/# Created:/d"
+    sed -i "" -e "s/from PySide import/from sgtk.platform.qt import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
 }
 
 function build_ui {
