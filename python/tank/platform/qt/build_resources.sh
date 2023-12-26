@@ -26,8 +26,8 @@ function build_qt {
     # compile ui to python
     $1 $2 > $UI_PYTHON_PATH/$3.py
 
-    # replace PySide imports with sgtk.platform.qt and remove line containing Created by date
-    sed -i "" -e "s/from PySide import/from sgtk.platform.qt import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
+    # replace PySide imports with local imports and remove line containing Created by date
+    sed -i "" -e "s/from PySide import/from . import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
 }
 
 function build_ui {
