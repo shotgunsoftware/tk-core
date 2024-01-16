@@ -130,7 +130,10 @@ class BundleDescriptor(Descriptor):
         reasons = []
 
         self._test_version_constraint(
-            "min_sg", self._get_sg_version(self._sg_connection), "Flow Production Tracking", reasons
+            "min_sg",
+            self._get_sg_version(self._sg_connection),
+            "Flow Production Tracking",
+            reasons,
         )
         self._test_version_constraint(
             "min_core",

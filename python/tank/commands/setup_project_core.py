@@ -104,7 +104,9 @@ def _run_distributed_project_setup(log, sg, setup_params):
         raise TankError("Auto path mode cannot be used with distributed setups.")
 
     # Create Project.tank_name and PipelineConfiguration records in Shotgun
-    setup_params.report_progress_from_installer("Registering in Flow Production Tracking...")
+    setup_params.report_progress_from_installer(
+        "Registering in Flow Production Tracking..."
+    )
 
     project_id = setup_params.get_project_id()
     if project_id:
@@ -115,7 +117,9 @@ def _run_distributed_project_setup(log, sg, setup_params):
     if project_id:
         log.info("Registering Toolkit project with SG Project...")
         project_name = setup_params.get_project_disk_name()
-        log.debug("Flow Production Tracking: Setting Project.tank_name to %s" % project_name)
+        log.debug(
+            "Flow Production Tracking: Setting Project.tank_name to %s" % project_name
+        )
         sg.update("Project", project_id, {"tank_name": project_name})
 
     log.info("Creating Pipeline Configuration in Flow Production Tracking...")
@@ -291,7 +295,9 @@ def _run_centralized_project_setup(log, sg, setup_params):
     #
     # This logic has some special complexity when the auto_path mode is in use.
 
-    setup_params.report_progress_from_installer("Registering in Flow Production Tracking...")
+    setup_params.report_progress_from_installer(
+        "Registering in Flow Production Tracking..."
+    )
 
     project_id = setup_params.get_project_id()
     if project_id:
@@ -314,7 +320,10 @@ def _run_centralized_project_setup(log, sg, setup_params):
             data = sg.find_one("Project", [["id", "is", project_id]], ["tank_name"])
             if data["tank_name"] is None:
                 log.info("Registering project in Flow Production Tracking...")
-                log.debug("Flow Production Tracking: Setting Project.tank_name to %s" % project_name)
+                log.debug(
+                    "Flow Production Tracking: Setting Project.tank_name to %s"
+                    % project_name
+                )
                 sg.update("Project", project_id, {"tank_name": project_name})
 
             else:
@@ -359,7 +368,10 @@ def _run_centralized_project_setup(log, sg, setup_params):
         if project_id:
             log.info("Registering project in Flow Production Tracking...")
             project_name = setup_params.get_project_disk_name()
-            log.debug("Flow Production Tracking: Setting Project.tank_name to %s" % project_name)
+            log.debug(
+                "Flow Production Tracking: Setting Project.tank_name to %s"
+                % project_name
+            )
             sg.update("Project", project_id, {"tank_name": project_name})
 
         log.info("Creating Pipeline Configuration in Flow Production Tracking...")
