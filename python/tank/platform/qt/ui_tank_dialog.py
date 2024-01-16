@@ -300,7 +300,7 @@ class Ui_TankDialog(object):
         self.label_5.setText(QtGui.QApplication.translate("TankDialog", "Your Current Work Area", None, QtGui.QApplication.UnicodeUTF8))
         self.app_work_area_info.setText(QtGui.QApplication.translate("TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_file_system.setText(QtGui.QApplication.translate("TankDialog", "Jump to File System", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_shotgun.setText(QtGui.QApplication.translate("TankDialog", "Jump to ShotGrid", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_shotgun.setText(QtGui.QApplication.translate("TankDialog", "Jump to Flow Production Tracking", None, QtGui.QApplication.UnicodeUTF8))
         self.app_work_area_info_2.setText(QtGui.QApplication.translate("TankDialog", "If you are making changes to configuration or code, use the reload button to quickly load your changes in without having to restart:", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_reload.setText(QtGui.QApplication.translate("TankDialog", "Reload Engine and Apps", None, QtGui.QApplication.UnicodeUTF8))
         self.config_header.setText(QtGui.QApplication.translate("TankDialog", "Configuration", None, QtGui.QApplication.UnicodeUTF8))

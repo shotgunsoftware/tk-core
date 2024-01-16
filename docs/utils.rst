@@ -49,14 +49,14 @@ Here's an example:
         default_site=https://your-site-here.shotgunstudio.com
 
         # If specified, the Toolkit will use these proxy settings to connect to
-        # the ShotGrid site and the Toolkit App Store. The proxy string should be of the
+        # the Flow Production Tracking site and the Toolkit App Store. The proxy string should be of the
         # forms 123.123.123.123, 123.123.123.123:8888 or
         # username:pass@123.123.123.123:8888.
         # Empty by default.
         #
         http_proxy=123.234.345.456:8888
 
-        # If specified, the ShotGrid API will use these proxy settings to connect
+        # If specified, the Flow Production Tracking API will use these proxy settings to connect
         # to the Toolkit App Store. The proxy string format is the same as http_proxy.
         # If the setting is present in the file but not set, then no proxy will be used
         # to connect to the Toolkit App Store, regardless of the value of the http_proxy
@@ -69,28 +69,28 @@ This file can be configured through multiple means and Toolkit will try to resol
 following order:
 
 1. The ``SGTK_PREFERENCES_LOCATION`` environment variable,
-2. The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable, for compatibility with the ShotGrid Desktop. (deprecated)
-3. Inside the ShotGrid Toolkit preferences file
-4. Inside the ShotGrid Desktop preferences file, for compatibility with the ShotGrid Desktop. (deprecated)
+2. The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable, for compatibility with the Flow Production Tracking Toolkit. (deprecated)
+3. Inside the Flow Production Tracking Toolkit preferences file
+4. Inside the Flow Production Tracking Toolkit preferences file, for compatibility with the Flow Production Tracking Toolkit. (deprecated)
 
 .. note::
-    The ShotGrid Toolkit preferences file is located at:
+    The Flow Production Tracking Toolkit preferences file is located at:
 
     - Windows: ``%APPDATA%\Shotgun\Preferences\toolkit.ini``
     - macOS: ``~/Library/Preferences/Shotgun/toolkit.ini``
     - Linux: ``~/.shotgun/preferences/toolkit.ini``
 
-    The ShotGrid Desktop preferences file is located at:
+    The Flow Production Tracking Toolkit preferences file is located at:
 
     - Windows: ``%APPDATA%\Shotgun\desktop\config\config.ini``
     - macOS: ``~/Library/Caches/Shotgun/desktop/config/config.ini``
     - Linux: ``~/.shotgun/desktop/config/config.ini``
 
     Note that the ``SHOTGUN_HOME`` environment variable can impact the location
-    of the ShotGrid Toolkit preferences file.
+    of the Flow Production Tracking Toolkit preferences file.
 
 .. note::
-    When the http proxy is not specified in this file, the ShotGrid Toolkit will try to retrieve
+    When the http proxy is not specified in this file, the Flow Production Tracking Toolkit will try to retrieve
     the operating system http proxy.
 
     First, the environment will be scanned for variables named ``http_proxy``, in case insensitive way.
@@ -104,7 +104,7 @@ following order:
     There is a restriction in these latter cases: the use of proxies which require
     authentication (username and password) is not supported.
 
-    Internally, the ShotGrid Toolkit uses Python function ``urllib.getproxies()`` to retrieve
+    Internally, the Flow Production Tracking Toolkit uses Python function ``urllib.getproxies()`` to retrieve
     the operating system http proxy. More information about this function can be found here:
 
         https://docs.python.org/2/library/urllib.html#urllib.getproxies
@@ -202,10 +202,10 @@ Below are a collection of convenience methods to detect which operating system i
 .. autofunction:: is_macos
 
 
-ShotGrid Related
-=============================
+Flow Production Tracking Related
+================================
 
-Below are a collection of ShotGrid related utility
+Below are a collection of Flow Production Tracking related utility
 and convenience methods:
 
 .. currentmodule:: sgtk.util

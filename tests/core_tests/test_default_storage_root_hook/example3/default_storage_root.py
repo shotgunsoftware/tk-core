@@ -11,7 +11,7 @@ class DefaultStorageRoot(Hook):
     def execute(self, storage_roots, project_id=None, metadata=None):
         """
         Custom implementation sets default root to project-specific storage root path stored
-        in a custom project field on ShotGrid site called "projects root"
+        in a custom project field on Flow Production Tracking site called "projects root"
         """
         if not project_id:
             return

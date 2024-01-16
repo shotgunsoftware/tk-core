@@ -38,8 +38,8 @@ Sgtk
 Authentication
 ==============
 
-Certain API operations require ShotGrid data and hence require a way for the API
-to establish a connection to ShotGrid. The easiest way to handle this is by
+Certain API operations require Flow Production Tracking data and hence require a way for the API
+to establish a connection to Flow Production Tracking. The easiest way to handle this is by
 making sure that each API instance has an associated authenticated user:
 
 .. autofunction:: set_authenticated_user
@@ -128,7 +128,7 @@ and copy it to your configuration's ``core/hooks`` folder.
 .. note::
     A core hook cannot be executed before Toolkit (the :class:`Sgtk` instance) has
     been initialized. This happens when :meth:`ToolkitManager.bootstrap_engine` is
-    called during ShotGrid Desktop bootstrap. Any customization of the core behavior
+    called during Flow Production Tracking Toolkit bootstrap. Any customization of the core behavior
     must be added afterwards.
 
 Here is the list of hooks that be taken over in the Toolkit core.
@@ -261,7 +261,7 @@ Templates
 
 The Toolkit template system is used to handle path and string token manipulations.
 
-Since the ShotGrid Toolkit is file system based, Apps will need to resolve file paths whenever
+Since the Flow Production Tracking Toolkit is file system based, Apps will need to resolve file paths whenever
 they need to read or write data from disk. Apps are file system structure agnostic - meaning
 that they don't know how the file system is organized. The template system handles all this for them.
 
@@ -298,12 +298,12 @@ The template API lets you jump between a list of field values and paths::
     '/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma'
 
 Note how the above path and template has two different types of fields: The Shot and Step fields are
-high-level fields with equivalent objects in ShotGrid (a Shot and a Pipeline Step) where the name and
+high-level fields with equivalent objects in Flow Production Tracking (a Shot and a Pipeline Step) where the name and
 the version fields are very specific to this particular type of template (in this case a publish path.).
 If we wanted to describe a publish path for an asset rather than a shot, we would still have a name
 and a version field, since this is needed for all publishes, regardless of what type of data it is -
 however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
-where the asset field would be associated with an asset in ShotGrid.
+where the asset field would be associated with an asset in Flow Production Tracking.
 
 Template
 =========================================

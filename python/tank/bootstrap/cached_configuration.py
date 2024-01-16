@@ -147,7 +147,7 @@ class CachedConfiguration(Configuration):
         if unmapped_roots:
             raise TankBootstrapError(
                 "This configuration defines one or more storage roots that can "
-                "not be mapped to a local storage defined in ShotGrid. Please "
+                "not be mapped to a local storage defined in Flow Production Tracking. Please "
                 "update the roots.yml file in this configuration to correct "
                 "this issue. Roots file: '%s'. Unmapped storage roots: %s."
                 % (storage_roots.roots_file, ", ".join(unmapped_roots))
@@ -162,7 +162,7 @@ class CachedConfiguration(Configuration):
         if proj_data["tank_name"] is None:
             raise TankMissingTankNameError(
                 "The configuration requires you to specify a value for the project's "
-                "tank_name field in ShotGrid."
+                "tank_name field in Flow Production Tracking."
             )
 
     def status(self):

@@ -91,7 +91,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
             "Flame 1.2.3",
         )
 
-        # Validate ShotGrid Desktop
+        # Validate Flow Production Tracking Toolkit
         with mock.patch.object(
             sys,
             "argv",
@@ -114,7 +114,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
         ):
             self.assertEqual(
                 app_session_launcher.get_product_name(),
-                "ShotGrid Desktop 3.2.1",
+                "Flow Production Tracking Toolkit 3.2.1",
             )
 
         # Validate the TK_AUTH_PRODUCT environment variable
@@ -330,7 +330,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
         )
 
         # 200 with valid empty json
@@ -345,7 +345,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
         )
 
         # 400 with error in json
@@ -393,7 +393,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
         )
 
         # Send a 200 with sessionRequestId but not url field
@@ -411,7 +411,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
 
         self.assertEqual(
             cm.exception.args[0],
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
         )
 
         # Finaly, send a 200 with a sessionRequestId

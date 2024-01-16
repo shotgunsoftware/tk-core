@@ -69,7 +69,7 @@ def run_project_setup(log, sg, setup_params):
             # nor an auto-path where each machine effectively manages its own config
             # for this case, we don't allow the process to proceed if a config exists
             raise TankError(
-                "Cannot set up this project! Pipeline configuration entries already exist in ShotGrid."
+                "Cannot set up this project! Pipeline configuration entries already exist in Flow Production Tracking."
             )
 
         else:
@@ -79,7 +79,7 @@ def run_project_setup(log, sg, setup_params):
                 if x["linux_path"] or x["windows_path"] or x["mac_path"]:
                     raise TankError(
                         "Cannot set up this project! Non-auto-path style pipeline "
-                        "configuration entries already exist in ShotGrid."
+                        "configuration entries already exist in Flow Production Tracking."
                     )
 
     if setup_params.get_distribution_mode() == setup_params.CENTRALIZED_CONFIG:
@@ -104,7 +104,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
         raise TankError("Auto path mode cannot be used with distributed setups.")
 
     # Create Project.tank_name and PipelineConfiguration records in Shotgun
-    setup_params.report_progress_from_installer("Registering in ShotGrid...")
+    setup_params.report_progress_from_installer("Registering in Flow Production Tracking...")
 
     project_id = setup_params.get_project_id()
     if project_id:
@@ -115,10 +115,10 @@ def _run_distributed_project_setup(log, sg, setup_params):
     if project_id:
         log.info("Registering Toolkit project with SG Project...")
         project_name = setup_params.get_project_disk_name()
-        log.debug("ShotGrid: Setting Project.tank_name to %s" % project_name)
+        log.debug("Flow Production Tracking: Setting Project.tank_name to %s" % project_name)
         sg.update("Project", project_id, {"tank_name": project_name})
 
-    log.info("Creating Pipeline Configuration in ShotGrid...")
+    log.info("Creating Pipeline Configuration in Flow Production Tracking...")
     data = {
         "project": sg_project_link,
         "plugin_ids": constants.DEFAULT_PLUGIN_ID,
@@ -132,7 +132,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
 
     # now upload configuration
     setup_params.report_progress_from_installer("Uploading configuration...")
-    log.info("Uploading configuration to ShotGrid...")
+    log.info("Uploading configuration to Flow Production Tracking...")
     setup_params.upload_configuration(pipeline_config_id)
 
 
@@ -248,7 +248,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         os.chmod(sg_code_location, 0o666)
 
     fh = open(sg_code_location, "wt")
-    fh.write("# SG Pipeline Toolkit configuration file\n")
+    fh.write("# Flow Production Tracking Toolkit configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
     fh.write("# This file reflects the paths in the primary pipeline\n")
     fh.write("# configuration defined for this project.\n")
@@ -291,7 +291,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     #
     # This logic has some special complexity when the auto_path mode is in use.
 
-    setup_params.report_progress_from_installer("Registering in ShotGrid...")
+    setup_params.report_progress_from_installer("Registering in Flow Production Tracking...")
 
     project_id = setup_params.get_project_id()
     if project_id:
@@ -313,8 +313,8 @@ def _run_centralized_project_setup(log, sg, setup_params):
         if project_id is not None:
             data = sg.find_one("Project", [["id", "is", project_id]], ["tank_name"])
             if data["tank_name"] is None:
-                log.info("Registering project in ShotGrid...")
-                log.debug("ShotGrid: Setting Project.tank_name to %s" % project_name)
+                log.info("Registering project in Flow Production Tracking...")
+                log.debug("Flow Production Tracking: Setting Project.tank_name to %s" % project_name)
                 sg.update("Project", project_id, {"tank_name": project_name})
 
             else:
@@ -329,7 +329,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
                     )
                     project_name = data["tank_name"]
 
-        log.info("Creating Pipeline Configuration in ShotGrid...")
+        log.info("Creating Pipeline Configuration in Flow Production Tracking...")
         # this is an auto-path project, meaning that shotgun doesn't store the location
         # to the pipeline configuration. Because an auto-path location is often set up
         # on multiple machines, check first if the entry exists and in that case skip creation
@@ -343,7 +343,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         )
 
         if data is None:
-            log.info("Creating Pipeline Configuration in ShotGrid...")
+            log.info("Creating Pipeline Configuration in Flow Production Tracking...")
             data = {
                 "project": sg_project_link,
                 "code": constants.PRIMARY_PIPELINE_CONFIG_NAME,
@@ -357,12 +357,12 @@ def _run_centralized_project_setup(log, sg, setup_params):
     else:
         # normal mode.
         if project_id:
-            log.info("Registering project in ShotGrid...")
+            log.info("Registering project in Flow Production Tracking...")
             project_name = setup_params.get_project_disk_name()
-            log.debug("ShotGrid: Setting Project.tank_name to %s" % project_name)
+            log.debug("Flow Production Tracking: Setting Project.tank_name to %s" % project_name)
             sg.update("Project", project_id, {"tank_name": project_name})
 
-        log.info("Creating Pipeline Configuration in ShotGrid...")
+        log.info("Creating Pipeline Configuration in Flow Production Tracking...")
         data = {
             "project": sg_project_link,
             "linux_path": config_location_linux,
@@ -502,7 +502,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
                 log.warning(
                     "The post install script failed to complete.  This is most likely because it "
                     "is from an old configuration that is attempting to create 'TankType' entities "
-                    "which are now disabled in ShotGrid."
+                    "which are now disabled in Flow Production Tracking."
                 )
             else:
                 log.info("")

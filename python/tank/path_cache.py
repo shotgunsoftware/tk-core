@@ -509,7 +509,7 @@ class PathCache(object):
             sg_batch_data.append(req)
 
         # push to shotgun in a single xact
-        log.debug("Uploading %s path entries to ShotGrid..." % len(sg_batch_data))
+        log.debug("Uploading %s path entries to Flow Production Tracking..." % len(sg_batch_data))
 
         try:
             response = self._tk.shotgun.batch(sg_batch_data)
@@ -904,7 +904,7 @@ class PathCache(object):
                     - path
 
         """
-        log.debug("Fetching already registered folders from ShotGrid...")
+        log.debug("Fetching already registered folders from Flow Production Tracking...")
 
         sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
@@ -1209,7 +1209,7 @@ class PathCache(object):
                         "The path '%s' cannot be processed because it is already associated "
                         % path
                     )
-                    msg += "with %s '%s' (id %s) in ShotGrid. " % (
+                    msg += "with %s '%s' (id %s) in Flow Production Tracking. " % (
                         entity_in_db["type"],
                         entity_in_db["name"],
                         entity_in_db["id"],
@@ -1744,7 +1744,7 @@ class PathCache(object):
         SG_BATCH_SIZE = 50
 
         log.info("")
-        log.info("Step 1 - Downloading current path data from ShotGrid...")
+        log.info("Step 1 - Downloading current path data from Flow Production Tracking...")
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
@@ -1792,7 +1792,7 @@ class PathCache(object):
         log.info(" - %s paths loaded." % len(pc_data))
 
         log.info("")
-        log.info("Step 3 - Culling paths already in ShotGrid.")
+        log.info("Step 3 - Culling paths already in Flow Production Tracking.")
 
         sg_records = []
 
@@ -1861,7 +1861,7 @@ class PathCache(object):
         sg_valid_records = []
         for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
 
-            log.info(" - Checking %s %ss in ShotGrid..." % (len(sg_records_for_et), et))
+            log.info(" - Checking %s %ss in Flow Production Tracking..." % (len(sg_records_for_et), et))
 
             # get the ids from shotgun for the current et.
             sg_ids = [x["entity"]["id"] for x in sg_records_for_et]
@@ -1875,7 +1875,7 @@ class PathCache(object):
                     sg_valid_records.append(sg_record)
                 else:
                     log.info(
-                        " - %s %s has been deleted in ShotGrid. "
+                        " - %s %s has been deleted in Flow Production Tracking. "
                         % (et, sg_record["entity"]["id"])
                     )
 
@@ -1890,12 +1890,12 @@ class PathCache(object):
             event_log_description = "Path cache migration."
             for batch_idx, curr_batch in enumerate(sg_batches):
                 log.info(
-                    "Uploading batch %d/%d to ShotGrid..."
+                    "Uploading batch %d/%d to Flow Production Tracking..."
                     % (batch_idx + 1, len(sg_batches))
                 )
                 self._upload_cache_data_to_shotgun(curr_batch, event_log_description)
 
         log.info("")
         log.info(
-            "Migration complete. %s records created in ShotGrid" % len(sg_valid_records)
+            "Migration complete. %s records created in Flow Production Tracking" % len(sg_valid_records)
         )

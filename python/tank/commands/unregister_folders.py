@@ -35,7 +35,7 @@ class UnregisterFoldersAction(Action):
             self,
             "unregister_folders",
             Action.TK_INSTANCE,
-            ("Unregisters the folders for an object in ShotGrid."),
+            ("Unregisters the folders for an object in Flow Production Tracking."),
             "Admin",
         )
 
@@ -52,7 +52,7 @@ class UnregisterFoldersAction(Action):
 
         self.parameters["entity"] = {
             "description": (
-                "Entity to unregister. Should be a ShotGrid-style entity "
+                "Entity to unregister. Should be a Flow Production Tracking-style entity "
                 "dictionary with keys 'type' and 'id'."
             ),
             "default": None,
@@ -82,7 +82,7 @@ class UnregisterFoldersAction(Action):
         if not self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
             # remote cache not turned on for this project
             log.error(
-                "Looks like this project doesn't synchronize its folders with ShotGrid! "
+                "Looks like this project doesn't synchronize its folders with Flow Production Tracking! "
                 "If you'd like to upgrade your path cache to turn on synchronization for "
                 "this project, run the 'tank upgrade_folders' command."
             )
@@ -343,7 +343,7 @@ class UnregisterFoldersAction(Action):
         log.info(
             "This is useful if you have renamed an Asset or Shot and want to move its "
             "files to a new location on disk. In this case, start by unregistering the "
-            "folders for the entity, then rename the Shot or Asset in ShotGrid. "
+            "folders for the entity, then rename the Shot or Asset in Flow Production Tracking. "
             "Next, create new folders on disk using Toolkit's 'create folders' "
             "command. Finally, move the files to the new location on disk."
         )
@@ -356,7 +356,7 @@ class UnregisterFoldersAction(Action):
                 log.info("Exiting! Nothing was unregistered.")
                 return []
 
-        log.info("Unregistering folders from ShotGrid...")
+        log.info("Unregistering folders from Flow Production Tracking...")
         log.info("")
 
         path_cache.PathCache.remove_filesystem_location_entries(self.tk, path_ids)

@@ -157,7 +157,7 @@ class StorageRoots(object):
         if unmapped_roots:
             raise TankError(
                 "The following storages are defined by %s but can not be "
-                "mapped to a local storage in ShotGrid: %s"
+                "mapped to a local storage in Flow Production Tracking: %s"
                 % (roots_file, ", ".join(unmapped_roots))
             )
 

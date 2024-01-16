@@ -1000,7 +1000,7 @@ class ToolkitManager(object):
 
         elif self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
-            log.debug("Checking for pipeline configuration overrides in ShotGrid.")
+            log.debug("Checking for pipeline configuration overrides in Flow Production Tracking.")
             log.debug(
                 "In order to turn this off, set do_shotgun_config_lookup to False"
             )

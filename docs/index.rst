@@ -1,5 +1,5 @@
-ShotGrid pipeline toolkit core platform, |release|
-####################################################
+Flow Production Tracking Toolkitt core platform, |release|
+##########################################################
 
 .. toctree::
     :maxdepth: 2

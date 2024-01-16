@@ -917,7 +917,7 @@ class Engine(TankBundle):
         In most cases, commands will appear as items on a Shotgun dropdown
         menu, but it ultimately depends on the engine - in the Shell engine,
         commands are instead represented as a text base listing and in the
-        Shotgun Desktop it is a scrollable list of larger icons.
+        Flow Production Tracking Toolkit it is a scrollable list of larger icons.
 
         .. note:: This method is used to add menu entries for launching
            toolkit UIs. If you wish to register a panel UI with toolkit,

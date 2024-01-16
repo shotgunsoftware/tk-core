@@ -35,7 +35,7 @@ class SynchronizePathCache(Action):
             "synchronize_folders",
             Action.TK_INSTANCE,
             (
-                "Ensures that the local folders and folder metadata is up to date with ShotGrid."
+                "Ensures that the local folders and folder metadata is up to date with Flow Production Tracking."
             ),
             "Admin",
         )
@@ -106,7 +106,7 @@ class SynchronizePathCache(Action):
         else:
             # remote cache not turned on for this project
             log.error(
-                "Looks like this project doesn't synchronize its folders with ShotGrid! "
+                "Looks like this project doesn't synchronize its folders with Flow Production Tracking! "
                 "If you want to turn on synchronization for this project, run "
                 "the 'upgrade_folders' tank command."
             )
@@ -146,7 +146,7 @@ class PathCacheMigrationAction(Action):
         log.info("")
         log.info(
             "Projects created with Toolkit v0.14 and earlier do not automatically synchronize "
-            "their folders on disk with ShotGrid. You can use this command to turn on that folder "
+            "their folders on disk with Flow Production Tracking. You can use this command to turn on that folder "
             "sync."
         )
         log.info("")
@@ -164,7 +164,7 @@ class PathCacheMigrationAction(Action):
         log.info(
             "Note! If you have any cloned pipeline configurations for this project, you must run "
             "'tank upgrade_folders' for each one of them in order for them to pick up folders "
-            "from ShotGrid."
+            "from Flow Production Tracking."
         )
         log.info("")
         val = input(
@@ -177,7 +177,7 @@ class PathCacheMigrationAction(Action):
         # first load up the current path cache file and make sure
         # shotgun has got all those entries present as FilesystemLocations.
         log.info("")
-        log.info("Phase 1/3: Pushing data from the current path cache to ShotGrid...")
+        log.info("Phase 1/3: Pushing data from the current path cache to Flow Production Tracking...")
         curr_pc = path_cache.PathCache(self.tk)
         try:
             curr_pc.ensure_all_entries_are_in_shotgun()
@@ -192,7 +192,7 @@ class PathCacheMigrationAction(Action):
 
         # and synchronize path cache
         log.info("")
-        log.info("Phase 3/3: Synchronizing your local machine with ShotGrid...")
+        log.info("Phase 3/3: Synchronizing your local machine with Flow Production Tracking...")
         pc = path_cache.PathCache(self.tk)
         try:
             pc.synchronize(full_sync=True)
@@ -201,7 +201,7 @@ class PathCacheMigrationAction(Action):
 
         log.info("")
         log.info(
-            "All done! This project and pipeline configuration is now synchronizing its folders with ShotGrid."
+            "All done! This project and pipeline configuration is now synchronizing its folders with Flow Production Tracking."
         )
         log.info("")
         log.info(

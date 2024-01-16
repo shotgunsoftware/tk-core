@@ -612,7 +612,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             limit=limit,
         )
 
-        log.debug("Downloaded data for %d versions from ShotGrid." % len(sg_versions))
+        log.debug("Downloaded data for %d versions from Flow Production Tracking." % len(sg_versions))
 
         # now filter out all labels that aren't matching
         matching_records = []
@@ -873,7 +873,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         if not data["script_name"] or not data["script_key"]:
             raise InvalidAppStoreCredentialsError(
-                "Toolkit App Store credentials could not be retrieved from ShotGrid.\n"
+                "Toolkit App Store credentials could not be retrieved from Flow Production Tracking.\n"
                 "Please contact support at %s to resolve this issue." % SUPPORT_URL
             )
 

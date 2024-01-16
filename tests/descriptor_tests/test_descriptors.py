@@ -746,7 +746,7 @@ class TestConstraintValidation(unittest.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least ShotGrid .* but currently installed version is .*\.",
+            r"Requires at least Flow Production Tracking .* but currently installed version is .*\.",
         )
 
     def test_min_core_constraint_pass(self):
@@ -862,7 +862,7 @@ class TestConstraintValidation(unittest.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least SG Desktop.* but currently installed version is .*\.",
+            r"Requires at least Flow Production Tracking Toolkit.* but currently installed version is .*\.",
         )
 
     @mock.patch(
@@ -923,7 +923,7 @@ class TestConstraintValidation(unittest.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least SG Desktop v3.3.4 but no version was specified",
+            "Requires at least Flow Production Tracking Toolkit v3.3.4 but no version was specified",
         )
 
 

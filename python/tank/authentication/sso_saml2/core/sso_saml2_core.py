@@ -132,7 +132,7 @@ def get_renew_path(session):
     # When this variable is set for a SSO domain, skip the initial login page.
     tk_shotgun_sso_domain = os.getenv("TK_SHOTGRID_SSO_DOMAIN")
 
-    # ShotGrid's renew endpoint supports some useful
+    # Flow Production Tracking's renew endpoint supports some useful
     # Autodesk Identity params.
     if tk_shotgun_default_login:
         renew_params["email"] = tk_shotgun_default_login
@@ -408,7 +408,7 @@ class SsoSaml2Core(object):
 
             # Ensure that the background color is not controlled by the login page.
             # We want to be able to display any login dialog page without having
-            # the night theme of the SG Desktop impacting it. White is the safest
+            # the night theme of the Flow Production Tracking Toolkit impacting it. White is the safest
             # background color.
             self._view.setStyleSheet("background-color:white;")
 
@@ -888,7 +888,7 @@ class SsoSaml2Core(object):
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
             message = (
                 "<p>Your company has configured Single Sign-On (SSO) for the SG site %s"
-                "<p>Please authenticate with your computer login and password to log into ShotGrid."
+                "<p>Please authenticate with your computer login and password to log into Flow Production Tracking."
                 "<p>"
             )
             auth_dialog = UsernamePasswordDialog(message=message % self._session.host)
@@ -931,14 +931,14 @@ class SsoSaml2Core(object):
             # Having separate Chromium profile persistency location have been proven
             # necessary for a few reasons:
             # - Because all of the cookies are serialized to the user's cache, this makes
-            #   the session_metadata property increase in size over time. The SG Desktop
+            #   the session_metadata property increase in size over time. The Flow Production Tracking Toolkit
             #   serializes the user's properties as environment variables when starting
             #   desktop-linked apps. On Windows, there is a maximum length of 32676 bytes
             #   for them.
             # - By splitting Chromium profiles on a per-site basis (as is the case with
             #   the user infos), we reduce the chances of busting that 32767 limit. It is
             #   still possible for a user to reach it (as cookies accumulate). But then
-            #   the easy fix is to sign-out of the SG Desktop (or clear_default_user()).
+            #   the easy fix is to sign-out of the Flow Production Tracking Toolkit (or clear_default_user()).
             # - When a user signs out of a site, that site's user data (and session_metadata)
             #   is cleared. At authentication time, if we see that there are no cookies
             #   present, we clear whatever cookies are present in the local Chromium

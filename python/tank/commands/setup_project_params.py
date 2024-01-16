@@ -227,7 +227,7 @@ class ProjectSetupParameters(object):
 
             if not storage_data[storage_name]["defined_in_shotgun"]:
                 raise TankError(
-                    "The storage '%s' required by the configuration has not been defined in ShotGrid. "
+                    "The storage '%s' required by the configuration has not been defined in Flow Production Tracking. "
                     "In order to fix this, please navigate to the Site Preferences in SG "
                     "and set up a new local file storage." % storage_name
                 )
@@ -472,7 +472,7 @@ class ProjectSetupParameters(object):
             # zip up
             zip_file(temp_config, temp_zip)
 
-            self._log.debug("Uploading confguration to ShotGrid...")
+            self._log.debug("Uploading confguration to Flow Production Tracking...")
             self._sg.upload(
                 constants.PIPELINE_CONFIGURATION_ENTITY,
                 pipeline_config_id,
@@ -921,7 +921,7 @@ class ProjectSetupParameters(object):
                 raise TankError(
                     "SG site is missing a PipelineConfiguration.uploaded_config "
                     "field, required for distributed configs to work correctly. Please update to "
-                    "a more recent version of ShotGrid."
+                    "a more recent version of Flow Production Tracking."
                 )
         else:
             # checks for centralized config

@@ -66,7 +66,7 @@ class DefaultsManager(object):
         interactive authentication. When the host is not fixed (see the
         :meth:`is_host_fixed` method), the return value of get_host is what is
         used to implement single sign-on between all Toolkit desktop
-        applications (at the moment, tank and Shotgun Desktop).
+        applications (at the moment, tank and Flow Production Tracking Toolkit).
 
         The default implementation will return the fixed host if one was provided
         during the initialization. If fixed host was provided, the default

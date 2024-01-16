@@ -391,7 +391,7 @@ class Entity(Folder):
                     # field was none! - cannot handle that!
                     raise TankError(
                         "The %s %s has a required field %s that \ndoes not have a value "
-                        "set in ShotGrid. \nDouble check the values and try "
+                        "set in Flow Production Tracking. \nDouble check the values and try "
                         "again!\n" % (self._entity_type, name, field)
                     )
 

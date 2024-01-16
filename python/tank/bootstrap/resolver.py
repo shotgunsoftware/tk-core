@@ -214,7 +214,7 @@ class ConfigurationResolver(object):
             # latest available version when running Python 2.
             # This cover the following case:
             #
-            # * SG Desktop is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
+            # * Flow Production Tracking Toolkit is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
             #   environment variable to '2'and it will startup the tk-desktop engine for
             #   the Site configuration.
             #
@@ -341,7 +341,7 @@ class ConfigurationResolver(object):
         # get the pipeline configs for the current project which are
         # either the primary or is associated with the currently logged in user.
         # also get the pipeline configs for the site level (project=None)
-        log.debug("Requesting pipeline configurations from ShotGrid...")
+        log.debug("Requesting pipeline configurations from Flow Production Tracking...")
 
         if pipeline_config_name is None:
             # If nothing was specified, we need to pick pipeline configurations...
@@ -891,7 +891,7 @@ class ConfigurationResolver(object):
                 "Will use pipeline configuration id '%s'" % pipeline_config_identifier
             )
 
-            log.debug("Requesting pipeline configuration data from ShotGrid...")
+            log.debug("Requesting pipeline configuration data from Flow Production Tracking...")
 
             # Fetch the one and only config that matches this id.
             pipeline_config = sg_connection.find_one(
@@ -903,7 +903,7 @@ class ConfigurationResolver(object):
             # If it doesn't exist, we're in trouble.
             if pipeline_config is None:
                 raise TankBootstrapError(
-                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in ShotGrid."
+                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Flow Production Tracking."
                     % (pipeline_config_identifier, self._proj_entity_dict["id"])
                 )
 

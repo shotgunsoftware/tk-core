@@ -102,7 +102,7 @@ class SetupProjectFactoryAction(Action):
 
         # now connect to shotgun
         try:
-            log.info("Connecting to ShotGrid...")
+            log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target SG server! (v%s)" % sg_version)
@@ -760,8 +760,8 @@ class SetupProjectWizard(object):
             # the site we are configuring supports the authentication module, ie,
             # Shotgun 6.0.2 and greater.
 
-            # this is primarily targeting the Shotgun desktop, meaning that even if
-            # the shotgun desktop's site configuration contains script credentials,
+            # this is primarily targeting the flow production tracking toolkit, meaning that even if
+            # the flow production tracking toolkit's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
             config_path = self._params.get_configuration_location(sgsix.platform)

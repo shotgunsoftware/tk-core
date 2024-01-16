@@ -212,7 +212,7 @@ class TankQDialog(TankDialogBase):
         else:
             self.ui.label.setText(title)
 
-        self.setWindowTitle("ShotGrid: %s" % title)
+        self.setWindowTitle("Flow Production Tracking: %s" % title)
         if os.path.exists(bundle.icon_256):
             self._window_icon = QtGui.QIcon(bundle.icon_256)
             self.setWindowIcon(self._window_icon)
@@ -332,7 +332,7 @@ class TankQDialog(TankDialogBase):
             tooltip += "<b>System Information</b>"
             tooltip += "<hr>"
             tooltip += (
-                "<b>SG Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
+                "<b>Flow Production Tracking Toolkit Version: </b>%s<br>" % self._bundle.tank.version
             )
             tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
             tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()

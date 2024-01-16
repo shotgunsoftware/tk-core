@@ -29,7 +29,7 @@ class ClearCacheAction(Action):
             (
                 "Clears the SG Menu Cache associated with this Configuration. "
                 "This is sometimes useful after complex configuration changes if new "
-                "or modified Toolkit menu items are not appearing inside ShotGrid."
+                "or modified Toolkit menu items are not appearing inside Flow Production Tracking."
             ),
             "Admin",
         )
@@ -99,7 +99,7 @@ class InteractiveShellAction(Action):
             raise TankError("This command takes no arguments!")
 
         msg = []
-        msg.append("Welcome to SG Pipeline Toolkit Python!")
+        msg.append("Welcome to Flow Production Tracking Toolkit Python!")
         msg.append(sys.version)
         msg.append("Running on %s" % sys.platform)
         msg.append("")

@@ -1,7 +1,7 @@
 Overview
 ####################################################
 
-Welcome to the ShotGrid pipeline Toolkit developer and reference documentation.
+Welcome to the Flow Production Tracking Toolkit developer and reference documentation.
 Below you will find a detailed technical reference of all Toolkit Core APIs as well
 as information useful for developers and engineers.
 
@@ -9,7 +9,7 @@ What is the Toolkit Platform?
 ----------------------------------------
 
 The toolkit Core platform consists of a number of different APIs and subsystems
-used to run the ShotGrid toolkit platform.
+used to run the Flow Production Tracking toolkit platform.
 
 .. image:: ./resources/overview/overview.png
     :width: 650px
@@ -17,12 +17,12 @@ used to run the ShotGrid toolkit platform.
 
 The toolkit core platform includes the following systems:
 
-- A standard ShotGrid :ref:`authentication API<authentication>` which centralizes user interaction
+- A standard Flow Production Tracking :ref:`authentication API<authentication>` which centralizes user interaction
   and persistence of authentication information.
 
 - A :ref:`Descriptor API<descriptor>` which handles remote resource management, code and
   config and distribution and connects the Toolkit platform to
-  ShotGrid, the ShotGrid App Store, git and other systems.
+  Flow Production Tracking, the Flow Production Tracking App Store, git and other systems.
 
 - APIs for launching applications, creating plugins and managing
   the :ref:`launch and initialization<init_and_startup>` of the Toolkit Platform.

@@ -718,7 +718,7 @@ class Context(object):
         Any Context object can be serialized to/deserialized from a string.
         This can be useful if you need to pass a Context between different processes.
         As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-        from the launch process (e.g. for example Shotgun Desktop) to the
+        from the launch process (e.g. for example Flow Production Tracking Toolkit) to the
         Application (e.g. Maya) being launched. Example:
 
             >>> import sgtk
@@ -1323,7 +1323,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         if sg_entity is None:
             raise TankError(
-                "Entity %s with id %s not found in ShotGrid!" % (entity_type, entity_id)
+                "Entity %s with id %s not found in Flow Production Tracking!" % (entity_type, entity_id)
             )
 
         if sg_entity.get("task"):
@@ -1816,7 +1816,7 @@ def _task_from_sg(tk, task_id, additional_fields=None):
         "Task", [["id", "is", task_id]], standard_fields + additional_fields
     )
     if not task:
-        raise TankError("Unable to locate Task with id %s in ShotGrid" % task_id)
+        raise TankError("Unable to locate Task with id %s in Flow Production Tracking" % task_id)
 
     # add task so it can be processed with other shotgun entities
     task["task"] = {"type": "Task", "id": task_id, "name": task["content"]}
@@ -1876,7 +1876,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     if not data:
         raise TankError(
-            "Unable to locate %s with id %s in ShotGrid" % (entity_type, entity_id)
+            "Unable to locate %s with id %s in Flow Production Tracking" % (entity_type, entity_id)
         )
 
     # create context

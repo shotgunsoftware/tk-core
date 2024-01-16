@@ -280,7 +280,7 @@ class EntityExpression(object):
                     "Folder Configuration Error: "
                     "A SG field '%s' is being requested as part of the expression "
                     "'%s' when creating folders connected to entities of type %s, "
-                    "however no such field exists in ShotGrid. Please review your "
+                    "however no such field exists in Flow Production Tracking. Please review your "
                     "configuration!"
                     % (field_name, self._field_name_expr, self._entity_type)
                 )

@@ -10,8 +10,8 @@ APIs and workflows related to this process.
 Introduction
 ----------------------------------
 
-Toolkit is controlled using *Pipeline Configuration Entities*. Each Project in ShotGrid can have one or
-more of these entities associated. The ShotGrid entity either contains Toolkit configuration settings
+Toolkit is controlled using *Pipeline Configuration Entities*. Each Project in Flow Production Tracking can have one or
+more of these entities associated. The Flow Production Tracking entity either contains Toolkit configuration settings
 directly, or points to a location where these can be downloaded from.
 
 When Toolkit starts up, it ensures that these configuration settings exists on disk, alongside
@@ -35,8 +35,8 @@ The Pipeline Configuration on disk contains the following items:
 
 - A so called bundle cache, contained inside an ``install`` folder, containing
   downloaded apps, frameworks and engines defined by the configuration.
-  This cache is downloaded from locations such as the ShotGrid App Store,
-  git or from your ShotGrid site, all handled by Toolkit's
+  This cache is downloaded from locations such as the Flow Production Tracking App Store,
+  git or from your Flow Production Tracking site, all handled by Toolkit's
   :ref:`Descriptor<descriptor>` system.
 
 By default, each pipeline configuration in Toolkit has its own
@@ -45,7 +45,7 @@ projects independently and evolve the pipeline over time without breaking older
 projects. However, it is possible to arrange your configuration in several
 different other ways, all explained below.
 
-In ShotGrid, the main Pipeline Configuration Entity for a project is always named ``Primary``.
+In Flow Production Tracking, the main Pipeline Configuration Entity for a project is always named ``Primary``.
 In addition to this, additional pipeline configurations entities can
 be set up. Typically, these are used as test areas or **developer sandboxes**, where you
 want to run with special configuration settings. These developer sandboxes can be associated
@@ -54,7 +54,7 @@ in parallel with production.
 
 
 .. note:: To read more about the default configurations offered with Toolkit, see
-    the `ShotGrid integrations admin guide <https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_INTEGRATIONS_INTEGRATIONS_ADMIN_GUIDE>`_.
+    the `Flow Production Tracking integrations admin guide <https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_INTEGRATIONS_INTEGRATIONS_ADMIN_GUIDE>`_.
 
 
 The Toolkit startup
@@ -69,7 +69,7 @@ operates at a high level:
     :align: center
 
 This design is repeated everywhere and is a pattern which can be easily extended.
-Users typically launch Toolkit by launching the ShotGrid Desktop. The ShotGrid Desktop
+Users typically launch Toolkit by launching the Flow Production Tracking Toolkit. The Flow Production Tracking Toolkit
 contains a *Toolkit plugin* which runs the :ref:`bootstrap_api` in order to load in a
 full Toolkit environment.
 
@@ -79,10 +79,10 @@ full Toolkit environment.
     suitable for that software environment.
 
 Once the plugin is loaded, and the bootstrap is running, it will start by prompting the user to log in
-to a site. Next, it will connect to the ShotGrid Site to determine if any Pipeline Configuration Entities
+to a site. Next, it will connect to the Flow Production Tracking Site to determine if any Pipeline Configuration Entities
 exist associated with the project. If so, these are used to configure the Toolkit session.
-If not, the default plugins running in ShotGrid Desktop will fall back on looking for the
-latest release of the ``tk-config-basic`` configuration in the ShotGrid App Store.
+If not, the default plugins running in Flow Production Tracking Toolkit will fall back on looking for the
+latest release of the ``tk-config-basic`` configuration in the Flow Production Tracking App Store.
 
 The bootstrap API will make the necessary preparations and then launch a Toolkit :ref:`Engine <engines>`,
 as well as the apps defined in the configuration.
@@ -106,7 +106,7 @@ the Toolkit plugin associated with that software is launched at startup.
     software management systems such as `Rez <https://github.com/nerdvegas/rez/wiki>`_,
     general utilities, etc.
 
-There are two fundamentally different ways to set up a Toolkit Project in ShotGrid,
+There are two fundamentally different ways to set up a Toolkit Project in Flow Production Tracking,
 both briefly outlined below:
 
 .. _distributed_configurations:
@@ -114,7 +114,7 @@ both briefly outlined below:
 Distributed configurations
 ==========================
 
-Distributed configurations are defined as Pipeline Configurations inside ShotGrid.
+Distributed configurations are defined as Pipeline Configurations inside Flow Production Tracking.
 At startup, these are detected by the Bootstrap API which will automatically
 manage your local configuration and resources on disk, ensuring that you have all the
 right apps, engines and other dependencies needed to run the configuration.
@@ -125,8 +125,8 @@ automatically caches all necessary runtime components locally.
     :width: 700px
     :align: center
 
-.. note:: To create a distributed configuration, manually go into ShotGrid and create
-    a **ShotGrid Pipeline Configuration entity** for your project. For more information,
+.. note:: To create a distributed configuration, manually go into Flow Production Tracking and create
+    a **Flow Production Tracking Pipeline Configuration entity** for your project. For more information,
     see :ref:`automatically_managed_pcs`.
 
 .. _centralized_configurations:
@@ -142,19 +142,19 @@ access its shared location on disk.
     :width: 700px
     :align: center
 
-These configurations are created using Toolkit's **project setup** system (either the ShotGrid Desktop project
+These configurations are created using Toolkit's **project setup** system (either the Flow Production Tracking Toolkit project
 setup wizard or the ``tank setup_project`` command). After project setup, the configuration is manually
 managed, typically via the ``tank`` command.
 
 
 .. _upload_config_to_shotgun:
 
-Uploading a configuration to ShotGrid
-------------------------------------------------
+Uploading a configuration to Flow Production Tracking
+-----------------------------------------------------
 
 The simplest way to distribute a Toolkit configuration to a group of users, whether these
 are distributed in different locations or all working in the same building, is to upload it
-to ShotGrid. At startup, the Toolkit Bootstrap will automatically look for uploaded configurations
+to Flow Production Tracking. At startup, the Toolkit Bootstrap will automatically look for uploaded configurations
 and if detected, download the configuration locally and then launch. Toolkit will take care
 of distribution and setup.
 
@@ -168,16 +168,16 @@ To use this workflow, simply zip up your configuration and upload it as an attac
 .. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field
     are also supported.
 
-    Older versions of ShotGrid may not have an **Uploaded Config** field enabled by
+    Older versions of Flow Production Tracking may not have an **Uploaded Config** field enabled by
     default, and in this case it may be necessary to create a custom field. Naming it **Uploaded Config**
     will generate a field with the API name ``sg_uploaded_config`` and thus will be recognized by Toolkit.
 
 Once a configuration is uploaded, it will be detected and used at bootstrap.
-If a new configuration is uploaded to ShotGrid, users will pick it up the
+If a new configuration is uploaded to Flow Production Tracking, users will pick it up the
 next time they start up.
 
 .. note:: As an example, you can download one of the default configurations from
-    github as a zip and upload it as an attachment from ShotGrid:
+    github as a zip and upload it as an attachment from Flow Production Tracking:
     https://github.com/shotgunsoftware/tk-config-basic/archive/master.zip
 
 .. _automatically_managed_pcs:
@@ -186,7 +186,7 @@ Managing distributed configurations
 -----------------------------------------------
 
 In order to configure an automatically managed configuration, create an
-entity in ShotGrid to represent a ``Primary`` configuration:
+entity in Flow Production Tracking to represent a ``Primary`` configuration:
 
 .. image:: ./resources/initializing/pipeline_config.png
     :align: center
@@ -203,7 +203,7 @@ When the bootstrap API starts up, it goes through a series of steps:
     :width: 700px
     :align: center
 
-First, the ShotGrid Pipeline Configuration will be determined. The bootstrap
+First, the Flow Production Tracking Pipeline Configuration will be determined. The bootstrap
 will search for a configuration in the following order:
 
 - A Pipeline Config for the current project, associated with the current user. These are
@@ -216,7 +216,7 @@ will search for a configuration in the following order:
 
 .. note:: Leaving the project field blank on a pipeline configuration means it applies
     to all projects. This makes it possible to have a single configuration that is
-    used by all your ShotGrid projects.
+    used by all your Flow Production Tracking projects.
 
 Once the Pipeline Configuration has been determined, its descriptor is resolved, downloaded and
 all its dependencies (Apps, Engines, Core, Frameworks) are checked and the ones that aren't already
@@ -267,7 +267,7 @@ Fixing a version for a project
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 All users in the current project will be using a fixed version of the ``tk-config-basic`` configuration
-from the ShotGrid App Store. This can be useful if you don't want a project to auto update. Omitting
+from the Flow Production Tracking App Store. This can be useful if you don't want a project to auto update. Omitting
 the version number, e.g. ``sgtk:descriptor:app_store?name=tk-config-basic`` will resolve to the most
 recent version number.
 
@@ -321,7 +321,7 @@ Developer sandbox
 
 This example shows a typical development/test setup - alongside the Primary configuraton for the project
 there is a dev sandbox. All user associated with that dev sandbox will pick that up instead of the
-default one, making it easy to 'invite' users in for testing. (In ShotGrid Desktop, a dropdown will appear,
+default one, making it easy to 'invite' users in for testing. (In Flow Production Tracking Toolkit, a dropdown will appear,
 allowing a user to choose which config to use). A ``dev`` descriptor is used to point at a local dev area on disk.
 
 .. image:: ./resources/initializing/dev_sandbox.png
@@ -374,27 +374,27 @@ detected and added to the bundle cache search path. This makes it possible to di
 Toolkit setup in a single package without any external dependencies.
 
 This can be useful when deploying a configuration to a network infrastructure that doesn't allow
-for an external Internet access and has a local site install of ShotGrid.
+for an external Internet access and has a local site install of Flow Production Tracking.
 Create your configuration, manually add a ``bundle_cache`` folder
 containing the necessary app, engine, core and framework payload, zip it and
-:ref:`upload it to ShotGrid<upload_config_to_shotgun>`.
+:ref:`upload it to Flow Production Tracking<upload_config_to_shotgun>`.
 
 
 Configurations with filesystem templates
 ===============================================
 
-If the configuration you have specified in the descriptor field (or have uploaded to ShotGrid) is using
+If the configuration you have specified in the descriptor field (or have uploaded to Flow Production Tracking) is using
 the Toolkit folder schema and templates system, you need to manually configure a series of settings
 related to file storage locations.
 
 A toolkit configuration contains a ``roots.yml`` file which defines the file storages required by
 that configuration. See for example the `Toolkit default configuration <https://github.com/shotgunsoftware/tk-config-default2/blob/master/core/roots.yml>`_.
-All storages defined here need to have a corresponding Local File Storage defined in ShotGrid.
-These settings can be found in ShotGrid's site preferences.
+All storages defined here need to have a corresponding Local File Storage defined in Flow Production Tracking.
+These settings can be found in Flow Production Tracking's site preferences.
 
 In addition to this, a project folder name needs to be defined. This will be the name which is given
 to the root folder on disk when the folder structure starts getting populated. The project name
-is defined in a field named ``tank_name`` on the ShotGrid Project entity.
+is defined in a field named ``tank_name`` on the Flow Production Tracking Project entity.
 
 .. note:: When using a  :ref:`centralized configuration<centralized_configs>`, this process
           is automatically handled by the project setup wizard. In this case, you have to
@@ -405,7 +405,7 @@ Distributing application code from your site
 
 If you want to cache custom application code that may only be accessible for
 users on your local network or from developers who have access keys to the Git
-repositories, you can upload  individual bundles to ShotGrid and then take over the
+repositories, you can upload  individual bundles to Flow Production Tracking and then take over the
 :meth:`~bootstrap.Bootstrap.populate_bundle_cache_entry` and
 :meth:`~bootstrap.Bootstrap.can_cache_bundle` methods of the
 :class:`~bootstrap.Bootstrap` hook.
@@ -421,7 +421,7 @@ Here's a suggested setup:
 
 As you can see, a non project custom entity has been configured to cache Toolkit bundles. The
 most important column here is Descriptor, which is the field the bootstrap hook will use
-to determine if a bundle is available in ShotGrid or not.
+to determine if a bundle is available in Flow Production Tracking or not.
 
 .. warning ::
     You should never upload a new bundle to an existing Toolkit Bundle entity. Toolkit caches
@@ -436,7 +436,7 @@ Once the bundles have been uploaded, you can implement the ``core/bootstrap.py``
    :end-before: #documentationEnd
 
 Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
-``PipelineConfiguration`` entity in ShotGrid. Now every time a user bootstraps into this pipeline
+``PipelineConfiguration`` entity in Flow Production Tracking. Now every time a user bootstraps into this pipeline
 configuration, they will download the configuration and cache the Toolkit core and all application
 bundles through the hook.
 
@@ -446,7 +446,7 @@ bundles through the hook.
 Managing centralized configurations
 ----------------------------------------------------------
 
-A manual project is either done via the ShotGrid Desktop Project Setup Wizard or through the ``tank setup_project``
+A manual project is either done via the Flow Production Tracking Toolkit Project Setup Wizard or through the ``tank setup_project``
 command. During this process, you will choose a location on disk for your configuration. Make sure you
 choose a location on disk which is accessible by all users who need access to the configuration (e.g.
 typically on a fast, shared storage). The figure below illustrates the process:
@@ -456,7 +456,7 @@ typically on a fast, shared storage). The figure below illustrates the process:
     :align: center
 
 The ``tank setup_project`` command will automatically create a ``Primary`` pipeline configuration
-entity in ShotGrid and a full configuration on disk. App, Engine and other payloads are downloaded
+entity in Flow Production Tracking and a full configuration on disk. App, Engine and other payloads are downloaded
 into the *bundle cache* contained by the config. The three fields ``PipelineConfiguration.windows_path``,
 ``PipelineConfiguration.mac_path`` and ``PipelineConfiguration.linux_path`` are populated with
 paths to the configuration on disk.
@@ -479,7 +479,7 @@ via the ``tank`` command:
   bundle cache. It is also possible to share the core and the bundle cache
   between several different project by creating a *shared core*.
 - In order to create additional configurations beyond the ``Primary`` one (for example for
-  development or testing), right click on the configuration in ShotGrid and choose
+  development or testing), right click on the configuration in Flow Production Tracking and choose
   the **Clone Configuration** option.
 
 Starting a Toolkit engine from a centralized project
@@ -506,7 +506,7 @@ to make sure you always use the core associated with the configuration:
     # project
     tk = sgtk.sgtk_from_path("/mnt/toolkit/configs/hidden_forest")
 
-    # create a context for a ShotGrid entity associated with the project
+    # create a context for a Flow Production Tracking entity associated with the project
     ctx = tk.context_from_entity("Project", 122)
 
     # finally, launch the engine
@@ -529,7 +529,7 @@ If you want, you can also use the bootstrap API to launch a centralized configur
     # Start up a Toolkit Manager
     mgr = sgtk.bootstrap.ToolkitManager()
 
-    # now start up the maya engine for a given ShotGrid object
+    # now start up the maya engine for a given Flow Production Tracking object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Project", "id": 122})
 
 
@@ -566,13 +566,13 @@ the configuration setup process and makes it easy to create a running instance o
 Toolkit. It allows for several advanced use cases:
 
 - Bootstrapping via the Toolkit manager does not require anything to be
-  set up or configured in ShotGrid. No Toolkit project setup step is required.
+  set up or configured in Flow Production Tracking. No Toolkit project setup step is required.
 
 - A setup can be pre-bundled with, for example, an application plugin, allowing
   Toolkit to act as a distribution platform.
 
 The following example code can for example run inside maya in order
-to launch Toolkit's default config for a ShotGrid Asset:
+to launch Toolkit's default config for a Flow Production Tracking Asset:
 
 .. code-block:: python
 
@@ -591,7 +591,7 @@ to launch Toolkit's default config for a ShotGrid Asset:
     # standard toolkit configurations
     mgr.plugin_id = "basic.my_toolkit_plugin"
 
-    # now start up the maya engine for a given ShotGrid object
+    # now start up the maya engine for a given Flow Production Tracking object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})
 
 In this example, there is no need to construct any :class:`sgtk.Sgtk`

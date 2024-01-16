@@ -285,7 +285,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                     )
 
         # create the publish
-        log.debug("Publish: Creating publish in ShotGrid")
+        log.debug("Publish: Creating publish in Flow Production Tracking")
         entity = _create_published_file(
             tk,
             context,
@@ -548,7 +548,7 @@ def _create_published_file(
                     log.warning(
                         "Could not find the expected storage for required root "
                         "'%s' in SG to associate publish '%s' with. "
-                        "Falling back to ShotGrid's built-in storage resolution "
+                        "Falling back to Flow Production Tracking's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
                         % (root_name, path, root_name)
@@ -627,7 +627,7 @@ def _create_published_file(
         )
         return data
     else:
-        log.debug("Registering publish in ShotGrid: %s" % pprint.pformat(data))
+        log.debug("Registering publish in Flow Production Tracking: %s" % pprint.pformat(data))
         return tk.shotgun.create(published_file_entity_type, data)
 
 

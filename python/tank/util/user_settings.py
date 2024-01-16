@@ -239,7 +239,7 @@ class UserSettings(Singleton):
             - The ``SGTK_PREFERENCES_LOCATION`` environment variable.
             - The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable.
             - The Shotgun folder.
-            - The Shotgun Desktop folder.
+            - The Flow Production Tracking Toolkit folder.
 
         :returns: The location where to read the configuration file from.
         """
@@ -258,7 +258,7 @@ class UserSettings(Singleton):
             self._evaluate_env_var("SGTK_DESKTOP_CONFIG_LOCATION"),
             # Default location first
             default_location,
-            # This is the location set by users of the Shotgun Desktop in the past.
+            # This is the location set by users of the Flow Production Tracking Toolkit in the past.
             os.path.join(
                 LocalFileStorageManager.get_global_root(
                     LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17

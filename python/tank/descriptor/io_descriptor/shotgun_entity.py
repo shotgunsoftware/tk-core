@@ -254,7 +254,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         if data is None:
             raise TankDescriptorError(
-                "Cannot resolve descriptor %s in ShotGrid!" % self
+                "Cannot resolve descriptor %s in Flow Production Tracking!" % self
             )
 
         # attachment field is on the following form in the case a file has been

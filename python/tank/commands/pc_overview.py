@@ -63,7 +63,7 @@ class PCBreakdownAction(Action):
         Actual execution payload
         """
 
-        log.info("Fetching data from ShotGrid...")
+        log.info("Fetching data from Flow Production Tracking...")
         log.info("")
         log.info("")
         log.info("=" * 70)
@@ -167,13 +167,13 @@ class PCBreakdownAction(Action):
 
             if len(d.get("users")) == 0:
                 log.info(
-                    "This is a public configuration. In ShotGrid, the actions defined in this "
+                    "This is a public configuration. In Flow Production Tracking, the actions defined in this "
                     "configuration will be on all users' menus."
                 )
 
             elif len(d.get("users")) == 1:
                 log.info(
-                    "This is a private configuration. In ShotGrid, only %s will see the actions "
+                    "This is a private configuration. In Flow Production Tracking, only %s will see the actions "
                     "defined in this config. If you want to add additional members to this "
                     "configuration, navigate to the SG Pipeline Configuration Page "
                     "and add them to the Users field." % d.get("users")[0]["name"]
@@ -182,7 +182,7 @@ class PCBreakdownAction(Action):
             elif len(d.get("users")) > 1:
                 users = ", ".join([u.get("name") for u in d.get("users")])
                 log.info(
-                    "This is a private configuration. In ShotGrid, the following users will see "
+                    "This is a private configuration. In Flow Production Tracking, the following users will see "
                     "the actions defined in this config: %s. If you want to add additional "
                     "members to this configuration, navigate to the SG Pipeline "
                     "Configuration Page and add them to the Users field." % users

@@ -94,7 +94,7 @@ exactly like the real Shotgun one:
     print(sg.find("HumanUser", [["login", "is", "john"]]))
     prints [{'type': 'HumanUser', 'id': 1}]
 
-That's it! Mockgun is used to run the Shotgun Pipeline Toolkit unit test rig.
+That's it! Mockgun is used to run the Flow Production Tracking Toolkit unit test rig.
 
 Mockgun has a 'database' in the form of a dictionary stored in Mockgun._db
 By editing this directly, you can modify the database without going through
@@ -201,7 +201,7 @@ class Shotgun(object):
         if schema_path is None or schema_entity_path is None:
             raise MockgunError("Cannot create Mockgun instance because no schema files have been defined. "
                                "Before creating a Mockgun instance, please call Mockgun.set_schema_paths() "
-                               "in order to specify which ShotGrid schema Mockgun should operate against.")
+                               "in order to specify which Flow Production Tracking schema Mockgun should operate against.")
 
         self._schema, self._schema_entity = SchemaFactory.get_schemas(schema_path, schema_entity_path)
 
@@ -504,7 +504,7 @@ class Shotgun(object):
                                    "url": dict}[sg_type]
                 except KeyError:
                     raise ShotgunError(
-                        "Field %s.%s: Handling for ShotGrid type %s is not implemented" %
+                        "Field %s.%s: Handling for Flow Production Tracking type %s is not implemented" %
                         (entity_type, field, sg_type)
                     )
 
