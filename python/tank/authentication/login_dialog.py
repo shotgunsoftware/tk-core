@@ -521,7 +521,9 @@ class LoginDialog(QtGui.QDialog):
             method_selected = None
 
         if not method_selected:
-            if can_use_web:
+            if can_use_asl:
+                method_selected = auth_constants.METHOD_ASL
+            elif can_use_web:
                 method_selected = auth_constants.METHOD_WEB_LOGIN
             else:
                 method_selected = auth_constants.METHOD_BASIC
