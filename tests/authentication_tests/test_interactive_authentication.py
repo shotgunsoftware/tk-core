@@ -1025,7 +1025,7 @@ class InteractiveTests(ShotgunTestBase):
             # Trigger ASL again
             ld._menu_activated_action_asl()
 
-            # Ensure current method set is ufl2
+            # Ensure current method set is ASL
             self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
@@ -1033,7 +1033,7 @@ class InteractiveTests(ShotgunTestBase):
 
             self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # check that UI displays the UFL2 pending screen
+            # check that UI displays the ASL pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
@@ -1113,7 +1113,7 @@ class InteractiveTests(ShotgunTestBase):
             # Trigger ASL again
             ld._menu_activated_action_asl()
 
-            # Ensure current method set is ufl2
+            # Ensure current method set is ASL
             self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
@@ -1121,7 +1121,7 @@ class InteractiveTests(ShotgunTestBase):
 
             self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # check that UI displays the UFL2 pending screen
+            # check that UI displays the ASL pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
