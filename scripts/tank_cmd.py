@@ -822,7 +822,8 @@ def _shotgun_run_action(
         cv = installer.get_current_version_number()
         lv = installer.get_update_version_number()
         logger.info(
-            "You are currently running version %s of the Flow Production Tracking Toolkit." % cv
+            "You are currently running version %s of the Flow Production Tracking Toolkit."
+            % cv
         )
 
         if not is_localized:
@@ -845,7 +846,8 @@ def _shotgun_run_action(
             req_sg = installer.get_required_sg_version_for_update()
             logger.warning(
                 "<b>A new version (%s) of the core API is available however "
-                "it requires a more recent version (%s) of Flow Production Tracking!</b>" % (lv, req_sg)
+                "it requires a more recent version (%s) of Flow Production Tracking!</b>"
+                % (lv, req_sg)
             )
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
@@ -924,7 +926,8 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
     sg = shotgun.get_sg_connection()
 
     logger.debug(
-        "Flow Production Tracking: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern)
+        "Flow Production Tracking: find(%s, %s contains %s)"
+        % (entity_type, name_field, name_pattern)
     )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     logger.debug("Got data: %r" % data)
@@ -1099,7 +1102,9 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
                 ["project", "is", {"type": "Project", "id": constrain_by_project_id}]
             )
 
-        logger.debug("Flow Production Tracking: find(%s, %s)" % (entity_type, shotgun_filters))
+        logger.debug(
+            "Flow Production Tracking: find(%s, %s)" % (entity_type, shotgun_filters)
+        )
         entities = sg.find(
             entity_type,
             shotgun_filters,
@@ -1107,7 +1112,9 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
         )
         logger.debug("Got data: %r" % entities)
     except Exception as e:
-        raise TankError("An error occurred when searching in Flow Production Tracking: %s" % e)
+        raise TankError(
+            "An error occurred when searching in Flow Production Tracking: %s" % e
+        )
 
     selected_entity = None
 
@@ -1430,7 +1437,9 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 # filter out all other items in other projects.
                 filters.append(["project", "is", {"type": "Project", "id": project_id}])
 
-            logger.debug("Flow Production Tracking: find(%s, %s)" % (entity_type, filters))
+            logger.debug(
+                "Flow Production Tracking: find(%s, %s)" % (entity_type, filters)
+            )
             data = sg.find(entity_type, filters, ["id", name_field])
             logger.debug("Got data: %r" % data)
 
