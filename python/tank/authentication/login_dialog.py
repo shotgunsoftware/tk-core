@@ -260,9 +260,9 @@ class LoginDialog(QtGui.QDialog):
             self._menu_activated_action_login_creds
         )
 
-        menu.addAction(self.menu_action_legacy)
-        menu.addAction(self.menu_action_ulf)
         menu.addAction(self.menu_action_asl)
+        menu.addAction(self.menu_action_ulf)
+        menu.addAction(self.menu_action_legacy)
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
