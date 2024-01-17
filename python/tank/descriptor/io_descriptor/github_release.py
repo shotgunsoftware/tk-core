@@ -48,7 +48,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         self._organization = descriptor_dict["organization"]
         self._repository = descriptor_dict["repository"]
         self._version = descriptor_dict["version"]
-        self._is_private = descriptor_dict.get("private", False) == "true"
+        self._is_private = descriptor_dict.get("private", False)
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """

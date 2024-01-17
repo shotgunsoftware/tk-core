@@ -334,7 +334,7 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
 Private repositories are supported through the use of the Github api, authenticated with personal access tokens.
 A token must be set as environment variable that is specific to the organization setting:
 
-- ``SG_GITHUB_TOKEN_<ORGANIZATION>`` defines the personal access token used to authenticate.
+- ``SG_GITHUB_TOKEN_<ORGANIZATION>`` defines the personal access token used to authenticate. The organization name should be uppcase and snake cased.
 
 .. note:: This descriptor only works with Github Releases, not all tags. For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
 

@@ -206,7 +206,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
             # parsed for the latest tag name.
             urlopen_mock.return_value = MockResponse("releases_latest")
             desc = self._create_desc(
-                {**self.default_location_dict, "private": "true"}, True
+                {**self.default_location_dict, "private": True}, True
             )
             desc2 = desc.find_latest_version()
             # Make sure the right URL was hit.
