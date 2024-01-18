@@ -40,6 +40,12 @@ Note: this variable does not override the session cache. If a valid method has
 been recorded in the session cache, this method will be prioritized over the
 one provided by `SGTK_DEFAULT_AUTH_METHOD`.
 
+``SGTK_AUTH_ALLOW_NO_HTTPS``
+----------------------------
+Allows the user to bypass the HTTPS requirement for the authentication methods.
+This is not recommended and should only be used for the legacy offerings of
+ShotGrid local installations.
+
 ``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
 ------------------------------------
 Always display the traditional authentication (login and password fields) in the

@@ -765,7 +765,7 @@ class LoginDialog(QtGui.QDialog):
 
         # Cleanup the URL and update the GUI.
         if self.method_selected != auth_constants.METHOD_BASIC:
-            if site.startswith("http://"):
+            if site.startswith("http://") and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ:
                 site = "https" + site[4:]
             self.ui.site.setEditText(site)
 
