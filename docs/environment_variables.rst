@@ -42,9 +42,9 @@ one provided by `SGTK_DEFAULT_AUTH_METHOD`.
 
 ``SGTK_AUTH_ALLOW_NO_HTTPS``
 ----------------------------
-Allows the user to bypass the HTTPS requirement for the ``credentials`` and
-``qt_web_login`` authentication methods. This is not recommended and should only
-be used for the legacy offerings of ShotGrid local installations.
+Allows the user to bypass the HTTPS requirement for the authentication methods.
+This is not recommended and should only be used for the legacy offerings of
+ShotGrid local installations.
 
 ``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
 ------------------------------------
