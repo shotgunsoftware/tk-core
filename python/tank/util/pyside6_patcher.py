@@ -386,6 +386,28 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QRegularExpression = QRegularExpression
 
     @classmethod
+    def _patch_QCheckBox_stateChanged(cls, QtGui, QtCore):
+        """Patch the QCheckBox class to ensure the stateChanged signal emits Qt.CheckState."""
+
+        class QCheckBox_stateChanged(QtGui.QCheckBox):
+            """Patch for QCheckBox stateChanged signal."""
+            stateChanged = QtCore.Signal((QtCore.Qt.CheckState,), (int,))
+
+            def __init__(self, *args, **kwargs):
+                super(QCheckBox_stateChanged, self).__init__(*args, **kwargs)
+                # Connect the original stateChanged signal to the private slot
+                self.stateChanged[int].connect(self._emit_state_as_enum)
+
+            @QtCore.Slot(int)
+            def _emit_state_as_enum(self, state):
+                if isinstance(state, int):
+                    state = QtCore.Qt.CheckState(state)
+                self.stateChanged.emit(state)
+
+        QtGui.QCheckBox = QCheckBox_stateChanged
+        QtGui.QCheckBox.stateChanged = QCheckBox_stateChanged.stateChanged
+
+    @classmethod
     def patch(cls):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
@@ -523,5 +545,8 @@ class PySide6Patcher(PySide2Patcher):
         # ----------------------------------------------------------------------
         qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
         qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+
+        # Patch the QCheckBox.stateChanged signal
+        cls._patch_QCheckBox_stateChanged(qt_gui_shim, qt_core_shim)
 
         return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim
