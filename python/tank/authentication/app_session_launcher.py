@@ -38,6 +38,27 @@ class AuthenticationError(errors.AuthenticationError):
         self.payload = payload
         self.parent_exception = parent_exception
 
+    def format(self):
+        """
+        Provide a STR format of all given parameters
+        """
+
+        info = []
+        if self.ulf2_errno:
+            info.append("errno: {}".format(self.ulf2_errno))
+
+        if self.payload:
+            info.append("payload: {}".format(self.payload))
+
+        if self.parent_exception:
+            info.append("parent: {}".format(self.parent_exception))
+
+        message = str(self)
+        if info:
+            message += " ({})".format("; ".join(info))
+
+        return message
+
 
 def process(
     sg_url,
@@ -225,6 +246,9 @@ def process(
             )
 
         elif response.code != http_client.OK:
+            logger.debug("Request denied: http code is: {code}".format(
+                code=response.code,
+            ))
             raise AuthenticationError(
                 "Request denied",
                 payload=getattr(response, "json", response),
