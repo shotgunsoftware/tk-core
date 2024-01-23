@@ -546,7 +546,9 @@ class PySide6Patcher(PySide2Patcher):
         qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
         qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
-        # Patch the QCheckBox.stateChanged signal
+        # For PySide6 compatibility, convert state to CheckState enum if not already
+        # an instance. Patch the QCheckBox.stateChanged signal.
+        # https://forum.qt.io/post/743017
         cls._patch_QCheckBox_stateChanged(qt_gui_shim, qt_core_shim)
 
         return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim
