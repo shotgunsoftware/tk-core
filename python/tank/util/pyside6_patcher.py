@@ -388,9 +388,7 @@ class PySide6Patcher(PySide2Patcher):
     @classmethod
     def _patch_QCheckBox_stateChanged(cls, QtGui, QtCore):
         """Patch the QCheckBox class to ensure the stateChanged signal emits Qt.CheckState."""
-
         class QCheckBox_stateChanged(QtGui.QCheckBox):
-            """Patch for QCheckBox stateChanged signal."""
             stateChanged = QtCore.Signal((QtCore.Qt.CheckState,), (int,))
 
             def __init__(self, *args, **kwargs):
