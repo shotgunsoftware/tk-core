@@ -400,7 +400,7 @@ class PySide6Patcher(PySide2Patcher):
 
             @QtCore.Slot(int)
             def _emit_state_as_enum(self, state):
-                if isinstance(state, int):
+                if not isinstance(state, QtCore.Qt.CheckState):
                     state = QtCore.Qt.CheckState(state)
                 self.stateChanged.emit(state)
 
