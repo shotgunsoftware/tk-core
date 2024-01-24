@@ -404,8 +404,7 @@ class PySide6Patcher(PySide2Patcher):
                     state = QtCore.Qt.CheckState(state)
                 self.stateChanged.emit(state)
 
-        QtGui.QCheckBox = QCheckBox_stateChanged
-        QtGui.QCheckBox.stateChanged = QCheckBox_stateChanged.stateChanged
+        QtGui.QCheckBox = _QCheckBox
 
     @classmethod
     def _patch_QCoreApplication_flush(cls, QtCore):
