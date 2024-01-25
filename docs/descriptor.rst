@@ -329,13 +329,18 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
 - ``organization`` is the Github organization or user that the repository belongs to.
 - ``repository`` is the name of the repository to find a Release for.
 - ``version`` is the name of the Release to use.
+- ``private`` is an optional setting that defines whether the repository is private and requires authentication.
 
+Private repositories are supported through the use of the Github api, authenticated with personal access tokens.
+A token must be set as environment variable that is specific to the organization setting:
+
+- ``SG_GITHUB_TOKEN_<ORGANIZATION>`` defines the personal access token used to authenticate. The organization name should be uppercase and snake cased.
 
 .. note:: This descriptor only works with Github Releases, not all tags. For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
 
 .. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
-.. warning:: Private repositories are not currently supported by this descriptor.
+.. note:: For private repos, it's recommended that you use a fine-grained personal access token with read-only access to Content. For more information, see the `Github Documentation on Personal Access Tokens <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
 
 
 Pointing to a path on disk

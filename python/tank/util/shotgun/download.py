@@ -31,7 +31,7 @@ log = LogManager.get_logger(__name__)
 
 
 @LogManager.log_timing
-def download_url(sg, url, location, use_url_extension=False):
+def download_url(sg, url, location, use_url_extension=False, headers=None):
     """
     Convenience method that downloads a file from a given url.
     This method will take into account any proxy settings which have
@@ -83,7 +83,7 @@ def download_url(sg, url, location, use_url_extension=False):
 
     # download the given url
     try:
-        request = urllib.request.Request(url)
+        request = urllib.request.Request(url, headers=headers or {})
         if timeout and sys.version_info >= (2, 6):
             # timeout parameter only available in python 2.6+
             response = urllib.request.urlopen(request, timeout=timeout)
@@ -182,7 +182,7 @@ def download_and_unpack_attachment(
     )
 
 
-def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False):
+def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False, headers=None):
     """
     Downloads the content from the provided url, assumes it is a zip file
     and attempts to unpack it into the given location.
@@ -198,12 +198,12 @@ def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False
         the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    return _download_and_unpack(sg, target, retries, auto_detect_bundle, url=url)
+    return _download_and_unpack(sg, target, retries, auto_detect_bundle, url=url, headers=headers or {})
 
 
 @LogManager.log_timing
 def _download_and_unpack(
-    sg, target, retries, auto_detect_bundle, attachment_id=None, url=None
+    sg, target, retries, auto_detect_bundle, attachment_id=None, url=None, headers=None
 ):
     """
     Downloads the given attachment from Shotgun if an attachment ID is provided,
@@ -243,7 +243,7 @@ def _download_and_unpack(
                     fh.write(bundle_content)
             elif url:
                 log.debug("Downloading content of url %s..." % url)
-                download_url(sg, url, zip_tmp)
+                download_url(sg, url, zip_tmp, headers=headers or {})
             else:
                 raise ValueError(
                     "A value is required for one of kwargs `url` or `attachment_id`"
