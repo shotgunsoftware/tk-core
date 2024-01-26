@@ -226,6 +226,20 @@ def process(
                 parent_exception=getattr(response, "exception", None),
             )
 
+        elif response_code_major == 3:
+            location = response.headers.get("location", None)
+
+            logger.debug("Request redirected: http code: {code}; redirect to: {location}".format(
+                code=response.code,
+                location=location,
+            ))
+
+            raise AuthenticationError(
+                "Request redirected",
+                payload="HTTP Redirect to {}".format(location),
+                parent_exception=getattr(response, "exception", None),
+            )
+
         elif response_code_major == 4:
             logger.debug(
                 "HTTP response {code}: {data}".format(
