@@ -122,7 +122,7 @@ except ImportError as e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.4.0"
+__version__ = "3.4.1"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -3261,6 +3261,43 @@ class Shotgun(object):
 
         return self._call_rpc("preferences_read", {"prefs": prefs})
 
+    def user_subscriptions_read(self):
+        """
+        Get the list of user subscriptions.
+
+        :returns: A list of user subscriptions where each subscription is a
+            dictionary containing the ``humanUserId`` and ``subscription``
+            fields.
+        :rtype: list
+        """
+
+        return self._call_rpc("user_subscriptions_read", None)
+
+    def user_subscriptions_create(self, users):
+        # type: (list[dict[str, Union[str, list[str], None]) -> bool
+        """
+        Assign subscriptions to users.
+
+        :param list users: list of user subscriptions to assign.
+            Each subscription must be a dictionary with the ``humanUserId`` and
+            ``subscription`` fields.
+            The ``subscription`` is either ``None``, a single string, or an
+            array of strings with subscription information.
+
+        :returns: ``True`` if the request succedeed, ``False`` if otherwise.
+        :rtype: bool
+        """
+
+        response = self._call_rpc(
+            "user_subscriptions_create",
+            {"users": users}
+        )
+
+        if not isinstance(response, dict):
+            return False
+
+        return response.get("status") == "success"
+
     def _build_opener(self, handler):
         """
         Build urllib2 opener with appropriate proxy handler.
@@ -3407,8 +3444,8 @@ class Shotgun(object):
                 # We've seen some rare instances of SG returning 502 for issues that
                 # appear to be caused by something internal to SG. We're going to
                 # allow for limited retries for those specifically.
-                if attempt != max_attempts and e.errcode == 502:
-                    LOG.debug("Got a 502 response. Waiting and retrying...")
+                if attempt != max_attempts and e.errcode in [502, 504]:
+                    LOG.debug("Got a 502 or 504 response. Waiting and retrying...")
                     time.sleep(float(attempt) * backoff)
                     attempt += 1
                     continue
@@ -4108,16 +4145,14 @@ class Shotgun(object):
                 LOG.debug("Completed request to %s" % request.get_method())
 
             except urllib.error.HTTPError as e:
-                if e.code == 500:
-                    raise ShotgunError("Server encountered an internal error.\n%s\n%s\n\n" % (storage_url, e))
-                elif attempt != max_attempts and e.code == 503:
-                    LOG.debug("Got a 503 response. Waiting and retrying...")
+                if attempt != max_attempts and e.code in [500, 503]:
+                    LOG.debug("Got a %s response. Waiting and retrying..." % e.code)
                     time.sleep(float(attempt) * backoff)
                     attempt += 1
                     continue
+                elif e.code in [500, 503]:
+                    raise ShotgunError("Got a %s response when uploading to %s: %s" % (e.code, storage_url, e))
                 else:
-                    if e.code == 503:
-                        raise ShotgunError("Got a 503 response when uploading to %s: %s" % (storage_url, e))
                     raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
 
             else:
