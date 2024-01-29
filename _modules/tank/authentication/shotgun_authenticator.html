@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.20.28 documentation</title>
+  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.20.31 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.28.<br>
+    <b>tk-core</b> v0.20.31.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -237,11 +237,18 @@
             <span class="c1"># Not all credentials were found, so there is no default user.</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.get_user_from_prompt"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_from_prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.get_user_from_prompt"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_from_prompt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_host_fixed</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display a UI prompt (QT based UI if possible but may fall back on console)</span>
 
-<span class="sd">        The DefaultsManager is called to pre-fill the host and login name.</span>
+<span class="sd">        The DefaultsManager is called to pre-fill the host, login name, http_proxy and is_host_fixed if not provided.</span>
+
+<span class="sd">        :param host: Shotgun host to log in to. If None, the default host will be used.</span>
+<span class="sd">        :param login: Shotgun user login. If None, the default login will be used.</span>
+<span class="sd">        :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.</span>
+<span class="sd">        :param is_host_fixed: Weither the host is fixed or not. If None, the default value will be used.</span>
 
 <span class="sd">        :raises AuthenticationCancelled: If the user cancels the authentication process,</span>
 <span class="sd">                                         an AuthenticationCancelled is thrown.</span>
@@ -254,10 +261,10 @@
             <span class="n">session_token</span><span class="p">,</span>
             <span class="n">session_metadata</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">=</span> <span class="n">interactive_authentication</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">(),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_login</span><span class="p">(),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_http_proxy</span><span class="p">(),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">is_host_fixed</span><span class="p">(),</span>
+            <span class="n">host</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">(),</span>
+            <span class="n">login</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_login</span><span class="p">(),</span>
+            <span class="n">http_proxy</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_http_proxy</span><span class="p">(),</span>
+            <span class="n">is_host_fixed</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">is_host_fixed</span><span class="p">(),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_session_user</span><span class="p">(</span>
             <span class="n">login</span><span class="o">=</span><span class="n">login</span><span class="p">,</span>
@@ -437,7 +444,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Autodesk.</p>
+    <p>&#169; Copyright 2024, Autodesk.</p>
   </div>
 
    

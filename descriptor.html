@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.20.28 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.20.31 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -141,7 +141,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.28.<br>
+    <b>tk-core</b> v0.20.31.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -466,6 +466,12 @@ resolve and normal operation.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">organization</span></code> is the Github organization or user that the repository belongs to.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">repository</span></code> is the name of the repository to find a Release for.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the name of the Release to use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">private</span></code> is an optional setting that defines whether the repository is private and requires authentication.</p></li>
+</ul>
+<p>Private repositories are supported through the use of the Github api, authenticated with personal access tokens.
+A token must be set as environment variable that is specific to the organization setting:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SG_GITHUB_TOKEN_&lt;ORGANIZATION&gt;</span></code> defines the personal access token used to authenticate. The organization name should be uppercase and snake cased.</p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -475,9 +481,9 @@ resolve and normal operation.</p>
 <p class="admonition-title">Note</p>
 <p>If you want constraint patterns (i.e. <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>) to work correctly with this descriptor, you must follow the <a class="reference external" href="https://semver.org/">semantic versioning</a> specification when naming Releases on Github.</p>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Private repositories are not currently supported by this descriptor.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For private repos, it’s recommended that you use a fine-grained personal access token with read-only access to Content. For more information, see the <a class="reference external" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token">Github Documentation on Personal Access Tokens</a>.</p>
 </div>
 </section>
 <section id="pointing-to-a-path-on-disk">
@@ -515,7 +521,8 @@ personal development:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c:\path\to\app</span>
 </pre></div>
 </div>
-<p>Environment variables can be included in paths:</p>
+<p>Environment variables can be included in paths, they will be expanded using <a class="reference external" href="https://docs.python.org/3.9/library/os.path.html#os.path.expandvars" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.path.expandvars()</span></code></a> and <a class="reference external" href="https://docs.python.org/3.9/library/os.path.html#os.path.expanduser" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">os.path.expanduser()</span></code></a>.
+This is only supported in <code class="docutils literal notranslate"><span class="pre">dev</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code> descriptors.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span><span class="w"> </span><span class="nv">$</span><span class="p p-Indicator">{</span><span class="nv">HOME</span><span class="p p-Indicator">}</span><span class="nv">/path/to/app</span>
@@ -3079,7 +3086,7 @@ set self.__traceback__ to tb and return self.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Autodesk.</p>
+    <p>&#169; Copyright 2024, Autodesk.</p>
   </div>
 
    

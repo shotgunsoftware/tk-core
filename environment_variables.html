@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; tk-core v0.20.28 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.20.31 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -75,6 +75,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#authentication">Authentication</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-default-auth-method"><code class="docutils literal notranslate"><span class="pre">SGTK_DEFAULT_AUTH_METHOD</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-auth-allow-no-https"><code class="docutils literal notranslate"><span class="pre">SGTK_AUTH_ALLOW_NO_HTTPS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-force-standard-login-dialog"><code class="docutils literal notranslate"><span class="pre">SGTK_FORCE_STANDARD_LOGIN_DIALOG</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-auth-product"><code class="docutils literal notranslate"><span class="pre">TK_AUTH_PRODUCT</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-shotgrid-default-login"><code class="docutils literal notranslate"><span class="pre">TK_SHOTGRID_DEFAULT_LOGIN</span></code></a></li>
@@ -119,7 +120,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.28.<br>
+    <b>tk-core</b> v0.20.31.<br>
     
         This documentation is part of the ShotGrid Pipeline Toolkit.
     
@@ -193,6 +194,11 @@ Available values are <cite>credentials</cite>, <cite>qt_web_login</cite>, and <c
 been recorded in the session cache, this method will be prioritized over the
 one provided by <cite>SGTK_DEFAULT_AUTH_METHOD</cite>.</p>
 </section>
+<section id="sgtk-auth-allow-no-https">
+<h3><code class="docutils literal notranslate"><span class="pre">SGTK_AUTH_ALLOW_NO_HTTPS</span></code><a class="headerlink" href="#sgtk-auth-allow-no-https" title="Permalink to this heading"></a></h3>
+<p>Allows the user to bypass the HTTPS requirement for the authentication methods.
+This is not recommended and should only be used in combination with legacy ShotGrid local installations.</p>
+</section>
 <section id="sgtk-force-standard-login-dialog">
 <h3><code class="docutils literal notranslate"><span class="pre">SGTK_FORCE_STANDARD_LOGIN_DIALOG</span></code><a class="headerlink" href="#sgtk-force-standard-login-dialog" title="Permalink to this heading"></a></h3>
 <p>Always display the traditional authentication (login and password fields) in the
@@ -258,7 +264,7 @@ authentication instead of relying on an autodetected name.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Autodesk.</p>
+    <p>&#169; Copyright 2024, Autodesk.</p>
   </div>
 
    
