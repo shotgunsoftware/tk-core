@@ -98,27 +98,29 @@ class SiteInfo(object):
         # pylint: disable=broad-except
         except Exception as exc:
             # Silently ignore exceptions
-            logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+            # Hide logs when user is typing `https://`
+            if utils.urlparse.urlparse(url).netloc not in "https":
+                logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+        else:
+            self._url = url
+            self._infos = infos
 
-        self._url = url
-        self._infos = infos
-
-        logger.debug("Site info for {url}".format(url=self._url))
-        logger.debug(
-            "  user_authentication_method: {value}".format(
-                value=self.user_authentication_method,
+            logger.debug("Site info for {url}".format(url=self._url))
+            logger.debug(
+                "  user_authentication_method: {value}".format(
+                    value=self.user_authentication_method,
+                )
             )
-        )
-        logger.debug(
-            "  unified_login_flow_enabled: {value}".format(
-                value=self.unified_login_flow_enabled,
+            logger.debug(
+                "  unified_login_flow_enabled: {value}".format(
+                    value=self.unified_login_flow_enabled,
+                )
             )
-        )
-        logger.debug(
-            "  authentication_app_session_launcher_enabled: {value}".format(
-                value=self.app_session_launcher_enabled,
+            logger.debug(
+                "  authentication_app_session_launcher_enabled: {value}".format(
+                    value=self.app_session_launcher_enabled,
+                )
             )
-        )
 
     @property
     def user_authentication_method(self):
