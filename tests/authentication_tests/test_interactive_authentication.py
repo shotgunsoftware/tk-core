@@ -16,7 +16,6 @@ from __future__ import with_statement, print_function
 
 import contextlib
 
-import os
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
