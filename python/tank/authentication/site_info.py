@@ -92,35 +92,44 @@ class SiteInfo(object):
         :param url:            Url of the site to query.
         :param http_proxy:     HTTP proxy to use, if any.
         """
+        # Check for valid URL
+        url_items = utils.urlparse.urlparse(url)
+        if (
+            not url_items.netloc
+            or url_items.netloc in "https"
+            or url_items.scheme not in ["http", "https"]
+        ):
+            logger.debug("Invalid ShotGrid URL %s" % url)
+            return
+
         infos = {}
         try:
             infos = _get_site_infos(url, http_proxy)
         # pylint: disable=broad-except
         except Exception as exc:
             # Silently ignore exceptions
-            # Hide logs when user is typing `https://`
-            if utils.urlparse.urlparse(url).netloc not in "https":
-                logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
-        else:
-            self._url = url
-            self._infos = infos
+            logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+            return
 
-            logger.debug("Site info for {url}".format(url=self._url))
-            logger.debug(
-                "  user_authentication_method: {value}".format(
-                    value=self.user_authentication_method,
-                )
+        self._url = url
+        self._infos = infos
+
+        logger.debug("Site info for {url}".format(url=self._url))
+        logger.debug(
+            "  user_authentication_method: {value}".format(
+                value=self.user_authentication_method,
             )
-            logger.debug(
-                "  unified_login_flow_enabled: {value}".format(
-                    value=self.unified_login_flow_enabled,
-                )
+        )
+        logger.debug(
+            "  unified_login_flow_enabled: {value}".format(
+                value=self.unified_login_flow_enabled,
             )
-            logger.debug(
-                "  authentication_app_session_launcher_enabled: {value}".format(
-                    value=self.app_session_launcher_enabled,
-                )
+        )
+        logger.debug(
+            "  authentication_app_session_launcher_enabled: {value}".format(
+                value=self.app_session_launcher_enabled,
             )
+        )
 
     @property
     def user_authentication_method(self):
@@ -178,6 +187,4 @@ class SiteInfo(object):
                     or not.
         """
 
-        return self._infos.get(
-            "authentication_app_session_launcher_enabled", False
-        )
+        return self._infos.get("authentication_app_session_launcher_enabled", False)
