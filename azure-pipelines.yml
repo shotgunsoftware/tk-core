@@ -13,8 +13,7 @@ resources:
   repositories:
     - repository: templates
       type: github
-      name: shotgunsoftware/tk-ci-tools
-      # ref: refs/heads/master
+      ref: refs/heads/master
       ref: python-311-poc
       endpoint: shotgunsoftware
 
