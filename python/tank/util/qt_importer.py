@@ -144,6 +144,9 @@ class QtImporter(object):
 
     @property
     def shiboken(self):
+        """
+        :returns: The compatible shiboken module for the imported PySide version if available.
+        """
         return self._modules.get("shiboken") if self._modules else None
 
     def _import_module_by_name(self, parent_module_name, module_name):
