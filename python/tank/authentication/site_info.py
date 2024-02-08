@@ -92,6 +92,16 @@ class SiteInfo(object):
         :param url:            Url of the site to query.
         :param http_proxy:     HTTP proxy to use, if any.
         """
+        # Check for valid URL
+        url_items = utils.urlparse.urlparse(url)
+        if (
+            not url_items.netloc
+            or url_items.netloc in "https"
+            or url_items.scheme not in ["http", "https"]
+        ):
+            logger.debug("Invalid ShotGrid URL %s" % url)
+            return
+
         infos = {}
         try:
             infos = _get_site_infos(url, http_proxy)
@@ -99,6 +109,7 @@ class SiteInfo(object):
         except Exception as exc:
             # Silently ignore exceptions
             logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+            return
 
         self._url = url
         self._infos = infos
@@ -176,6 +187,4 @@ class SiteInfo(object):
                     or not.
         """
 
-        return self._infos.get(
-            "authentication_app_session_launcher_enabled", False
-        )
+        return self._infos.get("authentication_app_session_launcher_enabled", False)

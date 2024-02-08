@@ -35,6 +35,7 @@ from tank.authentication import (
     interactive_authentication,
     invoker,
     user_impl,
+    site_info,
 )
 
 import tank
@@ -1345,3 +1346,34 @@ class InteractiveTests(ShotgunTestBase):
 
         self.assertIsInstance(asl_task.exception, errors.AuthenticationError)
         self.assertEqual(asl_task.exception.args[0], "Unknown authentication error")
+
+
+class LoadInformationInfoTests(ShotgunTestBase):
+    def test_reload_wrong_url(self, *unused_mocks):
+        with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:
+            with mock.patch.object(
+                tank_vendor.shotgun_api3.Shotgun,
+                "info",
+                side_effect=Exception()
+            ):
+                site_i = site_info.SiteInfo()
+                site_i.reload(url="https")
+                self.assertEqual(site_i._url, None)
+                self.assertEqual(site_i._infos, {})
+                self.assertEqual(len(cm.output), 1)
+                self.assertIn("Invalid ShotGrid URL https", cm.output[0])
+
+    def test_reload_wrong_site(self, *unused_mocks):
+        with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:
+            with mock.patch.object(
+                tank_vendor.shotgun_api3.Shotgun,
+                "info",
+                side_effect=Exception()
+            ):
+                site_i = site_info.SiteInfo()
+                site_i.reload(url="https://foo")
+                self.assertEqual(site_i._url, None)
+                self.assertEqual(site_i._infos, {})
+                self.assertEqual(len(cm.output), 2)
+                self.assertIn("Infos for site 'https://foo' not in cache or expired", cm.output[0])
+                self.assertIn("Unable to connect with https://foo, got exception", cm.output[1])
