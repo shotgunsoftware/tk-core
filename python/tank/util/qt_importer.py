@@ -143,7 +143,7 @@ class QtImporter(object):
         return self._qt_version_tuple
 
     @property
-    def shiboken(self): # shiboken SG-31832
+    def shiboken(self):
         return self._modules.get("shiboken") if self._modules else None
 
     def _import_module_by_name(self, parent_module_name, module_name):
@@ -168,7 +168,7 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple.
         """
         from PySide import QtCore, QtGui
-        import shiboken  # shiboken SG-31832
+        import shiboken
 
         QtNetwork = self._import_module_by_name("PySide", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide", "QtWebKit")
@@ -197,7 +197,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": None,
-                "shiboken": shiboken,  # shiboken SG-31832
+                "shiboken": shiboken,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -286,7 +286,7 @@ class QtImporter(object):
         """
         import PySide2
         from PySide2 import QtCore, QtGui, QtWidgets
-        import shiboken2 as shiboken  # shiboken SG-31832
+        import shiboken2 as shiboken
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
@@ -306,7 +306,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
-                "shiboken": shiboken,  # shiboken SG-31832
+                "shiboken": shiboken,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -356,7 +356,7 @@ class QtImporter(object):
         """
 
         import PySide6
-        import shiboken6 as shiboken # shiboken SG-31832
+        import shiboken6 as shiboken
         from .pyside6_patcher import PySide6Patcher
 
         QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
@@ -373,7 +373,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
-                "shiboken": shiboken,  # shiboken SG-31832
+                "shiboken": shiboken,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
