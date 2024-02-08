@@ -500,8 +500,6 @@ class LoginDialog(QtGui.QDialog):
 
         # Make sure that the method_selected is currently supported
         if (
-            method_selected == auth_constants.METHOD_BASIC and can_use_web
-        ) or (
             method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
         ) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
@@ -516,8 +514,6 @@ class LoginDialog(QtGui.QDialog):
 
         # Make sure that the method_selected is currently supported
         if (
-            method_selected == auth_constants.METHOD_BASIC and can_use_web
-        ) or (
             method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
         ) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
