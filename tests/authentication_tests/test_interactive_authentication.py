@@ -884,7 +884,7 @@ class InteractiveTests(ShotgunTestBase):
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
             # qt_web_login but method not available
             with mock.patch.dict("os.environ", {
@@ -942,7 +942,7 @@ class InteractiveTests(ShotgunTestBase):
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
             # qt_web_login but method is not available
             with mock.patch(
