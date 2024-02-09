@@ -51,7 +51,7 @@ class CloneConfigAction(Action):
         }
 
         self.parameters["user_id"] = {
-            "description": "SG user id to associate the cloned configuration with.",
+            "description": "PTR user id to associate the cloned configuration with.",
             "default": None,
             "type": "int",
         }
@@ -236,7 +236,7 @@ def _do_clone(
     }
     log.debug("Create sg: %s" % str(data))
     pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
-    log.debug("Created in SG: %s" % str(pc_entity))
+    log.debug("Created in PTR: %s" % str(pc_entity))
 
     # copy files and folders across
     try:

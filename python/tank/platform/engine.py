@@ -657,10 +657,10 @@ class Engine(TankBundle):
         """
         Indicates this engine will allow the metrics worker threads to forward
         the user metrics logged via core, this engine, or registered apps to
-        SG.
+        PTR.
 
         :returns: boolean value indicating that the engine allows user metrics
-            to be forwarded to SG.
+            to be forwarded to PTR.
         """
         return True
 
@@ -2457,7 +2457,7 @@ class Engine(TankBundle):
             file_in.__rshift__(self._dark_palette)
             fh.close()
 
-            # set the std selection bg color to be 'SG blue'
+            # set the std selection bg color to be 'PTR blue'
             highlight_color = QtGui.QBrush(
                 QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"])
             )
@@ -3319,7 +3319,7 @@ def start_shotgun_engine(tk, entity_type, context):
     # get the location for our engine
     if constants.SHOTGUN_ENGINE_NAME not in env.get_engines():
         raise TankMissingEngineError(
-            "Cannot find a SG engine in %s. Please contact support." % env
+            "Cannot find a PTR engine in %s. Please contact support." % env
         )
 
     engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)

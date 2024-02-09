@@ -53,7 +53,7 @@ def _get_site_infos(url, http_proxy=None):
         # require authentication.
         http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
         if http_proxy:
-            logger.debug("Using HTTP proxy to connect to the SG server: %s", http_proxy)
+            logger.debug("Using HTTP proxy to connect to the PTR server: %s", http_proxy)
 
         logger.info("Infos for site '%s' not in cache or expired", url)
         sg = shotgun_api3.Shotgun(
@@ -178,7 +178,7 @@ class SiteInfo(object):
     @property
     def app_session_launcher_enabled(self):
         """
-        Check to see if the SG site has the App Session Launcher authentication
+        Check to see if the PTR site has the App Session Launcher authentication
         enabled.
 
         This setting appeared in the Shotgun 8.50 serie, being rarely disabled.

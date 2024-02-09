@@ -388,7 +388,7 @@ class MetricsDispatchWorkerThread(Thread):
     DISPATCH_BATCH_SIZE = 10
     """
     Worker will dispatch this many metrics at a time, or all if <= 0.
-    NOTE: that current SG server code reject batches larger than 10.
+    NOTE: that current PTR server code reject batches larger than 10.
     """
 
     def __init__(self, engine):

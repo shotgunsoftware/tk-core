@@ -535,7 +535,7 @@ def _create_published_file(
 
             if supports_specific_storage_syntax:
 
-                # get corresponding SG local storage for the matching root name
+                # get corresponding PTR local storage for the matching root name
                 storage = tk.pipeline_configuration.get_local_storage_for_root(
                     root_name
                 )
@@ -547,7 +547,7 @@ def _create_published_file(
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in SG to associate publish '%s' with. "
+                        "'%s' in PTR to associate publish '%s' with. "
                         "Falling back to Flow Production Tracking's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
@@ -569,7 +569,7 @@ def _create_published_file(
                 data["path"] = {"local_path": path}
 
             # fill in the path cache field which is used for filtering in Shotgun
-            # (because SG does not support
+            # (because PTR does not support
             data["path_cache"] = path_cache
 
         else:
@@ -578,7 +578,7 @@ def _create_published_file(
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check SG local storages to see if there is a match.")
+            log.debug("Will check PTR local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
@@ -587,7 +587,7 @@ def _create_published_file(
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
                 ):
-                    log.debug("Path matches SG local storage '%s'" % storage["code"])
+                    log.debug("Path matches PTR local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
 
@@ -622,7 +622,7 @@ def _create_published_file(
         # add the publish type to be as consistent as possible
         data["type"] = published_file_entity_type
         log.debug(
-            "Dry run. Simply returning the data that would be sent to SG: %s"
+            "Dry run. Simply returning the data that would be sent to PTR: %s"
             % pprint.pformat(data)
         )
         return data

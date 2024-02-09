@@ -830,7 +830,7 @@ class ToolkitManager(object):
         if shotgun_site and self._sg_user.host != shotgun_site:
             log.warning(
                 "You are currently logged in to site %s but your launch environment "
-                "is set to start up %s %s on site %s. The SG integration "
+                "is set to start up %s %s on site %s. The PTR integration "
                 "currently doesn't support switching between sites and the contents of "
                 "SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID will therefore be ignored."
                 % (self._sg_user.host, entity_type, entity_id, shotgun_site)
@@ -888,7 +888,7 @@ class ToolkitManager(object):
         log.debug("Plugin Id: %s" % self._plugin_id)
 
         if self._do_shotgun_config_lookup:
-            log.debug("Will connect to SG to look for overrides.")
+            log.debug("Will connect to PTR to look for overrides.")
             log.debug(
                 "If no overrides found, this config will be used: %s"
                 % self._base_config_descriptor
@@ -907,7 +907,7 @@ class ToolkitManager(object):
                 log.debug("based on the current project id and user.")
 
         else:
-            log.debug("Will not connect to SG to resolve config overrides.")
+            log.debug("Will not connect to PTR to resolve config overrides.")
             log.debug(
                 "The following config will be used: %s" % self._base_config_descriptor
             )
@@ -1170,13 +1170,13 @@ class ToolkitManager(object):
         if is_shotgun_engine:
             try:
                 log.debug(
-                    "Attempting to start the SG engine using the standard "
+                    "Attempting to start the PTR engine using the standard "
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
             except Exception as outer_exc:
                 log.debug(
-                    "SG engine failed to start using start_engine. An "
+                    "PTR engine failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
                     "shotgun_xxx.yml environment. The start_engine exception "
                     "was the following: %r" % outer_exc
@@ -1186,7 +1186,7 @@ class ToolkitManager(object):
                         tk, engine_name, entity, ctx
                     )
                     log.debug(
-                        "SG engine started using a legacy shotgun_xxx.yml environment."
+                        "PTR engine started using a legacy shotgun_xxx.yml environment."
                     )
                 except tank.platform.TankMissingEnvironmentFile as exc:
                     # If the reason the new style bootstrap failed was that no environment was returned by the
@@ -1207,7 +1207,7 @@ class ToolkitManager(object):
 
                 except Exception as exc:
                     log.debug(
-                        "SG engine failed to start using the legacy "
+                        "PTR engine failed to start using the legacy "
                         "start_shotgun_engine routine. No more attempts will "
                         "be made to initialize the engine. The start_shotgun_engine "
                         "exception was the following: %r" % exc
@@ -1240,13 +1240,13 @@ class ToolkitManager(object):
         # new cores handles all this inside the tank.platform.start_shotgun_engine
         # business logic.
         log.debug(
-            "Target core version is %s. Starting SG engine via legacy pathway."
+            "Target core version is %s. Starting PTR engine via legacy pathway."
             % tk.version
         )
 
         if entity is None:
             raise TankBootstrapError(
-                "Legacy SG environments do not support bootstrapping into a site context."
+                "Legacy PTR environments do not support bootstrapping into a site context."
             )
 
         # start engine via legacy pathway

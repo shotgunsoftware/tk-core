@@ -187,7 +187,7 @@ class PathCacheMigrationAction(Action):
         # now turn on the cloud based path cache. This means that from now on, a new path
         # cache, stored on the local disk, will be used instead of the previous (shared) one.
         log.info("")
-        log.info("Phase 2/3: Switching on the SG Path Cache...")
+        log.info("Phase 2/3: Switching on the PTR Path Cache...")
         self.tk.pipeline_configuration.turn_on_shotgun_path_cache()
 
         # and synchronize path cache

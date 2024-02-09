@@ -230,10 +230,10 @@ class TankQDialog(TankDialogBase):
             # set up the title bar and configuration panel
 
             self.ui.tank_logo.setToolTip(
-                "This is part of the SG App %s" % self._bundle.name
+                "This is part of the PTR App %s" % self._bundle.name
             )
             self.ui.label.setToolTip(
-                "This is part of the SG App %s" % self._bundle.name
+                "This is part of the PTR App %s" % self._bundle.name
             )
 
             # Add our context to the header

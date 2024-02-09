@@ -267,7 +267,7 @@ class TankCoreUpdater(object):
     (
         UP_TO_DATE,  # all good, no update necessary
         UPDATE_POSSIBLE,  # more recent version exists
-        UPDATE_BLOCKED_BY_SG,  # more recent version exists but SG version is too low.
+        UPDATE_BLOCKED_BY_SG,  # more recent version exists but PTR version is too low.
         UPDATE_BLOCKED_BY_CONFIG,  # The config descriptor is not suitable for updating.
     ) = range(4)
 
@@ -329,7 +329,7 @@ class TankCoreUpdater(object):
 
     def get_required_sg_version_for_update(self):
         """
-        Returns the SG version that is required in order to update to the specified
+        Returns the PTR version that is required in order to update to the specified
         version of the Tank Core API.
 
         :returns: sg version number as a string or None if no version is required.

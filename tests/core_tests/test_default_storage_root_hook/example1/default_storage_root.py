@@ -41,7 +41,7 @@ class DefaultStorageRoot(Hook):
 
         project_storage_name = sg_data["sg_storage_root_name"]
 
-        # check if local storage exists on SG site
+        # check if local storage exists on PTR site
         local_storage = self.parent.shotgun.find(
             "LocalStorage", [["code", "is", project_storage_name]]
         )
@@ -52,7 +52,7 @@ class DefaultStorageRoot(Hook):
             )
             return
         # Modify the folder creation metadata, this make sure to register the new storage root
-        # path on disk as FilesystemLocation entities in SG.
+        # path on disk as FilesystemLocation entities in PTR.
         if metadata:
             metadata.update({"root_name": project_storage_name})
 

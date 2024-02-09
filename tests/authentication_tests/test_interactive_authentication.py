@@ -1162,7 +1162,7 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                "\n",  # Select default SG site (site1)
+                "\n",  # Select default PTR site (site1)
                 "1",  # Select "legacy" auth method
                 "username",
             ],

@@ -81,7 +81,7 @@ class SetupProjectAction(Action):
         }
 
         self.parameters["project_id"] = {
-            "description": "SG id for the project you want to set up.",
+            "description": "PTR id for the project you want to set up.",
             "default": None,
             "type": "int",
         }
@@ -146,7 +146,7 @@ class SetupProjectAction(Action):
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
             "Expert setting. Setting this to true means that a blank "
-            "path entry is written to the SG site pipeline "
+            "path entry is written to the PTR site pipeline "
             "configuration. This can be used in conjunction with "
             "a localized core to create a site configuration which "
             "can have different locations on different machines. It "
@@ -364,9 +364,9 @@ class SetupProjectAction(Action):
             log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target SG server! (v%s)" % sg_version)
+            log.debug("Connected to target PTR server! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to SG server: %s" % e)
+            raise TankError("Could not connect to PTR server: %s" % e)
 
         return sg
 
@@ -581,7 +581,7 @@ class SetupProjectAction(Action):
         log.info(
             "The selected Toolkit config utilizes the following Local Storages, as "
         )
-        log.info("defined in the SG Site Preferences:")
+        log.info("defined in the PTR Site Preferences:")
         log.info("")
         for storage_name in params.get_required_storages():
             current_os_path = params.get_storage_path(storage_name, sgsix.platform)
@@ -886,7 +886,7 @@ class SetupProjectAction(Action):
         )
         log.info("The following items will be created:")
         log.info("")
-        log.info("* A SG Pipeline configuration will be created:")
+        log.info("* A PTR Pipeline configuration will be created:")
         log.info("  - on Macosx:  '%s'" % params.get_configuration_location("darwin"))
         log.info("  - on Linux:   '%s'" % params.get_configuration_location("linux2"))
         log.info("  - on Windows: '%s'" % params.get_configuration_location("win32"))
@@ -906,7 +906,7 @@ class SetupProjectAction(Action):
         """
         Present the user with information about the storage roots defined by
         the configuration. Allows them to map a root to an existing local
-        storage in SG.
+        storage in PTR.
 
         :param params: Project setup params instance
         :param config_uri: A config uri
@@ -914,7 +914,7 @@ class SetupProjectAction(Action):
         :param sg: Shotgun API instance
         """
 
-        # query all storages that exist in SG
+        # query all storages that exist in PTR
         storages = sg.find(
             "LocalStorage",
             filters=[],
@@ -932,7 +932,7 @@ class SetupProjectAction(Action):
             storage_by_id[storage_id] = storage
             storage_by_name[storage_name] = storage
 
-        # present a summary of storages that exist in SG
+        # present a summary of storages that exist in PTR
         log.info("")
         log.info("The following local storages exist in Flow Production Tracking:")
         log.info("")
@@ -1026,7 +1026,7 @@ class SetupProjectAction(Action):
 
             if not current_os_path:
                 # the current os path for the selected storage is not populated.
-                # prompt the user and update the path in SG.
+                # prompt the user and update the path in PTR.
                 current_os_path = input(
                     "Please enter a path for this storage on the current OS: "
                 )
@@ -1046,8 +1046,8 @@ class SetupProjectAction(Action):
                         "Error: %s\n%s" % (e, traceback.format_exc())
                     )
 
-                # update the storage in SG.
-                log.info("Updating the local storage in SG...")
+                # update the storage in PTR.
+                log.info("Updating the local storage in PTR...")
                 log.info("")
                 update_data = sg.update(
                     "LocalStorage", storage["id"], {current_os_key: current_os_path}

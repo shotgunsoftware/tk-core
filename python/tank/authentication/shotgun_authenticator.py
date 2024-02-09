@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""SG Authenticator."""
+"""PTR Authenticator."""
 
 from .sso_saml2 import has_sso_info_in_cookies, has_unified_login_flow_info_in_cookies
 from . import interactive_authentication

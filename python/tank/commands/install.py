@@ -59,7 +59,7 @@ class InstallAppAction(Action):
             "description": (
                 "Address to app to install. If you specify the name of "
                 "an app (e.g. tk-multi-loader), toolkit will try to download "
-                "it from the SG App Store. Alternatively, you can also "
+                "it from the PTR App Store. Alternatively, you can also "
                 "specify the path to a bare git repo, for example in github. "
                 "For more info, see the help for the install_app commmand."
             ),
@@ -376,7 +376,7 @@ class InstallEngineAction(Action):
             "description": (
                 "Address to engine to install. If you specify the name of "
                 "an engine (e.g. tk-maya), toolkit will try to download "
-                "it from the SG App Store. Alternatively, you can also "
+                "it from the PTR App Store. Alternatively, you can also "
                 "specify the path to a bare git repo, for example in github. "
                 "For more info, see the help for the install_engine commmand."
             ),

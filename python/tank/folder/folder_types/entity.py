@@ -94,7 +94,7 @@ class Entity(Folder):
         passing the filter to Shotgun for evaluation.
         """
 
-        # the schema name is the same as the SG entity type
+        # the schema name is the same as the PTR entity type
         Folder.__init__(self, parent, full_path, metadata)
 
         self._tk = tk
@@ -234,7 +234,7 @@ class Entity(Folder):
         for custom_field in self._get_additional_sg_fields():
             fields.add(custom_field)
 
-        # convert to a list - sets wont work with the SG API
+        # convert to a list - sets wont work with the PTR API
         fields_list = list(fields)
 
         # now find all the items (e.g. shots) matching this query
@@ -363,7 +363,7 @@ class Entity(Folder):
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:
                     raise TankError(
-                        "Could not find SG %s with id %s as required by "
+                        "Could not find PTR %s with id %s as required by "
                         "the folder creation setup." % (self._entity_type, my_id)
                     )
                 else:

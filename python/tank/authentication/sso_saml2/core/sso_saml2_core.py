@@ -52,14 +52,14 @@ except ImportError:
 from tank_vendor.six.moves.urllib.parse import urlencode
 
 # Error messages for events.
-HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To SG site."
+HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To PTR site."
 HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
 HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = (
     "Time out attempting to authenticate to SSO service."
 )
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = (
-    "You have not been granted access to the SG site."
+    "You have not been granted access to the PTR site."
 )
 
 # Timer related values.
@@ -144,7 +144,7 @@ def get_renew_path(session):
 
 
 class SsoSaml2Core(object):
-    """Performs SG Web login and pre-emptive renewal for SSO sessions."""
+    """Performs PTR Web login and pre-emptive renewal for SSO sessions."""
 
     def __init__(self, window_title="Web Login", qt_modules=None):
         """
@@ -887,7 +887,7 @@ class SsoSaml2Core(object):
         # pop an authentication dialog.
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
             message = (
-                "<p>Your company has configured Single Sign-On (SSO) for the SG site %s"
+                "<p>Your company has configured Single Sign-On (SSO) for the PTR site %s"
                 "<p>Please authenticate with your computer login and password to log into Flow Production Tracking."
                 "<p>"
             )

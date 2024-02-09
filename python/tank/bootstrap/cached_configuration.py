@@ -115,7 +115,7 @@ class CachedConfiguration(Configuration):
         self._descriptor.ensure_local()
 
         log.debug(
-            "Verifying that all necessary SG data is "
+            "Verifying that all necessary PTR data is "
             "available in order for config %s to run..." % self
         )
 
@@ -142,7 +142,7 @@ class CachedConfiguration(Configuration):
 
         (_, unmapped_roots) = storage_roots.get_local_storages(self._sg_connection)
 
-        # get a list of all defined storage roots without a corresponding SG
+        # get a list of all defined storage roots without a corresponding PTR
         # local storage defined
         if unmapped_roots:
             raise TankBootstrapError(
@@ -440,7 +440,7 @@ class CachedConfiguration(Configuration):
         if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
             if self._descriptor.associated_core_version_less_than("v0.18.120"):
                 raise TankBootstrapError(
-                    "Configurations uploaded to SG must use core API "
+                    "Configurations uploaded to PTR must use core API "
                     "version v0.18.120 or later. Please check the "
                     "core/core_api.yml file in your configuration."
                 )

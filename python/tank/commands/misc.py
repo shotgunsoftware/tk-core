@@ -27,7 +27,7 @@ class ClearCacheAction(Action):
             "clear_shotgun_menu_cache",
             Action.TK_INSTANCE,
             (
-                "Clears the SG Menu Cache associated with this Configuration. "
+                "Clears the PTR Menu Cache associated with this Configuration. "
                 "This is sometimes useful after complex configuration changes if new "
                 "or modified Toolkit menu items are not appearing inside Flow Production Tracking."
             ),
@@ -73,7 +73,7 @@ class ClearCacheAction(Action):
                 except:
                     log.warning("Could not delete cache file '%s'!" % full_path)
 
-        log.info("The SG menu cache has been cleared.")
+        log.info("The PTR menu cache has been cleared.")
 
 
 class InteractiveShellAction(Action):

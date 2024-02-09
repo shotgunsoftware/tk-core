@@ -222,7 +222,7 @@ def _download_and_unpack(
     :param url: The url to download from
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    # @todo: progress feedback here - when the SG api supports it!
+    # @todo: progress feedback here - when the PTR api supports it!
     # sometimes people report that this download fails (because of flaky connections etc)
     # engines can often be 30-50MiB - as a quick fix, just retry the download if it fails
 
@@ -294,7 +294,7 @@ def _download_and_unpack(
         # the attachment in shotgun could not be unpacked
         if attachment_id:
             raise ShotgunAttachmentDownloadError(
-                "SG attachment with id %s is not a zip file!" % attachment_id
+                "PTR attachment with id %s is not a zip file!" % attachment_id
             )
         else:
             raise ShotgunAttachmentDownloadError(

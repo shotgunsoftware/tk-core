@@ -65,7 +65,7 @@ class PathCache(object):
     # around this have been largely alleviated in Shotgun 7.4.x and the
     # accompanying shotgun_api3 that was released at the same time, but
     # we still want to batch at the old page length of 500 to boost
-    # performance when older SG or API versions are used. We should
+    # performance when older PTR or API versions are used. We should
     # eventually raise this to 5000 (or more) when we feel it is safe
     # to do so.
     SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
@@ -312,7 +312,7 @@ class PathCache(object):
             self._connection = None
 
     ############################################################################################
-    # shotgun synchronization (SG data pushed into path cache database)
+    # shotgun synchronization (PTR data pushed into path cache database)
 
     def synchronize(self, full_sync=False):
         """
@@ -515,7 +515,7 @@ class PathCache(object):
             response = self._tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError(
-                "Critical! Could not update SG with folder "
+                "Critical! Could not update PTR with folder "
                 "data. Please contact support. Error details: %s" % e
             )
 
@@ -569,7 +569,7 @@ class PathCache(object):
             response = self._tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError(
-                "Critical! Could not update SG with folder data event log "
+                "Critical! Could not update PTR with folder data event log "
                 "history marker. Please contact support. Error details: %s" % e
             )
 
@@ -608,12 +608,12 @@ class PathCache(object):
         show_global_busy(
             "Hang on, Toolkit is preparing folders...",
             (
-                "Toolkit is retrieving folder listings from SG and ensuring that your "
+                "Toolkit is retrieving folder listings from PTR and ensuring that your "
                 "setup is up to date. Hang tight while data is being downloaded..."
             ),
         )
         try:
-            log.debug("Performing a complete SG folder sync...")
+            log.debug("Performing a complete PTR folder sync...")
 
             # find the max event log id. we will store this in the sync db later.
             sg_data = self._tk.shotgun.find_one(
@@ -664,7 +664,7 @@ class PathCache(object):
             tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError(
-                "SG reported an error while attempting to delete FilesystemLocation entities. "
+                "PTR reported an error while attempting to delete FilesystemLocation entities. "
                 "Please contact support. Details: %s Data: %s" % (e, sg_batch_data)
             )
 
@@ -710,7 +710,7 @@ class PathCache(object):
             tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError(
-                "SG Reported an error while trying to write a Toolkit_Folders_Delete event "
+                "PTR Reported an error while trying to write a Toolkit_Folders_Delete event "
                 "log entry after having successfully removed folders. Please contact support for "
                 "assistance. Error details: %s Data: %s" % (e, sg_event_data)
             )
@@ -987,7 +987,7 @@ class PathCache(object):
         #            'url': 'file:///Volumes/xyz/proj1/sequences/aaa'},
         #   'type': 'FilesystemLocation'},
         #
-        # With a retired storage, the returned data from the SG API is
+        # With a retired storage, the returned data from the PTR API is
         #  {'id': 646,
         #   'path': {'content_type': None,
         #            'id': 2141,
@@ -1247,7 +1247,7 @@ class PathCache(object):
                         entity["type"],
                         entity["name"],
                     )
-                    msg += "This typically happens if an item in SG is renamed or "
+                    msg += "This typically happens if an item in PTR is renamed or "
                     msg += "if the path naming in the folder creation configuration "
                     msg += "is changed. In order to continue you can either change "
                     msg += (
@@ -1310,7 +1310,7 @@ class PathCache(object):
                 )
                 if new_rowid:
                     # this entry wasn't already in the db. So add it to the list to
-                    # potentially upload to SG later on
+                    # potentially upload to PTR later on
                     data_for_sg.append(d)
                     # append path cache row id to data
                     d["path_cache_row_id"] = new_rowid
@@ -1394,7 +1394,7 @@ class PathCache(object):
                 ):
                     raise TankError(
                         "Database concurrency problems: The path '%s' is "
-                        "already associated with SG entity %s. Please re-run "
+                        "already associated with PTR entity %s. Please re-run "
                         "folder creation to try again." % (path, str(curr_entity))
                     )
 
@@ -1824,7 +1824,7 @@ class PathCache(object):
             if sg_dict_key in sg_existing_data:
                 log.info(" - Skipping '%s'" % local_os_path)
                 log.debug(
-                    "Path '%s' (%s %s) is already in SG (id %s)"
+                    "Path '%s' (%s %s) is already in PTR (id %s)"
                     % (
                         local_os_path,
                         entity_type,
@@ -1848,7 +1848,7 @@ class PathCache(object):
 
         # cull out stuff where the linked entity has been retired in shogun
         log.info("")
-        log.info("Step 4 - Ensuring all SG entity links are valid.")
+        log.info("Step 4 - Ensuring all PTR entity links are valid.")
 
         ids_to_look_for = collections.defaultdict(list)
         for sg_record in sg_records:

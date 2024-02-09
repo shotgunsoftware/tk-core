@@ -578,7 +578,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError as e:
-        logger.error("Error writing SG cache file: %s" % e)
+        logger.error("Error writing PTR cache file: %s" % e)
     except Exception:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
@@ -934,7 +934,7 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
 
     if len(data) == 0:
         raise TankError(
-            "No SG %s matching the pattern '%s'!" % (entity_type, name_pattern)
+            "No PTR %s matching the pattern '%s'!" % (entity_type, name_pattern)
         )
 
     elif len(data) > 1:
@@ -1320,7 +1320,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             if ctx.project is None:
                 # context could not be determined based on the path
                 # revert back to the project context
-                logger.info("- The path is not associated with any SG object.")
+                logger.info("- The path is not associated with any PTR object.")
                 logger.info("- Falling back on default project settings.")
 
                 if tk.pipeline_configuration.is_site_configuration():
@@ -1342,7 +1342,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 "You are executing a project specific tank command so there is "
                 "no need to specify a Project parameter! Try running just the "
                 "tank command with no parameters to see what options are available "
-                "on the project level. Alternatively, you can pass a SG entity "
+                "on the project level. Alternatively, you can pass a PTR entity "
                 "(e.g. 'Shot abc123') or a path on disk to specify a particular "
                 "environment to see the available commands."
             )

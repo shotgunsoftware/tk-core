@@ -13,7 +13,7 @@ from . import console_utils
 from . import constants
 
 _MESSAGE = (
-    "This command will migrate the SG site configuration used by the Desktop app so "
+    "This command will migrate the PTR site configuration used by the Desktop app so "
     "it is no longer associated with the 'Template Project'. Before proceeding, make sure "
     "all your users are running version 1.2.0 or greater of the Flow Production Tracking Toolkit Startup "
     "framework. You can see which version you are running in the Flow Production Tracking Toolkit's About "

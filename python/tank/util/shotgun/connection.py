@@ -344,13 +344,13 @@ def get_deferred_sg_connection():
     This is a method intended only to support certain legacy cases
     where some operations in Toolkit are not fully authenticated.
     When descriptor objects are constructed, they are associated with a
-    SG API handle. This handle is not necessary for basic operations such
+    PTR API handle. This handle is not necessary for basic operations such
     as path resolution. By passing a deferred connection object to
     descriptors, authentication is essentially deferred until the need
     for more complex operations arises, allowing for simple, *legacy*
     non-authenticated pathways.
 
-    :return: Proxied SG API handle
+    :return: Proxied PTR API handle
     """
 
     class DeferredInitShotgunProxy(object):
@@ -375,9 +375,9 @@ def get_sg_connection():
     times this call is made.
 
         .. note:: Because Shotgun API instances are not safe to share across
-                  threads, this method caches SG Instances per-thread.
+                  threads, this method caches PTR Instances per-thread.
 
-    :return: SG API handle
+    :return: PTR API handle
     """
     global _g_sg_cached_connections
     sg = getattr(_g_sg_cached_connections, "sg", None)
@@ -405,7 +405,7 @@ def create_sg_connection(user="default"):
     :param user: Optional shotgun config user to use when connecting to shotgun,
                  as defined in shotgun.yml. This is a deprecated flag and should not
                  be used.
-    :returns: SG API instance
+    :returns: PTR API instance
     """
 
     # Avoids cyclic imports.
@@ -419,7 +419,7 @@ def create_sg_connection(user="default"):
     if sg_user is None:
         log.debug(
             "This tk session has no associated authenticated user. Falling back to "
-            "creating a SG API instance based on script based credentials in the "
+            "creating a PTR API instance based on script based credentials in the "
             "shotgun.yml configuration file."
         )
 
@@ -428,20 +428,20 @@ def create_sg_connection(user="default"):
             config_file_path = __get_sg_config()
         except TankError as e:
             log.error(
-                "Trying to create a SG connection but this tk session does not have "
+                "Trying to create a PTR connection but this tk session does not have "
                 "an associated authenticated user. Therefore attempted to fall back on "
                 "a legacy authentication method where script based credentials are "
                 "located in a file relative to the location of the core API code. This "
                 "lookup in turn failed. No credentials can be determined and no connection "
-                "to SG can be made. Details: %s" % e
+                "to PTR can be made. Details: %s" % e
             )
             raise TankError(
-                "Cannot connect to SG - this tk session does not have "
-                "an associated user and attempts to determine a valid SG "
+                "Cannot connect to PTR - this tk session does not have "
+                "an associated user and attempts to determine a valid PTR "
                 "via legacy configuration files failed. Details: %s" % e
             )
 
-        log.debug("Creating SG connection based on details in %s" % config_file_path)
+        log.debug("Creating PTR connection based on details in %s" % config_file_path)
         config_data = __get_sg_config_data_with_script_user(config_file_path, user)
 
         # Credentials were passed in, so let's run the legacy authentication
@@ -456,7 +456,7 @@ def create_sg_connection(user="default"):
 
     else:
         # Otherwise use the authenticated user to create the connection.
-        log.debug("Creating SG connection from %r..." % sg_user)
+        log.debug("Creating PTR connection from %r..." % sg_user)
         api_handle = sg_user.create_sg_connection()
 
     # bolt on our custom user agent manager so that we can

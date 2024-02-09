@@ -30,7 +30,7 @@ class DefaultStorageRoot(Hook):
 
         # Stores the Windows drive for the project, e.g "P:"
         drive_root = sg_data["sg_projects_root"]
-        # check if local storage exists on SG site
+        # check if local storage exists on PTR site
         local_storage = self.parent.shotgun.find(
             "LocalStorage", [['windows_path', 'is', drive_root]], ['code']
         )
@@ -46,7 +46,7 @@ class DefaultStorageRoot(Hook):
             # Override data associated with the directory to use the new storage root.
             metadata.update({"root_name": local_storage[0]['code']})
 
-        # Update the default configuration root to map to the correct SG LocalStorage in the
+        # Update the default configuration root to map to the correct PTR LocalStorage in the
         # StorageRoots object.
         log.info('Overriding project root to LocalStorage %s' % local_storage)
         storage_roots.update_root(

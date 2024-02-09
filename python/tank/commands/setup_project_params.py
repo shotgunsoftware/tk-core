@@ -228,13 +228,13 @@ class ProjectSetupParameters(object):
             if not storage_data[storage_name]["defined_in_shotgun"]:
                 raise TankError(
                     "The storage '%s' required by the configuration has not been defined in Flow Production Tracking. "
-                    "In order to fix this, please navigate to the Site Preferences in SG "
+                    "In order to fix this, please navigate to the Site Preferences in PTR "
                     "and set up a new local file storage." % storage_name
                 )
 
             elif storage_data[storage_name][sgsix.platform] is None:
                 raise TankError(
-                    "The SG Local File Storage '%s' does not have a path defined "
+                    "The PTR Local File Storage '%s' does not have a path defined "
                     "for the current operating system!" % storage_name
                 )
 
@@ -243,7 +243,7 @@ class ProjectSetupParameters(object):
             ):
                 local_path = storage_data[storage_name][sgsix.platform]
                 raise TankError(
-                    "The path on disk '%s' defined in the SG Local File Storage '%s' does "
+                    "The path on disk '%s' defined in the PTR Local File Storage '%s' does "
                     "not exist!" % (local_path, storage_name)
                 )
 
@@ -365,7 +365,7 @@ class ProjectSetupParameters(object):
     def get_storage_shotgun_id(self, storage_name):
         """
         Given a storage name as defined in the configuration roots, return the
-        corresponding shotgun id as defined in Shotgun. If no SG storage can
+        corresponding shotgun id as defined in Shotgun. If no PTR storage can
         be correlated, return None.
         """
         return self._storage_data.get(storage_name, {}).get("shotgun_id")
@@ -411,8 +411,8 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        # compose a filename for the zip file that will be uploaded to SG
-        # this will also be the name that is displayed on the attachment in SG
+        # compose a filename for the zip file that will be uploaded to PTR
+        # this will also be the name that is displayed on the attachment in PTR
         zip_filename = "%s.zip" % (self._config_template.version or "config")
 
         # create a folder name which will be the folder which everything is
@@ -456,9 +456,9 @@ class ProjectSetupParameters(object):
                 ):
                     roots_data[storage_name]["default"] = True
 
-                # if there is a SG local storage associated with this root, make sure
+                # if there is a PTR local storage associated with this root, make sure
                 # it is explicit in the the roots file. this allows roots to exist that
-                # are not named the same as the storage in SG
+                # are not named the same as the storage in PTR
                 sg_storage_id = self.get_storage_shotgun_id(storage_name)
                 if sg_storage_id is not None:
                     roots_data[storage_name]["shotgun_storage_id"] = sg_storage_id
@@ -919,7 +919,7 @@ class ProjectSetupParameters(object):
             field_data = self._sg.schema_field_read("PipelineConfiguration")
             if "uploaded_config" not in field_data:
                 raise TankError(
-                    "SG site is missing a PipelineConfiguration.uploaded_config "
+                    "PTR site is missing a PipelineConfiguration.uploaded_config "
                     "field, required for distributed configs to work correctly. Please update to "
                     "a more recent version of Flow Production Tracking."
                 )
@@ -1090,13 +1090,13 @@ class TemplateConfiguration(object):
 
                 if is_version_newer(required_version, sg_version_str):
                     raise TankError(
-                        "This configuration requires SG version %s "
+                        "This configuration requires PTR version %s "
                         "but you are running version %s"
                         % (required_version, sg_version_str)
                     )
                 else:
                     self._log.debug(
-                        "Config requires SG %s. "
+                        "Config requires PTR %s. "
                         "You are running %s which is fine."
                         % (required_version, sg_version_str)
                     )
@@ -1273,7 +1273,7 @@ class TemplateConfiguration(object):
         # a dictionary of info to return
         storage_info = {}
 
-        # do the storage lookup and mapping in SG
+        # do the storage lookup and mapping in PTR
         (local_storage_lookup, unmapped_roots) = self._storage_roots.get_local_storages(
             self._sg
         )
@@ -1295,12 +1295,12 @@ class TemplateConfiguration(object):
                 storage_info[root_name][key] = root_info.get(key)
 
             if root_name in unmapped_roots:
-                # not mapped to a storage in SG
+                # not mapped to a storage in PTR
                 storage_info[root_name]["shotgun_id"] = None
                 storage_info[root_name]["defined_in_shotgun"] = False
                 storage_info[root_name]["exists_on_disk"] = False
             else:
-                # mapped to a SG storage
+                # mapped to a PTR storage
                 local_storage = local_storage_lookup[root_name]
 
                 storage_info[root_name]["defined_in_shotgun"] = True

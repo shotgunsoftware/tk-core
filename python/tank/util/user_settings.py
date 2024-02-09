@@ -53,7 +53,7 @@ class UserSettings(Singleton):
         logger.debug("Default login: %s", self._to_display_value(self.default_login))
 
         proxy = self._get_filtered_proxy(self.shotgun_proxy)
-        logger.debug("SG proxy: %s", self._to_display_value(proxy))
+        logger.debug("PTR proxy: %s", self._to_display_value(proxy))
 
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         logger.debug("App Store proxy: %s", self._to_display_value(proxy))

@@ -96,7 +96,7 @@ class Context(object):
         msg.append("  Step: %s" % str(self.__step))
         msg.append("  Task: %s" % str(self.__task))
         msg.append("  User: %s" % str(self.__user))
-        msg.append("  SG URL: %s" % self.shotgun_url)
+        msg.append("  PTR URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         msg.append("  Source Entity: %s" % str(self.__source_entity))
 
@@ -936,7 +936,7 @@ class Context(object):
                         raise TankError(
                             "Key '%s' in template '%s' could not be populated by "
                             "context '%s' because the context does not contain a "
-                            "SG entity of type '%s'!"
+                            "PTR entity of type '%s'!"
                             % (key, template, self, key.shotgun_entity_type)
                         )
                     else:
@@ -960,8 +960,8 @@ class Context(object):
                     if not result:
                         # no record with that id in shotgun!
                         raise TankError(
-                            "Could not retrieve SG data for key '%s' in "
-                            "template '%s'. No records in SG are matching "
+                            "Could not retrieve PTR data for key '%s' in "
+                            "template '%s'. No records in PTR are matching "
                             "entity '%s' (Which is part of the current "
                             "context '%s')" % (key, template, entity, self)
                         )
@@ -994,7 +994,7 @@ class Context(object):
                         if not key.validate(processed_val):
                             raise TankError(
                                 "Template validation failed for value '%s'. This "
-                                "value was retrieved from entity %s in SG to "
+                                "value was retrieved from entity %s in PTR to "
                                 "represent key '%s' in "
                                 "template '%s'."
                                 % (processed_val, entity, key, template)

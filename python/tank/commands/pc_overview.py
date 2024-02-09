@@ -175,7 +175,7 @@ class PCBreakdownAction(Action):
                 log.info(
                     "This is a private configuration. In Flow Production Tracking, only %s will see the actions "
                     "defined in this config. If you want to add additional members to this "
-                    "configuration, navigate to the SG Pipeline Configuration Page "
+                    "configuration, navigate to the PTR Pipeline Configuration Page "
                     "and add them to the Users field." % d.get("users")[0]["name"]
                 )
 
@@ -184,7 +184,7 @@ class PCBreakdownAction(Action):
                 log.info(
                     "This is a private configuration. In Flow Production Tracking, the following users will see "
                     "the actions defined in this config: %s. If you want to add additional "
-                    "members to this configuration, navigate to the SG Pipeline "
+                    "members to this configuration, navigate to the PTR Pipeline "
                     "Configuration Page and add them to the Users field." % users
                 )
 

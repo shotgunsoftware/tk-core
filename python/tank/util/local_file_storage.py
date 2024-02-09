@@ -221,7 +221,7 @@ class LocalFileStorageManager(object):
         """
         if hostname is None:
             raise TankError(
-                "Cannot compute path for local site specific storage - no SG hostname specified!"
+                "Cannot compute path for local site specific storage - no PTR hostname specified!"
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
