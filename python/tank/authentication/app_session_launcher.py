@@ -481,16 +481,28 @@ def build_user_agent():
 
 if __name__ == "__main__":
     import argparse
+    import logging
     import webbrowser
+
+    lh = logging.StreamHandler()
+    lh.setLevel(logging.DEBUG)
+    lh.setFormatter(logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s",
+    ))
+
+    logger.addHandler(lh)
+    print()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("sg_url", help="Provide a ShotGrid URL")
+    parser.add_argument("--http-proxy", "-p", help="Set a proxy URL")
     args = parser.parse_args()
 
     result = process(
         args.sg_url,
         product="Test Script",
         browser_open_callback=lambda u: webbrowser.open(u),
+        http_proxy=args.http_proxy,
     )
     if not result:
         print("The web authentication failed. Please try again.")
