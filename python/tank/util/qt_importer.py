@@ -289,7 +289,7 @@ class QtImporter(object):
         """
         import PySide2
         from PySide2 import QtCore, QtGui, QtWidgets
-        import shiboken2 as shiboken
+        import shiboken2
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
@@ -309,7 +309,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
-                "shiboken": shiboken,
+                "shiboken": shiboken2,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -359,7 +359,7 @@ class QtImporter(object):
         """
 
         import PySide6
-        import shiboken6 as shiboken
+        import shiboken6
         from .pyside6_patcher import PySide6Patcher
 
         QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
@@ -376,7 +376,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
-                "shiboken": shiboken,
+                "shiboken": shiboken6,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
