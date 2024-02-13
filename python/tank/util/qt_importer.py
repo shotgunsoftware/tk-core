@@ -216,6 +216,7 @@ class QtImporter(object):
         # imported even if the Qt binaries are missing, so it's better to try importing QtCore for
         # testing.
         from PySide2 import QtCore
+        import shiboken2
 
         # List of all Qt 5 modules.
         sub_modules = [
@@ -250,6 +251,9 @@ class QtImporter(object):
             sub_modules.append("QtWebEngineWidgets")
 
         modules_dict = {"QtCore": QtCore}
+
+        # Add shiboken2 to the modules dict
+        modules_dict["shiboken"] = shiboken2
 
         # Depending on the build of PySide 2 being used, more or less modules are supported. Instead
         # of assuming a base set of functionality, simply try every module one at a time.
