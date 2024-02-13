@@ -51,7 +51,7 @@ class QtImporterTests(TankTestBase):
     @skip_if_pyside2(found=False)
     def test_qt_importer_with_pyside2_interface_qt5(self):
         """
-        Test the QtImporter constructor with QT4 interface.
+        Test the QtImporter constructor with QT5 interface.
 
         This test only runs if PySide2 is available.
         """
