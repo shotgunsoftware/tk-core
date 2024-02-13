@@ -2164,8 +2164,7 @@ class Engine(TankBundle):
             else:
                 base["dialog_base"] = None
             base["wrapper"] = importer.binding
-            if importer.shiboken:
-                base["shiboken"] = importer.shiboken
+            base["shiboken"] = importer.shiboken
         except:
 
             self.log_exception(
