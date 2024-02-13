@@ -393,9 +393,12 @@ class QtImporter(object):
         """
 
         import PySide6
+        import shiboken6
 
         sub_modules = pkgutil.iter_modules(PySide6.__path__)
         modules_dict = {}
+        # Add shiboken6 to the modules dict
+        modules_dict["shiboken"] = shiboken6
         for module in sub_modules:
             module_name = module.name
             try:
