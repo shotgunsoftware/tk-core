@@ -37,6 +37,8 @@ class QtImporterTests(TankTestBase):
         assert qt.QtCore
         assert qt.QtGui
         assert qt.QtNetwork
+        assert qt.shiboken
+        assert qt.shiboken.__name__ == "shiboken2"
         # We need one or the other
         assert qt.QtWebKit or qt.QtWebEngineWidgets
 
@@ -60,6 +62,8 @@ class QtImporterTests(TankTestBase):
         assert qt.QtCore
         assert qt.QtGui
         assert qt.QtNetwork
+        assert qt.shiboken
+        assert qt.shiboken.__name__ == "shiboken2"
         try:
             qt_web_kit = qt.QtWebKit
         except KeyError:
@@ -92,6 +96,8 @@ class QtImporterTests(TankTestBase):
         assert qt.QtCore
         assert qt.QtGui
         assert qt.QtNetwork
+        assert qt.shiboken
+        assert qt.shiboken.__name__ == "shiboken"
         # We need one or the other
         assert qt.QtWebKit or qt.QtWebEngineWidgets
 
@@ -142,6 +148,8 @@ class QtImporterTests(TankTestBase):
         assert qt.QtCore
         assert qt.QtGui
         assert qt.QtNetwork
+        assert qt.shiboken
+        assert qt.shiboken.__name__ == "shiboken6"
         # We need one or the other
         assert qt.QtWebKit or qt.QtWebEngineWidgets
 
@@ -168,6 +176,8 @@ class QtImporterTests(TankTestBase):
         assert qt.QtCore
         assert qt.QtGui
         assert qt.QtNetwork
+        assert qt.shiboken
+        assert qt.shiboken.__name__ == "shiboken6"
         try:
             qt_web_kit = qt.QtWebKit
         except KeyError:
