@@ -69,7 +69,7 @@ operates at a high level:
     :align: center
 
 This design is repeated everywhere and is a pattern which can be easily extended.
-Users typically launch Toolkit by launching the Flow Production Tracking Toolkit. The Flow Production Tracking Toolkit
+Users typically launch Toolkit by launching the Flow Production Tracking. The Flow Production Tracking
 contains a *Toolkit plugin* which runs the :ref:`bootstrap_api` in order to load in a
 full Toolkit environment.
 
@@ -81,7 +81,7 @@ full Toolkit environment.
 Once the plugin is loaded, and the bootstrap is running, it will start by prompting the user to log in
 to a site. Next, it will connect to the Flow Production Tracking Site to determine if any Pipeline Configuration Entities
 exist associated with the project. If so, these are used to configure the Toolkit session.
-If not, the default plugins running in Flow Production Tracking Toolkit will fall back on looking for the
+If not, the default plugins running in Flow Production Tracking will fall back on looking for the
 latest release of the ``tk-config-basic`` configuration in the Flow Production Tracking App Store.
 
 The bootstrap API will make the necessary preparations and then launch a Toolkit :ref:`Engine <engines>`,
@@ -142,7 +142,7 @@ access its shared location on disk.
     :width: 700px
     :align: center
 
-These configurations are created using Toolkit's **project setup** system (either the Flow Production Tracking Toolkit project
+These configurations are created using Toolkit's **project setup** system (either the Flow Production Tracking project
 setup wizard or the ``tank setup_project`` command). After project setup, the configuration is manually
 managed, typically via the ``tank`` command.
 
@@ -321,7 +321,7 @@ Developer sandbox
 
 This example shows a typical development/test setup - alongside the Primary configuraton for the project
 there is a dev sandbox. All user associated with that dev sandbox will pick that up instead of the
-default one, making it easy to 'invite' users in for testing. (In Flow Production Tracking Toolkit, a dropdown will appear,
+default one, making it easy to 'invite' users in for testing. (In Flow Production Tracking, a dropdown will appear,
 allowing a user to choose which config to use). A ``dev`` descriptor is used to point at a local dev area on disk.
 
 .. image:: ./resources/initializing/dev_sandbox.png
@@ -446,7 +446,7 @@ bundles through the hook.
 Managing centralized configurations
 ----------------------------------------------------------
 
-A manual project is either done via the Flow Production Tracking Toolkit Project Setup Wizard or through the ``tank setup_project``
+A manual project is either done via the Flow Production Tracking Project Setup Wizard or through the ``tank setup_project``
 command. During this process, you will choose a location on disk for your configuration. Make sure you
 choose a location on disk which is accessible by all users who need access to the configuration (e.g.
 typically on a fast, shared storage). The figure below illustrates the process:

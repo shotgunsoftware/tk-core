@@ -62,9 +62,9 @@ THREAD_WAIT_TIMEOUT_MS = 5000
 
 def _is_running_in_desktop():
     """
-    Indicate if we are in the context of the Flow Production Tracking Toolkit.
+    Indicate if we are in the context of the Flow Production Tracking.
 
-    When the Flow Production Tracking Toolkit is used, we want to disregard the value returned
+    When the Flow Production Tracking is used, we want to disregard the value returned
     by the call to `get_shotgun_authenticator_support_web_login()` when the
     target site is using Autodesk Identity.
     """
@@ -479,7 +479,7 @@ class LoginDialog(QtGui.QDialog):
         # - they need to use the legacy login / passphrase to use a PAT with
         #   Autodesk Identity authentication
         if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-            logger.info("Using the standard login dialog with the Flow Production Tracking Toolkit")
+            logger.info("Using the standard login dialog with the Flow Production Tracking")
         else:
             if _is_running_in_desktop():
                 can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
@@ -554,7 +554,7 @@ class LoginDialog(QtGui.QDialog):
                 "Flow Production Tracking site.</p>"
             )
         elif self.method_selected == auth_constants.METHOD_WEB_LOGIN:
-            logger.info("Using the Web Login with the Flow Production Tracking Toolkit")
+            logger.info("Using the Web Login with the Flow Production Tracking")
 
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             self.ui.login.setVisible(False)

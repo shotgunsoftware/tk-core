@@ -252,7 +252,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         os.chmod(sg_code_location, 0o666)
 
     fh = open(sg_code_location, "wt")
-    fh.write("# Flow Production Tracking Toolkit configuration file\n")
+    fh.write("# Flow Production Tracking configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
     fh.write("# This file reflects the paths in the primary pipeline\n")
     fh.write("# configuration defined for this project.\n")

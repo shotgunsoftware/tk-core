@@ -95,10 +95,10 @@ Specifies your local storage root on different operating systems. See `Resolving
 Resolves a ``file://`` URL on different operating systems. See `Resolving file URLS <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#resolving-file-urls>`_.
 
 
-Thumbnail display for Flow Production Tracking Toolkit
+Thumbnail display for Flow Production Tracking
 ======================================================
 
 ``SGTK_PROJ_THUMB_OLD``
 -----------------------
 
-When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in Flow Production Tracking Toolkit <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-the-thumbnail-display-in-shotgrid-desktop>`_
+When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in Flow Production Tracking <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-the-thumbnail-display-in-shotgrid-desktop>`_

@@ -292,7 +292,7 @@ def show_help():
     """
 
     info = """
-Welcome to the Flow Production Tracking Toolkit!
+Welcome to the Flow Production Tracking!
 
 This command lets you control Toolkit from a shell. You can start apps and
 engines via the Tank command. You can also run various admin commands.
@@ -822,8 +822,7 @@ def _shotgun_run_action(
         cv = installer.get_current_version_number()
         lv = installer.get_update_version_number()
         logger.info(
-            "You are currently running version %s of the Flow Production Tracking Toolkit."
-            % cv
+            "You are currently running version %s of the Flow Production Tracking." % cv
         )
 
         if not is_localized:

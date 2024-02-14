@@ -58,7 +58,7 @@ class ShotgunAuthenticator(object):
       one process to another, allowing you to maintain an experience where
       a user is authenticated across multiple applications. This is useful
       if you for example want to launch RV from Maya or Maya from the
-      Flow Production Tracking Toolkit
+      Flow Production Tracking
 
     - The authenticator maintains the concept of a default user - which
       can be used in order to present good defaults in UIs as well as

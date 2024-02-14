@@ -215,7 +215,7 @@ class InstallAppAction(Action):
     def _run(self, log, env_name, engine_instance_name, app_name, preserve_yaml):
 
         log.info("")
-        log.info("Welcome to the Flow Production Tracking Toolkit App installer!")
+        log.info("Welcome to the Flow Production Tracking App installer!")
         log.info(
             "Installing into environment %s and engine %s."
             % (env_name, engine_instance_name)
@@ -520,7 +520,7 @@ class InstallEngineAction(Action):
 
         log.info("")
         log.info("")
-        log.info("Welcome to the Flow Production Tracking Toolkit Engine installer!")
+        log.info("Welcome to the Flow Production Tracking Engine installer!")
         log.info("")
 
         try:

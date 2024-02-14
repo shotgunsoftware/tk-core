@@ -12,7 +12,7 @@
 The Metrics logger thread is only launched once an engine is initialized.
 But we might want to log metrics event before Toolkit is fully initialized.
 
-For instance, when starting Flow Production Tracking Toolkit and authenticating, there is no
+For instance, when starting Flow Production Tracking and authenticating, there is no
 engine set yet.
 
 This module provide a cache that can be filled prior to Toolkit initilization.

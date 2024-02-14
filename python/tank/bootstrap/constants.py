@@ -52,7 +52,7 @@ UNNAMED_PROJECT_NAME = "unnamed"
 # latest core
 LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core"}
 
-# default flow production tracking toolkit python installations
+# default flow production tracking python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"

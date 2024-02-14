@@ -346,7 +346,7 @@ class TestFallbackHandling(TestResolverBase):
 class TestAutoUpdate(TestResolverBase):
     """
     A test class for the config resolved when
-    Flow Production Tracking Toolkit is launched to startup the tk-desktop
+    Flow Production Tracking is launched to startup the tk-desktop
     engine on a site or Project context.
     """
     def setUp(self):
@@ -358,7 +358,7 @@ class TestAutoUpdate(TestResolverBase):
     def test_autoupdate_config(self, find_mock, _):
         """
         Tests that the configuration resolved is the maximum tk-config-basic
-        version supporting Python 2 when Flow Production Tracking Toolkit is used to startup the
+        version supporting Python 2 when Flow Production Tracking is used to startup the
         tk-desktop engine on a Site or Project context.
         """
 

@@ -47,7 +47,7 @@ class SetupProjectAction(Action):
             self,
             "setup_project",
             Action.GLOBAL,
-            "Sets up a new project with the Flow Production Tracking Toolkit.",
+            "Sets up a new project with the Flow Production Tracking.",
             "Configuration",
         )
 
@@ -141,7 +141,7 @@ class SetupProjectAction(Action):
             "type": "str",
         }
 
-        # Special setting used by older versins of flow production tracking toolkit app
+        # Special setting used by older versins of flow production tracking app
         # to handle auto-installing the site configuration at startup.
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
@@ -445,7 +445,7 @@ class SetupProjectAction(Action):
         log.info(
             "You can use the Default Configuration for your new project.  "
             "The default configuration is a good sample config, demonstrating "
-            "a typical basic setup of the Flow Production Tracking Toolkit using the "
+            "a typical basic setup of the Flow Production Tracking using the "
             "latest apps and engines. This will be used by default if you just "
             "hit enter below."
         )
@@ -497,7 +497,7 @@ class SetupProjectAction(Action):
         if len(projs) == 0:
             raise TankError(
                 "Sorry, no projects found! All projects seem to have already been "
-                "set up with the Flow Production Tracking Toolkit. If you are an expert "
+                "set up with the Flow Production Tracking. If you are an expert "
                 "user and want to run the setup on a project which already has been "
                 "set up, run the setup_project command with a --force option."
             )
@@ -749,7 +749,7 @@ class SetupProjectAction(Action):
         if pipelineconfig_utils.is_localized(curr_core_path):
             # the API we are using to run the setup from was localized. This means
             # that the API will not be shared between projects and with something
-            # like the flow production tracking toolkit workflow, the core API is installed in a
+            # like the flow production tracking workflow, the core API is installed in a
             # system location like %APPDATA% or ~/Library.
             # So we cannot use that as a default. In this case, simply don't provide
             # a default parameter.
@@ -880,7 +880,7 @@ class SetupProjectAction(Action):
         log.info("-------------------------")
         log.info("")
         log.info(
-            "You are about to set up the Flow Production Tracking Toolkit "
+            "You are about to set up the Flow Production Tracking "
             "for Project %s - %s "
             % (params.get_project_id(), params.get_project_disk_name())
         )

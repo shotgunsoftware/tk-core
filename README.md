@@ -6,13 +6,13 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Linting](https://img.shields.io/badge/PEP8%20by-Hound%20CI-a873d1.svg)](https://houndci.com)
 
-# Flow Production Tracking Toolkit Core API
+# Flow Production Tracking Core API
 
-This repository represents the Flow Production Tracking Toolkit Core API.
+This repository represents the Flow Production Tracking Core API.
 
-## Getting started with the Flow Production Tracking Toolkit
+## Getting started with the Flow Production Tracking
 
-Installing the Flow Production Tracking Toolkit is normally done via our
+Installing the Flow Production Tracking is normally done via our
 Flow Production Tracking App Store. For detailed instructions on how to get started
 with Toolkit, head over to our support site:
 https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_INTEGRATIONS_TOOLKIT_OVERVIEW

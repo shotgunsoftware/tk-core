@@ -862,7 +862,7 @@ class TestConstraintValidation(unittest.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least Flow Production Tracking Toolkit.* but currently installed version is .*\.",
+            r"Requires at least Flow Production Tracking.* but currently installed version is .*\.",
         )
 
     @mock.patch(
@@ -923,7 +923,7 @@ class TestConstraintValidation(unittest.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least Flow Production Tracking Toolkit v3.3.4 but no version was specified",
+            "Requires at least Flow Production Tracking v3.3.4 but no version was specified",
         )
 
 

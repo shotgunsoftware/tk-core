@@ -718,7 +718,7 @@ class Context(object):
         Any Context object can be serialized to/deserialized from a string.
         This can be useful if you need to pass a Context between different processes.
         As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-        from the launch process (e.g. for example Flow Production Tracking Toolkit) to the
+        from the launch process (e.g. for example Flow Production Tracking) to the
         Application (e.g. Maya) being launched. Example:
 
             >>> import sgtk

@@ -1,7 +1,7 @@
 Overview
 ####################################################
 
-Welcome to the Flow Production Tracking Toolkit developer and reference documentation.
+Welcome to the Flow Production Tracking developer and reference documentation.
 Below you will find a detailed technical reference of all Toolkit Core APIs as well
 as information useful for developers and engineers.
 
@@ -9,7 +9,7 @@ What is the Toolkit Platform?
 ----------------------------------------
 
 The toolkit Core platform consists of a number of different APIs and subsystems
-used to run the Flow Production Tracking toolkit platform.
+used to run the Flow Production Tracking platform.
 
 .. image:: ./resources/overview/overview.png
     :width: 650px

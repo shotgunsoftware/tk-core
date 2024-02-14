@@ -213,7 +213,7 @@ class ConfigurationWriter(object):
         log.debug("Installing tank command...")
 
         # First set up the interpreter_xxx files needed for the tank command
-        # default to the Flow Production Tracking Toolkit python. We want those defaults, even with descriptor
+        # default to the Flow Production Tracking python. We want those defaults, even with descriptor
         # based pipeline configurations, because from a descriptor based pipeline configuration
         # we might want call setup_project, which will copy the interpreter files. So as a
         # convenience we'll pre-fill those files with an interpreter we know is available on all
@@ -228,7 +228,7 @@ class ConfigurationWriter(object):
         # Shogun Desktop and if we are then we're using the Python that is package with it.
         #
         # The reason we are doing this is because we need the interpreter files
-        # written out during bootstrapping to be using the ones from the Flow Production Tracking Toolkit.
+        # written out during bootstrapping to be using the ones from the Flow Production Tracking.
         #
         # We could have introduced a way on the ToolkitManager to specify the interpreter
         # to use for the current platform for descriptor based configuration, but we're trying
@@ -239,9 +239,9 @@ class ConfigurationWriter(object):
         # up a bit in my mouth.
 
         # Figures out which is the current Python interpreter.
-        # If we're in the Flow Production Tracking Toolkit
+        # If we're in the Flow Production Tracking
         if os.path.split(executable)[1].lower().startswith("shotgun"):
-            log.debug("Flow Production Tracking Toolkit process detected.")
+            log.debug("Flow Production Tracking process detected.")
             # We'll use the builtin Python.
             if is_macos():
                 current_interpreter = os.path.join(prefix, "bin", "python")
@@ -267,7 +267,7 @@ class ConfigurationWriter(object):
         if current_interpreter:
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
-            log.debug("Current OS interpreter will be the default Flow Production Tracking Toolkit location.")
+            log.debug("Current OS interpreter will be the default Flow Production Tracking location.")
 
         config_root_path = self._path.current_os
 

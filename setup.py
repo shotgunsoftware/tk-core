@@ -65,7 +65,7 @@ finally:
 setup(
     name="sgtk",
     version=get_version(),
-    description="Flow Production Tracking Toolkit Core API",
+    description="Flow Production Tracking Core API",
     long_description=readme,
     author="Autodesk, Inc",
     url="https://github.com/shotgunsoftware/tk-core",

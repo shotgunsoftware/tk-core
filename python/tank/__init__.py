@@ -36,7 +36,7 @@ import inspect
 
 
 def __fix_tank_vendor():
-    # Older versions of Flow Production Tracking Toolkit left copies of tank_vendor in sys.modules,
+    # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,
     # which means we might not be importing our copy but someone else's,
     # so strip it out!
     if "tank_vendor" not in sys.modules:

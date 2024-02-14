@@ -99,7 +99,7 @@ class InteractiveShellAction(Action):
             raise TankError("This command takes no arguments!")
 
         msg = []
-        msg.append("Welcome to Flow Production Tracking Toolkit Python!")
+        msg.append("Welcome to Flow Production Tracking Python!")
         msg.append(sys.version)
         msg.append("Running on %s" % sys.platform)
         msg.append("")

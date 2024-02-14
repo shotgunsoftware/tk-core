@@ -97,7 +97,7 @@ def cache_apps(
         # We should not attempt to cache descriptors that are path-based. Not only don't they
         # need to be cached, but they might be using special tokens like CONFIG_FOLDER
         # that can't be understood outside a pipeline configuration. We also skip caching
-        # app_store descriptors in sparse configs since Flow Production Tracking Toolkit will take care of downloading
+        # app_store descriptors in sparse configs since Flow Production Tracking will take care of downloading
         # these automatically from the app store at runtime.
 
         if desc["type"] in ["dev", "path"]:

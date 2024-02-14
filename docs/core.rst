@@ -128,7 +128,7 @@ and copy it to your configuration's ``core/hooks`` folder.
 .. note::
     A core hook cannot be executed before Toolkit (the :class:`Sgtk` instance) has
     been initialized. This happens when :meth:`ToolkitManager.bootstrap_engine` is
-    called during Flow Production Tracking Toolkit bootstrap. Any customization of the core behavior
+    called during Flow Production Tracking bootstrap. Any customization of the core behavior
     must be added afterwards.
 
 Here is the list of hooks that be taken over in the Toolkit core.
@@ -261,7 +261,7 @@ Templates
 
 The Toolkit template system is used to handle path and string token manipulations.
 
-Since the Flow Production Tracking Toolkit is file system based, Apps will need to resolve file paths whenever
+Since the Flow Production Tracking is file system based, Apps will need to resolve file paths whenever
 they need to read or write data from disk. Apps are file system structure agnostic - meaning
 that they don't know how the file system is organized. The template system handles all this for them.
 

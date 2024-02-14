@@ -8,7 +8,7 @@ Authentication
 Introduction
 ----------------------------------------
 
-When you run the Flow Production Tracking Toolkit, it will connect to Flow Production Tracking on a regular basis in order to carry out
+When you run the Flow Production Tracking, it will connect to Flow Production Tracking on a regular basis in order to carry out
 certain operations. For example, you publish a new render or you browse for an item that you want to load into
 your scene. In order to do that, Toolkit will need to log in to Flow Production Tracking, either to read or write data, which means that it will
 need to make sure the current user is authenticated so that a connection with the Flow Production Tracking server can be established.

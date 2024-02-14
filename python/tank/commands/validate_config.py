@@ -86,7 +86,7 @@ class ValidateConfigAction(Action):
         log.info("")
         log.info("")
         log.info(
-            "Welcome to the Flow Production Tracking Toolkit Configuration validator!"
+            "Welcome to the Flow Production Tracking Configuration validator!"
         )
         log.info("")
 

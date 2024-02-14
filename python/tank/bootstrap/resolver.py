@@ -214,7 +214,7 @@ class ConfigurationResolver(object):
             # latest available version when running Python 2.
             # This cover the following case:
             #
-            # * Flow Production Tracking Toolkit is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
+            # * Flow Production Tracking is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
             #   environment variable to '2'and it will startup the tk-desktop engine for
             #   the Site configuration.
             #

@@ -1,4 +1,4 @@
-Flow Production Tracking Toolkit core platform, |release|
+Flow Production Tracking core platform, |release|
 #########################################################
 
 .. toctree::
