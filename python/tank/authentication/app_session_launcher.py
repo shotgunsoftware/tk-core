@@ -75,7 +75,7 @@ def process(
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
-        # method="POST", # see bellow
+        # method="POST", # see below
         data=urllib.parse.urlencode(
             {
                 "appName": product,
@@ -180,7 +180,7 @@ def process(
 
         request = urllib.request.Request(
             request_url,
-            # method="PUT", # see bellow
+            # method="PUT", # see below
             headers={
                 "User-Agent": user_agent,
             },
