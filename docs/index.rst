@@ -1,5 +1,5 @@
-Flow Production Tracking Toolkitt core platform, |release|
-##########################################################
+Flow Production Tracking Toolkit core platform, |release|
+#########################################################
 
 .. toctree::
     :maxdepth: 2
