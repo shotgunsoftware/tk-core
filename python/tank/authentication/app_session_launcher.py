@@ -82,10 +82,12 @@ def process(
         proxy_addr = _build_proxy_addr(http_proxy)
         sg_url_parsed = urllib.parse.urlparse(sg_url)
 
-        logger.debug("Set HTTP Proxy handler for {scheme} to {url}".format(
-            url=proxy_addr,
-            scheme=sg_url_parsed.scheme,
-        ))
+        logger.debug(
+            "Set HTTP Proxy handler for {scheme} to {url}".format(
+                url=proxy_addr,
+                scheme=sg_url_parsed.scheme,
+            )
+        )
 
         url_handlers.append(
             urllib.request.ProxyHandler(
