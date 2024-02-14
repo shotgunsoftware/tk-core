@@ -162,7 +162,12 @@ def process(
 
     sleep_time = 2
     request_timeout = 180  # 5 minutes
-
+    request_url = urllib.parse.urljoin(
+        sg_url,
+        "/internal_api/app_session_request/{session_id}".format(
+            session_id=session_id,
+        ),
+    )
 
     approved = False
     t0 = time.time()
@@ -174,12 +179,7 @@ def process(
         time.sleep(sleep_time)
 
         request = urllib.request.Request(
-            urllib.parse.urljoin(
-                sg_url,
-                "/internal_api/app_session_request/{session_id}".format(
-                    session_id=session_id,
-                ),
-            ),
+            request_url,
             # method="PUT", # see bellow
             headers={
                 "User-Agent": user_agent,
