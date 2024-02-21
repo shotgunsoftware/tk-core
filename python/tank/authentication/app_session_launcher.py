@@ -75,7 +75,7 @@ def process(
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
-        # method="POST", # see bellow
+        # method="POST", # see below
         data=urllib.parse.urlencode(
             {
                 "appName": product,
@@ -162,21 +162,12 @@ def process(
 
     sleep_time = 2
     request_timeout = 180  # 5 minutes
-    request = urllib.request.Request(
-        urllib.parse.urljoin(
-            sg_url,
-            "/internal_api/app_session_request/{session_id}".format(
-                session_id=session_id,
-            ),
+    request_url = urllib.parse.urljoin(
+        sg_url,
+        "/internal_api/app_session_request/{session_id}".format(
+            session_id=session_id,
         ),
-        # method="PUT", # see bellow
-        headers={
-            "User-Agent": user_agent,
-        },
     )
-
-    # Hook for Python 2
-    request.get_method = lambda: "PUT"
 
     approved = False
     t0 = time.time()
@@ -186,6 +177,17 @@ def process(
         and time.time() - t0 < request_timeout
     ):
         time.sleep(sleep_time)
+
+        request = urllib.request.Request(
+            request_url,
+            # method="PUT", # see below
+            headers={
+                "User-Agent": user_agent,
+            },
+        )
+
+        # Hook for Python 2
+        request.get_method = lambda: "PUT"
 
         response = http_request(url_opener, request)
 
