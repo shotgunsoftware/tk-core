@@ -44,8 +44,8 @@ class AuthenticationError(errors.AuthenticationError):
         """
 
         info = []
-        if self.ulf2_errno:
-            info.append("errno: {}".format(self.ulf2_errno))
+        if self.asl_errno:
+            info.append("errno: {}".format(self.asl_errno))
 
         if self.payload:
             info.append("payload: {}".format(self.payload))
