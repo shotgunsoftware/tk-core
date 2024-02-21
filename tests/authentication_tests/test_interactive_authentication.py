@@ -811,7 +811,7 @@ class InteractiveTests(ShotgunTestBase):
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
     @suppress_generated_code_qt_warnings
     def test_login_dialog_method_selected_default(self):
@@ -837,22 +837,16 @@ class InteractiveTests(ShotgunTestBase):
             with self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
-            with mock.patch(
-                "tank.authentication.login_dialog._is_running_in_desktop",
-                return_value=False,
-            ), mock.patch(
-                "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
-                return_value=False,
-            ), mock.patch.dict("os.environ", {
+            with mock.patch.dict("os.environ", {
                 "SGTK_DEFAULT_AUTH_METHOD": "credentials",
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
@@ -864,7 +858,7 @@ class InteractiveTests(ShotgunTestBase):
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             with mock.patch(
                 "tank.authentication.session_cache.get_preferred_method",
@@ -879,14 +873,6 @@ class InteractiveTests(ShotgunTestBase):
             # Test valid SGTK_DEFAULT_AUTH_METHOD values but support for these
             # are disabled
 
-            # credentials but web login is available
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "credentials",
-            }), self._login_dialog(
-                hostname="https://host.shotgunstudio.com",
-            ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
-
             # qt_web_login but method not available
             with mock.patch.dict("os.environ", {
                 "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
@@ -899,7 +885,7 @@ class InteractiveTests(ShotgunTestBase):
             ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # app_session_launcher but method ASL not available
             with mock.patch.dict("os.environ", {
@@ -1013,13 +999,19 @@ class InteractiveTests(ShotgunTestBase):
             self.assertFalse(ld.menu_action_ulf.isVisible())
             self.assertTrue(ld.menu_action_asl.isVisible())
 
+            # Ensure current method set is ASL
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+            # Trigger Legacy
+            ld._menu_activated_action_login_creds()
+
             # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
             # Trigger ASL again
             ld._menu_activated_action_asl()
 
-            # Ensure current method set is ufl2
+            # Ensure current method set is ASL
             self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
@@ -1027,7 +1019,7 @@ class InteractiveTests(ShotgunTestBase):
 
             self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # check that UI displays the UFL2 pending screen
+            # check that UI displays the ASL pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
@@ -1076,7 +1068,7 @@ class InteractiveTests(ShotgunTestBase):
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
-            # Ensure current method set is lcegacy credentials
+            # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
         # Then Web login vs ASL
@@ -1095,13 +1087,19 @@ class InteractiveTests(ShotgunTestBase):
             self.assertTrue(ld.menu_action_ulf.isVisible())
             self.assertTrue(ld.menu_action_asl.isVisible())
 
+            # Ensure current method set is ASL
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+            # Trigger web login
+            ld._menu_activated_action_web_legacy()
+
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
             # Trigger ASL again
             ld._menu_activated_action_asl()
 
-            # Ensure current method set is ufl2
+            # Ensure current method set is ASL
             self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
@@ -1109,7 +1107,7 @@ class InteractiveTests(ShotgunTestBase):
 
             self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # check that UI displays the UFL2 pending screen
+            # check that UI displays the ASL pending screen
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen

@@ -260,9 +260,9 @@ class LoginDialog(QtGui.QDialog):
             self._menu_activated_action_login_creds
         )
 
-        menu.addAction(self.menu_action_legacy)
-        menu.addAction(self.menu_action_ulf)
         menu.addAction(self.menu_action_asl)
+        menu.addAction(self.menu_action_ulf)
+        menu.addAction(self.menu_action_legacy)
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
@@ -521,7 +521,9 @@ class LoginDialog(QtGui.QDialog):
             method_selected = None
 
         if not method_selected:
-            if can_use_web:
+            if can_use_asl:
+                method_selected = auth_constants.METHOD_ASL
+            elif can_use_web:
                 method_selected = auth_constants.METHOD_WEB_LOGIN
             else:
                 method_selected = auth_constants.METHOD_BASIC
@@ -558,16 +560,12 @@ class LoginDialog(QtGui.QDialog):
             self.ui.login.setVisible(False)
             self.ui.password.setVisible(False)
 
-            if not can_use_asl:
-                # Old text
-                self.ui.message.setText("Sign in using the Web.")
-            else:
-                self.ui.message.setText(
-                    "<p>Authenticate with the ShotGrid browser.</p>"
-                    '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
-                        url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
-                    )
+            self.ui.message.setText(
+                "<p>Authenticate with the ShotGrid browser.</p>"
+                '<p><a style="color:#c0c1c3;" href="{url}">Learn more here</a></p>'.format(
+                    url=constants.DOCUMENTATION_URL_LEGACY_AUTHENTICATION,
                 )
+            )
         else:  # auth_constants.METHOD_BASIC
             self.ui.login.setVisible(True)
             self.ui.password.setVisible(True)
