@@ -846,13 +846,7 @@ class InteractiveTests(ShotgunTestBase):
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
-            with mock.patch(
-                "tank.authentication.login_dialog._is_running_in_desktop",
-                return_value=False,
-            ), mock.patch(
-                "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
-                return_value=False,
-            ), mock.patch.dict("os.environ", {
+            with mock.patch.dict("os.environ", {
                 "SGTK_DEFAULT_AUTH_METHOD": "credentials",
             }), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
@@ -878,14 +872,6 @@ class InteractiveTests(ShotgunTestBase):
 
             # Test valid SGTK_DEFAULT_AUTH_METHOD values but support for these
             # are disabled
-
-            # credentials but web login is available
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "credentials",
-            }), self._login_dialog(
-                hostname="https://host.shotgunstudio.com",
-            ) as ld:
-                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # qt_web_login but method not available
             with mock.patch.dict("os.environ", {
