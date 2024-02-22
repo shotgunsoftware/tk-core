@@ -260,6 +260,8 @@ class PySide6Patcher(PySide2Patcher):
         def delta(self):
             """Patch the delta method."""
 
+            # Use the more common mouse vertical scroll as the delta.
+            # Horizontal scroll is ignored, use angleDelta().x() if the horizontal scroll is needed.
             return self.angleDelta().y()
 
         QtGui.QWheelEvent.delta = delta
