@@ -121,7 +121,7 @@ class BundleDescriptor(Descriptor):
         :type core_version: str
         :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
         :type engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`
-        :param desktop_version: Version of the Flow Production Tracking. None by default.
+        :param desktop_version: Version of the PTR desktop app. None by default.
         :type desktop_version: str
 
         :raises: Raised if one or multiple constraint checks has failed.

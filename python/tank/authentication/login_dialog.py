@@ -62,9 +62,9 @@ THREAD_WAIT_TIMEOUT_MS = 5000
 
 def _is_running_in_desktop():
     """
-    Indicate if we are in the context of the Flow Production Tracking.
+    Indicate if we are in the context of the PTR desktop app.
 
-    When the Flow Production Tracking is used, we want to disregard the value returned
+    When the PTR desktop app is used, we want to disregard the value returned
     by the call to `get_shotgun_authenticator_support_web_login()` when the
     target site is using Autodesk Identity.
     """

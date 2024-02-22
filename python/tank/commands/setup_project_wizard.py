@@ -760,8 +760,8 @@ class SetupProjectWizard(object):
             # the site we are configuring supports the authentication module, ie,
             # Shotgun 6.0.2 and greater.
 
-            # this is primarily targeting the flow production tracking, meaning that even if
-            # the flow production tracking's site configuration contains script credentials,
+            # this is primarily targeting the PTR desktop app, meaning that even if
+            # the PTR desktop app's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
             config_path = self._params.get_configuration_location(sgsix.platform)

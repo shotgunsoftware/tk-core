@@ -268,7 +268,7 @@ def _do_clone(
             os.chmod(sg_code_location, 0o666)
             os.remove(sg_code_location)
         fh = open(sg_code_location, "wt")
-        fh.write("# Flow Production Tracking configuration file\n")
+        fh.write("# Flow Production Tracking Toolkit configuration file\n")
         fh.write("# This file was automatically created by tank clone\n")
         fh.write("# This file reflects the paths in the pipeline configuration\n")
         fh.write("# entity which is associated with this location (%s).\n" % new_name)

@@ -575,8 +575,8 @@ class LogManager(object):
             # is advantageous is in tk-desktop, where we provide a
             # menu action to toggle debug logging. When it is toggled
             # on, we set the env var here, which then means that when
-            # a user navigates to a project in Flow Production Tracking, the Python
-            # subprocess spawned will also have debug logging active.
+            # a user navigates to a project in the PTR desktop app, the
+            # Python subprocess spawned will also have debug logging active.
             log.debug(
                 "Setting %s in the environment for this session. This "
                 "ensures that subprocesses spawned from this process will "

@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Legacy handling of descriptors for Flow Production Tracking.
+Legacy handling of descriptors for the PTR desktop app.
 
 This code may be removed at some point in the future.
 """

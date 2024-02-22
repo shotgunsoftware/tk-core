@@ -520,7 +520,7 @@ class InstallEngineAction(Action):
 
         log.info("")
         log.info("")
-        log.info("Welcome to the Flow Production Tracking Engine installer!")
+        log.info("Welcome to the Flow Production Tracking Toolkit Engine installer!")
         log.info("")
 
         try:

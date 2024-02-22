@@ -15,11 +15,11 @@ from . import constants
 _MESSAGE = (
     "This command will migrate the PTR site configuration used by the Desktop app so "
     "it is no longer associated with the 'Template Project'. Before proceeding, make sure "
-    "all your users are running version 1.2.0 or greater of the Flow Production Tracking Startup "
-    "framework. You can see which version you are running in the Flow Production Tracking's About "
+    "all your users are running version 1.2.0 or greater of the PTR desktop app Startup "
+    "framework. You can see which version you are running in the PTR desktop app's About "
     "Box. If you don't see the Startup version mentionned in the About Box, you must "
-    "install the latest release of the Flow Production Tracking.\n"
-    "WARNING: If there are people using older versions of the Flow Production Tracking with your "
+    "install the latest release of the PTR desktop app.\n"
+    "WARNING: If there are people using older versions of the PTR desktop app with your "
     "site, they will get an error when starting Desktop after the migration.."
 )
 
@@ -37,7 +37,7 @@ class DesktopMigration(Action):
             self,
             "migrate_desktop",
             Action.TK_INSTANCE,
-            "Migrates Flow Production Tracking away from the Template Project.",
+            "Migrates PTR desktop app away from the Template Project.",
             "Admin",
         )
 

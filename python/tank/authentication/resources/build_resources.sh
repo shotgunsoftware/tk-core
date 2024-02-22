@@ -14,11 +14,11 @@ set -e
 # The path to output all built .py files to:
 UI_PYTHON_PATH=../ui
 if [ -z "${PYTHON_BASE}" ]; then
-    PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
+    PYTHON_BASE="/Users/juan.burgos/Downloads/SGD-1.5.9-resources/Python"
 fi
 
 # Remove any problematic profiles from pngs.
-for f in *.png; do mogrify $f; done
+#for f in *.png; do mogrify $f; done
 
 # Helper functions to build UI files
 function build_qt {
@@ -45,8 +45,8 @@ function build_res {
 
 
 # build UI's:
-echo "building user interfaces..."
-build_ui login_dialog
+#echo "building user interfaces..."
+#build_ui login_dialog
 
 # build resources
 echo "building resources..."
