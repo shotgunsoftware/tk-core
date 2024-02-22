@@ -971,7 +971,7 @@ class ASL_AuthTask(QtCore.QThread):
         except AuthenticationError as err:
             logger.error("Authentication error - {}".format(err))
             logger.debug(
-                "ULF2 authentication issue: {}".format(err.format()),
+                "App Session Launcher authentication issue: {}".format(err.format()),
                 exc_info=err,
             )
             self.exception = err
