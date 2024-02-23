@@ -254,6 +254,19 @@ class PySide6Patcher(PySide2Patcher):
         QtGui.QOpenGLContext.versionFunctions = versionFunctions
 
     @classmethod
+    def _patch_QWheelEvent(cls, QtGui):
+        """Patch QWheelEvent."""
+
+        def delta(self):
+            """Patch the delta method."""
+
+            # Use the more common mouse vertical scroll as the delta.
+            # Horizontal scroll is ignored, use angleDelta().x() if the horizontal scroll is needed.
+            return self.angleDelta().y()
+
+        QtGui.QWheelEvent.delta = delta
+
+    @classmethod
     def _patch_QModelIndex(cls, QtCore):
         """Patch QModelIndex."""
 
@@ -465,6 +478,10 @@ class PySide6Patcher(PySide2Patcher):
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
         cls._patch_QLabel(qt_gui_shim)
+
+        # QWheelEvent delta is obsolete
+        # https://doc.qt.io/qt-5/qwheelevent-obsolete.html#delta
+        cls._patch_QWheelEvent(qt_gui_shim)
 
         # QOpenGLContext.versionFunctions replaced
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#the-qopenglcontext-class
