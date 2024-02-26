@@ -11,10 +11,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # The path to where the PySide binaries are installed
-PYTHON_BASE="/Users/juan.burgos/Downloads/SGD-1.5.9-resources/Python"
+PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 
 # Remove any problematic profiles from pngs.
-#for f in *.png; do mogrify $f; done
+for f in *.png; do mogrify $f; done
 
 # The path to output all built .py files to:
 UI_PYTHON_PATH=.
@@ -40,10 +40,10 @@ function build_res {
 
 
 # build UI's:
-#echo "building user interfaces..."
-#build_ui tank_dialog
-#build_ui item
-#build_ui busy_dialog
+echo "building user interfaces..."
+build_ui tank_dialog
+build_ui item
+build_ui busy_dialog
 
 # build resources
 echo "building resources..."
