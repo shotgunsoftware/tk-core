@@ -99,7 +99,7 @@ class SiteInfo(object):
             or url_items.netloc in "https"
             or url_items.scheme not in ["http", "https"]
         ):
-            logger.debug("Invalid ShotGrid URL %s" % url)
+            logger.debug("Invalid Flow Production Tracking URL %s" % url)
             return
 
         infos = {}
