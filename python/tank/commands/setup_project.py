@@ -141,7 +141,7 @@ class SetupProjectAction(Action):
             "type": "str",
         }
 
-        # Special setting used by older versions of PTR desktop app
+        # Special setting used by older versions of the PTR desktop app
         # to handle auto-installing the site configuration at startup.
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
@@ -445,7 +445,7 @@ class SetupProjectAction(Action):
         log.info(
             "You can use the Default Configuration for your new project.  "
             "The default configuration is a good sample config, demonstrating "
-            "a typical basic setup of the Flow Production Tracking toolkit using the "
+            "a typical basic setup of the Flow Production Tracking Toolkit using the "
             "latest apps and engines. This will be used by default if you just "
             "hit enter below."
         )
