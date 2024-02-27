@@ -28,7 +28,7 @@ from .. import LogManager
 logger = LogManager.get_logger(__name__)
 
 PRODUCT_DEFAULT = "Flow Production Tracking Toolkit"
-PRODUCT_DESKTOP = "Flow Production Tracking"
+PRODUCT_DESKTOP = "FPTR desktop app"
 
 
 class AuthenticationError(errors.AuthenticationError):

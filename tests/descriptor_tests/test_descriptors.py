@@ -746,7 +746,7 @@ class TestConstraintValidation(unittest.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least PTR desktop app .* but currently installed version is .*\.",
+            r"Requires at least FPTR desktop app .* but currently installed version is .*\.",
         )
 
     def test_min_core_constraint_pass(self):
@@ -923,7 +923,7 @@ class TestConstraintValidation(unittest.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least PTR desktop app v3.3.4 but no version was specified",
+            "Requires at least FPTR desktop app v3.3.4 but no version was specified",
         )
 
 

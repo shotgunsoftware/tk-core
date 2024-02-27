@@ -182,7 +182,7 @@ class BundleDescriptor(Descriptor):
                     )
 
         self._test_version_constraint(
-            "min_desktop", desktop_version, "Flow Production Tracking", reasons
+            "min_desktop", desktop_version, "FPTR desktop app", reasons
         )
 
         if len(reasons) > 0:

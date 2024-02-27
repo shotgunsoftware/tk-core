@@ -114,7 +114,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
         ):
             self.assertEqual(
                 app_session_launcher.get_product_name(),
-                "Flow Production Tracking 3.2.1",
+                "FPTR desktop app 3.2.1",
             )
 
         # Validate the TK_AUTH_PRODUCT environment variable
