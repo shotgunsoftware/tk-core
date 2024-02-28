@@ -619,37 +619,50 @@ class Shotgun(object):
                 if lval is None or rval is None:
                     return lval == rval
                 # Both values are set, compare them.
-                return lval["type"] == rval["type"] and lval["id"] == rval["id"]
+                return lval.get("type") == rval.get("type") and lval.get("id") == rval.get("id")
             elif operator == "is_not":
                 if lval is None or rval is None:
                     return lval != rval
-                if rval is None:
-                    # We already know lval is not None, so we know they are not equal.
-                    return True
-                return lval["type"] != rval["type"] or lval["id"] != rval["id"]
+                return lval.get("type") != rval.get("type") or lval.get("id") != rval.get("id")
             elif operator == "in":
-                return all((lval["type"] == sub_rval["type"] and lval["id"] == sub_rval["id"]) for sub_rval in rval)
+                # Ensure lval is not None before proceeding. Safely iterate and compare if not.
+                if lval is None:
+                    return False
+                return all(
+                    (lval.get("type") == sub_rval.get("type") and lval.get("id") == sub_rval.get("id")) for sub_rval
+                    in rval)
             elif operator == "type_is":
-                return lval["type"] == rval
+                if rval is None:
+                    # Return True if lval is None, reflecting the query for entities without a type
+                    return lval is None
+                else:
+                    return lval is not None and lval.get("type") == rval
             elif operator == "type_is_not":
-                return lval["type"] != rval
+                if rval is None:
+                    # Return True if lval is not None, as we're looking for entities with a type
+                    return lval is not None
+                else:
+                    return lval is not None and lval.get("type") != rval
             elif operator == "name_contains":
-                return rval in lval["name"]
+                # Ensure lval is not None and safely access name before checking containment.
+                if lval is None:
+                    return False
+                return rval in lval.get("name", "")
             elif operator == "name_not_contains":
-                return rval not in lval["name"]
+                # Ensure lval is not None and safely access name before checking non-containment.
+                if lval is None:
+                    return False
+                return rval not in lval.get("name", "")
             elif operator == "name_starts_with":
-                return lval["name"].startswith(rval)
+                # Ensure lval is not None and safely access name before checking start.
+                if lval is None:
+                    return False
+                return lval.get("name", "").startswith(rval)
             elif operator == "name_ends_with":
-                return lval["name"].endswith(rval)
-        elif field_type == "multi_entity":
-            if operator == "is":
-                if rval is None:
-                    return len(lval) == 0
-                return rval["id"] in (sub_lval["id"] for sub_lval in lval)
-            elif operator == "is_not":
-                if rval is None:
-                    return len(lval) != 0
-                return rval["id"] not in (sub_lval["id"] for sub_lval in lval)
+                # Ensure lval is not None and safely access name before checking end.
+                if lval is None:
+                    return False
+                return lval.get("name", "").endswith(rval)
 
         raise ShotgunError("The %s operator is not supported on the %s type" % (operator, field_type))
 
