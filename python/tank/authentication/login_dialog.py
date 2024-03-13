@@ -417,8 +417,8 @@ class LoginDialog(QtGui.QDialog):
         # even if the text field has not changed.
         # This is not the case in PySide2/Qt5 or PySide6/Qt6.
         if (
-            qt_version_tuple[0] == 4 and
-            self._get_current_site() == self.host_selected
+            qt_version_tuple[0] == 4
+            and self._get_current_site() == self.host_selected
         ):
             logger.debug("_on_site_changed - host has not changed")
             return
