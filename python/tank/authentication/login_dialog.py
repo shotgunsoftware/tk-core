@@ -33,7 +33,14 @@ from ..util import login
 from ..util import LocalFileStorageManager
 from ..util import metrics_cache
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets, qt_version_tuple
+from .ui.qt_abstraction import (
+    QtGui,
+    QtCore,
+    QtNetwork,
+    QtWebKit,
+    QtWebEngineWidgets,
+    qt_version_tuple,
+)
 from . import app_session_launcher
 from . import site_info
 from .sso_saml2 import (
