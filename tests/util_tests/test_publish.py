@@ -301,6 +301,101 @@ class TestShotgunRegisterPublish(TankTestBase):
             self.assertEqual(sg_dict["path"], path_dict)
             self.assertTrue("pathcache" not in sg_dict)
 
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    def test_explicit_local_storage_publish(self, create_mock):
+        """
+        Tests handling publishes where the path is 'local_storage' and 'relative_path'
+        dictionary.
+        """
+        values = [
+            {
+                "local_storage": self.storage_2,
+                "relative_path": "path/to/file.txt"
+            },
+            {
+                "local_storage": self.storage_3,
+                "relative_path": "path/to/file.txt"
+            },
+
+        ]
+        # We should get a SG version error
+        with self.assertRaisesRegex(
+            tank.util.ShotgunPublishError,
+            "Your SG server version does not support storage and relative_path parameters",
+        ):
+            publish_data = tank.util.register_publish(
+                self.tk, self.context, values[0], self.name, self.version, dry_run=True
+            )
+
+        # Mock SG server capabilities
+        class server_capsMock:
+            def __init__(self, version):
+                self.version = version
+
+        # TODO: should we unset this?
+        self.mockgun.server_caps = server_capsMock(version=(7, 0, 1))
+
+        # Check missing values
+        with self.assertRaisesRegex(
+            tank.util.ShotgunPublishError,
+            "Both 'local_storage' and 'relative_path' values must be set",
+        ):
+            publish_data = tank.util.register_publish(
+                self.tk,
+                self.context,
+                {"local_storage": self.storage_2},
+                self.name,
+                self.version,
+                dry_run=True
+            )
+        with self.assertRaisesRegex(
+            tank.util.ShotgunPublishError,
+            "Both 'local_storage' and 'relative_path' values must be set",
+        ):
+            publish_data = tank.util.register_publish(
+                self.tk,
+                self.context,
+                {"relative_path": "path/to/file.txt"},
+                self.name,
+                self.version,
+                dry_run=True
+            )
+        # Check invalid path
+        with self.assertRaisesRegex(
+            tank.util.ShotgunPublishError,
+            "is an absolute path, not a relative path to a local storage",
+        ):
+            publish_data = tank.util.register_publish(
+                self.tk,
+                self.context,
+                {
+                    "relative_path": os.path.join(
+                        os.path.join(self.project_root, "path/to/file.txt")
+                    ),
+                    "local_storage": self.storage_2,
+                },
+                self.name,
+                self.version,
+                dry_run=True
+            )
+
+        # Test valid values and results
+        for local_path in values:
+            publish_data = tank.util.register_publish(
+                self.tk, self.context, local_path, self.name, self.version, dry_run=True
+            )
+            self.assertIsInstance(publish_data, dict)
+
+            tank.util.register_publish(
+                self.tk, self.context, local_path, self.name, self.version
+            )
+
+            create_data = create_mock.call_args
+            args, kwargs = create_data
+            sg_dict = args[1]
+            self.assertEqual(sg_dict["path"], local_path)
+            self.assertEqual(sg_dict["path_cache"], local_path["relative_path"])
+
     def test_publish_errors(self):
         """Tests exceptions raised on publish errors."""
 
