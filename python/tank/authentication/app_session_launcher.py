@@ -27,8 +27,8 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
-PRODUCT_DEFAULT = "ShotGrid Toolkit"
-PRODUCT_DESKTOP = "ShotGrid Desktop"
+PRODUCT_DEFAULT = "Flow Production Tracking Toolkit"
+PRODUCT_DESKTOP = "FPTR desktop app"
 
 
 class AuthenticationError(errors.AuthenticationError):
@@ -128,7 +128,7 @@ def process(
     response_code_major = response.code // 100
     if response_code_major == 5:
         raise AuthenticationError(
-            "Unable to establish a stable communication with the ShotGrid site",
+            "Unable to establish a stable communication with the Flow Production Tracking site",
             payload=getattr(response, "json", response),
             parent_exception=getattr(response, "exception", None),
         )
@@ -141,7 +141,7 @@ def process(
             )
             raise AuthenticationError(
                 "Unable to create an authentication request. The feature does "
-                "not seem to be enabled on the ShotGrid site",
+                "not seem to be enabled on the Flow Production Tracking site",
                 parent_exception=getattr(response, "exception", None),
                 payload=response.json,
             )
@@ -153,30 +153,36 @@ def process(
 
     elif response.code != http_client.OK:
         raise AuthenticationError(
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
             payload=getattr(response, "json", response),
             parent_exception=getattr(response, "exception", None),
         )
 
     elif not isinstance(getattr(response, "json", None), dict):
         logger.error(
-            "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+            "Unexpected response from the Flow Production Tracking site. Expecting a JSON dict"
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     session_id = response.json.get("sessionRequestId")
     if not session_id:
         logger.error(
-            "Unexpected response from the ShotGrid site. Expecting a sessionRequestId item"
+            "Unexpected response from the Flow Production Tracking site. Expecting a sessionRequestId item"
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     browser_url = response.json.get("url")
     if not browser_url:
         logger.error(
-            "Unexpected response from the ShotGrid site. Expecting a url item"
+            "Unexpected response from the Flow Production Tracking site. Expecting a url item"
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     logger.debug(
         "Authentication Request ID: {session_id}".format(session_id=session_id)
@@ -230,7 +236,7 @@ def process(
             )
 
             raise AuthenticationError(
-                "Unable to establish a stable communication with the ShotGrid site",
+                "Unable to establish a stable communication with the Flow Production Tracking site",
                 payload=getattr(response, "json", response),
                 parent_exception=getattr(response, "exception", None),
             )
@@ -264,7 +270,7 @@ def process(
                 )
 
             raise AuthenticationError(
-                "Unexpected response from the ShotGrid site",
+                "Unexpected response from the Flow Production Tracking site",
                 parent_exception=getattr(response, "exception", None),
             )
 
@@ -280,9 +286,11 @@ def process(
 
         elif not isinstance(getattr(response, "json", None), dict):
             logger.error(
-                "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+                "Unexpected response from the Flow Production Tracking site. Expecting a JSON dict"
             )
-            raise AuthenticationError("Unexpected response from the ShotGrid site")
+            raise AuthenticationError(
+                "Unexpected response from the Flow Production Tracking site"
+            )
 
         approved = response.json.get("approved", False)
 
@@ -295,10 +303,12 @@ def process(
         assert response.json["userLogin"]
     except (KeyError, AssertionError):
         logger.debug(
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
             exc_info=True,
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     logger.debug("Session token: {sessionToken}".format(**response.json))
 
@@ -392,7 +402,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the SG site",
+                "Unable to communicate with the PTR site",
                 parent_exception=exc,
             )
 
@@ -408,7 +418,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the SG site",
+                "Unable to communicate with the PTR site",
                 parent_exception=exc,
             )
 
@@ -498,7 +508,7 @@ if __name__ == "__main__":
     print()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("sg_url", help="Provide a ShotGrid URL")
+    parser.add_argument("sg_url", help="Provide a Flow Production Tracking URL")
     parser.add_argument("--http-proxy", "-p", help="Set a proxy URL")
     args = parser.parse_args()
 

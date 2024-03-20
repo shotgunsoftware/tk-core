@@ -220,7 +220,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         ):  # no none-check for sg_bundle_data param since this is none for tk-core
             log.debug("Will cache pre-fetched cache data.")
         else:
-            log.debug("Connecting to SG to retrieve metadata for %r" % self)
+            log.debug("Connecting to PTR to retrieve metadata for %r" % self)
 
             # get the appropriate shotgun app store types and fields
             bundle_entity_type = self._APP_STORE_OBJECT[self._bundle_type]
@@ -612,7 +612,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             limit=limit,
         )
 
-        log.debug("Downloaded data for %d versions from ShotGrid." % len(sg_versions))
+        log.debug("Downloaded data for %d versions from Flow Production Tracking." % len(sg_versions))
 
         # now filter out all labels that aren't matching
         matching_records = []
@@ -779,7 +779,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 )
             except shotgun_api3.AuthenticationFault:
                 raise InvalidAppStoreCredentialsError(
-                    "The Toolkit App Store credentials found in SG are invalid.\n"
+                    "The Toolkit App Store credentials found in PTR are invalid.\n"
                     "Please contact support at %s to resolve this issue." % SUPPORT_URL
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
@@ -873,7 +873,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         if not data["script_name"] or not data["script_key"]:
             raise InvalidAppStoreCredentialsError(
-                "Toolkit App Store credentials could not be retrieved from ShotGrid.\n"
+                "Toolkit App Store credentials could not be retrieved from Flow Production Tracking.\n"
                 "Please contact support at %s to resolve this issue." % SUPPORT_URL
             )
 

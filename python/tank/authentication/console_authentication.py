@@ -63,9 +63,9 @@ class ConsoleAuthenticationHandlerBase(object):
         """
 
         logger.debug("Requesting password on command line.")
-        print("[ShotGrid Authentication]\n")
+        print("[Flow Production Tracking Authentication]\n")
         while True:
-            # Get the SG URL from the user or from the given hostname
+            # Get the PTR URL from the user or from the given hostname
             try:
                 hostname = self._get_sg_url(hostname, http_proxy)
             except EOFError:
@@ -80,7 +80,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
             if not site_i.app_session_launcher_enabled:
                 # Will raise an exception if using a username/password pair is
-                # not supported by the ShotGrid server.
+                # not supported by the Flow Production Tracking server.
                 # Which is the case when using SSO or Autodesk Identity.
 
                 if site_i.sso_enabled:
@@ -221,8 +221,8 @@ class ConsoleAuthenticationHandlerBase(object):
         # Then prompt them to chose
         print(
             "\n"
-            "The ShotGrid site support two authentication methods:\n"
-            " 1. Authenticate with Legacy ShotGrid Login Credentials\n"
+            "The Flow Production Tracking site support two authentication methods:\n"
+            " 1. Authenticate with Legacy Flow Production Tracking Login Credentials\n"
             " 2. Authenticate with the App Session Launcher using your default web browser\n"
         )
 
@@ -242,7 +242,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
     def _get_sg_url(self, hostname, http_proxy):
         """
-        Prompts the user for the SG host.
+        Prompts the user for the PTR host.
         :param host Host to authenticate for.
         :param http_proxy: Proxy to connect to when authenticating.
         :returns: The hostname.
@@ -370,13 +370,13 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
             recent_hosts.insert(0, hostname)
 
         if len(recent_hosts) > 1:
-            print("Recent ShotGrid sites:")
+            print("Recent Flow Production Tracking sites:")
             for sg_url in recent_hosts:
                 print("  *", sg_url)
             print()
 
         return self._get_keyboard_input(
-            "Enter the ShotGrid site URL for authentication",
+            "Enter the Flow Production Tracking site URL for authentication",
             hostname,
         )
 

@@ -407,7 +407,7 @@ class Ui_LoginDialog(object):
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
-        LoginDialog.setWindowTitle(QtGui.QApplication.translate("LoginDialog", "ShotGrid Login", None, QtGui.QApplication.UnicodeUTF8))
+        LoginDialog.setWindowTitle(QtGui.QApplication.translate("LoginDialog", "Flow Production Tracking Login", None, QtGui.QApplication.UnicodeUTF8))
         self.site.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "site", None, QtGui.QApplication.UnicodeUTF8))
         self.login.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))

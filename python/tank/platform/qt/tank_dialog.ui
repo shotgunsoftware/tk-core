@@ -550,7 +550,7 @@ margin-top: 30px;</string>
                 <item>
                  <widget class="QToolButton" name="btn_shotgun">
                   <property name="text">
-                   <string>Jump to ShotGrid</string>
+                   <string>Jump to Flow Production Tracking</string>
                   </property>
                  </widget>
                 </item>

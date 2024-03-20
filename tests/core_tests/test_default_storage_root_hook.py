@@ -35,7 +35,7 @@ class TestDefaultStorageRootHook(TankTestBase):
     )
     def test_roots_with_custom_project_field(self, *mocks):
         """
-        Project-specific root is retrieved from custom ShotGrid project field.
+        Project-specific root is retrieved from custom Flow Production Tracking project field.
         """
         self.tk.shotgun.create("LocalStorage", {"code": "project_specific_root"})
         with mock.patch.object(
@@ -156,7 +156,7 @@ class TestDefaultStorageRootHook(TankTestBase):
     )
     def test_win_roots_with_custom_project_field(self, *mocks):
         """
-        Project-specific windows root is retrieved from custom ShotGrid project field.
+        Project-specific windows root is retrieved from custom Flow Production Tracking project field.
         """
         self.tk.shotgun.create("LocalStorage", {"code": "primary_mapped",
                                                 "windows_path": "P:\\Foo\\test_root", })
