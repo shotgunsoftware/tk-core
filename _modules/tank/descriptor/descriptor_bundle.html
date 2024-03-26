@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.20.34 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,12 +85,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -252,7 +252,7 @@
 <span class="sd">        :type core_version: str</span>
 <span class="sd">        :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.</span>
 <span class="sd">        :type engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`</span>
-<span class="sd">        :param desktop_version: Version of the Shotgun Desktop. None by default.</span>
+<span class="sd">        :param desktop_version: Version of the PTR desktop app. None by default.</span>
 <span class="sd">        :type desktop_version: str</span>
 
 <span class="sd">        :raises: Raised if one or multiple constraint checks has failed.</span>
@@ -261,7 +261,10 @@
         <span class="n">reasons</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
-            <span class="s2">&quot;min_sg&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sg_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">),</span> <span class="s2">&quot;ShotGrid&quot;</span><span class="p">,</span> <span class="n">reasons</span>
+            <span class="s2">&quot;min_sg&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_sg_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">),</span>
+            <span class="s2">&quot;Flow Production Tracking&quot;</span><span class="p">,</span>
+            <span class="n">reasons</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
             <span class="s2">&quot;min_core&quot;</span><span class="p">,</span>
@@ -310,7 +313,7 @@
                     <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
-            <span class="s2">&quot;min_desktop&quot;</span><span class="p">,</span> <span class="n">desktop_version</span><span class="p">,</span> <span class="s2">&quot;SG Desktop&quot;</span><span class="p">,</span> <span class="n">reasons</span>
+            <span class="s2">&quot;min_desktop&quot;</span><span class="p">,</span> <span class="n">desktop_version</span><span class="p">,</span> <span class="s2">&quot;FPTR desktop app&quot;</span><span class="p">,</span> <span class="n">reasons</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reasons</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -506,7 +509,7 @@
 
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                            <span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> already exists in ShotGrid.&quot;</span>
+                            <span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> already exists in Flow Production Tracking.&quot;</span>
                             <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">)</span>
                         <span class="p">)</span>
 

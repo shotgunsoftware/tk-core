@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Utilities &mdash; tk-core v0.20.34 documentation</title>
+  <title>Utilities &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -143,7 +143,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.is_macos"><code class="docutils literal notranslate"><span class="pre">is_macos()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#shotgrid-related">ShotGrid Related</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#flow-production-tracking-related">Flow Production Tracking Related</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.register_publish"><code class="docutils literal notranslate"><span class="pre">register_publish()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.resolve_publish_path"><code class="docutils literal notranslate"><span class="pre">resolve_publish_path()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.find_publish"><code class="docutils literal notranslate"><span class="pre">find_publish()</span></code></a></li>
@@ -221,12 +221,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -727,14 +727,14 @@ inside <code class="docutils literal notranslate"><span class="pre">shotgun.yml<
 <span class="na">default_site</span><span class="o">=</span><span class="s">https://your-site-here.shotgunstudio.com</span>
 
 <span class="c1"># If specified, the Toolkit will use these proxy settings to connect to</span>
-<span class="c1"># the ShotGrid site and the Toolkit App Store. The proxy string should be of the</span>
+<span class="c1"># the Flow Production Tracking site and the Toolkit App Store. The proxy string should be of the</span>
 <span class="c1"># forms 123.123.123.123, 123.123.123.123:8888 or</span>
 <span class="c1"># username:pass@123.123.123.123:8888.</span>
 <span class="c1"># Empty by default.</span>
 <span class="c1">#</span>
 <span class="na">http_proxy</span><span class="o">=</span><span class="s">123.234.345.456:8888</span>
 
-<span class="c1"># If specified, the ShotGrid API will use these proxy settings to connect</span>
+<span class="c1"># If specified, the Flow Production Tracking API will use these proxy settings to connect</span>
 <span class="c1"># to the Toolkit App Store. The proxy string format is the same as http_proxy.</span>
 <span class="c1"># If the setting is present in the file but not set, then no proxy will be used</span>
 <span class="c1"># to connect to the Toolkit App Store, regardless of the value of the http_proxy</span>
@@ -749,30 +749,30 @@ inside <code class="docutils literal notranslate"><span class="pre">shotgun.yml<
 following order:</p>
 <ol class="arabic simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code> environment variable,</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">SGTK_DESKTOP_CONFIG_LOCATION</span></code> environment variable, for compatibility with the ShotGrid Desktop. (deprecated)</p></li>
-<li><p>Inside the ShotGrid Toolkit preferences file</p></li>
-<li><p>Inside the ShotGrid Desktop preferences file, for compatibility with the ShotGrid Desktop. (deprecated)</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">SGTK_DESKTOP_CONFIG_LOCATION</span></code> environment variable, for compatibility with the Flow Production Tracking. (deprecated)</p></li>
+<li><p>Inside the Flow Production Tracking preferences file</p></li>
+<li><p>Inside the Flow Production Tracking preferences file, for compatibility with the Flow Production Tracking. (deprecated)</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The ShotGrid Toolkit preferences file is located at:</p>
+<p>The Flow Production Tracking preferences file is located at:</p>
 <ul class="simple">
 <li><p>Windows: <code class="docutils literal notranslate"><span class="pre">%APPDATA%\Shotgun\Preferences\toolkit.ini</span></code></p></li>
 <li><p>macOS: <code class="docutils literal notranslate"><span class="pre">~/Library/Preferences/Shotgun/toolkit.ini</span></code></p></li>
 <li><p>Linux: <code class="docutils literal notranslate"><span class="pre">~/.shotgun/preferences/toolkit.ini</span></code></p></li>
 </ul>
-<p>The ShotGrid Desktop preferences file is located at:</p>
+<p>The Flow Production Tracking preferences file is located at:</p>
 <ul class="simple">
 <li><p>Windows: <code class="docutils literal notranslate"><span class="pre">%APPDATA%\Shotgun\desktop\config\config.ini</span></code></p></li>
 <li><p>macOS: <code class="docutils literal notranslate"><span class="pre">~/Library/Caches/Shotgun/desktop/config/config.ini</span></code></p></li>
 <li><p>Linux: <code class="docutils literal notranslate"><span class="pre">~/.shotgun/desktop/config/config.ini</span></code></p></li>
 </ul>
 <p>Note that the <code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code> environment variable can impact the location
-of the ShotGrid Toolkit preferences file.</p>
+of the Flow Production Tracking preferences file.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When the http proxy is not specified in this file, the ShotGrid Toolkit will try to retrieve
+<p>When the http proxy is not specified in this file, the Flow Production Tracking will try to retrieve
 the operating system http proxy.</p>
 <p>First, the environment will be scanned for variables named <code class="docutils literal notranslate"><span class="pre">http_proxy</span></code>, in case insensitive way.
 If both lowercase and uppercase environment variables exist (and disagree), lowercase will be preferred.</p>
@@ -783,7 +783,7 @@ If both lowercase and uppercase environment variables exist (and disagree), lowe
 </ul>
 <p>There is a restriction in these latter cases: the use of proxies which require
 authentication (username and password) is not supported.</p>
-<p>Internally, the ShotGrid Toolkit uses Python function <code class="docutils literal notranslate"><span class="pre">urllib.getproxies()</span></code> to retrieve
+<p>Internally, the Flow Production Tracking uses Python function <code class="docutils literal notranslate"><span class="pre">urllib.getproxies()</span></code> to retrieve
 the operating system http proxy. More information about this function can be found here:</p>
 <blockquote>
 <div><p><a class="reference external" href="https://docs.python.org/2/library/urllib.html#urllib.getproxies">https://docs.python.org/2/library/urllib.html#urllib.getproxies</a></p>
@@ -1798,9 +1798,9 @@ which is the current generation of paths.</p></li>
 </dd></dl>
 
 </section>
-<section id="shotgrid-related">
-<h2>ShotGrid Related<a class="headerlink" href="#shotgrid-related" title="Permalink to this heading"></a></h2>
-<p>Below are a collection of ShotGrid related utility
+<section id="flow-production-tracking-related">
+<h2>Flow Production Tracking Related<a class="headerlink" href="#flow-production-tracking-related" title="Permalink to this heading"></a></h2>
+<p>Below are a collection of Flow Production Tracking related utility
 and convenience methods:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="sgtk.util.register_publish">

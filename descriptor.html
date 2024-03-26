@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.20.34 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -66,12 +66,12 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Descriptors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#descriptor-types">Descriptor types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#the-shotgrid-app-store">The ShotGrid App store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-flow-production-tracking-app-store">The Flow Production Tracking App store</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracking-against-tags-in-git">Tracking against tags in git</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracking-against-commits-in-a-git-branch">Tracking against commits in a git branch</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracking-against-releases-on-github">Tracking against releases on Github</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pointing-to-a-path-on-disk">Pointing to a path on disk</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pointing-at-a-file-attachment-in-shotgrid">Pointing at a file attachment in ShotGrid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pointing-at-a-file-attachment-in-flow-production-tracking">Pointing at a file attachment in Flow Production Tracking</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#manual-descriptors">Manual Descriptors</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
 </ul>
@@ -141,12 +141,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -197,7 +197,7 @@ simply by importing <code class="docutils literal notranslate"><span class="pre"
 <p>Descriptors are used extensively by Toolkit and allow a user to configure and drive
 Toolkit in a flexible fashion. Descriptors typically point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
-Descriptors form the backbone for ShotGrid deployment and installation. The following
+Descriptors form the backbone for Flow Production Tracking deployment and installation. The following
 example shows basic usage:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="kn">from</span> <span class="nn">sgtk.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
@@ -269,7 +269,7 @@ centralized disk location to which the descriptors are cached.</p>
 <p>Several different descriptor types are supported by Toolkit:</p>
 <ul class="simple">
 <li><p>An <strong>app_store</strong> descriptor represents an item in the Toolkit App Store</p></li>
-<li><p>A <strong>shotgun</strong> descriptor represents an item stored in ShotGrid</p></li>
+<li><p>A <strong>shotgun</strong> descriptor represents an item stored in Flow Production Tracking</p></li>
 <li><p>A <strong>git</strong> descriptor represents a tag in a git repository</p></li>
 <li><p>A <strong>git_branch</strong> descriptor represents a commit in a git branch</p></li>
 <li><p>A <strong>github_release</strong> descriptor represents a Release on a Github repo</p></li>
@@ -283,10 +283,10 @@ locations if you want to pre-bake your own collection of caches.
 Descriptors that are downloaded (cached) to the local disk are called <strong>downloadable</strong> descriptors.
 The <strong>app_store</strong>, <strong>shotgun</strong>, <strong>git</strong> and <strong>git_branch</strong> descriptors are downloadable descriptors,
 while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong> descriptors are accessed directly from the specified path.</p>
-<section id="the-shotgrid-app-store">
-<span id="app-store-descriptor"></span><h3>The ShotGrid App store<a class="headerlink" href="#the-shotgrid-app-store" title="Permalink to this heading"></a></h3>
-<p>The ShotGrid app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
-tested and approved by ShotGrid. App store descriptors should include a name and version token and
+<section id="the-flow-production-tracking-app-store">
+<span id="app-store-descriptor"></span><h3>The Flow Production Tracking App store<a class="headerlink" href="#the-flow-production-tracking-app-store" title="Permalink to this heading"></a></h3>
+<p>The Flow Production Tracking app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+tested and approved by Flow Production Tracking. App store descriptors should include a name and version token and
 are on the following form:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">app_store</span><span class="p p-Indicator">,</span>
@@ -595,26 +595,26 @@ If you wish to refer to elements inside the <code class="docutils literal notran
 both with installed, baked or cached configuration, we recommend you use the <code class="docutils literal notranslate"><span class="pre">CONFIG_FOLDER</span></code> token.</p>
 </div>
 </section>
-<section id="pointing-at-a-file-attachment-in-shotgrid">
-<h3>Pointing at a file attachment in ShotGrid<a class="headerlink" href="#pointing-at-a-file-attachment-in-shotgrid" title="Permalink to this heading"></a></h3>
+<section id="pointing-at-a-file-attachment-in-flow-production-tracking">
+<h3>Pointing at a file attachment in Flow Production Tracking<a class="headerlink" href="#pointing-at-a-file-attachment-in-flow-production-tracking" title="Permalink to this heading"></a></h3>
 <p>The Shotgun descriptor allows you to upload an attachment directly
-to ShotGrid and then reference it with a descriptor.</p>
+to Flow Production Tracking and then reference it with a descriptor.</p>
 <p>This allows for workflows where you can distribute configurations, custom apps
 or other items to your distributed users - regardless of network or file access.
-All they need is a connection to ShotGrid.</p>
+All they need is a connection to Flow Production Tracking.</p>
 <p>A practical application of this is Toolkit’s cloud based configurations;
 Upload a zipped toolkit configuration to the <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.uploaded_config</span></code> field on your pipeline configuration.
 The <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
-uploaded to ShotGrid and it gets automatically picked up by all
+uploaded to Flow Production Tracking and it gets automatically picked up by all
 users (even if they are remote).</p>
 <p>The Shotgun descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
-field in ShotGrid and expects a zip file to be uploaded to the field.</p>
+field in Flow Production Tracking and expects a zip file to be uploaded to the field.</p>
 <p>Two formats are supported, one explicit based on a shotgun entity id and
 one implicit which uses the name in shotgun to resolve a record. With the
-id based syntax you specify the ShotGrid entity type and field name you want
+id based syntax you specify the Flow Production Tracking entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
 <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.uploaded_config</span></code> and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:</p>
@@ -631,7 +631,7 @@ the Pipeline Configuration entity with id 111, use the following descriptor:</p>
 </pre></div>
 </div>
 <p>The version token above refers to the version of the attachment. Every time a new
-attachment is uploaded to ShotGrid, it gets assigned a unique id and the version
+attachment is uploaded to Flow Production Tracking, it gets assigned a unique id and the version
 number in the descriptor allows you to point at a particular version of an uploaded
 attachment. It is also used to handle the underlying logic to understand what the
 latest version of an attachment is.</p>
@@ -651,7 +651,7 @@ following syntax can be useful:</p>
 </pre></div>
 </div>
 <p>Here, instead of specifying the entity id you can specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">project_id</span></code> field. The name
-field will be translated into an appropriate ShotGrid name field, typically the <code class="docutils literal notranslate"><span class="pre">code</span></code> field.</p>
+field will be translated into an appropriate Flow Production Tracking name field, typically the <code class="docutils literal notranslate"><span class="pre">code</span></code> field.</p>
 </section>
 <section id="manual-descriptors">
 <h3>Manual Descriptors<a class="headerlink" href="#manual-descriptors" title="Permalink to this heading"></a></h3>
@@ -863,7 +863,7 @@ to indicate that no changelog exists.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Core version. If None, current core version will be used.</p></li>
 <li><p><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorBundle</span></code>) – Descriptor of the engine this bundle will run under. None by default.</p></li>
-<li><p><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Version of the Shotgun Desktop. None by default.</p></li>
+<li><p><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Version of the PTR desktop app. None by default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -1317,7 +1317,7 @@ to indicate that no changelog exists.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Core version. If None, current core version will be used.</p></li>
 <li><p><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorBundle</span></code>) – Descriptor of the engine this bundle will run under. None by default.</p></li>
-<li><p><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Version of the Shotgun Desktop. None by default.</p></li>
+<li><p><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Version of the PTR desktop app. None by default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -1784,7 +1784,7 @@ to indicate that no changelog exists.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Core version. If None, current core version will be used.</p></li>
 <li><p><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorBundle</span></code>) – Descriptor of the engine this bundle will run under. None by default.</p></li>
-<li><p><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Version of the Shotgun Desktop. None by default.</p></li>
+<li><p><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Version of the PTR desktop app. None by default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>

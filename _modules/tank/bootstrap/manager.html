@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.bootstrap.manager &mdash; tk-core v0.20.34 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,12 +85,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -961,7 +961,7 @@
         <span class="k">if</span> <span class="n">shotgun_site</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">host</span> <span class="o">!=</span> <span class="n">shotgun_site</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;You are currently logged in to site </span><span class="si">%s</span><span class="s2"> but your launch environment &quot;</span>
-                <span class="s2">&quot;is set to start up </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> on site </span><span class="si">%s</span><span class="s2">. The SG integration &quot;</span>
+                <span class="s2">&quot;is set to start up </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> on site </span><span class="si">%s</span><span class="s2">. The PTR integration &quot;</span>
                 <span class="s2">&quot;currently doesn&#39;t support switching between sites and the contents of &quot;</span>
                 <span class="s2">&quot;SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID will therefore be ignored.&quot;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">shotgun_site</span><span class="p">)</span>
@@ -1019,7 +1019,7 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Plugin Id: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will connect to SG to look for overrides.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will connect to PTR to look for overrides.&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s2">&quot;If no overrides found, this config will be used: </span><span class="si">%s</span><span class="s2">&quot;</span>
                 <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span>
@@ -1038,7 +1038,7 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;based on the current project id and user.&quot;</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will not connect to SG to resolve config overrides.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will not connect to PTR to resolve config overrides.&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s2">&quot;The following config will be used: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span>
             <span class="p">)</span>
@@ -1131,7 +1131,7 @@
 
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span><span class="p">:</span>
             <span class="c1"># do the full resolve where we connect to shotgun etc.</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking for pipeline configuration overrides in ShotGrid.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking for pipeline configuration overrides in Flow Production Tracking.&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s2">&quot;In order to turn this off, set do_shotgun_config_lookup to False&quot;</span>
             <span class="p">)</span>
@@ -1301,13 +1301,13 @@
         <span class="k">if</span> <span class="n">is_shotgun_engine</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempting to start the SG engine using the standard &quot;</span>
+                    <span class="s2">&quot;Attempting to start the PTR engine using the standard &quot;</span>
                     <span class="s2">&quot;start_engine routine...&quot;</span>
                 <span class="p">)</span>
                 <span class="n">engine</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">outer_exc</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;SG engine failed to start using start_engine. An &quot;</span>
+                    <span class="s2">&quot;PTR engine failed to start using start_engine. An &quot;</span>
                     <span class="s2">&quot;attempt will now be made to start it using an legacy &quot;</span>
                     <span class="s2">&quot;shotgun_xxx.yml environment. The start_engine exception &quot;</span>
                     <span class="s2">&quot;was the following: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">outer_exc</span>
@@ -1317,7 +1317,7 @@
                         <span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">ctx</span>
                     <span class="p">)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">&quot;SG engine started using a legacy shotgun_xxx.yml environment.&quot;</span>
+                        <span class="s2">&quot;PTR engine started using a legacy shotgun_xxx.yml environment.&quot;</span>
                     <span class="p">)</span>
                 <span class="k">except</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">TankMissingEnvironmentFile</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                     <span class="c1"># If the reason the new style bootstrap failed was that no environment was returned by the</span>
@@ -1338,7 +1338,7 @@
 
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">&quot;SG engine failed to start using the legacy &quot;</span>
+                        <span class="s2">&quot;PTR engine failed to start using the legacy &quot;</span>
                         <span class="s2">&quot;start_shotgun_engine routine. No more attempts will &quot;</span>
                         <span class="s2">&quot;be made to initialize the engine. The start_shotgun_engine &quot;</span>
                         <span class="s2">&quot;exception was the following: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">exc</span>
@@ -1371,13 +1371,13 @@
         <span class="c1"># new cores handles all this inside the tank.platform.start_shotgun_engine</span>
         <span class="c1"># business logic.</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Target core version is </span><span class="si">%s</span><span class="s2">. Starting SG engine via legacy pathway.&quot;</span>
+            <span class="s2">&quot;Target core version is </span><span class="si">%s</span><span class="s2">. Starting PTR engine via legacy pathway.&quot;</span>
             <span class="o">%</span> <span class="n">tk</span><span class="o">.</span><span class="n">version</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span>
-                <span class="s2">&quot;Legacy SG environments do not support bootstrapping into a site context.&quot;</span>
+                <span class="s2">&quot;Legacy PTR environments do not support bootstrapping into a site context.&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># start engine via legacy pathway</span>

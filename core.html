@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core &mdash; tk-core v0.20.34 documentation</title>
+  <title>Core &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -274,12 +274,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -948,8 +948,8 @@ folder creation pass should be executed for a particular engine.</p></li>
 
 <section id="authentication">
 <h3>Authentication<a class="headerlink" href="#authentication" title="Permalink to this heading"></a></h3>
-<p>Certain API operations require ShotGrid data and hence require a way for the API
-to establish a connection to ShotGrid. The easiest way to handle this is by
+<p>Certain API operations require Flow Production Tracking data and hence require a way for the API
+to establish a connection to Flow Production Tracking. The easiest way to handle this is by
 making sure that each API instance has an associated authenticated user:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="sgtk.set_authenticated_user">
@@ -1413,7 +1413,7 @@ when copying files between different user sandboxes. Example:</p>
 <p>Any Context object can be serialized to/deserialized from a string.
 This can be useful if you need to pass a Context between different processes.
 As an example, the <code class="docutils literal notranslate"><span class="pre">tk-multi-launchapp</span></code> uses this mechanism to pass the Context
-from the launch process (e.g. for example Shotgun Desktop) to the
+from the launch process (e.g. for example PTR desktop app) to the
 Application (e.g. Maya) being launched. Example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
@@ -2093,7 +2093,7 @@ and copy it to your configuration’s <code class="docutils literal notranslate"
 <p class="admonition-title">Note</p>
 <p>A core hook cannot be executed before Toolkit (the <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance) has
 been initialized. This happens when <code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.bootstrap_engine()</span></code> is
-called during ShotGrid Desktop bootstrap. Any customization of the core behavior
+called during Flow Production Tracking bootstrap. Any customization of the core behavior
 must be added afterwards.</p>
 </div>
 <p>Here is the list of hooks that be taken over in the Toolkit core.</p>
@@ -2812,7 +2812,7 @@ be [‘foo’, ‘bar’]</p></li>
 <section id="templates">
 <h2>Templates<a class="headerlink" href="#templates" title="Permalink to this heading"></a></h2>
 <p>The Toolkit template system is used to handle path and string token manipulations.</p>
-<p>Since the ShotGrid Toolkit is file system based, Apps will need to resolve file paths whenever
+<p>Since the Flow Production Tracking is file system based, Apps will need to resolve file paths whenever
 they need to read or write data from disk. Apps are file system structure agnostic - meaning
 that they don’t know how the file system is organized. The template system handles all this for them.</p>
 <p>At the heart of the template system, there is a Templates Configuration File. This file contains
@@ -2847,12 +2847,12 @@ This is why all the file system locations are kept in a single file.</p>
 </pre></div>
 </div>
 <p>Note how the above path and template has two different types of fields: The Shot and Step fields are
-high-level fields with equivalent objects in ShotGrid (a Shot and a Pipeline Step) where the name and
+high-level fields with equivalent objects in Flow Production Tracking (a Shot and a Pipeline Step) where the name and
 the version fields are very specific to this particular type of template (in this case a publish path.).
 If we wanted to describe a publish path for an asset rather than a shot, we would still have a name
 and a version field, since this is needed for all publishes, regardless of what type of data it is -
 however, we would not have a Shot and a Step field. Instead, we may have an Asset and a Step field,
-where the asset field would be associated with an asset in ShotGrid.</p>
+where the asset field would be associated with an asset in Flow Production Tracking.</p>
 <section id="template">
 <h3>Template<a class="headerlink" href="#template" title="Permalink to this heading"></a></h3>
 <dl class="py class">

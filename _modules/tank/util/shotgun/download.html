@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.download &mdash; tk-core v0.20.34 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -85,12 +85,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -353,7 +353,7 @@
 <span class="sd">    :param url: The url to download from</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># @todo: progress feedback here - when the SG api supports it!</span>
+    <span class="c1"># @todo: progress feedback here - when the PTR api supports it!</span>
     <span class="c1"># sometimes people report that this download fails (because of flaky connections etc)</span>
     <span class="c1"># engines can often be 30-50MiB - as a quick fix, just retry the download if it fails</span>
 
@@ -425,7 +425,7 @@
         <span class="c1"># the attachment in shotgun could not be unpacked</span>
         <span class="k">if</span> <span class="n">attachment_id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
-                <span class="s2">&quot;SG attachment with id </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">attachment_id</span>
+                <span class="s2">&quot;PTR attachment with id </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">attachment_id</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>

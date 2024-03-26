@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun_entity &mdash; tk-core v0.20.34 documentation</title>
+  <title>tank.util.shotgun_entity &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,12 +85,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -409,9 +409,9 @@
                 <span class="c1"># required value was not provided!</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                     <span class="s2">&quot;Folder Configuration Error: &quot;</span>
-                    <span class="s2">&quot;A SG field &#39;</span><span class="si">%s</span><span class="s2">&#39; is being requested as part of the expression &quot;</span>
+                    <span class="s2">&quot;A PTR field &#39;</span><span class="si">%s</span><span class="s2">&#39; is being requested as part of the expression &quot;</span>
                     <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; when creating folders connected to entities of type </span><span class="si">%s</span><span class="s2">, &quot;</span>
-                    <span class="s2">&quot;however no such field exists in ShotGrid. Please review your &quot;</span>
+                    <span class="s2">&quot;however no such field exists in Flow Production Tracking. Please review your &quot;</span>
                     <span class="s2">&quot;configuration!&quot;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">field_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field_name_expr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span><span class="p">)</span>
                 <span class="p">)</span>
@@ -440,7 +440,7 @@
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;Folder Configuration Error. Could not create folders for </span><span class="si">%s</span><span class="s2">! &quot;</span>
                 <span class="s2">&quot;The expression </span><span class="si">%s</span><span class="s2"> refers to one or more values that are blank &quot;</span>
-                <span class="s2">&quot;in SG and a folder can therefore &quot;</span>
+                <span class="s2">&quot;in PTR and a folder can therefore &quot;</span>
                 <span class="s2">&quot;not be created.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nice_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field_name_expr</span><span class="p">)</span>
             <span class="p">)</span>
 

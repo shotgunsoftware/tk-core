@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.20.34 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,12 +85,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -788,10 +788,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates this engine will allow the metrics worker threads to forward</span>
 <span class="sd">        the user metrics logged via core, this engine, or registered apps to</span>
-<span class="sd">        SG.</span>
+<span class="sd">        PTR.</span>
 
 <span class="sd">        :returns: boolean value indicating that the engine allows user metrics</span>
-<span class="sd">            to be forwarded to SG.</span>
+<span class="sd">            to be forwarded to PTR.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
@@ -1048,7 +1048,7 @@
 <span class="sd">        In most cases, commands will appear as items on a Shotgun dropdown</span>
 <span class="sd">        menu, but it ultimately depends on the engine - in the Shell engine,</span>
 <span class="sd">        commands are instead represented as a text base listing and in the</span>
-<span class="sd">        Shotgun Desktop it is a scrollable list of larger icons.</span>
+<span class="sd">        PTR desktop app it is a scrollable list of larger icons.</span>
 
 <span class="sd">        .. note:: This method is used to add menu entries for launching</span>
 <span class="sd">           toolkit UIs. If you wish to register a panel UI with toolkit,</span>
@@ -2588,7 +2588,7 @@
             <span class="n">file_in</span><span class="o">.</span><span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="p">)</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-            <span class="c1"># set the std selection bg color to be &#39;SG blue&#39;</span>
+            <span class="c1"># set the std selection bg color to be &#39;PTR blue&#39;</span>
             <span class="n">highlight_color</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QBrush</span><span class="p">(</span>
                 <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SG_STYLESHEET_CONSTANTS</span><span class="p">[</span><span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">])</span>
             <span class="p">)</span>
@@ -3450,7 +3450,7 @@
     <span class="c1"># get the location for our engine</span>
     <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">TankMissingEngineError</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot find a SG engine in </span><span class="si">%s</span><span class="s2">. Please contact support.&quot;</span> <span class="o">%</span> <span class="n">env</span>
+            <span class="s2">&quot;Cannot find a PTR engine in </span><span class="si">%s</span><span class="s2">. Please contact support.&quot;</span> <span class="o">%</span> <span class="n">env</span>
         <span class="p">)</span>
 
     <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">)</span>

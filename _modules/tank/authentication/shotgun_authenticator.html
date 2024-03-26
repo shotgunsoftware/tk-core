@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.20.34 documentation</title>
+  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.21.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,12 +85,12 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.20.34.<br>
+    <b>tk-core</b> v0.21.0.<br>
     
-        This documentation is part of the ShotGrid Pipeline Toolkit.
+        This documentation is part of the Flow Production Tracking.
     
     For more information, please visit
-    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The ShotGrid developer portal.</a>.
+    <a class=custom_post_menu href='https://help.autodesk.com/view/SGDEV/ENU/'>The Flow Production Tracking developer portal.</a>.
     The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
@@ -139,7 +139,7 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;SG Authenticator.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;PTR Authenticator.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">.sso_saml2</span> <span class="kn">import</span> <span class="n">has_sso_info_in_cookies</span><span class="p">,</span> <span class="n">has_unified_login_flow_info_in_cookies</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interactive_authentication</span>
@@ -189,7 +189,7 @@
 <span class="sd">      one process to another, allowing you to maintain an experience where</span>
 <span class="sd">      a user is authenticated across multiple applications. This is useful</span>
 <span class="sd">      if you for example want to launch RV from Maya or Maya from the</span>
-<span class="sd">      Shotgun Desktop</span>
+<span class="sd">      PTR desktop app.</span>
 
 <span class="sd">    - The authenticator maintains the concept of a default user - which</span>
 <span class="sd">      can be used in order to present good defaults in UIs as well as</span>
