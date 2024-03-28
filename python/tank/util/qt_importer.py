@@ -142,6 +142,13 @@ class QtImporter(object):
     def qt_version_tuple(self):
         return self._qt_version_tuple
 
+    @property
+    def shiboken(self):
+        """
+        :returns: The compatible shiboken module for the imported PySide version if available.
+        """
+        return self._modules.get("shiboken") if self._modules else None
+
     def _import_module_by_name(self, parent_module_name, module_name):
         """
         Import a module by its string name.
@@ -164,6 +171,7 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple.
         """
         from PySide import QtCore, QtGui
+        import shiboken
 
         QtNetwork = self._import_module_by_name("PySide", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide", "QtWebKit")
@@ -192,6 +200,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": None,
+                "shiboken": shiboken,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -207,6 +216,7 @@ class QtImporter(object):
         # imported even if the Qt binaries are missing, so it's better to try importing QtCore for
         # testing.
         from PySide2 import QtCore
+        import shiboken2
 
         # List of all Qt 5 modules.
         sub_modules = [
@@ -241,6 +251,9 @@ class QtImporter(object):
             sub_modules.append("QtWebEngineWidgets")
 
         modules_dict = {"QtCore": QtCore}
+
+        # Add shiboken2 to the modules dict
+        modules_dict["shiboken"] = shiboken2
 
         # Depending on the build of PySide 2 being used, more or less modules are supported. Instead
         # of assuming a base set of functionality, simply try every module one at a time.
@@ -280,6 +293,7 @@ class QtImporter(object):
         """
         import PySide2
         from PySide2 import QtCore, QtGui, QtWidgets
+        import shiboken2
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
@@ -299,6 +313,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
+                "shiboken": shiboken2,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -348,6 +363,7 @@ class QtImporter(object):
         """
 
         import PySide6
+        import shiboken6
         from .pyside6_patcher import PySide6Patcher
 
         QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
@@ -364,6 +380,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
+                "shiboken": shiboken6,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -376,9 +393,12 @@ class QtImporter(object):
         """
 
         import PySide6
+        import shiboken6
 
         sub_modules = pkgutil.iter_modules(PySide6.__path__)
         modules_dict = {}
+        # Add shiboken6 to the modules dict
+        modules_dict["shiboken"] = shiboken6
         for module in sub_modules:
             module_name = module.name
             try:
