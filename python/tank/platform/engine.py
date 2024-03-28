@@ -176,6 +176,7 @@ class Engine(TankBundle):
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
         qt.TankDialogBase = base_def.get("dialog_base")
+        qt.shiboken = base_def.get("shiboken")
 
         qt5_base = self.__define_qt5_base()
         self.__has_qt5 = len(qt5_base) > 0
@@ -2163,6 +2164,7 @@ class Engine(TankBundle):
             else:
                 base["dialog_base"] = None
             base["wrapper"] = importer.binding
+            base["shiboken"] = importer.shiboken
         except:
 
             self.log_exception(
