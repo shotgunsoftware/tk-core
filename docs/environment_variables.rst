@@ -48,7 +48,7 @@ This is not recommended and should only be used in combination with legacy ShotG
 ``SGTK_FORCE_STANDARD_LOGIN_DIALOG``
 ------------------------------------
 Always display the traditional authentication (login and password fields) in the
-login window dialog even when the ShotGrid site has other authentication methods
+login window dialog even when the Flow Production Tracking site has other authentication methods
 enabled.
 
 ``TK_AUTH_PRODUCT``
@@ -71,7 +71,7 @@ Bundle cache
 
 ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``
 ---------------------------------------
-Path that lets a user specify bundle cache fallbacks to go look for a bundle in case it is now found in the bundle cache. This is part of the :ref:`bootstrap_api`. Also see `ShotGrid Integrations Admin guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#managing-updates-via-manual-download>`_.
+Path that lets a user specify bundle cache fallbacks to go look for a bundle in case it is now found in the bundle cache. This is part of the :ref:`bootstrap_api`. Also see `Flow Production Tracking Integrations Admin guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#managing-updates-via-manual-download>`_.
 
 ``SHOTGUN_BUNDLE_CACHE_PATH``
 -----------------------------
@@ -79,7 +79,7 @@ Overrides the path to the main bundle cache, e.g. the location where the :ref:`D
 
 ``SHOTGUN_DISABLE_APPSTORE_ACCESS``
 -----------------------------------
-Setting this to ``1`` will disable any ShotGrid Appstore access. No attempts to connect will be carried out. This option can be useful in cases where complex proxy setups is preventing Toolkit to correctly operate.
+Setting this to ``1`` will disable any Flow Production Tracking Appstore access. No attempts to connect will be carried out. This option can be useful in cases where complex proxy setups is preventing Toolkit to correctly operate.
 
 .. _environment_variables_file_resolving:
 
@@ -95,10 +95,10 @@ Specifies your local storage root on different operating systems. See `Resolving
 Resolves a ``file://`` URL on different operating systems. See `Resolving file URLS <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#resolving-file-urls>`_.
 
 
-Thumbnail display for ShotGrid Desktop
-======================================
+Thumbnail display for Flow Production Tracking
+======================================================
 
 ``SGTK_PROJ_THUMB_OLD``
 -----------------------
 
-When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in ShotGrid Desktop <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-the-thumbnail-display-in-shotgrid-desktop>`_
+When specified the old thumbnail cropping behavior will be used. See `Configuring the thumbnail display in Flow Production Tracking <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-the-thumbnail-display-in-shotgrid-desktop>`_

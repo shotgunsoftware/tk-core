@@ -832,7 +832,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
         root_path = all_per_platform_roots.get(root_name, {}).get(sgsix.platform)
         if root_path is None:
             raise TankError(
-                "Undefined SG storage! The local file storage '%s' is not defined for this "
+                "Undefined PTR storage! The local file storage '%s' is not defined for this "
                 "operating system." % root_name
             )
 

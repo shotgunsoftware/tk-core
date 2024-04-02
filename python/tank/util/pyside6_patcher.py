@@ -386,6 +386,21 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QRegularExpression = QRegularExpression
 
     @classmethod
+    def _patch_QCoreApplication_flush(cls, QtCore):
+        """
+        Patch QCoreApplication obsolete flush method for compatibility.
+        """
+
+        def flush():
+            """
+            No-op function to serve as a placeholder for QCoreApplication.flush().
+            """
+            pass
+
+        # Add the no-op flush method to QCoreApplication
+        QtCore.QCoreApplication.flush = flush
+
+    @classmethod
     def patch(cls):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
@@ -471,6 +486,11 @@ class PySide6Patcher(PySide2Patcher):
         # Rename RegExp functions to RegularExpression
         qt_gui_shim.QSortFilterProxyModel.filterRegExp = qt_gui_shim.QSortFilterProxyModel.filterRegularExpression
         qt_gui_shim.QSortFilterProxyModel.setFilterRegExp = qt_gui_shim.QSortFilterProxyModel.setFilterRegularExpression
+
+        # Patch the QCoreApplication.flush() method to ensure compatibility with code
+        # that expects this method, which is marked as obsolete.
+        # https://doc.qt.io/qt-5/qcoreapplication-obsolete.html#flush
+        cls._patch_QCoreApplication_flush(qt_core_shim)
 
         # QtGui
         # ------------------------------------------------------------------------------------

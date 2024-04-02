@@ -33,7 +33,7 @@ class Project(Entity):
         :returns: :class:`Entity` instance.
         """
         # execute default_storage_root hook to modify the metadata storage root 'root_name'
-        # if there's any Project custom field in SG overriding the default storage root.
+        # if there's any Project custom field in PTR overriding the default storage root.
         try:
             tk.execute_core_hook_method(
                 constants.DEFAULT_STORAGE_ROOT_HOOK_NAME,

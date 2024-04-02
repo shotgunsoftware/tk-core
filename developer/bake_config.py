@@ -294,7 +294,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     try:
         sg_connection.find_one("HumanUser", [])
     except Exception as e:
-        logger.error("Could not communicate with ShotGrid: %s" % e)
+        logger.error("Could not communicate with Flow Production Tracking: %s" % e)
         return 3
 
     # Strip any extra whitespaces and make sure every bundle type exists.

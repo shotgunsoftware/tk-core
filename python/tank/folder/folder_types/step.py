@@ -117,7 +117,7 @@ class ShotgunStep(Entity):
             elif sg_parent is None:
                 raise TankError(
                     "Error in configuration %s - node must be parented "
-                    "under a SG entity." % full_path
+                    "under a PTR entity." % full_path
                 )
 
             else:

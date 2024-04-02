@@ -139,7 +139,7 @@ class CoreUpdateAction(Action):
         code_install_root = pipelineconfig_utils.get_path_to_current_core()
 
         log.info("")
-        log.info("Welcome to the SG Pipeline Toolkit update checker!")
+        log.info("Welcome to the Flow Production Tracking Toolkit update checker!")
         log.info("This script will check if the Toolkit Core API installed")
         log.info("in %s" % code_install_root)
         log.info("is up to date.")
@@ -168,7 +168,7 @@ class CoreUpdateAction(Action):
         current_version = installer.get_current_version_number()
         new_version = installer.get_update_version_number()
         log.info(
-            "You are currently running version %s of the SG Pipeline Toolkit"
+            "You are currently running version %s of the Flow Production Tracking Toolkit"
             % current_version
         )
 
@@ -181,7 +181,7 @@ class CoreUpdateAction(Action):
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
             req_sg = installer.get_required_sg_version_for_update()
             msg = (
-                "%s version of core requires a more recent version (%s) of ShotGrid!"
+                "%s version of core requires a more recent version (%s) of Flow Production Tracking!"
                 % ("The newest" if core_version is None else "The requested", req_sg)
             )
             log.error(msg)
@@ -250,7 +250,7 @@ class CoreUpdateAction(Action):
                 return_status = {"status": "updated", "new_version": new_version}
 
             else:
-                log.info("The SG Pipeline Toolkit will not be updated.")
+                log.info("The Flow Production Tracking Toolkit will not be updated.")
 
         else:
             raise TankError("Unknown Update state!")
@@ -267,7 +267,7 @@ class TankCoreUpdater(object):
     (
         UP_TO_DATE,  # all good, no update necessary
         UPDATE_POSSIBLE,  # more recent version exists
-        UPDATE_BLOCKED_BY_SG,  # more recent version exists but SG version is too low.
+        UPDATE_BLOCKED_BY_SG,  # more recent version exists but PTR version is too low.
         UPDATE_BLOCKED_BY_CONFIG,  # The config descriptor is not suitable for updating.
     ) = range(4)
 
@@ -329,7 +329,7 @@ class TankCoreUpdater(object):
 
     def get_required_sg_version_for_update(self):
         """
-        Returns the SG version that is required in order to update to the specified
+        Returns the PTR version that is required in order to update to the specified
         version of the Tank Core API.
 
         :returns: sg version number as a string or None if no version is required.
@@ -433,7 +433,7 @@ class TankCoreUpdater(object):
         core_api_yaml_path = os.path.join(config_root, "core", "core_api.yml")
 
         message = (
-            "# SG Pipeline Toolkit configuration file. This file was automatically\n"
+            "# Flow Production Tracking Toolkit configuration file. This file was automatically\n"
             "# created during the latest core update.\n"
         )
         with open(core_api_yaml_path, "w") as f:

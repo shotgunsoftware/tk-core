@@ -942,7 +942,7 @@ class TankTestBase(unittest.TestCase):
         print(
             "-----------------------------------------------------------------------------"
         )
-        print(" SG contents:")
+        print(" PTR contents:")
 
         print(pprint.pformat(self.mockgun._db))
         print("")

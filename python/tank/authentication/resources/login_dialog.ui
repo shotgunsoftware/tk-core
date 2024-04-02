@@ -20,7 +20,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>ShotGrid Login</string>
+   <string>Flow Production Tracking Login</string>
   </property>
   <property name="styleSheet">
    <string notr="true">

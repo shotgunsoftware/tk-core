@@ -1162,7 +1162,7 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                "\n",  # Select default SG site (site1)
+                "\n",  # Select default PTR site (site1)
                 "1",  # Select "legacy" auth method
                 "username",
             ],
@@ -1359,7 +1359,7 @@ class LoadInformationInfoTests(ShotgunTestBase):
                 self.assertEqual(site_i._url, None)
                 self.assertEqual(site_i._infos, {})
                 self.assertEqual(len(cm.output), 1)
-                self.assertIn("Invalid ShotGrid URL https", cm.output[0])
+                self.assertIn("Invalid Flow Production Tracking URL https", cm.output[0])
 
     def test_reload_wrong_site(self, *unused_mocks):
         with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:

@@ -102,7 +102,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "SG descriptor cannot contain both name and id tokens: %s"
+                    "PTR descriptor cannot contain both name and id tokens: %s"
                     % descriptor_dict
                 )
 
@@ -254,7 +254,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         if data is None:
             raise TankDescriptorError(
-                "Cannot resolve descriptor %s in ShotGrid!" % self
+                "Cannot resolve descriptor %s in Flow Production Tracking!" % self
             )
 
         # attachment field is on the following form in the case a file has been
@@ -343,7 +343,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         # check if we can connect to Shotgun
         can_connect = True
         try:
-            log.debug("%r: Probing if a connection to SG can be established..." % self)
+            log.debug("%r: Probing if a connection to PTR can be established..." % self)
             self._sg_connection.connect()
             log.debug("...connection established!")
         except Exception as e:

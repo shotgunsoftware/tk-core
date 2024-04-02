@@ -605,7 +605,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     """
     try:
         # Create the instance that does not connect right away for speed...
-        logger.debug("Connecting to SG to generate session token...")
+        logger.debug("Connecting to PTR to generate session token...")
         sg = Shotgun(
             hostname,
             login=login,

@@ -703,7 +703,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # why either value might be changed
         #
         self.assertEqual(5, MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
-        # NOTE: that current SG server code reject batches larger than 10.
+        # NOTE: that current PTR server code reject batches larger than 10.
         self.assertEqual(10, MetricsDispatchWorkerThread.DISPATCH_BATCH_SIZE)
 
     def test_maximum_queue_size(self):
