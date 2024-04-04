@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.21.0 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.21.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.0.<br>
+    <b>tk-core</b> v0.21.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -307,6 +307,7 @@
         <span class="n">qt</span><span class="o">.</span><span class="n">QtCore</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qt_core&quot;</span><span class="p">)</span>
         <span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qt_gui&quot;</span><span class="p">)</span>
         <span class="n">qt</span><span class="o">.</span><span class="n">TankDialogBase</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">)</span>
+        <span class="n">qt</span><span class="o">.</span><span class="n">shiboken</span> <span class="o">=</span> <span class="n">base_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shiboken&quot;</span><span class="p">)</span>
 
         <span class="n">qt5_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__define_qt5_base</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qt5_base</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -2294,6 +2295,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">binding</span>
+            <span class="n">base</span><span class="p">[</span><span class="s2">&quot;shiboken&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">shiboken</span>
         <span class="k">except</span><span class="p">:</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span>
