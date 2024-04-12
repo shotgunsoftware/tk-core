@@ -123,7 +123,7 @@ URL_ULF_RENEW_PATH = "/auth/renew"
 URL_ULF_LANDING_PATH = "/auth/landing"
 
 
-def get_renew_path(session):
+def get_renew_path(session, logger):
     """Construct the renew path, leveraging existing environment variables"""
     renew_path = session.host + URL_ULF_RENEW_PATH + "?"
     renew_params = {"product": session.product}
@@ -135,8 +135,10 @@ def get_renew_path(session):
     # Flow Production Tracking's renew endpoint supports some useful
     # Autodesk Identity params.
     if tk_shotgun_default_login:
+        logger.debug("Using default login: %s", tk_shotgun_default_login)
         renew_params["email"] = tk_shotgun_default_login
     if tk_shotgun_sso_domain:
+        logger.debug("Using SSO domain: %s", tk_shotgun_sso_domain)
         renew_params["sso_domain"] = tk_shotgun_sso_domain
 
     renew_path += urlencode(renew_params)
@@ -808,7 +810,7 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        url = get_renew_path(self._session)
+        url = get_renew_path(self._session, self._logger)
         self._logger.debug("Navigating to %s", url)
         self._view.page().mainFrame().load(url)
 
@@ -985,7 +987,7 @@ class SsoSaml2Core(object):
         self._view.raise_()
 
         # We append the product code to the GET request.
-        url = get_renew_path(self._session)
+        url = get_renew_path(self._session, self._logger)
         self._logger.debug("Navigating to %s", url)
         self._view.page().mainFrame().load(url)
 
