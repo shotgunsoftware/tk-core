@@ -135,9 +135,7 @@ class InteractiveTests(ShotgunTestBase):
             # window needs to be activated to get focus.
             self.assertTrue(ld.ui.password.hasFocus())
 
-        with self._login_dialog(
-            hostname="host", login="login"
-        ) as ld:
+        with self._login_dialog(hostname="host", login="login") as ld:
             self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
@@ -634,7 +632,8 @@ class InteractiveTests(ShotgunTestBase):
                 "unified_login_flow_enabled": True,
             },
         ), self._login_dialog(
-            is_session_renewal=True, hostname="https://host.shotgunstudio.com",
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
@@ -649,7 +648,8 @@ class InteractiveTests(ShotgunTestBase):
                 "unified_login_flow_enabled": True,
             },
         ), self._login_dialog(
-            is_session_renewal=True, hostname="https://host.shotgunstudio.com",
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
@@ -845,23 +845,32 @@ class InteractiveTests(ShotgunTestBase):
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
-            }), self._login_dialog(
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
+                },
+            ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "credentials",
-            }), self._login_dialog(
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "credentials",
+                },
+            ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "test_me", # Invalid value
-            }), self._login_dialog(
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "test_me",  # Invalid value
+                },
+            ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
@@ -869,9 +878,12 @@ class InteractiveTests(ShotgunTestBase):
             with mock.patch(
                 "tank.authentication.session_cache.get_preferred_method",
                 return_value=auth_constants.METHOD_WEB_LOGIN,
-            ), mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
-            }), self._login_dialog(
+            ), mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
@@ -880,9 +892,12 @@ class InteractiveTests(ShotgunTestBase):
             # are disabled
 
             # qt_web_login but method not available
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
-            }), mock.patch(
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
+                },
+            ), mock.patch(
                 "tank.authentication.login_dialog._is_running_in_desktop",
                 return_value=False,
             ), mock.patch(
@@ -894,9 +909,12 @@ class InteractiveTests(ShotgunTestBase):
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # app_session_launcher but method ASL not available
-            with mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
-            }), mock.patch(
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), mock.patch(
                 "tank.authentication.site_info._get_site_infos",
                 return_value={
                     "user_authentication_method": "oxygen",
@@ -913,8 +931,8 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.login_dialog.ASL_AuthTask.start"
         ), mock.patch(
-                "tank.authentication.login_dialog._is_running_in_desktop",
-                return_value=True,
+            "tank.authentication.login_dialog._is_running_in_desktop",
+            return_value=True,
         ), mock.patch(
             "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
             return_value=True,
@@ -930,9 +948,12 @@ class InteractiveTests(ShotgunTestBase):
             with mock.patch(
                 "tank.authentication.session_cache.get_preferred_method",
                 return_value=auth_constants.METHOD_BASIC,
-            ), mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
-            }), self._login_dialog(
+            ), mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
@@ -947,9 +968,12 @@ class InteractiveTests(ShotgunTestBase):
             ), mock.patch(
                 "tank.authentication.session_cache.get_preferred_method",
                 return_value=auth_constants.METHOD_WEB_LOGIN,
-            ), mock.patch.dict("os.environ", {
-                "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
-            }), self._login_dialog(
+            ), mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
@@ -1317,7 +1341,9 @@ class InteractiveTests(ShotgunTestBase):
                     return_value="",
                 ):
                     self.assertEqual(
-                        handler._get_auth_method("https://host.shotgunstudio.com", site_i),
+                        handler._get_auth_method(
+                            "https://host.shotgunstudio.com", site_i
+                        ),
                         option,
                     )
 
@@ -1335,13 +1361,15 @@ class InteractiveTests(ShotgunTestBase):
         # Mainly for code coverage
 
         from tank.authentication import login_dialog
+
         asl_task = login_dialog.ASL_AuthTask(None, "https://host.shotgunstudio.com")
 
         with mock.patch(
             "tank.authentication.app_session_launcher.http_request",
             side_effect=Exception("My Error 45!"),
         ), self.assertLogs(
-            login_dialog.logger.name, level="DEBUG",
+            login_dialog.logger.name,
+            level="DEBUG",
         ) as cm:
             asl_task.run()
 
@@ -1356,31 +1384,33 @@ class LoadInformationInfoTests(ShotgunTestBase):
     def test_reload_wrong_url(self, *unused_mocks):
         with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:
             with mock.patch.object(
-                tank_vendor.shotgun_api3.Shotgun,
-                "info",
-                side_effect=Exception()
+                tank_vendor.shotgun_api3.Shotgun, "info", side_effect=Exception()
             ):
                 site_i = site_info.SiteInfo()
                 site_i.reload(url="https")
                 self.assertEqual(site_i._url, None)
                 self.assertEqual(site_i._infos, {})
                 self.assertEqual(len(cm.output), 1)
-                self.assertIn("Invalid Flow Production Tracking URL https", cm.output[0])
+                self.assertIn(
+                    "Invalid Flow Production Tracking URL https", cm.output[0]
+                )
 
     def test_reload_wrong_site(self, *unused_mocks):
         with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:
             with mock.patch.object(
-                tank_vendor.shotgun_api3.Shotgun,
-                "info",
-                side_effect=Exception()
+                tank_vendor.shotgun_api3.Shotgun, "info", side_effect=Exception()
             ):
                 site_i = site_info.SiteInfo()
                 site_i.reload(url="https://foo")
                 self.assertEqual(site_i._url, None)
                 self.assertEqual(site_i._infos, {})
                 self.assertEqual(len(cm.output), 2)
-                self.assertIn("Infos for site 'https://foo' not in cache or expired", cm.output[0])
-                self.assertIn("Unable to connect with https://foo, got exception", cm.output[1])
+                self.assertIn(
+                    "Infos for site 'https://foo' not in cache or expired", cm.output[0]
+                )
+                self.assertIn(
+                    "Unable to connect with https://foo, got exception", cm.output[1]
+                )
 
 
 class UtilsTests(ShotgunTestBase):
@@ -1410,6 +1440,9 @@ class UtilsTests(ShotgunTestBase):
         self.assertEqual(res.netloc, "proxy.local")
 
     def test_get_renew_path(self):
+        manager = tank.log.LogManager()
+        logger = manager.root_logger
+
         # Provides a simple host and product
         res = get_renew_path(
             AuthenticationSessionData(
@@ -1417,7 +1450,8 @@ class UtilsTests(ShotgunTestBase):
                     "host": "https://foo.com",
                     "product": "toolkit",
                 }
-            )
+            ),
+            logger,
         )
         self.assertEqual(res, "https://foo.com/auth/renew?product=toolkit")
 
@@ -1429,7 +1463,8 @@ class UtilsTests(ShotgunTestBase):
                     "host": "https://foo.com",
                     "product": "toolkit",
                 }
-            )
+            ),
+            logger,
         )
         self.assertEqual(
             res, "https://foo.com/auth/renew?product=toolkit&sso_domain=bar.com"
@@ -1444,7 +1479,8 @@ class UtilsTests(ShotgunTestBase):
                     "host": "https://foo.com",
                     "product": "toolkit",
                 }
-            )
+            ),
+            logger,
         )
         self.assertEqual(
             res, "https://foo.com/auth/renew?product=toolkit&email=charlie%40bar.com"
