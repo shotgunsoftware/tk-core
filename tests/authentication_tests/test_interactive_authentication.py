@@ -17,6 +17,7 @@ from __future__ import with_statement, print_function
 import contextlib
 
 import sys
+import os
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
@@ -38,6 +39,8 @@ from tank.authentication import (
     site_info,
 )
 from tank.authentication.utils import sanitize_http_proxy
+from tank.authentication.sso_saml2.core.sso_saml2_core import get_renew_path
+from tank.authentication.sso_saml2.core.authentication_session_data import AuthenticationSessionData
 
 import tank
 import tank_vendor.shotgun_api3
@@ -1403,3 +1406,45 @@ class UtilsTests(ShotgunTestBase):
         res = sanitize_http_proxy("https://proxy.local")
         self.assertEqual(res.scheme, "https")
         self.assertEqual(res.netloc, "proxy.local")
+
+    def test_get_renew_path(self):
+        # Provides a simple host and product
+        res = get_renew_path(
+            AuthenticationSessionData(
+                {
+                    "host": "https://foo.com",
+                    "product": "toolkit",
+                }
+            )
+        )
+        self.assertEqual(res, "https://foo.com/auth/renew?product=toolkit")
+
+        # Provides TK_SHOTGRID_SSO_DOMAIN env var
+        os.environ["TK_SHOTGRID_SSO_DOMAIN"] = "bar.com"
+        res = get_renew_path(
+            AuthenticationSessionData(
+                {
+                    "host": "https://foo.com",
+                    "product": "toolkit",
+                }
+            )
+        )
+        self.assertEqual(
+            res, "https://foo.com/auth/renew?product=toolkit&sso_domain=bar.com"
+        )
+        del os.environ["TK_SHOTGRID_SSO_DOMAIN"]
+
+        # Provides TK_SHOTGRID_DEFAULT_LOGIN env var
+        os.environ["TK_SHOTGRID_DEFAULT_LOGIN"] = "charlie@bar.com"
+        res = get_renew_path(
+            AuthenticationSessionData(
+                {
+                    "host": "https://foo.com",
+                    "product": "toolkit",
+                }
+            )
+        )
+        self.assertEqual(
+            res, "https://foo.com/auth/renew?product=toolkit&email=charlie%40bar.com"
+        )
+        del os.environ["TK_SHOTGRID_DEFAULT_LOGIN"]
