@@ -40,7 +40,9 @@ from tank.authentication import (
 )
 from tank.authentication.utils import sanitize_http_proxy
 from tank.authentication.sso_saml2.core.sso_saml2_core import get_renew_path
-from tank.authentication.sso_saml2.core.authentication_session_data import AuthenticationSessionData
+from tank.authentication.sso_saml2.core.authentication_session_data import (
+    AuthenticationSessionData,
+)
 
 import tank
 import tank_vendor.shotgun_api3
