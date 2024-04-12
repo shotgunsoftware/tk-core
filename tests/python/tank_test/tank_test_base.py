@@ -145,6 +145,14 @@ def _is_pyside_missing():
 
         return False
     except ImportError:
+        pass
+
+    try:
+        # Check for PySide6
+        import PySide6  # noqa
+
+        return False
+    except ImportError:
         return True
 
 
