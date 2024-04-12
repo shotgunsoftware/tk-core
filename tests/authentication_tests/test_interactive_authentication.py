@@ -37,6 +37,7 @@ from tank.authentication import (
     user_impl,
     site_info,
 )
+from tank.authentication.utils import sanitize_http_proxy
 
 import tank
 import tank_vendor.shotgun_api3
@@ -1375,3 +1376,30 @@ class LoadInformationInfoTests(ShotgunTestBase):
                 self.assertEqual(len(cm.output), 2)
                 self.assertIn("Infos for site 'https://foo' not in cache or expired", cm.output[0])
                 self.assertIn("Unable to connect with https://foo, got exception", cm.output[1])
+
+
+class UtilsTests(ShotgunTestBase):
+    def test_sanitize_http_proxy(self):
+        """
+        This method sanitizes a url that might or not have a protocol.
+        It returns a urlparse tuple
+        """
+
+        # No url
+        res = sanitize_http_proxy(None)
+        self.assertEqual(len(res), 6)
+
+        # Any string
+        res = sanitize_http_proxy("//")
+        self.assertEqual(res.scheme, "http")
+        self.assertEqual(res.netloc, "")
+
+        # No protocol
+        res = sanitize_http_proxy("proxy.local")
+        self.assertEqual(res.scheme, "http")
+        self.assertEqual(res.netloc, "proxy.local")
+
+        # With protocol
+        res = sanitize_http_proxy("https://proxy.local")
+        self.assertEqual(res.scheme, "https")
+        self.assertEqual(res.netloc, "proxy.local")
