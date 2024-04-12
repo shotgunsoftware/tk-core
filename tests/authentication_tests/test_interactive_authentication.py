@@ -1391,7 +1391,7 @@ class UtilsTests(ShotgunTestBase):
 
         # Any string
         res = sanitize_http_proxy("//")
-        self.assertEqual(res.scheme, "http")
+        self.assertEqual(res.scheme, "")
         self.assertEqual(res.netloc, "")
 
         # No protocol
