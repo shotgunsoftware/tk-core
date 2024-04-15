@@ -49,7 +49,6 @@ from tank.authentication.sso_saml2.core.authentication_session_data import (
 
 import tank
 import tank_vendor.shotgun_api3
-from unittest import skipIf
 
 
 @skip_if_pyside_missing
