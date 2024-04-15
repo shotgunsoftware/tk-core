@@ -52,8 +52,7 @@ import tank_vendor.shotgun_api3
 from unittest import skipIf
 
 
-# @skip_if_pyside_missing
-@skipIf(True, "DEBUG")
+@skip_if_pyside_missing
 class InteractiveTests(ShotgunTestBase):
     """
     Tests ui and console based authentication.
