@@ -425,7 +425,6 @@ class InteractiveTests(ShotgunTestBase):
             "user_authentication_method": "saml2",
         },
     )
-    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
