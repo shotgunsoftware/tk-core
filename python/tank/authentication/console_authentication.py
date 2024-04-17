@@ -99,7 +99,7 @@ class ConsoleAuthenticationHandlerBase(object):
                 # user + valid pass + invalid 2da code) we'll end up here.
                 print("Login failed: %s" % error)
                 print()
-                return
+                raise error
 
             metrics_cache.log(
                 EventMetric.GROUP_TOOLKIT,
