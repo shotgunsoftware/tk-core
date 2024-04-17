@@ -452,9 +452,7 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
         with self.assertRaises(ConsoleLoginNotSupportedError):
-            handler.authenticate(
-                "https://test-sso.shotgunstudio.com", None, None
-            )
+            handler.authenticate("https://test-sso.shotgunstudio.com", None, None)
 
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
