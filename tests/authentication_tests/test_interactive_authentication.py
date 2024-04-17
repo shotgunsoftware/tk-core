@@ -331,6 +331,38 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(FromMainThreadException):
             bg.wait()
 
+    def test_console_auth_error(self, *mocks):
+        """
+        Validate that console authentication returns an exception when
+        authentication fails
+        """
+
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+
+        with mock.patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_user_credentials",
+            side_effect=EOFError("test me"),
+        ), self.assertRaises(errors.AuthenticationCancelled):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
+
+        with mock.patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                "\n",  # Select default PTR site (site1)
+                "2",  # Select "legacy" auth method
+                "username",
+            ],
+        ), mock.patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
+            return_value=" password ",
+        ), mock.patch(
+            "tank.authentication.session_cache.generate_session_token",
+            side_effect=errors.AuthenticationError("Authentication failed: test error"),
+        ), self.assertRaises(
+            errors.AuthenticationError
+        ):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
+
     @mock.patch(
         "tank.authentication.console_authentication.input",
         side_effect=[
