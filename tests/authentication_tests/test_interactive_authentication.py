@@ -1199,7 +1199,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "\n",  # Select default PTR site (site1)
-                "1",  # Select "legacy" auth method
+                "2",  # Select "legacy" auth method
                 "username",
             ],
         ), mock.patch(
@@ -1216,7 +1216,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # Select default site -> site4
-                "2",  # Select App Session Launcher option
+                "1",  # Select App Session Launcher option
                 "",  # OK to continue
             ],
         ), mock.patch(
@@ -1322,7 +1322,7 @@ class InteractiveTests(ShotgunTestBase):
 
             with mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value="1",
+                return_value="2",
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),
@@ -1331,7 +1331,7 @@ class InteractiveTests(ShotgunTestBase):
 
             with mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value="2",
+                return_value="1",
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),

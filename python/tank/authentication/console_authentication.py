@@ -201,8 +201,8 @@ class ConsoleAuthenticationHandlerBase(object):
 
         # We have 2 choices here
         methods = {
-            "1": constants.METHOD_BASIC,
-            "2": constants.METHOD_ASL,
+            "1": constants.METHOD_ASL,
+            "2": constants.METHOD_BASIC,
         }
 
         # Let's see which method the user chose previously for this site
@@ -217,8 +217,8 @@ class ConsoleAuthenticationHandlerBase(object):
         print(
             "\n"
             "The Flow Production Tracking site support two authentication methods:\n"
-            " 1. Authenticate with Legacy Flow Production Tracking Login Credentials\n"
-            " 2. Authenticate with the App Session Launcher using your default web browser\n"
+            " 1. Authenticate with the App Session Launcher using your default web browser\n"
+            " 2. Authenticate with Legacy Flow Production Tracking Login Credentials\n"
         )
 
         method_selected = self._get_keyboard_input(
