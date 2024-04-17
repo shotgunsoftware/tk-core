@@ -37,6 +37,7 @@ from tank.descriptor.descriptor_installed_config import InstalledConfigDescripto
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import httplib2
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):
@@ -505,6 +506,32 @@ class TestDescriptorSupport(TankTestBase):
                 log_debug_mock.assert_called_with(
                     "...could not establish connection: This is my unit test exception."
                 )
+
+    def test_ssl_error(self):
+        """
+        Catches SSL error
+        """
+        with mock.patch(
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+            "._IODescriptorAppStore__create_sg_app_store_connection",
+            side_effect=httplib2.ssl.SSLError("Some SSLError."),
+        ), mock.patch(
+            "tank.descriptor.io_descriptor.appstore.log.debug"
+        ) as log_debug_mock:
+            descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                {
+                    "name": "tk-config-basic",
+                    "version": "v1.0.0",
+                    "type": "app_store",
+                },
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+            )
+            self.assertEqual(descriptor.has_remote_access(), False)
+
+            log_debug_mock.assert_called_with(
+                "...could not establish connection: ('Some SSLError.',)"
+            )
 
     def test_git_version_logic(self):
         """
