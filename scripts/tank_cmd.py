@@ -1491,7 +1491,8 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                     "%s If you want to unregister folders associated with this "
                     "entity, you can do so by calling the unregister_folders "
                     "command on the associated path instead: "
-                    '"tank unregister_folders /path/to/folder"' % exc.message
+                    '"tank unregister_folders /path/to/folder"'
+                    % getattr(exc, "message", "")
                 )
             raise
 
