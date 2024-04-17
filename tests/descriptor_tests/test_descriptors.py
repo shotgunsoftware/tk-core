@@ -509,7 +509,7 @@ class TestDescriptorSupport(TankTestBase):
 
     def test_ssl_error(self):
         """
-        Catches SSL error
+        Catches SSLError
         """
         with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
