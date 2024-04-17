@@ -436,23 +436,26 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
             handler.authenticate(None, None, None)
 
+    @mock.patch(
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
+    )
+    @mock.patch(
+        "tank.authentication.site_info._get_site_infos",
+        return_value={
+            "user_authentication_method": "saml2",
+        },
+    )
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
-        for option in ["oxygen", "saml2"]:
-            with mock.patch(
-                "tank.authentication.site_info._get_site_infos",
-                return_value={
-                    "user_authentication_method": option,
-                },
-            ):
-                with self.assertRaises(ConsoleLoginNotSupportedError):
-                    handler.authenticate(
-                        "https://test-sso.shotgunstudio.com", None, None
-                    )
+        with self.assertRaises(ConsoleLoginNotSupportedError):
+            handler.authenticate(
+                "https://test-sso.shotgunstudio.com", None, None
+            )
 
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
@@ -1236,10 +1239,13 @@ class InteractiveTests(ShotgunTestBase):
                 "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=auth_constants.METHOD_ASL,
+        ), mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                # No method to select as there is only one option
-                "",  # OK to continue
+                "",  # Select default host
+                "",  # OK to continue with preferred method (ASL)
             ],
         ), mock.patch(
             "tank.authentication.app_session_launcher.process",

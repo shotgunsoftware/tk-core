@@ -81,12 +81,10 @@ class ConsoleAuthenticationHandlerBase(object):
             if not site_i.app_session_launcher_enabled:
                 # Will raise an exception if using a username/password pair is
                 # not supported by the Flow Production Tracking server.
-                # Which is the case when using SSO or Autodesk Identity.
+                # Which is the case when using SSO.
 
                 if site_i.sso_enabled:
                     raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
-                elif site_i.autodesk_identity_enabled:
-                    raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
             method_selected = self._get_auth_method(hostname, site_i)
             if method_selected == constants.METHOD_ASL:
@@ -200,9 +198,6 @@ class ConsoleAuthenticationHandlerBase(object):
     def _get_auth_method(self, hostname, site_i):
         if not site_i.app_session_launcher_enabled:
             return constants.METHOD_BASIC
-
-        if site_i.autodesk_identity_enabled or site_i.sso_enabled:
-            return constants.METHOD_ASL
 
         # We have 2 choices here
         methods = {
