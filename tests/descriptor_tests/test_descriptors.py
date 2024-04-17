@@ -514,7 +514,7 @@ class TestDescriptorSupport(TankTestBase):
         with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             "._IODescriptorAppStore__create_sg_app_store_connection",
-            side_effect=httplib2.ssl.SSLError("Some SSLError."),
+            side_effect=httplib2.ssl.SSLError("Read operation timed out"),
         ), mock.patch(
             "tank.descriptor.io_descriptor.appstore.log.debug"
         ) as log_debug_mock:
@@ -530,7 +530,7 @@ class TestDescriptorSupport(TankTestBase):
             self.assertEqual(descriptor.has_remote_access(), False)
 
             log_debug_mock.assert_called_with(
-                "...could not establish connection: ('Some SSLError.',)"
+                "...could not establish connection: ('Read operation timed out',)"
             )
 
     def test_git_version_logic(self):
