@@ -199,6 +199,9 @@ class ConsoleAuthenticationHandlerBase(object):
         if not site_i.app_session_launcher_enabled:
             return constants.METHOD_BASIC
 
+        if site_i.sso_enabled:
+            return constants.METHOD_ASL
+
         # We have 2 choices here
         methods = {
             "1": constants.METHOD_ASL,
