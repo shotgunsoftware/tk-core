@@ -331,6 +331,38 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(FromMainThreadException):
             bg.wait()
 
+    def test_console_auth_error(self, *mocks):
+        """
+        Validate that console authentication returns an exception when
+        authentication fails
+        """
+
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+
+        with mock.patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_user_credentials",
+            side_effect=EOFError("test me"),
+        ), self.assertRaises(errors.AuthenticationCancelled):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
+
+        with mock.patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                "\n",  # Select default PTR site (site1)
+                "2",  # Select "legacy" auth method
+                "username",
+            ],
+        ), mock.patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
+            return_value=" password ",
+        ), mock.patch(
+            "tank.authentication.session_cache.generate_session_token",
+            side_effect=errors.AuthenticationError("Authentication failed: test error"),
+        ), self.assertRaises(
+            errors.AuthenticationError
+        ):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
+
     @mock.patch(
         "tank.authentication.console_authentication.input",
         side_effect=[
@@ -425,7 +457,6 @@ class InteractiveTests(ShotgunTestBase):
             "user_authentication_method": "saml2",
         },
     )
-    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -436,23 +467,24 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
             handler.authenticate(None, None, None)
 
+    @mock.patch(
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
+    )
+    @mock.patch(
+        "tank.authentication.site_info._get_site_infos",
+        return_value={
+            "user_authentication_method": "saml2",
+        },
+    )
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
-        for option in ["oxygen", "saml2"]:
-            with mock.patch(
-                "tank.authentication.site_info._get_site_infos",
-                return_value={
-                    "user_authentication_method": option,
-                },
-            ):
-                with self.assertRaises(ConsoleLoginNotSupportedError):
-                    handler.authenticate(
-                        "https://test-sso.shotgunstudio.com", None, None
-                    )
+        with self.assertRaises(ConsoleLoginNotSupportedError):
+            handler.authenticate("https://test-sso.shotgunstudio.com", None, None)
 
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
@@ -1196,7 +1228,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "\n",  # Select default PTR site (site1)
-                "1",  # Select "legacy" auth method
+                "2",  # Select "legacy" auth method
                 "username",
             ],
         ), mock.patch(
@@ -1213,7 +1245,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # Select default site -> site4
-                "2",  # Select App Session Launcher option
+                "1",  # Select App Session Launcher option
                 "",  # OK to continue
             ],
         ), mock.patch(
@@ -1236,10 +1268,13 @@ class InteractiveTests(ShotgunTestBase):
                 "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=auth_constants.METHOD_ASL,
+        ), mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                # No method to select as there is only one option
-                "",  # OK to continue
+                "",  # Select default host
+                "",  # OK to continue with preferred method (ASL)
             ],
         ), mock.patch(
             "tank.authentication.app_session_launcher.process",
@@ -1316,7 +1351,7 @@ class InteractiveTests(ShotgunTestBase):
 
             with mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value="1",
+                return_value="2",
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),
@@ -1325,7 +1360,7 @@ class InteractiveTests(ShotgunTestBase):
 
             with mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value="2",
+                return_value="1",
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),

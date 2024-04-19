@@ -81,12 +81,10 @@ class ConsoleAuthenticationHandlerBase(object):
             if not site_i.app_session_launcher_enabled:
                 # Will raise an exception if using a username/password pair is
                 # not supported by the Flow Production Tracking server.
-                # Which is the case when using SSO or Autodesk Identity.
+                # Which is the case when using SSO.
 
                 if site_i.sso_enabled:
                     raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
-                elif site_i.autodesk_identity_enabled:
-                    raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
             method_selected = self._get_auth_method(hostname, site_i)
             if method_selected == constants.METHOD_ASL:
@@ -101,7 +99,7 @@ class ConsoleAuthenticationHandlerBase(object):
                 # user + valid pass + invalid 2da code) we'll end up here.
                 print("Login failed: %s" % error)
                 print()
-                return
+                raise error
 
             metrics_cache.log(
                 EventMetric.GROUP_TOOLKIT,
@@ -201,13 +199,13 @@ class ConsoleAuthenticationHandlerBase(object):
         if not site_i.app_session_launcher_enabled:
             return constants.METHOD_BASIC
 
-        if site_i.autodesk_identity_enabled or site_i.sso_enabled:
+        if site_i.sso_enabled:
             return constants.METHOD_ASL
 
         # We have 2 choices here
         methods = {
-            "1": constants.METHOD_BASIC,
-            "2": constants.METHOD_ASL,
+            "1": constants.METHOD_ASL,
+            "2": constants.METHOD_BASIC,
         }
 
         # Let's see which method the user chose previously for this site
@@ -222,8 +220,8 @@ class ConsoleAuthenticationHandlerBase(object):
         print(
             "\n"
             "The Flow Production Tracking site support two authentication methods:\n"
-            " 1. Authenticate with Legacy Flow Production Tracking Login Credentials\n"
-            " 2. Authenticate with the App Session Launcher using your default web browser\n"
+            " 1. Authenticate with the App Session Launcher using your default web browser\n"
+            " 2. Authenticate with Legacy Flow Production Tracking Login Credentials\n"
         )
 
         method_selected = self._get_keyboard_input(
