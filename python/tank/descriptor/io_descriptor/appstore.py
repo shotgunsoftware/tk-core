@@ -796,7 +796,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # to give us a clue why the request failed.
             # The exception raised in this case is "ssl.SSLError: The read operation timed out"
             except httplib2.ssl.SSLError as e:
-                if "timed" in e.message:
+                if "timed" in str(e):
                     raise TankAppStoreConnectionError(
                         "Connection to %s timed out: %s"
                         % (app_store_sg.config.server, e)
