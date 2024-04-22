@@ -227,7 +227,7 @@ class TestIODescriptors(ShotgunTestBase):
         sg = self.mockgun
         location = {
             "type": "git_branch",
-            "version": 6547378,
+            "version": "6547378",
             "branch": "master",
             "path": self.git_repo_uri,
         }
