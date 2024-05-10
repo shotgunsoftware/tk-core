@@ -15,10 +15,20 @@ Imports Qt without having to worry which version of Qt we are using.
 from ...util.qt_importer import QtImporter
 
 _importer = QtImporter()
+
+
+# print("QT IMporter modules:")
+# for i in sorted(_importer._modules):
+#     print("  ", i, "\t", _importer._modules[i])
+
 QtCore = _importer.QtCore
 QtGui = _importer.QtGui
 QtWebKit = _importer.QtWebKit
 QtNetwork = _importer.QtNetwork
 QtWebEngineWidgets = _importer.QtWebEngineWidgets
+QtWebEngineCore = _importer.QtWebEngineCore
 qt_version_tuple = _importer.qt_version_tuple
 del _importer
+
+
+print("QtWebEngineCore:", QtWebEngineCore)

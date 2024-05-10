@@ -249,6 +249,7 @@ class QtImporter(object):
         # detect that we are in this situation.
         if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
             sub_modules.append("QtWebEngineWidgets")
+            sub_modules.append("QtWebEngineCore")
 
         modules_dict = {"QtCore": QtCore}
 
@@ -302,6 +303,9 @@ class QtImporter(object):
         QtWebEngineWidgets = self._import_module_by_name(
             "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
         )
+        QtWebEngineCore = self._import_module_by_name(
+            "PySide2.QtWebEngineCore", "QtWebEngineCore"
+        )
 
         return (
             "PySide2",
@@ -313,6 +317,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
+                "QtWebEngineCore": QtWebEngineCore,
                 "shiboken": shiboken2,
             },
             self._to_version_tuple(QtCore.qVersion()),
@@ -380,6 +385,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
+                # TODO QtWebEngineCore
                 "shiboken": shiboken6,
             },
             self._to_version_tuple(QtCore.qVersion()),

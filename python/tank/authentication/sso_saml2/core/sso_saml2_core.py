@@ -21,6 +21,8 @@ import os
 import sys
 import time
 import urllib
+import urllib.parse
+
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
@@ -174,6 +176,9 @@ class SsoSaml2Core(object):
         QtWebEngineWidgets = self._QtWebEngineWidgets = qt_modules.get(
             "QtWebEngineWidgets"
         )  # noqa
+        QtWebEngineCore = self.QtWebEngineCore = qt_modules.get(
+            "QtWebEngineCore"
+        )  # noqa
 
         if QtCore is None:
             raise SsoSaml2MissingQtCore("The QtCore module is unavailable")
@@ -276,6 +281,30 @@ class SsoSaml2Core(object):
                     )
 
         else:
+            class TKQWebEngineUrlRequestInterceptor(QtWebEngineCore.QWebEngineUrlRequestInterceptor):
+                def interceptRequest(self, info):
+                   # print("TKQWebEngineUrlRequestInterceptor::interceptRequest", info.requestUrl())
+                    
+                    
+                    if info.requestUrl().host() != "accounts.google.com":
+                        return
+                    
+                    if info.requestUrl().path() != "/InteractiveLogin":
+                        return
+
+                    qs = urllib.parse.parse_qs(info.requestUrl().query())
+                    if "hl" in qs and "zh" in qs["hl"]:
+                        return
+                    
+                    print("Bingo!!!!", info.requestUrl())
+                    # print("New URL:", url)
+                    
+                    info.requestUrl().setQuery("hl=zh") #&"+url.query())
+                    # url.setUrl("http://free.fr")
+                    # print()
+                    # print("QS:", ttt)
+                    info.redirect(info.requestUrl())
+
 
             class TKWebPageQtWebEngine(QtWebEngineWidgets.QWebEnginePage):
                 """
@@ -311,6 +340,18 @@ class SsoSaml2Core(object):
                     """
                     return self.runJavaScript(javascript)
 
+
+                def setUrl(self, url):
+                    print("setURL", url)
+                    return super().setUrl(url)
+
+                def setUrlRequestInterceptor(self, instance):
+                    print("setUrlRequestInterceptor", instance)
+                    return super().setUrlRequestInterceptor(instance)
+                
+                #PySide2.QtWebEngineWidgets.QWebEnginePage.setUrlRequestInterceptor(interceptor)¶
+
+
                 def acceptNavigationRequest(self, url, n_type, is_mainframe):
                     """
                     Overloaded method, to properly control the behaviour of clicking on
@@ -322,6 +363,19 @@ class SsoSaml2Core(object):
                             url.toString(),
                             n_type,
                         )
+
+
+                    # if url.host() == "accounts.google.com" and url.path() == "/InteractiveLogin":
+                    #     print("Bingo!!!!", url)
+                    #     print()
+                    #     print("QUery:", url.query())
+                    #     url.setQuery("hl=zh") #&"+url.query())
+                    #     url.setUrl("http://free.fr")
+                    #     print()
+                    #     print("New URL:", url)
+                        
+                        
+                        # No, this function is a dead end. I need to implement QWebEngineUrlRequestInterceptor instead ....
 
                     # A null profile means that a window/tab had to be created to handle
                     # this request. So we just farm out the request to the external system
@@ -379,14 +433,21 @@ class SsoSaml2Core(object):
                 self.on_authentication_required
             )
         else:
+            
+            self.interceptor = TKQWebEngineUrlRequestInterceptor()
+            
+            
             self._profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
             self._logger.debug(
                 "Initial WebEngineProfile storage location: %s",
                 self._profile.persistentStoragePath(),
             )
             self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
+            
+            ggg = TKWebPageQtWebEngine(self._profile, self._dialog, self._developer_mode)
+            ggg.setUrlRequestInterceptor(self.interceptor)
             self._view.setPage(
-                TKWebPageQtWebEngine(self._profile, self._dialog, self._developer_mode)
+                ggg
             )
             self._view.page().authenticationRequired.connect(
                 self.on_authentication_required

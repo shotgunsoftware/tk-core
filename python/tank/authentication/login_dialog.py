@@ -39,6 +39,7 @@ from .ui.qt_abstraction import (
     QtNetwork,
     QtWebKit,
     QtWebEngineWidgets,
+    QtWebEngineCore,
     qt_version_tuple,
 )
 from . import app_session_launcher
@@ -149,6 +150,7 @@ class LoginDialog(QtGui.QDialog):
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
+            "QtWebEngineCore": QtWebEngineCore,
         }
         try:
             self._sso_saml2 = SsoSaml2Toolkit(
