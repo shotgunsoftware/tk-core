@@ -163,8 +163,6 @@ class QtImporter(object):
             logger.debug("Unable to import module '%s': %s", module_name, e)
             pass
         return module
-
-    def _import_pyside(self):
         """
         Imports PySide.
 
@@ -318,43 +316,6 @@ class QtImporter(object):
             self._to_version_tuple(QtCore.qVersion()),
         )
 
-    def _import_pyqt4(self):
-        """
-        Imports PyQt4.
-
-        :returns: The (binding name, binding version, modules) tuple.
-        """
-        from PyQt4 import QtCore, QtGui, Qt
-
-        # hot patch the library to make it compatible with PySide-based apps.
-        QtCore.Signal = QtCore.pyqtSignal
-        QtCore.Slot = QtCore.pyqtSlot
-        QtCore.Property = QtCore.pyqtProperty
-
-        QtNetwork = self._import_module_by_name("PyQt4", "QtNetwork")
-        QtWebKit = self._import_module_by_name("PyQt4", "QtWebKit")
-
-        # Note: Do not remove this. It was briefly introduced so that engines
-        # could introspec the wrapper for all sorts of things, but we've moving
-        # away from modifying the modules themselves, so keep this is for now and
-        # we'll be able to deprecate it at some point in the future.
-        import PyQt4
-
-        PyQt4.__version__ = Qt.PYQT_VERSION_STR
-
-        return (
-            "PyQt4",
-            PyQt4.__version__,
-            PyQt4,
-            {
-                "QtCore": QtCore,
-                "QtGui": QtGui,
-                "QtNetwork": QtNetwork,
-                "QtWebKit": QtWebKit,
-            },
-            self._to_version_tuple(QtCore.QT_VERSION_STR),
-        )
-
     def _import_pyside6_as_pyside(self):  # pragma: no cover
         """
         Import PySide6 and expose its modules through the Qt4 (PySide) interface.
@@ -432,8 +393,6 @@ class QtImporter(object):
         """
         Tries to import different Qt binding implementation in the following order:
             - PySide2
-            - PySide
-            - PyQt4
             - PySide6
 
         PySide6 is attempted to be imported last at the moment because it is is not yet fully
@@ -459,7 +418,7 @@ class QtImporter(object):
                 return pyside2
             except ImportError:
                 pass
-        elif interface_version_requested == self.QT5:
+        if interface_version_requested == self.QT5:
             try:
                 pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")
@@ -470,26 +429,6 @@ class QtImporter(object):
             # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
             logger.debug("Qt6 interface not implemented for Qt5")
             pass
-
-        # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
-
-        # Now try PySide 1
-        if interface_version_requested == self.QT4:
-            try:
-                pyside = self._import_pyside()
-                logger.debug("Imported PySide1.")
-                return pyside
-            except ImportError:
-                pass
-
-        # Now try PyQt4
-        if interface_version_requested == self.QT4:
-            try:
-                pyqt = self._import_pyqt4()
-                logger.debug("Imported PyQt4.")
-                return pyqt
-            except ImportError:
-                pass
 
         # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
         # require PySide6 to run with the current support

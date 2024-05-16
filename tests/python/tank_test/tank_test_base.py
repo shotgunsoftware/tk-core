@@ -53,7 +53,6 @@ __all__ = [
     "skip_if_pyside",
     "skip_if_pyside2",
     "skip_if_pyside6",
-    "skip_if_pyqt4",
 ]
 
 
@@ -214,30 +213,6 @@ def skip_if_pyside2(found=True):
 
     return _skip_if_pyside2
 
-def _has_pyqt4():
-    """
-    Tests if PyQt4 is avalable.
-    :returns: True if PyQt4 is available, False otherwise.
-    """
-    pyqt4_spec = importlib.util.find_spec("PyQt4")
-    found = pyqt4_spec is not None
-    return found
-
-def skip_if_pyqt4(found=True):
-    """
-    Decorator that allows to skip tests based on if PyQt4 module found or not.
-    :param func: Function to be decorated.
-    :param found: True will skip if PyQt4 is found, else will skip if PyQt4 not found
-        (e.g. missing). Default to skip if PyQt4 found.
-    :returns: The decorated function.
-    """
-
-    def _skip_if_pyqt4(func):
-        found_pyqt4= _has_pyqt4()
-        msg = "PyQt4 found" if found else "PyQt4 missing"
-        return unittest.skipIf(found_pyqt4 == found, msg)(func)
-
-    return _skip_if_pyqt4
 
 def _has_pyside6():
     """
