@@ -233,18 +233,6 @@ class SsoSaml2Core(object):
                 """
                 get_logger().debug("TKWebPageQtWebEngine.__del__")
 
-            def mainFrame(self):
-                """
-                Convenience method to minimize changes between Qt4 and Qt5 code.
-                """
-                return self
-
-            def evaluateJavaScript(self, javascript):
-                """
-                Convenience method to minimize changes between Qt4 and Qt5 code.
-                """
-                return self.runJavaScript(javascript)
-
             def acceptNavigationRequest(self, url, n_type, is_mainframe):
                 """
                 Overloaded method, to properly control the behaviour of clicking on
@@ -681,7 +669,7 @@ class SsoSaml2Core(object):
         # have been cleared/updated before.
         url = get_renew_path(self._session, self._logger)
         self._logger.debug("Navigating to %s", url)
-        self._view.page().mainFrame().load(url)
+        self._view.page().load(url)
 
     def on_renew_sso_session_timeout(self):
         """
@@ -707,7 +695,7 @@ class SsoSaml2Core(object):
         environment and define functions which would be required by that code.
         """
         frame = self._view.page().currentFrame()
-        frame.evaluateJavaScript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
+        frame.runJavascript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
         self._logger.debug(
             "Injected polyfill JavaScript code for Function.prototype.bind and Array.prototype.splice"
         )
@@ -725,7 +713,7 @@ class SsoSaml2Core(object):
         (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
         the process.
         """
-        url = self._view.page().mainFrame().url().toString()
+        url = self._view.page().url().toString()
         # in debug mode, use the title bar to show the url.
         if self._developer_mode:
             self._dialog.setWindowTitle(url)
@@ -858,7 +846,7 @@ class SsoSaml2Core(object):
         # We append the product code to the GET request.
         url = get_renew_path(self._session, self._logger)
         self._logger.debug("Navigating to %s", url)
-        self._view.page().mainFrame().load(url)
+        self._view.page().load(url)
 
         self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         status = self._dialog.exec_()
@@ -901,4 +889,4 @@ class SsoSaml2Core(object):
                 )
 
         # Clear the web page
-        self._view.page().mainFrame().load("about:blank")
+        self._view.page().load("about:blank")

@@ -163,45 +163,6 @@ class QtImporter(object):
             logger.debug("Unable to import module '%s': %s", module_name, e)
             pass
         return module
-        """
-        Imports PySide.
-
-        :returns: The (binding name, binding version, modules) tuple.
-        """
-        from PySide import QtCore, QtGui
-        import shiboken
-
-        QtNetwork = self._import_module_by_name("PySide", "QtNetwork")
-        QtWebKit = self._import_module_by_name("PySide", "QtWebKit")
-
-        import PySide
-
-        # Some old versions of PySide don't include version information
-        # so add something here so that we can use PySide.__version__
-        # later without having to check!
-
-        # Note: Do not remove this. It was briefly introduced so that engines
-        # could introspec the wrapper for all sorts of things, but we've moving
-        # away from modifying the modules themselves, so keep this is for now and
-        # we'll be able to deprecate it at some point in the future.
-        if not hasattr(PySide, "__version__"):
-            PySide.__version__ = "<unknown>"
-
-        # PySide stick a \n at the end of the __name__ for some reason. Strip it!
-        return (
-            PySide.__name__.strip(),
-            PySide.__version__,
-            PySide,
-            {
-                "QtCore": QtCore,
-                "QtGui": QtGui,
-                "QtNetwork": QtNetwork,
-                "QtWebKit": QtWebKit,
-                "QtWebEngineWidgets": None,
-                "shiboken": shiboken,
-            },
-            self._to_version_tuple(QtCore.qVersion()),
-        )
 
     def _import_pyside2(self):
         """
