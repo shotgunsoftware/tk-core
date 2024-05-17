@@ -50,7 +50,6 @@ __all__ = [
     "tank",
     "interactive",
     "skip_if_pyside_missing",
-    "skip_if_pyside",
     "skip_if_pyside2",
     "skip_if_pyside6",
 ]
@@ -162,31 +161,6 @@ def skip_if_pyside_missing(func):
     :returns: The decorated function.
     """
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
-
-def _has_pyside():
-    """
-    Tests if PySide is avalable.
-    :returns: True if PySide is available, False otherwise.
-    """
-    pyside_spec = importlib.util.find_spec("PySide")
-    found = pyside_spec is not None
-    return found
-
-def skip_if_pyside(found=True):
-    """
-    Decorator that allows to skip tests based on if PySide module found or not.
-    :param func: Function to be decorated.
-    :param found: True will skip if PySide is found, else will skip if PySide not found
-        (e.g. missing). Default to skip if PySide found.
-    :returns: The decorated function.
-    """
-
-    def _skip_if_pyside(func):
-        found_pyside = _has_pyside()
-        msg = "PySide found" if found else "PySide missing"
-        return unittest.skipIf(found_pyside == found, msg)(func)
-
-    return _skip_if_pyside
 
 def _has_pyside2():
     """

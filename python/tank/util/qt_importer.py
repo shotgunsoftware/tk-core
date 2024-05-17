@@ -418,7 +418,7 @@ class QtImporter(object):
                 return pyside2
             except ImportError:
                 pass
-        if interface_version_requested == self.QT5:
+        elif interface_version_requested == self.QT5:
             try:
                 pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")

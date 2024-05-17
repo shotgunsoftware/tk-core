@@ -12,7 +12,6 @@
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
-    skip_if_pyside,
     skip_if_pyside2,
     skip_if_pyside6,
 )
@@ -80,7 +79,6 @@ class QtImporterTests(TankTestBase):
         assert qt.base["__name__"] is qt.binding_name
         assert qt.base["__version__"] is qt.binding_version
 
-    @skip_if_pyside(found=False)
     @skip_if_pyside2(found=True)
     def test_qt_importer_with_pyside_interface_qt4(self):
         """
@@ -106,7 +104,6 @@ class QtImporterTests(TankTestBase):
         assert qt.base["__name__"] is qt.binding_name
         assert qt.base["__version__"] is qt.binding_version
 
-    @skip_if_pyside(found=True)
     @skip_if_pyside2(found=True)
     def test_qt_importer_with_pyqt4_interface_qt4(self):
         """
@@ -130,7 +127,6 @@ class QtImporterTests(TankTestBase):
         assert qt.base["__version__"] is qt.binding_version
 
     @skip_if_pyside6(found=False)
-    @skip_if_pyside(found=True)
     @skip_if_pyside2(found=True)
     def test_qt_importer_with_pyside6_interface_qt4(self):
         """
@@ -157,7 +153,6 @@ class QtImporterTests(TankTestBase):
         assert qt.base["__version__"] is qt.binding_version
 
     @skip_if_pyside6(found=False)
-    @skip_if_pyside(found=True)
     @skip_if_pyside2(found=True)
     def test_qt_importer_with_pyside6_interface_qt6(self):
         """

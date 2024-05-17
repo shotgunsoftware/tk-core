@@ -178,7 +178,7 @@ class Ui_LoginDialog(object):
         self.login = RecentBox(self.credentials)
         self.login.setObjectName("login")
         self.verticalLayout_7.addWidget(self.login)
-        self.password = Qt5LikeLineEdit(self.credentials)
+        self.password = QtGui.QLineEdit(self.credentials)
         self.password.setMinimumSize(QtCore.QSize(308, 0))
         self.password.setEchoMode(QtGui.QLineEdit.Password)
         self.password.setObjectName("password")
@@ -264,7 +264,7 @@ class Ui_LoginDialog(object):
         self._2fa_message.setMargin(0)
         self._2fa_message.setObjectName("_2fa_message")
         self.verticalLayout.addWidget(self._2fa_message)
-        self._2fa_code = Qt5LikeLineEdit(self.widget_2)
+        self._2fa_code = QtGui.QLineEdit(self.widget_2)
         self._2fa_code.setObjectName("_2fa_code")
         self.verticalLayout.addWidget(self._2fa_code)
         self.invalid_code = QtGui.QLabel(self.widget_2)
@@ -333,7 +333,7 @@ class Ui_LoginDialog(object):
         self._2fa_message_2.setMargin(0)
         self._2fa_message_2.setObjectName("_2fa_message_2")
         self.verticalLayout_5.addWidget(self._2fa_message_2)
-        self.backup_code = Qt5LikeLineEdit(self.widget_4)
+        self.backup_code = QtGui.QLineEdit(self.widget_4)
         self.backup_code.setText("")
         self.backup_code.setObjectName("backup_code")
         self.verticalLayout_5.addWidget(self.backup_code)
@@ -435,5 +435,4 @@ class Ui_LoginDialog(object):
 
 from .aspect_preserving_label import AspectPreservingLabel
 from .recent_box import RecentBox
-from .qt5_like_line_edit import Qt5LikeLineEdit
 from . import resources_rc
