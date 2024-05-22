@@ -104,6 +104,10 @@ class PySide6Patcher(PySide2Patcher):
 
             @staticmethod
             def grabWindow(window=0, x=0, y=0, width=-1, height=-1):
+                """
+                Add deprecated method
+                https://doc.qt.io/qt-5/qpixmap-obsolete.html#grabWindow
+                """
                 screen = QtGui.QApplication.primaryScreen()
                 return screen.grabWindow(window, x, y, width, height)
 

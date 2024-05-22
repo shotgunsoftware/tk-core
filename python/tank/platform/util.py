@@ -273,3 +273,25 @@ def get_logger(module_name):
         return logging.getLogger(full_log_path)
     except TankCurrentModuleNotFoundError:
         return LogManager.get_logger("no_current_bundle.%s" % (module_name,))
+
+
+def is_qt_instance(obj, klass):
+    """
+    Returns True if the object is an instance of the specified Qt class.
+
+    :param obj: Object to check
+    :param klass: Qt class to check against
+    :returns: True if the object is an instance of the specified Qt class
+    """
+    # First try builtin, mostly on PySide2 runtime
+    if isinstance(obj, klass):
+        return True
+
+    if type(obj).__name__ != klass.__name__:
+        return False
+
+    # Do some additional specific checks for PySide6 classes
+    if klass.__name__ == "QPixmap":
+        return set(dir(klass)).difference(dir(type(obj))) == {"grabWindow"}
+
+    return False
