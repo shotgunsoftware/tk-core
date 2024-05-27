@@ -104,11 +104,31 @@ class PySide6Patcher(PySide2Patcher):
 
             @staticmethod
             def grabWindow(window=0, x=0, y=0, width=-1, height=-1):
+                """
+                Add deprecated method
+                https://doc.qt.io/qt-5/qpixmap-obsolete.html#grabWindow
+                """
                 screen = QtGui.QApplication.primaryScreen()
                 return screen.grabWindow(window, x, y, width, height)
 
 
         QtGui.QPixmap = QPixmap
+
+    @classmethod
+    def _patch_QIcon(cls, QtGui):
+        """
+        Patch QIcon.
+
+        QIcon.icon method should create object from the patched QPixmap class
+        """
+
+        original_QIcon_pixmap = QtGui.QIcon.pixmap
+
+        def pixmap(self, *args, **kwargs):
+            return QtGui.QPixmap(original_QIcon_pixmap(self, *args, **kwargs))
+
+        QtGui.QIcon.pixmap = pixmap
+
 
     @classmethod
     def _patch_QLabel(cls, QtGui):
@@ -498,6 +518,9 @@ class PySide6Patcher(PySide2Patcher):
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
         cls._patch_QLabel(qt_gui_shim)
+
+        # QIcon.pixmap method should create object from the patched QPixmap class
+        cls._patch_QIcon(qt_gui_shim)
 
         # QWheelEvent delta is obsolete
         # https://doc.qt.io/qt-5/qwheelevent-obsolete.html#delta
