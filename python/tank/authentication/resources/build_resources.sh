@@ -17,37 +17,64 @@ if [ -z "${PYTHON_BASE}" ]; then
     PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 fi
 
-# Remove any problematic profiles from pngs.
-for f in *.png; do mogrify $f; done
-
 # Helper functions to build UI files
 function build_qt {
-    echo " > Building " $2
-
     # compile ui to python
+    echo "$1 $2 > $UI_PYTHON_PATH/$3.py"
     $1 $2 > $UI_PYTHON_PATH/$3.py
-
-    # replace PySide imports with local imports and remove line containing Created by date
-    sed -i "" -e "s/from PySide import/from .qt_abstraction import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
+    # replace PySide2 imports with local imports and remove line containing Created by date
+    sed -i"" -E "/^from PySide2.QtWidgets(\s.*)?$/d; /^\s*$/d" $UI_PYTHON_PATH/$3.py
+    sed -i"" -E "s/^(from PySide.\.)(\w*)(.*)$/from .qt_abstraction import \2\nfor name, cls in \2.__dict__.items():\n    if isinstance(cls, type): globals()[name] = cls\n/g" $UI_PYTHON_PATH/$3.py
+    sed -i"" -E "s/from PySide2 import/from .qt_abstraction import/g" $UI_PYTHON_PATH/$3.py
 }
 
 function build_ui {
-    build_qt "${PYTHON_BASE}/bin/python ${PYTHON_BASE}/bin/pyside-uic --from-imports" "$1.ui" "../ui/$1"
+    build_qt "$1 -g python --from-imports" "$2.ui" "$2"
 }
 
 function build_res {
-	# Include the "-py3" flag so that we add the `b` prefix to strings for
-	# PySide2 / Python3 compatibility.  This means these files will no longer
-	# be compatible with Python 2.5 and below, but the `b` prefix is ignored in
-	# Python 2.6+.
-    build_qt "${PYTHON_BASE}/bin/pyside-rcc -py3" "$1.qrc" "../ui/$1_rc"
+    build_qt "$1 -g python" "$2.qrc" "$2_rc"
 }
 
+while getopts u:r: flag
+do
+    case "${flag}" in
+        u) uic=${OPTARG};;
+        r) rcc=${OPTARG};;
+    esac
+done
+
+if [ -z "$uic" ]; then
+    echo "the PySide uic compiler must be specified with the -u parameter"
+    exit 1
+fi
+
+if [ -z "$rcc" ]; then
+    echo "the PySide rcc compiler must be specified with the -r parameter"
+    exit 1
+fi
+
+uicversion=$(${uic} --version)
+rccversion=$(${rcc} --version)
+
+
+if [ -z "$uicversion" ]; then
+    echo "the PySide uic compiler version cannot be determined"
+    exit 1
+fi
+
+if [ -z "$rccversion" ]; then
+    echo "the PySide rcc compiler version cannot be determined"
+    exit 1
+fi
+
+echo "Using PySide uic compiler version: ${uicversion}"
+echo "Using PySide rcc compiler version: ${rccversion}"
 
 # build UI's:
 echo "building user interfaces..."
-build_ui login_dialog
+build_ui $uic login_dialog
 
 # build resources
 echo "building resources..."
-build_res resources
+build_res $rcc resources
