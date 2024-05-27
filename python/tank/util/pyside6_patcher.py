@@ -119,10 +119,10 @@ class PySide6Patcher(PySide2Patcher):
         """
         Patch QIcon.
 
-        QIcon.icon method should create object from the patched QPixmap class
+        QIcon.pixmap method should create object from the patched QPixmap class
         """
 
-        original_QIcon_pixmap = QtGui.QIcon.pixmap
+        original_QIcon_pixmap = QtGui.QIcon.pixmap  # Returns a native QPixmap
 
         def pixmap(self, *args, **kwargs):
             return QtGui.QPixmap(original_QIcon_pixmap(self, *args, **kwargs))
