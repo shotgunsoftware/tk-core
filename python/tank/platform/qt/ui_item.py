@@ -6,11 +6,11 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-from . import QtCore
+from tank.authentication.ui.qt_abstraction import QtCore
 for name, cls in QtCore.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
-from . import QtGui
+from tank.authentication.ui.qt_abstraction import QtGui
 for name, cls in QtGui.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
