@@ -29,34 +29,25 @@ function build_qt {
 }
 
 function build_ui {
-    build_qt "$1 -g python --from-imports" "$2.ui" "ui_$2"
+    build_qt "$1/pyside2-uic -g python --from-imports" "$2.ui" "ui_$2"
 }
 
 function build_res {
-    build_qt "$1 -g python" "$2.qrc" "$2_rc"
+    build_qt "$1/pyside2-rcc -g python" "$2.qrc" "$2_rc"
 }
 
-while getopts u:r: flag
-do
-    case "${flag}" in
-        u) uic=${OPTARG};;
-        r) rcc=${OPTARG};;
-    esac
-done
+getopts p: flag
+if [ "$flag" = "p" ]; then
+    pypath=${OPTARG}
+fi
 
-if [ -z "$uic" ]; then
-    echo "the PySide uic compiler must be specified with the -u parameter"
+if [ -z "$pypath" ]; then
+    echo "the python path must be specified with the -p parameter"
     exit 1
 fi
 
-if [ -z "$rcc" ]; then
-    echo "the PySide rcc compiler must be specified with the -r parameter"
-    exit 1
-fi
-
-uicversion=$(${uic} --version)
-rccversion=$(${rcc} --version)
-
+uicversion=$(${pypath}/pyside2-uic --version)
+rccversion=$(${pypath}/pyside2-rcc --version)
 
 if [ -z "$uicversion" ]; then
     echo "the PySide uic compiler version cannot be determined"
@@ -73,10 +64,10 @@ echo "Using PySide rcc compiler version: ${rccversion}"
 
 # build UI's:
 echo "building user interfaces..."
-build_ui $uic tank_dialog
-build_ui $uic item
-build_ui $uic busy_dialog
+build_ui $pypath tank_dialog
+build_ui $pypath item
+build_ui $pypath busy_dialog
 
 # build resources
 echo "building resources..."
-build_res $rcc resources
+build_res $pypath resources
