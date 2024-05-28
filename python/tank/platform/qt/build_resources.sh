@@ -11,40 +11,72 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # The path to where the PySide binaries are installed
-PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
-
-# Remove any problematic profiles from pngs.
-for f in *.png; do mogrify $f; done
-
-# The path to output all built .py files to:
 UI_PYTHON_PATH=.
 
 # Helper functions to build UI files
 function build_qt {
-    echo " > Building " $2
-
     # compile ui to python
+    echo "$1 $2 > $UI_PYTHON_PATH/$3.py"
     $1 $2 > $UI_PYTHON_PATH/$3.py
+    # replace PySide2 imports with . and then added code to set
+    # global variables for each new import.
+    sed -i"" -E \
+        -e "/^from PySide2.QtWidgets(\s.*)?$/d; /^\s*$/d" \
+        -e "s/^(from PySide.\.)(\w*)(.*)$/from . import \2\nfor name, cls in \2.__dict__.items():\n    if isinstance(cls, type): globals()[name] = cls\n/g" \
+        -e "s/from PySide2 import/from . import/g" \
+        $UI_PYTHON_PATH/$3.py
 
-    # replace PySide imports with local imports and remove line containing Created by date
-    sed -i "" -e "s/from PySide import/from . import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
 }
 
 function build_ui {
-    build_qt "${PYTHON_BASE}/bin/python ${PYTHON_BASE}/bin/pyside-uic --from-imports" "$1.ui" "ui_$1"
+    build_qt "$1 -g python --from-imports" "$2.ui" "ui_$2"
 }
 
 function build_res {
-    build_qt "${PYTHON_BASE}/bin/pyside-rcc -py3" "$1.qrc" "$1_rc"
+    build_qt "$1 -g python" "$2.qrc" "$2_rc"
 }
 
+while getopts u:r: flag
+do
+    case "${flag}" in
+        u) uic=${OPTARG};;
+        r) rcc=${OPTARG};;
+    esac
+done
+
+if [ -z "$uic" ]; then
+    echo "the PySide uic compiler must be specified with the -u parameter"
+    exit 1
+fi
+
+if [ -z "$rcc" ]; then
+    echo "the PySide rcc compiler must be specified with the -r parameter"
+    exit 1
+fi
+
+uicversion=$(${uic} --version)
+rccversion=$(${rcc} --version)
+
+
+if [ -z "$uicversion" ]; then
+    echo "the PySide uic compiler version cannot be determined"
+    exit 1
+fi
+
+if [ -z "$rccversion" ]; then
+    echo "the PySide rcc compiler version cannot be determined"
+    exit 1
+fi
+
+echo "Using PySide uic compiler version: ${uicversion}"
+echo "Using PySide rcc compiler version: ${rccversion}"
 
 # build UI's:
 echo "building user interfaces..."
-build_ui tank_dialog
-build_ui item
-build_ui busy_dialog
+build_ui $uic tank_dialog
+build_ui $uic item
+build_ui $uic busy_dialog
 
 # build resources
 echo "building resources..."
-build_res resources
+build_res $rcc resources
