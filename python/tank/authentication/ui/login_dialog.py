@@ -6,13 +6,24 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-from .qt_abstraction import QtCore
+# from .qt_abstraction import QtCore
+# for name, cls in QtCore.__dict__.items():
+#     if isinstance(cls, type): globals()[name] = cls
+
+from tank.util.qt_importer import QtImporter
+importer = QtImporter()
+QtCore = importer.QtCore
+# from importer.QtCore import *
+# from sgtk.platform.qt.QtCore import *
+
 for name, cls in QtCore.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
-from .qt_abstraction import QtGui
+# from .qt_abstraction import QtGui
+QtGui = importer.QtGui
 for name, cls in QtGui.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
+
 
 from .qt5_like_line_edit import Qt5LikeLineEdit
 from .recent_box import RecentBox
