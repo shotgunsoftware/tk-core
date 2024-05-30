@@ -43,6 +43,12 @@ class QtImporter(object):
 
         :param interface_version_request: Indicates which version of the Qt API is requested.
         """
+        
+        # print("TK_CORE QTIMPORTER INIT")
+        # import traceback
+        # traceback.print_stack()
+        # print()
+        # print()
         (
             self._binding_name,
             self._binding_version,

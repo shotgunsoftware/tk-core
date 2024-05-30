@@ -482,6 +482,11 @@ class LoginDialog(QtGui.QDialog):
         Sets up the dialog GUI according to the use of web login or not.
         """
 
+        logger.info(f"Qt version: {QtCore.qVersion()}")
+        logger.info(f"Windows - devicePixelRatio: {self.devicePixelRatio()}")
+        logger.info(f"QScreen - devicePixelRatio: {self.screen().devicePixelRatio()}")
+        logger.info(f"QApplic - devicePixelRatio: {QtGui.QApplication.instance().devicePixelRatio()}")
+
         site = self._query_task.url_to_test
         self.method_selected_user = None
 

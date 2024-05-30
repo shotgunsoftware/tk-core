@@ -128,6 +128,13 @@ class PySide2Patcher(object):
 
         class QApplication(original_QApplication):
             def __init__(self, *args):
+                # print("CUSTOM QApplication")
+                # import traceback
+                # traceback.print_stack()
+                # print()
+                # print()
+                        
+                
                 original_QApplication.__init__(self, *args)
                 # qApp has been moved from QtGui to QtWidgets, make sure that
                 # when QApplication is instantiated than qApp is set on QtGui.
