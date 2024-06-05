@@ -451,30 +451,16 @@ class QtImporter(object):
         }.get(interface_version_requested)
         logger.debug("Requesting %s-like interface", interface)
 
-        # First, try PySide 2 since Toolkit ships with PySide2.
         if interface_version_requested == self.QT4:
+            # First, try PySide 2 since Toolkit ships with PySide2.
             try:
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
             except ImportError:
                 pass
-        elif interface_version_requested == self.QT5:
-            try:
-                pyside2 = self._import_pyside2()
-                logger.debug("Imported PySide2.")
-                return pyside2
-            except ImportError:
-                pass
-        elif interface_version_requested == self.QT6:
-            # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
-            logger.debug("Qt6 interface not implemented for Qt5")
-            pass
 
-        # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
-
-        # Now try PySide 1
-        if interface_version_requested == self.QT4:
+            # Then try PySide 1
             try:
                 pyside = self._import_pyside()
                 logger.debug("Imported PySide1.")
@@ -482,8 +468,7 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-        # Now try PyQt4
-        if interface_version_requested == self.QT4:
+            # Then try PyQt4
             try:
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
@@ -491,15 +476,25 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-        # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
-        # require PySide6 to run with the current support
-        if interface_version_requested == self.QT4:
+            # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
+            # require PySide6 to run with the current support
             try:
                 pyside6 = self._import_pyside6_as_pyside()
                 logger.debug("Imported PySide6 as PySide.")
                 return pyside6
             except ImportError:
                 pass
+
+        elif interface_version_requested == self.QT5:
+            try:
+                pyside2 = self._import_pyside2()
+                logger.debug("Imported PySide2.")
+                return pyside2
+            except ImportError:
+                pass
+
+            # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
+
         elif interface_version_requested == self.QT6:
             try:
                 pyside6 = self._import_pyside6()
@@ -507,6 +502,9 @@ class QtImporter(object):
                 return pyside6
             except ImportError:
                 pass
+
+            # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
+            logger.debug("Qt6 interface not implemented for Qt5")
 
         logger.debug("No Qt matching that interface was found.")
 
