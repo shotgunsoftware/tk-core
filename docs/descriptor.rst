@@ -340,7 +340,7 @@ A token must be set as environment variable that is specific to the organization
 
 .. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
-.. note:: For private repos, it's recommended that you use a fine-grained personal access token with read-only access to Content. For more information, see the `Github Documentation on Personal Access Tokens <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
+.. note:: For private repos, it's recommended that you use a personal access token (classic) with read-only access to Content. Fine-grained tokens are not yet supported. For more information, see the `Github Documentation on Personal Access Tokens <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
 
 
 Pointing to a path on disk
