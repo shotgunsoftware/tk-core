@@ -452,7 +452,15 @@ class QtImporter(object):
         logger.debug("Requesting %s-like interface", interface)
 
         if interface_version_requested == self.QT4:
-            # First, try PySide 2 since Toolkit ships with PySide2.
+            # First, try PySide6. PySide6 is shipped in SGD 1.11
+            try:
+                pyside6 = self._import_pyside6_as_pyside()
+                logger.debug("Imported PySide6 as PySide.")
+                return pyside6
+            except ImportError:
+                pass
+
+            # Then, try PySide 2 since SGD<1.11 ships with PySide2.
             try:
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
@@ -473,15 +481,6 @@ class QtImporter(object):
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
                 return pyqt
-            except ImportError:
-                pass
-
-            # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
-            # require PySide6 to run with the current support
-            try:
-                pyside6 = self._import_pyside6_as_pyside()
-                logger.debug("Imported PySide6 as PySide.")
-                return pyside6
             except ImportError:
                 pass
 
