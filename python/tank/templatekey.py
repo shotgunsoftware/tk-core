@@ -1110,9 +1110,7 @@ class SequenceKey(IntegerKey):
         error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
         error_msg += "Valid format strings: %s\n" % full_format_strings
 
-        if isinstance(value, six.string_types) and value.startswith(
-            self.FRAMESPEC_FORMAT_INDICATOR
-        ):
+        if self.is_framespec_format(value):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
             pattern = self._extract_format_string(value)
             if pattern in self.VALID_FORMAT_STRINGS:
@@ -1140,11 +1138,13 @@ class SequenceKey(IntegerKey):
         else:
             return super(SequenceKey, self).validate(value)
 
-    def _as_string(self, value):
-
-        if isinstance(value, six.string_types) and value.startswith(
+    def is_framespec_format(self, value):
+        return isinstance(value, six.string_types) and value.startswith(
             self.FRAMESPEC_FORMAT_INDICATOR
-        ):
+        )
+
+    def _as_string(self, value):
+        if self.is_framespec_format(value):
             # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
@@ -1178,9 +1178,7 @@ class SequenceKey(IntegerKey):
         """
         Returns XYZ given the string "FORMAT:    XYZ"
         """
-        if isinstance(value, six.string_types) and value.startswith(
-            self.FRAMESPEC_FORMAT_INDICATOR
-        ):
+        if self.is_framespec_format(value):
             pattern = value.replace(self.FRAMESPEC_FORMAT_INDICATOR, "").strip()
         else:
             # passthrough

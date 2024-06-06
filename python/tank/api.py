@@ -21,6 +21,7 @@ from .util import shotgun, yaml_cache
 from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
+from .templatekey import SequenceKey
 from . import constants
 from . import pipelineconfig
 from . import pipelineconfig_utils
@@ -542,9 +543,12 @@ class Sgtk(object):
         :returns: Matching file paths
         :rtype: List of strings.
         """
-        skip_keys = skip_keys or []
         if isinstance(skip_keys, six.string_types):
             skip_keys = [skip_keys]
+        elif isinstance(skip_keys, list):
+            skip_keys = list(skip_keys)
+        else:
+            skip_keys = []
 
         # construct local fields dictionary that doesn't include any skip keys:
         local_fields = dict(
@@ -695,12 +699,25 @@ class Sgtk(object):
         if skip_leaf_level:
             search_template = template.parent
 
-        # now carry out a regular search based on the template
-        found_files = self.paths_from_template(search_template, fields)
+        st_abstract_keys = [k for k in search_template.keys.values() if k.is_abstract]
 
-        st_abstract_key_names = [
-            k.name for k in search_template.keys.values() if k.is_abstract
-        ]
+        # skip abstract SequenceKey declared as format_spec_format: "FORMAT:"
+        # then we can list properly existing paths
+        skip_keys = []
+        for k in st_abstract_keys:
+            key_name = k.name
+            if key_name not in fields:
+                continue
+            if not isinstance(k, SequenceKey):
+                continue
+            if not k.is_framespec_format(fields[key_name]):
+                continue
+            skip_keys.append(key_name)
+
+        # now carry out a regular search based on the template
+        found_files = self.paths_from_template(
+            search_template, fields, skip_keys=skip_keys
+        )
 
         # now collapse down the search matches for any abstract fields,
         # and add the leaf level if necessary
@@ -717,8 +734,8 @@ class Sgtk(object):
             # by deleting all eye values they will be replaced by %V
             # as the template is applied.
             #
-            for abstract_key_name in st_abstract_key_names:
-                del cur_fields[abstract_key_name]
+            for abstract_key in st_abstract_keys:
+                del cur_fields[abstract_key.name]
 
             # pass 2 - if we ignored the leaf level, add those fields back
             # note that there is no risk that we add abstract fields at this point
