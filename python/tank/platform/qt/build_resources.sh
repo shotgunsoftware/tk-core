@@ -16,7 +16,6 @@ UI_PYTHON_PATH=.
 # Helper functions to build UI files
 function build_qt {
     # compile ui to python
-    echo "$1 $2 > $UI_PYTHON_PATH/$3.py"
     $1 $2 > $UI_PYTHON_PATH/$3.py
     # replace PySide2 imports with tank.authentication.ui.qt_abstraction
     # and then added code to set global variables for each new import.
@@ -25,7 +24,6 @@ function build_qt {
         -e "s/^(from PySide.\.)(\w*)(.*)$/from tank.authentication.ui.qt_abstraction import \2\nfor name, cls in \2.__dict__.items():\n    if isinstance(cls, type): globals()[name] = cls\n/g" \
         -e "s/from PySide2 import/from tank.authentication.ui.qt_abstraction import/g" \
         $UI_PYTHON_PATH/$3.py
-
 }
 
 function build_ui {

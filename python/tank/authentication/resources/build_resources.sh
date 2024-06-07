@@ -17,7 +17,6 @@ UI_PYTHON_PATH=../ui
 # Helper functions to build UI files
 function build_qt {
     # compile ui to python
-    echo "$1 $2 > $UI_PYTHON_PATH/$3.py"
     $1 $2 > $UI_PYTHON_PATH/$3.py
     # replace PySide2 imports with .qt_abstraction and then added code to set
     # global variables for each new import.
