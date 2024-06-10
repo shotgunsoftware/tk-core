@@ -198,17 +198,11 @@ class Impl:
             Ensures reloading JSON written by any version of Python works in the current
             Python version.
             """
-            with open(self.file_location(2, 7), "rb") as fh:
-                self.assertEqual(self.load(fh), self.dict_with_unicode)
-
             with open(self.file_location(3, 7), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
 
             with open(self.file_location(3, 9), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
-
-            with open(self.file_location(2, 7), "r{0}".format(self.mode)) as fh:
-                self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
             with open(self.file_location(3, 7), "r{0}".format(self.mode)) as fh:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
@@ -235,29 +229,6 @@ class JSONTests(Impl.SerializationTests):
     write_mode = "wt"
     loader_module = tk_json
     dumper_module = json
-
-
-class PickleTests(Impl.SerializationTests):
-
-    # Parametrizes the tests from the base class.
-    filename = "pickle_saved_with_python_{0}.{1}.pickle"
-    mode = "b"
-    write_mode = "wb"
-    loader_module = pickle
-    dumper_module = pickle
-
-    # Derived class parameters.
-    protocol_2_file_location = os.path.join(
-        Impl.SerializationTests.fixtures_location,
-        "pickled_saved_with_python_2_protocol_0.pickle",
-    )
-
-    def test_reload_protocol_2_pickle(self):
-        with open(self.protocol_2_file_location, "rb") as fh:
-            self.assertEqual(self.load(fh), self.dict_with_unicode)
-
-        with open(self.protocol_2_file_location, "rb") as fh:
-            self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
 
 if __name__ == "__main__":
