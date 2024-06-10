@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 import shutil
 import datetime
-from tank_vendor.six.moves import urllib
+import urllib
 
 import tank
 from tank_test.tank_test_base import setUpModule  # noqa

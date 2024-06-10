@@ -1223,7 +1223,7 @@ class TestTimestampKey(ShotgunTestBase):
         key = TimestampKey("test")
         self.assertEqual(key.value_from_str(self._datetime_string), self._datetime)
         self.assertEqual(
-            key.value_from_str(six.text_type(self._datetime_string)), self._datetime
+            key.value_from_str(str(self._datetime_string)), self._datetime
         )
 
     def test_bad_str(self):

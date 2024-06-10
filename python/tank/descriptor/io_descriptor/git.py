@@ -30,7 +30,6 @@ def _can_hide_terminal():
     launched with the subprocess module.
     """
     try:
-        # These values are not defined between Python 2.6.6 and 2.7.1 inclusively.
         subprocess.STARTF_USESHOWWINDOW
         subprocess.SW_HIDE
         return True

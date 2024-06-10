@@ -37,7 +37,6 @@ from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
 import webbrowser
-from tank_vendor.six.moves import input
 
 logger = LogManager.get_logger(__name__)
 

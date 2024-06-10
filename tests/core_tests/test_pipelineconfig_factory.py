@@ -9,9 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor import yaml
 import sgtk
 import tank
+import pickle
+
+from tank_vendor import yaml
 from tank.api import Tank
 from tank.util import is_windows
 from tank.errors import TankInitError
@@ -22,8 +24,6 @@ from tank_test.tank_test_base import (
     ShotgunTestBase,
     TankTestBase,
 )
-
-import tank_vendor.six.moves.cPickle as pickle
 from tank_vendor.shotgun_api3.lib import sgsix
 
 

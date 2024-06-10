@@ -205,55 +205,9 @@ class ConfigurationResolver(object):
 
         # Validate if descriptor version token is omitted
         resolve_latest = is_descriptor_version_missing(config_descriptor)
-        if (
-                sys.version_info[0] < 3
-                and self._plugin_id == "basic.desktop"
-                and resolve_latest
-        ):
-            # This will avoid auto update your tk-config-basic configuration to the
-            # latest available version when running Python 2.
-            # This cover the following case:
-            #
-            # * PTR desktop app is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
-            #   environment variable to '2'and it will startup the tk-desktop engine for
-            #   the Site configuration.
-            #
-            # In this case this will initialize the tk-desktop for the 'Site' environment and
-            # resolve a configuration object using a descriptor pointing to the maximum config
-            # version supporting Python 2 which is maintained in the variable
-            # 'MAX_CONFIG_BASIC_PYTHON2_SUPPORTED' in the bootstrap constants.
-            log.info(
-                "Using Python version '%s'" % ".".join(str(i) for i in sys.version_info[0:3])
-            )
-            log.debug(
-                "Base configuration descriptor does not have a "
-                "version token defined."
-            )
-
-            # Disable resolve latest
-            resolve_latest = False
-            # Make sure the configuration version points to the latest
-            # supporting Python2
-            config_descriptor["version"] = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
-            log.debug(
-                "%s Resolving configuration for latest version supporting Python 2 descriptor %s" % (self, config_descriptor)
-            )
-            # create config descriptor
-            cfg_descriptor = create_descriptor(
-                sg_connection,
-                Descriptor.CONFIG,
-                config_descriptor,
-                fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=resolve_latest,
-            )
-
-        else:
-            # Resolve config normally
-            return self.resolve_configuration(config_descriptor, sg_connection)
-
-        return self._create_configuration_from_descriptor(
-            cfg_descriptor, sg_connection, pc_id=None
-        )
+        
+        # Resolve config normally
+        return self.resolve_configuration(config_descriptor, sg_connection)
 
     def _create_configuration_from_descriptor(
         self, cfg_descriptor, sg_connection, pc_id

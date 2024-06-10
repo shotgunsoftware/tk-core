@@ -9,14 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-# For Python 2/3 compatibility without a dependency on six, we'll just try
-# to import as in Python 2, and fall back to Python 3 locations if the imports
-# fail.
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
-
+import urllib.parse as urlparse
 
 from .. import LogManager
 

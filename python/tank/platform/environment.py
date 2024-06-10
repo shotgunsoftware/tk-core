@@ -691,7 +691,7 @@ class Environment(object):
             is determined by whether it is a string, and if so, it is an
             included value if it has an @ at its head.
             """
-            return isinstance(item, six.string_types) and item.startswith("@")
+            return isinstance(item, str) and item.startswith("@")
 
         if is_included(bundle_section):
             # The whole section is a reference! The token is just the include

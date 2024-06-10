@@ -327,7 +327,7 @@ class SoftwareLauncher(object):
         :returns: The substituted string, when "<name>" will yield "<value>".
         """
         for key, value in tokens.items():
-            template = template.replace("{%s}" % key, value)
+            template = template.replace(f"{key}", value)
         return template
 
     def _glob_and_match(self, match_template, template_key_expressions):

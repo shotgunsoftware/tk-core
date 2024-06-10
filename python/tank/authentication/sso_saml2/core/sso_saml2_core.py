@@ -49,7 +49,7 @@ except ImportError:
     # environment.
     UsernamePasswordDialog = None
 
-from tank_vendor.six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 # Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To PTR site."

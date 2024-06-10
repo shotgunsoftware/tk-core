@@ -152,7 +152,7 @@ def _from_path(path, force_reread_shotgun_cache):
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
     """
-    if not isinstance(path, six.string_types):
+    if not isinstance(path, str):
         raise ValueError(
             "Cannot create a configuration from path '%s' - path must be a string."
             % path

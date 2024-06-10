@@ -24,7 +24,6 @@ from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application, constants, validation
 from tank.template import Template
 from tank.deploy import descriptor
-from tank_vendor import six
 from tank_vendor.six import StringIO
 
 
@@ -725,7 +724,7 @@ class TestBundleDataCache(TestApplication):
             )
         )
         # Test frameworks
-        for fw in six.itervalues(app.frameworks):
+        for fw in app.frameworks.values():
             fw_data_cache_path = fw.cache_location
             # We should have the project id in the path
             self.assertTrue(

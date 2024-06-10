@@ -10,6 +10,7 @@
 
 import os
 import contextlib
+import urllib
 
 from .. import constants
 from ... import LogManager
@@ -18,7 +19,6 @@ from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
-from tank_vendor.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
 
@@ -497,27 +497,18 @@ class IODescriptorBase(object):
         #
         # uri: sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle
         #
-        # python 2.6+ expected: ParseResult(
+        # python 3.7+ expected: ParseResult(
         # scheme='sgtk',
         # netloc='',
         # path='descriptor:app_store',
         # params='',
         # query='version=v0.1.2&name=tk-bundle',
         # fragment='')
-        #
-        # python 2.5 and others: (
-        # 'sgtk',
-        # '',
-        # 'descriptor:app_store?version=v0.1.2&name=tk-bundle',
-        # '',
-        # '',
-        # '')
 
         if parsed_uri.scheme != constants.DESCRIPTOR_URI_PATH_SCHEME:
             raise TankDescriptorError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
         if parsed_uri.query == "":
-            # in python 2.5 and others, the querystring is part of the path (see above)
             (path, query) = parsed_uri.path.split("?")
         else:
             path = parsed_uri.path

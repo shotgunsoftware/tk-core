@@ -14,9 +14,9 @@ across storages, configurations etc.
 """
 import os
 import glob
+import pickle
 
 from tank_vendor import yaml
-import tank_vendor.six.moves.cPickle as pickle
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
@@ -245,9 +245,10 @@ class PipelineConfiguration(object):
         #
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
-                external_data = retrieve_env_var_pickled(
-                    constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA
+                envvar_contents = six.ensure_binary(
+                    os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
                 )
+                external_data = pickle.loads(envvar_contents)
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
                 external_data = {}
@@ -965,7 +966,7 @@ class PipelineConfiguration(object):
         # methods do not require a connection.
         sg_connection = shotgun.get_deferred_sg_connection()
 
-        if isinstance(dict_or_uri, six.string_types):
+        if isinstance(dict_or_uri, str):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
         else:
             descriptor_dict = dict_or_uri

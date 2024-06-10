@@ -1075,13 +1075,8 @@ class Engine(TankBundle):
         # runtime.
         # getargspec has been deprecated in Python 3 and generates a copious
         # amount of warnings, so use getfullargspec which is backwards
-        # compatible in Python 3. Unfortunately, it doesn't exist in Python
-        # 2 and six doesn't offer a wrapper for it.
-        if six.PY2:
-            arg_spec = inspect.getargspec(callback)
-        else:
-            arg_spec = inspect.getfullargspec(callback)
-        # note - cannot use named tuple form because it is py2.6+
+        # compatible in Python 3.
+        arg_spec = inspect.getfullargspec(callback)
         arg_list = arg_spec[0]
 
         if "entity_type" in arg_list and "entity_ids" in arg_list:

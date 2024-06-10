@@ -30,7 +30,6 @@ from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
 from tank_vendor import yaml
-from tank_vendor import six
 from tank.authentication import ShotgunAuthenticator
 
 USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
@@ -1288,7 +1287,7 @@ class TestSerialize(TestContext):
         context_1 = context.Context(**self.kws)
         serialized = context_1.serialize()
         # Ensure the serialized context is a string
-        self.assertIsInstance(serialized, six.string_types)
+        self.assertIsInstance(serialized, str)
         context_2 = tank.Context.deserialize(serialized)
         self._assert_equal_contexts(context_1, context_2)
 
@@ -1312,7 +1311,7 @@ class TestSerialize(TestContext):
         pickle.loads(unserialized_pickle["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1335,7 +1334,7 @@ class TestSerialize(TestContext):
         json.loads(unserialized_json["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1352,7 +1351,7 @@ class TestSerialize(TestContext):
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Change the current user to make sure that the deserialize operation doesn't
         # change it back to the original user.

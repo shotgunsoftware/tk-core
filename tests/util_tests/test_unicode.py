@@ -14,10 +14,6 @@ from unittest import TestCase, skipIf
 import sgtk
 from tank_vendor import six
 
-if six.PY2:
-    char = "漢字"
-    unichar = unicode(char, encoding="utf8")
-
 
 class TestUnicode(TestCase):
     @skipIf(six.PY3, "Unicode data type does not exist on Python 3.")

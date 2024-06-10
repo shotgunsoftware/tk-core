@@ -14,7 +14,7 @@ Logic for publishing files to Shotgun.
 from __future__ import with_statement
 
 import os
-from tank_vendor.six.moves import urllib
+import urllib
 import pprint
 
 from .publish_util import (
@@ -254,7 +254,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, six.string_types):
+            if not isinstance(published_file_type, str):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":

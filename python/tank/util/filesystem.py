@@ -374,7 +374,7 @@ def create_valid_filename(value):
     # strip trailing whitespace
     value = value.strip()
 
-    if isinstance(value, six.text_type):
+    if isinstance(value, str):
         # src is unicode, so return unicode
         return exp.sub("_", value)
     else:

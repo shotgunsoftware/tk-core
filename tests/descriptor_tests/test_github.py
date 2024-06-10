@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from sgtk.util import sgre as re
-from tank_vendor.six.moves import urllib
-
+import urllib
 import sgtk
+
+from sgtk.util import sgre as re
 from sgtk.descriptor import Descriptor
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (

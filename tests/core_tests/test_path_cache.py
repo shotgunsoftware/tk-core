@@ -13,7 +13,7 @@ from __future__ import with_statement, print_function
 import os
 import sys
 import time
-from tank_vendor.six.moves.queue import Empty
+from queue import Empty
 from tank_vendor.six import StringIO
 import shutil
 import contextlib
@@ -34,7 +34,6 @@ from tank.util import is_windows
 import tank
 
 from tank.util import StorageRoots
-from tank_vendor.six.moves import range
 
 log = LogManager.get_logger(__name__)
 
