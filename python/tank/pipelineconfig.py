@@ -25,7 +25,6 @@ from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
 from .util import StorageRoots
-from .util.pickle import retrieve_env_var_pickled
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes

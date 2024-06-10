@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import pickle
 
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
@@ -17,7 +18,6 @@ from .. import LogManager
 from .. import constants
 
 from ..util import ShotgunPath
-from ..util.pickle import store_env_var_pickled
 from ..errors import TankFileDoesNotExistError
 from .. import pipelineconfig_utils
 
@@ -122,9 +122,9 @@ class BakedConfiguration(Configuration):
         }
 
         log.debug("Setting External config data: %s" % pipeline_config)
-        store_env_var_pickled(
-            constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA, pipeline_config
-        )
+        pickled_data = pickle.dumps(pipeline_config)
+        encoded_data = str(pickled_data)
+        os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA] = encoded_data
 
         path = self._path.current_os
         try:
