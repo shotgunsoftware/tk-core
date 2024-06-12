@@ -91,12 +91,11 @@ class Ui_TankDialog(object):
 "background-color: none;\n"
 "}\n"
 "\n"
-"\n"
 "QToolButton:hover{\n"
 "background-image: url(:/Tank.Platform.Qt/arrow_hover.png);\n"
 "}\n"
 "\n"
-"QToolButton:Pressed {\n"
+"QToolButton:pressed {\n"
 "background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);\n"
 "}\n"
 "")
@@ -104,6 +103,30 @@ class Ui_TankDialog(object):
         self.details.setAutoRaise(True)
         self.details.setObjectName("details")
         self.horizontalLayout.addWidget(self.details)
+        self.details2 = QtGui.QToolButton(self.top_group)
+        self.details2.setMinimumSize(QtCore.QSize(34, 34))
+        self.details2.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.details2.setVisible(False)
+        self.details2.setStyleSheet("QToolButton{\n"
+" width: 12px;\n"
+" height: 20px;\n"
+" background-image: url(:/Tank.Platform.Qt/arrow_flipped.png);\n"
+" border: none;\n"
+" background-color: none;\n"
+" }\n"
+"\n"
+" QToolButton:hover{\n"
+" background-image: url(:/Tank.Platform.Qt/arrow_flipped_hover.png);\n"
+" }\n"
+"\n"
+" QToolButton:pressed {\n"
+" background-image: url(:/Tank.Platform.Qt/arrow_flipped_pressed.png);\n"
+" }\n"
+" ")
+        self.details2.setText("")
+        self.details2.setAutoRaise(True)
+        self.details2.setObjectName("details2")
+        self.horizontalLayout.addWidget(self.details2)
         self.verticalLayout.addWidget(self.top_group)
         self.target = QtGui.QVBoxLayout()
         self.target.setSpacing(4)
@@ -292,6 +315,7 @@ class Ui_TankDialog(object):
         self.lbl_context.setText(QtGui.QApplication.translate("TankDialog", "Current Work Area:\n"
 "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.details.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for App Details", None, QtGui.QApplication.UnicodeUTF8))
+        self.details2.setToolTip(QtGui.QApplication.translate("TankDialog", "Hide App Details", None, QtGui.QApplication.UnicodeUTF8))
         self.app_name.setText(QtGui.QApplication.translate("TankDialog", "Publish And Snapshot", None, QtGui.QApplication.UnicodeUTF8))
         self.app_description.setText(QtGui.QApplication.translate("TankDialog", "Tools to see what is out of date in your scene etc etc.", None, QtGui.QApplication.UnicodeUTF8))
         self.app_tech_details.setText(QtGui.QApplication.translate("TankDialog", "tk-multi-snapshot, v1.2.3", None, QtGui.QApplication.UnicodeUTF8))
