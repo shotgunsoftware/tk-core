@@ -595,7 +595,7 @@ class TankQDialog(TankDialogBase):
                     # activate page 1 again - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(0)
 
-                    # Flipped arrow icon
+                    # Flip arrow icon
                     self.ui.details.setVisible(True)
                     self.ui.details2.setVisible(False)
                 else:
@@ -603,7 +603,7 @@ class TankQDialog(TankDialogBase):
                     # activate page 2 - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(1)
 
-                    # Flipped arrow icon
+                    # Flip arrow icon
                     self.ui.details.setVisible(False)
                     self.ui.details2.setVisible(True)
 
@@ -630,7 +630,7 @@ class TankQDialog(TankDialogBase):
         Toggle the visibility of the info panel, animating the transition.
         """
         if self._info_mode:
-            # Flipped arrow icon
+            # Flip arrow icon
             self.ui.details.setVisible(True)
             self.ui.details2.setVisible(False)
 
@@ -689,7 +689,7 @@ class TankQDialog(TankDialogBase):
             self.grp.start()
 
         else:
-            # Flipped arrow icon
+            # Flip arrow icon
             self.ui.details.setVisible(False)
             self.ui.details2.setVisible(True)
 
