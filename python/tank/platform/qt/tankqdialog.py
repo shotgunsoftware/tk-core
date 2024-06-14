@@ -342,8 +342,8 @@ class TankQDialog(TankDialogBase):
             ########################################################################################
             # now setup the info page with all the details
 
-            self.ui.details.clicked.connect(self._on_arrow)
-            self.ui.details2.clicked.connect(self._on_arrow)
+            self.ui.details_show.clicked.connect(self._on_arrow)
+            self.ui.details_hide.clicked.connect(self._on_arrow)
             self.ui.app_name.setText(self._bundle.display_name)
             self.ui.app_description.setText(self._bundle.description)
             # get the descriptor type (eg. git/app store/dev etc)
@@ -596,16 +596,16 @@ class TankQDialog(TankDialogBase):
                     self.ui.stackedWidget.setCurrentIndex(0)
 
                     # Flip arrow icon
-                    self.ui.details.setVisible(True)
-                    self.ui.details2.setVisible(False)
+                    self.ui.details_show.setVisible(True)
+                    self.ui.details_hide.setVisible(False)
                 else:
                     # show the info panel:
                     # activate page 2 - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(1)
 
                     # Flip arrow icon
-                    self.ui.details.setVisible(False)
-                    self.ui.details2.setVisible(True)
+                    self.ui.details_show.setVisible(False)
+                    self.ui.details_hide.setVisible(True)
 
                     # this hides page page 1, so let's show it again
                     self.ui.page_1.show()
@@ -631,8 +631,8 @@ class TankQDialog(TankDialogBase):
         """
         if self._info_mode:
             # Flip arrow icon
-            self.ui.details.setVisible(True)
-            self.ui.details2.setVisible(False)
+            self.ui.details_show.setVisible(True)
+            self.ui.details_hide.setVisible(False)
 
             self.setUpdatesEnabled(False)
             try:
@@ -690,8 +690,8 @@ class TankQDialog(TankDialogBase):
 
         else:
             # Flip arrow icon
-            self.ui.details.setVisible(False)
-            self.ui.details2.setVisible(True)
+            self.ui.details_show.setVisible(False)
+            self.ui.details_hide.setVisible(True)
 
             # activate page 2 - note that this will reset all positions!
             self.ui.stackedWidget.setCurrentIndex(1)

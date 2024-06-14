@@ -164,7 +164,7 @@ TextLabel</string>
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="details">
+           <widget class="QToolButton" name="details_show">
             <property name="minimumSize">
              <size>
               <width>34</width>
@@ -190,7 +190,7 @@ QToolButton:hover{
 background-image: url(:/Tank.Platform.Qt/arrow_hover.png);
 }
 
-QToolButton:pressed {
+QToolButton:pressed{
 background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);
 }
 </string>
@@ -204,7 +204,7 @@ background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);
            </widget>
           </item>
           <item>
-            <widget class="QToolButton" name="details2">
+            <widget class="QToolButton" name="details_hide">
              <property name="minimumSize">
               <size>
                <width>34</width>
@@ -233,7 +233,7 @@ background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);
  background-image: url(:/Tank.Platform.Qt/arrow_flipped_hover.png);
  }
 
- QToolButton:pressed {
+ QToolButton:pressed{
  background-image: url(:/Tank.Platform.Qt/arrow_flipped_pressed.png);
  }
  </string>
