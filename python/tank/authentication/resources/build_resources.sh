@@ -16,8 +16,10 @@ UI_PYTHON_PATH=../ui
 
 # Helper functions to build UI files
 function build_qt {
+    echo " > Building " $2
     # compile ui to python
     $1 $2 > $UI_PYTHON_PATH/$3.py
+
     # replace PySide2 imports with .qt_abstraction and then added code to set
     # global variables for each new import.
     sed -i"" -E \
@@ -28,25 +30,50 @@ function build_qt {
 }
 
 function build_ui {
-    build_qt "$1/pyside2-uic -g python --from-imports" "$2.ui" "$2"
+    build_qt "$1 -g python --from-imports" "$2.ui" "$2"
 }
 
 function build_res {
-    build_qt "$1/pyside2-rcc -g python" "$2.qrc" "$2_rc"
+    build_qt "$1 -g python" "$2.qrc" "$2_rc"
 }
 
-getopts p: flag
-if [ "$flag" = "p" ]; then
-    pypath=${OPTARG}
+while getopts u:r:p: flag
+do
+    case "${flag}" in
+        u) uic=${OPTARG};;
+        r) rcc=${OPTARG};;
+        p) pyenv=${OPTARG};;
+    esac
+done
+
+if [ -z "${pyenv}" ] && [[ -n "${uic}" && -n "${rcc}" ]]; then
+    pyenv=""
 fi
 
-if [ -z "$pypath" ]; then
-    echo "the python path must be specified with the -p parameter"
+if [ -z "${pyenv}" ] && [[ -z "${uic}" && -z "${rcc}" ]]; then
+    pyenv="Applications/Shotgun.app/Contents/Resources/Python"
+fi
+
+if [ -z "${uic}" ] && [ -n "${pyenv}" ]; then
+    uic="${pyenv}/pyside2-uic"
+fi
+
+if [ -z "${rcc}" ] && [ -n "${pyenv}" ]; then
+    rcc="${pyenv}/pyside2-rcc"
+fi
+
+if [ -z "$uic" ];  then
+    echo "the PySide uic compiler must be specified with the -u parameter"
     exit 1
 fi
 
-uicversion=$(${pypath}/pyside2-uic --version)
-rccversion=$(${pypath}/pyside2-rcc --version)
+if [ -z "$rcc" ]; then
+    echo "the PySide rcc compiler must be specified with the -r parameter"
+    exit 1
+fi
+
+uicversion=$(${uic} --version)
+rccversion=$(${rcc} --version)
 
 if [ -z "$uicversion" ]; then
     echo "the PySide uic compiler version cannot be determined"
@@ -63,8 +90,8 @@ echo "Using PySide rcc compiler version: ${rccversion}"
 
 # build UI's:
 echo "building user interfaces..."
-build_ui $pypath login_dialog
+build_ui $uic login_dialog
 
 # build resources
 echo "building resources..."
-build_res $pypath resources
+build_res $rcc resources
