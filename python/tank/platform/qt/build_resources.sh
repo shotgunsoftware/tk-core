@@ -16,9 +16,6 @@ if [ -z "${PYTHON_BASE}" ]; then
     PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 fi
 
-# Remove any problematic profiles from pngs.
-for f in *.png; do mogrify $f; done
-
 # The path to output all built .py files to:
 UI_PYTHON_PATH=.
 
