@@ -2212,20 +2212,21 @@ class Engine(TankBundle):
         standard dark mode.
 
         This will initialize the plastique style (for Qt4) or the fusion style
-        (for Qt5), and set it up with a standard dark palette and supporting
+        (for Qt5/Qt6), and set it up with a standard dark palette and supporting
         stylesheet.
 
         `Qt4 setStyle documentation <http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2>`_
         `Qt5 setStyle documentation <https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1>`_
+        `Qt6 setStyle documentation <https://doc.qt.io/qt-6/qapplication.html#setStyle-1>`_
 
         Apps and UIs can then extend this further by using further css.
 
         Due to restrictions in QT, this needs to run after a QApplication object
         has been instantiated.
         """
-        if self.has_qt5:
-            self.log_debug("Applying Qt5-specific styling...")
-            self.__initialize_dark_look_and_feel_qt5()
+        if self.has_qt5 or self.has_qt6:
+            self.log_debug("Applying Qt5/Qt6-specific styling (Fusion)...")
+            self.__initialize_dark_look_and_feel_qt5_qt6()
         elif self.has_qt4:
             self.log_debug("Applying Qt4-specific styling...")
             self.__initialize_dark_look_and_feel_qt4()
@@ -2234,7 +2235,7 @@ class Engine(TankBundle):
                 "Neither Qt4 or Qt5 is available. Toolkit styling will not be applied."
             )
 
-    def __initialize_dark_look_and_feel_qt5(self):
+    def __initialize_dark_look_and_feel_qt5_qt6(self):
         """
         Applies a dark style for Qt5 environments. This sets the "fusion" style
         at the application level, and then constructs and applies a custom palette
