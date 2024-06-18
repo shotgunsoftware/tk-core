@@ -192,7 +192,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_selection(hostname)
 
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
-        completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
+        completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 24px;" "}")
         self.ui.site.set_style_sheet(completer_style)
         self.ui.site.set_placeholder_text("example.shotgrid.autodesk.com")
         self.ui.login.set_style_sheet(completer_style)
