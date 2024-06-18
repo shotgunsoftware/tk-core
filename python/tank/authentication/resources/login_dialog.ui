@@ -149,7 +149,7 @@ QPushButton.main:pressed
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
-   <property name="margin">
+   <property name="margin" stdset="0">
     <number>20</number>
    </property>
    <item>
@@ -178,7 +178,7 @@ QPushButton.main:pressed
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="resources.qrc">:/shotgun_authentication/shotgun_logo_light_medium.png</pixmap>
+        <pixmap>:/shotgun_authentication/shotgun_logo_light_medium.png</pixmap>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -203,7 +203,7 @@ QPushButton.main:pressed
      </property>
      <widget class="QWidget" name="login_page">
       <layout class="QVBoxLayout" name="verticalLayout_3">
-       <property name="margin">
+       <property name="margin" stdset="0">
         <number>0</number>
        </property>
        <item>
@@ -215,7 +215,7 @@ QPushButton.main:pressed
           </size>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="margin">
+          <property name="margin" stdset="0">
            <number>0</number>
           </property>
           <item>
@@ -377,7 +377,7 @@ QPushButton.main:pressed
      </widget>
      <widget class="QWidget" name="_2fa_page">
       <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="margin">
+       <property name="margin" stdset="0">
         <number>0</number>
        </property>
        <item>
@@ -389,7 +389,7 @@ QPushButton.main:pressed
           </size>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="margin">
+          <property name="margin" stdset="0">
            <number>0</number>
           </property>
           <item>
@@ -404,7 +404,7 @@ QPushButton.main:pressed
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="resources.qrc">:/google_authenticator/google_authenticator.png</pixmap>
+             <pixmap>:/google_authenticator/google_authenticator.png</pixmap>
             </property>
             <property name="alignment">
              <set>Qt::AlignHCenter|Qt::AlignTop</set>
@@ -540,7 +540,7 @@ QPushButton.main:pressed
      </widget>
      <widget class="QWidget" name="backup_page">
       <layout class="QVBoxLayout" name="verticalLayout_6">
-       <property name="margin">
+       <property name="margin" stdset="0">
         <number>0</number>
        </property>
        <item>
@@ -552,7 +552,7 @@ QPushButton.main:pressed
           </size>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="margin">
+          <property name="margin" stdset="0">
            <number>0</number>
           </property>
           <item>
@@ -561,7 +561,7 @@ QPushButton.main:pressed
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="resources.qrc">:/backup_codes/backup_codes_light_bg.png</pixmap>
+             <pixmap>:/backup_codes/backup_codes_light_bg.png</pixmap>
             </property>
             <property name="alignment">
              <set>Qt::AlignHCenter|Qt::AlignTop</set>
@@ -703,7 +703,7 @@ QPushButton.main:pressed
      </widget>
      <widget class="QWidget" name="asl_page">
       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
-       <property name="margin">
+       <property name="margin" stdset="0">
         <number>20</number>
        </property>
        <item>
