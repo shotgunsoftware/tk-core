@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 #
 # Copyright (c) 2015 Shotgun Software Inc.
 #
@@ -10,8 +11,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# The path to where the PySide binaries are installed
-PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
+if [ -z "${PYTHON_BASE}" ]; then
+    # The path to where the PySide binaries are installed
+    PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
+fi
 
 # Remove any problematic profiles from pngs.
 for f in *.png; do mogrify $f; done
