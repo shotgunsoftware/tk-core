@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.21.3 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.21.5 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.3.<br>
+    <b>tk-core</b> v0.21.5.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -2343,20 +2343,21 @@
 <span class="sd">        standard dark mode.</span>
 
 <span class="sd">        This will initialize the plastique style (for Qt4) or the fusion style</span>
-<span class="sd">        (for Qt5), and set it up with a standard dark palette and supporting</span>
+<span class="sd">        (for Qt5/Qt6), and set it up with a standard dark palette and supporting</span>
 <span class="sd">        stylesheet.</span>
 
 <span class="sd">        `Qt4 setStyle documentation &lt;http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2&gt;`_</span>
 <span class="sd">        `Qt5 setStyle documentation &lt;https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1&gt;`_</span>
+<span class="sd">        `Qt6 setStyle documentation &lt;https://doc.qt.io/qt-6/qapplication.html#setStyle-1&gt;`_</span>
 
 <span class="sd">        Apps and UIs can then extend this further by using further css.</span>
 
 <span class="sd">        Due to restrictions in QT, this needs to run after a QApplication object</span>
 <span class="sd">        has been instantiated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt5</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Applying Qt5-specific styling...&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_dark_look_and_feel_qt5</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt5</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt6</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Applying Qt5/Qt6-specific styling (Fusion)...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_dark_look_and_feel_qt5_qt6</span><span class="p">()</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt4</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Applying Qt4-specific styling...&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_dark_look_and_feel_qt4</span><span class="p">()</span>
@@ -2365,7 +2366,7 @@
                 <span class="s2">&quot;Neither Qt4 or Qt5 is available. Toolkit styling will not be applied.&quot;</span>
             <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__initialize_dark_look_and_feel_qt5</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__initialize_dark_look_and_feel_qt5_qt6</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Applies a dark style for Qt5 environments. This sets the &quot;fusion&quot; style</span>
 <span class="sd">        at the application level, and then constructs and applies a custom palette</span>

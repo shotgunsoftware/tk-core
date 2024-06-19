@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.21.3 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.21.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -178,7 +178,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.3.<br>
+    <b>tk-core</b> v0.21.5.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -704,10 +704,11 @@ designed to work well with most dark themes.</p>
 you can execute this method to put the session into Toolkit’s
 standard dark mode.</p>
 <p>This will initialize the plastique style (for Qt4) or the fusion style
-(for Qt5), and set it up with a standard dark palette and supporting
+(for Qt5/Qt6), and set it up with a standard dark palette and supporting
 stylesheet.</p>
 <p><a class="reference external" href="http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2">Qt4 setStyle documentation</a>
-<a class="reference external" href="https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1">Qt5 setStyle documentation</a></p>
+<a class="reference external" href="https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1">Qt5 setStyle documentation</a>
+<a class="reference external" href="https://doc.qt.io/qt-6/qapplication.html#setStyle-1">Qt6 setStyle documentation</a></p>
 <p>Apps and UIs can then extend this further by using further css.</p>
 <p>Due to restrictions in QT, this needs to run after a QApplication object
 has been instantiated.</p>
