@@ -342,7 +342,8 @@ class TankQDialog(TankDialogBase):
             ########################################################################################
             # now setup the info page with all the details
 
-            self.ui.details.clicked.connect(self._on_arrow)
+            self.ui.details_show.clicked.connect(self._on_arrow)
+            self.ui.details_hide.clicked.connect(self._on_arrow)
             self.ui.app_name.setText(self._bundle.display_name)
             self.ui.app_description.setText(self._bundle.description)
             # get the descriptor type (eg. git/app store/dev etc)
@@ -593,10 +594,19 @@ class TankQDialog(TankDialogBase):
                     # hide the info panel:
                     # activate page 1 again - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(0)
+
+                    # Flip arrow icon
+                    self.ui.details_show.setVisible(True)
+                    self.ui.details_hide.setVisible(False)
                 else:
                     # show the info panel:
                     # activate page 2 - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(1)
+
+                    # Flip arrow icon
+                    self.ui.details_show.setVisible(False)
+                    self.ui.details_hide.setVisible(True)
+
                     # this hides page page 1, so let's show it again
                     self.ui.page_1.show()
                     # make sure page1 stays on top
@@ -620,6 +630,9 @@ class TankQDialog(TankDialogBase):
         Toggle the visibility of the info panel, animating the transition.
         """
         if self._info_mode:
+            # Flip arrow icon
+            self.ui.details_show.setVisible(True)
+            self.ui.details_hide.setVisible(False)
 
             self.setUpdatesEnabled(False)
             try:
@@ -676,6 +689,9 @@ class TankQDialog(TankDialogBase):
             self.grp.start()
 
         else:
+            # Flip arrow icon
+            self.ui.details_show.setVisible(False)
+            self.ui.details_hide.setVisible(True)
 
             # activate page 2 - note that this will reset all positions!
             self.ui.stackedWidget.setCurrentIndex(1)
