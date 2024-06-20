@@ -358,6 +358,7 @@ class LoginDialog(QtGui.QDialog):
         self._query_task.wait()
 
     def _confirm_exit(self):
+        return True
         return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
         # PySide uses "exec_" instead of "exec" because "exec" is a reserved
         # keyword in Python 2.
