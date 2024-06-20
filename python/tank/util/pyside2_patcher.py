@@ -597,6 +597,13 @@ class PySide2Patcher(object):
             cls._patch_QMessageBox(qt_gui_shim)
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
+        ## TODO: do the same with:
+        # setSpacing
+        # setMargin
+        # setStretch / setHorizontalStretch / setVerticalStretch ??
+        # addSpacing(size)
+        # addStretch([stretch=0])
+
         if "MyQWidget" in str(qt_gui_shim.QWidget.setStyleSheet):
             print("already hooked, nothing to do")
         else:
@@ -606,5 +613,26 @@ class PySide2Patcher(object):
         cls._patch_QSize(qt_core_shim)
         cls._patch_QSpacerItem(qt_gui_shim)
         cls._patch_QHBoxLayout(qt_gui_shim)
+
+        # print("Patcher run !!!")
+        # print()
+
+        #print("QDialog MRO 1:")
+        # for i in QtWidgets.QDialog.mro():
+        #     print("  ", i)
+        # print()
+
+        # print("QDialog MRO 2:")
+        # for i in QtWidgets.QDialog.mro():
+        #     print("  ", i)
+        # print()
+
+        # print("QWidget MRO 1:")
+        # for i in qt_gui_shim.QWidget.mro():
+        #     print("  ", i)
+        # print()
+
+        # print("PySide2.QtWidgets.QWidget:", PySide2.QtWidgets.QWidget)
+        # print("qt_gui_shim.QWidget      :", qt_gui_shim.QWidget
 
         return qt_core_shim, qt_gui_shim

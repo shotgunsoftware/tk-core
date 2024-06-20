@@ -129,6 +129,13 @@ class LoginDialog(QtGui.QDialog):
         parent=None,
         session_metadata=None,
     ):
+        
+        
+        # print("LG MRO:")
+        # for i in LoginDialog.mro():
+        #     print("  ", i)
+        # print()
+        
         """
         Constructs a dialog.
 
