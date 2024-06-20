@@ -2217,7 +2217,7 @@ class Engine(TankBundle):
             self.__initialize_dark_look_and_feel_qt5_qt6()
         else:
             self.log_warning(
-                "Neither Qt5 or Qt6 is not available. Toolkit styling will not be applied."
+                "Neither Qt5 or Qt6 is available. Toolkit styling will not be applied."
             )
 
     def __initialize_dark_look_and_feel_qt5_qt6(self):
