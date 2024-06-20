@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.21.5 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.21.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.5.<br>
+    <b>tk-core</b> v0.21.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -772,17 +772,6 @@
 <span class="sd">        :returns bool: boolean value indicating if Qt 6 is available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt6</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_qt4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Indicates that the host application has access to Qt 4 and that the ``sgtk.platform.qt``  module</span>
-<span class="sd">        has been populated with the Qt 4 modules and information.</span>
-
-<span class="sd">        :returns bool: boolean value indicating if Qt 4 is available.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Check if Qt was imported. Then checks if a Qt4 compatible api is available.</span>
-        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qt</span><span class="p">,</span> <span class="s2">&quot;QtGui&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span><span class="p">,</span> <span class="s2">&quot;QApplication&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">metrics_dispatch_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2346,7 +2335,6 @@
 <span class="sd">        (for Qt5/Qt6), and set it up with a standard dark palette and supporting</span>
 <span class="sd">        stylesheet.</span>
 
-<span class="sd">        `Qt4 setStyle documentation &lt;http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2&gt;`_</span>
 <span class="sd">        `Qt5 setStyle documentation &lt;https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1&gt;`_</span>
 <span class="sd">        `Qt6 setStyle documentation &lt;https://doc.qt.io/qt-6/qapplication.html#setStyle-1&gt;`_</span>
 
@@ -2358,12 +2346,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt5</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt6</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Applying Qt5/Qt6-specific styling (Fusion)...&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_dark_look_and_feel_qt5_qt6</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_qt4</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Applying Qt4-specific styling...&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__initialize_dark_look_and_feel_qt4</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_warning</span><span class="p">(</span>
-                <span class="s2">&quot;Neither Qt4 or Qt5 is available. Toolkit styling will not be applied.&quot;</span>
+                <span class="s2">&quot;Neither Qt5 or Qt6 is available. Toolkit styling will not be applied.&quot;</span>
             <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__initialize_dark_look_and_feel_qt5_qt6</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2545,93 +2530,6 @@
         <span class="c1"># a couple of styling quirks in the tank dialog header when it&#39;s</span>
         <span class="c1"># used with the fusion style.</span>
         <span class="n">app</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;.QWidget { font-size: 11px; }&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__initialize_dark_look_and_feel_qt4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Applies a dark style for Qt4 environments. This sets the &quot;plastique&quot;</span>
-<span class="sd">        style at the application level, and then loads a Maya-2014-like QPalette</span>
-<span class="sd">        to give a consistent dark theme to all widgets owned by the current</span>
-<span class="sd">        application. Lastly, a stylesheet is read from disk and applied.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
-
-        <span class="c1"># Since know we have a QApplication at this point, go ahead and make</span>
-        <span class="c1"># sure the bundled fonts are loaded</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_core_fonts_loaded</span><span class="p">()</span>
-
-        <span class="c1"># initialize our style</span>
-        <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="s2">&quot;plastique&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Read in a serialized version of a palette</span>
-        <span class="c1"># this file was generated in the following way:</span>
-        <span class="c1">#</span>
-        <span class="c1"># Inside of maya 2014, the following code was executed:</span>
-        <span class="c1">#</span>
-        <span class="c1"># from PySide import QtGui, QtCore</span>
-        <span class="c1"># app = QtCore.QCoreApplication.instance()</span>
-        <span class="c1"># fh = QtCore.QFile(&quot;/tmp/palette.dump&quot;)</span>
-        <span class="c1"># fh.open(QtCore.QIODevice.WriteOnly)</span>
-        <span class="c1"># out = QtCore.QDataStream(fh)</span>
-        <span class="c1"># out.__lshift__( app.palette() )</span>
-        <span class="c1"># fh.close()</span>
-        <span class="c1">#</span>
-        <span class="c1"># When we load this up in our engine, we will get a look</span>
-        <span class="c1"># and feel similar to that of maya.</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># open palette file</span>
-            <span class="n">palette_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;dark_palette.qpalette&quot;</span><span class="p">)</span>
-            <span class="n">fh</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QFile</span><span class="p">(</span><span class="n">palette_file</span><span class="p">)</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QIODevice</span><span class="o">.</span><span class="n">ReadOnly</span><span class="p">)</span>
-            <span class="n">file_in</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QDataStream</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
-
-            <span class="c1"># deserialize the palette</span>
-            <span class="c1"># (store it for GC purposes)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="p">()</span>
-            <span class="n">file_in</span><span class="o">.</span><span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="p">)</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-            <span class="c1"># set the std selection bg color to be &#39;PTR blue&#39;</span>
-            <span class="n">highlight_color</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QBrush</span><span class="p">(</span>
-                <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SG_STYLESHEET_CONSTANTS</span><span class="p">[</span><span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">])</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="o">.</span><span class="n">Highlight</span><span class="p">,</span> <span class="n">highlight_color</span><span class="p">)</span>
-
-            <span class="c1"># update link colors</span>
-            <span class="n">fg_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="o">.</span><span class="n">setColor</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="o">.</span><span class="n">Link</span><span class="p">,</span> <span class="n">fg_color</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="o">.</span><span class="n">setColor</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="o">.</span><span class="n">LinkVisited</span><span class="p">,</span> <span class="n">fg_color</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span>
-                <span class="n">QtGui</span><span class="o">.</span><span class="n">QPalette</span><span class="o">.</span><span class="n">HighlightedText</span><span class="p">,</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QBrush</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="s2">&quot;#FFFFFF&quot;</span><span class="p">))</span>
-            <span class="p">)</span>
-
-            <span class="c1"># and associate it with the qapplication</span>
-            <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">setPalette</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dark_palette</span><span class="p">)</span>
-
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span>
-                <span class="s2">&quot;The standard toolkit dark palette could not be set up! The look and feel of your &quot;</span>
-                <span class="s2">&quot;toolkit apps may be sub standard. Please contact support. Details: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                <span class="o">%</span> <span class="n">e</span>
-            <span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># read css</span>
-            <span class="n">css_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_platform_resource_path</span><span class="p">(</span><span class="s2">&quot;dark_palette.css&quot;</span><span class="p">)</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_file</span><span class="p">)</span>
-            <span class="n">css_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">css_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_sg_stylesheet_tokens</span><span class="p">(</span><span class="n">css_data</span><span class="p">)</span>
-            <span class="n">app</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
-
-            <span class="n">app</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">css_data</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span>
-                <span class="s2">&quot;The standard toolkit dark stylesheet could not be set up! The look and feel of your &quot;</span>
-                <span class="s2">&quot;toolkit apps may be sub standard. Please contact support. Details: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                <span class="o">%</span> <span class="n">e</span>
-            <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_standard_qt_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
