@@ -372,10 +372,14 @@ class PySide2Patcher(object):
                 return getattr(self, "orig_stylesheet_content", "")
 
             def setStyleSheet(self, *args, **kwargs):
+                # print("MyQWidget::setStyleSheet", args,  kwargs))
+
                 if len(args) == 1 and isinstance(args[0], str):
                     self.orig_stylesheet_content = args[0]
 
+                    # print("   override css")
                     args = [re_css.sub(css_re_callback, args[0])]
+                    # print()
 
                 return original_QWidget_setStyleSheet(self, *args, **kwargs)
 
@@ -383,15 +387,23 @@ class PySide2Patcher(object):
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     self.orig_stylesheet_content = args[0]
 
+                    # print("   override resize")
                     args = [args[0]*2, args[1]*2]
 
                 return original_QWidget_resize(self, *args, **kwargs)
 
             def setContentsMargins(self, *args, **kwargs):
+                print(f"MyQWidget::setContentsMargins {args=}")
                 if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [args[0]*2, args[1]*2, args[2]*2, args[3]*2]
+                    print(f"   override {args=}")
 
                 return original_QWidget_setContentsMargins(self, *args, **kwargs)
+
+            ## TODO: do the same with:
+            # setSpacing
+            # setMargin
+            # setStretch / setHorizontalStretch / setVerticalStretch ??
 
         QtGui.QWidget.setContentsMargins = MyQWidget.setContentsMargins
         QtGui.QWidget.styleSheet = MyQWidget.styleSheet
@@ -404,14 +416,18 @@ class PySide2Patcher(object):
 
         class MyQLayout:
             def setContentsMargins(self, *args, **kwargs):
+                print(f"MyQLayout::setContentsMargins {args=}")
                 if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [args[0]*2, args[1]*2, args[2]*2, args[3]*2]
+                    print(f"   override {args=}")
 
                 return original_QLayout_setContentsMargins(self, *args, **kwargs)
 
             def setSpacing(self, *args, **kwargs):
+                print("MyQLayout::setSpacing")
                 if len(args) and isinstance(args[0], int):
                     self.orig_stylesheet_content = args[0]
+                    print(f"   override {args=}")
                     args = [args[0]*2, *args[1:]]
 
                 return original_QLayout_setSpacing(self, *args, **kwargs)
@@ -431,14 +447,22 @@ class PySide2Patcher(object):
         original_QHBoxLayout = QtGui.QHBoxLayout
 
         class MyQHBoxLayout(original_QHBoxLayout):
+            # TODO
+            # addSpacing(size)
+            # addStretch([stretch=0])
+
             def setSpacing(self, *args, **kwargs):
+                print()
+                print(f"MyQHBoxLayout::setSpacing {args=}")
                 if len(args) and isinstance(args[0], int):
                     self.orig_stylesheet_content = args[0]
                     args = [args[0]*2, *args[1:]]
+                    print(f"   override {args=}")
 
                 return original_QHBoxLayout.setSpacing(self, *args, **kwargs)
 
             def spacing(self, *args, **kwargs):
+                print(f"MyQHBoxLayout::spacing {args=}")
                 return original_QHBoxLayout.spacing(self, *args, **kwargs)
 
         QtGui.QHBoxLayout = MyQHBoxLayout
@@ -449,8 +473,11 @@ class PySide2Patcher(object):
 
         class MyQLabel(original_QLabel):
             def setMargin(self, *args, **kwargs):
+                print(f"MyQLabel::setMargin {args=}")
+
                 if len(args) and isinstance(args[0], int):
                     args = [args[0] * 2, *args[1:]]
+                    print(f"   override {args=}")
 
                 return original_QLabel.setMargin(self, *args, **kwargs)
 
@@ -462,9 +489,11 @@ class PySide2Patcher(object):
 
         class MyQSize(original_QSize):
             def __init__(self, *args):
+                print(f"MyQSize {args=}")
 
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = (args[0] * 2, args[1] * 2)
+                    print(f"    override {args=}")
 
                 original_QSize.__init__(self, *args)
 
@@ -476,12 +505,17 @@ class PySide2Patcher(object):
 
         class MyQSpacerItem(original_QSpacerItem):
             def __init__(self, *args, **kwargs):
+                print()
+                print(f"MyQSpacerItem {args=}")
+
                 if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [args[0] * 2, args[1] * 2, *args[2:]]
+                    print(f"    override {args=}")
 
                 original_QSpacerItem.__init__(self, *args, **kwargs)
 
             def changeSize(self, *args, **kwargs):
+                print(f"MyQSpacerItem::changeSize {args=}")
 
                 if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [args[0] * 2, args[1] * 2, *args[2:]]
@@ -528,12 +562,33 @@ class PySide2Patcher(object):
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
         if "MyQWidget" in str(qt_gui_shim.QWidget.setStyleSheet):
-            pass
+            print("already hooked, nothing to do")
         else:
             cls._patch_QWidget(qt_gui_shim)
             cls._patch_QLabel(qt_gui_shim)
             cls._patch_QSize(qt_core_shim)
             cls._patch_QSpacerItem(qt_gui_shim)
             cls._patch_QHBoxLayout(qt_gui_shim)
+
+        # print("Patcher run !!!")
+        # print()
+
+        #print("QDialog MRO 1:")
+        # for i in QtWidgets.QDialog.mro():
+        #     print("  ", i)
+        # print()
+
+        # print("QDialog MRO 2:")
+        # for i in QtWidgets.QDialog.mro():
+        #     print("  ", i)
+        # print()
+
+        # print("QWidget MRO 1:")
+        # for i in qt_gui_shim.QWidget.mro():
+        #     print("  ", i)
+        # print()
+
+        # print("PySide2.QtWidgets.QWidget:", PySide2.QtWidgets.QWidget)
+        # print("qt_gui_shim.QWidget      :", qt_gui_shim.QWidget
 
         return qt_core_shim, qt_gui_shim
