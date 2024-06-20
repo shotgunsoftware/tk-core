@@ -233,7 +233,7 @@ QPushButton.main:pressed
            </widget>
           </item>
           <item>
-           <widget class="Qt5LikeLineEdit" name="password">
+           <widget class="QLineEdit" name="password">
             <property name="minimumSize">
              <size>
               <width>308</width>
@@ -437,7 +437,7 @@ QPushButton.main:pressed
               </widget>
              </item>
              <item>
-              <widget class="Qt5LikeLineEdit" name="_2fa_code">
+              <widget class="QLineEdit" name="_2fa_code">
                <property name="accessibleName">
                 <string>2fa code</string>
                </property>
@@ -594,7 +594,7 @@ QPushButton.main:pressed
               </widget>
              </item>
              <item>
-              <widget class="Qt5LikeLineEdit" name="backup_code">
+              <widget class="QLineEdit" name="backup_code">
                <property name="accessibleName">
                 <string>backup code</string>
                </property>
@@ -774,11 +774,6 @@ QPushButton.main:pressed
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>Qt5LikeLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>.qt5_like_line_edit</header>
-  </customwidget>
   <customwidget>
    <class>RecentBox</class>
    <extends>QComboBox</extends>

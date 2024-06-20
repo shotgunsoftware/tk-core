@@ -643,17 +643,6 @@ class Engine(TankBundle):
         return self.__has_qt6
 
     @property
-    def has_qt4(self):
-        """
-        Indicates that the host application has access to Qt 4 and that the ``sgtk.platform.qt``  module
-        has been populated with the Qt 4 modules and information.
-
-        :returns bool: boolean value indicating if Qt 4 is available.
-        """
-        # Check if Qt was imported. Then checks if a Qt4 compatible api is available.
-        return hasattr(qt, "QtGui") and hasattr(qt.QtGui, "QApplication")
-
-    @property
     def metrics_dispatch_allowed(self):
         """
         Indicates this engine will allow the metrics worker threads to forward
@@ -2215,7 +2204,6 @@ class Engine(TankBundle):
         (for Qt5/Qt6), and set it up with a standard dark palette and supporting
         stylesheet.
 
-        `Qt4 setStyle documentation <http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2>`_
         `Qt5 setStyle documentation <https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1>`_
         `Qt6 setStyle documentation <https://doc.qt.io/qt-6/qapplication.html#setStyle-1>`_
 
@@ -2227,12 +2215,9 @@ class Engine(TankBundle):
         if self.has_qt5 or self.has_qt6:
             self.log_debug("Applying Qt5/Qt6-specific styling (Fusion)...")
             self.__initialize_dark_look_and_feel_qt5_qt6()
-        elif self.has_qt4:
-            self.log_debug("Applying Qt4-specific styling...")
-            self.__initialize_dark_look_and_feel_qt4()
         else:
             self.log_warning(
-                "Neither Qt4 or Qt5 is available. Toolkit styling will not be applied."
+                "Neither Qt5 or Qt6 is available. Toolkit styling will not be applied."
             )
 
     def __initialize_dark_look_and_feel_qt5_qt6(self):
@@ -2414,93 +2399,6 @@ class Engine(TankBundle):
         # a couple of styling quirks in the tank dialog header when it's
         # used with the fusion style.
         app.setStyleSheet(".QWidget { font-size: 11px; }")
-
-    def __initialize_dark_look_and_feel_qt4(self):
-        """
-        Applies a dark style for Qt4 environments. This sets the "plastique"
-        style at the application level, and then loads a Maya-2014-like QPalette
-        to give a consistent dark theme to all widgets owned by the current
-        application. Lastly, a stylesheet is read from disk and applied.
-        """
-        from .qt import QtGui, QtCore
-
-        # Since know we have a QApplication at this point, go ahead and make
-        # sure the bundled fonts are loaded
-        self._ensure_core_fonts_loaded()
-
-        # initialize our style
-        QtGui.QApplication.setStyle("plastique")
-
-        # Read in a serialized version of a palette
-        # this file was generated in the following way:
-        #
-        # Inside of maya 2014, the following code was executed:
-        #
-        # from PySide import QtGui, QtCore
-        # app = QtCore.QCoreApplication.instance()
-        # fh = QtCore.QFile("/tmp/palette.dump")
-        # fh.open(QtCore.QIODevice.WriteOnly)
-        # out = QtCore.QDataStream(fh)
-        # out.__lshift__( app.palette() )
-        # fh.close()
-        #
-        # When we load this up in our engine, we will get a look
-        # and feel similar to that of maya.
-
-        try:
-            # open palette file
-            palette_file = self.__get_platform_resource_path("dark_palette.qpalette")
-            fh = QtCore.QFile(palette_file)
-            fh.open(QtCore.QIODevice.ReadOnly)
-            file_in = QtCore.QDataStream(fh)
-
-            # deserialize the palette
-            # (store it for GC purposes)
-            self._dark_palette = QtGui.QPalette()
-            file_in.__rshift__(self._dark_palette)
-            fh.close()
-
-            # set the std selection bg color to be 'PTR blue'
-            highlight_color = QtGui.QBrush(
-                QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"])
-            )
-            self._dark_palette.setBrush(QtGui.QPalette.Highlight, highlight_color)
-
-            # update link colors
-            fg_color = self._dark_palette.color(QtGui.QPalette.Text)
-            self._dark_palette.setColor(QtGui.QPalette.Link, fg_color)
-            self._dark_palette.setColor(QtGui.QPalette.LinkVisited, fg_color)
-
-            self._dark_palette.setBrush(
-                QtGui.QPalette.HighlightedText, QtGui.QBrush(QtGui.QColor("#FFFFFF"))
-            )
-
-            # and associate it with the qapplication
-            QtGui.QApplication.setPalette(self._dark_palette)
-
-        except Exception as e:
-            self.log_error(
-                "The standard toolkit dark palette could not be set up! The look and feel of your "
-                "toolkit apps may be sub standard. Please contact support. Details: %s"
-                % e
-            )
-
-        try:
-            # read css
-            css_file = self.__get_platform_resource_path("dark_palette.css")
-            f = open(css_file)
-            css_data = f.read()
-            f.close()
-            css_data = self._resolve_sg_stylesheet_tokens(css_data)
-            app = QtCore.QCoreApplication.instance()
-
-            app.setStyleSheet(css_data)
-        except Exception as e:
-            self.log_error(
-                "The standard toolkit dark stylesheet could not be set up! The look and feel of your "
-                "toolkit apps may be sub standard. Please contact support. Details: %s"
-                % e
-            )
 
     def _get_standard_qt_stylesheet(self):
         """

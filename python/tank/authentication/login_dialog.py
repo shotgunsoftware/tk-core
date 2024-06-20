@@ -419,17 +419,6 @@ class LoginDialog(QtGui.QDialog):
         Called when the user is done editing the site. It will refresh the
         list of recent users.
         """
-
-        # When running with PySide/Qt4, the editingFinished event is trigger
-        # even if the text field has not changed.
-        # This is not the case in PySide2/Qt5 or PySide6/Qt6.
-        if (
-            qt_version_tuple[0] == 4
-            and self._get_current_site() == self.host_selected
-        ):
-            logger.debug("_on_site_changed - host has not changed")
-            return
-
         self.ui.login.clear()
         self._populate_user_dropdown(self._get_current_site())
         self._update_ui_according_to_site_support()
