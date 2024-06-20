@@ -375,21 +375,36 @@ class PySide2Patcher(object):
                 if len(args) == 1 and isinstance(args[0], str):
                     self.orig_stylesheet_content = args[0]
 
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print("MyQWidget::setStyleSheet")
+                        print(self.orig_stylesheet_content)
                     args = [re_css.sub(css_re_callback, args[0])]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print("  override css")
+                        print(args[0])
+                        print()
 
                 return original_QWidget_setStyleSheet(self, *args, **kwargs)
 
             def resize(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQWidget::resize {args=}")
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     self.orig_stylesheet_content = args[0]
 
                     args = [args[0]*2, args[1]*2]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override resize {args=}")
 
                 return original_QWidget_resize(self, *args, **kwargs)
 
             def setContentsMargins(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQWidget::setContentsMargins {args=}")
                 if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [args[0]*2, args[1]*2, args[2]*2, args[3]*2]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override {args=}")
 
                 return original_QWidget_setContentsMargins(self, *args, **kwargs)
 
@@ -404,14 +419,22 @@ class PySide2Patcher(object):
 
         class MyQLayout:
             def setContentsMargins(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQLayout::setContentsMargins {args=}")
                 if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [args[0]*2, args[1]*2, args[2]*2, args[3]*2]
+                    if "GLOBAL_DEBUG" in os.environ:
+                       print(f"  override {args=}")
 
                 return original_QLayout_setContentsMargins(self, *args, **kwargs)
 
             def setSpacing(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print("MyQLayout::setSpacing")
                 if len(args) and isinstance(args[0], int):
                     self.orig_stylesheet_content = args[0]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override {args=}")
                     args = [args[0]*2, *args[1:]]
 
                 return original_QLayout_setSpacing(self, *args, **kwargs)
@@ -432,13 +455,20 @@ class PySide2Patcher(object):
 
         class MyQHBoxLayout(original_QHBoxLayout):
             def setSpacing(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print()
+                    print(f"MyQHBoxLayout::setSpacing {args=}")
                 if len(args) and isinstance(args[0], int):
                     self.orig_stylesheet_content = args[0]
                     args = [args[0]*2, *args[1:]]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override {args=}")
 
                 return original_QHBoxLayout.setSpacing(self, *args, **kwargs)
 
             def spacing(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQHBoxLayout::spacing {args=}")
                 return original_QHBoxLayout.spacing(self, *args, **kwargs)
 
         QtGui.QHBoxLayout = MyQHBoxLayout
@@ -449,8 +479,13 @@ class PySide2Patcher(object):
 
         class MyQLabel(original_QLabel):
             def setMargin(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQLabel::setMargin {args=}")
+
                 if len(args) and isinstance(args[0], int):
                     args = [args[0] * 2, *args[1:]]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override {args=}")
 
                 return original_QLabel.setMargin(self, *args, **kwargs)
 
@@ -462,9 +497,22 @@ class PySide2Patcher(object):
 
         class MyQSize(original_QSize):
             def __init__(self, *args):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQSize {args=}")
 
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
-                    args = (args[0] * 2, args[1] * 2)
+                    args2x = args[0] * 2
+                    args2y = args[1] * 2
+
+                    if args2x >= 16777215:
+                        args2x = args[0]
+
+                    if args2y >= 16777215:
+                        args2y = args[1]
+                    
+                    args = (args2x, args2y)
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"   override {args=}")
 
                 original_QSize.__init__(self, *args)
 
@@ -476,19 +524,41 @@ class PySide2Patcher(object):
 
         class MyQSpacerItem(original_QSpacerItem):
             def __init__(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print()
+                    print(f"MyQSpacerItem {args=}")
+
                 if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [args[0] * 2, args[1] * 2, *args[2:]]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override {args=}")
 
                 original_QSpacerItem.__init__(self, *args, **kwargs)
 
             def changeSize(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQSpacerItem::changeSize {args=}")
 
                 if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [args[0] * 2, args[1] * 2, *args[2:]]
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override {args=}")
 
                 original_QSpacerItem.changeSize(self, *args, **kwargs)
 
         QtGui.QSpacerItem = MyQSpacerItem
+
+    @classmethod
+    def _patch_QPixmap(cls, QtGui):
+        original_QPixmap_init = QtGui.QPixmap.__init__
+        class MyQPixmap:
+            def __init__(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print("MyQPixmap.__init__", args,  kwargs)
+
+                return original_QPixmap_init(self, *args, **kwargs)
+
+        QtGui.QPixmap.__init__ = MyQPixmap.__init__
 
     @classmethod
     def patch(cls, QtCore, QtGui, QtWidgets, PySide2):
@@ -528,12 +598,13 @@ class PySide2Patcher(object):
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
         if "MyQWidget" in str(qt_gui_shim.QWidget.setStyleSheet):
-            pass
+            print("already hooked, nothing to do")
         else:
             cls._patch_QWidget(qt_gui_shim)
-            cls._patch_QLabel(qt_gui_shim)
-            cls._patch_QSize(qt_core_shim)
-            cls._patch_QSpacerItem(qt_gui_shim)
-            cls._patch_QHBoxLayout(qt_gui_shim)
+
+        cls._patch_QLabel(qt_gui_shim)
+        cls._patch_QSize(qt_core_shim)
+        cls._patch_QSpacerItem(qt_gui_shim)
+        cls._patch_QHBoxLayout(qt_gui_shim)
 
         return qt_core_shim, qt_gui_shim
