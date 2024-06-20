@@ -380,22 +380,6 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-            # Then try PySide 1
-            try:
-                pyside = self._import_pyside()
-                logger.debug("Imported PySide1.")
-                return pyside
-            except ImportError:
-                pass
-
-            # Then try PyQt4
-            try:
-                pyqt = self._import_pyqt4()
-                logger.debug("Imported PyQt4.")
-                return pyqt
-            except ImportError:
-                pass
-
             # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
             # require PySide6 to run with the current support
             try:
