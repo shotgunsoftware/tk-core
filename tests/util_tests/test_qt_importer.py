@@ -85,7 +85,7 @@ class QtImporterTests(TankTestBase):
         """
         Test the QtImporter constructor with default interface version requested.
 
-        This test only runs if PySide6 is available and PySide2 are not available.
+        This test only runs if PySide6 is available and PySide2 is not available.
         """
 
         qt = qt_importer.QtImporter(qt_importer.QtImporter.QT4)
