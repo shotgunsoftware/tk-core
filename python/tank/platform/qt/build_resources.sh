@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 #
 # Copyright (c) 2015 Shotgun Software Inc.
 #
@@ -10,24 +11,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# The path to where the PySide binaries are installed
-PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
-
-# Remove any problematic profiles from pngs.
-for f in *.png; do mogrify $f; done
-
-# The path to output all built .py files to:
-UI_PYTHON_PATH=.
+if [ -z "${PYTHON_BASE}" ]; then
+    # The path to where the PySide binaries are installed
+    PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
+fi
 
 # Helper functions to build UI files
 function build_qt {
     echo " > Building " $2
 
     # compile ui to python
-    $1 $2 > $UI_PYTHON_PATH/$3.py
+    $1 $2 > $3.py
 
     # replace PySide imports with local imports and remove line containing Created by date
-    sed -i "" -e "s/from PySide import/from . import/g" -e "/# Created:/d" $UI_PYTHON_PATH/$3.py
+    sed -i"" -e "s/from PySide import/from . import/g" -e "/# Created:/d" $3.py
 }
 
 function build_ui {
