@@ -5,6 +5,9 @@
   <qresource prefix="shotgun_authentication">
     <file>down-arrow.png</file>
   </qresource>
+  <qresource prefix="shotgun_authentication">
+    <file>down-arrow2x.png</file>
+  </qresource>
   <qresource prefix="backup_codes">
     <file>backup_codes_light_bg.png</file>
   </qresource>
