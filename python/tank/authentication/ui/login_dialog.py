@@ -38,12 +38,6 @@ class Ui_LoginDialog(object):
 "    subcontrol-position: right center;\n"
 "}\n"
 "\n"
-"QPushButton:menu-indicator:button {\n"
-"    border: 1px solid rgb(54, 60, 66);\n"
-"    width: 64px;\n"
-"    height: 64px;\n"
-"}\n"
-"\n"
 "QPushButton QMenu::item {\n"
 "    padding: 15px;\n"
 "    border: 1px solid transparent;\n"
@@ -100,16 +94,10 @@ class Ui_LoginDialog(object):
 "\n"
 "QComboBox:drop-down:button {\n"
 "    border: 1px solid rgb(54, 60, 66);\n"
-# "    width: 64px;\n"
-# "    height: 64px;\n"
 "}\n"
 "\n"
 "QComboBox:down-arrow {\n"
 "    image: url(:/shotgun_authentication/down-arrow.png);\n"
-"    icon-size: 40px;\n"
-"    qproperty-iconSize: 64px 64px;\n"
-# "    width: 70px;\n"
-# "    height: 70px;\n"
 "}\n"
 "\n"
 "QLineEdit:disabled {\n"
@@ -186,7 +174,6 @@ class Ui_LoginDialog(object):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.site = RecentBox(self.credentials)
         self.site.setObjectName("site")
-        self.site.setIconSize(QtCore.QSize(64, 64))
         self.verticalLayout_7.addWidget(self.site)
         self.login = RecentBox(self.credentials)
         self.login.setObjectName("login")
