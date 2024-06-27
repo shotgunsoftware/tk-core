@@ -164,7 +164,7 @@ TextLabel</string>
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="details">
+           <widget class="QToolButton" name="details_show">
             <property name="minimumSize">
              <size>
               <width>34</width>
@@ -186,12 +186,11 @@ border: none;
 background-color: none;
 }
 
-
 QToolButton:hover{
 background-image: url(:/Tank.Platform.Qt/arrow_hover.png);
 }
 
-QToolButton:Pressed {
+QToolButton:pressed{
 background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);
 }
 </string>
@@ -204,6 +203,49 @@ background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);
             </property>
            </widget>
           </item>
+          <item>
+            <widget class="QToolButton" name="details_hide">
+             <property name="minimumSize">
+              <size>
+               <width>34</width>
+               <height>34</height>
+              </size>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
+             <property name="toolTip">
+              <string>Hide App Details</string>
+             </property>
+             <property name="visible">
+              <bool>false</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QToolButton{
+ width: 12px;
+ height: 20px;
+ background-image: url(:/Tank.Platform.Qt/arrow_flipped.png);
+ border: none;
+ background-color: none;
+ }
+
+ QToolButton:hover{
+ background-image: url(:/Tank.Platform.Qt/arrow_flipped_hover.png);
+ }
+
+ QToolButton:pressed{
+ background-image: url(:/Tank.Platform.Qt/arrow_flipped_pressed.png);
+ }
+ </string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
          </layout>
         </widget>
        </item>

@@ -42,6 +42,7 @@ import uuid                                # used for attachment upload
 import os
 import re
 import copy
+import ssl
 import stat                                # used for attachment upload
 import sys
 import time
@@ -111,18 +112,10 @@ Sometimes there are cases where certificate validation should be disabled. For e
 have a self-signed internal certificate that isn't included in our certificate bundle, you may
 not require the added security provided by enforcing this.
 """
-try:
-    import ssl
-except ImportError as e:
-    if "SHOTGUN_FORCE_CERTIFICATE_VALIDATION" in os.environ:
-        raise ImportError("%s. SHOTGUN_FORCE_CERTIFICATE_VALIDATION environment variable prevents "
-                          "disabling SSL certificate validation." % e)
-    LOG.debug("ssl not found, disabling certificate validation")
-    NO_SSL_VALIDATION = True
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.6.0"
+__version__ = "3.6.1"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -500,6 +493,8 @@ class Shotgun(object):
         r"(\D?([01]\d|2[0-3])\D?([0-5]\d)\D?([0-5]\d)?\D?(\d{3})?)?$")
 
     _MULTIPART_UPLOAD_CHUNK_SIZE = 20000000
+    MAX_ATTEMPTS = 3    # Retries on failure
+    BACKOFF = 0.75      # Seconds to wait before retry, times the attempt number
 
     def __init__(self,
                  base_url,
@@ -2567,30 +2562,12 @@ class Shotgun(object):
 
         params.update(self._auth_params())
 
-        # If we ended up with a unicode string path, we need to encode it
-        # as a utf-8 string. If we don't, there's a chance that there will
-        # will be an attempt later on to encode it as an ascii string, and
-        # that will fail ungracefully if the path contains any non-ascii
-        # characters.
-        #
-        # On Windows, if the path contains non-ascii characters, the calls
-        # to open later in this method will fail to find the file if given
-        # a non-ascii-encoded string path. In that case, we're going to have
-        # to call open on the unicode path, but we'll use the encoded string
-        # for everything else.
-        path_to_open = path
-        if isinstance(path, six.text_type):
-            path = path.encode("utf-8")
-            if sys.platform != "win32":
-                path_to_open = path
-
         if is_thumbnail:
             url = urllib.parse.urlunparse((self.config.scheme, self.config.server,
                                            "/upload/publish_thumbnail", None, None, None))
-            params["thumb_image"] = open(path_to_open, "rb")
+            params["thumb_image"] = open(path, "rb")
             if field_name == "filmstrip_thumb_image" or field_name == "filmstrip_image":
                 params["filmstrip"] = True
-
         else:
             url = urllib.parse.urlunparse((self.config.scheme, self.config.server,
                                            "/upload/upload_file", None, None, None))
@@ -2604,7 +2581,7 @@ class Shotgun(object):
             if tag_list:
                 params["tag_list"] = tag_list
 
-            params["file"] = open(path_to_open, "rb")
+            params["file"] = open(path, "rb")
 
         result = self._send_form(url, params)
 
@@ -2718,14 +2695,16 @@ class Shotgun(object):
         if url is None:
             return None
 
-        # We only need to set the auth cookie for downloads from Shotgun server
+        cookie_handler = None
         if self.config.server in url:
-            self.set_up_auth_cookie()
+            # We only need to set the auth cookie for downloads from Shotgun server
+            cookie_handler = self.get_auth_cookie_handler()
 
+        opener = self._build_opener(cookie_handler)
         try:
             request = urllib.request.Request(url)
             request.add_header("user-agent", "; ".join(self._user_agents))
-            req = urllib.request.urlopen(request)
+            req = opener.open(request)
             if file_path:
                 shutil.copyfileobj(req, fp)
             else:
@@ -2766,21 +2745,21 @@ class Shotgun(object):
             else:
                 return attachment
 
-    def set_up_auth_cookie(self):
+    def get_auth_cookie_handler(self):
         """
-        Set up urllib2 with a cookie for authentication on the Shotgun instance.
+        Return an urllib cookie handler containing a cookie for FPTR
+        authentication.
 
-        Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is
-        used internally for downloading attachments from the Shotgun server.
+        Looks up session token and sets that in a cookie in the :mod:`urllib2`
+        handler.
+        This is used internally for downloading attachments from FPTR.
         """
         sid = self.get_session_token()
         cj = http_cookiejar.LWPCookieJar()
         c = http_cookiejar.Cookie("0", "_session_id", sid, None, False, self.config.server, False,
                                   False, "/", True, False, None, True, None, None, {})
         cj.set_cookie(c)
-        cookie_handler = urllib.request.HTTPCookieProcessor(cj)
-        opener = self._build_opener(cookie_handler)
-        urllib.request.install_opener(opener)
+        return urllib.request.HTTPCookieProcessor(cj)
 
     def get_attachment_download_url(self, attachment):
         """
@@ -3431,10 +3410,7 @@ class Shotgun(object):
             req_headers["locale"] = "auto"
 
         attempt = 1
-        max_attempts = 4 # Three retries on failure
-        backoff = 0.75 # Seconds to wait before retry, times the attempt number
-
-        while attempt <= max_attempts:
+        while attempt <= self.MAX_ATTEMPTS:
             http_status, resp_headers, body = self._make_call(
                 "POST",
                 self.config.api_path,
@@ -3452,9 +3428,9 @@ class Shotgun(object):
                 # We've seen some rare instances of PTR returning 502 for issues that
                 # appear to be caused by something internal to PTR. We're going to
                 # allow for limited retries for those specifically.
-                if attempt != max_attempts and e.errcode in [502, 504]:
+                if attempt != self.MAX_ATTEMPTS and e.errcode in [502, 504]:
                     LOG.debug("Got a 502 or 504 response. Waiting and retrying...")
-                    time.sleep(float(attempt) * backoff)
+                    time.sleep(float(attempt) * self.BACKOFF)
                     attempt += 1
                     continue
                 elif e.errcode == 403:
@@ -3594,6 +3570,22 @@ class Shotgun(object):
             attempt += 1
             try:
                 return self._http_request(verb, path, body, req_headers)
+            except ssl.SSLEOFError as e:
+                # SG-34910 - EOF occurred in violation of protocol (_ssl.c:2426)
+                # This issue seems to be related to proxy and keep alive.
+                # It looks like, sometimes, the proxy drops the connection on
+                # the TCP/TLS level despites the keep-alive. So we need to close
+                # the connection and make a new attempt.
+                LOG.debug("SSLEOFError: {}".format(e))
+                self._close_connection()
+                if attempt == max_rpc_attempts:
+                    LOG.debug("Request failed.  Giving up after %d attempts." % attempt)
+                    raise
+                # This is the exact same block as the "except Exception" bellow.
+                # We need to do it here because the next except will match it
+                # otherwise and will not re-attempt.
+                # When we drop support of Python 2 and we will probably drop the
+                # next except, we might want to remove this except too.
             except ssl_error_classes as e:
                 # Test whether the exception is due to the fact that this is an older version of
                 # Python that cannot validate certificates encrypted with SHA-2. If it is, then
@@ -3625,17 +3617,19 @@ class Shotgun(object):
 
                 self._close_connection()
                 if attempt == max_rpc_attempts:
+                    LOG.debug("Request failed.  Giving up after %d attempts." % attempt)
                     raise
             except Exception:
                 self._close_connection()
                 if attempt == max_rpc_attempts:
                     LOG.debug("Request failed.  Giving up after %d attempts." % attempt)
                     raise
-                LOG.debug(
-                    "Request failed, attempt %d of %d.  Retrying in %.2f seconds..." %
-                    (attempt, max_rpc_attempts, rpc_attempt_interval)
-                )
-                time.sleep(rpc_attempt_interval)
+
+            LOG.debug(
+                "Request failed, attempt %d of %d.  Retrying in %.2f seconds..." %
+                (attempt, max_rpc_attempts, rpc_attempt_interval)
+            )
+            time.sleep(rpc_attempt_interval)
 
     def _http_request(self, verb, path, body, headers):
         """
@@ -4143,28 +4137,31 @@ class Shotgun(object):
         request.get_method = lambda: "PUT"
 
         attempt = 1
-        max_attempts = 4  # Three retries on failure
-        backoff = 0.75  # Seconds to wait before retry, times the attempt number
-
-        while attempt <= max_attempts:
+        while attempt <= self.MAX_ATTEMPTS:
             try:
                 result = self._make_upload_request(request, opener)
 
                 LOG.debug("Completed request to %s" % request.get_method())
 
             except urllib.error.HTTPError as e:
-                if attempt != max_attempts and e.code in [500, 503]:
+                if attempt != self.MAX_ATTEMPTS and e.code in [500, 503]:
                     LOG.debug("Got a %s response. Waiting and retrying..." % e.code)
-                    time.sleep(float(attempt) * backoff)
+                    time.sleep(float(attempt) * self.BACKOFF)
                     attempt += 1
                     continue
                 elif e.code in [500, 503]:
                     raise ShotgunError("Got a %s response when uploading to %s: %s" % (e.code, storage_url, e))
                 else:
                     raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
-
+            except urllib.error.URLError as e:
+                LOG.debug("Got a '%s' response. Waiting and retrying..." % e)
+                time.sleep(float(attempt) * self.BACKOFF)
+                attempt += 1
+                continue
             else:
                 break
+        else:
+            raise ShotgunError("Max attemps limit reached.")
 
         etag = result.info()["Etag"]
         LOG.debug("Part upload completed successfully.")
@@ -4250,19 +4247,28 @@ class Shotgun(object):
 
         opener = self._build_opener(FormPostHandler)
 
-        # Perform the request
-        try:
-            resp = opener.open(url, params)
-            result = resp.read()
-            # response headers are in str(resp.info()).splitlines()
-        except urllib.error.HTTPError as e:
-            if e.code == 500:
-                raise ShotgunError("Server encountered an internal error. "
-                                   "\n%s\n(%s)\n%s\n\n" % (url, self._sanitize_auth_params(params), e))
-            else:
-                raise ShotgunError("Unanticipated error occurred %s" % (e))
+        attempt = 1
+        while attempt <= self.MAX_ATTEMPTS:
+            # Perform the request
+            try:
+                resp = opener.open(url, params)
+                result = resp.read()
+                # response headers are in str(resp.info()).splitlines()
+            except urllib.error.URLError as e:
+                LOG.debug("Got a %s response. Waiting and retrying..." % e)
+                time.sleep(float(attempt) * self.BACKOFF)
+                attempt += 1
+                continue
+            except urllib.error.HTTPError as e:
+                if e.code == 500:
+                    raise ShotgunError("Server encountered an internal error. "
+                                    "\n%s\n(%s)\n%s\n\n" % (url, self._sanitize_auth_params(params), e))
+                else:
+                    raise ShotgunError("Unanticipated error occurred %s" % (e))
 
-        return six.ensure_text(result)
+            return six.ensure_text(result)
+        else:
+            raise ShotgunError("Max attemps limit reached.")
 
 
 class CACertsHTTPSConnection(http_client.HTTPConnection):

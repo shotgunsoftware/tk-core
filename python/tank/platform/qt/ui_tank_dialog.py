@@ -98,12 +98,11 @@ class Ui_TankDialog(object):
 "background-color: none;\n"
 "}\n"
 "\n"
-"\n"
 "QToolButton:hover{\n"
 "background-image: url(:/Tank.Platform.Qt/arrow_hover.png);\n"
 "}\n"
 "\n"
-"QToolButton:Pressed {\n"
+"QToolButton:pressed{\n"
 "background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);\n"
 "}\n"
 "")
