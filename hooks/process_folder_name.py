@@ -77,7 +77,7 @@ class ProcessFolderName(Hook):
             except KeyError:
                 str_value = str(value)
 
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             # no conversion required
             str_value = value
 
@@ -110,7 +110,7 @@ class ProcessFolderName(Hook):
             # "word" characters, not just A-Z.
             exp = re.compile(r"\W", re.UNICODE)
 
-        if isinstance(src, six.text_type):
+        if isinstance(src, str):
             # src is unicode so we don't need to convert!
             return exp.sub("-", src)
         else:

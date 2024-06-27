@@ -36,14 +36,10 @@ import json
 import time
 import threading
 import unittest
-from tank_vendor import six
-from tank_vendor.six.moves import urllib
+import urllib
 
 
-if six.PY2:
-    LINUX_DISTRIBUTION_FUNCTION = "platform.linux_distribution"
-else:
-    LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
+LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -234,7 +230,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
+        self._urlopen_mock = mock.patch("urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -310,12 +306,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         for mocked_request in self._get_urllib_request_calls(
             return_only_calls_after_reset
         ):
-            # get_data was removed in Python 3.4. since we're testing against 3.6 and
-            # 3.7, this should be sufficient.
-            if six.PY3:
-                data = mocked_request.data
-            else:
-                data = mocked_request.get_data()
+            data = mocked_request.data
             data = json.loads(data)
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
@@ -367,12 +358,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
             for mocked_request in self._get_urllib_request_calls():
                 found_urllib_request_call = True
-                # get_data was removed in Python 3.4. since we're testing against 3.6 and
-                # 3.7, this should be sufficient.
-                if six.PY3:
-                    data = mocked_request.data
-                else:
-                    data = mocked_request.get_data()
+                data = mocked_request.data
                 data = json.loads(data)
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
@@ -450,15 +436,15 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
         self.assertTrue(
-            isinstance(server_received_metric["event_group"], six.text_type)
+            isinstance(server_received_metric["event_group"], str)
         )
-        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_name"], str))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
@@ -466,19 +452,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 server_received_metric["event_properties"][
                     EventMetric.KEY_HOST_APP_VERSION
                 ],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
-                six.text_type,
+                str,
             )
         )
 
@@ -598,15 +584,15 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("ListProp" in preserved_properties)
 
         self.assertTrue(
-            isinstance(server_received_metric["event_group"], six.text_type)
+            isinstance(server_received_metric["event_group"], str)
         )
-        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_name"], str))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
@@ -614,19 +600,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 server_received_metric["event_properties"][
                     EventMetric.KEY_HOST_APP_VERSION
                 ],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
-                six.text_type,
+                str,
             )
         )
 
@@ -784,7 +770,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = mock.patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+            "urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -848,7 +834,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = mock.patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+            "urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -1127,7 +1113,7 @@ class TestBundleMetrics(TankTestBase):
         # after the loops
         able_to_test_a_framework = False
         # Check metrics logged from apps
-        for app in six.itervalues(engine.apps):
+        for app in engine.apps.values():
             app.log_metric("App test")
             metrics = metrics_queue.get_metrics()
             self.assertEqual(len(metrics), 1)
@@ -1174,7 +1160,7 @@ class TestBundleMetrics(TankTestBase):
                 data["event_properties"][EventMetric.KEY_APP_VERSION], app.version
             )
             self.assertEqual(data["event_properties"][EventMetric.KEY_COMMAND], "Blah")
-            for fw in six.itervalues(app.frameworks):
+            for fw in app.frameworks.values():
                 able_to_test_a_framework = True
                 fw.log_metric("Framework test")
                 metrics = metrics_queue.get_metrics()

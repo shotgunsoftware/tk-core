@@ -25,7 +25,6 @@ import itertools
 from tank_vendor import shotgun_api3
 from tank_vendor import six
 from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import range
 
 json = shotgun_api3.shotgun.json
 
@@ -1859,7 +1858,7 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
+        for (et, sg_records_for_et) in ids_to_look_for.items():
 
             log.info(" - Checking %s %ss in Flow Production Tracking..." % (len(sg_records_for_et), et))
 

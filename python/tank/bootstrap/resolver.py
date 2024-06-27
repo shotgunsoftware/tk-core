@@ -251,10 +251,6 @@ class ConfigurationResolver(object):
             # Resolve config normally
             return self.resolve_configuration(config_descriptor, sg_connection)
 
-        return self._create_configuration_from_descriptor(
-            cfg_descriptor, sg_connection, pc_id=None
-        )
-
     def _create_configuration_from_descriptor(
         self, cfg_descriptor, sg_connection, pc_id
     ):

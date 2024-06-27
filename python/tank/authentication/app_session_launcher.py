@@ -14,10 +14,10 @@ import platform
 import random
 import sys
 import time
+import http
+import urllib
 
 import tank
-from tank_vendor import six
-from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
 from .. import platform as sgtk_platform
@@ -134,7 +134,7 @@ def process(
         )
 
     elif response_code_major == 4:
-        if response.code == http_client.FORBIDDEN and hasattr(response, "json"):
+        if response.code == http.client.FORBIDDEN and hasattr(response, "json"):
             logger.debug(
                 "HTTP response Forbidden: {data}".format(data=response.json),
                 exc_info=getattr(response, "exception", None),
@@ -151,7 +151,7 @@ def process(
             parent_exception=response.exception,
         )
 
-    elif response.code != http_client.OK:
+    elif response.code != http.client.OK:
         raise AuthenticationError(
             "Unexpected response from the Flow Production Tracking site",
             payload=getattr(response, "json", response),
@@ -264,7 +264,7 @@ def process(
                 exc_info=getattr(response, "exception", None),
             )
 
-            if response.code == http_client.NOT_FOUND and hasattr(response, "json"):
+            if response.code == http.client.NOT_FOUND and hasattr(response, "json"):
                 raise AuthenticationError(
                     "The request has been rejected or has expired."
                 )
@@ -274,7 +274,7 @@ def process(
                 parent_exception=getattr(response, "exception", None),
             )
 
-        elif response.code != http_client.OK:
+        elif response.code != http.client.OK:
             logger.debug("Request denied: http code is: {code}".format(
                 code=response.code,
             ))
@@ -356,11 +356,7 @@ def get_product_name():
 
 
 def _get_content_type(headers):
-    if six.PY2:
-        value = headers.get("content-type", "text/plain")
-        return value.split(";", 1)[0].lower()
-    else:
-        return headers.get_content_type()
+    return headers.get_content_type()
 
 
 def http_request(opener, req, max_attempts=4):

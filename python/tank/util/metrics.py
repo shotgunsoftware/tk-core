@@ -19,32 +19,21 @@ are not part of the public Sgtk API.
 ###############################################################################
 # imports
 
+import urllib
+import platform
+
 from collections import deque
 from threading import Event, Thread, Lock
-import platform
-from tank_vendor.six.moves import urllib
 from tank_vendor import six
 from copy import deepcopy
 
 from . import constants, sgre as re
 
 # use api json to cover py 2.5
-from tank_vendor import shotgun_api3, six
+from tank_vendor import shotgun_api3
+from tank_vendor import distro
 
 json = shotgun_api3.shotgun.json
-
-# From Python 3.8 and later, platform.linux_distribution has been removed,
-# so we need something else. Fortunately, the functionality was preserved
-# as the distro package on pypi.org. Given that the functionality is
-# equivalent between the two, we'll use distro for every version of Python 3.
-# As for Python 2, we need to keep using platform as distro is Python 2.7+
-# compliant only.
-if six.PY2:
-    import platform as distro
-else:
-    from tank_vendor import distro
-
-###############################################################################
 
 
 class PlatformInfo(object):

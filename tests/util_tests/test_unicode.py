@@ -10,13 +10,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from unittest import TestCase, skipIf
+import pickle
 import sgtk
-from tank_vendor import six
 
-if six.PY2:
-    char = "漢字"
-    unichar = unicode(char, encoding="utf8")
+from unittest import TestCase, skipIf
+from tank_vendor import six
 
 
 class TestUnicode(TestCase):
@@ -111,6 +109,6 @@ class TestUnicode(TestCase):
                 }
             }
 
-            dumps_value = sgtk.util.pickle.dumps(expected_value)
-            received_value = sgtk.util.pickle.loads(dumps_value)
+            dumps_value = pickle.dumps(expected_value)
+            received_value = pickle.loads(dumps_value)
             self.assertEqual(expected_value, received_value)

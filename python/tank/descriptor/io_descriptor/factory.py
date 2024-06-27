@@ -73,7 +73,7 @@ def create_io_descriptor(
     :raises: :class:`TankDescriptorError`
     """
     # resolve into both dict and uri form
-    if isinstance(dict_or_uri, six.string_types):
+    if isinstance(dict_or_uri, str):
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
     else:
         # make a copy to make sure the original object is never altered
@@ -88,9 +88,8 @@ def create_io_descriptor(
 
     # Ensure that the descrptor version is a str.  For some descriptors a
     # verson is not expected, so if the key doesn't exist we'll do nothing.
-    if isinstance(descriptor_dict.get("version"), six.binary_type):
-        # On Python 2 this will have no effect, but on Python 3, we will decode
-        # bytes to a str.
+    if isinstance(descriptor_dict.get("version"), bytes):
+        # On Python 3, we will decode bytes to a str.
         descriptor_dict["version"] = six.ensure_str(descriptor_dict["version"])
 
     # instantiate the Descriptor
@@ -185,7 +184,7 @@ def is_descriptor_version_missing(dict_or_uri):
     :return: Boolean to indicate if a required version token is missing
     """
     # resolve into both dict and uri form
-    if isinstance(dict_or_uri, six.string_types):
+    if isinstance(dict_or_uri, str):
         descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
     else:
         # make a copy to make sure the original object is never altered

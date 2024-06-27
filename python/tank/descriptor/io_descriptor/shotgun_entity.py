@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
+import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun

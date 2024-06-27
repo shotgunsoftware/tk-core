@@ -16,7 +16,7 @@ from __future__ import with_statement
 import os
 import sys
 import uuid
-from tank_vendor.six.moves import urllib
+import urllib
 import time
 import tempfile
 import zipfile
@@ -126,11 +126,11 @@ def __setup_sg_auth_and_proxy(sg):
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
     # functionality gets ported back into the Shotgun API.
-    from tank_vendor.six.moves import http_cookiejar
+    import http
 
     sid = sg.get_session_token()
-    cj = http_cookiejar.LWPCookieJar()
-    c = http_cookiejar.Cookie(
+    cj = http.cookiejar.LWPCookieJar()
+    c = http.cookiejar.Cookie(
         "0",
         "_session_id",
         sid,

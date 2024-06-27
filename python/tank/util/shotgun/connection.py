@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 import os
 import threading
-from tank_vendor.six.moves import urllib
+import urllib
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -285,9 +285,6 @@ def sanitize_url(server_url):
     :returns: The cleaned up URL.
     """
 
-    # FIXME: Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there
-    # is already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since it
-    # is very unlikely Shotgun will be running off a custom port.
     first_pass = __sanitize_url(server_url.strip())
     # We have to do two passes here. The reason is that if you use a slash in your URL but provide
     # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the

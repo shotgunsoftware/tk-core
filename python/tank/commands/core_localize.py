@@ -218,7 +218,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
                     descriptor = env_obj.get_framework_descriptor(framework)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            for idx, descriptor in enumerate(six.itervalues(descriptors)):
+            for idx, descriptor in enumerate(descriptors.values()):
                 # print one based indices for more human friendly output
                 log.info(
                     "%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor)

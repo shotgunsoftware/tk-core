@@ -301,7 +301,7 @@ class TestEngineLauncher(TankTestBase):
                 self.assertEqual(reason, "")
             else:
                 self.assertEqual(supported, False)
-                self.assertIsInstance(reason, six.string_types)
+                self.assertIsInstance(reason, str)
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"

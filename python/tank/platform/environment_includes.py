@@ -140,7 +140,7 @@ def _resolve_refs_r(lookup_dict, data):
         for (k, v) in data.items():
             processed_val[k] = _resolve_refs_r(lookup_dict, v)
 
-    elif isinstance(data, six.string_types) and data.startswith("@"):
+    elif isinstance(data, str) and data.startswith("@"):
         # this is a reference!
 
         ref_token = data[1:]
@@ -351,7 +351,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                 # If the value of the token is an include, then we can
                 # recurse up, directly referencing the include name as
                 # the new token.
-                if isinstance(token_data, six.string_types) and token_data.startswith(
+                if isinstance(token_data, str) and token_data.startswith(
                     "@"
                 ):
                     include_token = token_data
@@ -370,7 +370,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                         ]
                         if (
                             location
-                            and isinstance(location, six.string_types)
+                            and isinstance(location, str)
                             and location.startswith("@")
                         ):
                             include_token = location

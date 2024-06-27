@@ -257,15 +257,8 @@ class YamlCache(object):
         """
         path = item.path
         try:
-            if six.PY2:
-                with open(path, "r") as fh:
-                    raw_data = yaml.load(fh, Loader=yaml.FullLoader)
-            else:
-                # For Python 3 or above use the 'utf8' encoding to avoid
-                # 'UnicodeDecodeError' when using non utf-8
-                # special encoding standards.
-                with open(path, "r", encoding="utf8") as fh:
-                    raw_data = yaml.load(fh, Loader=yaml.FullLoader)
+            with open(path, "r", encoding="utf8") as fh:
+                raw_data = yaml.load(fh, Loader=yaml.FullLoader)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
         except Exception as e:

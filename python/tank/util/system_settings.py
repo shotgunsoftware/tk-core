@@ -13,7 +13,7 @@ System settings management.
 """
 
 
-from tank_vendor.six.moves import urllib
+import urllib
 
 
 class SystemSettings(object):
