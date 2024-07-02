@@ -393,10 +393,10 @@ class PySide2Patcher(object):
                 return original_QWidget_resize(self, *args, **kwargs)
 
             def setContentsMargins(self, *args, **kwargs):
-                print(f"MyQWidget::setContentsMargins {args=}")
+                # print(f"MyQWidget::setContentsMargins {args=}")
                 if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [args[0]*2, args[1]*2, args[2]*2, args[3]*2]
-                    print(f"   override {args=}")
+                    # print(f"   override {args=}")
 
                 return original_QWidget_setContentsMargins(self, *args, **kwargs)
 
@@ -416,18 +416,18 @@ class PySide2Patcher(object):
 
         class MyQLayout:
             def setContentsMargins(self, *args, **kwargs):
-                print(f"MyQLayout::setContentsMargins {args=}")
+                # print(f"MyQLayout::setContentsMargins {args=}")
                 if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [args[0]*2, args[1]*2, args[2]*2, args[3]*2]
-                    print(f"   override {args=}")
+                    # print(f"   override {args=}")
 
                 return original_QLayout_setContentsMargins(self, *args, **kwargs)
 
             def setSpacing(self, *args, **kwargs):
-                print("MyQLayout::setSpacing")
+                # print("MyQLayout::setSpacing")
                 if len(args) and isinstance(args[0], int):
                     self.orig_stylesheet_content = args[0]
-                    print(f"   override {args=}")
+                    # print(f"   override {args=}")
                     args = [args[0]*2, *args[1:]]
 
                 return original_QLayout_setSpacing(self, *args, **kwargs)
@@ -452,17 +452,17 @@ class PySide2Patcher(object):
             # addStretch([stretch=0])
 
             def setSpacing(self, *args, **kwargs):
-                print()
-                print(f"MyQHBoxLayout::setSpacing {args=}")
+                # print()
+                # print(f"MyQHBoxLayout::setSpacing {args=}")
                 if len(args) and isinstance(args[0], int):
                     self.orig_stylesheet_content = args[0]
                     args = [args[0]*2, *args[1:]]
-                    print(f"   override {args=}")
+                    # print(f"   override {args=}")
 
                 return original_QHBoxLayout.setSpacing(self, *args, **kwargs)
 
             def spacing(self, *args, **kwargs):
-                print(f"MyQHBoxLayout::spacing {args=}")
+                # print(f"MyQHBoxLayout::spacing {args=}")
                 return original_QHBoxLayout.spacing(self, *args, **kwargs)
 
         QtGui.QHBoxLayout = MyQHBoxLayout
@@ -473,11 +473,11 @@ class PySide2Patcher(object):
 
         class MyQLabel(original_QLabel):
             def setMargin(self, *args, **kwargs):
-                print(f"MyQLabel::setMargin {args=}")
+                # print(f"MyQLabel::setMargin {args=}")
 
                 if len(args) and isinstance(args[0], int):
                     args = [args[0] * 2, *args[1:]]
-                    print(f"   override {args=}")
+                    # print(f"   override {args=}")
 
                 return original_QLabel.setMargin(self, *args, **kwargs)
 
@@ -489,11 +489,11 @@ class PySide2Patcher(object):
 
         class MyQSize(original_QSize):
             def __init__(self, *args):
-                print(f"MyQSize {args=}")
+                # print(f"MyQSize {args=}")
 
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = (args[0] * 2, args[1] * 2)
-                    print(f"    override {args=}")
+                    # print(f"    override {args=}")
 
                 original_QSize.__init__(self, *args)
 
@@ -505,17 +505,17 @@ class PySide2Patcher(object):
 
         class MyQSpacerItem(original_QSpacerItem):
             def __init__(self, *args, **kwargs):
-                print()
-                print(f"MyQSpacerItem {args=}")
+                # print()
+                # print(f"MyQSpacerItem {args=}")
 
                 if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [args[0] * 2, args[1] * 2, *args[2:]]
-                    print(f"    override {args=}")
+                    # print(f"    override {args=}")
 
                 original_QSpacerItem.__init__(self, *args, **kwargs)
 
             def changeSize(self, *args, **kwargs):
-                print(f"MyQSpacerItem::changeSize {args=}")
+                # print(f"MyQSpacerItem::changeSize {args=}")
 
                 if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [args[0] * 2, args[1] * 2, *args[2:]]
@@ -523,6 +523,17 @@ class PySide2Patcher(object):
                 original_QSpacerItem.changeSize(self, *args, **kwargs)
 
         QtGui.QSpacerItem = MyQSpacerItem
+
+    @classmethod
+    def _patch_QPixmap(cls, QtGui):
+        original_QPixmap_init = QtGui.QPixmap.__init__
+        class MyQPixmap:
+            def __init__(self, *args, **kwargs):
+                print("MyQPixmap.__init__", args,  kwargs)
+
+                return original_QPixmap_init(self, *args, **kwargs)
+
+        QtGui.QPixmap.__init__ = MyQPixmap.__init__
 
     @classmethod
     def patch(cls, QtCore, QtGui, QtWidgets, PySide2):
@@ -564,11 +575,13 @@ class PySide2Patcher(object):
         if "MyQWidget" in str(qt_gui_shim.QWidget.setStyleSheet):
             print("already hooked, nothing to do")
         else:
-            cls._patch_QWidget(qt_gui_shim)
-            cls._patch_QLabel(qt_gui_shim)
+            #pass
+            #cls._patch_QPixmap(qt_gui_shim)
+            #cls._patch_QWidget(qt_gui_shim)
+            #cls._patch_QLabel(qt_gui_shim)
             cls._patch_QSize(qt_core_shim)
-            cls._patch_QSpacerItem(qt_gui_shim)
-            cls._patch_QHBoxLayout(qt_gui_shim)
+            #cls._patch_QSpacerItem(qt_gui_shim)
+            #cls._patch_QHBoxLayout(qt_gui_shim)
 
         # print("Patcher run !!!")
         # print()

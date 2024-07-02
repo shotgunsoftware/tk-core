@@ -1747,9 +1747,9 @@ if __name__ == "__main__":
 
         cmd_line, credentials = _extract_credentials(cmd_line)
 
-        if len(cmd_line) > 0 and cmd_line[0].startswith("shotgun_"):
-            # we are talking to shotgun, enable html log formatting
-            formatter.enable_html_mode()
+        # if len(cmd_line) > 0 and cmd_line[0].startswith("shotgun_"):
+        #     # we are talking to shotgun, enable html log formatting
+        #     formatter.enable_html_mode()
 
         if len(cmd_line) == 0:
             # > tank, no arguments
