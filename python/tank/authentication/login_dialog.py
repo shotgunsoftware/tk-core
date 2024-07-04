@@ -111,6 +111,120 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         self._site_info.reload(self._url_to_test, self._http_proxy)
 
+
+
+
+class MyProxyStyle(QtGui.QProxyStyle):
+
+
+    def drawComplexControl(self, *args, **kwargs):
+        r = super().drawComplexControl(*args, **kwargs)
+        print(f"""MyProxyStyle::drawComplexControl
+  {args=}
+  {kwargs=}
+  {r=}
+""")
+
+
+    def drawControl(self, *args, **kwargs):
+        r = super().drawControl(*args, **kwargs)
+        print(f"""MyProxyStyle::drawControl
+  {args=}
+  {kwargs=}
+  {r=}
+""")
+
+    # drawItemPixmap(painter, rect, alignment, pixmap)¶
+    def drawItemPixmap(self, *args, **kwargs):
+        r = super().drawItemPixmap(*args, **kwargs)
+        print(f"""MyProxyStyle::drawItemPixmap
+  {args=}
+  {kwargs=}
+  {r=}
+""")
+
+    #  void MyStyle::drawPrimitive(PrimitiveElement element,
+    def drawPrimitive(self, pe, opt, p, widget=None):
+        r = super().drawPrimitive(pe, opt, p, widget=widget)
+        print(f"""MyProxyStyle::drawPrimitive
+  {pe=}
+  {opt=}
+  {p=}
+  {widget=}
+  {r=}
+""")
+
+
+    def generatedIconPixmap(self, *args, **kwargs):
+        r = super().generatedIconPixmap(*args, **kwargs)
+#         print(f"""MyProxyStyle::generatedIconPixmap
+#   {args=}
+#   {kwargs=}
+#   {r=}
+# """)
+        return r
+
+    def itemPixmapRect(self, *args, **kwargs):
+        r = super().itemPixmapRect(*args, **kwargs)
+        print(f"""MyProxyStyle::itemPixmapRect
+  {args=}
+  {kwargs=}
+  {r=}
+""")
+        return r
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        r = super().pixelMetric(metric, option=option, widget=widget)
+        # print(f"MyProxyStyle::pixelMetric {metric=} {option=} {widget=}=> {r=}")
+
+#         if metric==QtGui.QStyle.PixelMetric.PM_MenuButtonIndicator:
+#             print(f"""MyProxyStyle::pixelMetric
+#   {metric=}
+#   {option=}
+#   {widget=}
+#   {r=}
+# """)
+
+        # if metric==QtGui.QStyle.PixelMetric.PM_SmallIconSize:
+        #     print("   Override !!!!!")
+        if isinstance(r, int):
+            r = r*2
+
+        return r
+
+    def sizeFromContents(self, *args, **kwargs):
+        r = super().sizeFromContents(*args, **kwargs)
+#         print(f"""MyProxyStyle::sizeFromContents
+#   {args=}
+#   {kwargs=}
+#   {r=}
+#   {isinstance(r, QtCore.QSize)}
+# """)
+        # if isinstance(r, QtCore.QSize): # does not work because a PySide2.QtCore.QSize and not  a Patch Qsize
+        # r.setWidth(r.width() * 2)
+        # r.setHeight(r.height() * 2)
+        # print("   override !!!!", r)
+
+        return r
+
+    def standardIcon(self, *args, **kwargs):
+        r = super().standardIcon(*args, **kwargs)
+#         print(f"""MyProxyStyle::standardIcon
+#   {args=}
+#   {kwargs=}
+#   {r=}
+# """)
+        return r
+
+    def standardPixmap(self, *args, **kwargs):
+        r = super().standardPixmap(*args, **kwargs)
+        print(f"""MyProxyStyle::standardPixmap
+  {args=}
+  {kwargs=}
+  {r=}
+""")
+        return r
+
 class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user credentials.
@@ -149,6 +263,14 @@ class LoginDialog(QtGui.QDialog):
         :param session_metadata: Metadata used in the context of SSO. This is an obscure blob of data.
         """
         QtGui.QDialog.__init__(self, parent)
+
+        print("Qapp::style:", QtGui.QApplication.style())
+        print()
+        proxy = MyProxyStyle(QtGui.QApplication.style())
+        QtGui.QApplication.setStyle(proxy)
+        
+        #proxy.setParent(self) # take ownership to avoid memleak
+        #self.setStyle(proxy)
 
         qt_modules = {
             "QtCore": QtCore,
@@ -199,10 +321,12 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_selection(hostname)
 
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
-        completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
-        self.ui.site.set_style_sheet(completer_style)
+        print("stylesheet:", self.styleSheet(), type(self.styleSheet()))
+        
+        #completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
+        #self.ui.site.set_style_sheet(completer_style)
         self.ui.site.set_placeholder_text("example.shotgrid.autodesk.com")
-        self.ui.login.set_style_sheet(completer_style)
+        #self.ui.login.set_style_sheet(completer_style)
         self.ui.login.set_placeholder_text("login")
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
@@ -348,7 +472,7 @@ class LoginDialog(QtGui.QDialog):
             "will result in canceling your request."
         )
 
-        self.confirm_box.setStyleSheet(self.styleSheet())
+        #self.confirm_box.setStyleSheet(self.styleSheet())
 
     def __del__(self):
         """
@@ -358,7 +482,7 @@ class LoginDialog(QtGui.QDialog):
         self._query_task.wait()
 
     def _confirm_exit(self):
-        return True
+        # return True
         return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
         # PySide uses "exec_" instead of "exec" because "exec" is a reserved
         # keyword in Python 2.
@@ -668,7 +792,7 @@ class LoginDialog(QtGui.QDialog):
         # On PySide2, or-ring the current window flags with WindowStaysOnTopHint causes the dialog
         # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
         # other flags.
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+       # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
