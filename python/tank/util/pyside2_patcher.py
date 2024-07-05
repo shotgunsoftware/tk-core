@@ -408,10 +408,10 @@ class PySide2Patcher(object):
 
                 return original_QWidget_setContentsMargins(self, *args, **kwargs)
 
-        QtGui.QWidget.setContentsMargins = MyQWidget.setContentsMargins
+        #QtGui.QWidget.setContentsMargins = MyQWidget.setContentsMargins
         QtGui.QWidget.styleSheet = MyQWidget.styleSheet
         QtGui.QWidget.setStyleSheet = MyQWidget.setStyleSheet
-        QtGui.QWidget.resize = MyQWidget.resize
+        #QtGui.QWidget.resize = MyQWidget.resize
 
         original_QLayout_setContentsMargins = QtGui.QLayout.setContentsMargins
         original_QLayout_setSpacing = QtGui.QLayout.setSpacing
@@ -445,9 +445,9 @@ class PySide2Patcher(object):
             
                 return original_QLayout_spacing(self, *args, **kwargs)
 
-        QtGui.QLayout.setContentsMargins = MyQLayout.setContentsMargins
-        QtGui.QLayout.setSpacing = MyQLayout.setSpacing
-        QtGui.QLayout.spacing = MyQLayout.spacing
+        # QtGui.QLayout.setContentsMargins = MyQLayout.setContentsMargins
+        # QtGui.QLayout.setSpacing = MyQLayout.setSpacing
+        # QtGui.QLayout.spacing = MyQLayout.spacing
 
     @classmethod
     def _patch_QHBoxLayout(cls, QtGui):
@@ -609,10 +609,10 @@ class PySide2Patcher(object):
         else:
             cls._patch_QWidget(qt_gui_shim)
 
-        cls._patch_QLabel(qt_gui_shim)
+        # cls._patch_QLabel(qt_gui_shim)
         cls._patch_QSize(qt_core_shim)
-        cls._patch_QSpacerItem(qt_gui_shim)
-        cls._patch_QHBoxLayout(qt_gui_shim)
+        # cls._patch_QSpacerItem(qt_gui_shim)
+        # cls._patch_QHBoxLayout(qt_gui_shim)
 
         # print("Patcher run !!!")
         # print()
