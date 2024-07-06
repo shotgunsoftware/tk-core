@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 ################################################################################
 ## Form generated from reading UI file 'item.ui'
 ##
@@ -6,15 +7,18 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-from tank.authentication.ui.qt_abstraction import QtCore
+
+from . import QtCore
 for name, cls in QtCore.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
-from tank.authentication.ui.qt_abstraction import QtGui
+from . import QtGui
 for name, cls in QtGui.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
+
 from  . import resources_rc
+
 class Ui_Item(object):
     def setupUi(self, Item):
         if not Item.objectName():
@@ -46,7 +50,9 @@ class Ui_Item(object):
         self.name.setStyleSheet(u"font-size: 13px;")
         self.name.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.name.setWordWrap(True)
+
         self.verticalLayout_2.addWidget(self.name)
+
         self.line = QFrame(Item)
         self.line.setObjectName(u"line")
         self.line.setStyleSheet(u"border: none;\n"
@@ -55,8 +61,11 @@ class Ui_Item(object):
 "border-bottom-style: solid;")
         self.line.setFrameShape(QFrame.HLine)
         self.line.setFrameShadow(QFrame.Sunken)
+
         self.verticalLayout_2.addWidget(self.line)
+
         self.verticalLayout.addLayout(self.verticalLayout_2)
+
         self.value = QLabel(Item)
         self.value.setObjectName(u"value")
         sizePolicy1.setHeightForWidth(self.value.sizePolicy().hasHeightForWidth())
@@ -64,7 +73,9 @@ class Ui_Item(object):
         self.value.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.value.setWordWrap(True)
         self.value.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByMouse)
+
         self.verticalLayout.addWidget(self.value)
+
         self.type = QLabel(Item)
         self.type.setObjectName(u"type")
         sizePolicy1.setHeightForWidth(self.type.sizePolicy().hasHeightForWidth())
@@ -72,7 +83,9 @@ class Ui_Item(object):
         self.type.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.type.setWordWrap(True)
         self.type.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByMouse)
+
         self.verticalLayout.addWidget(self.type)
+
         self.description = QLabel(Item)
         self.description.setObjectName(u"description")
         self.description.setMaximumSize(QSize(350, 16777215))
@@ -80,13 +93,20 @@ class Ui_Item(object):
         self.description.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.description.setWordWrap(True)
         self.description.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByMouse)
+
         self.verticalLayout.addWidget(self.description)
+
         self.verticalSpacer = QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
         self.verticalLayout.addItem(self.verticalSpacer)
+
         self.verticalLayout.setStretch(4, 1)
+
         self.retranslateUi(Item)
+
         QMetaObject.connectSlotsByName(Item)
     # setupUi
+
     def retranslateUi(self, Item):
         Item.setWindowTitle(QCoreApplication.translate("Item", u"Form", None))
         self.name.setText(QCoreApplication.translate("Item", u"Settings Name", None))

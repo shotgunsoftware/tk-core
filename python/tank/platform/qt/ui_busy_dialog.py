@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 ################################################################################
 ## Form generated from reading UI file 'busy_dialog.ui'
 ##
@@ -6,15 +7,18 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-from tank.authentication.ui.qt_abstraction import QtCore
+
+from . import QtCore
 for name, cls in QtCore.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
-from tank.authentication.ui.qt_abstraction import QtGui
+from . import QtGui
 for name, cls in QtGui.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
+
 from  . import resources_rc
+
 class Ui_BusyDialog(object):
     def setupUi(self, BusyDialog):
         if not BusyDialog.objectName():
@@ -60,7 +64,9 @@ class Ui_BusyDialog(object):
         self.label = QLabel(self.frame)
         self.label.setObjectName(u"label")
         self.label.setPixmap(QPixmap(u":/Tank.Platform.Qt/sg_logo_80px.png"))
+
         self.horizontalLayout.addWidget(self.label)
+
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -71,7 +77,9 @@ class Ui_BusyDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.title.sizePolicy().hasHeightForWidth())
         self.title.setSizePolicy(sizePolicy)
+
         self.verticalLayout.addWidget(self.title)
+
         self.details = QLabel(self.frame)
         self.details.setObjectName(u"details")
         sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
@@ -81,12 +89,18 @@ class Ui_BusyDialog(object):
         self.details.setSizePolicy(sizePolicy1)
         self.details.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignTop)
         self.details.setWordWrap(True)
+
         self.verticalLayout.addWidget(self.details)
+
         self.horizontalLayout.addLayout(self.verticalLayout)
+
         self.horizontalLayout_2.addWidget(self.frame)
+
         self.retranslateUi(BusyDialog)
+
         QMetaObject.connectSlotsByName(BusyDialog)
     # setupUi
+
     def retranslateUi(self, BusyDialog):
         BusyDialog.setWindowTitle(QCoreApplication.translate("BusyDialog", u"Dialog", None))
         self.label.setText("")
