@@ -40,7 +40,9 @@ valid_web_session_metadata = base64.b64encode(
 # For a Saml session, we detect the presence of the shotgun_sso_session_expiration_u* cookie.
 # But we also need to figure out what the user ID is, for which we use the csrf_token_u* suffix.
 valid_sso_session_metadata = base64.b64encode(
-    sgutils.ensure_binary("csrf_token_u00=fedcba;shotgun_sso_session_expiration_u00=4321")
+    sgutils.ensure_binary(
+        "csrf_token_u00=fedcba;shotgun_sso_session_expiration_u00=4321"
+    )
 )
 
 
