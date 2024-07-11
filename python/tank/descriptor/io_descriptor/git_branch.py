@@ -14,7 +14,10 @@ from .git import IODescriptorGit, TankGitError, _check_output
 from ..errors import TankDescriptorError
 from ... import LogManager
 
-from tank_vendor import six
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 log = LogManager.get_logger(__name__)
 
@@ -74,7 +77,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
         self._version = descriptor_dict.get("version")
-        self._branch = six.ensure_str(descriptor_dict.get("branch"))
+        self._branch = sgutils.ensure_str(descriptor_dict.get("branch"))
 
     def __str__(self):
         """
@@ -223,7 +226,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = six.ensure_str(git_hash)
+        new_loc_dict["version"] = sgutils.ensure_str(git_hash)
         desc = IODescriptorGitBranch(
             new_loc_dict, self._sg_connection, self._bundle_type
         )

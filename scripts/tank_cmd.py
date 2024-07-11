@@ -43,7 +43,11 @@ from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
-from tank_vendor import six
+
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")
@@ -536,7 +540,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # otherwise with wt mode, \n on windows will be turned into \n\r
         # which is not interpreted correctly by the jacascript code.
         f = open(cache_path, "wb")
-        f.write(six.ensure_binary(data))
+        f.write(sgutils.ensure_binary(data))
         f.close()
 
         # make sure cache file has proper permissions

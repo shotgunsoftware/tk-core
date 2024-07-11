@@ -28,47 +28,6 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-# This module contains addtional functions and variables to supplement the six
-# module.
-
-import io
-import sys
-
-# For python 3, the `file` type no longer exists, and open() returns an
-# io.IOBase instance. We add file_types to allow comparison across python
-# versions.  See https://stackoverflow.com/questions/36321030#36321030
-#
-# This means that to test if a variable contains a file in Python3
-
-file_types = (io.IOBase, )
-
-# For python-api calls that result in an SSL error, the exception raised is
-# different on Python 3. Store the approriate exception class in a
-# variable to allow easier exception handling across Python 3.
-import ssl
-ShotgunSSLError = ssl.SSLError
-
-
-def normalize_platform(platform):
-    """
-    Normalize the return of sys.platform in Python 3.
-
-    This function will normalize platform strings to always conform to
-    Python3 behavior.
-
-    :param str platform: The platform string to normalize
-    :param bool python2: The python version behavior to target.  If True, a
-        Python2-style platform string will be returned (i.e. 'linux2'), otherwise
-        the modern 'linux' platform string will be returned.
-
-    :returns: The normalized platform string.
-    :rtype: str
-    """
-    return "linux" if platform.startswith("linux") else platform
-
-
-platform = normalize_platform(sys.platform)
-
 
 def ensure_binary(s, encoding='utf-8', errors='strict'):
     """
@@ -86,21 +45,6 @@ def ensure_binary(s, encoding='utf-8', errors='strict'):
         raise TypeError(f"not expecting type '{type(s)}'")
     
 
-def ensure_text(s, encoding='utf-8', errors='strict'):
-    """Coerce *s* to str.
-
-    For Python 3:
-      - `str` -> `str`
-      - `bytes` -> decoded to `str`
-    """
-    if isinstance(s, bytes):
-        return s.decode(encoding, errors)
-    elif isinstance(s, str):
-        return s
-    else:
-        raise TypeError(f"not expecting type '{type(s)}'")
-    
-
 def ensure_str(s, encoding='utf-8', errors='strict'):
     """Coerce *s* to `str`.
 
@@ -113,3 +57,6 @@ def ensure_str(s, encoding='utf-8', errors='strict'):
     if isinstance(s, bytes):
         s = s.decode(encoding, errors)
     return s
+
+
+ensure_text = ensure_str

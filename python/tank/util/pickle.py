@@ -16,6 +16,11 @@ from .unicode import ensure_contains_str
 from tank_vendor.six.moves import cPickle
 from tank_vendor import six
 
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
+
 
 log = LogManager.get_logger(__name__)
 
@@ -51,7 +56,7 @@ def dumps(data):
     # Decode the result to a str before returning.
     serialized = cPickle.dumps(data, **DUMP_KWARGS)
     try:
-        return six.ensure_str(serialized)
+        return sgutils.ensure_str(serialized)
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
@@ -60,7 +65,7 @@ def dumps(data):
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
                 serialized = cPickle.dumps(data, **DUMP_KWARGS)
-            return six.ensure_str(serialized, encoding=encoding)
+            return sgutils.ensure_str(serialized, encoding=encoding)
 
         raise
 
@@ -91,12 +96,12 @@ def loads(data):
     :returns: The unpickled object.
     :rtype: object
     """
-    binary = six.ensure_binary(data)
+    binary = sgutils.ensure_binary(data)
     loads_data = ensure_contains_str(cPickle.loads(binary, **LOAD_KWARGS))
 
     if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
         encoding = loads_data[FALLBACK_ENCODING_KEY]
-        binary = six.ensure_binary(data, encoding=encoding)
+        binary = sgutils.ensure_binary(data, encoding=encoding)
         loads_data = ensure_contains_str(cPickle.loads(binary, **LOAD_KWARGS))
 
     return loads_data
@@ -135,7 +140,7 @@ def store_env_var_pickled(key, data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     pickled_data = dumps(data)
-    encoded_data = six.ensure_str(pickled_data)
+    encoded_data = sgutils.ensure_str(pickled_data)
     os.environ[key] = encoded_data
 
 
@@ -154,5 +159,5 @@ def retrieve_env_var_pickled(key):
     :param key: The name of the environment variable to retrieve data from.
     :returns: The original object that was stored.
     """
-    envvar_contents = six.ensure_binary(os.environ[key])
+    envvar_contents = sgutils.ensure_binary(os.environ[key])
     return loads(envvar_contents)
