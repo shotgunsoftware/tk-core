@@ -46,7 +46,7 @@ class DPIQtPatcher(object):
 
         # self._patch_QLabel()
         self._patch_QSize()
-        self._patch_QPoint()
+        #self._patch_QPoint()
         self._patch_QRect()
 
         self.qtCore.__custom_dpi_patch_applied = True
@@ -138,7 +138,7 @@ class DPIQtPatcher(object):
         self.qtGui.QWidget.styleSheet = MyQWidget.styleSheet
         self.qtGui.QWidget.setStyleSheet = MyQWidget.setStyleSheet
         self.qtGui.QWidget.resize = MyQWidget.resize
-        self.qtGui.QWidget.move = MyQWidget.move
+        #self.qtGui.QWidget.move = MyQWidget.move
 
 
     def _patch_QLayout(self):

@@ -35,8 +35,6 @@ class TankQDialog(TankDialogBase):
     """
 
     TOOLBAR_HEIGHT = 45
-    GRADIENT_WIDTH = 11
-    INFO_WIDTH = 400
 
     @staticmethod
     def _stop_buggy_background_worker_qthreads(widget):
@@ -614,7 +612,10 @@ class TankQDialog(TankDialogBase):
                     # and move the page 1 window to allow room for page 2, the info panel:
                     self.ui.page_1.move(
                         self.ui.page_1.x()
-                        - (TankQDialog.GRADIENT_WIDTH + TankQDialog.INFO_WIDTH),
+                        - (
+                            self.ui.gradient.minimumWidth() + 
+                            self.ui.scrollArea.minimumWidth()
+                        ),
                         self.ui.page_1.y(),
                     )
             finally:
@@ -645,7 +646,10 @@ class TankQDialog(TankDialogBase):
                 # and move the page 1 window back to its current position
                 self.ui.page_1.move(
                     self.ui.page_1.x()
-                    - (TankQDialog.GRADIENT_WIDTH + TankQDialog.INFO_WIDTH),
+                    - (
+                        self.ui.gradient.minimumWidth() + 
+                        self.ui.scrollArea.minimumWidth()
+                    ),
                     self.ui.page_1.y(),
                 )
                 # now that the first window is positioned correctly, make it top most again.
@@ -661,7 +665,10 @@ class TankQDialog(TankDialogBase):
             self.anim.setEndValue(
                 QtCore.QPoint(
                     self.ui.page_1.x()
-                    + (TankQDialog.GRADIENT_WIDTH + TankQDialog.INFO_WIDTH),
+                    + (
+                        self.ui.gradient.minimumWidth() + 
+                        self.ui.scrollArea.minimumWidth()
+                    ),
                     self.ui.page_1.y(),
                 )
             )
@@ -676,8 +683,8 @@ class TankQDialog(TankDialogBase):
             self.anim2.setEndValue(
                 QtCore.QPoint(
                     self.ui.page_2.x()
-                    + TankQDialog.GRADIENT_WIDTH
-                    + TankQDialog.INFO_WIDTH,
+                    + self.ui.gradient.minimumWidth() + 
+                    self.ui.scrollArea.minimumWidth(),
                     self.ui.page_2.y(),
                 )
             )
@@ -705,7 +712,10 @@ class TankQDialog(TankDialogBase):
             self.anim.setStartValue(
                 QtCore.QPoint(
                     self.ui.page_2.x()
-                    + (TankQDialog.GRADIENT_WIDTH + TankQDialog.INFO_WIDTH),
+                    + (
+                        self.ui.gradient.minimumWidth() + 
+                        self.ui.scrollArea.minimumWidth()
+                    ),
                     self.ui.page_2.y(),
                 )
             )
@@ -720,7 +730,10 @@ class TankQDialog(TankDialogBase):
             self.anim2.setEndValue(
                 QtCore.QPoint(
                     self.ui.page_1.x()
-                    - (TankQDialog.GRADIENT_WIDTH + TankQDialog.INFO_WIDTH),
+                    - (
+                        self.ui.gradient.minimumWidth() + 
+                        self.ui.scrollArea.minimumWidth()
+                    ),
                     self.ui.page_1.y(),
                 )
             )
