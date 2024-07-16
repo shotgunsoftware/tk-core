@@ -360,6 +360,7 @@ class PySide2Patcher(object):
         original_QWidget_setContentsMargins = QtGui.QWidget.setContentsMargins
         original_QWidget_setStyleSheet = QtGui.QWidget.setStyleSheet
         original_QWidget_resize = QtGui.QWidget.resize
+        original_QWidget_move = QtGui.QWidget.move
 
         re_css = re.compile("([0-9]+)\\s?(px)")
 
@@ -390,13 +391,29 @@ class PySide2Patcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQWidget::resize {args=}")
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
-                    self.orig_stylesheet_content = args[0]
+                    args = [
+                        min(args[0]*2, 16777215),
+                        min(args[1]*2, 16777215),
+                    ]
 
-                    args = [args[0]*2, args[1]*2]
                     if "GLOBAL_DEBUG" in os.environ:
                         print(f"  override resize {args=}")
 
                 return original_QWidget_resize(self, *args, **kwargs)
+
+            def move(self, *args, **kwargs):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQWidget::move {args=}")
+                if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                    args = [
+                        min(args[0]*2, 16777215),
+                        min(args[1]*2, 16777215),
+                    ]
+
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"  override move {args=}")
+
+                return original_QWidget_move(self, *args, **kwargs)
 
             def setContentsMargins(self, *args, **kwargs):
                 if "GLOBAL_DEBUG" in os.environ:
@@ -411,7 +428,8 @@ class PySide2Patcher(object):
         #QtGui.QWidget.setContentsMargins = MyQWidget.setContentsMargins
         QtGui.QWidget.styleSheet = MyQWidget.styleSheet
         QtGui.QWidget.setStyleSheet = MyQWidget.setStyleSheet
-        #QtGui.QWidget.resize = MyQWidget.resize
+        QtGui.QWidget.resize = MyQWidget.resize
+        QtGui.QWidget.move = MyQWidget.move
 
         original_QLayout_setContentsMargins = QtGui.QLayout.setContentsMargins
         original_QLayout_setSpacing = QtGui.QLayout.setSpacing
@@ -501,22 +519,64 @@ class PySide2Patcher(object):
                     print(f"MyQSize {args=}")
 
                 if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
-                    args2x = args[0] * 2
-                    args2y = args[1] * 2
+                    args = [
+                        min(args[0] * 2, 16777215),
+                        min(args[1] * 2, 16777215),
+                    ]
 
-                    if args2x >= 16777215:
-                        args2x = args[0]
-
-                    if args2y >= 16777215:
-                        args2y = args[1]
-                    
-                    args = (args2x, args2y)
                     if "GLOBAL_DEBUG" in os.environ:
                         print(f"   override {args=}")
 
                 original_QSize.__init__(self, *args)
 
         QtCore.QSize = MyQSize
+
+    @classmethod
+    def _patch_QPoint(cls, QtCore):
+        original_QPoint = QtCore.QPoint
+
+        class MyQPoint(original_QPoint):
+            def __init__(self, *args):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQPoint {args=}")
+
+                if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                    args = [
+                        min(args[0] * 2, 16777215),
+                        min(args[1] * 2, 16777215),
+                    ]
+
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"   override {args=}")
+
+                original_QPoint.__init__(self, *args)
+
+        QtCore.QPoint = MyQPoint
+
+    @classmethod
+    def _patch_QRect(cls, QtCore):
+        original_QRect = QtCore.QRect
+
+        class MyQRect(original_QRect):
+            def __init__(self, *args):
+                if "GLOBAL_DEBUG" in os.environ:
+                    print(f"MyQRect {args=}")
+
+                if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int)  and isinstance(args[2], int)  and isinstance(args[3], int):
+                    args = [
+                        min(args[0] * 2, 16777215),
+                        min(args[1] * 2, 16777215),
+                        min(args[2] * 2, 16777215),
+                        min(args[3] * 2, 16777215),
+                    ]
+
+                    if "GLOBAL_DEBUG" in os.environ:
+                        print(f"   override {args=}")
+
+                original_QRect.__init__(self, *args)
+
+        QtCore.QRect = MyQRect
+
 
     @classmethod
     def _patch_QSpacerItem(cls, QtGui):
@@ -611,6 +671,8 @@ class PySide2Patcher(object):
 
         # cls._patch_QLabel(qt_gui_shim)
         cls._patch_QSize(qt_core_shim)
+        cls._patch_QPoint(qt_core_shim)
+        cls._patch_QRect(qt_core_shim)
         # cls._patch_QSpacerItem(qt_gui_shim)
         # cls._patch_QHBoxLayout(qt_gui_shim)
 
