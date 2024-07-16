@@ -41,7 +41,7 @@ from .errors import (
 from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
-from ..util import metrics_cache
+from ..util import custom_dpi, metrics_cache
 from ..log import LogManager
 
 from . import application
@@ -194,6 +194,14 @@ class Engine(TankBundle):
 
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
+
+
+        if True:
+            #engine has custom DPI - Maya for instance.
+            dpi_factor = 2  # TODO collect from engine instead of hardcoded
+            
+            dpi_patcher = custom_dpi.DPIQtPatcher(dpi_factor, qt.QtCore, qt.QtGui)
+            dpi_patcher.process()
 
         # load the fonts. this will work if there is a QApplication instance
         # available.
