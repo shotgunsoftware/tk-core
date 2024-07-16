@@ -50,6 +50,8 @@ class Ui_TankDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tank_logo.sizePolicy().hasHeightForWidth())
         self.tank_logo.setSizePolicy(sizePolicy)
+        self.tank_logo.setMaximumSize(QtCore.QSize(39, 39))
+        self.tank_logo.setScaledContents(True)
         self.tank_logo.setText("")
         self.tank_logo.setPixmap(QtGui.QPixmap(":/Tank.Platform.Qt/tank_logo.png"))
         self.tank_logo.setObjectName("tank_logo")

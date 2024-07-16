@@ -105,6 +105,12 @@ border-bottom:1px solid #202020;
           </property>
           <item>
            <widget class="QLabel" name="tank_logo">
+            <property name="maximumSize">
+             <size>
+              <width>39</width>
+              <height>39</height>
+             </size>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
               <horstretch>0</horstretch>
