@@ -21,6 +21,7 @@ from .. import engine
 from .. import application
 from .. import constants
 from ...errors import TankError
+from ...util import custom_dpi
 
 import sys
 import os
@@ -399,9 +400,15 @@ class TankQDialog(TankDialogBase):
 
         # adjust size of the outer window to match the hosted widget size
         dlg_height = self._widget.height()
+        print("toolbar size:", self.ui.top_group.height())
         if show_tk_title_bar:
-            dlg_height += TankQDialog.TOOLBAR_HEIGHT
-        self.resize(self._widget.width(), dlg_height)
+            dlg_height += self.ui.top_group.height()
+
+            custom_dpi.ENABLED = False
+            try:
+                self.resize(self._widget.width(), dlg_height)
+            finally:
+                custom_dpi.ENABLED = True
 
         ########################################################################################
         # keep track of widget so that when

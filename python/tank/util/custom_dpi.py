@@ -20,6 +20,10 @@ import re
 
 QWIDGETSIZE_MAX = 16777215
 
+
+ENABLED = True
+
+
 class DPIQtPatcher(object):
     def __init__(self, dpi_factor, qtCore, qtGui):
         print(f"DPIQtPatcher::__init__")
@@ -72,7 +76,9 @@ class DPIQtPatcher(object):
                 return getattr(instance, "orig_stylesheet_content", "")
 
             def setStyleSheet(instance, *args, **kwargs):
-                if len(args) == 1 and isinstance(args[0], str):
+                if not ENABLED:
+                    pass
+                elif len(args) == 1 and isinstance(args[0], str):
                     instance.orig_stylesheet_content = args[0]
 
                     if "GLOBAL_DEBUG" in os.environ:
@@ -92,7 +98,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQWidget::resize {args=}")
 
-                if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                if not ENABLED:
+                    pass
+                elif len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -106,7 +114,10 @@ class DPIQtPatcher(object):
             def move(instance, *args, **kwargs):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQWidget::move {args=}")
-                if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
+
+                if not ENABLED:
+                    pass
+                elif len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -121,7 +132,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQWidget::setContentsMargins {args=}")
 
-                if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
+                if not ENABLED:
+                    pass
+                elif len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -151,7 +164,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQLayout::setContentsMargins {args=}")
 
-                if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
+                if not ENABLED:
+                    pass
+                elif len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int) and isinstance(args[2], int) and isinstance(args[3], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -168,7 +183,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print("MyQLayout::setSpacing")
 
-                if len(args) and isinstance(args[0], int):
+                if not ENABLED:
+                    pass
+                elif len(args) and isinstance(args[0], int):
                     instance.orig_spacing_content = args[0]
 
                     if "GLOBAL_DEBUG" in os.environ:
@@ -179,7 +196,9 @@ class DPIQtPatcher(object):
                 return original_QLayout_setSpacing(instance, *args, **kwargs)
 
             def spacing(instance, *args, **kwargs):
-                if hasattr(instance, "orig_spacing_content"):
+                if not ENABLED:
+                    pass
+                elif hasattr(instance, "orig_spacing_content"):
                     return instance.orig_spacing_content
             
                 return original_QLayout_spacing(instance, *args, **kwargs)
@@ -221,7 +240,9 @@ class DPIQtPatcher(object):
                     print()
                     print(f"MyQSpacerItem {args=}")
 
-                if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                if not ENABLED:
+                    pass
+                elif len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -237,7 +258,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQSpacerItem::changeSize {args=}")
 
-                if len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                if not ENABLED:
+                    pass
+                elif len(args) > 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -260,7 +283,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQLabel::setMargin {args=}")
 
-                if len(args) and isinstance(args[0], int):
+                if not ENABLED:
+                    pass
+                elif len(args) and isinstance(args[0], int):
                     args = [self.apply_dpi_factor(args[0]), *args[1:]]
                     if "GLOBAL_DEBUG" in os.environ:
                         print(f"  override {args=}")
@@ -278,7 +303,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQSize {args=}")
 
-                if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                if not ENABLED:
+                    pass
+                elif len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -300,7 +327,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQPoint {args=}")
 
-                if len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
+                if not ENABLED:
+                    pass
+                elif len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
@@ -322,7 +351,9 @@ class DPIQtPatcher(object):
                 if "GLOBAL_DEBUG" in os.environ:
                     print(f"MyQRect {args=}")
 
-                if len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int)  and isinstance(args[2], int)  and isinstance(args[3], int):
+                if not ENABLED:
+                    pass
+                elif len(args) == 4 and isinstance(args[0], int) and isinstance(args[1], int)  and isinstance(args[2], int)  and isinstance(args[3], int):
                     args = [
                         self.apply_dpi_factor(args[0]),
                         self.apply_dpi_factor(args[1]),
