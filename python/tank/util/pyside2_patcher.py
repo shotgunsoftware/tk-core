@@ -14,7 +14,6 @@ PySide 2 backwards compatibility layer for use with PySide 1 code.
 
 from __future__ import with_statement
 
-import re
 import os
 import sys
 import functools
@@ -364,7 +363,6 @@ class PySide2Patcher(object):
         :param QtGui: The QtGui module.
         :param QtWidgets: The QtWidgets module.
         """
-
         qt_core_shim = imp.new_module("PySide.QtCore")
         qt_gui_shim = imp.new_module("PySide.QtGui")
 

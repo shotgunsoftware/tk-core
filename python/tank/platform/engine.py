@@ -67,7 +67,7 @@ class Engine(TankBundle):
 
     _ASYNC_INVOKER, _SYNC_INVOKER = range(2)
 
-    def __init__(self, tk, context, engine_instance_name, env, custom_dpi_factor=None):
+    def __init__(self, tk, context, engine_instance_name, env):
         """
         Engine instances are constructed by the toolkit launch process
         and various factory methods such as :meth:`start_engine`.
