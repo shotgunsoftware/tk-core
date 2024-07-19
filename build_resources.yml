@@ -1,6 +1,26 @@
-# ui_src, py_dest must be absolute paths.
+# YAML Configuration File for Qt Resource Building
+#
+# This YAML file defines the configuration for building Qt UI and resource files using the tk-build-qt-resources script.
+# Each entry in the file represents a separate build configuration with the following fields:
+#
+# - ui_src: The source directory containing the Qt .ui files.
+# - ui_files: A list of .ui file names (without extensions) to compile.
+# - new_names_ui_files: (Optional) A list of new names for the compiled .ui files (without extensions).
+#                       If not provided, the original names will be used.
+# - res_files: A list of .qrc resource file names (without extensions) to compile.
+# - py_dest: The destination directory where the compiled .py files will be placed.
+# - import_pattern: The import text pattern to replace (default is "tank.platform.qt").
+#
+# Example:
+#
+# - ui_src: "path/to/ui_files"
+#   ui_files:
+#     - main_window
+#   res_files:
+#     - resources
+#   py_dest: "path/to/output"
+#   import_pattern: "custom.import.path"
 
-# commands to build QT resources
 - ui_src: "python/tank/authentication/resources"
   ui_files: 
     - login_dialog
