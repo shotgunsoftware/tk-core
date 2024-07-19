@@ -67,7 +67,7 @@ class Engine(TankBundle):
 
     _ASYNC_INVOKER, _SYNC_INVOKER = range(2)
 
-    def __init__(self, tk, context, engine_instance_name, env):
+    def __init__(self, tk, context, engine_instance_name, env, custom_dpi_factor=None):
         """
         Engine instances are constructed by the toolkit launch process
         and various factory methods such as :meth:`start_engine`.
@@ -195,7 +195,12 @@ class Engine(TankBundle):
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
 
-        custom_dpi_factor = getattr(self, "__custom_dpi_factor", None)
+        # custom_dpi_factor = self.__get_custom_dpi()
+        self.log_info(f"""
+
+ENGINE STARTING WITH CUSTOM DPI: {custom_dpi_factor}
+
+""")
         if custom_dpi_factor:
             #engine has custom DPI - Maya for instance.
             dpi_patcher = custom_dpi.DPIQtPatcher(custom_dpi_factor, qt.QtCore, qt.QtGui)
@@ -481,6 +486,15 @@ class Engine(TankBundle):
         if self.__global_progress_widget:
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
+
+    def __get_custom_dpi(self):
+        """
+        TODO
+
+        :return: int
+        """
+        print("__get_custom_dpi from tk-core")
+        pass
 
     def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
         """
