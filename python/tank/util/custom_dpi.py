@@ -45,13 +45,13 @@ class DPIQtPatcher(object):
         self._patch_QWidget()
 
         self._patch_QLayout()
-        self._patch_QHBoxLayout()
+        # self._patch_QHBoxLayout()
         self._patch_QSpacerItem()
 
         # self._patch_QLabel()
         self._patch_QSize()
         #self._patch_QPoint()
-        self._patch_QRect()
+        #self._patch_QRect()
 
         self.qtCore.__custom_dpi_patch_applied = True
 
@@ -208,27 +208,27 @@ class DPIQtPatcher(object):
         self.qtGui.QLayout.spacing = MyQLayout.spacing
 
 
-    def _patch_QHBoxLayout(self):
-        original_QHBoxLayout = self.qtGui.QHBoxLayout
+    # def _patch_QHBoxLayout(self):
+    #     original_QHBoxLayout = self.qtGui.QHBoxLayout
 
-        class MyQHBoxLayout(original_QHBoxLayout):
-            def setSpacing(instance, *args, **kwargs):
-                if "GLOBAL_DEBUG" in os.environ:
-                    print()
-                    print(f"MyQHBoxLayout::setSpacing {args=}")
-                if len(args) and isinstance(args[0], int):
-                    args = [self.apply_dpi_factor(args[0]), *args[1:]]
-                    if "GLOBAL_DEBUG" in os.environ:
-                        print(f"  override {args=}")
+    #     class MyQHBoxLayout(original_QHBoxLayout):
+    #         def setSpacing(instance, *args, **kwargs):
+    #             if "GLOBAL_DEBUG" in os.environ:
+    #                 print()
+    #                 print(f"MyQHBoxLayout::setSpacing {args=}")
+    #             if len(args) and isinstance(args[0], int):
+    #                 args = [self.apply_dpi_factor(args[0]), *args[1:]]
+    #                 if "GLOBAL_DEBUG" in os.environ:
+    #                     print(f"  override {args=}")
 
-                return original_QHBoxLayout.setSpacing(instance, *args, **kwargs)
+    #             return original_QHBoxLayout.setSpacing(instance, *args, **kwargs)
 
-            def spacing(instance, *args, **kwargs):
-                if "GLOBAL_DEBUG" in os.environ:
-                    print(f"MyQHBoxLayout::spacing {args=}")
-                return original_QHBoxLayout.spacing(instance, *args, **kwargs)
+    #         def spacing(instance, *args, **kwargs):
+    #             if "GLOBAL_DEBUG" in os.environ:
+    #                 print(f"MyQHBoxLayout::spacing {args=}")
+    #             return original_QHBoxLayout.spacing(instance, *args, **kwargs)
 
-        self.qtGui.QHBoxLayout = MyQHBoxLayout
+    #     self.qtGui.QHBoxLayout = MyQHBoxLayout
 
 
     def _patch_QSpacerItem(self):
