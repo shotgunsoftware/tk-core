@@ -22,7 +22,7 @@
 #   import_pattern: "custom.import.path"
 
 - ui_src: "python/tank/authentication/resources"
-  ui_files: 
+  ui_files:
     - login_dialog
   res_files:
     - resources
