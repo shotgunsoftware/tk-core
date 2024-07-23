@@ -89,7 +89,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "id", "version", "field"],
-                optional=["system_name"]
+                optional=["system_name"],
             )
 
             # convert to int
