@@ -22,10 +22,15 @@ at any point.
 from __future__ import with_statement
 import os
 import socket
-from tank_vendor.shotgun_api3 import (Shotgun, AuthenticationFault, ProtocolError,
-                                      MissingTwoFactorAuthenticationFault)
+from tank_vendor.shotgun_api3 import (
+    Shotgun,
+    AuthenticationFault,
+    ProtocolError,
+    MissingTwoFactorAuthenticationFault,
+)
 from tank_vendor.shotgun_api3.lib import httplib2
 from tank_vendor import yaml
+from . import constants
 from .errors import AuthenticationError
 from .. import LogManager
 from ..util.shotgun import connection
@@ -37,6 +42,7 @@ _CURRENT_HOST = "current_host"
 _RECENT_HOSTS = "recent_hosts"
 _CURRENT_USER = "current_user"
 _RECENT_USERS = "recent_users"
+_PREFERRED_METHOD = "method"
 _USERS = "users"
 _LOGIN = "login"
 _SESSION_METADATA = "session_metadata"
@@ -71,7 +77,7 @@ def _get_global_authentication_file_location():
     # try current generation path first
     path = os.path.join(
         LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
-        _SESSION_CACHE_FILE_NAME
+        _SESSION_CACHE_FILE_NAME,
     )
     if not os.path.exists(path):
 
@@ -79,8 +85,9 @@ def _get_global_authentication_file_location():
         old_path = os.path.join(
             LocalFileStorageManager.get_global_root(
                 LocalFileStorageManager.CACHE,
-                generation=LocalFileStorageManager.CORE_V17),
-            _SESSION_CACHE_FILE_NAME
+                generation=LocalFileStorageManager.CORE_V17,
+            ),
+            _SESSION_CACHE_FILE_NAME,
         )
 
         if os.path.exists(old_path):
@@ -100,11 +107,8 @@ def _get_site_authentication_file_location(base_url):
     :returns: Path to the login information.
     """
     path = os.path.join(
-        LocalFileStorageManager.get_site_root(
-            base_url,
-            LocalFileStorageManager.CACHE
-        ),
-        _SESSION_CACHE_FILE_NAME
+        LocalFileStorageManager.get_site_root(base_url, LocalFileStorageManager.CACHE),
+        _SESSION_CACHE_FILE_NAME,
     )
 
     if not os.path.exists(path):
@@ -114,9 +118,9 @@ def _get_site_authentication_file_location(base_url):
             LocalFileStorageManager.get_site_root(
                 base_url,
                 LocalFileStorageManager.CACHE,
-                generation=LocalFileStorageManager.CORE_V17
+                generation=LocalFileStorageManager.CORE_V17,
             ),
-            _SESSION_CACHE_FILE_NAME
+            _SESSION_CACHE_FILE_NAME,
         )
 
         if os.path.exists(old_path):
@@ -157,16 +161,19 @@ def _try_load_yaml_file(file_path):
     if not os.path.exists(file_path):
         logger.debug("Yaml file missing: %s" % file_path)
         return {}
+
+    config_file = None
     try:
-        config_file = None
         # Open the file and read it.
         config_file = open(file_path, "r")
-        result = yaml.load(config_file)
+        result = yaml.load(config_file, Loader=yaml.FullLoader)
         # Make sure we got a dictionary back.
         if isinstance(result, dict):
             return result
         else:
-            logger.warning("File '%s' didn't have a dictionary, defaulting to an empty one.")
+            logger.warning(
+                "File '%s' didn't have a dictionary, defaulting to an empty one."
+            )
             return {}
     except yaml.YAMLError:
         # Return to the beginning
@@ -215,6 +222,9 @@ def _try_load_site_authentication_file(file_path):
     content.setdefault(_CURRENT_USER, None)
     content.setdefault(_RECENT_USERS, [])
 
+    if content.get(_PREFERRED_METHOD, "not null") is None:
+        del(content[_PREFERRED_METHOD])
+
     for user in content[_USERS]:
         user[_LOGIN] = user[_LOGIN].strip()
 
@@ -262,18 +272,18 @@ def _insert_or_update_user(users_file, login, session_token, session_metadata):
         if _is_same_user(user, login):
             result = False
             # Update and return True only if something changed.
-            if user[_SESSION_TOKEN] != session_token:
+            if user.get(_SESSION_TOKEN) != session_token:
                 user[_SESSION_TOKEN] = session_token
                 result = True
-            if user.get(_SESSION_METADATA) and user[_SESSION_METADATA] != session_metadata:
+            if (
+                user.get(_SESSION_METADATA)
+                and user[_SESSION_METADATA] != session_metadata
+            ):
                 user[_SESSION_METADATA] = session_metadata
                 result = True
             return result
     # This is a new user, add it to the list.
-    user = {
-        _LOGIN: login,
-        _SESSION_TOKEN: session_token
-    }
+    user = {_LOGIN: login, _SESSION_TOKEN: session_token}
     # We purposely do not save unset session_metadata to avoid de-serialization issues
     # when the data is read by older versions of the tk-core.
     if session_metadata is not None:
@@ -314,7 +324,9 @@ def delete_session_data(host, login):
         # Read in the file
         users_file = _try_load_site_authentication_file(info_path)
         # File the users to remove the token
-        users_file[_USERS] = [u for u in users_file[_USERS] if not _is_same_user(u, login)]
+        users_file[_USERS] = [
+            u for u in users_file[_USERS] if not _is_same_user(u, login)
+        ]
         # Write back the file.
         _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
@@ -338,17 +350,24 @@ def get_session_data(base_url, login):
         users_file = _try_load_site_authentication_file(info_path)
         for user in users_file[_USERS]:
             # Search for the user in the users dictionary.
-            if _is_same_user(user, login):
-                session_data = {
-                    _LOGIN: user[_LOGIN],
-                    _SESSION_TOKEN: user[_SESSION_TOKEN]
-                }
-                # We want to keep session_metadata out of the session data if there
-                # is none. This is to ensure backward compatibility for older
-                # version of tk-core reading the authentication.yml
-                if user.get(_SESSION_METADATA):
-                    session_data[_SESSION_METADATA] = user[_SESSION_METADATA]
-                return session_data
+            if not _is_same_user(user, login):
+                continue
+
+            if not user.get(_SESSION_TOKEN):
+                continue
+
+            session_data = {
+                _LOGIN: user[_LOGIN],
+                _SESSION_TOKEN: user[_SESSION_TOKEN],
+            }
+
+            # We want to keep session_metadata out of the session data if there
+            # is none. This is to ensure backward compatibility for older
+            # version of tk-core reading the authentication.yml
+            if user.get(_SESSION_METADATA):
+                session_data[_SESSION_METADATA] = user[_SESSION_METADATA]
+
+            return session_data
         logger.debug("No cached user found for %s" % login)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
@@ -368,8 +387,10 @@ def cache_session_data(host, login, session_token, session_metadata=None):
     file_path = _get_site_authentication_file_location(host)
     _ensure_folder_for_file(file_path)
 
-    logger.debug("Checking if we need to update cached session data "
-                 "for site '%s' and user '%s' in %s..." % (host, login, file_path))
+    logger.debug(
+        "Checking if we need to update cached session data "
+        "for site '%s' and user '%s' in %s..." % (host, login, file_path)
+    )
 
     document = _try_load_site_authentication_file(file_path)
 
@@ -413,9 +434,7 @@ def set_current_user(host, login):
 
     current_user_file = _try_load_site_authentication_file(file_path)
 
-    _update_recent_list(
-        current_user_file, _CURRENT_USER, _RECENT_USERS, login
-    )
+    _update_recent_list(current_user_file, _CURRENT_USER, _RECENT_USERS, login)
 
     _write_yaml_file(file_path, current_user_file)
 
@@ -524,6 +543,48 @@ def get_recent_users(site):
     return _get_recent_items(document, _RECENT_USERS, _CURRENT_USER, "users")
 
 
+def get_preferred_method(host):
+    """
+    Returns the prefered authentication method for the given host.
+
+    :param host: Host to fetch the current for.
+
+    :returns: The authentication method for this host or None if not set.
+    """
+    # Retrieve the cached info file location from the host
+    info_path = _get_site_authentication_file_location(host)
+    document = _try_load_site_authentication_file(info_path)
+    method_name = document.get(_PREFERRED_METHOD)
+    if not method_name:
+        return
+
+    return constants.method_resolve_reverse(method_name.strip())
+
+
+def set_preferred_method(host, method):
+    """
+    Saves the authentication method for a given host.
+
+    :param host: Host to save the current user for.
+    :param method: The prefered authentication method for specified host.
+    """
+    host = host.strip()
+
+    method_name = constants.method_resolve.get(method)
+    if not method_name:
+        return
+
+    file_path = _get_site_authentication_file_location(host)
+    _ensure_folder_for_file(file_path)
+
+    current_user_file = _try_load_site_authentication_file(file_path)
+    if current_user_file.get(_PREFERRED_METHOD) == method_name:
+        return
+
+    current_user_file[_PREFERRED_METHOD] = method_name
+    _write_yaml_file(file_path, current_user_file)
+
+
 @LogManager.log_timing
 def generate_session_token(hostname, login, password, http_proxy, auth_token=None):
     """
@@ -544,20 +605,20 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     """
     try:
         # Create the instance that does not connect right away for speed...
-        logger.debug("Connecting to Shotgun to generate session token...")
+        logger.debug("Connecting to PTR to generate session token...")
         sg = Shotgun(
             hostname,
             login=login,
             password=password,
             http_proxy=http_proxy,
             connect=False,
-            auth_token=auth_token
+            auth_token=auth_token,
         )
         # .. and generate the session token. If it throws, we have invalid
         # credentials or invalid host/proxy settings.
         return sg.get_session_token()
-    except AuthenticationFault:
-        raise AuthenticationError("Authentication failed.")
+    except AuthenticationFault as error:
+        raise AuthenticationError("Authentication failed: %s" % error)
     except (ProtocolError, httplib2.ServerNotFoundError):
         raise AuthenticationError("Server %s was not found." % hostname)
     # In the following handlers, we are not rethrowing an AuthenticationError for

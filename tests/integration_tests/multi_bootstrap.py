@@ -14,8 +14,11 @@ This test makes sure that various tank command operations do not fail.
 
 from __future__ import print_function
 
+import sys
+import os
+
 import traceback
-import unittest2
+import unittest
 from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
 
@@ -50,16 +53,22 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         super(MultipleBootstrapAcrossCoreSwap, cls).setUpClass()
 
         # Create a sandbox project for this this suite to run under.
-        cls.project = cls.create_or_find_project("MultipleBootstrapAcrossCoreSwap", {})
+        cls.project = cls.create_or_update_project(
+            "MultipleBootstrapAcrossCoreSwap", {}
+        )
 
-    def test_01_setup_legacy_bootstrap_core(self):
+    def test_bootstrap_more_than_once(self):
         """
         Test payload. See class docstring for details.
         """
         # Bootstrap into the tk-shell123 engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
-        manager.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
+        manager.base_configuration = "sgtk:descriptor:path?path={0}".format(
+            os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "data", "site_config")
+            )
+        )
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
             engine = manager.bootstrap_engine("tk-shell123", self.project)
@@ -69,7 +78,9 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
                 # First make sure we're getting the expected behaviour and the classes are not the same
                 self.assertNotEqual(e.__class__, sgtk.platform.TankMissingEngineError)
                 # Due to core swapping this comparison needs to happen by name
-                self.assertEqual(e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__)
+                self.assertEqual(
+                    e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__
+                )
             except Exception:
                 print("Error detected was:")
                 print(traceback_str)
@@ -80,4 +91,4 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    ret_val = unittest.main(failfast=True, verbosity=2)

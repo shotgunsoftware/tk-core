@@ -17,9 +17,11 @@ from __future__ import with_statement
 import os
 import json
 
-from mock import patch
-
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+)
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -43,19 +45,20 @@ class TestAppStoreLabels(ShotgunTestBase):
         super(TestAppStoreLabels, self).setUp()
 
         # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
-        self._get_app_store_key_from_shotgun_mock = patch(
+        self._get_app_store_key_from_shotgun_mock = mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__create_sg_app_store_connection",
-            return_value=(self.mockgun, None)
+            return_value=(self.mockgun, None),
         )
         self._get_app_store_key_from_shotgun_mock.start()
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_label_support(self, find_mock, find_one_mock):
         """
         Tests the label syntax and that it restricts versions correctly
         """
+
         def find_one_mock_impl(*args, **kwargs):
             """
             The app store implementation will call this once to resolve the main
@@ -74,10 +77,15 @@ class TestAppStoreLabels(ShotgunTestBase):
             self.assertEqual(
                 args,
                 (
-                    'CustomNonProjectEntity13',
-                    [['sg_system_name', 'is', 'tk-framework-main']],
-                    ['id', 'sg_system_name', 'sg_status_list', 'sg_deprecation_message']
-                )
+                    "CustomNonProjectEntity13",
+                    [["sg_system_name", "is", "tk-framework-main"]],
+                    [
+                        "id",
+                        "sg_system_name",
+                        "sg_status_list",
+                        "sg_deprecation_message",
+                    ],
+                ),
             )
 
             return {
@@ -85,7 +93,7 @@ class TestAppStoreLabels(ShotgunTestBase):
                 "id": 1234,
                 "sg_system_name": "tk-framework-main",
                 "sg_status_list": "prod",
-                "sg_deprecation_message": None
+                "sg_deprecation_message": None,
             }
 
         def find_mock_impl(*args, **kwargs):
@@ -108,7 +116,7 @@ class TestAppStoreLabels(ShotgunTestBase):
                'sg_deprecation_message': None}]]
             }
             """
-            self.assertEqual(args, ('CustomNonProjectEntity09',))
+            self.assertEqual(args, ("CustomNonProjectEntity09",))
 
             # app store is trying to be smart about bandwidth depending on queries, so limit may vary.
             kwargs["limit"] = None
@@ -116,18 +124,34 @@ class TestAppStoreLabels(ShotgunTestBase):
             self.assertEqual(
                 kwargs,
                 {
-                    'fields': [
-                        'id', 'code', 'sg_status_list', 'description', 'tags', 'sg_detailed_release_notes',
-                        'sg_documentation', 'sg_payload'
+                    "fields": [
+                        "id",
+                        "code",
+                        "sg_status_list",
+                        "description",
+                        "tags",
+                        "sg_detailed_release_notes",
+                        "sg_documentation",
+                        "sg_payload",
                     ],
-                    'limit': None,
-                    'order': [{'direction': 'desc', 'field_name': 'created_at'}],
-                    'filters': [['sg_status_list', 'is_not', 'rev'], ['sg_status_list', 'is_not', 'bad'],
-                                ['sg_tank_framework', 'is',
-                                 {'sg_status_list': 'prod', 'type': 'CustomNonProjectEntity13', 'id': 1234,
-                                  'sg_system_name': 'tk-framework-main',
-                                  'sg_deprecation_message': None}]]
-                }
+                    "limit": None,
+                    "order": [{"direction": "desc", "field_name": "created_at"}],
+                    "filters": [
+                        ["sg_status_list", "is_not", "rev"],
+                        ["sg_status_list", "is_not", "bad"],
+                        [
+                            "sg_tank_framework",
+                            "is",
+                            {
+                                "sg_status_list": "prod",
+                                "type": "CustomNonProjectEntity13",
+                                "id": 1234,
+                                "sg_system_name": "tk-framework-main",
+                                "sg_deprecation_message": None,
+                            },
+                        ],
+                    ],
+                },
             )
 
             return_data = []
@@ -137,13 +161,16 @@ class TestAppStoreLabels(ShotgunTestBase):
                     "type": "CustomNonProjectEntity09",
                     "id": 1,
                     "code": "v1.0.1",
-                    "tags": [{"id": 1, "name": "2017.*", "type": "Tag"}, {"id": 2, "name": "2016.*", "type": "Tag"}],
+                    "tags": [
+                        {"id": 1, "name": "2017.*", "type": "Tag"},
+                        {"id": 2, "name": "2016.*", "type": "Tag"},
+                    ],
                     "sg_detailed_release_notes": "Test 1",
                     "sg_status_list": "prod",
                     "description": "dummy",
                     "sg_detailed_release_notes": "dummy",
                     "sg_documentation": "dummy",
-                    "sg_payload": {}
+                    "sg_payload": {},
                 }
             )
 
@@ -158,7 +185,7 @@ class TestAppStoreLabels(ShotgunTestBase):
                     "description": "dummy",
                     "sg_detailed_release_notes": "dummy",
                     "sg_documentation": "dummy",
-                    "sg_payload": {}
+                    "sg_payload": {},
                 }
             )
 
@@ -173,7 +200,7 @@ class TestAppStoreLabels(ShotgunTestBase):
                     "description": "dummy",
                     "sg_detailed_release_notes": "dummy",
                     "sg_documentation": "dummy",
-                    "sg_payload": {}
+                    "sg_payload": {},
                 }
             )
 
@@ -187,58 +214,79 @@ class TestAppStoreLabels(ShotgunTestBase):
         desc = create_descriptor(
             None,
             Descriptor.FRAMEWORK,
-            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"}
+            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"},
         )
-        self.assertEqual(desc.get_uri(), "sgtk:descriptor:app_store?name=tk-framework-main&version=v1.0.0")
+        self.assertEqual(
+            desc.get_uri(),
+            "sgtk:descriptor:app_store?name=tk-framework-main&version=v1.0.0",
+        )
         desc2 = desc.find_latest_version()
-        self.assertEqual(desc2.get_uri(), "sgtk:descriptor:app_store?name=tk-framework-main&version=v3.0.1")
+        self.assertEqual(
+            desc2.get_uri(),
+            "sgtk:descriptor:app_store?name=tk-framework-main&version=v3.0.1",
+        )
 
         # i am version 2016.3.45 so i am only getting 1.0.1
         desc = create_descriptor(
             None,
             Descriptor.FRAMEWORK,
-            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store", "label": "2016.3.45"}
+            {
+                "name": "tk-framework-main",
+                "version": "v1.0.0",
+                "type": "app_store",
+                "label": "2016.3.45",
+            },
         )
         self.assertEqual(
             desc.get_uri(),
-            "sgtk:descriptor:app_store?label=2016.3.45&name=tk-framework-main&version=v1.0.0"
+            "sgtk:descriptor:app_store?label=2016.3.45&name=tk-framework-main&version=v1.0.0",
         )
         desc2 = desc.find_latest_version()
         self.assertEqual(
             desc2.get_uri(),
-            "sgtk:descriptor:app_store?label=2016.3.45&name=tk-framework-main&version=v1.0.1"
+            "sgtk:descriptor:app_store?label=2016.3.45&name=tk-framework-main&version=v1.0.1",
         )
 
         # i am version 2017.3.45 so i am getting 2.0.1
         desc = create_descriptor(
             None,
             Descriptor.FRAMEWORK,
-            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store", "label": "2017.3.45"}
+            {
+                "name": "tk-framework-main",
+                "version": "v1.0.0",
+                "type": "app_store",
+                "label": "2017.3.45",
+            },
         )
         self.assertEqual(
             desc.get_uri(),
-            "sgtk:descriptor:app_store?label=2017.3.45&name=tk-framework-main&version=v1.0.0"
+            "sgtk:descriptor:app_store?label=2017.3.45&name=tk-framework-main&version=v1.0.0",
         )
         desc2 = desc.find_latest_version()
         self.assertEqual(
             desc2.get_uri(),
-            "sgtk:descriptor:app_store?label=2017.3.45&name=tk-framework-main&version=v2.0.1"
+            "sgtk:descriptor:app_store?label=2017.3.45&name=tk-framework-main&version=v2.0.1",
         )
 
         # i am version 2018.3.45 so i am getting 3.0.1
         desc = create_descriptor(
             None,
             Descriptor.FRAMEWORK,
-            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store", "label": "2018.3.45"}
+            {
+                "name": "tk-framework-main",
+                "version": "v1.0.0",
+                "type": "app_store",
+                "label": "2018.3.45",
+            },
         )
         self.assertEqual(
             desc.get_uri(),
-            "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v1.0.0"
+            "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v1.0.0",
         )
         desc2 = desc.find_latest_version()
         self.assertEqual(
             desc2.get_uri(),
-            "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v3.0.1"
+            "sgtk:descriptor:app_store?label=2018.3.45&name=tk-framework-main&version=v3.0.1",
         )
 
 
@@ -246,6 +294,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
     """
     Tests the app store io descriptor
     """
+
     def _create_test_descriptor(self):
         sg = self.mockgun
         root = os.path.join(self.project_root, "cache_root")
@@ -254,7 +303,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
             sg,
             sgtk.descriptor.Descriptor.APP,
             {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
-            bundle_cache_root_override=root
+            bundle_cache_root_override=root,
         )
 
     def _helper_test_disabling_access_to_app_store(self, mock, expect_call):
@@ -276,13 +325,14 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         mock.reset_mock()
         self.assertEqual(mock.call_count, 0)
 
-    @patch("tank_vendor.shotgun_api3.Shotgun")
-    @patch("urllib2.urlopen")
+    @mock.patch("tank_vendor.shotgun_api3.Shotgun")
+    @mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
     def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
         """
         Tests that we can prevent connection to the app store based on usage
         of the `SHOTGUN_DISABLE_APPSTORE_ACCESS` environment variable.
         """
+
         def urlopen_mock_impl(*args, **kwargs):
             """
             Necessary mock so we can pass beyond:
@@ -301,6 +351,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
                 Custom mocked response to allow successful execution of the
                 `appstore.IODescriptorAppStore.__get_app_store_key_from_shotgun()` method.
                 """
+
                 def __init__(self, json_data, status_code):
                     self.json_data = json.JSONEncoder().encode(json_data)
                     self.status_code = status_code
@@ -309,9 +360,14 @@ class TestAppStoreConnectivity(ShotgunTestBase):
                     return str(self.json_data)
 
             uri = args[0]
-            if uri == 'http://unit_test_mock_sg/api3/sgtk_install_script':
-                return MockResponse({"script_name": "bogus_script_name",
-                                     "script_key": "bogus_script_key"}, 200)
+            if uri == "http://unit_test_mock_sg/api3/sgtk_install_script":
+                return MockResponse(
+                    {
+                        "script_name": "bogus_script_name",
+                        "script_key": "bogus_script_key",
+                    },
+                    200,
+                )
 
             return MockResponse(None, 404)
 

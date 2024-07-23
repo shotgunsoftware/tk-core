@@ -33,6 +33,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
     interpreter files that live alongside the configuration, even tough technically these files
     are part of the core's configuration.
     """
+
     def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
@@ -62,7 +63,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
         core_descriptor_path = os.path.join(
             self._io_descriptor.get_path(),
             "core",
-            constants.CONFIG_CORE_DESCRIPTOR_FILE
+            constants.CONFIG_CORE_DESCRIPTOR_FILE,
         )
 
         if os.path.exists(core_descriptor_path):
@@ -78,11 +79,12 @@ class CachedConfigDescriptor(ConfigDescriptor):
             # read the file first
             fh = open(core_descriptor_path, "rt")
             try:
-                data = yaml.load(fh)
+                data = yaml.load(fh, Loader=yaml.FullLoader)
                 core_descriptor_dict = data["location"]
             except Exception as e:
                 raise TankDescriptorError(
-                    "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
+                    "Cannot read invalid core descriptor file '%s': %s"
+                    % (core_descriptor_path, e)
                 )
             finally:
                 fh.close()

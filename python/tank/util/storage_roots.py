@@ -78,8 +78,7 @@ class StorageRoots(object):
         :returns: A ``StorageRoots`` object instance
         """
 
-        log.debug(
-            "Creating StorageRoots instance from config: %s" % (config_folder,))
+        log.debug("Creating StorageRoots instance from config: %s" % (config_folder,))
         storage_roots = cls()
         storage_roots._init_from_config(config_folder)
         log.debug("Created: %s" % (storage_roots,))
@@ -120,8 +119,7 @@ class StorageRoots(object):
         :returns: A ``StorageRoots`` object instance
         """
 
-        log.debug(
-            "Creating StorageRoots instance from metadata: %s" % (metadata,))
+        log.debug("Creating StorageRoots instance from metadata: %s" % (metadata,))
         storage_roots = cls()
         storage_roots._process_metadata(metadata)
         log.debug("Created: %s" % (storage_roots,))
@@ -137,7 +135,7 @@ class StorageRoots(object):
         This action will overwrite any existing storage roots file defined by
         the configuration.
 
-        :param sg_connection: An existing SG connection, used to query local
+        :param sg_connection: An existing PTR connection, used to query local
             storage entities to ensure paths are up-to-date when the file is
             written.
         :param config_folder: The configuration folder under which the required
@@ -146,30 +144,28 @@ class StorageRoots(object):
             the required roots.
         """
 
-        (local_storage_lookup, unmapped_roots) = \
-            storage_roots.get_local_storages(sg_connection)
+        (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
+            sg_connection
+        )
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
 
         log.debug("Writing storage roots to: %s" % (roots_file,))
 
-        # raise an error if there are any roots that can not be mapped to SG
+        # raise an error if there are any roots that can not be mapped to PTR
         # local storage entries
         if unmapped_roots:
             raise TankError(
                 "The following storages are defined by %s but can not be "
-                "mapped to a local storage in Shotgun: %s" % (
-                    roots_file,
-                    ", ".join(unmapped_roots)
-                )
+                "mapped to a local storage in Flow Production Tracking: %s"
+                % (roots_file, ", ".join(unmapped_roots))
             )
 
         if os.path.exists(roots_file):
             # warn if this file already exists
             log.warning(
                 "The file '%s' exists in the configuration "
-                "but will be overwritten with an auto generated file." %
-                (roots_file,)
+                "but will be overwritten with an auto generated file." % (roots_file,)
             )
 
         # build up a new metadata dict
@@ -177,7 +173,7 @@ class StorageRoots(object):
 
         for root_name, root_info in storage_roots:
 
-            # get the cached SG storage dict
+            # get the cached PTR storage dict
             sg_local_storage = local_storage_lookup[root_name]
 
             # get the local storage as a ShotgunPath object
@@ -227,7 +223,7 @@ class StorageRoots(object):
 
         Yields root names and corresponding metadata upon iteration.
         """
-        for root_name, root_info in self._storage_roots_metadata.iteritems():
+        for root_name, root_info in self._storage_roots_metadata.items():
             yield root_name, root_info
 
     def __repr__(self):
@@ -236,7 +232,7 @@ class StorageRoots(object):
         """
         return "<StorageRoots folder:'%s', roots:'%s'>" % (
             self._config_root_folder,
-            ",".join(self.required_roots)
+            ",".join(self.required_roots),
         )
 
     ############################################################################
@@ -299,7 +295,7 @@ class StorageRoots(object):
         A list of all required storage root names (``str``) by this
         configuration.
         """
-        return self._storage_roots_metadata.keys()
+        return list(self._storage_roots_metadata.keys())
 
     ############################################################################
     # public methods
@@ -307,14 +303,14 @@ class StorageRoots(object):
     def get_local_storages(self, sg_connection):
         """
         Returns a tuple of information about the required storage roots and how
-        they map to local storages in SG.
+        they map to local storages in PTR.
 
         The first item in the tuple is a dictionary of storage root names mapped
         to a corresponding dictionary of fields for a local storage defined in
         Shotgun.
 
         The second item is a list of storage roots required by the configuration
-        that can not be mapped to a SG local storage.
+        that can not be mapped to a PTR local storage.
 
         Example return value::
 
@@ -342,8 +338,8 @@ class StorageRoots(object):
 
         In the example above, 4 storage roots are defined by the configuration:
         "work", "data", "data2", and "data3". The "work" and "data" roots can
-        be associated with a SG local storage. The other two roots have no
-        corresponding local storage in SG.
+        be associated with a PTR local storage. The other two roots have no
+        corresponding local storage in PTR.
 
         :param: A shotgun connection
         :returns: A tuple of information about local storages mapped to the
@@ -351,31 +347,27 @@ class StorageRoots(object):
         """
 
         log.debug(
-            "Attempting to associate required storage roots with SG local "
+            "Attempting to associate required storage roots with PTR local "
             "storages..."
         )
 
-        # build a lookup of storage root name to local storages SG dicts
+        # build a lookup of storage root name to local storages PTR dicts
         local_storage_lookup = {}
 
-        # keep a list of storages that could not be mapped to a SG local storage
+        # keep a list of storages that could not be mapped to a PTR local storage
         unmapped_root_names = []
 
-        # query all local storages from SG so we can store a lookup of roots
-        # defined here to SG storages
+        # query all local storages from PTR so we can store a lookup of roots
+        # defined here to PTR storages
 
-        # fields required for SG local storage queries
+        # fields required for PTR local storage queries
         local_storage_fields = ["code", "id"]
         local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
 
-        # create the SG connection and query
-        log.debug("Querying SG local storages...")
-        sg_storages = sg_connection.find(
-            "LocalStorage",
-            [],
-            local_storage_fields
-        )
-        log.debug("Query returned %s storages." % (len(sg_storages, )))
+        # create the PTR connection and query
+        log.debug("Querying PTR local storages...")
+        sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
+        log.debug("Query returned %s storages." % (len(sg_storages)))
 
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
@@ -397,9 +389,8 @@ class StorageRoots(object):
                 # found a match. store it in the lookup
                 sg_storage = sg_storages_by_id[root_storage_id]
                 log.debug(
-                    "Storage root %s explicitly associated with SG local "
-                    "storage id %s (%s)" %
-                    (root_name, root_storage_id, sg_storage)
+                    "Storage root %s explicitly associated with PTR local "
+                    "storage id %s (%s)" % (root_name, root_storage_id, sg_storage)
                 )
                 local_storage_lookup[root_name] = sg_storage
                 continue
@@ -410,17 +401,17 @@ class StorageRoots(object):
                 # found a match. store it in the lookup
                 sg_storage = sg_storages_by_name[root_name]
                 log.debug(
-                    "Storage root %s matches SG local storage with same name "
+                    "Storage root %s matches PTR local storage with same name "
                     "(%s)" % (root_name, sg_storage)
                 )
                 local_storage_lookup[root_name] = sg_storage
                 continue
 
             # if we're here, then we could not map the storage root to a local
-            # storage in SG
+            # storage in PTR
             log.warning(
-                "Storage root %s could not be mapped to a SG local storage" %
-                (root_name,)
+                "Storage root %s could not be mapped to a PTR local storage"
+                % (root_name,)
             )
             unmapped_root_names.append(root_name)
 
@@ -461,11 +452,12 @@ class StorageRoots(object):
 
             self._default_storage_name = root_name
             self._storage_roots_metadata[root_name] = root_info
-            self._shotgun_paths_lookup[root_name] = \
-                ShotgunPath.from_shotgun_dict(root_info)
+            self._shotgun_paths_lookup[root_name] = ShotgunPath.from_shotgun_dict(
+                root_info
+            )
 
     def update_root(self, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the object's storage
         metadata.
 
@@ -499,10 +491,9 @@ class StorageRoots(object):
             self._default_storage_name = root_name
 
         # update the cached ShotgunPath with the new root storage info
-        self._shotgun_paths_lookup[root_name] = \
-            ShotgunPath.from_shotgun_dict(
-                self._storage_roots_metadata[root_name]
-            )
+        self._shotgun_paths_lookup[root_name] = ShotgunPath.from_shotgun_dict(
+            self._storage_roots_metadata[root_name]
+        )
 
     ############################################################################
     # protected methods
@@ -517,8 +508,7 @@ class StorageRoots(object):
 
         log.debug(
             "Initializing storage roots object. "
-            "Supplied config folder: %s" %
-            (config_folder,)
+            "Supplied config folder: %s" % (config_folder,)
         )
 
         # ---- set some basic data for the object
@@ -528,19 +518,16 @@ class StorageRoots(object):
 
         # the full path to the roots file for debugging/messages
         self._storage_roots_file = os.path.join(
-            self._config_root_folder,
-            self.STORAGE_ROOTS_FILE_PATH
+            self._config_root_folder, self.STORAGE_ROOTS_FILE_PATH
         )
 
         log.debug(
-            "Storage roots file defined in the config: %s" %
-            (self._storage_roots_file,)
+            "Storage roots file defined in the config: %s" % (self._storage_roots_file,)
         )
 
         # load the roots file and store the metadata
         if os.path.exists(self._storage_roots_file):
-            roots_metadata = _get_storage_roots_metadata(
-                self._storage_roots_file)
+            roots_metadata = _get_storage_roots_metadata(self._storage_roots_file)
         else:
             # file does not exist. we will initialize with an empty dict
             roots_metadata = {}
@@ -575,14 +562,14 @@ class StorageRoots(object):
             # store a shotgun path for each root definition. sanitize path data
             # by passing it through the ShotgunPath object. if the configuration
             # has not been installed, these paths may be None.
-            self._shotgun_paths_lookup[root_name] = \
-                ShotgunPath.from_shotgun_dict(root_info)
+            self._shotgun_paths_lookup[root_name] = ShotgunPath.from_shotgun_dict(
+                root_info
+            )
 
             # check to see if this root is marked as the default
             if root_info.get("default", False):
                 log.debug(
-                    "Storage root %s explicitly marked as the default." %
-                    (root_name,)
+                    "Storage root %s explicitly marked as the default." % (root_name,)
                 )
                 self._default_storage_name = root_name
 
@@ -594,19 +581,18 @@ class StorageRoots(object):
 
             # if there is only one, then that is the default
             if len(roots_metadata) == 1:
-                sole_storage_root = roots_metadata.keys()[0]
+                sole_storage_root = list(roots_metadata.keys())[0]
                 log.debug(
                     "Storage %s identified as the default root because it is "
-                    "the only root required by the configuration" %
-                    (sole_storage_root,)
+                    "the only root required by the configuration" % (sole_storage_root,)
                 )
                 self._default_storage_name = sole_storage_root
             elif self.LEGACY_DEFAULT_STORAGE_NAME in roots_metadata:
                 # legacy primary storage name defined. that is the default
                 log.debug(
                     "Storage %s identified as the default root because it "
-                    "matches the legacy default root name." %
-                    (self.LEGACY_DEFAULT_STORAGE_NAME,)
+                    "matches the legacy default root name."
+                    % (self.LEGACY_DEFAULT_STORAGE_NAME,)
                 )
                 self._default_storage_name = self.LEGACY_DEFAULT_STORAGE_NAME
             else:
@@ -620,6 +606,7 @@ class StorageRoots(object):
 ################################################################################
 # internal util methods
 
+
 def _get_storage_roots_metadata(storage_roots_file):
     """
     Parse the supplied storage roots file
@@ -628,17 +615,13 @@ def _get_storage_roots_metadata(storage_roots_file):
     :return: The parsed metadata as a dictionary.
     """
 
-    log.debug(
-        "Reading storage roots file form disk: %s" %
-        (storage_roots_file,)
-    )
+    log.debug("Reading storage roots file form disk: %s" % (storage_roots_file,))
 
     try:
         # keep a handle on the raw metadata read from the roots file
-        roots_metadata = yaml_cache.g_yaml_cache.get(
-            storage_roots_file,
-            deepcopy_data=False
-        ) or {}  # if file is empty, initialize with empty dict
+        roots_metadata = (
+            yaml_cache.g_yaml_cache.get(storage_roots_file, deepcopy_data=False) or {}
+        )  # if file is empty, initialize with empty dict
     except Exception as e:
         raise TankError(
             "Looks like the roots file is corrupt. "

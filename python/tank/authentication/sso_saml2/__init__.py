@@ -14,6 +14,7 @@ This module offers different SSO integration warppers for Shotgun.
 # Exceptions
 from .core.errors import (  # noqa
     SsoSaml2Error,
+    SsoSaml2IncompletePySide2,
     SsoSaml2MissingQtCore,
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtModuleError,
@@ -23,22 +24,18 @@ from .core.errors import (  # noqa
 )
 
 # Classes
-from .sso_saml2 import (  # noqa
-    SsoSaml2,
-)
+from .sso_saml2 import SsoSaml2  # noqa
 
-from .sso_saml2_toolkit import (  # noqa
-    SsoSaml2Toolkit,
-)
+from .sso_saml2_toolkit import SsoSaml2Toolkit  # noqa
 
 # Functions
 from .utils import (  # noqa
-    get_logger,
     get_saml_claims_expiration,
     has_sso_info_in_cookies,
     has_unified_login_flow_info_in_cookies,
-    is_sso_enabled_on_site,
-    is_autodesk_identity_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
+)
+
+from .core.utils import (  # noqa
+    get_logger,
     set_logger_parent,
 )

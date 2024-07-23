@@ -34,6 +34,12 @@ class TankMissingEngineError(TankEngineInitError):
     """
 
 
+class TankUnresolvedEnvironmentError(TankEngineInitError):
+    """
+    Exception that indicates that the pick_environment hook did not return a valid environment
+    """
+
+
 class TankEngineEventError(errors.TankError):
     """
     Exception that is raised when there is a problem during engine event emission.
@@ -51,6 +57,7 @@ class TankMissingEnvironmentFile(errors.TankError):
     """
     Exception that indicates that an environment file can't be found on disk.
     """
+
 
 # backwards compatibility to ensure code that was calling internal
 # parts of the API will still work.

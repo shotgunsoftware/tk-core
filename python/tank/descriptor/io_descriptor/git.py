@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import sys
 import uuid
 import shutil
 import tempfile
@@ -20,6 +19,7 @@ from ...util.process import subprocess_check_output, SubprocessCalledProcessErro
 
 from ..errors import TankError
 from ...util import filesystem
+from ...util import is_windows
 
 log = LogManager.get_logger(__name__)
 
@@ -42,7 +42,7 @@ def _check_output(*args, **kwargs):
     """
     Wraps the call to subprocess_check_output so it can run headless on Windows.
     """
-    if sys.platform == "win32" and _can_hide_terminal():
+    if is_windows() and _can_hide_terminal():
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startupinfo.wShowWindow = subprocess.SW_HIDE
@@ -55,6 +55,7 @@ class TankGitError(TankError):
     """
     Errors related to git communication
     """
+
     pass
 
 
@@ -66,6 +67,7 @@ class IODescriptorGit(IODescriptorDownloadable):
     descriptors have a repository associated (via the 'path'
     parameter).
     """
+
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
@@ -75,7 +77,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGit, self).__init__(descriptor_dict, sg_connection, bundle_type)
+        super(IODescriptorGit, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         self._path = descriptor_dict.get("path")
         # strip trailing slashes - this is so that when we build
@@ -84,7 +88,9 @@ class IODescriptorGit(IODescriptorDownloadable):
             self._path = self._path[:-1]
 
     @LogManager.log_timing
-    def _clone_then_execute_git_commands(self, target_path, commands):
+    def _clone_then_execute_git_commands(
+        self, target_path, commands, depth=None, ref=None, is_latest_commit=None
+    ):
         """
         Clones the git repository into the given location and
         executes the given list of git commands::
@@ -111,6 +117,8 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         :param target_path: path to clone into
         :param commands: list git commands to execute, e.g. ['checkout x']
+        :param depth: depth of the clone, allows shallow clone
+        :param ref: git ref to checkout - it can be commit, tag or branch
         :returns: stdout and stderr of the last command executed as a string
         :raises: TankGitError on git failure
         """
@@ -129,18 +137,13 @@ class IODescriptorGit(IODescriptorDownloadable):
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
             )
+
         log.debug("Git installed: %s" % output)
 
-        # Note: git doesn't like paths in single quotes when running on
-        # windows - it also prefers to use forward slashes
-        #
-        # Also note - we are adding a --no-hardlinks flag here to ensure that
-        # when a github repo resides locally on a drive, git isn't trying
-        # to be clever and utilize hard links to save space - this can cause
-        # complications in cleanup scenarios and with file copying. We want
-        # each repo that we clone to be completely independent on a filesystem level.
-        log.debug("Git Cloning %r into %s" % (self, target_path))
-        cmd = "git clone --no-hardlinks -q \"%s\" \"%s\"" % (self._path, target_path)
+        # Make sure all git commands are correct according to the descriptor type
+        cmd = self._validate_git_commands(
+            target_path, depth=depth, ref=ref, is_latest_commit=is_latest_commit
+        )
 
         run_with_os_system = True
 
@@ -159,7 +162,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # Note: We only try this workflow if we can actually hide the terminal on Windows.
         # If we can't there's no point doing all of this and we should just use
         # os.system.
-        if sys.platform == "win32" and _can_hide_terminal():
+        if is_windows() and _can_hide_terminal():
             log.debug("Executing command '%s' using subprocess module." % cmd)
             try:
                 # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
@@ -180,7 +183,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         if run_with_os_system:
             # Make sure path and repo path are quoted.
             log.debug("Executing command '%s' using os.system" % cmd)
-            log.debug("Note: in a terminal environment, this may prompt for authentication")
+            log.debug(
+                "Note: in a terminal environment, this may prompt for authentication"
+            )
             status = os.system(cmd)
 
         log.debug("Command returned exit code %s" % status)
@@ -204,45 +209,42 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         cwd = os.getcwd()
         try:
-            if sys.platform != "win32":
+            if not is_windows():
                 log.debug("Setting cwd to '%s'" % target_path)
                 os.chdir(target_path)
 
             for command in commands:
 
-                if sys.platform == "win32":
+                if is_windows():
                     # we use git -C to specify the working directory where to execute the command
                     # this option was added in as part of git 1.9
                     # and solves an issue with UNC paths on windows.
-                    full_command = "git -C \"%s\" %s" % (target_path, command)
+                    full_command = 'git -C "%s" %s' % (target_path, command)
                 else:
                     full_command = "git %s" % command
 
                 log.debug("Executing '%s'" % full_command)
                 try:
-                    output = _check_output(
-                        full_command,
-                        shell=True
-                    )
+                    output = _check_output(full_command, shell=True)
 
                     # note: it seems on windows, the result is sometimes wrapped in single quotes.
                     output = output.strip().strip("'")
 
                 except SubprocessCalledProcessError as e:
                     raise TankGitError(
-                        "Error executing git operation '%s': %s (Return code %s)" %
-                        (full_command, e.output, e.returncode)
+                        "Error executing git operation '%s': %s (Return code %s)"
+                        % (full_command, e.output, e.returncode)
                     )
                 log.debug("Execution successful. stderr/stdout: '%s'" % output)
         finally:
-            if sys.platform != "win32":
+            if not is_windows():
                 log.debug("Restoring cwd (to '%s')" % cwd)
                 os.chdir(cwd)
 
         # return the last returned stdout/stderr
         return output
 
-    def _tmp_clone_then_execute_git_commands(self, commands):
+    def _tmp_clone_then_execute_git_commands(self, commands, depth=None, ref=None):
         """
         Clone into a temp location and executes the given
         list of git commands.
@@ -252,10 +254,14 @@ class IODescriptorGit(IODescriptorDownloadable):
         :param commands: list git commands to execute, e.g. ['checkout x']
         :returns: stdout and stderr of the last command executed as a string
         """
-        clone_tmp = os.path.join(tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex)
+        clone_tmp = os.path.join(
+            tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex
+        )
         filesystem.ensure_folder_exists(clone_tmp)
         try:
-            return self._clone_then_execute_git_commands(clone_tmp, commands)
+            return self._clone_then_execute_git_commands(
+                clone_tmp, commands, depth, ref
+            )
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
             shutil.rmtree(clone_tmp, ignore_errors=True)
@@ -283,7 +289,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         try:
             log.debug("%r: Probing if a connection to git can be established..." % self)
             # clone repo into temp folder
-            self._tmp_clone_then_execute_git_commands([])
+            self._tmp_clone_then_execute_git_commands([], depth=1)
             log.debug("...connection established")
         except Exception as e:
             log.debug("...could not establish connection: %s" % e)
@@ -314,5 +320,46 @@ class IODescriptorGit(IODescriptorDownloadable):
             self.get_path(),
             target_path,
             # Make we do not pass none or we will be getting the default skip list.
-            skip_list=skip_list or []
+            skip_list=skip_list or [],
         )
+
+    def _validate_git_commands(
+        self, target_path, depth=None, ref=None, is_latest_commit=None
+    ):
+        """
+        Validate that git commands are correct according to the descriptor type
+        avoiding shallow git clones when tracking against commits in a git branch.
+        :param target_path: path to clone into
+        :param depth: depth of the clone, allows shallow clone
+        :param ref: git ref to checkout - it can be commit, tag or branch
+        :returns: str git commands to execute
+        """
+        # Note: git doesn't like paths in single quotes when running on
+        # windows - it also prefers to use forward slashes
+        #
+        # Also note - we are adding a --no-hardlinks flag here to ensure that
+        # when a github repo resides locally on a drive, git isn't trying
+        # to be clever and utilize hard links to save space - this can cause
+        # complications in cleanup scenarios and with file copying. We want
+        # each repo that we clone to be completely independent on a filesystem level.
+        log.debug("Git Cloning %r into %s" % (self, target_path))
+        depth = "--depth %s" % depth if depth else ""
+        ref = "-b %s" % ref if ref else ""
+        cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
+            self._path,
+            ref,
+            target_path,
+            depth,
+        )
+        if self._descriptor_dict.get("type") == "git_branch":
+            if not is_latest_commit:
+                if "--depth" in cmd:
+                    depth = ""
+                    cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
+                        self._path,
+                        ref,
+                        target_path,
+                        depth,
+                    )
+
+        return cmd

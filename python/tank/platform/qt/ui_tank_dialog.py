@@ -20,7 +20,9 @@ class Ui_TankDialog(object):
         self.stackedWidget = QtGui.QStackedWidget(TankDialog)
         self.stackedWidget.setObjectName("stackedWidget")
         self.page_1 = QtGui.QWidget()
-        self.page_1.setStyleSheet("")
+        self.page_1.setStyleSheet("QWidget#page_1 {\n"
+"margin: 0px;\n"
+"}")
         self.page_1.setObjectName("page_1")
         self.verticalLayout = QtGui.QVBoxLayout(self.page_1)
         self.verticalLayout.setSpacing(0)
@@ -65,23 +67,23 @@ class Ui_TankDialog(object):
         self.horizontalLayout.addWidget(self.label)
         self.lbl_context = QtGui.QLabel(self.top_group)
         self.lbl_context.setStyleSheet("/* want this stylesheet to apply to the label but not the tooltip */\n"
-"QLabel { \n"
+"QLabel {\n"
 "    color: rgba(250,250,250,180);\n"
 "    font-size: 11px;\n"
 "    margin-right: 8px;\n"
 "    font-family: \"Open Sans\";\n"
 "    font-style: \"Regular\";\n"
-"} \n"
+"}\n"
 "\n"
 "\n"
 "")
         self.lbl_context.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lbl_context.setObjectName("lbl_context")
         self.horizontalLayout.addWidget(self.lbl_context)
-        self.details = QtGui.QToolButton(self.top_group)
-        self.details.setMinimumSize(QtCore.QSize(34, 34))
-        self.details.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.details.setStyleSheet("QToolButton{\n"
+        self.details_show = QtGui.QToolButton(self.top_group)
+        self.details_show.setMinimumSize(QtCore.QSize(34, 34))
+        self.details_show.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.details_show.setStyleSheet("QToolButton{\n"
 "width: 12px;\n"
 "height: 20px;\n"
 "background-image: url(:/Tank.Platform.Qt/arrow.png);\n"
@@ -89,19 +91,42 @@ class Ui_TankDialog(object):
 "background-color: none;\n"
 "}\n"
 "\n"
-"\n"
 "QToolButton:hover{\n"
 "background-image: url(:/Tank.Platform.Qt/arrow_hover.png);\n"
 "}\n"
 "\n"
-"QToolButton:Pressed {\n"
+"QToolButton:pressed{\n"
 "background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);\n"
 "}\n"
 "")
-        self.details.setText("")
-        self.details.setAutoRaise(True)
-        self.details.setObjectName("details")
-        self.horizontalLayout.addWidget(self.details)
+        self.details_show.setText("")
+        self.details_show.setAutoRaise(True)
+        self.details_show.setObjectName("details_show")
+        self.horizontalLayout.addWidget(self.details_show)
+        self.details_hide = QtGui.QToolButton(self.top_group)
+        self.details_hide.setMinimumSize(QtCore.QSize(34, 34))
+        self.details_hide.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.details_hide.setVisible(False)
+        self.details_hide.setStyleSheet("QToolButton{\n"
+" width: 12px;\n"
+" height: 20px;\n"
+" background-image: url(:/Tank.Platform.Qt/arrow_flipped.png);\n"
+" border: none;\n"
+" background-color: none;\n"
+" }\n"
+"\n"
+" QToolButton:hover{\n"
+" background-image: url(:/Tank.Platform.Qt/arrow_flipped_hover.png);\n"
+" }\n"
+"\n"
+" QToolButton:pressed{\n"
+" background-image: url(:/Tank.Platform.Qt/arrow_flipped_pressed.png);\n"
+" }\n"
+" ")
+        self.details_hide.setText("")
+        self.details_hide.setAutoRaise(True)
+        self.details_hide.setObjectName("details_hide")
+        self.horizontalLayout.addWidget(self.details_hide)
         self.verticalLayout.addWidget(self.top_group)
         self.target = QtGui.QVBoxLayout()
         self.target.setSpacing(4)
@@ -119,7 +144,9 @@ class Ui_TankDialog(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.page_2_group = QtGui.QGroupBox(self.page_2)
         self.page_2_group.setMinimumSize(QtCore.QSize(0, 100))
-        self.page_2_group.setStyleSheet("")
+        self.page_2_group.setStyleSheet("QGroupBox {\n"
+"margin: 0px;\n"
+"}")
         self.page_2_group.setTitle("")
         self.page_2_group.setObjectName("page_2_group")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.page_2_group)
@@ -138,7 +165,7 @@ class Ui_TankDialog(object):
         self.gradient.setMinimumSize(QtCore.QSize(11, 0))
         self.gradient.setMaximumSize(QtCore.QSize(11, 16777215))
         self.gradient.setStyleSheet("#gradient {\n"
-"background-image: url(:/Tank.Platform.Qt/gradient.png); \n"
+"background-image: url(:/Tank.Platform.Qt/gradient.png);\n"
 "border: none;\n"
 "}")
         self.gradient.setTitle("")
@@ -160,7 +187,7 @@ class Ui_TankDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 383, 577))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 398, 550))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
@@ -287,7 +314,8 @@ class Ui_TankDialog(object):
         self.lbl_context.setToolTip(QtGui.QApplication.translate("TankDialog", "foo bar", None, QtGui.QApplication.UnicodeUTF8))
         self.lbl_context.setText(QtGui.QApplication.translate("TankDialog", "Current Work Area:\n"
 "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
-        self.details.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for App Details", None, QtGui.QApplication.UnicodeUTF8))
+        self.details_show.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for App Details", None, QtGui.QApplication.UnicodeUTF8))
+        self.details_hide.setToolTip(QtGui.QApplication.translate("TankDialog", "Hide App Details", None, QtGui.QApplication.UnicodeUTF8))
         self.app_name.setText(QtGui.QApplication.translate("TankDialog", "Publish And Snapshot", None, QtGui.QApplication.UnicodeUTF8))
         self.app_description.setText(QtGui.QApplication.translate("TankDialog", "Tools to see what is out of date in your scene etc etc.", None, QtGui.QApplication.UnicodeUTF8))
         self.app_tech_details.setText(QtGui.QApplication.translate("TankDialog", "tk-multi-snapshot, v1.2.3", None, QtGui.QApplication.UnicodeUTF8))
@@ -296,7 +324,7 @@ class Ui_TankDialog(object):
         self.label_5.setText(QtGui.QApplication.translate("TankDialog", "Your Current Work Area", None, QtGui.QApplication.UnicodeUTF8))
         self.app_work_area_info.setText(QtGui.QApplication.translate("TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_file_system.setText(QtGui.QApplication.translate("TankDialog", "Jump to File System", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_shotgun.setText(QtGui.QApplication.translate("TankDialog", "Jump to Shotgun", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_shotgun.setText(QtGui.QApplication.translate("TankDialog", "Jump to Flow Production Tracking", None, QtGui.QApplication.UnicodeUTF8))
         self.app_work_area_info_2.setText(QtGui.QApplication.translate("TankDialog", "If you are making changes to configuration or code, use the reload button to quickly load your changes in without having to restart:", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_reload.setText(QtGui.QApplication.translate("TankDialog", "Reload Engine and Apps", None, QtGui.QApplication.UnicodeUTF8))
         self.config_header.setText(QtGui.QApplication.translate("TankDialog", "Configuration", None, QtGui.QApplication.UnicodeUTF8))

@@ -16,8 +16,7 @@ Hook which provides advanced customization of context creation.
     doesn't do what you think it does and it will likely be removed in a future
     release.
 
-    Email support@shotgunsoftware.com if you have any questions about how to
-    migrate away from this hook.
+    Contact support if you have any questions about how to migrate away from this hook.
 """
 from tank import Hook
 
@@ -43,8 +42,5 @@ class ContextAdditionalEntities(Hook):
         :returns: A dictionary with keys ``entity_types_in_path`` and ``entity_fields_on_task``.
         :rtype dict:
         """
-        val = {
-            "entity_types_in_path": [],
-            "entity_fields_on_task": []
-        }
+        val = {"entity_types_in_path": [], "entity_fields_on_task": []}
         return val

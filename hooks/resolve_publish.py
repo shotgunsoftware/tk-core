@@ -17,7 +17,6 @@ from sgtk import Hook
 
 
 class ResolvePublish(Hook):
-
     def resolve_path(self, sg_publish_data):
         """
         Resolves a Shotgun publish record into a local file on disk.

@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -34,7 +34,7 @@ def get_entity_type_display_name(tk, entity_type_code):
 
     .. note:: The recommended way to access this data is now via the
               globals module in the shotgunutils framework. For more information,
-              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
+              see http://developer.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param entity_type_code: API entity type name
@@ -69,11 +69,9 @@ def get_cached_local_storages(tk):
     storage_data = tk.get_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY)
 
     if storage_data is None:
-        log.debug("Caching shotgun local storages...")
+        log.debug("Caching PTR local storages...")
         storage_data = tk.shotgun.find(
-            "LocalStorage",
-            [],
-            ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
+            "LocalStorage", [], ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
         )
         log.debug("...caching complete. Got %d storages." % len(storage_data))
         tk.set_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY, storage_data)
@@ -82,7 +80,9 @@ def get_cached_local_storages(tk):
 
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None):
+def find_publish(
+    tk, list_of_paths, filters=None, fields=None, only_current_project=True
+):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
@@ -96,6 +96,10 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     By default, the shotgun id is returned for each successfully identified path.
     If you want to retrieve additional fields, you can specify these using
     the fields parameter.
+
+    By default, only publishes in the current project will be found. If you
+    want to retreive publishes from any active project in the pipeline config,
+    you can specify the only_current_project param to False.
 
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example::
@@ -113,6 +117,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
                    return. Defaults to id and type.
+    :param only_current_project: Optional boolean to find publishes in Shotgun only from the
+                                 current project (True) or from any active project (False).
+                                 Defaults to True.
     :returns: dictionary keyed by path
     """
     # avoid cyclic references
@@ -122,7 +129,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # in case of sequences, there will be more than one file
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
-    storage_root_to_paths = group_by_storage(tk, list_of_paths)
+    storage_root_to_paths = group_by_storage(tk, list_of_paths, only_current_project)
 
     filters = filters or []
     fields = fields or []
@@ -144,13 +151,15 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     # get a list of all storages that we should look up.
     # for 0.12 backwards compatibility, add the Tank Storage.
-    root_names = storage_root_to_paths.keys()
+    root_names = list(storage_root_to_paths.keys())
     if constants.PRIMARY_STORAGE_NAME in root_names:
         root_names.append("Tank")
 
     # get a lookup of required root to local storage
-    (mapped_roots, unmapped_roots) = \
-        tk.pipeline_configuration.get_local_storage_mapping()
+    (
+        mapped_roots,
+        unmapped_roots,
+    ) = tk.pipeline_configuration.get_local_storage_mapping()
 
     published_file_entity_type = get_published_file_entity_type(tk)
     for root_name in root_names:
@@ -169,7 +178,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         # 0.12 backwards compatibility: if the storage name is Tank,
         # this is the same as the primary storage.
         if root_name == "Tank":
-            normalized_paths = storage_root_to_paths[constants.PRIMARY_STORAGE_NAME].keys()
+            normalized_paths = storage_root_to_paths[
+                constants.PRIMARY_STORAGE_NAME
+            ].keys()
         else:
             normalized_paths = storage_root_to_paths[root_name].keys()
 
@@ -181,7 +192,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         sg_filters.append(["path_cache_storage", "is", local_storage])
 
         # organize the returned data by storage
-        published_files[root_name] = tk.shotgun.find(published_file_entity_type, sg_filters, sg_fields)
+        published_files[root_name] = tk.shotgun.find(
+            published_file_entity_type, sg_filters, sg_fields
+        )
 
     # PASS 2
     # take the published_files structure, containing the shotgun data
@@ -193,7 +206,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
         # get a dictionary which maps shotgun paths to file system paths
         if local_storage_name == "Tank":
-            normalized_path_lookup_dict = storage_root_to_paths[constants.PRIMARY_STORAGE_NAME]
+            normalized_path_lookup_dict = storage_root_to_paths[
+                constants.PRIMARY_STORAGE_NAME
+            ]
         else:
             normalized_path_lookup_dict = storage_root_to_paths[local_storage_name]
 
@@ -235,6 +250,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
             del matches[path][f]
 
     return matches
+
 
 @LogManager.log_timing
 def create_event_log_entry(tk, context, event_type, description, metadata=None):
@@ -288,5 +304,3 @@ def get_published_file_entity_type(tk):
 
     """
     return tk.pipeline_configuration.get_published_file_entity_type()
-
-

@@ -12,7 +12,7 @@ these are not really related, formatting could be factored out as
 a separate base
 """
 
-from collections import MutableSet
+from collections.abc import MutableSet
 
 from .compat import ordereddict
 

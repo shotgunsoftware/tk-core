@@ -12,35 +12,40 @@ from __future__ import with_statement
 import os
 
 import sgtk
-from mock import patch, Mock
 
 from sgtk.bootstrap import ToolkitManager
 
-from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    ShotgunTestBase,
+    TankTestBase,
+    temp_env_var,
+)
 
 
 class TestErrorHandling(ShotgunTestBase):
-
     def test_get_pipeline_configurations_by_id(self):
         """
         Ensure that the resolver detects when an installed configuration has not been set for the
         current platform.
         """
+
         def find_mock_impl(*args, **kwargs):
             mgr = ToolkitManager()
             mgr.pipeline_configuration = 1
             with self.assertRaisesRegex(
                 sgtk.bootstrap.TankBootstrapError,
-                "Can't enumerate pipeline configurations matching a specific id."
+                "Can't enumerate pipeline configurations matching a specific id.",
             ):
                 mgr.get_pipeline_configurations(None)
 
 
 class TestFunctionality(ShotgunTestBase):
-
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user",
+        return_value=mock.Mock(),
+    )
     def test_pipeline_config_id_env_var(self, _):
         """
         Tests the SHOTGUN_PIPELINE_CONFIGURATION_ID being picked up at init
@@ -56,7 +61,9 @@ class TestFunctionality(ShotgunTestBase):
             mgr = ToolkitManager()
             self.assertEqual(mgr.pipeline_configuration, None)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_get_entity_from_environment(self, _):
         """
         Ensure the ToolkitManager can extract the entities from the environment
@@ -67,36 +74,25 @@ class TestFunctionality(ShotgunTestBase):
         self.assertEqual(mgr.get_entity_from_environment(), None)
 
         # std case
-        with temp_env_var(
-            SHOTGUN_ENTITY_TYPE="Shot",
-            SHOTGUN_ENTITY_ID="123"
-        ):
+        with temp_env_var(SHOTGUN_ENTITY_TYPE="Shot", SHOTGUN_ENTITY_ID="123"):
             self.assertEqual(
-                mgr.get_entity_from_environment(),
-                {"type": "Shot", "id": 123}
+                mgr.get_entity_from_environment(), {"type": "Shot", "id": 123}
             )
         # site mismatch
         with temp_env_var(
             SHOTGUN_SITE="https://some.other.site",
             SHOTGUN_ENTITY_TYPE="Shot",
-            SHOTGUN_ENTITY_ID="123"
+            SHOTGUN_ENTITY_ID="123",
         ):
-            self.assertEqual(
-                mgr.get_entity_from_environment(),
-                None
-            )
+            self.assertEqual(mgr.get_entity_from_environment(), None)
 
         # invalid data case
-        with temp_env_var(
-            SHOTGUN_ENTITY_TYPE="Shot",
-            SHOTGUN_ENTITY_ID="invalid"
-        ):
-            self.assertEqual(
-                mgr.get_entity_from_environment(),
-                None
-            )
+        with temp_env_var(SHOTGUN_ENTITY_TYPE="Shot", SHOTGUN_ENTITY_ID="invalid"):
+            self.assertEqual(mgr.get_entity_from_environment(), None)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_shotgun_bundle_cache(self, _):
         """
         Ensures ToolkitManager deals property with bundle cache from the user and from
@@ -110,7 +106,8 @@ class TestFunctionality(ShotgunTestBase):
         # If the user bundle cache is set, we should see it in the results.
         mgr.bundle_cache_fallback_paths = ["/a/b/c", "/d/e/f"]
         self.assertEqual(
-            set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"]))
+            set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
+        )
 
         # Reset the user bundle cache.
         mgr.bundle_cache_fallback_paths = []
@@ -118,18 +115,22 @@ class TestFunctionality(ShotgunTestBase):
 
         # Set the environment variable which allows to inherit paths from another process.
         with temp_env_var(
-            SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS=os.pathsep.join(["/g/h/i", "/j/k/l", "/a/b/c"])
+            SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS=os.pathsep.join(
+                ["/g/h/i", "/j/k/l", "/a/b/c"]
+            )
         ):
             # Should see the content from the environment variable.
             self.assertEqual(
-                set(mgr._get_bundle_cache_fallback_paths()), set(["/g/h/i", "/j/k/l", "/a/b/c"]))
+                set(mgr._get_bundle_cache_fallback_paths()),
+                set(["/g/h/i", "/j/k/l", "/a/b/c"]),
+            )
 
             # Add a few user specified folders.
             mgr.bundle_cache_fallback_paths = ["/a/b/c", "/d/e/f"]
 
             self.assertEqual(
                 set(mgr._get_bundle_cache_fallback_paths()),
-                set(["/a/b/c", "/d/e/f", "/g/h/i", "/j/k/l"])
+                set(["/a/b/c", "/d/e/f", "/g/h/i", "/j/k/l"]),
             )
 
         # Now that the env var is not set anymore we should see its bundle caches.
@@ -137,7 +138,9 @@ class TestFunctionality(ShotgunTestBase):
             set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
         )
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_serialization(self, _):
         """
         Ensures we're serializing the manager properly.
@@ -164,8 +167,9 @@ class TestFunctionality(ShotgunTestBase):
         modified_mgr.bundle_cache_fallback_paths = ["/a/b/c"]
         modified_mgr.caching_policy = ToolkitManager.CACHE_FULL
         modified_mgr.pipeline_configuration = "Primary"
-        modified_mgr.base_configuration = "sgtk:descriptor:app_store?"\
-            "version=v0.18.91&name=tk-config-basic"
+        modified_mgr.base_configuration = (
+            "sgtk:descriptor:app_store?" "version=v0.18.91&name=tk-config-basic"
+        )
         modified_mgr.do_shotgun_config_lookup = False
         modified_mgr.plugin_id = "basic.default"
         modified_mgr.allow_config_overrides = False
@@ -175,7 +179,7 @@ class TestFunctionality(ShotgunTestBase):
         self.assertIsInstance(modified_settings, dict)
 
         # Make sure the unit test properly changes all the settings from their default values.
-        for k, v in modified_settings.iteritems():
+        for k, v in modified_settings.items():
             self.assertNotEqual(v, clean_settings[k])
 
         # Restore the settings from the manager.
@@ -191,6 +195,7 @@ class _MockedShotgunUser(object):
     """
     A fake shotgun user object that we can pass to the manager.
     """
+
     def __init__(self, mockgun, login):
         self._mockgun = mockgun
         self._login = login
@@ -210,7 +215,6 @@ class _MockedShotgunUser(object):
 
 
 class TestPrepareEngine(ShotgunTestBase):
-
     def setUp(self):
         super(TestPrepareEngine, self).setUp({"primary_root_name": "primary"})
 
@@ -222,9 +226,7 @@ class TestPrepareEngine(ShotgunTestBase):
         mgr.do_shotgun_config_lookup = False
         mgr.base_configuration = {
             "type": "path",
-            "path": os.path.join(
-                self.fixtures_root, "bootstrap_tests", "config"
-            )
+            "path": os.path.join(self.fixtures_root, "bootstrap_tests", "config"),
         }
 
         def progress_cb(progress_value, message):
@@ -239,12 +241,13 @@ class TestPrepareEngine(ShotgunTestBase):
         mgr.progress_callback = progress_cb
         path, desc = mgr.prepare_engine("test_engine", self.project)
         self.assertEqual(desc.get_dict(), mgr.base_configuration)
-        self.assertEqual(path, os.path.join(self.tank_temp, "unit_test_mock_sg", "p1", "cfg"))
+        self.assertEqual(
+            path, os.path.join(self.tank_temp, "unit_test_mock_sg", "p1", "cfg")
+        )
         self.assertEqual(progress_cb.nb_exists_locally, 3)
 
 
 class TestGetPipelineConfigs(TankTestBase):
-
     def setUp(self):
         super(TestGetPipelineConfigs, self).setUp()
 
@@ -269,7 +272,7 @@ class TestGetPipelineConfigs(TankTestBase):
                 plugin_ids="basic.*",
                 descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
                 uploaded_config=None,
-            )
+            ),
         )
 
         mgr = ToolkitManager(self._mocked_sg_user)
@@ -282,7 +285,7 @@ class TestGetPipelineConfigs(TankTestBase):
             "project",
             "descriptor",
             "type",
-            "id"
+            "id",
         ]
 
         self.assertEqual(len(configs), 1)
@@ -292,8 +295,14 @@ class TestGetPipelineConfigs(TankTestBase):
         self.assertEqual(config["type"], "PipelineConfiguration")
         self.assertEqual(config["name"], "Primary")
         self.assertEqual(config["project"], self._project)
-        self.assertEqual(config["descriptor"].get_uri(), "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3")
-        self.assertEqual(config["descriptor_source_uri"], "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3")
+        self.assertEqual(
+            config["descriptor"].get_uri(),
+            "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
+        )
+        self.assertEqual(
+            config["descriptor_source_uri"],
+            "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
+        )
 
         # with a different plugin id we won't get anything
         mgr.plugin_id = "something.else"
@@ -316,7 +325,7 @@ class TestGetPipelineConfigs(TankTestBase):
                 plugin_ids="basic.*",
                 descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
                 uploaded_config=None,
-            )
+            ),
         )
 
         self.mockgun.create(
@@ -331,7 +340,7 @@ class TestGetPipelineConfigs(TankTestBase):
                 plugin_ids="basic.*",
                 descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
                 uploaded_config=None,
-            )
+            ),
         )
 
         mgr = ToolkitManager(self._mocked_sg_user)
@@ -342,7 +351,10 @@ class TestGetPipelineConfigs(TankTestBase):
         config = configs[0]
         self.assertEqual(config["name"], "Doe Dev")
 
-    @patch("tank.bootstrap.resolver.ConfigurationResolver._create_config_descriptor", return_value=Mock())
+    @mock.patch(
+        "tank.bootstrap.resolver.ConfigurationResolver._create_config_descriptor",
+        return_value=mock.Mock(),
+    )
     def test_latest_tracking_descriptor(self, _):
         """
         Test descriptors tracking latest
@@ -359,7 +371,7 @@ class TestGetPipelineConfigs(TankTestBase):
                 plugin_ids="basic.*",
                 descriptor="sgtk:descriptor:app_store?name=tk-config-basic",
                 uploaded_config=None,
-            )
+            ),
         )
 
         mgr = ToolkitManager(self._mocked_sg_user)
@@ -367,8 +379,11 @@ class TestGetPipelineConfigs(TankTestBase):
         configs = mgr.get_pipeline_configurations(self._project)
 
         config = configs[0]
-        self.assertTrue(isinstance(config["descriptor"], Mock))
-        self.assertEqual(config["descriptor_source_uri"], "sgtk:descriptor:app_store?name=tk-config-basic")
+        self.assertTrue(isinstance(config["descriptor"], mock.Mock))
+        self.assertEqual(
+            config["descriptor_source_uri"],
+            "sgtk:descriptor:app_store?name=tk-config-basic",
+        )
 
     def test_override_logic(self):
         """
@@ -387,7 +402,7 @@ class TestGetPipelineConfigs(TankTestBase):
                 plugin_ids="basic.*",
                 descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
                 uploaded_config=None,
-            )
+            ),
         )
 
         mgr = ToolkitManager(self._mocked_sg_user)
@@ -397,6 +412,6 @@ class TestGetPipelineConfigs(TankTestBase):
         config = configs[0]
         self.assertEqual(
             config["descriptor"].get_uri(),
-            "sgtk:descriptor:path?linux_path=/path&mac_path=/path&windows_path=\\path"
+            "sgtk:descriptor:path?linux_path=/path&mac_path=/path&windows_path=\\path",
         )
         self.assertEqual(config["descriptor_source_uri"], None)

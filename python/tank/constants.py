@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # the name of the file that contains the storage root definitions
@@ -32,6 +32,9 @@ PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 
+# hook to modify default storage root
+DEFAULT_STORAGE_ROOT_HOOK_NAME = "default_storage_root"
+
 # special path or dev descriptor token that can be used
 # as a replacement for the path to a pipeline configuration
 PIPELINE_CONFIG_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
@@ -50,7 +53,7 @@ CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
 # valid characters for a template key name
-TEMPLATE_KEY_NAME_REGEX = "[a-zA-Z_ 0-9\.]+"
+TEMPLATE_KEY_NAME_REGEX = r"[a-zA-Z_ 0-9\.]+"
 
 # the name of the include section in env and template files
 SINGLE_INCLUDE_SECTION = "include"
@@ -82,8 +85,10 @@ DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"
 # cache data for toolkit init
 TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
 
-# Email address of Shotgun support
-SUPPORT_EMAIL = "support@shotgunsoftware.com"
+# URL for contacting support
+SUPPORT_URL = "https://knowledge.autodesk.com/contact-support"
+
+DOCUMENTATION_URL_LEGACY_AUTHENTICATION = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials"
 
 # environment variable to hold external pipeline config data
 ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"

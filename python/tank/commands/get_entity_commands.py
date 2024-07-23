@@ -11,11 +11,13 @@
 from .action_base import Action
 from ..errors import TankError
 from ..util.process import SubprocessCalledProcessError, subprocess_check_output
+from ..util import is_linux, is_macos, is_windows
 
 import itertools
 import operator
 import os
-import sys
+from tank_vendor.shotgun_api3.lib import sgsix
+
 
 def execute_tank_command(pipeline_config_path, args):
     """
@@ -33,19 +35,18 @@ def execute_tank_command(pipeline_config_path, args):
     """
     if not os.path.isdir(pipeline_config_path):
         raise TankError(
-            "Could not find the Pipeline Configuration on disk: %s" % pipeline_config_path
+            "Could not find the Pipeline Configuration on disk: %s"
+            % pipeline_config_path
         )
 
-    tank_command = "tank" if sys.platform != "win32" else "tank.bat"
+    tank_command = "tank" if not is_windows() else "tank.bat"
 
     command_path = os.path.join(pipeline_config_path, tank_command)
 
     if not os.path.isfile(command_path):
-        raise TankError("Could not find the tank command on disk: %s"
-                        % command_path)
+        raise TankError("Could not find the tank command on disk: %s" % command_path)
 
     return subprocess_check_output([command_path] + args)
-
 
 
 class GetEntityCommandsAction(Action):
@@ -74,13 +75,17 @@ class GetEntityCommandsAction(Action):
     _ERROR_CODE_CACHE_NOT_FOUND = 2
 
     def __init__(self):
-        Action.__init__(self,
-                        "get_entity_commands",
-                        Action.GLOBAL,
-                        ("Gets the available commands that can be executed "
-                         "for specified entities from another pipeline "
-                         "configuration"),
-                        "API")
+        Action.__init__(
+            self,
+            "get_entity_commands",
+            Action.GLOBAL,
+            (
+                "Gets the available commands that can be executed "
+                "for specified entities from another pipeline "
+                "configuration"
+            ),
+            "API",
+        )
 
         # no tank command support for this one because it returns an object
         self.supports_tank_command = False
@@ -91,18 +96,16 @@ class GetEntityCommandsAction(Action):
         self.parameters = {
             "configuration_path": {
                 "description": "Path to the pipeline configuration associated "
-                               "with the entities.",
-                "type":        "str"
+                "with the entities.",
+                "type": "str",
             },
-
             "entities": {
                 "description": "List of entities to fetch the actions for. "
-                               "Every entity should be a tuple with the "
-                               "following format:"
-                               "  (entity_type, entity_id)",
-                "type":        "list"
+                "Every entity should be a tuple with the "
+                "following format:"
+                "  (entity_type, entity_id)",
+                "type": "list",
             },
-
             "return_value": {
                 "description": """Dictionary of the commands by entity, with
                                   the (entity_type, entity_id) tuple used as a
@@ -118,8 +121,8 @@ class GetEntityCommandsAction(Action):
                                       "icon":        path to the icon of this
                                                      command
                                     }""",
-                "type":        "dict"
-            }
+                "type": "dict",
+            },
         }
 
     def run_interactive(self, log, args):
@@ -151,8 +154,9 @@ class GetEntityCommandsAction(Action):
             # make a list out of the grouped entity tuples
             entities_of_type = list(entities_of_type)
             try:
-                cache_content = self._load_cached_data(pipeline_config_path,
-                                                       entity_type)
+                cache_content = self._load_cached_data(
+                    pipeline_config_path, entity_type
+                )
                 commands = self._parse_cached_commands(cache_content)
 
                 # at the moment, the commands are the same for all entities of
@@ -160,10 +164,11 @@ class GetEntityCommandsAction(Action):
                 for entity in entities_of_type:
                     commands_per_entity[entity] = commands
             except TankError as e:
-                log.error("Failed to fetch the commands from the Pipeline "
-                          "Configuration at '%s' for the entity type %s.\n"
-                          "Details: %s"
-                          % (pipeline_config_path, entity_type, e))
+                log.error(
+                    "Failed to fetch the commands from the Pipeline "
+                    "Configuration at '%s' for the entity type %s.\n"
+                    "Details: %s" % (pipeline_config_path, entity_type, e)
+                )
 
         return commands_per_entity
 
@@ -180,11 +185,11 @@ class GetEntityCommandsAction(Action):
         """
         # get a platform name that follows the conventions of the shotgun cache
         platform_name = platform
-        if platform == "darwin":
+        if is_macos(platform):
             platform_name = "mac"
-        elif platform == "win32":
+        elif is_windows(platform):
             platform_name = "windows"
-        elif platform.startswith("linux"):
+        elif is_linux(platform):
             platform_name = "linux"
 
         return ("shotgun_%s_%s.txt" % (platform_name, entity_type)).lower()
@@ -216,41 +221,48 @@ class GetEntityCommandsAction(Action):
         :param entity_type:          type of the entity we want the cache for
         :returns:                    text data contained in the cache
         """
-        cache_name = self._get_cache_name(sys.platform, entity_type)
+        cache_name = self._get_cache_name(sgsix.platform, entity_type)
         env_name = self._get_env_name(entity_type)
 
         # try to load the data right away if it is already cached
         try:
-            return execute_tank_command(pipeline_config_path,
-                                        ["shotgun_get_actions", cache_name,
-                                         env_name])
+            return execute_tank_command(
+                pipeline_config_path, ["shotgun_get_actions", cache_name, env_name]
+            )
         except SubprocessCalledProcessError as e:
             # failed to load from cache - only OK if cache is missing or out
             # of date
-            if e.returncode not in [self._ERROR_CODE_CACHE_OUT_OF_DATE,
-                                    self._ERROR_CODE_CACHE_NOT_FOUND]:
-                raise TankError("Error while trying to get the cache content."
-                                "\nDetails: %s\nOutput: %s"
-                                % (e, e.output))
+            if e.returncode not in [
+                self._ERROR_CODE_CACHE_OUT_OF_DATE,
+                self._ERROR_CODE_CACHE_NOT_FOUND,
+            ]:
+                raise TankError(
+                    "Error while trying to get the cache content."
+                    "\nDetails: %s\nOutput: %s" % (e, e.output)
+                )
 
         # cache is not up to date - update it
         try:
-            execute_tank_command(pipeline_config_path,
-                                 ["shotgun_cache_actions", entity_type,
-                                  cache_name])
+            execute_tank_command(
+                pipeline_config_path, ["shotgun_cache_actions", entity_type, cache_name]
+            )
         except SubprocessCalledProcessError as e:
             # failed to update the cache
-            raise TankError("Failed to update the cache.\n"
-                            "Details: %s\nOutput: %s" % (e, e.output))
+            raise TankError(
+                "Failed to update the cache.\n"
+                "Details: %s\nOutput: %s" % (e, e.output)
+            )
 
         # now that the cache is updated, we can try to load the data again
         try:
-            return execute_tank_command(pipeline_config_path,
-                                        ["shotgun_get_actions", cache_name,
-                                         env_name])
+            return execute_tank_command(
+                pipeline_config_path, ["shotgun_get_actions", cache_name, env_name]
+            )
         except SubprocessCalledProcessError as e:
-            raise TankError("Failed to get the content of the updated cache.\n"
-                            "Details: %s\nOutput: %s" % (e, e.output))
+            raise TankError(
+                "Failed to get the content of the updated cache.\n"
+                "Details: %s\nOutput: %s" % (e, e.output)
+            )
 
     def _parse_cached_commands(self, commands_data):
         """
@@ -280,10 +292,11 @@ class GetEntityCommandsAction(Action):
 
             # make sure that we have at least some tokens in the cache
             if not tokens:
-                raise TankError("The cache is badly formatted on the line "
-                                "'%s'.\n"
-                                "Full cache:\n%s"
-                                % (line, commands_data))
+                raise TankError(
+                    "The cache is badly formatted on the line "
+                    "'%s'.\n"
+                    "Full cache:\n%s" % (line, commands_data)
+                )
 
             # max number of expected tokens
             # must match the size of the tuple extracted below
@@ -300,7 +313,8 @@ class GetEntityCommandsAction(Action):
             # extract the information from the tokens
             (name, title, _, _, icon, description) = tuple(tokens)
 
-            commands.append({ "name": name, "title": title,
-                              "icon": icon, "description": description })
+            commands.append(
+                {"name": name, "title": title, "icon": icon, "description": description}
+            )
 
         return commands

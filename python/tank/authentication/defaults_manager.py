@@ -66,7 +66,7 @@ class DefaultsManager(object):
         interactive authentication. When the host is not fixed (see the
         :meth:`is_host_fixed` method), the return value of get_host is what is
         used to implement single sign-on between all Toolkit desktop
-        applications (at the moment, tank and Shotgun Desktop).
+        applications (at the moment, tank and Flow Production Tracking).
 
         The default implementation will return the fixed host if one was provided
         during the initialization. If fixed host was provided, the default
@@ -78,7 +78,11 @@ class DefaultsManager(object):
 
         :returns: A string containing the default host name.
         """
-        return self._fixed_host or session_cache.get_current_host() or self._user_settings.default_site
+        return (
+            self._fixed_host
+            or session_cache.get_current_host()
+            or self._user_settings.default_site
+        )
 
     def set_host(self, host):
         """
@@ -106,7 +110,7 @@ class DefaultsManager(object):
 
         The returned format will be the same as is being used in the Shotgun API.
         For more information, see the `Shotgun API documentation
-        <http://developer.shotgunsoftware.com/python-api/reference.html#shotgun>`_.
+        <http://developer.shotgridsoftware.com/python-api/reference.html#shotgun>`_.
 
         :returns: String containing the default http proxy, None by default.
         """
@@ -127,7 +131,10 @@ class DefaultsManager(object):
         # Make sure there is a current host. There could be none if no-one has
         # logged in with Toolkit yet.
         if self.get_host():
-            return session_cache.get_current_user(self.get_host()) or self._user_settings.default_login
+            return (
+                session_cache.get_current_user(self.get_host())
+                or self._user_settings.default_login
+            )
         else:
             return self._user_settings.default_login
 

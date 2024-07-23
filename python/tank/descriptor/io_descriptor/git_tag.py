@@ -9,10 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
+import re
 
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
+
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -46,13 +49,13 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "path", "version"],
-            optional=[]
+            descriptor_dict, required=["type", "path", "version"], optional=[]
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(descriptor_dict, sg_connection, bundle_type)
+        super(IODescriptorGitTag, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
@@ -79,12 +82,7 @@ class IODescriptorGitTag(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(
-            bundle_cache_root,
-            "git",
-            name,
-            self.get_version()
-        )
+        return os.path.join(bundle_cache_root, "git", name, self.get_version())
 
     def _get_cache_paths(self):
         """
@@ -113,11 +111,7 @@ class IODescriptorGitTag(IODescriptorGit):
         name = os.path.basename(self._path)
 
         legacy_folder = self._get_legacy_bundle_install_folder(
-            "git",
-            self._bundle_cache_root,
-            self._bundle_type,
-            name,
-            self.get_version()
+            "git", self._bundle_cache_root, self._bundle_type, name, self.get_version()
         )
         if legacy_folder:
             paths.append(legacy_folder)
@@ -148,12 +142,12 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         try:
             # clone the repo, checkout the given tag
-            commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_commands(destination_path, commands)
+            self._clone_then_execute_git_commands(
+                destination_path, [], depth=1, ref=self._version
+            )
         except Exception as e:
             raise TankDescriptorError(
-                "Could not download %s, "
-                "tag %s: %s" % (self._path, self._version, e)
+                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -183,7 +177,7 @@ class IODescriptorGitTag(IODescriptorGit):
             tag_name = self._get_latest_version()
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = tag_name
+        new_loc_dict["version"] = six.ensure_str(tag_name)
 
         # create new descriptor to represent this tag
         desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
@@ -202,11 +196,31 @@ class IODescriptorGitTag(IODescriptorGit):
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
         :returns: IODescriptorGitTag object
         """
+        git_tags = self._fetch_tags()
+        latest_tag = self._find_latest_tag_by_pattern(git_tags, pattern)
+        if latest_tag is None:
+            raise TankDescriptorError(
+                "'%s' does not have a version matching the pattern '%s'. "
+                "Available versions are: %s"
+                % (self.get_system_name(), pattern, ", ".join(git_tags))
+            )
+
+        return latest_tag
+
+    def _fetch_tags(self):
         try:
             # clone the repo, list all tags
             # for the repository, across all branches
-            commands = ["tag"]
-            git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
+            commands = ["ls-remote -q --tags %s" % self._path]
+            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split(
+                "\n"
+            )
+            regex = re.compile(".*refs/tags/([^^]*)$")
+            git_tags = []
+            for tag in tags:
+                m = regex.match(six.ensure_str(tag))
+                if m:
+                    git_tags.append(m.group(1))
 
         except Exception as e:
             raise TankDescriptorError(
@@ -218,34 +232,16 @@ class IODescriptorGitTag(IODescriptorGit):
                 "Git repository %s doesn't have any tags!" % self._path
             )
 
-        latest_tag = self._find_latest_tag_by_pattern(git_tags, pattern)
-        if latest_tag is None:
-            raise TankDescriptorError(
-                "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(git_tags))
-            )
-
-        return latest_tag
+        return git_tags
 
     def _get_latest_version(self):
         """
         Returns a descriptor object that represents the latest version.
         :returns: IODescriptorGitTag object
         """
-        try:
-            # clone the repo, find the latest tag (chronologically)
-            # for the repository, across all branches
-            commands = [
-                "for-each-ref refs/tags --sort=-creatordate --format='%(refname:short)' --count=1"
-            ]
-            latest_tag = self._tmp_clone_then_execute_git_commands(commands)
-
-        except Exception as e:
-            raise TankDescriptorError(
-                "Could not get latest tag for %s: %s" % (self._path, e)
-            )
-
-        if latest_tag == "":
+        tags = self._fetch_tags()
+        latest_tag = self._find_latest_tag_by_pattern(tags, pattern=None)
+        if latest_tag is None:
             raise TankDescriptorError(
                 "Git repository %s doesn't have any tags!" % self._path
             )
@@ -267,14 +263,16 @@ class IODescriptorGitTag(IODescriptorGit):
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
-        all_versions = self._get_locally_cached_versions().keys()
+        all_versions = list(self._get_locally_cached_versions().keys())
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
             return None
 
         # get latest
-        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        version_to_use = self._find_latest_tag_by_pattern(
+            all_versions, constraint_pattern
+        )
         if version_to_use is None:
             return None
 

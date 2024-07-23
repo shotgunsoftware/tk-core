@@ -12,12 +12,12 @@ class Ui_LoginDialog(object):
     def setupUi(self, LoginDialog):
         LoginDialog.setObjectName("LoginDialog")
         LoginDialog.setWindowModality(QtCore.Qt.NonModal)
-        LoginDialog.resize(364, 304)
-        LoginDialog.setMinimumSize(QtCore.QSize(364, 296))
+        LoginDialog.resize(424, 304)
+        LoginDialog.setMinimumSize(QtCore.QSize(424, 304))
         LoginDialog.setStyleSheet("\n"
 "QWidget\n"
 "{\n"
-"    background-color:  rgb(36, 39, 42);\n"
+"    background-color: rgb(36, 39, 42);\n"
 "    color: rgb(192, 192, 192);\n"
 "    selection-background-color: rgb(168, 123, 43);\n"
 "    selection-color: rgb(230, 230, 230);\n"
@@ -27,10 +27,34 @@ class Ui_LoginDialog(object):
 "QPushButton\n"
 "{\n"
 "    background-color: transparent;\n"
+"    border: 1px solid transparent;\n"
 "    border-radius: 2px;\n"
 "    padding: 8px;\n"
 "    padding-left: 15px;\n"
 "    padding-right: 15px;\n"
+"}\n"
+"\n"
+"QPushButton::menu-indicator {\n"
+"    subcontrol-position: right center;\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item {\n"
+"    padding: 15px;\n"
+"    border: 1px solid transparent;\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item:disabled {\n"
+"    color: rgb(160, 160, 160);\n"
+"    font-style: italic;\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item:selected {\n"
+"    border-color: rgb(54, 60, 66);\n"
+"}\n"
+"\n"
+"QPushButton QMenu::item:pressed\n"
+"{\n"
+"    border-color: rgb(192, 192, 192);\n"
 "}\n"
 "\n"
 "QLineEdit, QComboBox\n"
@@ -39,13 +63,28 @@ class Ui_LoginDialog(object):
 "    border: 1px solid rgb(54, 60, 66);\n"
 "    border-radius: 2px;\n"
 "    padding: 5px;\n"
-"     font-size: 12px;\n"
+"    font-size: 12px;\n"
 "}\n"
 "\n"
 "QComboBox\n"
 "{\n"
-"    margin-left: 3;\n"
-"    margin-right: 3\n"
+"    margin-left: 3px;\n"
+"    margin-right: 3px;\n"
+"}\n"
+"\n"
+"QPushButton:focus\n"
+"{\n"
+"    border-color: rgb(48, 167, 227);\n"
+"    outline: none;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    border-color: rgb(54, 60, 66);\n"
+"}\n"
+"\n"
+"QPushButton:pressed\n"
+"{\n"
+"    border-color: rgb(192, 192, 192);\n"
 "}\n"
 "\n"
 "QComboBox:focus, QLineEdit:focus\n"
@@ -59,17 +98,15 @@ class Ui_LoginDialog(object):
 "\n"
 "QComboBox:down-arrow {\n"
 "    image: url(:/shotgun_authentication/down-arrow.png);\n"
-"\n"
 "}\n"
 "\n"
-"QLineEdit:Disabled {\n"
+"QLineEdit:disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
 "}\n"
 "\n"
 "QComboBox::drop-down:disabled {\n"
 "    border-width: 0px;\n"
-"\n"
 "}\n"
 "\n"
 "QComboBox::down-arrow:disabled {\n"
@@ -79,7 +116,25 @@ class Ui_LoginDialog(object):
 "QComboBox::disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
-"}")
+"}\n"
+"\n"
+"QPushButton.main\n"
+"{\n"
+"    background-color: rgb(35, 165, 225);\n"
+"    border-color: rgb(36, 39, 42);\n"
+"    color: rgb(248, 248, 248);\n"
+"}\n"
+"\n"
+"QPushButton.main:focus, QPushButton.main:hover\n"
+"{\n"
+"    border-color: rgb(54, 60, 66);\n"
+"}\n"
+"\n"
+"QPushButton.main:pressed\n"
+"{\n"
+"    border-color: rgb(248, 248, 248);\n"
+"}\n"
+"")
         LoginDialog.setModal(True)
         self.verticalLayout_2 = QtGui.QVBoxLayout(LoginDialog)
         self.verticalLayout_2.setContentsMargins(20, 20, 20, 20)
@@ -94,7 +149,7 @@ class Ui_LoginDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.logo.sizePolicy().hasHeightForWidth())
         self.logo.setSizePolicy(sizePolicy)
-        self.logo.setMaximumSize(QtCore.QSize(250, 72))
+        self.logo.setMaximumSize(QtCore.QSize(320, 72))
         self.logo.setText("")
         self.logo.setPixmap(QtGui.QPixmap(":/shotgun_authentication/shotgun_logo_light_medium.png"))
         self.logo.setAlignment(QtCore.Qt.AlignCenter)
@@ -123,20 +178,22 @@ class Ui_LoginDialog(object):
         self.login = RecentBox(self.credentials)
         self.login.setObjectName("login")
         self.verticalLayout_7.addWidget(self.login)
-        self.password = Qt5LikeLineEdit(self.credentials)
+        self.password = QtGui.QLineEdit(self.credentials)
         self.password.setMinimumSize(QtCore.QSize(308, 0))
         self.password.setEchoMode(QtGui.QLineEdit.Password)
         self.password.setObjectName("password")
         self.verticalLayout_7.addWidget(self.password)
         self.message = QtGui.QLabel(self.credentials)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.message.sizePolicy().hasHeightForWidth())
         self.message.setSizePolicy(sizePolicy)
+        self.message.setTextFormat(QtCore.Qt.RichText)
         self.message.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.message.setWordWrap(True)
         self.message.setMargin(4)
+        self.message.setOpenExternalLinks(True)
         self.message.setObjectName("message")
         self.verticalLayout_7.addWidget(self.message)
         spacerItem = QtGui.QSpacerItem(20, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
@@ -146,14 +203,15 @@ class Ui_LoginDialog(object):
         self.button_layout.setSpacing(10)
         self.button_layout.setContentsMargins(0, -1, -1, -1)
         self.button_layout.setObjectName("button_layout")
+        self.button_options = QtGui.QPushButton(self.login_page)
+        self.button_options.setAutoDefault(False)
+        self.button_options.setFlat(True)
+        self.button_options.setObjectName("button_options")
+        self.button_layout.addWidget(self.button_options)
         self.links = QtGui.QVBoxLayout()
         self.links.setObjectName("links")
         self.forgot_password_link = QtGui.QLabel(self.login_page)
         self.forgot_password_link.setCursor(QtCore.Qt.PointingHandCursor)
-        self.forgot_password_link.setStyleSheet("QWidget\n"
-"{\n"
-"    color: rgb(192, 193, 195);\n"
-"}")
         self.forgot_password_link.setTextFormat(QtCore.Qt.RichText)
         self.forgot_password_link.setMargin(4)
         self.forgot_password_link.setOpenExternalLinks(False)
@@ -162,21 +220,13 @@ class Ui_LoginDialog(object):
         self.button_layout.addLayout(self.links)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout.addItem(spacerItem1)
-        self.cancel = QtGui.QPushButton(self.login_page)
-        self.cancel.setStyleSheet("")
-        self.cancel.setAutoDefault(False)
-        self.cancel.setFlat(True)
-        self.cancel.setObjectName("cancel")
-        self.button_layout.addWidget(self.cancel)
         self.sign_in = QtGui.QPushButton(self.login_page)
-        self.sign_in.setStyleSheet("color: rgb(248, 248, 248);\n"
-"background-color: rgb(35, 165, 225);")
         self.sign_in.setAutoDefault(True)
         self.sign_in.setDefault(True)
         self.sign_in.setFlat(True)
         self.sign_in.setObjectName("sign_in")
         self.button_layout.addWidget(self.sign_in)
-        self.button_layout.setStretch(1, 1)
+        self.button_layout.setStretch(2, 1)
         self.verticalLayout_3.addLayout(self.button_layout)
         self.stackedWidget.addWidget(self.login_page)
         self._2fa_page = QtGui.QWidget()
@@ -214,7 +264,7 @@ class Ui_LoginDialog(object):
         self._2fa_message.setMargin(0)
         self._2fa_message.setObjectName("_2fa_message")
         self.verticalLayout.addWidget(self._2fa_message)
-        self._2fa_code = Qt5LikeLineEdit(self.widget_2)
+        self._2fa_code = QtGui.QLineEdit(self.widget_2)
         self._2fa_code.setObjectName("_2fa_code")
         self.verticalLayout.addWidget(self._2fa_code)
         self.invalid_code = QtGui.QLabel(self.widget_2)
@@ -240,16 +290,8 @@ class Ui_LoginDialog(object):
         self.button_layout_2.addWidget(self.use_backup)
         spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout_2.addItem(spacerItem3)
-        self.cancel_tfa = QtGui.QPushButton(self._2fa_page)
-        self.cancel_tfa.setStyleSheet("")
-        self.cancel_tfa.setAutoDefault(False)
-        self.cancel_tfa.setFlat(True)
-        self.cancel_tfa.setObjectName("cancel_tfa")
-        self.button_layout_2.addWidget(self.cancel_tfa)
         self.verify_2fa = QtGui.QPushButton(self._2fa_page)
         self.verify_2fa.setMinimumSize(QtCore.QSize(65, 0))
-        self.verify_2fa.setStyleSheet("color: rgb(248, 248, 248);\n"
-"background-color: rgb(35, 165, 225);")
         self.verify_2fa.setAutoDefault(False)
         self.verify_2fa.setDefault(True)
         self.verify_2fa.setFlat(True)
@@ -291,7 +333,7 @@ class Ui_LoginDialog(object):
         self._2fa_message_2.setMargin(0)
         self._2fa_message_2.setObjectName("_2fa_message_2")
         self.verticalLayout_5.addWidget(self._2fa_message_2)
-        self.backup_code = Qt5LikeLineEdit(self.widget_4)
+        self.backup_code = QtGui.QLineEdit(self.widget_4)
         self.backup_code.setText("")
         self.backup_code.setObjectName("backup_code")
         self.verticalLayout_5.addWidget(self.backup_code)
@@ -319,15 +361,8 @@ class Ui_LoginDialog(object):
         self.button_layout_3.addWidget(self.use_app)
         spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout_3.addItem(spacerItem5)
-        self.cancel_backup = QtGui.QPushButton(self.backup_page)
-        self.cancel_backup.setAutoDefault(False)
-        self.cancel_backup.setFlat(True)
-        self.cancel_backup.setObjectName("cancel_backup")
-        self.button_layout_3.addWidget(self.cancel_backup)
         self.verify_backup = QtGui.QPushButton(self.backup_page)
         self.verify_backup.setMinimumSize(QtCore.QSize(65, 0))
-        self.verify_backup.setStyleSheet("color: rgb(248, 248, 248);\n"
-"background-color: rgb(35, 165, 225);")
         self.verify_backup.setAutoDefault(True)
         self.verify_backup.setDefault(True)
         self.verify_backup.setFlat(True)
@@ -335,34 +370,69 @@ class Ui_LoginDialog(object):
         self.button_layout_3.addWidget(self.verify_backup)
         self.verticalLayout_6.addLayout(self.button_layout_3)
         self.stackedWidget.addWidget(self.backup_page)
+        self.asl_page = QtGui.QWidget()
+        self.asl_page.setObjectName("asl_page")
+        self.verticalLayout_21 = QtGui.QVBoxLayout(self.asl_page)
+        self.verticalLayout_21.setContentsMargins(20, 20, 20, 20)
+        self.verticalLayout_21.setObjectName("verticalLayout_21")
+        self.asl_msg = QtGui.QLabel(self.asl_page)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.asl_msg.sizePolicy().hasHeightForWidth())
+        self.asl_msg.setSizePolicy(sizePolicy)
+        self.asl_msg.setStyleSheet("padding-left: 40px; padding-left: 40px;padding-right: 40px;")
+        self.asl_msg.setAlignment(QtCore.Qt.AlignCenter)
+        self.asl_msg.setWordWrap(True)
+        self.asl_msg.setObjectName("asl_msg")
+        self.verticalLayout_21.addWidget(self.asl_msg)
+        self.asl_msg_back = QtGui.QLabel(self.asl_page)
+        self.asl_msg_back.setAlignment(QtCore.Qt.AlignCenter)
+        self.asl_msg_back.setWordWrap(True)
+        self.asl_msg_back.setObjectName("asl_msg_back")
+        self.verticalLayout_21.addWidget(self.asl_msg_back)
+        spacerItem6 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_21.addItem(spacerItem6)
+        self.asl_msg_help = QtGui.QLabel(self.asl_page)
+        self.asl_msg_help.setAlignment(QtCore.Qt.AlignCenter)
+        self.asl_msg_help.setWordWrap(True)
+        self.asl_msg_help.setObjectName("asl_msg_help")
+        self.verticalLayout_21.addWidget(self.asl_msg_help)
+        self.stackedWidget.addWidget(self.asl_page)
         self.verticalLayout_2.addWidget(self.stackedWidget)
         self.verticalLayout_2.setStretch(0, 1)
 
         self.retranslateUi(LoginDialog)
         self.stackedWidget.setCurrentIndex(0)
-        QtCore.QObject.connect(self.cancel_tfa, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
-        QtCore.QObject.connect(self.cancel_backup, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
-        QtCore.QObject.connect(self.cancel, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
+        LoginDialog.setWindowTitle(QtGui.QApplication.translate("LoginDialog", "Flow Production Tracking Login", None, QtGui.QApplication.UnicodeUTF8))
+        self.site.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "site", None, QtGui.QApplication.UnicodeUTF8))
+        self.login.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
+        self.password.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
-        self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgunstudio.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
+        self.button_options.setText(QtGui.QApplication.translate("LoginDialog", "See other options", None, QtGui.QApplication.UnicodeUTF8))
+        self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"#\" style=\"color:#c0c1c3;\">Forgot your password?</a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
+        self.sign_in.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Enter the code generated by the Google Authenticator or Duo Mobile app.", None, QtGui.QApplication.UnicodeUTF8))
+        self._2fa_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "2fa code", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter code", None, QtGui.QApplication.UnicodeUTF8))
         self.use_backup.setText(QtGui.QApplication.translate("LoginDialog", "Use backup code", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancel_tfa.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_2fa.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
+        self.verify_2fa.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_message_2.setText(QtGui.QApplication.translate("LoginDialog", "Please enter one of your backup codes.", None, QtGui.QApplication.UnicodeUTF8))
+        self.backup_code.setAccessibleName(QtGui.QApplication.translate("LoginDialog", "backup code", None, QtGui.QApplication.UnicodeUTF8))
         self.backup_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter backup code", None, QtGui.QApplication.UnicodeUTF8))
         self.use_app.setText(QtGui.QApplication.translate("LoginDialog", "Use Google App", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancel_backup.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
+        self.verify_backup.setProperty("class", QtGui.QApplication.translate("LoginDialog", "main", None, QtGui.QApplication.UnicodeUTF8))
+        self.asl_msg.setText(QtGui.QApplication.translate("LoginDialog", "Check your default web browser to continue logging in.", None, QtGui.QApplication.UnicodeUTF8))
+        self.asl_msg_back.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"#\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Cancel & return to the login page</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.asl_msg_help.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p>If you are having trouble logging in with the browser, <a href=\"{url}\"><span style=\" text-decoration: underline; color:#c0c1c3;\">select this support link</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
 from .recent_box import RecentBox
-from .qt5_like_line_edit import Qt5LikeLineEdit
 from . import resources_rc

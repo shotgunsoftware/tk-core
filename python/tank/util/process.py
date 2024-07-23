@@ -10,9 +10,10 @@
 
 import subprocess
 import pprint
-import sys
 
+from .platforms import is_windows
 from ..log import LogManager
+from tank_vendor import six
 
 logger = LogManager.get_logger(__name__)
 
@@ -28,7 +29,10 @@ class SubprocessCalledProcessError(Exception):
         self.output = output
 
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
+        return "Command '%s' returned non-zero exit status %d" % (
+            self.cmd,
+            self.returncode,
+        )
 
 
 def subprocess_check_output(*popenargs, **kwargs):
@@ -52,16 +56,26 @@ def subprocess_check_output(*popenargs, **kwargs):
              attribute and any output in the output attribute.
     """
     if "stdout" in kwargs or "stderr" in kwargs or "stdin" in kwargs:
-        raise ValueError("stdout, stderr and stdin arguments not allowed, they will be overridden.")
+        raise ValueError(
+            "stdout, stderr and stdin arguments not allowed, they will be overridden."
+        )
 
     process = subprocess.Popen(
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
-        *popenargs, **kwargs
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        stdin=subprocess.PIPE,
+        *popenargs,
+        **kwargs
     )
     # Very important to close stdin on Windows. See issue mentioned above.
-    if sys.platform == "win32":
+    if is_windows():
         process.stdin.close()
     output, unused_err = process.communicate()
+    # It's okay to expect a string out of subprocess. We're only calling this tool
+    # to retrieve text from the console to parse it and not binary, so for our
+    # use case converting to a str will always make case and simplifies
+    # the caller's logic.
+    output = six.ensure_str(output)
     retcode = process.poll()
 
     if retcode:

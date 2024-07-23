@@ -52,7 +52,7 @@ UNNAMED_PROJECT_NAME = "unnamed"
 # latest core
 LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core"}
 
-# default shotgun desktop python installations
+# default PTR desktop app python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"
@@ -78,3 +78,7 @@ BUNDLE_CACHE_FOLDER_NAME = "bundle_cache"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
+
+# This is the maximum version of tk-config-basic
+# supporting Python 2.
+MAX_CONFIG_BASIC_PYTHON2_SUPPORTED = "v1.4.6"

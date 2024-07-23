@@ -10,15 +10,17 @@
 
 import os
 
-from mock import Mock, patch
-
-
 import tank
 from tank.api import Tank
 from tank.template import TemplatePath, TemplateString
 from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    mock,
+    TankTestBase,
+)
+
 
 class TestInit(TankTestBase):
     """Tests basic initialization of the sgtk API"""
@@ -34,21 +36,25 @@ class TestInit(TankTestBase):
 
 class TestTemplateFromPath(TankTestBase):
     """Cases testing Tank.template_from_path method"""
+
     def setUp(self):
         super(TestTemplateFromPath, self).setUp()
         self.setup_fixtures()
 
     def test_defined_path(self):
         """Resolve a path which maps to a template in the standard config"""
-        file_path = os.path.join(self.project_root,
-                'sequences/Sequence_1/shot_010/Anm/publish/shot_010.jfk.v001.ma')
+        file_path = os.path.join(
+            self.project_root,
+            "sequences/Sequence_1/shot_010/Anm/publish/shot_010.jfk.v001.ma",
+        )
         template = self.tk.template_from_path(file_path)
         self.assertIsInstance(template, TemplatePath)
 
     def test_undefined_path(self):
         """Resolve a path which does not map to a template"""
-        file_path = os.path.join(self.project_root,
-                'sequences/Sequence 1/shot_010/Anm/publish/')
+        file_path = os.path.join(
+            self.project_root, "sequences/Sequence 1/shot_010/Anm/publish/"
+        )
         template = self.tk.template_from_path(file_path)
         self.assertTrue(template is None)
 
@@ -63,6 +69,7 @@ class TestTemplateFromPath(TankTestBase):
 
 class TestTemplatesLoaded(TankTestBase):
     """Test case for the loading of templates from project level config."""
+
     def setUp(self):
         super(TestTemplatesLoaded, self).setUp()
         self.setup_multi_root_fixtures()
@@ -70,7 +77,7 @@ class TestTemplatesLoaded(TankTestBase):
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
 
     def test_templates_loaded(self):
-        actual_names = self.tk.templates.keys()
+        actual_names = list(self.tk.templates.keys())
         for expected_name in self.expected_names:
             self.assertTrue(expected_name in actual_names)
 
@@ -91,34 +98,39 @@ class TestTemplatesLoaded(TankTestBase):
 
 class TestPathsFromTemplate(TankTestBase):
     """Tests for tank.paths_from_template using test data based on sg_standard setup."""
+
     def setUp(self):
         super(TestPathsFromTemplate, self).setUp()
         self.setup_fixtures()
         # create project data
         # two sequences
         seq1_path = os.path.join(self.project_root, "sequences/Seq_1")
-        self.add_production_path(seq1_path,
-                            {"type":"Sequence", "id":1, "name": "Seq_1"})
+        self.add_production_path(
+            seq1_path, {"type": "Sequence", "id": 1, "name": "Seq_1"}
+        )
         seq2_path = os.path.join(self.project_root, "sequences/Seq_2")
-        self.add_production_path(seq2_path,
-                            {"type":"Sequence", "id":2, "name": "Seq_2"})
+        self.add_production_path(
+            seq2_path, {"type": "Sequence", "id": 2, "name": "Seq_2"}
+        )
         # one shot
         shot_path = os.path.join(seq1_path, "Shot_1")
-        self.add_production_path(shot_path,
-                            {"type":"Shot", "id":1, "name": "shot_1"})
+        self.add_production_path(shot_path, {"type": "Shot", "id": 1, "name": "shot_1"})
         # one step
         step_path = os.path.join(shot_path, "step_name")
-        self.add_production_path(step_path,
-                            {"type":"Step", "id":1, "name": "step_name"})
+        self.add_production_path(
+            step_path, {"type": "Step", "id": 1, "name": "step_name"}
+        )
 
         # using template from standard setup
         self.template = self.tk.templates.get("maya_shot_work")
 
         # make some fake files with different versions
-        fields = {"Sequence":"Seq_1",
-                  "Shot": "shot_1",
-                  "Step": "step_name",
-                  "name": "filename"}
+        fields = {
+            "Sequence": "Seq_1",
+            "Shot": "shot_1",
+            "Step": "step_name",
+            "name": "filename",
+        }
         fields["version"] = 1
         file_path = self.template.apply_fields(fields)
         self.file_1 = file_path
@@ -127,7 +139,6 @@ class TestPathsFromTemplate(TankTestBase):
         file_path = self.template.apply_fields(fields)
         self.file_2 = file_path
         self.create_file(self.file_2)
-
 
     def test_skip_sequence(self):
         """
@@ -164,17 +175,35 @@ class TestPathsFromTemplate(TankTestBase):
 
         This refers to bug reported in Ticket #17090
         """
-        keys = {"Shot": StringKey("Shot"),
-                "Sequence": StringKey("Sequence"),
-                "Step": StringKey("Step"),
-                "name": StringKey("name"),
-                "version": IntegerKey("version", format_spec="03")}
+        keys = {
+            "Shot": StringKey("Shot"),
+            "Sequence": StringKey("Sequence"),
+            "Step": StringKey("Step"),
+            "name": StringKey("name"),
+            "version": IntegerKey("version", format_spec="03"),
+        }
 
         definition = "sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.nk"
         template = TemplatePath(definition, keys, self.project_root, "my_template")
         self.tk._templates = {template.name: template}
-        bad_file_path = os.path.join(self.project_root, "sequences", "Sequence1", "Shot1", "Foot", "work", "name1.va.nk")
-        good_file_path = os.path.join(self.project_root, "sequences", "Sequence1", "Shot1", "Foot", "work", "name.v001.nk")
+        bad_file_path = os.path.join(
+            self.project_root,
+            "sequences",
+            "Sequence1",
+            "Shot1",
+            "Foot",
+            "work",
+            "name1.va.nk",
+        )
+        good_file_path = os.path.join(
+            self.project_root,
+            "sequences",
+            "Sequence1",
+            "Shot1",
+            "Foot",
+            "work",
+            "name.v001.nk",
+        )
         self.create_file(bad_file_path)
         self.create_file(good_file_path)
         ctx_fields = {"Sequence": "Sequence1", "Shot": "Shot1", "Step": "Foot"}
@@ -182,22 +211,38 @@ class TestPathsFromTemplate(TankTestBase):
         self.assertIn(good_file_path, result)
         self.assertNotIn(bad_file_path, result)
 
+    def test_filenames_without_optional_keys(self):
+        """
+        Test that when using a template that has optional keys with default values,
+        paths that do and do not include the optional portion are both found
+        """
+        template = self.tk.templates["path_with_optional_abstract"]
+        file_with_opt = os.path.join(self.project_root, "media", "scene.0001.exr")
+        file_without_opt = os.path.join(self.project_root, "media", "scene.mov")
+        self.create_file(file_with_opt)
+        self.create_file(file_without_opt)
+        self.assertEqual(
+            set(self.tk.paths_from_template(template, {"name": "scene"})),
+            set([file_without_opt, file_with_opt]),
+        )
+
 
 class TestAbstractPathsFromTemplate(TankTestBase):
     """Tests Tank.abstract_paths_from_template method."""
+
     def setUp(self):
         super(TestAbstractPathsFromTemplate, self).setUp()
         self.setup_fixtures()
 
-
-        keys = {"Sequence": StringKey("Sequence"),
-                "Shot": StringKey("Shot"),
-                "eye": StringKey("eye",
-                       default="%V",
-                       choices=["left","right","%V"],
-                       abstract=True),
-                "name": StringKey("name"),
-                "SEQ": SequenceKey("SEQ", format_spec="04")}
+        keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "eye": StringKey(
+                "eye", default="%V", choices=["left", "right", "%V"], abstract=True
+            ),
+            "name": StringKey("name"),
+            "SEQ": SequenceKey("SEQ", format_spec="04"),
+        }
 
         definition = "sequences/{Sequence}/{Shot}/{eye}/{name}.{SEQ}.exr"
 
@@ -255,68 +300,92 @@ class TestAbstractPathsFromTemplate(TankTestBase):
     def test_all_abstract(self):
         # getting everything will return the two abstract fields
         # using their default abstract values %V and %04d
-        expected = [ os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
-                     os.path.join(self.shot_b_path, "%V", "filename.%04d.exr"),
-                     os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr"),
-                     os.path.join(self.shot_b_path, "%V", "anothername.%04d.exr")]
+        expected = [
+            os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
+            os.path.join(self.shot_b_path, "%V", "filename.%04d.exr"),
+            os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr"),
+            os.path.join(self.shot_b_path, "%V", "anothername.%04d.exr"),
+        ]
 
         result = self.tk.abstract_paths_from_template(self.template, {})
         self.assertEqual(set(expected), set(result))
 
     def test_specify_shot(self):
-        expected = [ os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
-                     os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr")]
+        expected = [
+            os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
+            os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr"),
+        ]
 
         result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA"})
         self.assertEqual(set(expected), set(result))
 
     def test_bad_seq(self):
         expected = []
-        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": "####"})
+        result = self.tk.abstract_paths_from_template(
+            self.template, {"Shot": "AAA", "SEQ": "####"}
+        )
         self.assertEqual(set(expected), set(result))
 
     def test_specific_frame(self):
-        expected = [os.path.join(self.shot_a_path, "%V", "filename.0003.exr"),
-                    os.path.join(self.shot_a_path, "%V", "anothername.0003.exr")]
+        expected = [
+            os.path.join(self.shot_a_path, "%V", "filename.0003.exr"),
+            os.path.join(self.shot_a_path, "%V", "anothername.0003.exr"),
+        ]
 
-        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": 3})
+        result = self.tk.abstract_paths_from_template(
+            self.template, {"Shot": "AAA", "SEQ": 3}
+        )
         self.assertEqual(set(expected), set(result))
 
     def test_specify_eye(self):
-        expected = [os.path.join(self.shot_a_path, "left", "anothername.%04d.exr"),
-                    os.path.join(self.shot_a_path, "left", "filename.%04d.exr")]
+        expected = [
+            os.path.join(self.shot_a_path, "left", "anothername.%04d.exr"),
+            os.path.join(self.shot_a_path, "left", "filename.%04d.exr"),
+        ]
 
-        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "eye": "left"})
+        result = self.tk.abstract_paths_from_template(
+            self.template, {"Shot": "AAA", "eye": "left"}
+        )
         self.assertEqual(set(expected), set(result))
-
 
     def test_specify_shot_and_name(self):
         expected = [os.path.join(self.shot_a_path, "%V", "filename.%04d.exr")]
 
-        result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "name": "filename"})
+        result = self.tk.abstract_paths_from_template(
+            self.template, {"Shot": "AAA", "name": "filename"}
+        )
         self.assertEqual(set(expected), set(result))
 
     def test_specify_name(self):
-        expected = [os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
-                    os.path.join(self.shot_b_path, "%V", "filename.%04d.exr")]
-        result = self.tk.abstract_paths_from_template(self.template, {"name": "filename"})
+        expected = [
+            os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
+            os.path.join(self.shot_b_path, "%V", "filename.%04d.exr"),
+        ]
+        result = self.tk.abstract_paths_from_template(
+            self.template, {"name": "filename"}
+        )
         self.assertEqual(set(expected), set(result))
 
 
 class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
+
     def setUp(self):
         super(TestPathsFromTemplateGlob, self).setUp()
-        keys = {"Shot": StringKey("Shot"),
-                "version": IntegerKey("version", format_spec="03"),
-                "seq_num": SequenceKey("seq_num", format_spec="05")}
+        keys = {
+            "Shot": StringKey("Shot"),
+            "version": IntegerKey("version", format_spec="03"),
+            "seq_num": SequenceKey("seq_num", format_spec="05"),
+        }
 
-        self.template = TemplatePath("{Shot}/{version}/filename.{seq_num}", keys, root_path=self.project_root)
+        self.template = TemplatePath(
+            "{Shot}/{version}/filename.{seq_num}", keys, root_path=self.project_root
+        )
 
-    @patch("tank.api.glob.iglob")
+    @mock.patch("tank.api.glob.iglob")
     def assert_glob(self, fields, expected_glob, skip_keys, mock_glob):
         # want to ensure that value returned from glob is returned
-        expected = [os.path.join(self.project_root, "shot_1","001","filename.00001")]
+        expected = [os.path.join(self.project_root, "shot_1", "001", "filename.00001")]
         mock_glob.return_value = expected
         retval = self.tk.paths_from_template(self.template, fields, skip_keys=skip_keys)
         self.assertEqual(expected, retval)
@@ -332,7 +401,9 @@ class TestPathsFromTemplateGlob(TankTestBase):
         fields["Shot"] = "shot_name"
         fields["version"] = 4
         fields["seq_num"] = 45
-        expected_glob = os.path.join("%(Shot)s", "%(version)03d", "filename.%(seq_num)05d") % fields
+        expected_glob = (
+            os.path.join("%(Shot)s", "%(version)03d", "filename.%(seq_num)05d") % fields
+        )
         self.assert_glob(fields, expected_glob, skip_keys)
 
     def test_skip_dirs(self):
@@ -344,7 +415,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
         fields["seq_num"] = 45
         sep = os.path.sep
         glob_str = "%(Shot)s" + sep + "*" + sep + "filename.%(seq_num)05i"
-        expected_glob =  glob_str % fields
+        expected_glob = glob_str % fields
         self.assert_glob(fields, expected_glob, skip_keys)
 
     def test_skip_file_token(self):
@@ -356,7 +427,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
         fields["seq_num"] = 45
         sep = os.path.sep
         glob_str = "%(Shot)s" + sep + "%(version)03d" + sep + "filename.*"
-        expected_glob =  glob_str % fields
+        expected_glob = glob_str % fields
         self.assert_glob(fields, expected_glob, skip_keys)
 
     def test_missing_values(self):
@@ -367,7 +438,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
         fields["seq_num"] = 45
         sep = os.path.sep
         glob_str = "%(Shot)s" + sep + "*" + sep + "filename.%(seq_num)05i"
-        expected_glob =  glob_str % fields
+        expected_glob = glob_str % fields
         self.assert_glob(fields, expected_glob, skip_keys)
 
 
@@ -385,7 +456,10 @@ class TestApiProperties(TankTestBase):
         """
         test api.documentation_url property
         """
-        self.assertEqual(self.tk.documentation_url, "https://support.shotgunsoftware.com/hc/en-us/articles/219039808")
+        self.assertEqual(
+            self.tk.documentation_url,
+            "https://help.autodesk.com/view/SGDEV/ENU/?contextId=SA_INTEGRATIONS_USER_GUIDE",
+        )
 
     def test_shotgun_url_property(self):
         """
@@ -409,7 +483,9 @@ class TestApiProperties(TankTestBase):
         """
         test api.configuration_id property
         """
-        self.assertEqual(self.tk.configuration_id, self.tk.pipeline_configuration.get_shotgun_id())
+        self.assertEqual(
+            self.tk.configuration_id, self.tk.pipeline_configuration.get_shotgun_id()
+        )
 
     def test_configuration_mode_property(self):
         """
@@ -430,11 +506,11 @@ class TestApiProperties(TankTestBase):
         self.assertEqual(self.tk.project_path, self.project_root)
 
 
-
 class TestApiCache(TankTestBase):
     """
     Test the built in instance cache
     """
+
     def setUp(self):
         super(TestApiCache, self).setUp()
 
@@ -465,7 +541,6 @@ class TestApiCache(TankTestBase):
         self.assertEqual(self.tk.get_cache_item("foo"), None)
         self.assertEqual(self.tk.get_cache_item("bar"), None)
 
-
     def test_isolation(self):
         """
         Test that two tk instances use separate caches
@@ -495,8 +570,3 @@ class TestApiCache(TankTestBase):
 
         self.assertEqual(tk.get_cache_item("foo"), None)
         self.assertEqual(tk2.get_cache_item("foo"), None)
-
-
-
-
-

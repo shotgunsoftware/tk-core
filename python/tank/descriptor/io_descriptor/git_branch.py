@@ -10,9 +10,11 @@
 import os
 import copy
 
-from .git import IODescriptorGit
+from .git import IODescriptorGit, TankGitError, _check_output
 from ..errors import TankDescriptorError
 from ... import LogManager
+
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -59,20 +61,20 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "path", "version", "branch"],
-            optional=[]
+            descriptor_dict, required=["type", "path", "version", "branch"], optional=[]
         )
 
         # call base class
-        super(IODescriptorGitBranch, self).__init__(descriptor_dict, sg_connection, bundle_type)
+        super(IODescriptorGitBranch, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
         self._version = descriptor_dict.get("version")
-        self._branch = descriptor_dict.get("branch")
+        self._branch = six.ensure_str(descriptor_dict.get("branch"))
 
     def __str__(self):
         """
@@ -89,6 +91,9 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param bundle_cache_root: Bundle cache root path
         :return: Path to bundle cache location
         """
+        # If the descriptor is an integer change the version to a string type
+        if isinstance(self._version, int):
+            self._version = str(self._version)
         # to be MAXPATH-friendly, we only use the first seven chars
         short_hash = self._version[:7]
 
@@ -96,12 +101,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(
-            bundle_cache_root,
-            "gitbranch",
-            name,
-            short_hash
-        )
+        return os.path.join(bundle_cache_root, "gitbranch", name, short_hash)
 
     def get_version(self):
         """
@@ -109,6 +109,33 @@ class IODescriptorGitBranch(IODescriptorGit):
         or the branch name 'master'
         """
         return self._version
+
+    def _is_latest_commit(self, version, branch):
+        """
+        Check if the git_branch descriptor is pointing to the
+        latest commit version.
+        """
+        # first probe to check that git exists in our PATH
+        log.debug("Checking if the version is pointing to the latest commit...")
+        try:
+            output = _check_output(["git", "ls-remote", self._path, branch])
+        except:
+            log.exception("Unexpected error:")
+            raise TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            )
+        latest_commit = output.split("\t")
+        short_latest_commit = latest_commit[0][:7]
+
+        if short_latest_commit != version[:7]:
+            return False
+        log.debug(
+            "This version is pointing to the latest commit %s, lets enable shallow clones"
+            % short_latest_commit
+        )
+
+        return True
 
     def _download_local(self, destination_path):
         """
@@ -126,14 +153,21 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param destination_path: The destination path on disk to which
         the git branch descriptor is to be downloaded to.
         """
+        depth = None
+        is_latest_commit = self._is_latest_commit(self._version, self._branch)
+        if is_latest_commit:
+            depth = 1
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
-            commands = [
-                "checkout -q \"%s\"" % self._branch,
-                "reset --hard -q \"%s\"" % self._version
-            ]
-            self._clone_then_execute_git_commands(destination_path, commands)
+            commands = ['checkout -q "%s"' % self._version]
+            self._clone_then_execute_git_commands(
+                destination_path,
+                commands,
+                depth=depth,
+                ref=self._branch,
+                is_latest_commit=is_latest_commit,
+            )
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
@@ -176,8 +210,8 @@ class IODescriptorGitBranch(IODescriptorGit):
             # clone the repo, get the latest commit hash
             # for the given branch
             commands = [
-                "checkout -q \"%s\"" % self._branch,
-                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch
+                'checkout -q "%s"' % self._branch,
+                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch,
             ]
             git_hash = self._tmp_clone_then_execute_git_commands(commands)
 
@@ -189,8 +223,10 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = git_hash
-        desc = IODescriptorGitBranch(new_loc_dict, self._sg_connection, self._bundle_type)
+        new_loc_dict["version"] = six.ensure_str(git_hash)
+        desc = IODescriptorGitBranch(
+            new_loc_dict, self._sg_connection, self._bundle_type
+        )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 

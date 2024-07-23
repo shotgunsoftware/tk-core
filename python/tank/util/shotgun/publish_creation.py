@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -14,17 +14,21 @@ Logic for publishing files to Shotgun.
 from __future__ import with_statement
 
 import os
-import urlparse
-import urllib
+from tank_vendor.six.moves import urllib
 import pprint
 
-from .publish_util import get_published_file_entity_type, get_cached_local_storages, find_publish
+from .publish_util import (
+    get_published_file_entity_type,
+    get_cached_local_storages,
+    find_publish,
+)
 from ..errors import ShotgunPublishError
 from ...errors import TankError, TankMultipleMatchingTemplatesError
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -54,7 +58,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     and try to locate a suitable storage. Failing that, it will fall back on a
     register the path as a ``file://`` url. For more information on
     this resolution logic, see our
-    `Admin Guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution>`_.
+    `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
     .. note:: Shotgun follows a convention where the name passed to the register publish method is used
               to control how things are grouped together. When Shotgun and Toolkit groups things together,
@@ -217,7 +221,9 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     :returns: The created entity dictionary.
     """
     log.debug(
-        "Publish: Begin register publish for context {0} and path {1}".format(context, path)
+        "Publish: Begin register publish for context {0} and path {1}".format(
+            context, path
+        )
     )
     entity = None
     try:
@@ -228,8 +234,8 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
         thumbnail_path = kwargs.get("thumbnail_path")
         comment = kwargs.get("comment")
-        dependency_paths = kwargs.get('dependency_paths', [])
-        dependency_ids = kwargs.get('dependency_ids', [])
+        dependency_paths = kwargs.get("dependency_paths", [])
+        dependency_ids = kwargs.get("dependency_ids", [])
         published_file_type = kwargs.get("published_file_type")
         if not published_file_type:
             # check for legacy name:
@@ -248,40 +254,53 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, basestring):
+            if not isinstance(published_file_type, six.string_types):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":
                 filters = [["code", "is", published_file_type]]
-                sg_published_file_type = tk.shotgun.find_one('PublishedFileType', filters=filters)
+                sg_published_file_type = tk.shotgun.find_one(
+                    "PublishedFileType", filters=filters
+                )
 
                 if not sg_published_file_type:
                     # create a published file type on the fly
-                    sg_published_file_type = tk.shotgun.create("PublishedFileType", {"code": published_file_type})
+                    sg_published_file_type = tk.shotgun.create(
+                        "PublishedFileType", {"code": published_file_type}
+                    )
             else:  # == TankPublishedFile
-                filters = [["code", "is", published_file_type], ["project", "is", context.project]]
-                sg_published_file_type = tk.shotgun.find_one('TankType', filters=filters)
+                filters = [
+                    ["code", "is", published_file_type],
+                    ["project", "is", context.project],
+                ]
+                sg_published_file_type = tk.shotgun.find_one(
+                    "TankType", filters=filters
+                )
 
                 if not sg_published_file_type:
                     # create a tank type on the fly
-                    sg_published_file_type = tk.shotgun.create("TankType", {"code": published_file_type,
-                                                                            "project": context.project})
+                    sg_published_file_type = tk.shotgun.create(
+                        "TankType",
+                        {"code": published_file_type, "project": context.project},
+                    )
 
         # create the publish
-        log.debug("Publish: Creating publish in Shotgun")
-        entity = _create_published_file(tk,
-                                        context,
-                                        path,
-                                        name,
-                                        version_number,
-                                        task,
-                                        comment,
-                                        sg_published_file_type,
-                                        created_by_user,
-                                        created_at,
-                                        version_entity,
-                                        sg_fields,
-                                        dry_run=dry_run)
+        log.debug("Publish: Creating publish in Flow Production Tracking")
+        entity = _create_published_file(
+            tk,
+            context,
+            path,
+            name,
+            version_number,
+            task,
+            comment,
+            sg_published_file_type,
+            created_by_user,
+            created_at,
+            version_entity,
+            sg_fields,
+            dry_run=dry_run,
+        )
 
         if not dry_run:
             # upload thumbnails
@@ -289,13 +308,15 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             if thumbnail_path and os.path.exists(thumbnail_path):
 
                 # publish
-                tk.shotgun.upload_thumbnail(published_file_entity_type, entity["id"], thumbnail_path)
+                tk.shotgun.upload_thumbnail(
+                    published_file_entity_type, entity["id"], thumbnail_path
+                )
 
                 # entity
                 if update_entity_thumbnail == True and context.entity is not None:
-                    tk.shotgun.upload_thumbnail(context.entity["type"],
-                                                context.entity["id"],
-                                                thumbnail_path)
+                    tk.shotgun.upload_thumbnail(
+                        context.entity["type"], context.entity["id"], thumbnail_path
+                    )
 
                 # task
                 if update_task_thumbnail == True and task is not None:
@@ -304,8 +325,12 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             else:
                 # no thumbnail found - instead use the default one
                 this_folder = os.path.abspath(os.path.dirname(__file__))
-                no_thumb = os.path.join(this_folder, os.path.pardir, "resources", "no_preview.jpg")
-                tk.shotgun.upload_thumbnail(published_file_entity_type, entity.get("id"), no_thumb)
+                no_thumb = os.path.join(
+                    this_folder, os.path.pardir, "resources", "no_preview.jpg"
+                )
+                tk.shotgun.upload_thumbnail(
+                    published_file_entity_type, entity.get("id"), no_thumb
+                )
 
             # register dependencies
             log.debug("Publish: Register dependencies")
@@ -320,19 +345,29 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             raise ShotgunPublishError(
                 "Local File Linking seems to be turned off. "
                 "Turn it on on your Site Preferences Page.",
-                entity
+                entity,
             )
         else:
             # Raise our own exception with the original message and the created entity,
             # if any
-            raise ShotgunPublishError(
-                error_message="%s" % e,
-                entity=entity
-            )
+            raise ShotgunPublishError(error_message="%s" % e, entity=entity)
 
 
-def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type,
-                           created_by_user, created_at, version_entity, sg_fields=None, dry_run=False):
+def _create_published_file(
+    tk,
+    context,
+    path,
+    name,
+    version_number,
+    task,
+    comment,
+    published_file_type,
+    created_by_user,
+    created_at,
+    version_entity,
+    sg_fields=None,
+    dry_run=False,
+):
     """
     Creates a publish entity in shotgun given some standard fields.
 
@@ -372,7 +407,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         "name": name,
         "task": task,
         "version_number": version_number,
-        }
+    }
 
     # we set the optional additional fields first so we don't allow overwriting the standard parameters
     if sg_fields is None:
@@ -402,13 +437,14 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     if version_entity:
         data["version"] = version_entity
 
-
     # Determine the value of the link field based on the given context
     if context.project is None:
         # when running toolkit as a standalone plugin, the context may be
         # empty and not contain a project. Publishes are project entities
         # in Shotgun, so we cannot proceed without a project.
-        raise TankError("Your context needs to at least have a project set in order to publish.")
+        raise TankError(
+            "Your context needs to at least have a project set in order to publish."
+        )
 
     elif context.entity is None:
         # If the context does not have an entity, link it up to the project.
@@ -429,7 +465,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     #     scheme://netloc/path
     #
     path_is_url = False
-    res = urlparse.urlparse(path)
+    res = urllib.parse.urlparse(path)
     if res.scheme:
         # handle Windows drive letters - note this adds a limitation
         # but one that is not likely to be a problem as single-character
@@ -460,8 +496,8 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # note: by applying a safe pattern like this, we guarantee that already quoted paths
         #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
         data["path"] = {
-            "url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
-            "name": data["code"]  # same as publish name
+            "url": urllib.parse.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
+            "name": data["code"],  # same as publish name
         }
 
     else:
@@ -492,15 +528,17 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             # allows us to specify exactly which storage to bind a publish to rather than relying on
             # Shotgun to compute this.
             supports_specific_storage_syntax = (
-                hasattr(tk.shotgun, "server_caps") and
-                tk.shotgun.server_caps.version and
-                tk.shotgun.server_caps.version >= (7, 0, 1)
+                hasattr(tk.shotgun, "server_caps")
+                and tk.shotgun.server_caps.version
+                and tk.shotgun.server_caps.version >= (7, 0, 1)
             )
 
             if supports_specific_storage_syntax:
 
-                # get corresponding SG local storage for the matching root name
-                storage = tk.pipeline_configuration.get_local_storage_for_root(root_name)
+                # get corresponding PTR local storage for the matching root name
+                storage = tk.pipeline_configuration.get_local_storage_for_root(
+                    root_name
+                )
 
                 if storage is None:
                     # there is no storage in Shotgun that matches the one toolkit expects.
@@ -509,15 +547,19 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in Shotgun to associate publish '%s' with. "
-                        "Falling back to Shotgun's built-in storage resolution "
+                        "'%s' in PTR to associate publish '%s' with. "
+                        "Falling back to Flow Production Tracking's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
-                        "local storage to required root '%s'." %
-                        (root_name, path, root_name))
+                        "local storage to required root '%s'."
+                        % (root_name, path, root_name)
+                    )
                     data["path"] = {"local_path": path}
 
                 else:
-                    data["path"] = {"relative_path": path_cache, "local_storage": storage}
+                    data["path"] = {
+                        "relative_path": path_cache,
+                        "local_storage": storage,
+                    }
 
             else:
                 # use previous syntax where we pass the whole path to Shotgun
@@ -527,7 +569,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                 data["path"] = {"local_path": path}
 
             # fill in the path cache field which is used for filtering in Shotgun
-            # (because SG does not support
+            # (because PTR does not support
             data["path_cache"] = path_cache
 
         else:
@@ -536,14 +578,16 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check shotgun local storages to see if there is a match.")
+            log.debug("Will check PTR local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
                 local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
                 # assume case preserving file systems rather than case sensitive
-                if local_storage_path and path.lower().startswith(local_storage_path.lower()):
-                    log.debug("Path matches Shotgun local storage '%s'" % storage["code"])
+                if local_storage_path and path.lower().startswith(
+                    local_storage_path.lower()
+                ):
+                    log.debug("Path matches PTR local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
 
@@ -556,28 +600,34 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                 # no local storage defined so publish as a file:// url
                 log.debug(
                     "No local storage matching path '%s' - path will be "
-                    "registered as a file:// url." % (path, )
+                    "registered as a file:// url." % (path,)
                 )
 
                 # (see http://stackoverflow.com/questions/11687478/convert-a-filename-to-a-file-url)
-                file_url = urlparse.urljoin("file:", urllib.pathname2url(path))
+                file_url = urllib.parse.urljoin(
+                    "file:", urllib.request.pathname2url(path)
+                )
                 log.debug("Converting '%s' -> '%s'" % (path, file_url))
                 data["path"] = {
                     "url": file_url,
-                    "name": data["code"]  # same as publish name
+                    "name": data["code"],  # same as publish name
                 }
 
-
     # now call out to hook just before publishing
-    data = tk.execute_core_hook(constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context)
+    data = tk.execute_core_hook(
+        constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context
+    )
 
     if dry_run:
         # add the publish type to be as consistent as possible
         data["type"] = published_file_entity_type
-        log.debug("Dry run. Simply returning the data that would be sent to SG: %s" % pprint.pformat(data))
+        log.debug(
+            "Dry run. Simply returning the data that would be sent to PTR: %s"
+            % pprint.pformat(data)
+        )
         return data
     else:
-        log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
+        log.debug("Registering publish in Flow Production Tracking: %s" % pprint.pformat(data))
         return tk.shotgun.create(published_file_entity_type, data)
 
 
@@ -596,21 +646,32 @@ def _translate_abstract_fields(tk, path):
         template = tk.template_from_path(path)
     except TankMultipleMatchingTemplatesError:
         log.debug(
-            "Path matches multiple templates. Not translating abstract fields: %s" % path
+            "Path matches multiple templates. Not translating abstract fields: %s"
+            % path
         )
     else:
         if template:
-            abstract_key_names = [k.name for k in template.keys.values() if k.is_abstract]
+            abstract_key_names = [
+                k.name for k in template.keys.values() if k.is_abstract
+            ]
 
             if len(abstract_key_names) > 0:
-                # we want to use the default values for abstract keys
                 cur_fields = template.get_fields(path)
+                # We want to use the default values for abstract keys. We could do this
+                # by not passing the abstract keys to _apply_fields, set skip_defaults=False,
+                # and let that method set the default values. But doing that would set default
+                # values on all keys that have defaults. We only want to set defaults on keys
+                # that were found in the current_path (the keys in cur_field)
                 for abstract_key_name in abstract_key_names:
-                    del(cur_fields[abstract_key_name])
-                path = template.apply_fields(cur_fields)
+                    if abstract_key_name in cur_fields:
+                        cur_fields[abstract_key_name] = template.keys[
+                            abstract_key_name
+                        ]._get_default()
+                path = template._apply_fields(cur_fields, skip_defaults=True)
         else:
             log.debug(
-                "Path does not match a template. Not translating abstract fields: %s" % path
+                "Path does not match a template. Not translating abstract fields: %s"
+                % path
             )
     return path
 
@@ -619,13 +680,13 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     """
     Creates dependencies in shotgun from a given entity to
     a list of paths and ids. Paths not recognized are skipped.
-    
+
     :param tk: API handle
     :param publish_entity: The publish entity to set the dependencies for. This is a dictionary
                            with keys type and id.
     :param dependency_paths: List of paths on disk. List of strings.
     :param dependency_ids: List of publish entity ids to associate. List of ints
-    
+
     """
     published_file_entity_type = get_published_file_entity_type(tk)
 
@@ -635,64 +696,74 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     sg_batch_data = []
 
     for dependency_path in dependency_paths:
-        
+
         # did we manage to resolve this file path against
         # a publish in shotgun?
         published_file = publishes.get(dependency_path)
-        
+
         if published_file:
             if published_file_entity_type == "PublishedFile":
 
-                req = {"request_type": "create", 
-                       "entity_type": "PublishedFileDependency", 
-                       "data": {"published_file": publish_entity,
-                                "dependent_published_file": published_file
-                                }
-                        } 
-                sg_batch_data.append(req)    
-            
-            else:# == "TankPublishedFile"
-
-                req = {"request_type": "create", 
-                       "entity_type": "TankDependency", 
-                       "data": {"tank_published_file": publish_entity,
-                                "dependent_tank_published_file": published_file
-                                }
-                        } 
+                req = {
+                    "request_type": "create",
+                    "entity_type": "PublishedFileDependency",
+                    "data": {
+                        "published_file": publish_entity,
+                        "dependent_published_file": published_file,
+                    },
+                }
                 sg_batch_data.append(req)
 
+            else:  # == "TankPublishedFile"
+
+                req = {
+                    "request_type": "create",
+                    "entity_type": "TankDependency",
+                    "data": {
+                        "tank_published_file": publish_entity,
+                        "dependent_tank_published_file": published_file,
+                    },
+                }
+                sg_batch_data.append(req)
 
     for dependency_id in dependency_ids:
         if published_file_entity_type == "PublishedFile":
 
-            req = {"request_type": "create", 
-                   "entity_type": "PublishedFileDependency", 
-                   "data": {"published_file": publish_entity,
-                            "dependent_published_file": {"type": "PublishedFile", 
-                                                         "id": dependency_id }
-                            }
-                    } 
-            sg_batch_data.append(req)
-            
-        else:# == "TankPublishedFile"
-            
-            req = {"request_type": "create", 
-                   "entity_type": "TankDependency", 
-                   "data": {"tank_published_file": publish_entity,
-                            "dependent_tank_published_file": {"type": "TankPublishedFile", 
-                                                              "id": dependency_id }
-                            }
-                    } 
+            req = {
+                "request_type": "create",
+                "entity_type": "PublishedFileDependency",
+                "data": {
+                    "published_file": publish_entity,
+                    "dependent_published_file": {
+                        "type": "PublishedFile",
+                        "id": dependency_id,
+                    },
+                },
+            }
             sg_batch_data.append(req)
 
+        else:  # == "TankPublishedFile"
+
+            req = {
+                "request_type": "create",
+                "entity_type": "TankDependency",
+                "data": {
+                    "tank_published_file": publish_entity,
+                    "dependent_tank_published_file": {
+                        "type": "TankPublishedFile",
+                        "id": dependency_id,
+                    },
+                },
+            }
+            sg_batch_data.append(req)
 
     # push to shotgun in a single xact
     if len(sg_batch_data) > 0:
         tk.shotgun.batch(sg_batch_data)
-                
 
-def _calc_path_cache(tk, path):
-    """
+
+def _calc_path_cache(tk, path, project_names=None):
+    r"""
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache). The relative path is always using forward
     slashes.
@@ -714,6 +785,10 @@ def _calc_path_cache(tk, path):
 
     :param tk: Toolkit API instance
     :param str path: Path to normalize.
+    :param list project_names: A list of project names used to find a matching
+                               storage to calculate the path cache. If a list is
+                               not provided, only the current project name will
+                               be used.
     :returns: (root_name, path_cache)
     """
     # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
@@ -722,14 +797,15 @@ def _calc_path_cache(tk, path):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = norm_path.replace("\\", "/")
+    norm_path = six.ensure_str(norm_path.replace("\\", "/"))
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
 
     # get project name, typically a a-z string but can contain
     # forward slashes, e.g. 'my_project', or 'client_a/proj_b'
-    project_disk_name = tk.pipeline_configuration.get_project_disk_name()
+    if not project_names:
+        project_names = [tk.pipeline_configuration.get_project_disk_name()]
 
     for root_name, root_path in storage_roots.items():
 
@@ -737,31 +813,38 @@ def _calc_path_cache(tk, path):
         # normalize the root path
         norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
 
-        # append project and normalize
-        proj_path = root_path_obj.join(project_disk_name).current_os
-        proj_path = proj_path.replace(os.sep, "/")
+        for project_name in project_names:
 
-        if norm_path.lower().startswith(proj_path.lower()):
-            # our path matches this storage!
+            # append project and normalize
+            proj_path = root_path_obj.join(project_name).current_os
+            proj_path = six.ensure_str(proj_path.replace(os.sep, "/"))
 
-            # Remove parent dir plus "/" - be careful to handle the case where
-            # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = norm_path[len(norm_root_path):].lstrip("/")
-            log.debug(
-                "Split up path '%s' into storage %s and relative path '%s'" % (path, root_name, path_cache)
-            )
-            return root_name, path_cache
+            if norm_path.lower().startswith(proj_path.lower()):
+                # our path matches this storage!
+
+                # Remove parent dir plus "/" - be careful to handle the case where
+                # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
+                path_cache = norm_path[len(norm_root_path) :].lstrip("/")
+                log.debug(
+                    "Split up path '%s' into storage %s and relative path '%s'"
+                    % (path, root_name, path_cache)
+                )
+                return root_name, path_cache
 
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
     return None, None
 
 
-def group_by_storage(tk, list_of_paths):
-    """
+def group_by_storage(tk, list_of_paths, only_current_project=True):
+    r"""
     Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.
+
+    By default, paths are grouped only by storages matching the current project.
+    Set only_current_project to False to group by storages matching any current
+    active project in the pipeline config.
 
     This method aims to process the paths to make them useful for later shotgun processing.
 
@@ -791,11 +874,26 @@ def group_by_storage(tk, list_of_paths):
     """
     storages_paths = {}
 
+    # get a list of all the current tank names. We'll need it when trying to determine the root of the given paths
+    if not only_current_project:
+        sg_projects = tk.shotgun.find(
+            "Project",
+            [
+                ["archived", "is", False],
+                ["is_template", "is", False],
+                ["tank_name", "is_not", None],
+            ],
+            ["tank_name"],
+        )
+        project_names = [p["tank_name"] for p in sg_projects]
+    else:
+        project_names = None
+
     for path in list_of_paths:
 
         # use abstracted path if path is part of a sequence
         abstract_path = _translate_abstract_fields(tk, path)
-        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
+        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path, project_names)
 
         # make sure that the path is even remotely valid, otherwise skip
         if dep_path_cache is None:
@@ -809,4 +907,3 @@ def group_by_storage(tk, list_of_paths):
         storages_paths[root_name] = storage_info
 
     return storages_paths
-
