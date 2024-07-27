@@ -8,28 +8,29 @@
 # - new_names_ui_files: (Optional) A list of new names for the compiled .ui files (without extensions).
 #                       If not provided, the original names will be used.
 # - res_files: A list of .qrc resource file names (without extensions) to compile.
-# - py_dest: The destination directory where the compiled .py files will be placed.
-# - import_pattern: The import text pattern to replace (default is "tank.platform.qt").
+# - py_dest: (Optional) The destination directory where the compiled .py files will be placed,
+#            (default is same directory of 'ui_src').
+# - import_pattern: (Optional) The import text pattern to replace (default is ".").
 #
 # Example:
 #
-# - ui_src: "path/to/ui_files"
+# - ui_src: path/to/ui_files
 #   ui_files:
 #     - main_window
 #   res_files:
 #     - resources
-#   py_dest: "path/to/output"
-#   import_pattern: "custom.import.path"
+#   py_dest: path/to/output
+#   import_pattern: custom.import.path
 
-- ui_src: "python/tank/authentication/resources"
+- ui_src: python/tank/authentication/resources
   ui_files:
     - login_dialog
   res_files:
     - resources
-  py_dest: "python/tank/authentication/ui"
-  import_pattern: ".qt_abstraction"
+  py_dest: python/tank/authentication/ui
+  import_pattern: .qt_abstraction
 
-- ui_src: "python/tank/platform/qt"
+- ui_src: python/tank/platform/qt
   ui_files:
     - tank_dialog
     - item
@@ -40,5 +41,3 @@
     - ui_busy_dialog
   res_files:
     - resources
-  py_dest: "python/tank/platform/qt"
-  import_pattern: "."
