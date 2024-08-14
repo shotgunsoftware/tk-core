@@ -1,0 +1,24 @@
+# YAML Configuration File for Qt Resource Building
+#
+# For more information:
+# https://github.com/shotgunsoftware/tk-toolchain?tab=readme-ov-file#tk-build-qt-resources
+
+- ui_src: python/tank/authentication/resources
+  ui_files:
+    - login_dialog
+  res_files:
+    - resources
+  py_dest: python/tank/authentication/ui
+  import_pattern: .qt_abstraction
+
+- ui_src: python/tank/platform/qt
+  ui_files:
+    - tank_dialog
+    - item
+    - busy_dialog
+  new_names_ui_files:
+    - ui_tank_dialog
+    - ui_item
+    - ui_busy_dialog
+  res_files:
+    - resources
