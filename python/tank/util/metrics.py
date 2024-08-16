@@ -644,6 +644,7 @@ class EventMetric(object):
     KEY_ENTITY_TYPE = "Entity Type"
     KEY_HOST_APP = "Host App"
     KEY_HOST_APP_VERSION = "Host App Version"
+    KEY_HOST_APP_VARIANT = "Host App Variant"
     KEY_PUBLISH_TYPE = "Publish Type"
     KEY_CORE_VERSION = "Core Version"
 
