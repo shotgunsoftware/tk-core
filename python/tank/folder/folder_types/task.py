@@ -111,7 +111,7 @@ class ShotgunTask(Entity):
             elif curr_parent is None:
                 raise TankError(
                     "Error in configuration %s - node must be parented "
-                    "under a SG entity." % full_path
+                    "under a PTR entity." % full_path
                 )
 
             elif (

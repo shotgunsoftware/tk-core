@@ -278,9 +278,9 @@ class EntityExpression(object):
                 # required value was not provided!
                 raise TankError(
                     "Folder Configuration Error: "
-                    "A SG field '%s' is being requested as part of the expression "
+                    "A PTR field '%s' is being requested as part of the expression "
                     "'%s' when creating folders connected to entities of type %s, "
-                    "however no such field exists in ShotGrid. Please review your "
+                    "however no such field exists in Flow Production Tracking. Please review your "
                     "configuration!"
                     % (field_name, self._field_name_expr, self._entity_type)
                 )
@@ -309,7 +309,7 @@ class EntityExpression(object):
             raise TankError(
                 "Folder Configuration Error. Could not create folders for %s! "
                 "The expression %s refers to one or more values that are blank "
-                "in SG and a folder can therefore "
+                "in PTR and a folder can therefore "
                 "not be created." % (nice_name, self._field_name_expr)
             )
 

@@ -52,14 +52,14 @@ except ImportError:
 from tank_vendor.six.moves.urllib.parse import urlencode
 
 # Error messages for events.
-HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To SG site."
+HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To PTR site."
 HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
 HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = (
     "Time out attempting to authenticate to SSO service."
 )
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = (
-    "You have not been granted access to the SG site."
+    "You have not been granted access to the PTR site."
 )
 
 # Timer related values.
@@ -123,20 +123,22 @@ URL_ULF_RENEW_PATH = "/auth/renew"
 URL_ULF_LANDING_PATH = "/auth/landing"
 
 
-def get_renew_path(session):
+def get_renew_path(session, logger):
     """Construct the renew path, leveraging existing environment variables"""
     renew_path = session.host + URL_ULF_RENEW_PATH + "?"
     renew_params = {"product": session.product}
     # When this variable is set, it is passed to Autodesk Identity's login.
     tk_shotgun_default_login = os.getenv("TK_SHOTGRID_DEFAULT_LOGIN")
     # When this variable is set for a SSO domain, skip the initial login page.
-    tk_shotgun_sso_domain = os.getenv("TK_SHOTGRID_SSO_DOMAIN")
+    tk_shotgun_sso_domain = sanitize_http_proxy(os.getenv("TK_SHOTGRID_SSO_DOMAIN")).netloc
 
-    # ShotGrid's renew endpoint supports some useful
+    # Flow Production Tracking's renew endpoint supports some useful
     # Autodesk Identity params.
     if tk_shotgun_default_login:
+        logger.debug("Using default login: %s", tk_shotgun_default_login)
         renew_params["email"] = tk_shotgun_default_login
     if tk_shotgun_sso_domain:
+        logger.debug("Using SSO domain: %s", tk_shotgun_sso_domain)
         renew_params["sso_domain"] = tk_shotgun_sso_domain
 
     renew_path += urlencode(renew_params)
@@ -144,7 +146,7 @@ def get_renew_path(session):
 
 
 class SsoSaml2Core(object):
-    """Performs SG Web login and pre-emptive renewal for SSO sessions."""
+    """Performs PTR Web login and pre-emptive renewal for SSO sessions."""
 
     def __init__(self, window_title="Web Login", qt_modules=None):
         """
@@ -209,147 +211,69 @@ class SsoSaml2Core(object):
             )
         if QtNetwork and not hasattr(QtNetwork, "QSslConfiguration"):
             raise SsoSaml2IncompletePySide2("Missing class QtNetwork.QSslConfiguration")
+        class TKWebPageQtWebEngine(QtWebEngineWidgets.QWebEnginePage):
+            """
+            Wrapper class to better control the behaviour when clicking on links
+            in the Qt5 web browser. If we are asked to open a new tab/window, then
+            we defer the page to the external browser.
+            """
 
-        if QtWebKit:
-
-            class TKWebPageQt4(QtWebKit.QWebPage):
+            def __init__(self, profile, parent, developer_mode=False):
                 """
-                Wrapper class to better control the behaviour when clicking on links
-                in the Qt web browser. If we are asked to open a new tab/window, then
-                we defer the page to the external browser.
-
-                We need to open some links in an external window so as to avoid
-                breaking the authentication flow just to visit an external link.
-                Some examples of links that the user may see which we want to open
-                externally:
-                 - Term of use and conditions,
-                 - Download of the Google/Duo authenticator app
-                 - Any other links which may be presented by SSO Providers
+                Class Constructor.
                 """
+                get_logger().debug("TKWebPageQtWebEngine.__init__")
+                super(TKWebPageQtWebEngine, self).__init__(profile, parent)
+                self._profile = profile
+                self._developer_mode = developer_mode
 
-                def __init__(self, parent=None, developer_mode=False):
-                    """
-                    Class Constructor.
-                    """
-                    get_logger().debug("TKWebPageQt4.__init__")
-                    super(TKWebPageQt4, self).__init__(parent)
-                    self._developer_mode = developer_mode
-
-                def __del__(self):
-                    """
-                    Class Destructor.
-                    """
-                    get_logger().debug("TKWebPageQt4.__del__")
-
-                def acceptNavigationRequest(self, frame, request, n_type):  # noqa
-                    """
-                    Overloaded method, to properly control the behavioir of clicking on
-                    links.
-                    :param frame:   QWebFrame where the navigation is requested.
-                                    Will be 'None' if the intent is to have the page
-                                    open in a new tab or window.
-                    :param request: QNetworkRequest which we must accept/refuse.
-                    :param n_type:  NavigationType (LinkClicked, FormSubmitted, etc.)
-                    :returns:       A boolean indicating if we accept or refuse the request.
-                    """
-                    if self._developer_mode:
-                        get_logger().debug(
-                            "NavigationRequest, destination and reason: %s (%s)",
-                            request.url().toString(),
-                            n_type,
-                        )
-
-                    # A null frame means : open a new window/tab. so we just farm out
-                    # the request to the external browser.
-                    if (
-                        frame is None
-                        and n_type
-                        == QtWebKit.QWebPage.NavigationType.NavigationTypeLinkClicked
-                    ):
-                        QtGui.QDesktopServices.openUrl(request.url())
-                        return False
-                    # Otherwise we accept the default behaviour.
-                    return QtWebKit.QWebPage.acceptNavigationRequest(
-                        self, frame, request, n_type
-                    )
-
-        else:
-
-            class TKWebPageQt5(QtWebEngineWidgets.QWebEnginePage):
+            def __del__(self):
                 """
-                Wrapper class to better control the behaviour when clicking on links
-                in the Qt5 web browser. If we are asked to open a new tab/window, then
-                we defer the page to the external browser.
+                Class Destructor.
                 """
+                get_logger().debug("TKWebPageQtWebEngine.__del__")
 
-                def __init__(self, profile, parent, developer_mode=False):
-                    """
-                    Class Constructor.
-                    """
-                    get_logger().debug("TKWebPageQt5.__init__")
-                    super(TKWebPageQt5, self).__init__(profile, parent)
-                    self._profile = profile
-                    self._developer_mode = developer_mode
-
-                def __del__(self):
-                    """
-                    Class Destructor.
-                    """
-                    get_logger().debug("TKWebPageQt5.__del__")
-
-                def mainFrame(self):
-                    """
-                    Convenience method to minimize changes between Qt4 and Qt5 code.
-                    """
-                    return self
-
-                def evaluateJavaScript(self, javascript):
-                    """
-                    Convenience method to minimize changes between Qt4 and Qt5 code.
-                    """
-                    return self.runJavaScript(javascript)
-
-                def acceptNavigationRequest(self, url, n_type, is_mainframe):
-                    """
-                    Overloaded method, to properly control the behaviour of clicking on
-                    links.
-                    """
-                    if self._developer_mode:
-                        get_logger().debug(
-                            "TKWebPageQt5.acceptNavigationRequest: %s (%s)",
-                            url.toString(),
-                            n_type,
-                        )
-
-                    # A null profile means that a window/tab had to be created to handle
-                    # this request. So we just farm out the request to the external system
-                    # browser.
-                    if self._profile is None:
-                        QtGui.QDesktopServices.openUrl(url)
-                        return False
-                    return QtWebEngineWidgets.QWebEnginePage.acceptNavigationRequest(
-                        self, url, n_type, is_mainframe
-                    )
-
-                def createWindow(self, window_type):
-                    """
-                    When a link leading to a new window/tab is clicked, this method is
-                    called.
-                    """
-                    get_logger().debug("TKWebPageQt5.createWindow: %s", window_type)
-                    # Here we return a new page with no profile, that will be used solely
-                    # to trigger the call to the external browser.
-                    return TKWebPageQt5(None, self.parent())
-
-                def certificateError(self, certificate_error):
-                    """
-                    Signal called when the WebEngine detects and incorrect certificate.
-                    For the time being, we ignore all certificate errors.
-                    """
+            def acceptNavigationRequest(self, url, n_type, is_mainframe):
+                """
+                Overloaded method, to properly control the behaviour of clicking on
+                links.
+                """
+                if self._developer_mode:
                     get_logger().debug(
-                        "TKWebPageQt5.certificateError: %s", certificate_error
+                        "TKWebPageQtWebEngine.acceptNavigationRequest: %s (%s)",
+                        url.toString(),
+                        n_type,
                     )
-                    return True
+
+                # A null profile means that a window/tab had to be created to handle
+                # this request. So we just farm out the request to the external system
+                # browser.
+                if self._profile is None:
+                    QtGui.QDesktopServices.openUrl(url)
+                    return False
+                return QtWebEngineWidgets.QWebEnginePage.acceptNavigationRequest(
+                    self, url, n_type, is_mainframe
+                )
+
+            def createWindow(self, window_type):
+                """
+                When a link leading to a new window/tab is clicked, this method is
+                called.
+                """
+                get_logger().debug("TKWebPageQtWebEngine.createWindow: %s", window_type)
+                # Here we return a new page with no profile, that will be used solely
+                # to trigger the call to the external browser.
+                return TKWebPageQtWebEngine(None, self.parent())
+
+            def certificateError(self, certificate_error):
+                """
+                Signal called when the WebEngine detects and incorrect certificate.
+                For the time being, we ignore all certificate errors.
+                """
+                get_logger().debug(
+                    "TKWebPageQtWebEngine.certificateError: %s", certificate_error
+                )
+                return True
 
         self._event_data = None
         self._sessions_stack = []
@@ -365,91 +289,35 @@ class SsoSaml2Core(object):
         self._layout.setSpacing(0)
         self._layout.setContentsMargins(0, 0, 0, 0)
 
-        if QtWebKit:
-            # Disable SSL validation, to allow self-signed certs for local installs.
-            config = QtNetwork.QSslConfiguration.defaultConfiguration()
-            config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
-            QtNetwork.QSslConfiguration.setDefaultConfiguration(config)
-
-            self._view = QtWebKit.QWebView(self._dialog)
-            self._view.setPage(TKWebPageQt4(self._dialog, self._developer_mode))
-            self._view.page().networkAccessManager().authenticationRequired.connect(
-                self.on_authentication_required
-            )
-        else:
-            self._profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
-            self._logger.debug(
-                "Initial WebEngineProfile storage location: %s",
-                self._profile.persistentStoragePath(),
-            )
-            self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
-            self._view.setPage(
-                TKWebPageQt5(self._profile, self._dialog, self._developer_mode)
-            )
-            self._view.page().authenticationRequired.connect(
-                self.on_authentication_required
-            )
+        self._profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
+        self._logger.debug(
+            "Initial WebEngineProfile storage location: %s",
+            self._profile.persistentStoragePath(),
+        )
+        self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
+        self._view.setPage(
+            TKWebPageQtWebEngine(self._profile, self._dialog, self._developer_mode)
+        )
+        self._view.page().authenticationRequired.connect(
+            self.on_authentication_required
+        )
 
         self._view.urlChanged.connect(self._on_url_changed)
         self._layout.addWidget(self._view)
         self._dialog.resize(800, 600)
 
-        if QtWebKit:
-            self._logger.debug("We are in a Qt4 environment, Getting the cookie jar.")
-            self._cookie_jar = self._view.page().networkAccessManager().cookieJar()
-
-            self._logger.debug("Registering callback to handle polyfilling.")
-            frame = self._view.page().currentFrame()
-            frame.javaScriptWindowObjectCleared.connect(self._polyfill)
-
-            # Purposely disable the 'Reload' contextual menu, as it should not be
-            # used for SSO. Reloading the page confuses the server.
-            self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
-
-            # Ensure that the background color is not controlled by the login page.
-            # We want to be able to display any login dialog page without having
-            # the night theme of the SG Desktop impacting it. White is the safest
-            # background color.
-            self._view.setStyleSheet("background-color:white;")
-
-            # The context : in some special cases, Shotgun will take you into an alternate
-            # login flow. E.g. when you need to change your password, enter a 2FA value,
-            # link your SSO account with an existing account on the site, etc.
-            #
-            # The issue : when using a non-approved browser, Shotgun will display a
-            # warning stating that your browser is not supported. This is fine should
-            # you be interacting with the whole site. But in our case, we only
-            # navigate the login flow; presenting relatively simple pages. The warning
-            # is not warranted. The browser used is dependent on the version of Qt/PySide
-            # being used and we have little or no control over it.
-            #
-            # The solution : hide the warning by overriding the CSS of the page.
-            # Fixing Shotgun to recognize the user-agent used by the different version
-            # of Qt so that the warning is not displayed would be a tedious task. The
-            # present solution is simpler, with the only drawback being the dependency
-            # on the name of the div for the warning. No error is generated
-            # if that div.browser_not_approved is not present in the page.
-            #
-            # Worst case scenario : should Shotgun modify how the warning is displayed
-            # it would show up in the page.
-            css_style = base64.b64encode(
-                "div.browser_not_approved { display: none !important; }"
-            )
-            url = QtCore.QUrl("data:text/css;charset=utf-8;base64," + css_style)
-            self._view.settings().setUserStyleSheetUrl(url)
-        else:
-            self._logger.debug(
-                "We are in a Qt5 environment, registering cookie handlers."
-            )
-            # We want to persist cookies accross sessions.
-            # The cookies will be cleared if there are no prior session in
-            # method 'update_browser_from_session' if needed.
-            self._profile.setPersistentCookiesPolicy(
-                QtWebEngineWidgets.QWebEngineProfile.ForcePersistentCookies
-            )
-            self._cookie_jar = QtNetwork.QNetworkCookieJar()
-            self._profile.cookieStore().cookieAdded.connect(self._on_cookie_added)
-            self._profile.cookieStore().cookieRemoved.connect(self._on_cookie_deleted)
+        self._logger.debug(
+            "We are in a QtWebEngine environment, registering cookie handlers."
+        )
+        # We want to persist cookies accross sessions.
+        # The cookies will be cleared if there are no prior session in
+        # method 'update_browser_from_session' if needed.
+        self._profile.setPersistentCookiesPolicy(
+            QtWebEngineWidgets.QWebEngineProfile.ForcePersistentCookies
+        )
+        self._cookie_jar = QtNetwork.QNetworkCookieJar()
+        self._profile.cookieStore().cookieAdded.connect(self._on_cookie_added)
+        self._profile.cookieStore().cookieRemoved.connect(self._on_cookie_deleted)
 
         # Threshold percentage of the SSO session duration, at which
         # time the pre-emptive renewal operation should be started.
@@ -492,30 +360,21 @@ class SsoSaml2Core(object):
 
         # For debugging purposes
         if self._developer_mode:
-            if QtWebKit:
-                # Adds the Developer Tools option when right-clicking
-                QtWebKit.QWebSettings.globalSettings().setAttribute(
-                    QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True
-                )
-                QtWebKit.QWebSettings.globalSettings().setAttribute(
-                    QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True
-                )
-            else:
-                self._logger.debug(
-                    "To debug the Qt5 WebEngine, use the following environment variables:"
-                )
-                self._logger.debug("  export QTWEBENGINE_REMOTE_DEBUGGING=8888")
-                self._logger.debug("  or")
-                self._logger.debug(
-                    '  export QTWEBENGINE_CHROMIUM_FLAGS="--remote-debugging-port=8888"'
-                )
-                self._logger.debug(" ")
-                self._logger.debug(
-                    " Then you just need to point a chrome browser to http://127.0.0.1:8888"
-                )
-                self._logger.debug(
-                    " In this example, port 8888 is used, but it could be set to another one"
-                )
+            self._logger.debug(
+                "To debug the Qt5 WebEngine, use the following environment variables:"
+            )
+            self._logger.debug("  export QTWEBENGINE_REMOTE_DEBUGGING=8888")
+            self._logger.debug("  or")
+            self._logger.debug(
+                '  export QTWEBENGINE_CHROMIUM_FLAGS="--remote-debugging-port=8888"'
+            )
+            self._logger.debug(" ")
+            self._logger.debug(
+                " Then you just need to point a chrome browser to http://127.0.0.1:8888"
+            )
+            self._logger.debug(
+                " In this example, port 8888 is used, but it could be set to another one"
+            )
 
     def __del__(self):
         """Destructor."""
@@ -710,7 +569,7 @@ class SsoSaml2Core(object):
         if self._developer_mode:
             self._logger.debug(
                 "_on_cookie_added: %s",
-                cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm),
+                cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly),
             )
         self._cookie_jar.insertCookie(cookie)
 
@@ -725,7 +584,7 @@ class SsoSaml2Core(object):
         if self._developer_mode:
             self._logger.debug(
                 "_on_cookie_deleted: %s",
-                cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm),
+                cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly),
             )
         self._cookie_jar.deleteCookie(cookie)
 
@@ -808,9 +667,9 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        url = get_renew_path(self._session)
+        url = get_renew_path(self._session, self._logger)
         self._logger.debug("Navigating to %s", url)
-        self._view.page().mainFrame().load(url)
+        self._view.page().load(url)
 
     def on_renew_sso_session_timeout(self):
         """
@@ -836,7 +695,7 @@ class SsoSaml2Core(object):
         environment and define functions which would be required by that code.
         """
         frame = self._view.page().currentFrame()
-        frame.evaluateJavaScript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
+        frame.runJavascript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
         self._logger.debug(
             "Injected polyfill JavaScript code for Function.prototype.bind and Array.prototype.splice"
         )
@@ -854,7 +713,7 @@ class SsoSaml2Core(object):
         (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
         the process.
         """
-        url = self._view.page().mainFrame().url().toString()
+        url = self._view.page().url().toString()
         # in debug mode, use the title bar to show the url.
         if self._developer_mode:
             self._dialog.setWindowTitle(url)
@@ -887,8 +746,8 @@ class SsoSaml2Core(object):
         # pop an authentication dialog.
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
             message = (
-                "<p>Your company has configured Single Sign-On (SSO) for the SG site %s"
-                "<p>Please authenticate with your computer login and password to log into ShotGrid."
+                "<p>Your company has configured Single Sign-On (SSO) for the PTR site %s"
+                "<p>Please authenticate with your computer login and password to log into Flow Production Tracking."
                 "<p>"
             )
             auth_dialog = UsernamePasswordDialog(message=message % self._session.host)
@@ -931,14 +790,14 @@ class SsoSaml2Core(object):
             # Having separate Chromium profile persistency location have been proven
             # necessary for a few reasons:
             # - Because all of the cookies are serialized to the user's cache, this makes
-            #   the session_metadata property increase in size over time. The SG Desktop
+            #   the session_metadata property increase in size over time. The PTR desktop app
             #   serializes the user's properties as environment variables when starting
             #   desktop-linked apps. On Windows, there is a maximum length of 32676 bytes
             #   for them.
             # - By splitting Chromium profiles on a per-site basis (as is the case with
             #   the user infos), we reduce the chances of busting that 32767 limit. It is
             #   still possible for a user to reach it (as cookies accumulate). But then
-            #   the easy fix is to sign-out of the SG Desktop (or clear_default_user()).
+            #   the easy fix is to sign-out of the PTR desktop app (or clear_default_user()).
             # - When a user signs out of a site, that site's user data (and session_metadata)
             #   is cleared. At authentication time, if we see that there are no cookies
             #   present, we clear whatever cookies are present in the local Chromium
@@ -985,9 +844,9 @@ class SsoSaml2Core(object):
         self._view.raise_()
 
         # We append the product code to the GET request.
-        url = get_renew_path(self._session)
+        url = get_renew_path(self._session, self._logger)
         self._logger.debug("Navigating to %s", url)
-        self._view.page().mainFrame().load(url)
+        self._view.page().load(url)
 
         self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         status = self._dialog.exec_()
@@ -1030,4 +889,4 @@ class SsoSaml2Core(object):
                 )
 
         # Clear the web page
-        self._view.page().mainFrame().load("about:blank")
+        self._view.page().load("about:blank")

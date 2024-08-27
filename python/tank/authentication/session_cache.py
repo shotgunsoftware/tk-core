@@ -221,7 +221,9 @@ def _try_load_site_authentication_file(file_path):
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
     content.setdefault(_RECENT_USERS, [])
-    content.setdefault(_PREFERRED_METHOD, None)
+
+    if content.get(_PREFERRED_METHOD, "not null") is None:
+        del(content[_PREFERRED_METHOD])
 
     for user in content[_USERS]:
         user[_LOGIN] = user[_LOGIN].strip()
@@ -270,7 +272,7 @@ def _insert_or_update_user(users_file, login, session_token, session_metadata):
         if _is_same_user(user, login):
             result = False
             # Update and return True only if something changed.
-            if user[_SESSION_TOKEN] != session_token:
+            if user.get(_SESSION_TOKEN) != session_token:
                 user[_SESSION_TOKEN] = session_token
                 result = True
             if (
@@ -348,17 +350,24 @@ def get_session_data(base_url, login):
         users_file = _try_load_site_authentication_file(info_path)
         for user in users_file[_USERS]:
             # Search for the user in the users dictionary.
-            if _is_same_user(user, login):
-                session_data = {
-                    _LOGIN: user[_LOGIN],
-                    _SESSION_TOKEN: user[_SESSION_TOKEN],
-                }
-                # We want to keep session_metadata out of the session data if there
-                # is none. This is to ensure backward compatibility for older
-                # version of tk-core reading the authentication.yml
-                if user.get(_SESSION_METADATA):
-                    session_data[_SESSION_METADATA] = user[_SESSION_METADATA]
-                return session_data
+            if not _is_same_user(user, login):
+                continue
+
+            if not user.get(_SESSION_TOKEN):
+                continue
+
+            session_data = {
+                _LOGIN: user[_LOGIN],
+                _SESSION_TOKEN: user[_SESSION_TOKEN],
+            }
+
+            # We want to keep session_metadata out of the session data if there
+            # is none. This is to ensure backward compatibility for older
+            # version of tk-core reading the authentication.yml
+            if user.get(_SESSION_METADATA):
+                session_data[_SESSION_METADATA] = user[_SESSION_METADATA]
+
+            return session_data
         logger.debug("No cached user found for %s" % login)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
@@ -545,7 +554,7 @@ def get_preferred_method(host):
     # Retrieve the cached info file location from the host
     info_path = _get_site_authentication_file_location(host)
     document = _try_load_site_authentication_file(info_path)
-    method_name = document[_PREFERRED_METHOD]
+    method_name = document.get(_PREFERRED_METHOD)
     if not method_name:
         return
 
@@ -569,7 +578,7 @@ def set_preferred_method(host, method):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    if current_user_file[_PREFERRED_METHOD] == method_name:
+    if current_user_file.get(_PREFERRED_METHOD) == method_name:
         return
 
     current_user_file[_PREFERRED_METHOD] = method_name
@@ -596,7 +605,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     """
     try:
         # Create the instance that does not connect right away for speed...
-        logger.debug("Connecting to SG to generate session token...")
+        logger.debug("Connecting to PTR to generate session token...")
         sg = Shotgun(
             hostname,
             login=login,

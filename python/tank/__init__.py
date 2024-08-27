@@ -36,7 +36,7 @@ import inspect
 
 
 def __fix_tank_vendor():
-    # Older versions of Shotgun Desktop left copies of tank_vendor in sys.modules,
+    # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,
     # which means we might not be importing our copy but someone else's,
     # so strip it out!
     if "tank_vendor" not in sys.modules:
@@ -154,4 +154,7 @@ from .commands import list_commands, get_command, SgtkSystemCommand, CommandInte
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
 
 # expose the support url
-from .constants import SUPPORT_URL as support_url
+from .constants import (
+  DEFAULT_STORAGE_ROOT_HOOK_NAME,
+  SUPPORT_URL as support_url,
+)

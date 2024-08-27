@@ -17,6 +17,7 @@ from __future__ import with_statement, print_function
 import contextlib
 
 import sys
+import os
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
@@ -35,6 +36,15 @@ from tank.authentication import (
     interactive_authentication,
     invoker,
     user_impl,
+    site_info,
+)
+from tank.authentication.utils import sanitize_http_proxy
+from tank.authentication.sso_saml2.core.sso_saml2_core import (
+    SsoSaml2Core,
+    get_renew_path,
+)
+from tank.authentication.sso_saml2.core.authentication_session_data import (
+    AuthenticationSessionData,
 )
 
 import tank
@@ -89,7 +99,7 @@ class InteractiveTests(ShotgunTestBase):
         QtGui.QApplication.processEvents()
 
     @contextlib.contextmanager
-    def _login_dialog(self, is_session_renewal, **kwargs):
+    def _login_dialog(self, is_session_renewal=False, **kwargs):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
@@ -116,21 +126,19 @@ class InteractiveTests(ShotgunTestBase):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        with self._login_dialog(is_session_renewal=False) as ld:
+        with self._login_dialog() as ld:
             self.assertEqual(ld.ui.site.currentText(), "")
 
-        with self._login_dialog(is_session_renewal=False, login="login") as ld:
+        with self._login_dialog(login="login") as ld:
             self.assertEqual(ld.ui.site.currentText(), "")
 
         # Makes sure the focus is set to the password even tough we've only specified the hostname
         # because the current os user name is the default.
-        with self._login_dialog(is_session_renewal=False, hostname="host") as ld:
+        with self._login_dialog(hostname="host") as ld:
             # window needs to be activated to get focus.
             self.assertTrue(ld.ui.password.hasFocus())
 
-        with self._login_dialog(
-            is_session_renewal=False, hostname="host", login="login"
-        ) as ld:
+        with self._login_dialog(hostname="host", login="login") as ld:
             self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
@@ -323,6 +331,38 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(FromMainThreadException):
             bg.wait()
 
+    def test_console_auth_error(self, *mocks):
+        """
+        Validate that console authentication returns an exception when
+        authentication fails
+        """
+
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
+
+        with mock.patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_user_credentials",
+            side_effect=EOFError("test me"),
+        ), self.assertRaises(errors.AuthenticationCancelled):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
+
+        with mock.patch(
+            "tank.authentication.console_authentication.input",
+            side_effect=[
+                "\n",  # Select default PTR site (site1)
+                "2",  # Select "legacy" auth method
+                "username",
+            ],
+        ), mock.patch(
+            "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
+            return_value=" password ",
+        ), mock.patch(
+            "tank.authentication.session_cache.generate_session_token",
+            side_effect=errors.AuthenticationError("Authentication failed: test error"),
+        ), self.assertRaises(
+            errors.AuthenticationError
+        ):
+            handler.authenticate("https://test.shotgunstudio.com", "username", None)
+
     @mock.patch(
         "tank.authentication.console_authentication.input",
         side_effect=[
@@ -382,7 +422,7 @@ class InteractiveTests(ShotgunTestBase):
     @mock.patch(
         "tank.authentication.site_info._get_site_infos",
         return_value={
-            "app_session_launcher_enabled": False,
+            "authentication_app_session_launcher_enabled": False,
         },
     )
     @mock.patch(
@@ -417,7 +457,6 @@ class InteractiveTests(ShotgunTestBase):
             "user_authentication_method": "saml2",
         },
     )
-    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -428,23 +467,24 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
             handler.authenticate(None, None, None)
 
+    @mock.patch(
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
+    )
+    @mock.patch(
+        "tank.authentication.site_info._get_site_infos",
+        return_value={
+            "user_authentication_method": "saml2",
+        },
+    )
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=True)
-        for option in ["oxygen", "saml2"]:
-            with mock.patch(
-                "tank.authentication.site_info._get_site_infos",
-                return_value={
-                    "user_authentication_method": option,
-                },
-            ):
-                with self.assertRaises(ConsoleLoginNotSupportedError):
-                    handler.authenticate(
-                        "https://test-sso.shotgunstudio.com", None, None
-                    )
+        with self.assertRaises(ConsoleLoginNotSupportedError):
+            handler.authenticate("https://test-sso.shotgunstudio.com", None, None)
 
     @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
@@ -454,7 +494,7 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication.ui.qt_abstraction import QtGui
 
-        with self._login_dialog(is_session_renewal=False) as ld:
+        with self._login_dialog() as ld:
             # For each widget in the ui, make sure that the text is properly cleaned
             # up when widget loses focus.
             for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
@@ -484,7 +524,7 @@ class InteractiveTests(ShotgunTestBase):
     )
     def test_ui_error_management(self, *unused_mocks):
         # Empty of invalid site
-        with self._login_dialog(False) as ld:
+        with self._login_dialog() as ld:
             ld.ERROR_MSG_FORMAT = "[Error135]%s"
 
             # Trigger Sign-In
@@ -497,7 +537,6 @@ class InteractiveTests(ShotgunTestBase):
 
         # Empty login
         with self._login_dialog(
-            False,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             ld.ERROR_MSG_FORMAT = "[Error357]%s"
@@ -513,7 +552,7 @@ class InteractiveTests(ShotgunTestBase):
 
         # Empty password
         with self._login_dialog(
-            False, hostname="https://host.shotgunstudio.com", login="john"
+            hostname="https://host.shotgunstudio.com", login="john"
         ) as ld:
             ld.ERROR_MSG_FORMAT = "[Error579]%s"
 
@@ -530,7 +569,6 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.login_dialog.QtGui.QDesktopServices.openUrl",
             return_value=False,
         ), self._login_dialog(
-            False,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             ld.ERROR_MSG_FORMAT = "[Error246]%s"
@@ -552,7 +590,7 @@ class InteractiveTests(ShotgunTestBase):
         from tank.authentication.ui.qt_abstraction import QtGui, QtCore
 
         # Test window close event
-        with self._login_dialog(False) as ld:
+        with self._login_dialog() as ld:
             # First, simulate user clicks on the No button
             ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.No
 
@@ -569,9 +607,9 @@ class InteractiveTests(ShotgunTestBase):
 
         # Test escape key event
         with mock.patch(
-            "tank.authentication.login_dialog.ULF2_AuthTask.start",
+            "tank.authentication.login_dialog.ASL_AuthTask.start",
             return_value=False,
-        ), self._login_dialog(False) as ld:
+        ), self._login_dialog() as ld:
             event = QtGui.QKeyEvent(
                 QtGui.QKeyEvent.KeyPress,
                 QtCore.Qt.Key_Escape,
@@ -588,8 +626,8 @@ class InteractiveTests(ShotgunTestBase):
             # Then, simulate user clicks on the Yes button
             ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
 
-            # Initialize the ULF2 process - mostly for coverage
-            ld._ulf2_process("https://host.shotgunstudio.com")
+            # Initialize the ASL process - mostly for coverage
+            ld._asl_process("https://host.shotgunstudio.com")
 
             # Test Escape key
             self.assertIsNone(ld.keyPressEvent(event))
@@ -615,7 +653,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.site_info._get_site_infos",
             return_value={},
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is lcegacy credentials
@@ -628,18 +666,26 @@ class InteractiveTests(ShotgunTestBase):
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
             },
-        ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
+        ), self._login_dialog(
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
         # Then Web login but env override
-        with mock.patch("os.environ.get", return_value="1"), mock.patch(
+        with mock.patch.dict(
+            "os.environ", {"SGTK_FORCE_STANDARD_LOGIN_DIALOG": "1"}
+        ), mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
             },
-        ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
+        ), self._login_dialog(
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
@@ -668,7 +714,7 @@ class InteractiveTests(ShotgunTestBase):
             "exec_",
             return_value=QtGui.QDialog.Accepted,
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Fill password field
@@ -767,7 +813,7 @@ class InteractiveTests(ShotgunTestBase):
             "exec_",
             return_value=QtGui.QDialog.Accepted,
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
             # Ensure current method set is web login
@@ -782,7 +828,193 @@ class InteractiveTests(ShotgunTestBase):
             self.assertIsNone(ld.result())
 
     @suppress_generated_code_qt_warnings
-    @mock.patch("tank.authentication.login_dialog.ULF2_AuthTask.start")
+    def test_web_login_not_supported(self):
+        # Ensure that Web Login methos is not selected in UI when config is set
+        # to web login but client does not support it
+
+        with mock.patch(
+            "tank.authentication.login_dialog.ASL_AuthTask.start"
+        ), mock.patch(
+            "tank.authentication.login_dialog._is_running_in_desktop",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+            return_value=False,
+        ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=auth_constants.METHOD_WEB_LOGIN,
+        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "authentication_app_session_launcher_enabled": True,
+            },
+        ), self._login_dialog(
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+    @suppress_generated_code_qt_warnings
+    def test_login_dialog_method_selected_default(self):
+        with mock.patch(
+            "tank.authentication.login_dialog.ASL_AuthTask.start"
+        ), mock.patch(
+            "tank.authentication.login_dialog._is_running_in_desktop",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=None,
+        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "user_authentication_method": "oxygen",
+                "unified_login_flow_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
+            },
+        ):
+            with self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "credentials",
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "test_me",  # Invalid value
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+            with mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_WEB_LOGIN,
+            ), mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+
+            # Test valid SGTK_DEFAULT_AUTH_METHOD values but support for these
+            # are disabled
+
+            # qt_web_login but method not available
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
+                },
+            ), mock.patch(
+                "tank.authentication.login_dialog._is_running_in_desktop",
+                return_value=False,
+            ), mock.patch(
+                "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+                return_value=False,
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+            # app_session_launcher but method ASL not available
+            with mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), mock.patch(
+                "tank.authentication.site_info._get_site_infos",
+                return_value={
+                    "user_authentication_method": "oxygen",
+                    "unified_login_flow_enabled": True,
+                    "authentication_app_session_launcher_enabled": False,
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+
+    @suppress_generated_code_qt_warnings
+    def test_login_dialog_method_selected_session_cache(self):
+        with mock.patch(
+            "tank.authentication.login_dialog.ASL_AuthTask.start"
+        ), mock.patch(
+            "tank.authentication.login_dialog._is_running_in_desktop",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+            return_value=True,
+        ), mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value={
+                "user_authentication_method": "oxygen",
+                "unified_login_flow_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
+            },
+        ):
+            # credentials but web login is available
+            with mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_BASIC,
+            ), mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
+
+            # qt_web_login but method is not available
+            with mock.patch(
+                "tank.authentication.login_dialog._is_running_in_desktop",
+                return_value=False,
+            ), mock.patch(
+                "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+                return_value=False,
+            ), mock.patch(
+                "tank.authentication.session_cache.get_preferred_method",
+                return_value=auth_constants.METHOD_WEB_LOGIN,
+            ), mock.patch.dict(
+                "os.environ",
+                {
+                    "SGTK_DEFAULT_AUTH_METHOD": "app_session_launcher",
+                },
+            ), self._login_dialog(
+                hostname="https://host.shotgunstudio.com",
+            ) as ld:
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
+
+    @suppress_generated_code_qt_warnings
+    @mock.patch("tank.authentication.login_dialog.ASL_AuthTask.start")
     @mock.patch(
         "tank.authentication.login_dialog._is_running_in_desktop",
         return_value=True,
@@ -792,7 +1024,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=True,
     )
     @mock.patch(
-        "tank.authentication.unified_login_flow2.process",
+        "tank.authentication.app_session_launcher.process",
         return_value=(
             "https://host.shotgunstudio.com",
             "user_login",
@@ -808,21 +1040,21 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.session_cache.get_recent_users",
         return_value=["john", "bob"],
     )
-    def test_login_dialog_unified_login_flow2(self, *unused_mocks):
+    def test_login_dialog_app_session_launcher(self, *unused_mocks):
         from tank.authentication.ui.qt_abstraction import QtGui
 
-        # First basic and ULF2 methods
+        # First basic and ASL methods
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch.object(
             QtGui.QDialog,
             "exec_",
             return_value=QtGui.QDialog.Accepted,
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="http://host.shotgunstudio.com",  # HTTP only for code coverage
             fixed_host=True,  # Only for coverage purposes
         ) as ld:
@@ -830,42 +1062,45 @@ class InteractiveTests(ShotgunTestBase):
 
             self.assertTrue(ld.menu_action_legacy.isVisible())
             self.assertFalse(ld.menu_action_ulf.isVisible())
-            self.assertTrue(ld.menu_action_ulf2.isVisible())
+            self.assertTrue(ld.menu_action_asl.isVisible())
 
-            # Ensure current method set is ufl2
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+            # Ensure current method set is ASL
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
-            # Trigger login credentials
+            # Trigger Legacy
             ld._menu_activated_action_login_creds()
 
-            # Ensure current method set is lcegacy credentials
+            # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
-            # Trigger ULF2 again
-            ld._menu_activated_action_ulf2()
+            # Trigger ASL again
+            ld._menu_activated_action_asl()
+
+            # Ensure current method set is ASL
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
             ld._ok_pressed()
 
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # check that UI displays the UFL2 pending screen
-            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
+            # check that UI displays the ASL pending screen
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
-            ld._ulf2_back_pressed()
+            ld._asl_back_pressed()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
-            self.assertIsNone(ld._ulf2_task)
+            self.assertIsNone(ld._asl_task)
 
             # Trigger Sign-In
             ld._ok_pressed()
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # Simulate ULF2 Thread run
-            ld._ulf2_task.run()
-            ld._ulf2_task_finished()
+            # Simulate ASL Thread run
+            ld._asl_task.run()
+            ld._asl_task_finished()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
@@ -890,71 +1125,76 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
-        ), mock.patch(
-            "os.environ.get",
-            return_value="1",
+        ), mock.patch.dict(
+            "os.environ", {"SGTK_FORCE_STANDARD_LOGIN_DIALOG": "1"}
         ), self._login_dialog(
-            True,
+            is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
         ) as ld:
-            # Ensure current method set is lcegacy credentials
+            # Ensure current method set is legacy credentials
             self.assertEqual(ld.method_selected, auth_constants.METHOD_BASIC)
 
-        # Then Web login vs ULF2
+        # Then Web login vs ASL
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
                 "unified_login_flow_enabled": True,
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
-        ), self._login_dialog(True, hostname="https://host.shotgunstudio.com") as ld:
-            self.assertFalse(ld.menu_action_legacy.isVisible())
+        ), self._login_dialog(
+            is_session_renewal=True,
+            hostname="https://host.shotgunstudio.com",
+        ) as ld:
+            self.assertTrue(ld.menu_action_legacy.isVisible())
             self.assertTrue(ld.menu_action_ulf.isVisible())
-            self.assertTrue(ld.menu_action_ulf2.isVisible())
+            self.assertTrue(ld.menu_action_asl.isVisible())
 
-            # Ensure current method set is ufl2
-            self.assertEqual(ld.method_selected, auth_constants.METHOD_ULF2)
+            # Ensure current method set is ASL
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
-            # Select web login method
+            # Trigger web login
             ld._menu_activated_action_web_legacy()
 
             # Ensure current method set is web login
             self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
-            # Trigger ULF2 again
-            ld._menu_activated_action_ulf2()
+            # Trigger ASL again
+            ld._menu_activated_action_asl()
+
+            # Ensure current method set is ASL
+            self.assertEqual(ld.method_selected, auth_constants.METHOD_ASL)
 
             # Trigger Sign-In
             ld._ok_pressed()
 
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # check that UI displays the UFL2 pending screen
-            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.ulf2_page)
+            # check that UI displays the ASL pending screen
+            self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.asl_page)
 
             # Cancel the request and go back to the login screen
-            ld._ulf2_back_pressed()
+            ld._asl_back_pressed()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
-            self.assertIsNone(ld._ulf2_task)
+            self.assertIsNone(ld._asl_task)
 
             # Trigger Sign-In
             ld._ok_pressed()
-            self.assertIsNotNone(ld._ulf2_task, "ULF2 Auth has started")
+            self.assertIsNotNone(ld._asl_task, "ASL Auth has started")
 
-            # Simulate ULF2 Thread run
-            ld._ulf2_task.run()
-            ld._ulf2_task_finished()
+            # Simulate ASL Thread run
+            ld._asl_task.run()
+            ld._asl_task_finished()
 
             # check that UI displays the login credentials
             self.assertEqual(ld.ui.stackedWidget.currentWidget(), ld.ui.login_page)
 
             self.assertEqual(
-                ld._ulf2_task.session_info,
+                ld._asl_task.session_info,
                 (
                     "https://host.shotgunstudio.com",
                     "user_login",
@@ -966,7 +1206,7 @@ class InteractiveTests(ShotgunTestBase):
     @mock.patch(
         "tank.authentication.site_info._get_site_infos",
         return_value={
-            "app_session_launcher_enabled": True,
+            "authentication_app_session_launcher_enabled": True,
         },
     )
     @mock.patch(
@@ -980,14 +1220,14 @@ class InteractiveTests(ShotgunTestBase):
             "https://site3.shotgunstudio.com",
         ],
     )
-    def test_console_unified_login_flow2(self, *unused_mocks):
+    def test_console_app_session_launcher(self, *unused_mocks):
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
 
         # First select the legacy method
         with mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                "\n",  # Select default SG site (site1)
+                "\n",  # Select default PTR site (site1)
                 "2",  # Select "legacy" auth method
                 "username",
             ],
@@ -1000,21 +1240,21 @@ class InteractiveTests(ShotgunTestBase):
                 ("https://site3.shotgunstudio.com", "username", None, None),
             )
 
-        # Then repeat the operation but select the ULF2 method
+        # Then repeat the operation but select the ASL method
         with mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
                 "",  # Select default site -> site4
-                "1",  # Select "ULF2" auth method
+                "1",  # Select App Session Launcher option
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.process",
-            return_value=("https://site4.shotgunstudio.com", "ULF2!", None, None),
+            "tank.authentication.app_session_launcher.process",
+            return_value=("https://site4.shotgunstudio.com", "ASL!", None, None),
         ):
             self.assertEqual(
                 handler.authenticate("https://site4.shotgunstudio.com", None, None),
-                ("https://site4.shotgunstudio.com", "ULF2!", None, None),
+                ("https://site4.shotgunstudio.com", "ASL!", None, None),
             )
 
         # Alternate fixed_host value for code coverage
@@ -1025,21 +1265,24 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
+        ), mock.patch(
+            "tank.authentication.session_cache.get_preferred_method",
+            return_value=auth_constants.METHOD_ASL,
         ), mock.patch(
             "tank.authentication.console_authentication.input",
             side_effect=[
-                # No method to select as there is only one option
-                "",  # OK to continue
+                "",  # Select default host
+                "",  # OK to continue with preferred method (ASL)
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.process",
-            return_value="ULF2 result 9867",
+            "tank.authentication.app_session_launcher.process",
+            return_value="ASL result 9867",
         ):
             self.assertEqual(
                 handler.authenticate("https://site4.shotgunstudio.com", None, None),
-                "ULF2 result 9867",
+                "ASL result 9867",
             )
 
         # Then, one more small test for coverage
@@ -1047,7 +1290,7 @@ class InteractiveTests(ShotgunTestBase):
             "tank.authentication.site_info._get_site_infos",
             return_value={
                 "user_authentication_method": "oxygen",
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch(
             "tank.authentication.console_authentication.input",
@@ -1055,15 +1298,15 @@ class InteractiveTests(ShotgunTestBase):
                 "",  # OK to continue
             ],
         ), mock.patch(
-            "tank.authentication.unified_login_flow2.process",
+            "tank.authentication.app_session_launcher.process",
             return_value=None,  # Simulate an authentication error
         ):
             with self.assertRaises(errors.AuthenticationError):
-                handler._authenticate_unified_login_flow2(
+                handler._authenticate_app_session_launcher(
                     "https://site4.shotgunstudio.com", None, None
                 )
 
-        # Finally, disable ULF2 method and ensure legacy cred methods is
+        # Finally, disable ASL method and ensure legacy cred methods is
         # automatically selected
         with mock.patch(
             "tank.authentication.site_info._get_site_infos",
@@ -1094,7 +1337,7 @@ class InteractiveTests(ShotgunTestBase):
             tank_vendor.shotgun_api3.Shotgun,
             "info",
             return_value={
-                "app_session_launcher_enabled": True,
+                "authentication_app_session_launcher_enabled": True,
             },
         ):
             site_i = SiteInfo()
@@ -1108,15 +1351,6 @@ class InteractiveTests(ShotgunTestBase):
 
             with mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value="1",
-            ):
-                self.assertEqual(
-                    handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                    auth_constants.METHOD_ULF2,
-                )
-
-            with mock.patch(
-                "tank.authentication.console_authentication.input",
                 return_value="2",
             ):
                 self.assertEqual(
@@ -1125,16 +1359,31 @@ class InteractiveTests(ShotgunTestBase):
                 )
 
             with mock.patch(
-                "tank.authentication.session_cache.get_preferred_method",
-                return_value=auth_constants.METHOD_BASIC,
-            ), mock.patch(
                 "tank.authentication.console_authentication.input",
-                return_value="",
+                return_value="1",
             ):
                 self.assertEqual(
                     handler._get_auth_method("https://host.shotgunstudio.com", site_i),
-                    auth_constants.METHOD_BASIC,
+                    auth_constants.METHOD_ASL,
                 )
+
+            for option in [
+                auth_constants.METHOD_BASIC,
+                auth_constants.METHOD_ASL,
+            ]:
+                with mock.patch(
+                    "tank.authentication.session_cache.get_preferred_method",
+                    return_value=option,
+                ), mock.patch(
+                    "tank.authentication.console_authentication.input",
+                    return_value="",
+                ):
+                    self.assertEqual(
+                        handler._get_auth_method(
+                            "https://host.shotgunstudio.com", site_i
+                        ),
+                        option,
+                    )
 
             for wrong_value in ["0", "3", "-1", "42", "wrong"]:
                 with mock.patch(
@@ -1145,3 +1394,165 @@ class InteractiveTests(ShotgunTestBase):
                         handler._get_auth_method(
                             "https://host.shotgunstudio.com", site_i
                         )
+
+    def test_asl_auth_task_errors(self):
+        # Mainly for code coverage
+
+        from tank.authentication import login_dialog
+
+        asl_task = login_dialog.ASL_AuthTask(None, "https://host.shotgunstudio.com")
+
+        with mock.patch(
+            "tank.authentication.app_session_launcher.http_request",
+            side_effect=Exception("My Error 45!"),
+        ), self.assertLogs(
+            login_dialog.logger.name,
+            level="DEBUG",
+        ) as cm:
+            asl_task.run()
+
+        self.assertIn("Unknown error from the App Session Launcher", cm.output[0])
+        self.assertIn("My Error 45!", cm.output[0])
+
+        self.assertIsInstance(asl_task.exception, errors.AuthenticationError)
+        self.assertEqual(asl_task.exception.args[0], "Unknown authentication error")
+
+
+class LoadInformationInfoTests(ShotgunTestBase):
+    def test_reload_wrong_url(self, *unused_mocks):
+        with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:
+            with mock.patch.object(
+                tank_vendor.shotgun_api3.Shotgun, "info", side_effect=Exception()
+            ):
+                site_i = site_info.SiteInfo()
+                site_i.reload(url="https")
+                self.assertEqual(site_i._url, None)
+                self.assertEqual(site_i._infos, {})
+                self.assertEqual(len(cm.output), 1)
+                self.assertIn(
+                    "Invalid Flow Production Tracking URL https", cm.output[0]
+                )
+
+    def test_reload_wrong_site(self, *unused_mocks):
+        with self.assertLogs("sgtk.core.authentication.site_info", level="DEBUG") as cm:
+            with mock.patch.object(
+                tank_vendor.shotgun_api3.Shotgun, "info", side_effect=Exception()
+            ):
+                site_i = site_info.SiteInfo()
+                site_i.reload(url="https://foo")
+                self.assertEqual(site_i._url, None)
+                self.assertEqual(site_i._infos, {})
+                self.assertEqual(len(cm.output), 2)
+                self.assertIn(
+                    "Infos for site 'https://foo' not in cache or expired", cm.output[0]
+                )
+                self.assertIn(
+                    "Unable to connect with https://foo, got exception", cm.output[1]
+                )
+
+
+class UtilsTests(ShotgunTestBase):
+    def test_sanitize_http_proxy(self):
+        """
+        This method sanitizes a url that might or not have a protocol.
+        It returns a urlparse tuple
+        """
+
+        # No url
+        res = sanitize_http_proxy(None)
+        self.assertEqual(len(res), 6)
+
+        # Any string
+        res = sanitize_http_proxy("//")
+        self.assertEqual(res.scheme, "")
+        self.assertEqual(res.netloc, "")
+
+        # No protocol
+        res = sanitize_http_proxy("proxy.local")
+        self.assertEqual(res.scheme, "http")
+        self.assertEqual(res.netloc, "proxy.local")
+
+        # With protocol
+        res = sanitize_http_proxy("https://proxy.local")
+        self.assertEqual(res.scheme, "https")
+        self.assertEqual(res.netloc, "proxy.local")
+
+    def test_get_renew_path(self):
+        manager = tank.log.LogManager()
+        logger = manager.root_logger
+
+        # Provides a simple host and product
+        res = get_renew_path(
+            AuthenticationSessionData(
+                {
+                    "host": "https://foo.com",
+                    "product": "toolkit",
+                }
+            ),
+            logger,
+        )
+        self.assertEqual(res, "https://foo.com/auth/renew?product=toolkit")
+
+        # Provides TK_SHOTGRID_SSO_DOMAIN env var
+        os.environ["TK_SHOTGRID_SSO_DOMAIN"] = "bar.com"
+        res = get_renew_path(
+            AuthenticationSessionData(
+                {
+                    "host": "https://foo.com",
+                    "product": "toolkit",
+                }
+            ),
+            logger,
+        )
+        self.assertEqual(
+            res, "https://foo.com/auth/renew?product=toolkit&sso_domain=bar.com"
+        )
+        del os.environ["TK_SHOTGRID_SSO_DOMAIN"]
+
+        # Provides TK_SHOTGRID_DEFAULT_LOGIN env var
+        os.environ["TK_SHOTGRID_DEFAULT_LOGIN"] = "charlie@bar.com"
+        res = get_renew_path(
+            AuthenticationSessionData(
+                {
+                    "host": "https://foo.com",
+                    "product": "toolkit",
+                }
+            ),
+            logger,
+        )
+        self.assertEqual(
+            res, "https://foo.com/auth/renew?product=toolkit&email=charlie%40bar.com"
+        )
+        del os.environ["TK_SHOTGRID_DEFAULT_LOGIN"]
+
+
+class SsoSaml2CoreTests(ShotgunTestBase):
+    def setUp(self, *args, **kwargs):
+        qt_modules_mock = {
+            "QtCore": mock.Mock(),
+            "QtGui": mock.Mock(),
+            "QtNetwork": mock.Mock(),
+            "QtWebEngineWidgets": mock.Mock(),
+        }
+        self.sso_saml2 = SsoSaml2Core(qt_modules=qt_modules_mock)
+        super(SsoSaml2CoreTests, self).setUp()
+
+    def test_on_renew_sso_session(self):
+        """Mainly for coverage"""
+        self.sso_saml2.start_new_session(
+            {
+                "host": "https://foo.com",
+                "product": "toolkit",
+            }
+        )
+        self.sso_saml2.on_renew_sso_session()
+
+    def test_on_sso_login_attempt(self):
+        """Mainly for coverage"""
+        self.sso_saml2.start_new_session(
+            {
+                "host": "https://foo.com",
+                "product": "toolkit",
+            }
+        )
+        self.sso_saml2.on_sso_login_attempt()

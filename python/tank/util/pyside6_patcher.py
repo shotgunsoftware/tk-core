@@ -104,11 +104,31 @@ class PySide6Patcher(PySide2Patcher):
 
             @staticmethod
             def grabWindow(window=0, x=0, y=0, width=-1, height=-1):
+                """
+                Add deprecated method
+                https://doc.qt.io/qt-5/qpixmap-obsolete.html#grabWindow
+                """
                 screen = QtGui.QApplication.primaryScreen()
                 return screen.grabWindow(window, x, y, width, height)
 
 
         QtGui.QPixmap = QPixmap
+
+    @classmethod
+    def _patch_QIcon(cls, QtGui):
+        """
+        Patch QIcon.
+
+        QIcon.pixmap method should create object from the patched QPixmap class
+        """
+
+        original_QIcon_pixmap = QtGui.QIcon.pixmap  # Returns a native QPixmap
+
+        def pixmap(self, *args, **kwargs):
+            return QtGui.QPixmap(original_QIcon_pixmap(self, *args, **kwargs))
+
+        QtGui.QIcon.pixmap = pixmap
+
 
     @classmethod
     def _patch_QLabel(cls, QtGui):
@@ -254,6 +274,19 @@ class PySide6Patcher(PySide2Patcher):
         QtGui.QOpenGLContext.versionFunctions = versionFunctions
 
     @classmethod
+    def _patch_QWheelEvent(cls, QtGui):
+        """Patch QWheelEvent."""
+
+        def delta(self):
+            """Patch the delta method."""
+
+            # Use the more common mouse vertical scroll as the delta.
+            # Horizontal scroll is ignored, use angleDelta().x() if the horizontal scroll is needed.
+            return self.angleDelta().y()
+
+        QtGui.QWheelEvent.delta = delta
+
+    @classmethod
     def _patch_QModelIndex(cls, QtCore):
         """Patch QModelIndex."""
 
@@ -373,6 +406,21 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QRegularExpression = QRegularExpression
 
     @classmethod
+    def _patch_QCoreApplication_flush(cls, QtCore):
+        """
+        Patch QCoreApplication obsolete flush method for compatibility.
+        """
+
+        def flush():
+            """
+            No-op function to serve as a placeholder for QCoreApplication.flush().
+            """
+            pass
+
+        # Add the no-op flush method to QCoreApplication
+        QtCore.QCoreApplication.flush = flush
+
+    @classmethod
     def patch(cls):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
@@ -390,11 +438,19 @@ class PySide6Patcher(PySide2Patcher):
         """
 
         import PySide6
-        from PySide6 import QtCore, QtGui, QtWidgets, QtOpenGL
+        from PySide6 import (
+            QtCore,
+            QtGui,
+            QtWidgets,
+            QtOpenGL,
+            QtWebEngineWidgets,
+            QtWebEngineCore,
+        )
 
         # First create new modules to act as the PySide modules
         qt_core_shim = imp.new_module("PySide.QtCore")
         qt_gui_shim = imp.new_module("PySide.QtGui")
+        qt_web_engine_widgets_shim = imp.new_module("PySide.QtWebEnginWidgets")
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
         # in PySide.
@@ -412,6 +468,9 @@ class PySide6Patcher(PySide2Patcher):
         # compatibility with Qt4
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
         cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
+
+        # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
+        cls._move_attributes(qt_web_engine_widgets_shim, QtWebEngineWidgets, dir(QtWebEngineWidgets))
 
         # Patch classes from PySide6 to PySide, as done for PySide2 (these will call the
         # PySide2 patcher methods.)
@@ -448,12 +507,24 @@ class PySide6Patcher(PySide2Patcher):
         qt_gui_shim.QSortFilterProxyModel.filterRegExp = qt_gui_shim.QSortFilterProxyModel.filterRegularExpression
         qt_gui_shim.QSortFilterProxyModel.setFilterRegExp = qt_gui_shim.QSortFilterProxyModel.setFilterRegularExpression
 
+        # Patch the QCoreApplication.flush() method to ensure compatibility with code
+        # that expects this method, which is marked as obsolete.
+        # https://doc.qt.io/qt-5/qcoreapplication-obsolete.html#flush
+        cls._patch_QCoreApplication_flush(qt_core_shim)
+
         # QtGui
         # ------------------------------------------------------------------------------------
 
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
         cls._patch_QLabel(qt_gui_shim)
+
+        # QIcon.pixmap method should create object from the patched QPixmap class
+        cls._patch_QIcon(qt_gui_shim)
+
+        # QWheelEvent delta is obsolete
+        # https://doc.qt.io/qt-5/qwheelevent-obsolete.html#delta
+        cls._patch_QWheelEvent(qt_gui_shim)
 
         # QOpenGLContext.versionFunctions replaced
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#the-qopenglcontext-class
@@ -473,7 +544,7 @@ class PySide6Patcher(PySide2Patcher):
         # The default timeout parameter removed. This param, if given, will be ignored. It will
         # always timeout after 100 ms
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#the-qabstractbutton-class
-        qt_gui_shim.QAbstractButton.animateClick = lambda self, msec: self.animateClick()
+        qt_gui_shim.QAbstractButton.animateClick = lambda self, msec=0: self.animateClick()
 
         # Changes to QFont
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#the-qfont-class
@@ -483,8 +554,17 @@ class PySide6Patcher(PySide2Patcher):
         # QHeaderView method rename
         qt_gui_shim.QHeaderView.setResizeMode = qt_gui_shim.QHeaderView.setSectionResizeMode
 
-        # QPainter HighQualityAntialiasing is obsolet. Use Antiasliasing instead.
+        # QPainter HighQualityAntialiasing is obsolete. Use Antiasliasing instead.
         # https://doc.qt.io/qt-5/qpainter.html#RenderHint-enum
         qt_gui_shim.QPainter.HighQualityAntialiasing = qt_gui_shim.QPainter.Antialiasing
 
-        return qt_core_shim, qt_gui_shim
+        # QPaelette Background is obsolete. Use Window instead.
+        # https://doc.qt.io/qt-5/qpalette.html#ColorRole-enum
+        qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
+
+        # QtWwebEngineWidgets
+        # ----------------------------------------------------------------------
+        qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
+        qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+
+        return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim

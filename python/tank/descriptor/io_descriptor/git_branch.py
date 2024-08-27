@@ -10,7 +10,8 @@
 import os
 import copy
 
-from .git import IODescriptorGit, _check_output, TankGitError
+from .git import IODescriptorGit, TankGitError, _check_output
+
 from ..errors import TankDescriptorError
 from ... import LogManager
 

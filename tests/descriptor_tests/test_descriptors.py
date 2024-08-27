@@ -37,6 +37,7 @@ from tank.descriptor.descriptor_installed_config import InstalledConfigDescripto
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import httplib2
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):
@@ -506,6 +507,32 @@ class TestDescriptorSupport(TankTestBase):
                     "...could not establish connection: This is my unit test exception."
                 )
 
+    def test_ssl_error(self):
+        """
+        Catches SSLError
+        """
+        with mock.patch(
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+            "._IODescriptorAppStore__create_sg_app_store_connection",
+            side_effect=httplib2.ssl.SSLError("Read operation timed out"),
+        ), mock.patch(
+            "tank.descriptor.io_descriptor.appstore.log.debug"
+        ) as log_debug_mock:
+            descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                {
+                    "name": "tk-config-basic",
+                    "version": "v1.0.0",
+                    "type": "app_store",
+                },
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+            )
+            self.assertEqual(descriptor.has_remote_access(), False)
+
+            log_debug_mock.assert_called_with(
+                "...could not establish connection: ('Read operation timed out',)"
+            )
+
     def test_git_version_logic(self):
         """
         Test git descriptor version logic
@@ -746,7 +773,7 @@ class TestConstraintValidation(unittest.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least ShotGrid .* but currently installed version is .*\.",
+            r"Requires at least Flow Production Tracking .* but currently installed version is .*\.",
         )
 
     def test_min_core_constraint_pass(self):
@@ -862,7 +889,7 @@ class TestConstraintValidation(unittest.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least SG Desktop.* but currently installed version is .*\.",
+            r"Requires at least FPTR desktop app.* but currently installed version is .*\.",
         )
 
     @mock.patch(
@@ -923,7 +950,7 @@ class TestConstraintValidation(unittest.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least SG Desktop v3.3.4 but no version was specified",
+            "Requires at least FPTR desktop app v3.3.4 but no version was specified",
         )
 
 

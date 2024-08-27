@@ -49,7 +49,7 @@ class SwitchAppAction(Action):
                 "If you want to do app development, it is handy to be able to "
                 "take an app in your configuration and tell it to load from a "
                 "specific folder on disk. The workflow is that you typically would "
-                "start off with a git repository (forked off one of ShotGrid's git "
+                "start off with a git repository (forked off one of Flow Production Tracking's git "
                 "repositories if you are modifying one of the standard toolkit apps). "
                 "Then, clone this repo into your local dev area where you intend to "
                 "make the actual changes. Now use the switch command to tell toolkit "
@@ -59,7 +59,7 @@ class SwitchAppAction(Action):
             log.info(
                 "Note! We advise against using dev locations in your primary configuration "
                 "when you want to do development work, start by cloning your primary "
-                "pipeline configuration. You can do this by right clicking on it in ShotGrid."
+                "pipeline configuration. You can do this by right clicking on it in Flow Production Tracking."
             )
             log.info("")
             log.info("> Syntax:  switch_app environment engine app path")
@@ -71,7 +71,7 @@ class SwitchAppAction(Action):
             log.info("Switching an app to track a git repository")
             log.info("--------------------------------------------------")
             log.info(
-                "If you are using custom made apps or have modified ShotGrid's built in apps "
+                "If you are using custom made apps or have modified Flow Production Tracking's built in apps "
                 "by forking them from github ('https://github.com/shotgunsoftware'), and you "
                 "have finished customization, you usually want to switch the app so that it "
                 "tracks your git repository instead of the Toolkit App Store. Toolkit will "

@@ -394,7 +394,7 @@ class MetricsDispatchWorkerThread(Thread):
     DISPATCH_BATCH_SIZE = 10
     """
     Worker will dispatch this many metrics at a time, or all if <= 0.
-    NOTE: that current SG server code reject batches larger than 10.
+    NOTE: that current PTR server code reject batches larger than 10.
     """
 
     def __init__(self, engine):
@@ -430,7 +430,7 @@ class MetricsDispatchWorkerThread(Thread):
         )
 
         # Run until halted
-        while not self._halt_event.isSet():
+        while not self._halt_event.is_set():
 
             # get the next available metric and dispatch it
             try:
@@ -627,6 +627,7 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Panel"),
         EVENT_NAME_FORMAT % (GROUP_PROJECTS, "Viewed Project Commands"),
         EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Command"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Software"),

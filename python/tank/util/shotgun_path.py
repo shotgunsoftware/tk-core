@@ -127,7 +127,7 @@ class ShotgunPath(object):
             return "linux_path"
         else:
             raise ValueError(
-                "Cannot resolve SG storage - unsupported os platform '%s'" % platform
+                "Cannot resolve PTR storage - unsupported os platform '%s'" % platform
             )
 
     @classmethod
