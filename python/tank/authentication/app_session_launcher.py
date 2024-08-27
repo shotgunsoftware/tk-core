@@ -27,24 +27,44 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
-PRODUCT_DEFAULT = "ShotGrid Toolkit"
-PRODUCT_DESKTOP = "ShotGrid Desktop"
+PRODUCT_DEFAULT = "Flow Production Tracking Toolkit"
+PRODUCT_DESKTOP = "FPTR desktop app"
 
 
 class AuthenticationError(errors.AuthenticationError):
-    def __init__(self, msg, ulf2_errno=None, payload=None, parent_exception=None):
+    def __init__(self, msg, asl_errno=None, payload=None, parent_exception=None):
         errors.AuthenticationError.__init__(self, msg)
-        self.ulf2_errno = ulf2_errno
+        self.asl_errno = asl_errno
         self.payload = payload
         self.parent_exception = parent_exception
+
+    def format(self):
+        """
+        Provide a STR format of all given parameters
+        """
+
+        info = []
+        if self.asl_errno:
+            info.append("errno: {}".format(self.asl_errno))
+
+        if self.payload:
+            info.append("payload: {}".format(self.payload))
+
+        if self.parent_exception:
+            info.append("parent: {}".format(self.parent_exception))
+
+        message = str(self)
+        if info:
+            message += " ({})".format("; ".join(info))
+
+        return message
 
 
 def process(
     sg_url,
-    *,
+    browser_open_callback,
     http_proxy=None,
     product=None,
-    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
@@ -62,6 +82,13 @@ def process(
         proxy_addr = _build_proxy_addr(http_proxy)
         sg_url_parsed = urllib.parse.urlparse(sg_url)
 
+        logger.debug(
+            "Set HTTP Proxy handler for {scheme} to {url}".format(
+                url=proxy_addr,
+                scheme=sg_url_parsed.scheme,
+            )
+        )
+
         url_handlers.append(
             urllib.request.ProxyHandler(
                 {
@@ -76,7 +103,7 @@ def process(
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
-        # method="POST", # see bellow
+        # method="POST", # see below
         data=urllib.parse.urlencode(
             {
                 "appName": product,
@@ -101,7 +128,7 @@ def process(
     response_code_major = response.code // 100
     if response_code_major == 5:
         raise AuthenticationError(
-            "Unable to establish a stable communication with the ShotGrid site",
+            "Unable to establish a stable communication with the Flow Production Tracking site",
             payload=getattr(response, "json", response),
             parent_exception=getattr(response, "exception", None),
         )
@@ -114,7 +141,7 @@ def process(
             )
             raise AuthenticationError(
                 "Unable to create an authentication request. The feature does "
-                "not seem to be enabled on the ShotGrid site",
+                "not seem to be enabled on the Flow Production Tracking site",
                 parent_exception=getattr(response, "exception", None),
                 payload=response.json,
             )
@@ -126,30 +153,36 @@ def process(
 
     elif response.code != http_client.OK:
         raise AuthenticationError(
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
             payload=getattr(response, "json", response),
             parent_exception=getattr(response, "exception", None),
         )
 
     elif not isinstance(getattr(response, "json", None), dict):
         logger.error(
-            "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+            "Unexpected response from the Flow Production Tracking site. Expecting a JSON dict"
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     session_id = response.json.get("sessionRequestId")
     if not session_id:
         logger.error(
-            "Unexpected response from the ShotGrid site. Expecting a sessionRequestId item"
+            "Unexpected response from the Flow Production Tracking site. Expecting a sessionRequestId item"
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     browser_url = response.json.get("url")
     if not browser_url:
         logger.error(
-            "Unexpected response from the ShotGrid site. Expecting a url item"
+            "Unexpected response from the Flow Production Tracking site. Expecting a url item"
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     logger.debug(
         "Authentication Request ID: {session_id}".format(session_id=session_id)
@@ -163,21 +196,12 @@ def process(
 
     sleep_time = 2
     request_timeout = 180  # 5 minutes
-    request = urllib.request.Request(
-        urllib.parse.urljoin(
-            sg_url,
-            "/internal_api/app_session_request/{session_id}".format(
-                session_id=session_id,
-            ),
+    request_url = urllib.parse.urljoin(
+        sg_url,
+        "/internal_api/app_session_request/{session_id}".format(
+            session_id=session_id,
         ),
-        # method="PUT", # see bellow
-        headers={
-            "User-Agent": user_agent,
-        },
     )
-
-    # Hook for Python 2
-    request.get_method = lambda: "PUT"
 
     approved = False
     t0 = time.time()
@@ -187,6 +211,17 @@ def process(
         and time.time() - t0 < request_timeout
     ):
         time.sleep(sleep_time)
+
+        request = urllib.request.Request(
+            request_url,
+            # method="PUT", # see below
+            headers={
+                "User-Agent": user_agent,
+            },
+        )
+
+        # Hook for Python 2
+        request.get_method = lambda: "PUT"
 
         response = http_request(url_opener, request)
 
@@ -201,8 +236,22 @@ def process(
             )
 
             raise AuthenticationError(
-                "Unable to establish a stable communication with the ShotGrid site",
+                "Unable to establish a stable communication with the Flow Production Tracking site",
                 payload=getattr(response, "json", response),
+                parent_exception=getattr(response, "exception", None),
+            )
+
+        elif response_code_major == 3:
+            location = response.headers.get("location", None)
+
+            logger.debug("Request redirected: http code: {code}; redirect to: {location}".format(
+                code=response.code,
+                location=location,
+            ))
+
+            raise AuthenticationError(
+                "Request redirected",
+                payload="HTTP Redirect to {}".format(location),
                 parent_exception=getattr(response, "exception", None),
             )
 
@@ -221,11 +270,14 @@ def process(
                 )
 
             raise AuthenticationError(
-                "Unexpected response from the ShotGrid site",
+                "Unexpected response from the Flow Production Tracking site",
                 parent_exception=getattr(response, "exception", None),
             )
 
         elif response.code != http_client.OK:
+            logger.debug("Request denied: http code is: {code}".format(
+                code=response.code,
+            ))
             raise AuthenticationError(
                 "Request denied",
                 payload=getattr(response, "json", response),
@@ -234,9 +286,11 @@ def process(
 
         elif not isinstance(getattr(response, "json", None), dict):
             logger.error(
-                "Unexpected response from the ShotGrid site. Expecting a JSON dict"
+                "Unexpected response from the Flow Production Tracking site. Expecting a JSON dict"
             )
-            raise AuthenticationError("Unexpected response from the ShotGrid site")
+            raise AuthenticationError(
+                "Unexpected response from the Flow Production Tracking site"
+            )
 
         approved = response.json.get("approved", False)
 
@@ -249,10 +303,12 @@ def process(
         assert response.json["userLogin"]
     except (KeyError, AssertionError):
         logger.debug(
-            "Unexpected response from the ShotGrid site",
+            "Unexpected response from the Flow Production Tracking site",
             exc_info=True,
         )
-        raise AuthenticationError("Unexpected response from the ShotGrid site")
+        raise AuthenticationError(
+            "Unexpected response from the Flow Production Tracking site"
+        )
 
     logger.debug("Session token: {sessionToken}".format(**response.json))
 
@@ -346,7 +402,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the SG site",
+                "Unable to communicate with the PTR site",
                 parent_exception=exc,
             )
 
@@ -362,7 +418,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the SG site",
+                "Unable to communicate with the PTR site",
                 parent_exception=exc,
             )
 
@@ -439,16 +495,28 @@ def build_user_agent():
 
 if __name__ == "__main__":
     import argparse
+    import logging
     import webbrowser
 
+    lh = logging.StreamHandler()
+    lh.setLevel(logging.DEBUG)
+    lh.setFormatter(logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s",
+    ))
+
+    logger.addHandler(lh)
+    print()
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("sg_url", help="Provide a ShotGrid URL")
+    parser.add_argument("sg_url", help="Provide a Flow Production Tracking URL")
+    parser.add_argument("--http-proxy", "-p", help="Set a proxy URL")
     args = parser.parse_args()
 
     result = process(
         args.sg_url,
         product="Test Script",
         browser_open_callback=lambda u: webbrowser.open(u),
+        http_proxy=args.http_proxy,
     )
     if not result:
         print("The web authentication failed. Please try again.")

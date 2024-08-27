@@ -185,7 +185,7 @@ def _from_path(path, force_reread_shotgun_cache):
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
         log.debug(
-            "Resolved the official path registered in SG to be %s." % pc_registered_path
+            "Resolved the official path registered in PTR to be %s." % pc_registered_path
         )
 
         if pc_registered_path is None:
@@ -319,7 +319,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
             raise TankInitError(
                 "You are loading the Toolkit platform from the pipeline configuration "
-                "located in '%s', with SG id %s. You are trying to initialize Toolkit "
+                "located in '%s', with PTR id %s. You are trying to initialize Toolkit "
                 "from %s, however that is not associated with the pipeline configuration. "
                 "Instead, it's associated with the following configurations: %s. "
                 % (config_context_path, pc_id, source, all_configs_str)
@@ -357,7 +357,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 "The project associated with %s does not have a Primary pipeline "
                 "configuration! This is required by Toolkit. It needs to be named '%s'. "
                 "Please double check the Pipeline configuration page in "
-                "SG for the project. The following pipeline configurations are "
+                "PTR for the project. The following pipeline configurations are "
                 "associated with the path: %s"
                 % (source, constants.PRIMARY_PIPELINE_CONFIG_NAME, all_configs_str)
             )
@@ -595,7 +595,7 @@ def _get_pipeline_configs_for_path(path, data):
 
     for project_path in project_paths:
 
-        # (like the SG API, this logic is case preserving, not case insensitive)
+        # (like the PTR API, this logic is case preserving, not case insensitive)
         path_lower = six.ensure_str(path.lower())
         proj_path_lower = six.ensure_str(project_path.lower())
         # check if the path matches. Either

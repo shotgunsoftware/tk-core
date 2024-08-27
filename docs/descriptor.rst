@@ -16,7 +16,7 @@ around installation and deployment.
 Descriptors are used extensively by Toolkit and allow a user to configure and drive
 Toolkit in a flexible fashion. Descriptors typically point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
-Descriptors form the backbone for ShotGrid deployment and installation. The following
+Descriptors form the backbone for Flow Production Tracking deployment and installation. The following
 example shows basic usage::
 
     import sgtk
@@ -91,7 +91,7 @@ Several different descriptor types are supported by Toolkit:
 
 
 - An **app_store** descriptor represents an item in the Toolkit App Store
-- A **shotgun** descriptor represents an item stored in ShotGrid
+- A **shotgun** descriptor represents an item stored in Flow Production Tracking
 - A **git** descriptor represents a tag in a git repository
 - A **git_branch** descriptor represents a commit in a git branch
 - A **github_release** descriptor represents a Release on a Github repo
@@ -109,11 +109,11 @@ while the **path**, **dev** and **manual** descriptors are accessed directly fro
 
 .. _app_store_descriptor:
 
-The ShotGrid App store
-======================
+The Flow Production Tracking App store
+======================================
 
-The ShotGrid app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
-tested and approved by ShotGrid. App store descriptors should include a name and version token and
+The Flow Production Tracking app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+tested and approved by Flow Production Tracking. App store descriptors should include a name and version token and
 are on the following form:
 
 .. code-block:: yaml
@@ -329,13 +329,18 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
 - ``organization`` is the Github organization or user that the repository belongs to.
 - ``repository`` is the name of the repository to find a Release for.
 - ``version`` is the name of the Release to use.
+- ``private`` is an optional setting that defines whether the repository is private and requires authentication.
 
+Private repositories are supported through the use of the Github api, authenticated with personal access tokens.
+A token must be set as environment variable that is specific to the organization setting:
+
+- ``SG_GITHUB_TOKEN_<ORGANIZATION>`` defines the personal access token used to authenticate. The organization name should be uppercase and snake cased.
 
 .. note:: This descriptor only works with Github Releases, not all tags. For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
 
 .. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
-.. warning:: Private repositories are not currently supported by this descriptor.
+.. note:: For private repos, it's recommended that you use a personal access token (classic) with read-only access to Content. Fine-grained tokens are not yet supported. For more information, see the `Github Documentation on Personal Access Tokens <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
 
 
 Pointing to a path on disk
@@ -379,7 +384,8 @@ When using a ``path`` descriptor in production, you can include paths to multipl
 
     sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c:\path\to\app
 
-Environment variables can be included in paths:
+Environment variables can be included in paths, they will be expanded using :py:func:`os.path.expandvars` and :py:func:`os.path.expanduser`.
+This is only supported in ``dev`` and ``path`` descriptors.
 
 .. code-block:: yaml
 
@@ -464,31 +470,31 @@ becomes easy to exchange environment configs. You can achieve this by using the 
     both with installed, baked or cached configuration, we recommend you use the ``CONFIG_FOLDER`` token.
 
 
-Pointing at a file attachment in ShotGrid
-============================================
+Pointing at a file attachment in Flow Production Tracking
+=========================================================
 
 The Shotgun descriptor allows you to upload an attachment directly
-to ShotGrid and then reference it with a descriptor.
+to Flow Production Tracking and then reference it with a descriptor.
 
 This allows for workflows where you can distribute configurations, custom apps
 or other items to your distributed users - regardless of network or file access.
-All they need is a connection to ShotGrid.
+All they need is a connection to Flow Production Tracking.
 
 A practical application of this is Toolkit's cloud based configurations;
 Upload a zipped toolkit configuration to the ``PipelineConfiguration.uploaded_config`` field on your pipeline configuration.
 The :class:`~sgtk.bootstrap.ToolkitManager` bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
-uploaded to ShotGrid and it gets automatically picked up by all
+uploaded to Flow Production Tracking and it gets automatically picked up by all
 users (even if they are remote).
 
 The Shotgun descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
-field in ShotGrid and expects a zip file to be uploaded to the field.
+field in Flow Production Tracking and expects a zip file to be uploaded to the field.
 
 Two formats are supported, one explicit based on a shotgun entity id and
 one implicit which uses the name in shotgun to resolve a record. With the
-id based syntax you specify the ShotGrid entity type and field name you want
+id based syntax you specify the Flow Production Tracking entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
 ``PipelineConfiguration.uploaded_config`` and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:
@@ -509,7 +515,7 @@ the Pipeline Configuration entity with id 111, use the following descriptor:
 
 
 The version token above refers to the version of the attachment. Every time a new
-attachment is uploaded to ShotGrid, it gets assigned a unique id and the version
+attachment is uploaded to Flow Production Tracking, it gets assigned a unique id and the version
 number in the descriptor allows you to point at a particular version of an uploaded
 attachment. It is also used to handle the underlying logic to understand what the
 latest version of an attachment is.
@@ -533,7 +539,7 @@ following syntax can be useful:
     sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
 
 Here, instead of specifying the entity id you can specify a ``name`` and an optional ``project_id`` field. The name
-field will be translated into an appropriate ShotGrid name field, typically the ``code`` field.
+field will be translated into an appropriate Flow Production Tracking name field, typically the ``code`` field.
 
 
 
@@ -640,11 +646,6 @@ Exceptions
     :members:
 
 .. autoclass:: TankAppStoreConnectionError
-    :show-inheritance:
-    :inherited-members:
-    :members:
-
-.. autoclass:: TankInvalidAppStoreCredentialsError
     :show-inheritance:
     :inherited-members:
     :members:

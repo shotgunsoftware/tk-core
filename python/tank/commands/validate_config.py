@@ -85,7 +85,9 @@ class ValidateConfigAction(Action):
 
         log.info("")
         log.info("")
-        log.info("Welcome to the SG Pipeline Toolkit Configuration validator!")
+        log.info(
+            "Welcome to the Flow Production Tracking Configuration validator!"
+        )
         log.info("")
 
         log.info("Found the following environments:")

@@ -458,7 +458,7 @@ class TestApiProperties(TankTestBase):
         """
         self.assertEqual(
             self.tk.documentation_url,
-            "https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide",
+            "https://help.autodesk.com/view/SGDEV/ENU/?contextId=SA_INTEGRATIONS_USER_GUIDE",
         )
 
     def test_shotgun_url_property(self):

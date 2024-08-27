@@ -128,7 +128,7 @@ def _get_shotgun_user_id(cookies):
                 # Should we find multiple cookies with the same prefix, it means
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
-                message = "The cookies for this user seem to come from two different SG sites: '%s' and '%s'"
+                message = "The cookies for this user seem to come from two different PTR sites: '%s' and '%s'"
                 raise SsoSaml2MultiSessionNotSupportedError(
                     message % (user_domain, cookies[cookie]["domain"])
                 )

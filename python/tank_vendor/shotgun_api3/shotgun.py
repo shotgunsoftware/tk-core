@@ -32,17 +32,18 @@
 # Python 2/3 compatibility
 from .lib import six
 from .lib import sgsix
+from .lib import sgutils
 from .lib.six import BytesIO               # used for attachment upload
 from .lib.six.moves import map
 
 from .lib.six.moves import http_cookiejar  # used for attachment upload
 import datetime
-import errno
 import logging
 import uuid                                # used for attachment upload
 import os
 import re
 import copy
+import ssl
 import stat                                # used for attachment upload
 import sys
 import time
@@ -112,18 +113,10 @@ Sometimes there are cases where certificate validation should be disabled. For e
 have a self-signed internal certificate that isn't included in our certificate bundle, you may
 not require the added security provided by enforcing this.
 """
-try:
-    import ssl
-except ImportError as e:
-    if "SHOTGUN_FORCE_CERTIFICATE_VALIDATION" in os.environ:
-        raise ImportError("%s. SHOTGUN_FORCE_CERTIFICATE_VALIDATION environment variable prevents "
-                          "disabling SSL certificate validation." % e)
-    LOG.debug("ssl not found, disabling certificate validation")
-    NO_SSL_VALIDATION = True
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.3.5"
+__version__ = "3.6.2"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -214,6 +207,7 @@ class ServerCapabilities(object):
         :ivar bool is_dev: ``True`` if server is running a development version of the Shotgun
             codebase.
         """
+        self._ensure_python_version_supported()
         # Server host name
         self.host = host
         self.server_info = meta
@@ -225,10 +219,10 @@ class ServerCapabilities(object):
         except AttributeError:
             self.version = None
         if not self.version:
-            raise ShotgunError("The ShotGrid Server didn't respond with a version number. "
+            raise ShotgunError("The Flow Production Tracking Server didn't respond with a version number. "
                                "This may be because you are running an older version of "
-                               "ShotGrid against a more recent version of the ShotGrid API. "
-                               "For more information, please contact ShotGrid Support.")
+                               "Flow Production Tracking against a more recent version of the Flow Production Tracking API. "
+                               "For more information, please contact the Autodesk support.")
 
         if len(self.version) > 3 and self.version[3] == "Dev":
             self.is_dev = True
@@ -237,6 +231,13 @@ class ServerCapabilities(object):
 
         self.version = tuple(self.version[:3])
         self._ensure_json_supported()
+
+    def _ensure_python_version_supported(self):
+        """
+        Checks the if current Python version is supported.
+        """
+        if sys.version_info < (3, 7):
+            raise ShotgunError("This module requires Python version 3.7 or higher.")
 
     def _ensure_support(self, feature, raise_hell=True):
         """
@@ -340,7 +341,7 @@ class ClientCapabilities(object):
 
     :ivar str platform: The current client platform. Valid values are ``mac``, ``linux``,
         ``windows``, or ``None`` (if the current platform couldn't be determined).
-    :ivar str local_path_field: The SG field used for local file paths. This is calculated using
+    :ivar str local_path_field: The PTR field used for local file paths. This is calculated using
         the value of ``platform``. Ex. ``local_path_mac``.
     :ivar str py_version: Simple version of Python executable as a string. Eg. ``2.7``.
     :ivar str ssl_version: Version of OpenSSL installed. Eg. ``OpenSSL 1.0.2g  1 Mar 2016``. This
@@ -493,6 +494,8 @@ class Shotgun(object):
         r"(\D?([01]\d|2[0-3])\D?([0-5]\d)\D?([0-5]\d)?\D?(\d{3})?)?$")
 
     _MULTIPART_UPLOAD_CHUNK_SIZE = 20000000
+    MAX_ATTEMPTS = 3    # Retries on failure
+    BACKOFF = 0.75      # Seconds to wait before retry, times the attempt number
 
     def __init__(self,
                  base_url,
@@ -663,7 +666,7 @@ class Shotgun(object):
         # the lowercase version of the credentials.
         auth, self.config.server = self._split_url(base_url)
         if auth:
-            auth = base64encode(six.ensure_binary(
+            auth = base64encode(sgutils.ensure_binary(
                 urllib.parse.unquote(auth))).decode("utf-8")
             self.config.authorization = "Basic " + auth.strip()
 
@@ -851,14 +854,17 @@ class Shotgun(object):
             Defaults to ``["id"]``.
         :param int order: Optional list of fields to order the results by. List has the format::
 
-            [{'field_name':'foo', 'direction':'asc'}, {'field_name':'bar', 'direction':'desc'}]
+                [
+                    {'field_name':'foo', 'direction':'asc'},
+                    {'field_name':'bar', 'direction':'desc'}
+                ]
 
             Defaults to sorting by ``id`` in ascending order.
         :param str filter_operator: Operator to apply to the filters. Supported values are ``"all"``
             and ``"any"``. These are just another way of defining if the query is an AND or OR
             query. Defaults to ``"all"``.
         :param bool retired_only: Optional boolean when ``True`` will return only entities that have
-            been retried. Defaults to ``False`` which returns only entities which have not been
+            been retired. Defaults to ``False`` which returns only entities which have not been
             retired. There is no option to return both retired and non-retired entities in the
             same query.
         :param bool include_archived_projects: Optional boolean flag to include entities whose projects
@@ -866,7 +872,11 @@ class Shotgun(object):
         :param additional_filter_presets: Optional list of presets to further filter the result
             set, list has the form::
 
-                [{"preset_name": <preset_name>, <optional_param1>: <optional_value1>, ... }]
+                [{
+                    "preset_name": <preset_name>,
+                    <optional_param1>: <optional_value1>,
+                    ...
+                }]
 
             Note that these filters are ANDed together and ANDed with the 'filter'
             argument.
@@ -875,6 +885,9 @@ class Shotgun(object):
             :ref:`additional_filter_presets`
         :returns: Dictionary representing a single matching entity with the requested fields,
             and the defaults ``"id"`` and ``"type"`` which are always included.
+
+            .. seealso:: :ref:`entity-fields`
+
         :rtype: dict
         """
 
@@ -911,7 +924,7 @@ class Shotgun(object):
              {'code': 'Wet Gopher', 'id': 149, 'sg_asset_type': 'Character', 'type': 'Asset'}]
 
         You can drill through single entity links to filter on fields or display linked fields.
-        This is often called "deep linking" or using "dot syntax".
+        This is often called "deep linking" or using "dot notation".
 
             .. seealso:: :ref:`filter_syntax`
 
@@ -934,15 +947,21 @@ class Shotgun(object):
         :param str entity_type: Shotgun entity type to find.
         :param list filters: list of filters to apply to the query.
 
-            .. seealso:: :ref:`filter_syntax`
+            .. seealso:: :ref:`filter_syntax`, :ref:`combining-related-queries`
 
         :param list fields: Optional list of fields to include in each entity record returned.
             Defaults to ``["id"]``.
+
+            .. seealso:: :ref:`combining-related-queries`
+            
         :param list order: Optional list of dictionaries defining how to order the results of the
             query. Each dictionary contains the ``field_name`` to order by and  the ``direction``
             to sort::
 
-                [{'field_name':'foo', 'direction':'asc'}, {'field_name':'bar', 'direction':'desc'}]
+                [
+                    {'field_name':'foo', 'direction':'asc'},
+                    {'field_name':'bar', 'direction':'desc'}
+                ]
 
             Defaults to sorting by ``id`` in ascending order.
         :param str filter_operator: Operator to apply to the filters. Supported values are ``"all"``
@@ -954,7 +973,7 @@ class Shotgun(object):
             parameter to control how your query results are paged. Defaults to ``0`` which returns
             all entities that match.
         :param bool retired_only: Optional boolean when ``True`` will return only entities that have
-            been retried. Defaults to ``False`` which returns only entities which have not been
+            been retired. Defaults to ``False`` which returns only entities which have not been
             retired. There is no option to return both retired and non-retired entities in the
             same query.
         :param bool include_archived_projects: Optional boolean flag to include entities whose projects
@@ -962,7 +981,11 @@ class Shotgun(object):
         :param additional_filter_presets: Optional list of presets to further filter the result
             set, list has the form::
 
-                [{"preset_name": <preset_name>, <optional_param1>: <optional_value1>, ... }]
+                [{
+                    "preset_name": <preset_name>,
+                    <optional_param1>: <optional_value1>,
+                    ...
+                }]
 
             Note that these filters are ANDed together and ANDed with the 'filter'
             argument.
@@ -971,6 +994,9 @@ class Shotgun(object):
             :ref:`additional_filter_presets`
         :returns: list of dictionaries representing each entity with the requested fields, and the
             defaults ``"id"`` and ``"type"`` which are always included.
+
+            .. seealso:: :ref:`entity-fields`
+
         :rtype: list
         """
 
@@ -1333,10 +1359,16 @@ class Shotgun(object):
             to the server automatically.
         :param list return_fields: Optional list of additional field values to return from the new
             entity. Defaults to ``id`` field.
+
+            .. seealso:: :ref:`combining-related-queries`
+
         :returns: Shotgun entity dictionary containing the field/value pairs of all of the fields
             set from the ``data`` parameter as well as the defaults ``type`` and ``id``. If any
             additional fields were provided using the ``return_fields`` parameter, these would be
             included as well.
+
+            .. seealso:: :ref:`entity-fields`
+
         :rtype: dict
         """
 
@@ -2409,7 +2441,7 @@ class Shotgun(object):
         # have to raise a sane exception. This will always work for ascii and utf-8
         # encoded strings, but will fail on some others if the string includes non
         # ascii characters.
-        if not isinstance(path, six.text_type):
+        if not isinstance(path, str):
             try:
                 path = path.decode("utf-8")
             except UnicodeDecodeError:
@@ -2531,30 +2563,12 @@ class Shotgun(object):
 
         params.update(self._auth_params())
 
-        # If we ended up with a unicode string path, we need to encode it
-        # as a utf-8 string. If we don't, there's a chance that there will
-        # will be an attempt later on to encode it as an ascii string, and
-        # that will fail ungracefully if the path contains any non-ascii
-        # characters.
-        #
-        # On Windows, if the path contains non-ascii characters, the calls
-        # to open later in this method will fail to find the file if given
-        # a non-ascii-encoded string path. In that case, we're going to have
-        # to call open on the unicode path, but we'll use the encoded string
-        # for everything else.
-        path_to_open = path
-        if isinstance(path, six.text_type):
-            path = path.encode("utf-8")
-            if sys.platform != "win32":
-                path_to_open = path
-
         if is_thumbnail:
             url = urllib.parse.urlunparse((self.config.scheme, self.config.server,
                                            "/upload/publish_thumbnail", None, None, None))
-            params["thumb_image"] = open(path_to_open, "rb")
+            params["thumb_image"] = open(path, "rb")
             if field_name == "filmstrip_thumb_image" or field_name == "filmstrip_image":
                 params["filmstrip"] = True
-
         else:
             url = urllib.parse.urlunparse((self.config.scheme, self.config.server,
                                            "/upload/upload_file", None, None, None))
@@ -2568,7 +2582,7 @@ class Shotgun(object):
             if tag_list:
                 params["tag_list"] = tag_list
 
-            params["file"] = open(path_to_open, "rb")
+            params["file"] = open(path, "rb")
 
         result = self._send_form(url, params)
 
@@ -2682,14 +2696,16 @@ class Shotgun(object):
         if url is None:
             return None
 
-        # We only need to set the auth cookie for downloads from Shotgun server
+        cookie_handler = None
         if self.config.server in url:
-            self.set_up_auth_cookie()
+            # We only need to set the auth cookie for downloads from Shotgun server
+            cookie_handler = self.get_auth_cookie_handler()
 
+        opener = self._build_opener(cookie_handler)
         try:
             request = urllib.request.Request(url)
             request.add_header("user-agent", "; ".join(self._user_agents))
-            req = urllib.request.urlopen(request)
+            req = opener.open(request)
             if file_path:
                 shutil.copyfileobj(req, fp)
             else:
@@ -2706,7 +2722,7 @@ class Shotgun(object):
                 elif e.code == 403:
                     # Only parse the body if it is an Amazon S3 url.
                     if url.find("s3.amazonaws.com") != -1 and e.headers["content-type"] == "application/xml":
-                        body = [six.ensure_text(line) for line in e.readlines()]
+                        body = [sgutils.ensure_text(line) for line in e.readlines()]
                         if body:
                             xml = "".join(body)
                             # Once python 2.4 support is not needed we can think about using
@@ -2730,21 +2746,21 @@ class Shotgun(object):
             else:
                 return attachment
 
-    def set_up_auth_cookie(self):
+    def get_auth_cookie_handler(self):
         """
-        Set up urllib2 with a cookie for authentication on the Shotgun instance.
+        Return an urllib cookie handler containing a cookie for FPTR
+        authentication.
 
-        Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is
-        used internally for downloading attachments from the Shotgun server.
+        Looks up session token and sets that in a cookie in the :mod:`urllib2`
+        handler.
+        This is used internally for downloading attachments from FPTR.
         """
         sid = self.get_session_token()
         cj = http_cookiejar.LWPCookieJar()
         c = http_cookiejar.Cookie("0", "_session_id", sid, None, False, self.config.server, False,
                                   False, "/", True, False, None, True, None, None, {})
         cj.set_cookie(c)
-        cookie_handler = urllib.request.HTTPCookieProcessor(cj)
-        opener = self._build_opener(cookie_handler)
-        urllib.request.install_opener(opener)
+        return urllib.request.HTTPCookieProcessor(cj)
 
     def get_attachment_download_url(self, attachment):
         """
@@ -3233,6 +3249,43 @@ class Shotgun(object):
 
         return self._call_rpc("preferences_read", {"prefs": prefs})
 
+    def user_subscriptions_read(self):
+        """
+        Get the list of user subscriptions.
+
+        :returns: A list of user subscriptions where each subscription is a
+            dictionary containing the ``humanUserId`` and ``subscription``
+            fields.
+        :rtype: list
+        """
+
+        return self._call_rpc("user_subscriptions_read", None)
+
+    def user_subscriptions_create(self, users):
+        # type: (list[dict[str, Union[str, list[str], None]) -> bool
+        """
+        Assign subscriptions to users.
+
+        :param list users: list of user subscriptions to assign.
+            Each subscription must be a dictionary with the ``humanUserId`` and
+            ``subscription`` fields.
+            The ``subscription`` is either ``None``, a single string, or an
+            array of strings with subscription information.
+
+        :returns: ``True`` if the request succedeed, ``False`` if otherwise.
+        :rtype: bool
+        """
+
+        response = self._call_rpc(
+            "user_subscriptions_create",
+            {"users": users}
+        )
+
+        if not isinstance(response, dict):
+            return False
+
+        return response.get("status") == "success"
+
     def _build_opener(self, handler):
         """
         Build urllib2 opener with appropriate proxy handler.
@@ -3326,7 +3379,7 @@ class Shotgun(object):
         .. deprecated:: 3.0.0
            Use :meth:`~shotgun_api3.Shotgun.schema_field_read` instead.
         """
-        raise ShotgunError("Deprecated: use schema_field_read('type':'%s') instead" % entity_type)
+        raise ShotgunError("Deprecated: use schema_field_read('%s') instead" % entity_type)
 
     def entity_types(self):
         """
@@ -3358,10 +3411,7 @@ class Shotgun(object):
             req_headers["locale"] = "auto"
 
         attempt = 1
-        max_attempts = 4 # Three retries on failure
-        backoff = 0.75 # Seconds to wait before retry, times the attempt number
-
-        while attempt <= max_attempts:
+        while attempt <= self.MAX_ATTEMPTS:
             http_status, resp_headers, body = self._make_call(
                 "POST",
                 self.config.api_path,
@@ -3376,12 +3426,12 @@ class Shotgun(object):
             except ProtocolError as e:
                 e.headers = resp_headers
 
-                # We've seen some rare instances of SG returning 502 for issues that
-                # appear to be caused by something internal to SG. We're going to
+                # We've seen some rare instances of PTR returning 502 for issues that
+                # appear to be caused by something internal to PTR. We're going to
                 # allow for limited retries for those specifically.
-                if attempt != max_attempts and e.errcode == 502:
-                    LOG.debug("Got a 502 response. Waiting and retrying...")
-                    time.sleep(float(attempt) * backoff)
+                if attempt != self.MAX_ATTEMPTS and e.errcode in [502, 504]:
+                    LOG.debug("Got a 502 or 504 response. Waiting and retrying...")
+                    time.sleep(float(attempt) * self.BACKOFF)
                     attempt += 1
                     continue
                 elif e.errcode == 403:
@@ -3496,7 +3546,7 @@ class Shotgun(object):
         """
 
         wire = json.dumps(payload, ensure_ascii=False)
-        return six.ensure_binary(wire)
+        return sgutils.ensure_binary(wire)
 
     def _make_call(self, verb, path, body, headers):
         """
@@ -3521,6 +3571,22 @@ class Shotgun(object):
             attempt += 1
             try:
                 return self._http_request(verb, path, body, req_headers)
+            except ssl.SSLEOFError as e:
+                # SG-34910 - EOF occurred in violation of protocol (_ssl.c:2426)
+                # This issue seems to be related to proxy and keep alive.
+                # It looks like, sometimes, the proxy drops the connection on
+                # the TCP/TLS level despites the keep-alive. So we need to close
+                # the connection and make a new attempt.
+                LOG.debug("SSLEOFError: {}".format(e))
+                self._close_connection()
+                if attempt == max_rpc_attempts:
+                    LOG.debug("Request failed.  Giving up after %d attempts." % attempt)
+                    raise
+                # This is the exact same block as the "except Exception" bellow.
+                # We need to do it here because the next except will match it
+                # otherwise and will not re-attempt.
+                # When we drop support of Python 2 and we will probably drop the
+                # next except, we might want to remove this except too.
             except ssl_error_classes as e:
                 # Test whether the exception is due to the fact that this is an older version of
                 # Python that cannot validate certificates encrypted with SHA-2. If it is, then
@@ -3552,17 +3618,19 @@ class Shotgun(object):
 
                 self._close_connection()
                 if attempt == max_rpc_attempts:
+                    LOG.debug("Request failed.  Giving up after %d attempts." % attempt)
                     raise
             except Exception:
                 self._close_connection()
                 if attempt == max_rpc_attempts:
                     LOG.debug("Request failed.  Giving up after %d attempts." % attempt)
                     raise
-                LOG.debug(
-                    "Request failed, attempt %d of %d.  Retrying in %.2f seconds..." %
-                    (attempt, max_rpc_attempts, rpc_attempt_interval)
-                )
-                time.sleep(rpc_attempt_interval)
+
+            LOG.debug(
+                "Request failed, attempt %d of %d.  Retrying in %.2f seconds..." %
+                (attempt, max_rpc_attempts, rpc_attempt_interval)
+            )
+            time.sleep(rpc_attempt_interval)
 
     def _http_request(self, verb, path, body, headers):
         """
@@ -3614,7 +3682,7 @@ class Shotgun(object):
         if status[0] >= 300:
             headers = "HTTP error from server"
             if status[0] == 503:
-                errmsg = "ShotGrid is currently down for maintenance or too busy to reply. Please try again later."
+                errmsg = "Flow Production Tracking is currently down for maintenance or too busy to reply. Please try again later."
             raise ProtocolError(self.config.server,
                                 error_code,
                                 errmsg,
@@ -3653,8 +3721,8 @@ class Shotgun(object):
         def _decode_list(lst):
             newlist = []
             for i in lst:
-                if isinstance(i, six.text_type):
-                    i = six.ensure_str(i)
+                if isinstance(i, str):
+                    i = sgutils.ensure_str(i)
                 elif isinstance(i, list):
                     i = _decode_list(i)
                 newlist.append(i)
@@ -3663,10 +3731,10 @@ class Shotgun(object):
         def _decode_dict(dct):
             newdict = {}
             for k, v in six.iteritems(dct):
-                if isinstance(k, six.text_type):
-                    k = six.ensure_str(k)
-                if isinstance(v, six.text_type):
-                    v = six.ensure_str(v)
+                if isinstance(k, str):
+                    k = sgutils.ensure_str(k)
+                if isinstance(v, str):
+                    v = sgutils.ensure_str(v)
                 elif isinstance(v, list):
                     v = _decode_list(v)
                 newdict[k] = v
@@ -3700,12 +3768,12 @@ class Shotgun(object):
                 raise UserCredentialsNotAllowedForSSOAuthenticationFault(
                     sg_response.get("message",
                                     "Authentication using username/password is not "
-                                    "allowed for an SSO-enabled ShotGrid site")
+                                    "allowed for an SSO-enabled Flow Production Tracking site")
                 )
             elif sg_response.get("error_code") == ERR_OXYG:
                 raise UserCredentialsNotAllowedForOxygenAuthenticationFault(
                     sg_response.get("message", "Authentication using username/password is not "
-                                    "allowed for an Autodesk Identity enabled ShotGrid site")
+                                    "allowed for an Autodesk Identity enabled Flow Production Tracking site")
                 )
             else:
                 # raise general Fault
@@ -3777,8 +3845,8 @@ class Shotgun(object):
                 return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
             # ensure return is six.text_type
-            if isinstance(value, six.string_types):
-                return six.ensure_text(value)
+            if isinstance(value, str):
+                return sgutils.ensure_text(value)
 
             return value
 
@@ -3798,7 +3866,7 @@ class Shotgun(object):
             _change_tz = None
 
         def _inbound_visitor(value):
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 if len(value) == 20 and self._DATE_TIME_PATTERN.match(value):
                     try:
                         # strptime was not on datetime in python2.4
@@ -4070,37 +4138,31 @@ class Shotgun(object):
         request.get_method = lambda: "PUT"
 
         attempt = 1
-        max_attempts = 4  # Three retries on failure
-        backoff = 0.75  # Seconds to wait before retry, times the attempt number
-
-        while attempt <= max_attempts:
+        while attempt <= self.MAX_ATTEMPTS:
             try:
                 result = self._make_upload_request(request, opener)
 
                 LOG.debug("Completed request to %s" % request.get_method())
 
             except urllib.error.HTTPError as e:
-                if e.code == 500:
-                    raise ShotgunError("Server encountered an internal error.\n%s\n%s\n\n" % (storage_url, e))
-                elif attempt != max_attempts and e.code == 503:
-                    LOG.debug("Got a 503 response. Waiting and retrying...")
-                    time.sleep(float(attempt) * backoff)
+                if attempt != self.MAX_ATTEMPTS and e.code in [500, 503]:
+                    LOG.debug("Got a %s response. Waiting and retrying..." % e.code)
+                    time.sleep(float(attempt) * self.BACKOFF)
                     attempt += 1
                     continue
+                elif e.code in [500, 503]:
+                    raise ShotgunError("Got a %s response when uploading to %s: %s" % (e.code, storage_url, e))
                 else:
-                    if e.code == 503:
-                        raise ShotgunError("Got a 503 response when uploading to %s: %s" % (storage_url, e))
                     raise ShotgunError("Unanticipated error occurred uploading to %s: %s" % (storage_url, e))
             except urllib.error.URLError as e:
-                if e.errno == errno.ETIMEDOUT and attempt != max_attempts:
-                    time.sleep(float(attempt) * backoff)
-                    # If there is a timeout we will only allow one retry
-                    attempt = max_attempts
-                    continue
-                
-                raise ShotgunError("Error when uploading to %s: %s" % (storage_url, e))
+                LOG.debug("Got a '%s' response. Waiting and retrying..." % e)
+                time.sleep(float(attempt) * self.BACKOFF)
+                attempt += 1
+                continue
             else:
                 break
+        else:
+            raise ShotgunError("Max attemps limit reached.")
 
         etag = result.info()["Etag"]
         LOG.debug("Part upload completed successfully.")
@@ -4186,19 +4248,28 @@ class Shotgun(object):
 
         opener = self._build_opener(FormPostHandler)
 
-        # Perform the request
-        try:
-            resp = opener.open(url, params)
-            result = resp.read()
-            # response headers are in str(resp.info()).splitlines()
-        except urllib.error.HTTPError as e:
-            if e.code == 500:
-                raise ShotgunError("Server encountered an internal error. "
-                                   "\n%s\n(%s)\n%s\n\n" % (url, self._sanitize_auth_params(params), e))
-            else:
-                raise ShotgunError("Unanticipated error occurred %s" % (e))
+        attempt = 1
+        while attempt <= self.MAX_ATTEMPTS:
+            # Perform the request
+            try:
+                resp = opener.open(url, params)
+                result = resp.read()
+                # response headers are in str(resp.info()).splitlines()
+            except urllib.error.URLError as e:
+                LOG.debug("Got a %s response. Waiting and retrying..." % e)
+                time.sleep(float(attempt) * self.BACKOFF)
+                attempt += 1
+                continue
+            except urllib.error.HTTPError as e:
+                if e.code == 500:
+                    raise ShotgunError("Server encountered an internal error. "
+                                    "\n%s\n(%s)\n%s\n\n" % (url, self._sanitize_auth_params(params), e))
+                else:
+                    raise ShotgunError("Unanticipated error occurred %s" % (e))
 
-        return six.ensure_text(result)
+            return sgutils.ensure_text(result)
+        else:
+            raise ShotgunError("Max attemps limit reached.")
 
 
 class CACertsHTTPSConnection(http_client.HTTPConnection):
@@ -4223,11 +4294,19 @@ class CACertsHTTPSConnection(http_client.HTTPConnection):
         "Connect to a host on a given (SSL) port."
         http_client.HTTPConnection.connect(self)
         # Now that the regular HTTP socket has been created, wrap it with our SSL certs.
-        self.sock = ssl.wrap_socket(
-            self.sock,
-            ca_certs=self.__ca_certs,
-            cert_reqs=ssl.CERT_REQUIRED
-        )
+        if six.PY38:
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.verify_mode = ssl.CERT_REQUIRED
+            context.check_hostname = False
+            if self.__ca_certs:
+                context.load_verify_locations(self.__ca_certs)
+            self.sock = context.wrap_socket(self.sock)
+        else:
+            self.sock = ssl.wrap_socket(
+                self.sock,
+                ca_certs=self.__ca_certs,
+                cert_reqs=ssl.CERT_REQUIRED
+            )
 
 
 class CACertsHTTPSHandler(urllib.request.HTTPSHandler):
@@ -4261,7 +4340,7 @@ class FormPostHandler(urllib.request.BaseHandler):
             data = request.data
         else:
             data = request.get_data()
-        if data is not None and not isinstance(data, six.string_types):
+        if data is not None and not isinstance(data, str):
             files = []
             params = []
             for key, value in data.items():
@@ -4270,7 +4349,7 @@ class FormPostHandler(urllib.request.BaseHandler):
                 else:
                     params.append((key, value))
             if not files:
-                data = six.ensure_binary(urllib.parse.urlencode(params, True))  # sequencing on
+                data = sgutils.ensure_binary(urllib.parse.urlencode(params, True))  # sequencing on
             else:
                 boundary, data = self.encode(params, files)
                 content_type = "multipart/form-data; boundary=%s" % boundary
@@ -4293,15 +4372,15 @@ class FormPostHandler(urllib.request.BaseHandler):
         if buffer is None:
             buffer = BytesIO()
         for (key, value) in params:
-            if not isinstance(value, six.string_types):
+            if not isinstance(value, str):
                 # If value is not a string (e.g. int) cast to text
-                value = six.text_type(value)
-            value = six.ensure_text(value)
-            key = six.ensure_text(key)
+                value = str(value)
+            value = sgutils.ensure_text(value)
+            key = sgutils.ensure_text(key)
 
-            buffer.write(six.ensure_binary("--%s\r\n" % boundary))
-            buffer.write(six.ensure_binary("Content-Disposition: form-data; name=\"%s\"" % key))
-            buffer.write(six.ensure_binary("\r\n\r\n%s\r\n" % value))
+            buffer.write(sgutils.ensure_binary("--%s\r\n" % boundary))
+            buffer.write(sgutils.ensure_binary("Content-Disposition: form-data; name=\"%s\"" % key))
+            buffer.write(sgutils.ensure_binary("\r\n\r\n%s\r\n" % value))
         for (key, fd) in files:
             # On Windows, it's possible that we were forced to open a file
             # with non-ascii characters as unicode. In that case, we need to
@@ -4309,24 +4388,24 @@ class FormPostHandler(urllib.request.BaseHandler):
             # If we don't, the mix of unicode and strings going into the
             # buffer can cause UnicodeEncodeErrors to be raised.
             filename = fd.name
-            filename = six.ensure_text(filename)
+            filename = sgutils.ensure_text(filename)
             filename = filename.split("/")[-1]
-            key = six.ensure_text(key)
+            key = sgutils.ensure_text(key)
             content_type = mimetypes.guess_type(filename)[0]
             content_type = content_type or "application/octet-stream"
             file_size = os.fstat(fd.fileno())[stat.ST_SIZE]
-            buffer.write(six.ensure_binary("--%s\r\n" % boundary))
+            buffer.write(sgutils.ensure_binary("--%s\r\n" % boundary))
             c_dis = "Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s"
             content_disposition = c_dis % (key, filename, "\r\n")
-            buffer.write(six.ensure_binary(content_disposition))
-            buffer.write(six.ensure_binary("Content-Type: %s\r\n" % content_type))
-            buffer.write(six.ensure_binary("Content-Length: %s\r\n" % file_size))
+            buffer.write(sgutils.ensure_binary(content_disposition))
+            buffer.write(sgutils.ensure_binary("Content-Type: %s\r\n" % content_type))
+            buffer.write(sgutils.ensure_binary("Content-Length: %s\r\n" % file_size))
 
-            buffer.write(six.ensure_binary("\r\n"))
+            buffer.write(sgutils.ensure_binary("\r\n"))
             fd.seek(0)
             shutil.copyfileobj(fd, buffer)
-            buffer.write(six.ensure_binary("\r\n"))
-        buffer.write(six.ensure_binary("--%s--\r\n\r\n" % boundary))
+            buffer.write(sgutils.ensure_binary("\r\n"))
+        buffer.write(sgutils.ensure_binary("--%s--\r\n\r\n" % boundary))
         buffer = buffer.getvalue()
         return boundary, buffer
 

@@ -96,7 +96,7 @@ class Context(object):
         msg.append("  Step: %s" % str(self.__step))
         msg.append("  Task: %s" % str(self.__task))
         msg.append("  User: %s" % str(self.__user))
-        msg.append("  SG URL: %s" % self.shotgun_url)
+        msg.append("  PTR URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         msg.append("  Source Entity: %s" % str(self.__source_entity))
 
@@ -718,7 +718,7 @@ class Context(object):
         Any Context object can be serialized to/deserialized from a string.
         This can be useful if you need to pass a Context between different processes.
         As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-        from the launch process (e.g. for example Shotgun Desktop) to the
+        from the launch process (e.g. for example PTR desktop app) to the
         Application (e.g. Maya) being launched. Example:
 
             >>> import sgtk
@@ -936,7 +936,7 @@ class Context(object):
                         raise TankError(
                             "Key '%s' in template '%s' could not be populated by "
                             "context '%s' because the context does not contain a "
-                            "SG entity of type '%s'!"
+                            "PTR entity of type '%s'!"
                             % (key, template, self, key.shotgun_entity_type)
                         )
                     else:
@@ -960,8 +960,8 @@ class Context(object):
                     if not result:
                         # no record with that id in shotgun!
                         raise TankError(
-                            "Could not retrieve SG data for key '%s' in "
-                            "template '%s'. No records in SG are matching "
+                            "Could not retrieve PTR data for key '%s' in "
+                            "template '%s'. No records in PTR are matching "
                             "entity '%s' (Which is part of the current "
                             "context '%s')" % (key, template, entity, self)
                         )
@@ -994,7 +994,7 @@ class Context(object):
                         if not key.validate(processed_val):
                             raise TankError(
                                 "Template validation failed for value '%s'. This "
-                                "value was retrieved from entity %s in SG to "
+                                "value was retrieved from entity %s in PTR to "
                                 "represent key '%s' in "
                                 "template '%s'."
                                 % (processed_val, entity, key, template)
@@ -1323,7 +1323,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         if sg_entity is None:
             raise TankError(
-                "Entity %s with id %s not found in ShotGrid!" % (entity_type, entity_id)
+                "Entity %s with id %s not found in Flow Production Tracking!" % (entity_type, entity_id)
             )
 
         if sg_entity.get("task"):
@@ -1816,7 +1816,7 @@ def _task_from_sg(tk, task_id, additional_fields=None):
         "Task", [["id", "is", task_id]], standard_fields + additional_fields
     )
     if not task:
-        raise TankError("Unable to locate Task with id %s in ShotGrid" % task_id)
+        raise TankError("Unable to locate Task with id %s in Flow Production Tracking" % task_id)
 
     # add task so it can be processed with other shotgun entities
     task["task"] = {"type": "Task", "id": task_id, "name": task["content"]}
@@ -1876,7 +1876,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     if not data:
         raise TankError(
-            "Unable to locate %s with id %s in ShotGrid" % (entity_type, entity_id)
+            "Unable to locate %s with id %s in Flow Production Tracking" % (entity_type, entity_id)
         )
 
     # create context

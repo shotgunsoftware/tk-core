@@ -19,7 +19,6 @@ at any point.
 """
 
 from .qt_abstraction import QtGui
-from .qt5_like_line_edit import Qt5LikeLineEdit
 from .completion_filter_proxy import CompletionFilterProxy
 
 
@@ -35,8 +34,8 @@ class RecentBox(QtGui.QComboBox):
 
         self.setEditable(True)
 
-        # Using Qt5LikeLineEdit so we have a placeholder even when the line edit is selected.
-        self.setLineEdit(Qt5LikeLineEdit(self))
+        # Using QLineEdit so we have a placeholder even when the line edit is selected.
+        self.setLineEdit(QtGui.QLineEdit(self))
 
         # Create a model sorted alphabetically for the recent items.
         self._recent_items_model = QtGui.QStringListModel(self)

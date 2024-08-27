@@ -1,7 +1,7 @@
 Integration Tests
 -----------------
 
-This folder contains tests that need to be run in isolation because they stress multiple parts of Toolkit. Each file can be run individually from the command-line and often need special parameters to be able to communicate with a live ShotGrid site.
+This folder contains tests that need to be run in isolation because they stress multiple parts of Toolkit. Each file can be run individually from the command-line and often need special parameters to be able to communicate with a live Flow Production Tracking site.
 
 These variables, which are also set on our CI servers, should be set before running the tests.
 

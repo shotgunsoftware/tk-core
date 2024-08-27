@@ -21,7 +21,7 @@ from sgtk.authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_api3.lib import mockgun
 
 # Log on a site.
-print("This script will update the SG schema for Mockgun.")
+print("This script will update the PTR schema for Mockgun.")
 print(
     "Please enter your credentials for the site you wish to clone the schema from. Ideally this would be "
     "a site that has a clean schema like a new site."

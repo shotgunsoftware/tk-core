@@ -47,7 +47,7 @@ def resolve_publish_path(tk, sg_publish_data):
 
     **Published File Path Resolution**
 
-    For more information on the published file path resolution, see our `Admin Guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#Configuring%20published%20file%20path%20resolution>`_.
+    For more information on the published file path resolution, see our `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
     **Parameters**
 
@@ -179,7 +179,7 @@ def __resolve_local_file_link(tk, attachment_data):
         if local_path:
             log.warning(
                 "Discovered environment variable %s, however the operating system root is "
-                "already defined in SG and the environment variable will "
+                "already defined in PTR and the environment variable will "
                 "be ignored." % env_var_name
             )
 
@@ -334,7 +334,7 @@ def __resolve_url_link(tk, attachment_data):
         storage_key = storage["code"].upper()
         storage_lookup[storage_key] = ShotgunPath.from_shotgun_dict(storage)
         log.debug(
-            "Added SG Storage %s: %s" % (storage_key, storage_lookup[storage_key])
+            "Added PTR Storage %s: %s" % (storage_key, storage_lookup[storage_key])
         )
 
     # get default environment variable set
@@ -367,7 +367,7 @@ def __resolve_url_link(tk, attachment_data):
                 if storage_lookup[storage_name].windows:
                     # this path was already defined by a sg local storage
                     log.warning(
-                        "Discovered env var %s, however a SG local storage already "
+                        "Discovered env var %s, however a PTR local storage already "
                         "defines '%s' to be '%s'. Your environment override "
                         "will be ignored."
                         % (env_var, storage_name, storage_lookup[storage_name].windows)
@@ -379,7 +379,7 @@ def __resolve_url_link(tk, attachment_data):
                 if storage_lookup[storage_name].macosx:
                     # this path was already defined by a sg local storage
                     log.warning(
-                        "Discovered env var %s, however a SG local storage already "
+                        "Discovered env var %s, however a PTR local storage already "
                         "defines '%s' to be '%s'. Your environment override "
                         "will be ignored."
                         % (env_var, storage_name, storage_lookup[storage_name].macosx)
@@ -391,7 +391,7 @@ def __resolve_url_link(tk, attachment_data):
                 if storage_lookup[storage_name].linux:
                     # this path was already defined by a sg local storage
                     log.warning(
-                        "Discovered env var %s, however a SG local storage already "
+                        "Discovered env var %s, however a PTR local storage already "
                         "defines '%s' to be '%s'. Your environment override "
                         "will be ignored."
                         % (env_var, storage_name, storage_lookup[storage_name].linux)

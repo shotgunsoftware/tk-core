@@ -35,7 +35,7 @@ class UnregisterFoldersAction(Action):
             self,
             "unregister_folders",
             Action.TK_INSTANCE,
-            ("Unregisters the folders for an object in ShotGrid."),
+            ("Unregisters the folders for an object in Flow Production Tracking."),
             "Admin",
         )
 
@@ -52,7 +52,7 @@ class UnregisterFoldersAction(Action):
 
         self.parameters["entity"] = {
             "description": (
-                "Entity to unregister. Should be a ShotGrid-style entity "
+                "Entity to unregister. Should be a Flow Production Tracking-style entity "
                 "dictionary with keys 'type' and 'id'."
             ),
             "default": None,
@@ -82,7 +82,7 @@ class UnregisterFoldersAction(Action):
         if not self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
             # remote cache not turned on for this project
             log.error(
-                "Looks like this project doesn't synchronize its folders with ShotGrid! "
+                "Looks like this project doesn't synchronize its folders with Flow Production Tracking! "
                 "If you'd like to upgrade your path cache to turn on synchronization for "
                 "this project, run the 'tank upgrade_folders' command."
             )
@@ -108,9 +108,9 @@ class UnregisterFoldersAction(Action):
                 log.info(
                     "Unregister folders on your filesystem that are being tracked by Toolkit. "
                     "When applications are launched and folders are created on your filesystem, "
-                    "new entries are stored in SG as FilesystemLocation entities. These "
+                    "new entries are stored in PTR as FilesystemLocation entities. These "
                     "records are called the 'path cache', and are used to track the relationship "
-                    "between SG entities and folders on disk. Use this command if you ever "
+                    "between PTR entities and folders on disk. Use this command if you ever "
                     "need to remove these associations."
                 )
                 log.info("")
@@ -120,7 +120,7 @@ class UnregisterFoldersAction(Action):
                 log.info("You can unregister all folders matching a certain pattern:")
                 log.info("> tank unregister_folders --filter='john.smith'")
                 log.info("")
-                log.info("Pass in a SG entity (by name or id):")
+                log.info("Pass in a PTR entity (by name or id):")
                 log.info("> tank Shot ABC123 unregister_folders")
                 log.info("")
                 log.info("Or pass in one or more paths:")
@@ -244,7 +244,7 @@ class UnregisterFoldersAction(Action):
             for p in paths:
                 sg_id = pc.get_shotgun_id_from_path(p)
                 if sg_id is None:
-                    log.warning("Path '%s' is not registered in SG - ignoring." % p)
+                    log.warning("Path '%s' is not registered in PTR - ignoring." % p)
                 else:
                     log.debug(
                         "The path '%s' matches FilesystemLocation id: %s" % (p, sg_id)
@@ -271,7 +271,7 @@ class UnregisterFoldersAction(Action):
                   Note that the shotgun ids returned will refer to retired objects in
                   Shotgun rather than live ones.
         """
-        log.debug("Unregister folders for SG Entity %s..." % entity)
+        log.debug("Unregister folders for PTR Entity %s..." % entity)
 
         # get the filesystem location ids which are associated with the entity
         sg_data = self.tk.shotgun.find(
@@ -336,14 +336,14 @@ class UnregisterFoldersAction(Action):
         log.info(
             "Proceeding will unregister the above paths from Toolkit's path cache. "
             "This will not alter any of the content in the file system, but once you have "
-            "unregistered the paths, they will not be recognized by SG until you run "
+            "unregistered the paths, they will not be recognized by PTR until you run "
             "Toolkit folder creation again."
         )
         log.info("")
         log.info(
             "This is useful if you have renamed an Asset or Shot and want to move its "
             "files to a new location on disk. In this case, start by unregistering the "
-            "folders for the entity, then rename the Shot or Asset in ShotGrid. "
+            "folders for the entity, then rename the Shot or Asset in Flow Production Tracking. "
             "Next, create new folders on disk using Toolkit's 'create folders' "
             "command. Finally, move the files to the new location on disk."
         )
@@ -356,7 +356,7 @@ class UnregisterFoldersAction(Action):
                 log.info("Exiting! Nothing was unregistered.")
                 return []
 
-        log.info("Unregistering folders from ShotGrid...")
+        log.info("Unregistering folders from Flow Production Tracking...")
         log.info("")
 
         path_cache.PathCache.remove_filesystem_location_entries(self.tk, path_ids)

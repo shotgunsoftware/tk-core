@@ -973,8 +973,8 @@ class TestFolderCreationEdgeCases(TankTestBase):
     def test_delete_shot_then_recreate(self):
 
         # 1. create fodlers for shot ABC
-        # 2. delete shot ABC from SG
-        # 3. create a new shot ABC in SG
+        # 2. delete shot ABC from PTR
+        # 3. create a new shot ABC in PTR
         # 4. when creating folders, it should delete the previous records and replace with new
 
         self.assertEqual(self.path_cache.get_paths("Shot", self.shot["id"], False), [])

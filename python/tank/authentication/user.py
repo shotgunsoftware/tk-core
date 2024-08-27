@@ -235,7 +235,7 @@ class ShotgunSamlUser(ShotgunWebUser):
                 logger.debug("Next claims renewal attempt: %f" % delta)
 
                 with self._timer_lock:
-                    # Let's pretend "stop_claims_rewnwal" has already been called, so
+                    # Let's pretend "stop_claims_renewal" has already been called, so
                     # "_claims_renewal_cancelled" is currently True. Thread A is the
                     # main thread and B is the thread that runs "_do_automatic_claims_renewal".
                     #

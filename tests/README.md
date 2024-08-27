@@ -58,7 +58,7 @@ There is a tank tests module, `tank_test.tank_test_base.py` which contains both 
 
 ShotgunTestBase
 ---------------
-This is a lighter version of the TankTestBase, which only mocks a ShotGrid connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
+This is a lighter version of the TankTestBase, which only mocks a Flow Production Tracking connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
 
 ### A partial list of features
 Among other features, this module includes:

@@ -11,6 +11,7 @@ import os
 import copy
 
 from .git import IODescriptorGit, TankGitError
+
 from ..errors import TankDescriptorError
 from ... import LogManager
 

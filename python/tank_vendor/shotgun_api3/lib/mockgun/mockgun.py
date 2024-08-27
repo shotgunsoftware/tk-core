@@ -120,7 +120,6 @@ from ... import ShotgunError
 from ...shotgun import _Config
 from .errors import MockgunError
 from .schema import SchemaFactory
-from .. import six
 
 # ----------------------------------------------------------------------------
 # Version
@@ -201,7 +200,7 @@ class Shotgun(object):
         if schema_path is None or schema_entity_path is None:
             raise MockgunError("Cannot create Mockgun instance because no schema files have been defined. "
                                "Before creating a Mockgun instance, please call Mockgun.set_schema_paths() "
-                               "in order to specify which ShotGrid schema Mockgun should operate against.")
+                               "in order to specify which Flow Production Tracking schema Mockgun should operate against.")
 
         self._schema, self._schema_entity = SchemaFactory.get_schemas(schema_path, schema_entity_path)
 
@@ -335,7 +334,12 @@ class Shotgun(object):
                 results.append(self.create(request["entity_type"], request["data"]))
             elif request["request_type"] == "update":
                 # note: Shotgun.update returns a list of a single item
-                results.append(self.update(request["entity_type"], request["entity_id"], request["data"])[0])
+                results.append(
+                    self.update(request["entity_type"],
+                                request["entity_id"],
+                                request["data"],
+                                request.get("multi_entity_update_modes"))[0]
+                )
             elif request["request_type"] == "delete":
                 results.append(self.delete(request["entity_type"], request["entity_id"]))
             else:
@@ -387,13 +391,13 @@ class Shotgun(object):
 
         return result
 
-    def update(self, entity_type, entity_id, data):
+    def update(self, entity_type, entity_id, data, multi_entity_update_modes=None):
         self._validate_entity_type(entity_type)
         self._validate_entity_data(entity_type, data)
         self._validate_entity_exists(entity_type, entity_id)
 
         row = self._db[entity_type][entity_id]
-        self._update_row(entity_type, row, data)
+        self._update_row(entity_type, row, data, multi_entity_update_modes)
 
         return [dict((field, item) for field, item in row.items() if field in data or field in ("type", "id"))]
 
@@ -423,6 +427,12 @@ class Shotgun(object):
         raise NotImplementedError
 
     def upload_thumbnail(self, entity_type, entity_id, path, **kwargs):
+        pass
+
+    def add_user_agent(self, agent):
+        pass
+
+    def set_session_uuid(self, session_uuid):
         pass
 
     ###################################################################################################
@@ -494,16 +504,18 @@ class Shotgun(object):
                                    "float": float,
                                    "checkbox": bool,
                                    "percent": int,
-                                   "text": six.string_types,
+                                   "text": str,
                                    "serializable": dict,
-                                   "date": datetime.date,
+                                   "entity_type": str,
+                                   "date": str,
                                    "date_time": datetime.datetime,
-                                   "list": six.string_types,
-                                   "status_list": six.string_types,
+                                   "duration": int,
+                                   "list": str,
+                                   "status_list": str,
                                    "url": dict}[sg_type]
                 except KeyError:
                     raise ShotgunError(
-                        "Field %s.%s: Handling for ShotGrid type %s is not implemented" %
+                        "Field %s.%s: Handling for Flow Production Tracking type %s is not implemented" %
                         (entity_type, field, sg_type)
                     )
 
@@ -810,13 +822,26 @@ class Shotgun(object):
         else:
             raise ShotgunError("%s is not a valid filter operator" % filter_operator)
 
-    def _update_row(self, entity_type, row, data):
+    def _update_row(self, entity_type, row, data, multi_entity_update_modes=None):
         for field in data:
             field_type = self._get_field_type(entity_type, field)
             if field_type == "entity" and data[field]:
                 row[field] = {"type": data[field]["type"], "id": data[field]["id"]}
             elif field_type == "multi_entity":
-                row[field] = [{"type": item["type"], "id": item["id"]} for item in data[field]]
+                update_mode = multi_entity_update_modes.get(field, "set") if multi_entity_update_modes else "set"
+
+                if update_mode == "add":
+                    row[field] += [{"type": item["type"], "id": item["id"]} for item in data[field]]
+                elif update_mode == "remove":
+                    row[field] = [
+                        item
+                        for item in row[field]
+                        for new_item in data[field]
+                        if item["id"] != new_item["id"]
+                        or item["type"] != new_item["type"]
+                    ]
+                elif update_mode == "set":
+                    row[field] = [{"type": item["type"], "id": item["id"]} for item in data[field]]
             else:
                 row[field] = data[field]
 
