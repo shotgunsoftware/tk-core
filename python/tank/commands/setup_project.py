@@ -548,8 +548,8 @@ class SetupProjectAction(Action):
             raise TankError("Aborted by user.")
         try:
             project_id = int(answer)
-        except:
-            raise TankError("Please enter a number!")
+        except ValueError as e:
+            raise TankError("Please enter a number! // %s" % e)
 
         if project_id not in [x["id"] for x in projs]:
             raise TankError("Id %d was not found in the list of projects!" % project_id)

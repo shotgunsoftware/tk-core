@@ -654,6 +654,6 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
         # If the error message is empty, like httplib.HTTPException, convert
         # the class name to a string
         if len(str(e)) == 0:
-            raise Exception("Unknown error: %s" % type(e).__name__)
+            raise type(e)("Unknown error: %s" % type(e).__name__)
         else:
             raise

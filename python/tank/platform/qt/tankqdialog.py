@@ -361,8 +361,8 @@ class TankQDialog(TankDialogBase):
                 context_info += "You are currently running in the %s environment." % (
                     self._bundle.engine.environment["name"]
                 )
-            except:
-                pass
+            except Exception as e:
+                context_info += "Cant get current engine environment name: %s" % e
 
             self.ui.app_work_area_info.setText(context_info)
 

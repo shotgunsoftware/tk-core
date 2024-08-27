@@ -97,9 +97,8 @@ def _is_git_missing():
     try:
         sgtk.util.process.subprocess_check_output(["git", "--version"])
         git_missing = False
-    except Exception:
-        # no git!
-        pass
+    except Exception as e:
+        print("Git not found: %s" % e)
     return git_missing
 
 

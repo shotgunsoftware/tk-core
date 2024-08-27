@@ -11,11 +11,12 @@ import os
 import copy
 import re
 
-from .git import IODescriptorGit
+from .git import IODescriptorGit, TankGitError
 from ..errors import TankDescriptorError
 from ... import LogManager
 
 from tank_vendor import six
+from ...util.process import SubprocessCalledProcessError
 
 log = LogManager.get_logger(__name__)
 
@@ -145,7 +146,7 @@ class IODescriptorGitTag(IODescriptorGit):
             self._clone_then_execute_git_commands(
                 destination_path, [], depth=1, ref=self._version
             )
-        except Exception as e:
+        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
                 "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
             )
@@ -222,7 +223,7 @@ class IODescriptorGitTag(IODescriptorGit):
                 if m:
                     git_tags.append(m.group(1))
 
-        except Exception as e:
+        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
                 "Could not get list of tags for %s: %s" % (self._path, e)
             )

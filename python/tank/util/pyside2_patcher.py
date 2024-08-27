@@ -21,8 +21,10 @@ import imp
 import subprocess
 import webbrowser
 
-from .. import constants
+from .. import constants, LogManager
 from .platforms import is_linux, is_macos, is_windows
+
+log = LogManager.get_logger(__name__)
 
 
 class PySide2Patcher(object):
@@ -326,7 +328,8 @@ class PySide2Patcher(object):
                     # returns False or raises some error.
                     try:
                         return webbrowser.open_new_tab(url.toString().encode("utf-8"))
-                    except:
+                    except Exception as e:
+                        log.debug(e)
                         return False
 
             @classmethod

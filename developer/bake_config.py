@@ -31,6 +31,7 @@ from tank.descriptor import Descriptor, descriptor_uri_to_dict
 from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.descriptor.errors import TankDescriptorError
 from tank.bootstrap import constants as bootstrap_constants
+from shotgun_api3 import ShotgunError
 import functools
 
 from utils import (
@@ -293,7 +294,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     # make sure we are properly connected
     try:
         sg_connection.find_one("HumanUser", [])
-    except Exception as e:
+    except ShotgunError as e:
         logger.error("Could not communicate with Flow Production Tracking: %s" % e)
         return 3
 

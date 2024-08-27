@@ -48,7 +48,7 @@ class MovePCAction(Action):
                     log.debug("Removing %s..." % full_path)
                     try:
                         os.remove(full_path)
-                    except Exception as e:
+                    except OSError as e:
                         log.warning(
                             "Could not delete file %s. Error Reported: %s"
                             % (full_path, e)
@@ -68,7 +68,7 @@ class MovePCAction(Action):
                     log.debug("Deleting folder %s..." % full_path)
                     try:
                         os.rmdir(full_path)
-                    except Exception as e:
+                    except OSError as e:
                         log.warning(
                             "Could not remove folder %s. Error Reported: %s"
                             % (full_path, e)
@@ -272,7 +272,7 @@ class MovePCAction(Action):
             fh.write("# End of file.\n")
             fh.close()
 
-        except Exception as e:
+        except OSError as e:
             raise TankError(
                 "Could not copy configuration! This may be because of system "
                 "permissions or system setup. This configuration will "

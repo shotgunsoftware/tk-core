@@ -32,7 +32,8 @@ logger = LogManager.get_logger(__name__)
 # fully in place to record it.
 try:
     from .login_dialog import LoginDialog
-except Exception:
+except ImportError as e:
+    logger.debug("Cant import LoginDialog: %s" % e)
     LoginDialog = None
 
 

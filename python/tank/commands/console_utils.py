@@ -228,7 +228,7 @@ def _get_configuration_recursive(
                                 param_name,
                                 answer,
                             )
-                        except Exception as e:
+                        except TankError as e:
                             log.error("Validation failed: %s" % e)
                         else:
                             input_valid = True

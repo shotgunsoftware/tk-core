@@ -30,8 +30,11 @@ from . import constants, sgre as re
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3, six
+from .. import LogManager
 
 json = shotgun_api3.shotgun.json
+
+log = LogManager.get_logger(__name__)
 
 # From Python 3.8 and later, platform.linux_distribution has been removed,
 # so we need something else. Fortunately, the functionality was preserved
@@ -80,7 +83,8 @@ class PlatformInfo(object):
             # For macOS / OSX we keep only the Major.minor
             os_version = re.findall(r"\d*\.\d*", raw_version_str)[0]
 
-        except:
+        except Exception:
+            log.debug("Cant get Darwin version.", exc_info=True)
             pass
 
         return os_version
@@ -104,7 +108,8 @@ class PlatformInfo(object):
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
             os_version = "%s %s" % (distribution, major_version_str)
 
-        except:
+        except Exception:
+            log.debug("Cant get Linux version.", exc_info=True)
             pass
 
         return os_version
@@ -124,7 +129,8 @@ class PlatformInfo(object):
             # as it returns a friendly name e.g: XP, 7, 10 etc.
             os_version = platform.release()
 
-        except:
+        except Exception:
+            log.debug("Cant get Windows version.", exc_info=True)
             pass
 
         return os_version
@@ -169,9 +175,9 @@ class PlatformInfo(object):
             else:
                 os_info["OS"] = "Unsupported system: (%s)" % (system)
 
-        except:
+        except Exception:
             # On any exception we fallback to default value
-            pass
+            log.debug("Cant get platform info.", exc_info=True)
 
         # Cache information to save on subsequent calls
         cls.__cached_platform_info = os_info
@@ -251,8 +257,8 @@ class MetricsQueueSingleton(object):
 
             # remember that we've logged this one already
             self.__logged_metrics.add(metric_identifier)
-        except:
-            pass
+        except Exception as e:
+            log.debug(e)
         finally:
             self._lock.release()
 
@@ -283,8 +289,8 @@ class MetricsQueueSingleton(object):
 
                 # would be nice to be able to pop N from deque. oh well.
                 metrics = [self._queue.popleft() for i in range(0, count)]
-        except:
-            pass
+        except Exception as e:
+            log.debug(e)
         finally:
             self._lock.release()
 
@@ -443,7 +449,7 @@ class MetricsDispatchWorkerThread(Thread):
                         break
 
             except Exception as e:
-                pass
+                log.debug(e)
             finally:
                 # wait, checking for halt event before more processing
                 self._halt_event.wait(self.DISPATCH_INTERVAL)
@@ -733,8 +739,8 @@ class EventMetric(object):
                 from sgtk.platform.util import current_bundle
 
                 bundle = current_bundle()
-            except:
-                pass
+            except Exception as e:
+                log.debug(e)
 
         if not bundle:
             # Still no bundle? Fallback to engine
@@ -743,9 +749,8 @@ class EventMetric(object):
                 from ..platform.engine import current_engine
 
                 bundle = current_engine()
-            except:
-                # Bailing out trying to guess bundle
-                pass
+            except Exception as e:
+                log.debug(e)
 
         if bundle:
             # Add base properties to specified properties (if any)
