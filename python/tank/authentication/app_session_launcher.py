@@ -391,7 +391,7 @@ def http_request(opener, req, max_attempts=4):
             response.exception = exc
 
         except urllib.error.URLError as exc:
-            if attempt < max_attempts and isinstance(exc.reason, ConnectionError):
+            if attempt < max_attempts:
                 logger.debug(
                     "HTTP request failed to reach the server on attempt {attempt}/{max_attempts}".format(
                         attempt=attempt,
