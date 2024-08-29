@@ -48,6 +48,21 @@ except Exception:
 
 logger = LogManager.get_logger(__name__)
 
+def audit_getaddrinfo_hook(*args, **kwargs):
+    if not len(args):
+        return
+
+    if not isinstance(args[0], str):
+        return
+
+    if args[0] != 'socket.getaddrinfo':
+        return
+
+    logger.info("Audit socket.getaddrinfo log: %s", args[1:])
+
+import sys
+sys.addaudithook(audit_getaddrinfo_hook)
+
 
 ###############################################################################################
 # internal classes and methods
