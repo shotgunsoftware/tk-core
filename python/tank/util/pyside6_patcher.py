@@ -421,6 +421,14 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QCoreApplication.flush = flush
 
     @classmethod
+    def _patch_QApplication(cls, QtGui):
+        """Patch QApplication."""
+
+        super()._patch_QApplication(QtGui)
+        QtGui.QApplication.exec_ = lambda self: self.exec()
+
+
+    @classmethod
     def patch(cls):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
