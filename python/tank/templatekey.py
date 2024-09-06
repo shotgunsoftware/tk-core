@@ -17,8 +17,12 @@ import datetime
 from . import constants
 from .errors import TankError
 from .util import sgre as re
-from tank_vendor import six
-from tank_vendor.six.moves import zip
+from tank_vendor.six.moves import zip, collections_abc
+
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 
 class TemplateKey(object):
@@ -126,7 +130,7 @@ class TemplateKey(object):
 
         :returns: The default value.
         """
-        if isinstance(self._default, six.moves.collections_abc.Callable):
+        if isinstance(self._default, collections_abc.Callable):
             return self._default()
         else:
             return self._default
@@ -219,7 +223,7 @@ class TemplateKey(object):
             else:
                 value = self.default
         elif ignore_type:
-            return value if isinstance(value, six.string_types) else str(value)
+            return value if isinstance(value, str) else str(value)
 
         if self.validate(value):
             return self._as_string(value)
@@ -262,7 +266,7 @@ class TemplateKey(object):
         :returns: Bool
         """
 
-        str_value = value if isinstance(value, six.string_types) else str(value)
+        str_value = value if isinstance(value, str) else str(value)
 
         # We are not case sensitive
         if str_value.lower() in [str(x).lower() for x in self.exclusions]:
@@ -501,13 +505,13 @@ class StringKey(TemplateKey):
         :param value: value of any type to convert. Value is never None.
         :returns: string representation for this object.
         """
-        str_value = value if isinstance(value, six.string_types) else str(value)
+        str_value = value if isinstance(value, str) else str(value)
 
         if self._subset_regex:
             # process substring computation.
             # we want to do this in unicode.
 
-            if isinstance(str_value, six.binary_type):
+            if isinstance(str_value, bytes):
                 # convert to unicode
                 input_is_utf8 = True
                 value_to_convert = str_value.decode("utf-8")
@@ -526,7 +530,7 @@ class StringKey(TemplateKey):
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the
                 # match. Do the formatting as unicode.
-                resolved_value = six.ensure_text(self._subset_format).format(
+                resolved_value = sgutils.ensure_text(self._subset_format).format(
                     *match.groups()
                 )
 
@@ -536,7 +540,7 @@ class StringKey(TemplateKey):
 
             # resolved value is now unicode. Convert it
             # so that it is consistent with input
-            if isinstance(resolved_value, six.text_type) and input_is_utf8:
+            if isinstance(resolved_value, str) and input_is_utf8:
                 # input was utf-8, regex resut is unicode, cast it back
                 str_value = resolved_value.encode("utf-8")
             else:
@@ -554,7 +558,7 @@ class StringKey(TemplateKey):
         :returns: True if valid, false if not.
         """
         u_value = value
-        if not isinstance(u_value, six.text_type):
+        if not isinstance(u_value, str):
             # handle non-ascii characters correctly by
             # decoding to unicode assuming utf-8 encoding
             u_value = value.decode("utf-8")
@@ -593,7 +597,7 @@ class StringKey(TemplateKey):
             if self._subset_format:
                 try:
                     # perform the formatting in unicode space to cover all cases
-                    six.ensure_text(self._subset_format).format(*regex_match.groups())
+                    sgutils.ensure_text(self._subset_format).format(*regex_match.groups())
                 except Exception as e:
                     self._last_error = (
                         "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s"
@@ -631,14 +635,14 @@ class TimestampKey(TemplateKey):
         # default value, so format_spec needs to be set first. But if I am testing format_spec
         # before calling the base class, then repr will crash since self.name won't have been set
         # yet.
-        if isinstance(format_spec, six.string_types) is False:
+        if isinstance(format_spec, str) is False:
             raise TankError(
                 "format_spec for <Sgtk TimestampKey %s> is not of type string: %s"
                 % (name, format_spec.__class__.__name__)
             )
         self._format_spec = format_spec
 
-        if isinstance(default, six.string_types):
+        if isinstance(default, str):
             # if the user passes in now or utc, we'll generate the current time as the default time.
             if default.lower() == "now":
                 default = self.__get_current_time
@@ -701,7 +705,7 @@ class TimestampKey(TemplateKey):
 
         :returns: Bool
         """
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             # If we have a string we have to actually try to convert the string to see it if matches
             # the expected format.
             try:
@@ -834,7 +838,7 @@ class IntegerKey(TemplateKey):
         if format_spec is None:
             return
 
-        if not isinstance(format_spec, six.string_types):
+        if not isinstance(format_spec, str):
             msg = "format_spec for IntegerKey %s is not of type string: %s"
             raise TankError(msg % (name, format_spec))
 
@@ -900,7 +904,7 @@ class IntegerKey(TemplateKey):
 
     def validate(self, value):
         if value is not None:
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 # We have a string, make sure it loosely or strictly matches the format.
                 if self.strict_matching and not self._strictly_matches(value):
                     return False
@@ -1110,7 +1114,7 @@ class SequenceKey(IntegerKey):
         error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
         error_msg += "Valid format strings: %s\n" % full_format_strings
 
-        if isinstance(value, six.string_types) and value.startswith(
+        if isinstance(value, str) and value.startswith(
             self.FRAMESPEC_FORMAT_INDICATOR
         ):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
@@ -1121,7 +1125,7 @@ class SequenceKey(IntegerKey):
                 self._last_error = error_msg
                 return False
 
-        elif isinstance(value, six.string_types) and re.match(
+        elif isinstance(value, str) and re.match(
             self.FLAME_PATTERN_REGEX, value
         ):
             # value is matching the flame-style sequence pattern
@@ -1142,14 +1146,14 @@ class SequenceKey(IntegerKey):
 
     def _as_string(self, value):
 
-        if isinstance(value, six.string_types) and value.startswith(
+        if isinstance(value, str) and value.startswith(
             self.FRAMESPEC_FORMAT_INDICATOR
         ):
             # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
-        if isinstance(value, six.string_types) and re.match(
+        if isinstance(value, str) and re.match(
             self.FLAME_PATTERN_REGEX, value
         ):
             # this is a flame style sequence token [1234-56773]
@@ -1178,7 +1182,7 @@ class SequenceKey(IntegerKey):
         """
         Returns XYZ given the string "FORMAT:    XYZ"
         """
-        if isinstance(value, six.string_types) and value.startswith(
+        if isinstance(value, str) and value.startswith(
             self.FRAMESPEC_FORMAT_INDICATOR
         ):
             pattern = value.replace(self.FRAMESPEC_FORMAT_INDICATOR, "").strip()

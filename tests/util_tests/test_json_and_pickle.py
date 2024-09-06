@@ -219,17 +219,12 @@ class Impl:
             Ensures reloading JSON written by any version of Python works in the current
             Python version.
             """
-            with open(self.file_location(2, 7), "rb") as fh:
-                self.assertEqual(self.load(fh), self.dict_with_unicode)
 
             with open(self.file_location(3, 7), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
 
             with open(self.file_location(3, 9), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
-
-            with open(self.file_location(2, 7), "r{0}".format(self.mode)) as fh:
-                self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
             with open(self.file_location(3, 7), "r{0}".format(self.mode)) as fh:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
@@ -279,7 +274,6 @@ class PickleTests(Impl.SerializationTests):
 
         with open(self.protocol_2_file_location, "rb") as fh:
             self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
-
 
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run

@@ -18,10 +18,10 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import json
 
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
-from tank_vendor import six
 from tank_vendor.six.moves import http_client
 
 from . import session_cache
@@ -29,7 +29,11 @@ from .errors import IncompleteCredentials, UnresolvableHumanUser, UnresolvableSc
 from .. import LogManager
 from ..util import pickle
 from ..util import json as sgjson
-import json
+
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -57,9 +61,9 @@ class ShotgunUserImpl(object):
         # that would then cause some string data to be unicoded during
         # concatenation operations.
         if http_proxy is not None:
-            http_proxy = six.ensure_str(http_proxy)
+            http_proxy = sgutils.ensure_str(http_proxy)
 
-        host = six.ensure_str(host)
+        host = sgutils.ensure_str(host)
 
         self._host = host
         self._http_proxy = http_proxy
@@ -370,7 +374,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A string.
         """
-        return six.ensure_str(self._login)
+        return sgutils.ensure_str(self._login)
 
     @staticmethod
     def from_dict(payload):
@@ -608,7 +612,7 @@ def deserialize_user(payload):
     """
     # If the serialized payload starts with a {, we have a JSON-encoded string.
     if payload[0] in ("{", b"{"):
-        user_dict = sgjson.loads(six.ensure_binary(payload))
+        user_dict = sgjson.loads(sgutils.ensure_binary(payload))
     else:
         # Unpickle the dictionary
         user_dict = pickle.loads(payload)
