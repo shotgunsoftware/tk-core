@@ -28,7 +28,11 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
-from tank_vendor import six
+
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 log = LogManager.get_logger(__name__)
 
@@ -254,7 +258,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, six.string_types):
+            if not isinstance(published_file_type, str):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":
@@ -797,7 +801,7 @@ def _calc_path_cache(tk, path, project_names=None):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = six.ensure_str(norm_path.replace("\\", "/"))
+    norm_path = sgutils.ensure_str(norm_path.replace("\\", "/"))
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
@@ -817,7 +821,7 @@ def _calc_path_cache(tk, path, project_names=None):
 
             # append project and normalize
             proj_path = root_path_obj.join(project_name).current_os
-            proj_path = six.ensure_str(proj_path.replace(os.sep, "/"))
+            proj_path = sgutils.ensure_str(proj_path.replace(os.sep, "/"))
 
             if norm_path.lower().startswith(proj_path.lower()):
                 # our path matches this storage!

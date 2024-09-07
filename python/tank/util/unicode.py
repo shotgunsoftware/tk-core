@@ -11,7 +11,10 @@
 Utility methods for filtering dictionaries
 """
 
-from tank_vendor import six
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 
 def _ensure_contains_str(input_value, visited):
@@ -41,8 +44,8 @@ def _ensure_contains_str(input_value, visited):
 
     # If we've found a unicode object of a bytes string, convert them back to
     # string.
-    if isinstance(input_value, (six.text_type, six.binary_type)):
-        return six.ensure_str(input_value)
+    if isinstance(input_value, (str, bytes)):
+        return sgutils.ensure_str(input_value)
     # If we've found a new array, we must ensure each element is
     # not a unicode object.
     elif isinstance(input_value, list) and id(input_value) not in visited:

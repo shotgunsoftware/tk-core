@@ -23,13 +23,17 @@ from collections import deque
 from threading import Event, Thread, Lock
 import platform
 from tank_vendor.six.moves import urllib
-from tank_vendor import six
 from copy import deepcopy
 
 from . import constants, sgre as re
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3, six
+
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 json = shotgun_api3.shotgun.json
 
@@ -97,8 +101,8 @@ class PlatformInfo(object):
 
         try:
             # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
-            distribution = six.ensure_str(distro.linux_distribution()[0].title())
-            raw_version_str = six.ensure_str(distro.linux_distribution()[1])
+            distribution = sgutils.ensure_str(distro.linux_distribution()[0].title())
+            raw_version_str = sgutils.ensure_str(distro.linux_distribution()[1])
 
             # For Linux we really just want the 'major' version component
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
@@ -549,7 +553,7 @@ class MetricsDispatchWorkerThread(Thread):
             "auth_args": {"session_token": sg_connection.get_session_token()},
             "metrics": filtered_metrics_data,
         }
-        payload_json = six.ensure_binary(json.dumps(payload))
+        payload_json = sgutils.ensure_binary(json.dumps(payload))
 
         header = {"Content-Type": "application/json"}
         try:

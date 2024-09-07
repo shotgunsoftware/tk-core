@@ -34,6 +34,8 @@ import sys
 import uuid
 import inspect
 
+if sys.version_info < (3, 7):
+    raise Exception("This module requires Python version 3.7 or higher.")
 
 def __fix_tank_vendor():
     # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,

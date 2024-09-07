@@ -13,7 +13,11 @@ import pprint
 
 from .platforms import is_windows
 from ..log import LogManager
-from tank_vendor import six
+
+try:
+    from tank_vendor import sgutils
+except ImportError:
+    from tank_vendor import six as sgutils
 
 logger = LogManager.get_logger(__name__)
 
@@ -75,7 +79,7 @@ def subprocess_check_output(*popenargs, **kwargs):
     # to retrieve text from the console to parse it and not binary, so for our
     # use case converting to a str will always make case and simplifies
     # the caller's logic.
-    output = six.ensure_str(output)
+    output = sgutils.ensure_str(output)
     retcode = process.poll()
 
     if retcode:
