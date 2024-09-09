@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.templatekey &mdash; tk-core v0.21.6 documentation</title>
+  <title>tank.templatekey &mdash; tk-core v0.21.7 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.6.<br>
+    <b>tk-core</b> v0.21.7.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -148,8 +148,12 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="n">collections_abc</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">sgutils</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
 
 
 <div class="viewcode-block" id="TemplateKey"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey">[docs]</a><span class="k">class</span> <span class="nc">TemplateKey</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -257,7 +261,7 @@
 
 <span class="sd">        :returns: The default value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">collections_abc</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">,</span> <span class="n">collections_abc</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span>
@@ -350,7 +354,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
         <span class="k">elif</span> <span class="n">ignore_type</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_as_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -393,7 +397,7 @@
 <span class="sd">        :returns: Bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="c1"># We are not case sensitive</span>
         <span class="k">if</span> <span class="n">str_value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclusions</span><span class="p">]:</span>
@@ -632,13 +636,13 @@
 <span class="sd">        :param value: value of any type to convert. Value is never None.</span>
 <span class="sd">        :returns: string representation for this object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span><span class="p">:</span>
             <span class="c1"># process substring computation.</span>
             <span class="c1"># we want to do this in unicode.</span>
 
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">binary_type</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
                 <span class="c1"># convert to unicode</span>
                 <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">str_value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
@@ -657,7 +661,7 @@
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">:</span>
                 <span class="c1"># we have an explicit format string we want to apply to the</span>
                 <span class="c1"># match. Do the formatting as unicode.</span>
-                <span class="n">resolved_value</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="o">*</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
                 <span class="p">)</span>
 
@@ -667,7 +671,7 @@
 
             <span class="c1"># resolved value is now unicode. Convert it</span>
             <span class="c1"># so that it is consistent with input</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved_value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_is_utf8</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_is_utf8</span><span class="p">:</span>
                 <span class="c1"># input was utf-8, regex resut is unicode, cast it back</span>
                 <span class="n">str_value</span> <span class="o">=</span> <span class="n">resolved_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -685,7 +689,7 @@
 <span class="sd">        :returns: True if valid, false if not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="c1"># handle non-ascii characters correctly by</span>
             <span class="c1"># decoding to unicode assuming utf-8 encoding</span>
             <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
@@ -724,7 +728,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="c1"># perform the formatting in unicode space to cover all cases</span>
-                    <span class="n">six</span><span class="o">.</span><span class="n">ensure_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">regex_match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
+                    <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">regex_match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit subset &#39;</span><span class="si">%s</span><span class="s2">&#39; with format &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span>
@@ -762,14 +766,14 @@
         <span class="c1"># default value, so format_spec needs to be set first. But if I am testing format_spec</span>
         <span class="c1"># before calling the base class, then repr will crash since self.name won&#39;t have been set</span>
         <span class="c1"># yet.</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">format_spec</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">format_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;format_spec for &lt;Sgtk TimestampKey </span><span class="si">%s</span><span class="s2">&gt; is not of type string: </span><span class="si">%s</span><span class="s2">&quot;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span> <span class="o">=</span> <span class="n">format_spec</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="c1"># if the user passes in now or utc, we&#39;ll generate the current time as the default time.</span>
             <span class="k">if</span> <span class="n">default</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;now&quot;</span><span class="p">:</span>
                 <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_current_time</span>
@@ -832,7 +836,7 @@
 
 <span class="sd">        :returns: Bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="c1"># If we have a string we have to actually try to convert the string to see it if matches</span>
             <span class="c1"># the expected format.</span>
             <span class="k">try</span><span class="p">:</span>
@@ -965,7 +969,7 @@
         <span class="k">if</span> <span class="n">format_spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">format_spec</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">format_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;format_spec for IntegerKey </span><span class="si">%s</span><span class="s2"> is not of type string: </span><span class="si">%s</span><span class="s2">&quot;</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">))</span>
 
@@ -1031,7 +1035,7 @@
 
 <div class="viewcode-block" id="IntegerKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.IntegerKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="c1"># We have a string, make sure it loosely or strictly matches the format.</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_matching</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strictly_matches</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                     <span class="k">return</span> <span class="kc">False</span>
@@ -1241,7 +1245,7 @@
         <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Valid frame specs: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_specs</span><span class="p">)</span>
         <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Valid format strings: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">full_format_strings</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span>
         <span class="p">):</span>
             <span class="c1"># FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS</span>
@@ -1252,7 +1256,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="n">error_msg</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FLAME_PATTERN_REGEX</span><span class="p">,</span> <span class="n">value</span>
         <span class="p">):</span>
             <span class="c1"># value is matching the flame-style sequence pattern</span>
@@ -1273,14 +1277,14 @@
 
     <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span>
         <span class="p">):</span>
             <span class="c1"># this is a FORMAT: XYZ - convert it to the proper resolved frame spec</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_format_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_frame_spec</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FLAME_PATTERN_REGEX</span><span class="p">,</span> <span class="n">value</span>
         <span class="p">):</span>
             <span class="c1"># this is a flame style sequence token [1234-56773]</span>
@@ -1309,7 +1313,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns XYZ given the string &quot;FORMAT:    XYZ&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span>
         <span class="p">):</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>

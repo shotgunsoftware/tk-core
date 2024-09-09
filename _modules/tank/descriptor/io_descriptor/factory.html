@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.21.6 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.21.7 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.6.<br>
+    <b>tk-core</b> v0.21.7.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -145,7 +145,11 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
 
 <span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">sgutils</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -204,7 +208,7 @@
 <span class="sd">    :raises: :class:`TankDescriptorError`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># resolve into both dict and uri form</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
@@ -219,10 +223,10 @@
 
     <span class="c1"># Ensure that the descrptor version is a str.  For some descriptors a</span>
     <span class="c1"># verson is not expected, so if the key doesn&#39;t exist we&#39;ll do nothing.</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">),</span> <span class="n">six</span><span class="o">.</span><span class="n">binary_type</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># On Python 2 this will have no effect, but on Python 3, we will decode</span>
         <span class="c1"># bytes to a str.</span>
-        <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span>
+        <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span>
 
     <span class="c1"># instantiate the Descriptor</span>
     <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">descriptor_type</span><span class="p">,</span> <span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span>
@@ -316,7 +320,7 @@
 <span class="sd">    :return: Boolean to indicate if a required version token is missing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># resolve into both dict and uri form</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
