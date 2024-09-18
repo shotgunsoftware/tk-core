@@ -590,6 +590,7 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.forgot_password_link.setVisible(
             method_selected == auth_constants.METHOD_BASIC
+            and self.site_info.user_authentication_method in ["default", "ldap"]
         )
 
         self.ui.button_options.setVisible(can_use_web or can_use_asl)
