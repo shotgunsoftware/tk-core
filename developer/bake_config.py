@@ -50,16 +50,74 @@ logger = LogManager.get_logger("bake_config")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _should_skip(types, desc):
+def get_gh_org_repo(desc):
+    """
+    Extract the github org and repo from a path.
+
+    :param dict desc: Descriptor dictionary to extract repo from.
+    :returns: str with the "org/repo".
+    """
+    if desc["type"] == "github_release":
+        return f"{desc['organization']}/{desc['repository']}"
+    elif desc["type"] in ["git", "git_branch"]:
+        path = desc["path"].lower()
+    else:
+        raise ValueError(f"Unsupported github descriptor type: {desc['type']}")
+    logger.debug(f"Extracting org/repo from {path}")
+    try:
+        if path.startswith("git@github.com:"):
+            # git@github.com:GPLgithub/tk-multi-ingestdelivery.git
+            repo = path.split(":")[1]
+        elif path.startswith("https://github.com/"):
+            # https://github.com/GPLgithub/tk-multi-ingestdelivery.git
+            repo = path.split("github.com/")[1]
+        else:
+            repo = None
+    except IndexError:
+        repo = None
+    return repo
+
+
+def is_gh_repo(desc):
+    """
+    Check if a descriptor is a github repository.
+
+    Git descriptors can be any hosted git server - we are checking specifically
+    for github repositories.
+
+    :param dict desc: Descriptor dictionary to check.
+    :returns: ``True`` if the descriptor is a github repository, ``False`` otherwise.
+    """
+    if "path" in desc and "github.com" in desc["path"].lower():
+        return True
+    elif desc["type"] == "github_release":
+        return True
+    else:
+        return False
+
+
+def _should_skip(types, ignore_gh_repos, desc):
     """
     Check if a descriptor should be skipped.
 
     :param list types: List of descriptor type names that should be skipped.
+    :param list ignore_gh_repos: List of repository substrings to ignore.
     :param dict desc: Descriptor dictionary to check.
 
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
-    return desc["type"] in types
+    if not desc["type"] in types:
+        if is_gh_repo(desc):
+            org_repo = get_gh_org_repo(desc)
+            for ignore_repo in ignore_gh_repos:
+                logger.debug(f"checking {org_repo} against {ignore_repo}")
+                if org_repo.lower().startswith(ignore_repo.lower()):
+                    logger.debug(f"excluding ignored github repo {org_repo}")
+
+                    return True
+        return False
+    else:
+        return True
 
 
 def _process_configuration(sg_connection, config_uri_str):
@@ -96,7 +154,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types):
+def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types, ignore_git_repos):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -109,11 +167,12 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked.
     :param skip_bundles_types: Bundle types to skip.
+    :param ignore_git_repos: Github repository substrings to ignore.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
 
-    should_skip_functor = functools.partial(_should_skip, skip_bundles_types)
+    should_skip_functor = functools.partial(_should_skip, skip_bundles_types, ignore_git_repos)
 
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
@@ -212,6 +271,10 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
 of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
 
+If you want to ignore certain github repositories, provide a comma separated list of repository substrings to ignore,
+e.g. --ignore-git-repos=GPLgithub/tk-multi-ingestdelivery,GPLgithub/tk-multi-publish2. Or to ignore all repositories
+from a specific organization, provide the organization name followed by a slash, e.g. --ignore-git-repos=GPLgithub/
+
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
@@ -242,6 +305,15 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
         default="none",
         help="Comma separated list of bundle types to skip. Possible values are 'app_store', "
         "'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
+    )
+
+    parser.add_option(
+        "--ignore-git-repos",
+        default="none",
+        help="Comma separated list of repository substrings to ignore. Values are matched from the "
+        "beginning of the string. For example: foobar/myapp will ignore bundles hosted in the github "
+        "org 'foobar' that start with 'myapp'. Specifying 'foobar/' will ignore all bundles in the "
+        "'foobar' org. Empty by default.",
     )
 
     add_authentication_options(parser)
@@ -312,6 +384,9 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
             logger.error("Unknown bundle type: %s" % bundle_type)
             return 4
 
+    ignore_git_repos = options.ignore_git_repos.split(",")
+    ignore_git_repos = [git_repo.strip() for git_repo in ignore_git_repos]
+
     # we are all set.
     bake_config(
         sg_connection,
@@ -319,6 +394,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
         target_path,
         options.zip,
         skip_bundle_types,
+        ignore_git_repos,
     )
 
     # all good!
