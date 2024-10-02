@@ -18,6 +18,7 @@ from __future__ import with_statement
 import os
 import sys
 import shutil
+import re
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -48,72 +49,67 @@ logger = LogManager.get_logger("bake_config")
 
 # The folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
+HOSTED_GIT_URL_REGEX = re.compile(
+    r"((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?"
+)
 
-
-def get_gh_org_repo(desc):
+def _get_hosted_git_org_repo(desc):
     """
-    Extract the github org and repo from a path.
+    Extract the hosted git org and repo from a path.
 
     :param dict desc: Descriptor dictionary to extract repo from.
     :returns: str with the "org/repo".
     """
     if desc["type"] == "github_release":
-        return f"{desc['organization']}/{desc['repository']}"
+        return "%s/%s" % (desc["organization"], desc["repository"])
     elif desc["type"] in ["git", "git_branch"]:
         path = desc["path"].lower()
+        logger.debug(f"Extracting org/repo from {path}")
+        m = HOSTED_GIT_URL_REGEX.match(path)
+        if not m:
+            raise ValueError("Invalid hosted git descriptor path: %s" % path)
+        # ssh-style urls will return: OrgName/reponame
+        # https:// and git:// urls return: domain.com/OrgName/reponame.git
+        org_repo = m.group(7).split("/")
+        return "%s/%s" % (org_repo[-2], org_repo[-1])
     else:
-        raise ValueError(f"Unsupported github descriptor type: {desc['type']}")
-    logger.debug(f"Extracting org/repo from {path}")
-    try:
-        if path.startswith("git@github.com:"):
-            # git@github.com:GPLgithub/tk-multi-ingestdelivery.git
-            repo = path.split(":")[1]
-        elif path.startswith("https://github.com/"):
-            # https://github.com/GPLgithub/tk-multi-ingestdelivery.git
-            repo = path.split("github.com/")[1]
-        else:
-            repo = None
-    except IndexError:
-        repo = None
-    return repo
+        # just in cases
+        raise ValueError("Not a hosted git descriptor: %s" % desc["type"])
 
 
-def is_gh_repo(desc):
+def _is_hosted_git_repo(desc):
     """
-    Check if a descriptor is a github repository.
-
-    Git descriptors can be any hosted git server - we are checking specifically
-    for github repositories.
+    Check if a descriptor is a hosted git repository.
 
     :param dict desc: Descriptor dictionary to check.
-    :returns: ``True`` if the descriptor is a github repository, ``False`` otherwise.
+    :returns: ``True`` if it is a hosted git repository, ``False`` otherwise.
     """
-    if "path" in desc and "github.com" in desc["path"].lower():
+    if desc["type"] == "github_release":
         return True
-    elif desc["type"] == "github_release":
-        return True
+    elif desc["type"] in ["git", "git_branch"]:
+        path = desc["path"].lower()
+        return bool(HOSTED_GIT_URL_REGEX.match(path))
     else:
         return False
 
 
-def _should_skip(types, ignore_gh_repos, desc):
+def _should_skip(types, skip_git_repos, desc):
     """
     Check if a descriptor should be skipped.
 
     :param list types: List of descriptor type names that should be skipped.
-    :param list ignore_gh_repos: List of repository substrings to ignore.
+    :param list skip_git_repos: List of hosted git repository substrings to skip.
     :param dict desc: Descriptor dictionary to check.
 
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
     if not desc["type"] in types:
-        if is_gh_repo(desc):
-            org_repo = get_gh_org_repo(desc)
-            for ignore_repo in ignore_gh_repos:
-                logger.debug(f"checking {org_repo} against {ignore_repo}")
-                if org_repo.lower().startswith(ignore_repo.lower()):
-                    logger.debug(f"excluding ignored github repo {org_repo}")
-
+        if _is_hosted_git_repo(desc):
+            org_repo = _get_hosted_git_org_repo(desc)
+            for skip_repo in skip_git_repos:
+                logger.debug("checking {org_repo} against %s" % skip_repo)
+                if org_repo.lower().startswith(skip_repo.lower()):
+                    logger.debug("skipping github repo %s" % org_repo)
                     return True
         return False
     else:
@@ -154,7 +150,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types, ignore_git_repos):
+def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types, skip_git_repos):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -167,12 +163,12 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked.
     :param skip_bundles_types: Bundle types to skip.
-    :param ignore_git_repos: Github repository substrings to ignore.
+    :param skip_git_repos: Github repository substrings to skip.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
 
-    should_skip_functor = functools.partial(_should_skip, skip_bundles_types, ignore_git_repos)
+    should_skip_functor = functools.partial(_should_skip, skip_bundles_types, skip_git_repos)
 
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
@@ -271,9 +267,9 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
 of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
 
-If you want to ignore certain github repositories, provide a comma separated list of repository substrings to ignore,
-e.g. --ignore-git-repos=GPLgithub/tk-multi-ingestdelivery,GPLgithub/tk-multi-publish2. Or to ignore all repositories
-from a specific organization, provide the organization name followed by a slash, e.g. --ignore-git-repos=GPLgithub/
+If you want to skip certain git repositories, provide a comma separated list of repository substrings to skip,
+e.g. --skip-git-repos=SomeOrg/tk-multi-someapp,SomeOrg/tk-multi-someotherapp. Or to skip all repositories
+from a specific organization, provide the organization name followed by a slash, e.g. --skip-git-repos=SomeOrg
 
 {automated_setup_documentation}
 
@@ -308,11 +304,11 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     )
 
     parser.add_option(
-        "--ignore-git-repos",
+        "--skip-git-repos",
         default="none",
-        help="Comma separated list of repository substrings to ignore. Values are matched from the "
-        "beginning of the string. For example: foobar/myapp will ignore bundles hosted in the github "
-        "org 'foobar' that start with 'myapp'. Specifying 'foobar/' will ignore all bundles in the "
+        help="Comma separated list of hosted repository substrings to skip. Values are matched from the "
+        "beginning of the string. For example: foobar/myapp will skip bundles hosted in the git "
+        "org 'foobar' that start with 'myapp'. Specifying 'foobar/' will skip all bundles in the "
         "'foobar' org. Empty by default.",
     )
 
@@ -384,8 +380,8 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
             logger.error("Unknown bundle type: %s" % bundle_type)
             return 4
 
-    ignore_git_repos = options.ignore_git_repos.split(",")
-    ignore_git_repos = [git_repo.strip() for git_repo in ignore_git_repos]
+    skip_git_repos = options.skip_git_repos.split(",")
+    skip_git_repos = [git_repo.strip() for git_repo in skip_git_repos]
 
     # we are all set.
     bake_config(
@@ -394,7 +390,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
         target_path,
         options.zip,
         skip_bundle_types,
-        ignore_git_repos,
+        skip_git_repos,
     )
 
     # all good!
