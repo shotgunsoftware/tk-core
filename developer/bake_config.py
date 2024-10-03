@@ -53,6 +53,7 @@ HOSTED_GIT_URL_REGEX = re.compile(
     r"((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?"
 )
 
+
 def _get_hosted_git_org_repo(desc):
     """
     Extract the hosted git org and repo from a path.
