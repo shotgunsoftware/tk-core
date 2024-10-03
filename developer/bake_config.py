@@ -151,7 +151,9 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types, skip_git_repos):
+def bake_config(
+    sg_connection, config_uri, target_path, do_zip, skip_bundles_types, skip_git_repos
+):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -169,7 +171,9 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
 
-    should_skip_functor = functools.partial(_should_skip, skip_bundles_types, skip_git_repos)
+    should_skip_functor = functools.partial(
+        _should_skip, skip_bundles_types, skip_git_repos
+    )
 
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
