@@ -8,11 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import subprocess
-
 from .path import IODescriptorPath
 
-from ... import util
 from ...util import process
 from ... import LogManager
 
@@ -60,52 +57,22 @@ class IODescriptorDev(IODescriptorPath):
 
     def get_version(self):
         v = super().get_version()
-        print("DEV version:", v)
-        if v != "Undefined": # TODO constant
+        if v.lower() != "undefined": # TODO constant
             return v
 
-        rev_hash = self.get_git_output("rev-parse --short HEAD")
-        if not rev_hash:
+        desc = self.get_git_output("describe", "--tags", "--first-parent")
+        if not desc:
             return v
 
-        return f"Dev {rev_hash}"
+        return desc.replace("-", "+dev-", 1)
 
-
-    def get_git_output(self, cmd):
+    def get_git_output(self, *args):
+        cmd_args = ["git", "-C", self._path]
+        cmd_args.extend(args)
         try:
-            output = process._check_output(
-                f'git -C "{self._path}" {cmd}',
-                shell=True,
-            )
-
-            # note: it seems on windows, the result is sometimes wrapped in single quotes.
-            return output.strip().strip("'")
-
+            output = process.subprocess_check_output(cmd_args)
         except process.SubprocessCalledProcessError as e:
             log.debug("Unable to run git command - {e}")
-
-
-def _can_hide_terminal():
-    """
-    Ensures this version of Python can hide the terminal of a subprocess
-    launched with the subprocess module.
-    """
-    try:
-        # These values are not defined between Python 2.6.6 and 2.7.1 inclusively.
-        subprocess.STARTF_USESHOWWINDOW
-        subprocess.SW_HIDE
-        return True
-    except Exception:
-        return False
-
-def _check_output(*args, **kwargs):
-    """
-    Wraps the call to subprocess_check_output so it can run headless on Windows.
-    """
-    if util.is_windows() and _can_hide_terminal():
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        startupinfo.wShowWindow = subprocess.SW_HIDE
-        kwargs["startupinfo"] = startupinfo
-
-    return process.subprocess_check_output(*args, **kwargs)
+        else:
+            # note: it seems on windows, the result is sometimes wrapped in single quotes.
+            return output.strip().strip("'")
