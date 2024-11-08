@@ -207,6 +207,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         # for other platforms, we omit -C to ensure compatibility with older versions
         # of git. Centos 7 still ships with 1.8.
 
+        ## TODO something to change here. Also, maybe we can now consider all git client are 1.9+
+        # If not, do we have a documentation about required git version ???
+
         cwd = os.getcwd()
         try:
             if not is_windows():
