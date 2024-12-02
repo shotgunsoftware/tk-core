@@ -12,6 +12,9 @@ from .pyside2_patcher import PySide2Patcher
 
 import imp
 
+from ..log import LogManager
+logger = LogManager.get_logger(__name__)
+
 class PySide6Patcher(PySide2Patcher):
     """
     PySide6 backwards compatibility layer for use with PySide code.
@@ -212,6 +215,7 @@ class PySide6Patcher(PySide2Patcher):
         original_QScreen_availableGeometry = QtGui.QScreen.availableGeometry
         def availableGeometry(self, widget=None):
             """Patch QScreen to also act as QDesktopWidget."""
+            logger.info(f"PySide6Patcher::availableGeometry widget: {widget}")
             if widget is None:
                 return original_QScreen_availableGeometry(self)
 
