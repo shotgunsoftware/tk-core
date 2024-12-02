@@ -47,7 +47,6 @@ class TestPerforceIODescriptor(ShotgunTestBase):
 
     @skip_if_p4_missing
     def test_latest(self):
-
         location_dict = {
             "type": "perforce_change",
             "path": self.p4_depot_uri,
