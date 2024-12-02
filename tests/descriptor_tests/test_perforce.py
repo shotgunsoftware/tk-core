@@ -33,7 +33,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
 
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 
-    def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.CONFIG):
+    def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.APP):
         """
         Helper method around create_descriptor
         """
@@ -54,7 +54,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
             "changelist": "100",
         }
 
-        desc = self._create_desc(location_dict, True)
+        desc = self._create_desc(location_dict)
         self.assertEqual(desc.version, "100")
 
         location_dict = {
@@ -63,12 +63,11 @@ class TestPerforceIODescriptor(ShotgunTestBase):
             "label": "v1.0.0",
         }
 
-        desc = self._create_desc(location_dict, True)
+        desc = self._create_desc(location_dict)
         self.assertEqual(desc.version, "v1.0.0")
 
     @skip_if_p4_missing
     def test_change(self):
-
         location_dict = {
             "type": "perforce_change",
             "path": self.p4_depot_uri,
@@ -84,7 +83,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         self.assertEqual(
             desc.get_path(),
             os.path.join(
-                self.bundle_cache, "perforce_change", "100", "tk-shotgun-pythonconsole"
+                self.bundle_cache, "perforce_change", "tk-shotgun-pythonconsole", "100"
             ),
         )
 
