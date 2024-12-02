@@ -543,7 +543,7 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#qdesktopwidget-and-qapplication-desktop
         cls._patch_QScreen(qt_core_shim, qt_gui_shim)
         qt_gui_shim.QDesktopWidget = qt_gui_shim.QScreen
-        qt_gui_shim.QApplication.desktop = lambda: qt_gui_shim.QApplication.primaryScreen()
+        qt_gui_shim.QApplication.desktop = lambda *args: qt_gui_shim.QApplication.primaryScreen()
 
         # The default timeout parameter removed. This param, if given, will be ignored. It will
         # always timeout after 100 ms
