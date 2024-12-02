@@ -60,7 +60,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         location_dict = {
             "type": "perforce_label",
             "path": self.p4_depot_uri,
-            "label": "v1.0.0"
+            "label": "v1.0.0",
         }
 
         desc = self._create_desc(location_dict, True)
@@ -72,7 +72,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         location_dict = {
             "type": "perforce_change",
             "path": self.p4_depot_uri,
-            "changelist": "100"
+            "changelist": "100",
         }
 
         desc = self._create_desc(location_dict)
@@ -90,9 +90,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
 
         latest_desc = desc.find_latest_version()
 
-        self.assertEqual(
-            latest_desc.version, "100"
-        )
+        self.assertEqual(latest_desc.version, "100")
         self.assertEqual(latest_desc.get_path(), None)
 
         latest_desc.ensure_local()
@@ -114,7 +112,7 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         location_dict = {
             "type": "perforce_label",
             "path": self.p4_depot_uri,
-            "label": "v1.0.0"
+            "label": "v1.0.0",
         }
 
         desc = self._create_desc(location_dict)
@@ -126,15 +124,16 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         self.assertEqual(
             desc.get_path(),
             os.path.join(
-                self.bundle_cache, "perforce_label", "tk-shotgun-pythonconsole", "v1.0.0"
+                self.bundle_cache,
+                "perforce_label",
+                "tk-shotgun-pythonconsole",
+                "v1.0.0",
             ),
         )
 
         latest_desc = desc.find_latest_version()
 
-        self.assertEqual(
-            latest_desc.version, "v1.0.0"
-        )
+        self.assertEqual(latest_desc.version, "v1.0.0")
         self.assertEqual(latest_desc.get_path(), None)
 
         latest_desc.ensure_local()
@@ -142,7 +141,10 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         self.assertEqual(
             latest_desc.get_path(),
             os.path.join(
-                self.bundle_cache, "perforce_label", "tk-shotgun-pythonconsole", "v1.0.0"
+                self.bundle_cache,
+                "perforce_label",
+                "tk-shotgun-pythonconsole",
+                "v1.0.0",
             ),
         )
 
@@ -150,4 +152,3 @@ class TestPerforceIODescriptor(ShotgunTestBase):
         copy_target = os.path.join(self.project_root, "test_copy_target")
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(copy_target))
-
