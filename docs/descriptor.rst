@@ -95,6 +95,8 @@ Several different descriptor types are supported by Toolkit:
 - A **git** descriptor represents a tag in a git repository
 - A **git_branch** descriptor represents a commit in a git branch
 - A **github_release** descriptor represents a Release on a Github repo
+- A **perforce_change** descriptor represents a changelist in a Perforce depot
+- A **perforce_label** descriptor represents a Label in a Perforce depot
 - A **path** descriptor represents a location on disk
 - A **dev** descriptor represents a developer sandbox
 - A **manual** descriptor gives raw access to the bundle caching structure
@@ -341,6 +343,87 @@ A token must be set as environment variable that is specific to the organization
 .. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
 .. note:: For private repos, it's recommended that you use a personal access token (classic) with read-only access to Content. Fine-grained tokens are not yet supported. For more information, see the `Github Documentation on Personal Access Tokens <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
+
+
+Tracking against changelist in Perforce
+===================================
+
+The ``perforce_change`` descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from their
+Perforce server.
+This ``print's`` all the files from depot at the supplied path at the revision of the supplied changelist.
+Connects to the perforce server via command line. Prior setup of perforce is and user should be login
+as usual if authenticating is required on your server. This also supports remote over a VPN connection.
+
+Getting ``tk-multi-loader2`` from ``//DEPOT/AppStore/tk-multi-loader2`` in Perforce:
+
+.. code-block:: yaml
+
+    {
+        type: perforce_change,
+        path: //DEPOT/AppStore/tk-multi-loader2
+        changelist: 12345
+    }
+
+
+Use latest:
+
+.. code-block:: yaml
+
+    {
+        type: perforce_change,
+        path: //DEPOT/AppStore/tk-multi-loader2
+    }
+
+Environment variable support:
+
+.. code-block:: yaml
+
+    {
+        type: perforce_change,
+        path: ${DEPOT_APPSTORE}/tk-multi-loader2
+    }
+
+.. code-block:: yaml
+
+    sgtk:descriptor:perforce_change?path=//DEPOT/AppStore/tk-multi-loader2&changelist=12345
+
+- If ``changelist`` is not supplied, the latest will be fetched.
+- ``path`` is the depot path to where the code is stored.
+- ``changelist`` is the changelist number in the depot.
+
+.. _perforce_descriptors:
+
+Tracking against Labels in Perforce
+===================================
+
+The ``perforce_label`` descriptor ``print's`` all the files from depot at the
+supplied path at the revision of the supplied changelist.
+
+Getting ``tk-multi-loader2`` from ``//DEPOT/AppStore/tk-multi-loader2`` in Perforce:
+
+.. code-block:: yaml
+
+    {
+        type: perforce_label
+        path: //DEPOT/AppStore/tk-multi-loader2
+        label: v3.0.0
+    }
+.. code-block:: yaml
+
+    {
+        type: perforce_label,
+        path: //DEPOT/AppStore/tk-multi-loader2
+        label: tk-multi-loader2-v3.0.0
+    }
+
+.. code-block:: yaml
+
+    sgtk:descriptor:perforce_label?path=//DEPOT/AppStore/tk-multi-loader2&label=v3.0.0
+
+- ``path`` is the depot path to where the code is stored.
+- ``label`` is the Label tag given to the depot path.
+
+.. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Labels in Perforce.
 
 
 Pointing to a path on disk

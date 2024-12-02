@@ -29,7 +29,7 @@ from tank_vendor import six
 log = LogManager.get_logger(__name__)
 
 # files or directories to skip if no skip_list is specified
-SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
+SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore", ".p4ignore"]
 
 
 def with_cleared_umask(func):
