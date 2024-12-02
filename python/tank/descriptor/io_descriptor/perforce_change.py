@@ -102,9 +102,9 @@ class IODescriptorPerforceChange(IODescriptorPerforce):
 
         changelist = None
 
-        log.debug(f"Getting the latest changelist at {self._path}")
+        log.debug("Getting the latest changelist at %s" % self._path)
         try:
-            commands = ['p4', 'changes', '-m', '1', f"{self._path}/..."]
+            commands = ["p4", "changes", "-m", "1", "%s/..." % self._path]
             result = _check_output(commands)
 
             # Parse the changelist number from the output
@@ -112,7 +112,6 @@ class IODescriptorPerforceChange(IODescriptorPerforce):
             if result.strip():
                 parts = result.split(" ", 4)
                 changelist = parts[1]
-
         except Exception as e:
             raise TankPerforceError(
                 "Could not get latest changelist for %s: %s" % (self._path, e)

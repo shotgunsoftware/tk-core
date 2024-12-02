@@ -115,7 +115,7 @@ class IODescriptorPerforce(IODescriptorDownloadable):
         log.debug("Checking that p4 exists and can be executed...")
         try:
             output = _check_output(["p4", "info"])
-        except:
+        except Exception:
             log.exception("Unexpected error:")
             raise TankPerforceError(
                 "Cannot execute the 'p4' command. Please make sure that p4 is "
@@ -132,7 +132,7 @@ class IODescriptorPerforce(IODescriptorDownloadable):
                 environ.update(os.environ)
                 output = _check_output(commands, env=environ)
 
-                log.debug(f"p4 output {output}")
+                log.debug("p4 output %s" % output)
 
                 # If that works, we're done and we don't need to use os.system.
                 run_with_os_system = False
@@ -175,7 +175,13 @@ class IODescriptorPerforce(IODescriptorDownloadable):
             # workspace setup. Applies the path format to download from
             # a depot path to a folder at the specified change or label.
             destination_path = destination_path.replace("\\", "/")
-            commands = ["p4", "print", "-o", destination_path + "/...", f"{self._path}/...@{self._version}"]
+            commands = [
+                "p4",
+                "print",
+                "-o",
+                "%s/..." % destination_path,
+                "%s/...@%s" % (self._path, self._version),
+            ]
             self.execute_p4_commands(destination_path, commands)
 
         except Exception as e:

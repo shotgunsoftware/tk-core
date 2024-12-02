@@ -7,7 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import os
 import copy
 import re
 
@@ -120,7 +119,7 @@ class IODescriptorPerforceLabel(IODescriptorPerforce):
         """
         try:
             # query labels for this depot path
-            commands = ["p4", "labels", f"{self._path}/..."]
+            commands = ["p4", "labels", "%s/..." % self._path]
             output = _check_output(commands)
             # Expected result:
             #   Label tk-multi-app-v1.0.1 2024/11/29 'Created by User.Name.'
@@ -133,13 +132,12 @@ class IODescriptorPerforceLabel(IODescriptorPerforce):
                     # Extract the label name from lines like: "Label label_name date description"
                     parts = line.split()
                     label_name = parts[1]
-
                     # Typically labels are global for the depot, so labels
                     # maybe prepended by more data, try to extract the version
-                    match = re.search(r'v\d+\.\d+\.\d+', label_name)
-                    # If we can extract a semanticversion
-                    if match:
-                        p4_labels[match.group()] = label_name
+                    regex = re.compile(r"v\d+\.\d+\.\d+")
+                    m = regex.match(sgutils.ensure_str(label_name))
+                    if m:
+                        p4_labels[m.group(1)] = label_name
 
         except Exception as e:
             raise TankPerforceError(
