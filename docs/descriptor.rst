@@ -346,7 +346,7 @@ A token must be set as environment variable that is specific to the organization
 
 
 Tracking against changelist in Perforce
-===================================
+=======================================
 
 The ``perforce_change`` descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from their
 Perforce server.
