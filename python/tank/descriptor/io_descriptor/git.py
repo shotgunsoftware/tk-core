@@ -216,7 +216,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             except SubprocessCalledProcessError as e:
                 raise TankGitError(
                     f"Error executing GIT operation '{full_command}': {e.output}"
-                    " (Return code {e.returncode}). "
+                    f" (Return code {e.returncode}). "
                     " Supported GIT version: 1.9+."
                 )
             log.debug("Execution successful. stderr/stdout: '%s'" % output)
