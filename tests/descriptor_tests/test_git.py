@@ -229,3 +229,15 @@ class TestGitIODescriptor(ShotgunTestBase):
         copy_target = os.path.join(self.project_root, "test_copy_target")
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
+
+    @skip_if_git_missing
+    def test_fail(self):
+
+        location_dict = {
+            "type": "git_branch",
+            "path": self.git_repo_uri,
+            "branch": "bad",
+        }
+
+        with self.assertRaises(sgtk.descriptor.errors.TankDescriptorError):
+            self._create_desc(location_dict, True)
