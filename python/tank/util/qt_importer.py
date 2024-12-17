@@ -315,6 +315,7 @@ class QtImporter(object):
         """
 
         import PySide6
+        from PySide6 import QtCore
         import shiboken6
 
         sub_modules = pkgutil.iter_modules(PySide6.__path__)
@@ -336,7 +337,7 @@ class QtImporter(object):
             PySide6.__version__,
             PySide6,
             modules_dict,
-            self._to_version_tuple(PySide6.__version__),
+            self._to_version_tuple(QtCore.qVersion()),
         )
 
     def _to_version_tuple(self, version_str):
