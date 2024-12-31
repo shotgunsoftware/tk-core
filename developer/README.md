@@ -1,6 +1,6 @@
 # Flow Production Tracking Core API
 
-## The `requirements` Folder
+## The `requirements` folder
 
 The `requirements` folder contains subdirectories for different Python versions (e.g., `3.7`, `3.9`, `3.10`, and `3.11`). Each subdirectory includes the following files:
 
@@ -8,13 +8,13 @@ The `requirements` folder contains subdirectories for different Python versions 
 - **`frozen_requirements.txt`**: A frozen version of the dependencies, capturing exact package versions installed to ensure consistent environments.
 - **`pkgs.zip`**: A zip file containing the bundled packages for the corresponding Python version.
 
-### How Bundled Packages Are Used
+### How bundled packages are used
 
 The `tank_vendor` folder no longer contains explicit copies of the required packages. Instead, the `__init__.py` file dynamically references and loads packages directly from the appropriate `pkgs.zip` file in the `requirements` folder.
 
 This approach centralizes the management of dependencies, ensuring that packages are versioned and bundled consistently across different Python versions.
 
-### Handling Imports for Bundled Packages
+### Handling imports for bundled packages
 
 Special care must be taken when adding imports in `tank_vendor/__init__.py` or when using the `register_alone_py_pgks()` function, depending on the type of package added to the `pkgs.zip`.
 
@@ -23,7 +23,7 @@ Special care must be taken when adding imports in `tank_vendor/__init__.py` or w
 
 Incorrect handling of imports or registration can lead to issues such as `ModuleNotFoundError`. Ensure you verify the structure of the package inside `pkgs.zip` to determine the appropriate handling.
 
-### Updating and Creating Bundled Packages
+### Updating and creating bundled packages
 
 The `update_python_packages.py` script automates the creation and maintenance of the `pkgs.zip` file.
 
@@ -37,14 +37,14 @@ The `update_python_packages.py` script automates the creation and maintenance of
 3. Validate that the `pkgs.zip` file contains all necessary packages and matches the updated requirements.
 
 
-### Maintaining Dependencies
+### Maintaining dependencies
 
 When adding new dependencies or updating existing ones:
 1. Update the `requirements.txt` file for the corresponding Python version.
 2. Regenerate the `pkgs.zip` and `frozen_requirements.txt` files using `update_python_packages.py`.
 3. Ensure the `pkgs.zip` file includes all necessary packages and modules.
 
-### Automated CVE Checks
+### Automated CVE checks
 
 The `frozen_requirements.txt` files enable automated checks for vulnerabilities (CVEs) in the bundled packages. These files capture the exact versions of dependencies included in the `pkgs.zip` files, ensuring the application remains secure by providing visibility into potential vulnerabilities.
 
