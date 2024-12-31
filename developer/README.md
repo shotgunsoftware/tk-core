@@ -1,26 +1,55 @@
 # Flow Production Tracking Core API
 
-## How to upgrade pyyaml
+## The `requirements` Folder
 
-This package is a vendor widely used by `sgtk` to parse configuration files
-in YAML format.
+The `requirements` folder contains subdirectories for different Python versions (e.g., `3.7`, `3.9`, `3.10`, and `3.11`). Each subdirectory includes the following files:
 
-This package is shipped in source format, that means that only `*.py` are
-included in `python/tank_vendor/yaml` for python versions 2.7 and 3.
+- **`requirements.txt`**: Specifies the dependencies for the corresponding Python version. This file is primarily used to document which packages are required for the application.
+- **`frozen_requirements.txt`**: A frozen version of the dependencies, capturing exact package versions installed to ensure consistent environments.
+- **`pkgs.zip`**: A zip file containing the bundled packages for the corresponding Python version.
 
-If you need to upgrade this package you can use the script `upgrade_pyyaml.py`.
+### How Bundled Packages Are Used
 
-```shell
-cd tk-core/developer
-python upgrade_pyyaml.py
-```
+The `tank_vendor` folder no longer contains explicit copies of the required packages. Instead, the `__init__.py` file dynamically references and loads packages directly from the appropriate `pkgs.zip` file in the `requirements` folder.
+
+This approach centralizes the management of dependencies, ensuring that packages are versioned and bundled consistently across different Python versions.
+
+### Handling Imports for Bundled Packages
+
+Special care must be taken when adding imports in `tank_vendor/__init__.py` or when using the `register_alone_py_pgks()` function, depending on the type of package added to the `pkgs.zip`.
+
+1. **Single `.py` files**: These packages require explicit registration using the `register_alone_py_pgks()` function. The function dynamically registers these modules under the `tank_vendor` namespace.
+2. **Packages with directories**: These packages are loaded automatically if they follow standard Python package structure (i.e., contain an `__init__.py` file). No additional handling is required.
+
+Incorrect handling of imports or registration can lead to issues such as `ModuleNotFoundError`. Ensure you verify the structure of the package inside `pkgs.zip` to determine the appropriate handling.
+
+### Updating and Creating Bundled Packages
+
+The `update_python_packages.py` script automates the creation and maintenance of the `pkgs.zip` file.
+
+#### Workflow:
+
+1. Update the `requirements.txt` file for the desired Python version.
+2. Run the `update_python_packages.py` script to:
+   - Install the specified dependencies in a temporary directory.
+   - Create or update the `pkgs.zip` file with the required packages.
+   - Generate the `frozen_requirements.txt` file for consistency.
+3. Validate that the `pkgs.zip` file contains all necessary packages and matches the updated requirements.
 
 
-## The requirements.txt file
+### Maintaining Dependencies
 
-The file `developer/requirements.txt` is not used to install any packages,
-however exists so that automated checks for CVEs in dependencies will know about
-bundled packages in `python/tank_vendor`.
+When adding new dependencies or updating existing ones:
+1. Update the `requirements.txt` file for the corresponding Python version.
+2. Regenerate the `pkgs.zip` and `frozen_requirements.txt` files using `update_python_packages.py`.
+3. Ensure the `pkgs.zip` file includes all necessary packages and modules.
 
-For this reason, it's important to add any newly bundled packages to this file,
-and to keep the file up to date if the bundled version of a module changes.
+### Automated CVE Checks
+
+The `frozen_requirements.txt` files enable automated checks for vulnerabilities (CVEs) in the bundled packages. These files capture the exact versions of dependencies included in the `pkgs.zip` files, ensuring the application remains secure by providing visibility into potential vulnerabilities.
+
+### Notes
+
+The dynamic loading mechanism in `tank_vendor/__init__.py` ensures that bundled packages are accessed seamlessly from the `pkgs.zip` files, reducing duplication and simplifying dependency updates.
+
+Careful attention to package structure and appropriate import mechanisms will help avoid runtime issues and ensure smooth integration of new dependencies.
