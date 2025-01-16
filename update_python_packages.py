@@ -110,8 +110,3 @@ with TemporaryDirectory() as temp_dir:
             # Otherwise zip package folders recursively.
             ensure_init_file(full_package_path)
             zip_recursively(pkgsZip, temp_dir, package_name)
-
-    # In case new binaries are added, they should be signed
-    # Otherwise, notarization of desktop app will fail.
-    # See "Adobe Framework" wiki page for help.
-    print("Action Required: Sign the contents of the pkgs.zip file.")
