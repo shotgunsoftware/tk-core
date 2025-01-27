@@ -1,4 +1,4 @@
-distro==1.9.0
-PyYAML==6.0.1
-ruamel.yaml==0.18.7
-six==1.17.0
+distro==1.4.0
+pyyaml==5.4.1
+ruamel_yaml==0.10.10
+six==1.13.0

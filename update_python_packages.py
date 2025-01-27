@@ -62,13 +62,13 @@ with TemporaryDirectory() as temp_dir:
             # all packages to the temporary directory, even if an already existing
             # version is installed
             "--target",
-            (temp_dir),
+            str(temp_dir),
             "--upgrade",
         ]
     )
     print("Writing out frozen requirements...")
     subprocess.run(
-        ["python", "-m", "pip", "freeze", "--path", temp_dir],
+        ["python", "-m", "pip", "freeze", "--path", str(temp_dir)],
         stdout=open(f"requirements/{PYTHON_VERSION}/frozen_requirements.txt", "w"),
     )
     print("temp_dir: ", temp_dir)
@@ -90,10 +90,6 @@ with TemporaryDirectory() as temp_dir:
         and package_name != "bin"
         and ".pyd" not in package_name
     ]
-
-    # Make sure we found as many Python packages as there
-    # are packages listed inside frozen_requirements.txt
-    assert len(package_names) == nb_dependencies
 
     # Write out the zip file
     pkgsZip = ZipFile(

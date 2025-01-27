@@ -7,6 +7,7 @@ from pathlib import Path
 # Dynamically determine the name of the current module (e.g., "tank_vendor").
 MODULE_NAME = Path(__file__).resolve().parent.name
 PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
+# raise Exception(PYTHON_VERSION)
 pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" / PYTHON_VERSION / "pkgs.zip"
 
 # Add pkgs.zip to sys.path if it exists and isn't already present.
