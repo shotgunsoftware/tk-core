@@ -200,46 +200,26 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         output = None
 
-        # note: for windows, we use git -C to point git to the right current
-        # working directory. This requires git 1.9+. This is to ensure that
-        # the solution handles UNC paths, which do not support os.getcwd() operations.
-        #
-        # for other platforms, we omit -C to ensure compatibility with older versions
-        # of git. Centos 7 still ships with 1.8.
+        for command in commands:
+            # we use git -C to specify the working directory where to execute the command
+            # this option was added in as part of git 1.9
+            # and solves an issue with UNC paths on windows.
+            full_command = 'git -C "%s" %s' % (target_path, command)
+            log.debug("Executing '%s'" % full_command)
 
-        cwd = os.getcwd()
-        try:
-            if not is_windows():
-                log.debug("Setting cwd to '%s'" % target_path)
-                os.chdir(target_path)
+            try:
+                output = _check_output(full_command, shell=True)
 
-            for command in commands:
+                # note: it seems on windows, the result is sometimes wrapped in single quotes.
+                output = output.strip().strip("'")
 
-                if is_windows():
-                    # we use git -C to specify the working directory where to execute the command
-                    # this option was added in as part of git 1.9
-                    # and solves an issue with UNC paths on windows.
-                    full_command = 'git -C "%s" %s' % (target_path, command)
-                else:
-                    full_command = "git %s" % command
-
-                log.debug("Executing '%s'" % full_command)
-                try:
-                    output = _check_output(full_command, shell=True)
-
-                    # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                    output = output.strip().strip("'")
-
-                except SubprocessCalledProcessError as e:
-                    raise TankGitError(
-                        "Error executing git operation '%s': %s (Return code %s)"
-                        % (full_command, e.output, e.returncode)
-                    )
-                log.debug("Execution successful. stderr/stdout: '%s'" % output)
-        finally:
-            if not is_windows():
-                log.debug("Restoring cwd (to '%s')" % cwd)
-                os.chdir(cwd)
+            except SubprocessCalledProcessError as e:
+                raise TankGitError(
+                    f"Error executing GIT operation '{full_command}': {e.output}"
+                    f" (Return code {e.returncode}). "
+                    " Supported GIT version: 1.9+."
+                )
+            log.debug("Execution successful. stderr/stdout: '%s'" % output)
 
         # return the last returned stdout/stderr
         return output
