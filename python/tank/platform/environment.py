@@ -853,6 +853,7 @@ class WritableEnvironment(InstalledEnvironment):
             # the ruamel parser doesn't have 2.5 support so
             # only use it on 2.6+
             if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
+                print("_USE_RUAMEL_YAML_PARSER")
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is
                 # written back to disk.
@@ -864,13 +865,17 @@ class WritableEnvironment(InstalledEnvironment):
                 from tank_vendor import ruamel_yaml
 
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
-            else:
-                # use pyyaml parser
-                yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
-        except ImportError:
+            # else:
+            #     # use pyyaml parser
+            #     yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
+            #     print("YAML DATA: %s", yaml_data)
+            #     raise Exceptisson(yaml_data)
+        except ImportError as error:
+            logger.debug("YAML ERROR: %s", error)
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
+            # raise Exceptisson("YAML: ", error)
             yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except Exception as e:
             raise TankError(
