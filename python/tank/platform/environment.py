@@ -862,7 +862,9 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
+                print("SYS.PATH: ", sys.path)
                 from tank_vendor import ruamel_yaml
+                print("RUAMEL_YAML.__FILE__: ", ruamel_yaml.__file__)
 
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             # else:
@@ -870,7 +872,7 @@ class WritableEnvironment(InstalledEnvironment):
             #     yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
             #     print("YAML DATA: %s", yaml_data)
             #     raise Exceptisson(yaml_data)
-        except ImportError as error:
+        except Exception as error:
             logger.debug("YAML ERROR: %s", error)
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when and old version (<= v1.3.20) of
