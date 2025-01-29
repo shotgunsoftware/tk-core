@@ -1,2 +1,0 @@
-include README.rst LICENSE CHANGES setup.py
-recursive-include ext *
