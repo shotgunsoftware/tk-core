@@ -48,5 +48,6 @@ print("DISTRO.__FILE__ from init: ", distro.__file__)
 print("SIX.__FILE__ from init: ", six.__file__)
 print("ruamel.__FILE__ from init: ", ruamel.__file__)
 from ruamel import yaml as ruamel_yaml
+print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
