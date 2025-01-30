@@ -13,7 +13,11 @@ pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" /
 # Add pkgs.zip to sys.path if it exists and isn't already present.
 
 if "ruamel" in sys.modules:
+    ruamel_for_toolchain = sys.modules["ruamel"]
     del sys.modules["ruamel"]
+
+if "ruamel.yaml" in sys.modules:
+    ruamel_yaml_for_toolchain = sys.modules["ruamel.ruamel"]
     del sys.modules["ruamel.yaml"]
 
 if pkgs_zip_path.exists():
@@ -56,3 +60,6 @@ from ruamel import yaml as ruamel_yaml
 print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
+
+sys.path.append(ruamel_for_toolchain)
+sys.path.append(ruamel_yaml_for_toolchain)
