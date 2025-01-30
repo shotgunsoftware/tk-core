@@ -1,6 +1,7 @@
 import importlib.util
 import sys
 import zipfile
+import os
 
 from pathlib import Path
 
@@ -11,13 +12,15 @@ PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
 pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" / PYTHON_VERSION / "pkgs.zip"
 
 # Add pkgs.zip to sys.path if it exists and isn't already present.
-
+site_packages_toolchain = None
 if "ruamel" in sys.modules:
-    ruamel_for_toolchain = sys.modules["ruamel"]
+    import ruamel
+    ruamel_for_toolchain = ruamel.__file__
+    print("ruamel_for_toolchain: ", ruamel_for_toolchain)
+    site_packages_toolchain = os.path.dirname(ruamel_for_toolchain)
     del sys.modules["ruamel"]
 
 if "ruamel.yaml" in sys.modules:
-    ruamel_yaml_for_toolchain = sys.modules["ruamel.yaml"]
     del sys.modules["ruamel.yaml"]
 
 if pkgs_zip_path.exists():
@@ -61,5 +64,5 @@ print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
 
-sys.path.append(ruamel_for_toolchain)
-sys.path.append(ruamel_yaml_for_toolchain)
+if site_packages not in sys.path:
+    sys.path.append(site_packages_toolchain)
