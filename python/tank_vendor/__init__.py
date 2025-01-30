@@ -42,4 +42,5 @@ register_alone_py_pgks()
 import yaml
 import distro
 from ruamel import yaml as ruamel_yaml
+print("sys.path: ", sys.path)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
