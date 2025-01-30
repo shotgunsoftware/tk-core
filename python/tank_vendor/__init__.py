@@ -42,9 +42,9 @@ register_alone_py_pgks()
 import six
 import yaml
 import distro
-print("YAML.__FILE__ from init: ", ruamel_yaml.__file__)
-print("DISTRO.__FILE__ from init: ", ruamel_yaml.__file__)
-print("SIX.__FILE__ from init: ", ruamel_yaml.__file__)
+print("YAML.__FILE__ from init: ", yaml.__file__)
+print("DISTRO.__FILE__ from init: ", distro.__file__)
+print("SIX.__FILE__ from init: ", six.__file__)
 from ruamel import yaml as ruamel_yaml
 print("sys.path: ", sys.path)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
