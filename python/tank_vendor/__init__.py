@@ -64,5 +64,5 @@ print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
 
-if site_packages not in sys.path:
+if site_packages_toolchain not in sys.path:
     sys.path.append(site_packages_toolchain)
