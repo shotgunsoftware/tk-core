@@ -17,7 +17,7 @@ if "ruamel" in sys.modules:
     del sys.modules["ruamel"]
 
 if "ruamel.yaml" in sys.modules:
-    ruamel_yaml_for_toolchain = sys.modules["ruamel.ruamel"]
+    ruamel_yaml_for_toolchain = sys.modules["ruamel.yaml"]
     del sys.modules["ruamel.yaml"]
 
 if pkgs_zip_path.exists():
