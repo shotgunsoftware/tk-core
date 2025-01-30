@@ -14,6 +14,7 @@ pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" /
 
 if "ruamel" in sys.modules:
     del sys.modules["ruamel"]
+    del sys.modules["ruamel.yaml"]
 
 if pkgs_zip_path.exists():
     sys.path.insert(0, str(pkgs_zip_path))
