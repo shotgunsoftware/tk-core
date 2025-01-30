@@ -11,6 +11,10 @@ PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
 pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" / PYTHON_VERSION / "pkgs.zip"
 
 # Add pkgs.zip to sys.path if it exists and isn't already present.
+
+if "ruamel" in sys.modules:
+    del sys.modules["ruamel"]
+
 if pkgs_zip_path.exists():
     sys.path.insert(0, str(pkgs_zip_path))
 
