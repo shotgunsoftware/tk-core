@@ -28,7 +28,6 @@ def load_ruamel_yaml():
     try:
         # Intentar importación normal
         import tank_vendor.ruamel_yaml
-        return ruamel_yaml
     except ModuleNotFoundError:
         # Si no está en sys.path, usar importlib para cargarlo
         ruamel_yaml_spec = importlib.util.find_spec("ruamel.yaml")
@@ -71,7 +70,7 @@ import distro
 print("YAML.__FILE__ from init: ", yaml.__file__)
 print("DISTRO.__FILE__ from init: ", distro.__file__)
 print("SIX.__FILE__ from init: ", six.__file__)
-ruamel_yaml = load_ruamel_yaml()
+from tank_vendor import ruamel_yaml
 print("RUAMEL_YAML.__FILE__ from load function: ", ruamel_yaml.__file__)
 print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
