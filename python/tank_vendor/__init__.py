@@ -13,12 +13,23 @@ pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" /
 
 # Add pkgs.zip to sys.path if it exists and isn't already present.
 
-for mod in ["ruamel", "ruamel.yaml"]:
-    if mod in sys.modules:
-        del sys.modules[mod]
 
 if pkgs_zip_path.exists():
     sys.path.insert(0, str(pkgs_zip_path))
+
+
+def load_ruamel_yaml():
+    for mod in list(sys.modules):
+        if mod.startswith("ruamel"):
+            del sys.modules[mod]
+
+    ruamel_yaml_spec = importlib.util.find_spec("ruamel.yaml")
+    if ruamel_yaml_spec:
+        ruamel_yaml = importlib.util.module_from_spec(ruamel_yaml_spec)
+        ruamel_yaml_spec.loader.exec_module(ruamel_yaml)
+        sys.modules["tank_vendor.ruamel_yaml"] = ruamel_yaml
+    else:
+        raise ImportError(f"No se pudo encontrar 'ruamel.yaml' en {pkgs_zip_path}")
 
 
 def register_alone_py_pgks():
@@ -48,9 +59,8 @@ register_alone_py_pgks()
 import six
 import yaml
 import distro
-importlib.invalidate_caches()
-import ruamel
-from ruamel import yaml as ruamel_yaml  
+ruamel_yaml = load_ruamel_yaml()
+print("RUAMEL_YAML.__FILE__ from load function: ", ruamel_yaml.__file__)
 print("YAML.__FILE__ from init: ", yaml.__file__)
 print("DISTRO.__FILE__ from init: ", distro.__file__)
 print("SIX.__FILE__ from init: ", six.__file__)
