@@ -19,17 +19,26 @@ if pkgs_zip_path.exists():
 
 
 def load_ruamel_yaml():
+    """Carga ruamel.yaml asegurando que se use la versión correcta desde tank_vendor."""
+    # Eliminar ruamel del cache de módulos si ya está cargado
     for mod in list(sys.modules):
         if mod.startswith("ruamel"):
             del sys.modules[mod]
 
-    ruamel_yaml_spec = importlib.util.find_spec("ruamel.yaml")
-    if ruamel_yaml_spec:
-        ruamel_yaml = importlib.util.module_from_spec(ruamel_yaml_spec)
-        ruamel_yaml_spec.loader.exec_module(ruamel_yaml)
-        sys.modules["tank_vendor.ruamel_yaml"] = ruamel_yaml
-    else:
-        raise ImportError(f"No se pudo encontrar 'ruamel.yaml' en {pkgs_zip_path}")
+    try:
+        # Intentar importación normal
+        from ruamel import yaml as ruamel_yaml
+        return ruamel_yaml
+    except ModuleNotFoundError:
+        # Si no está en sys.path, usar importlib para cargarlo
+        ruamel_yaml_spec = importlib.util.find_spec("ruamel.yaml")
+        if ruamel_yaml_spec:
+            ruamel_yaml = importlib.util.module_from_spec(ruamel_yaml_spec)
+            ruamel_yaml_spec.loader.exec_module(ruamel_yaml)
+            sys.modules["tank_vendor.ruamel_yaml"] = ruamel_yaml
+            return ruamel_yaml
+        else:
+            raise ImportError(f"No se pudo encontrar 'ruamel.yaml' en {pkgs_zip_path}")
 
 
 def register_alone_py_pgks():
@@ -59,12 +68,10 @@ register_alone_py_pgks()
 import six
 import yaml
 import distro
-ruamel_yaml = load_ruamel_yaml()
-print("RUAMEL_YAML.__FILE__ from load function: ", ruamel_yaml.__file__)
 print("YAML.__FILE__ from init: ", yaml.__file__)
 print("DISTRO.__FILE__ from init: ", distro.__file__)
 print("SIX.__FILE__ from init: ", six.__file__)
-print("RUAMEL.__FILE__ from init: ", ruamel.__file__)
-print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
+ruamel_yaml = load_ruamel_yaml()
+print("RUAMEL_YAML.__FILE__ from load function: ", ruamel_yaml.__file__)
 print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
