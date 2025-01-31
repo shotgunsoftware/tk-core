@@ -360,6 +360,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
                     return str(self.json_data)
 
             uri = args[0]
+            print("URI: ", uri)
             if uri == "http://unit_test_mock_sg/api3/sgtk_install_script":
                 return MockResponse(
                     {
