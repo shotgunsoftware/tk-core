@@ -12,10 +12,9 @@ pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" /
 
 # Add pkgs.zip to sys.path if it exists and isn't already present.
 
-if "ruamel" in sys.modules:
-    del sys.modules["ruamel"]
-if "ruamel" in sys.modules:
-    del sys.modules["ruamel.yaml"]
+for mod in ["ruamel", "ruamel.yaml"]:
+    if mod in sys.modules:
+        del sys.modules[mod]
 
 if pkgs_zip_path.exists():
     sys.path.insert(0, str(pkgs_zip_path))
@@ -48,13 +47,13 @@ register_alone_py_pgks()
 import six
 import yaml
 import distro
+importlib.invalidate_caches()
 import ruamel
+from ruamel import yaml as ruamel_yaml  
 print("YAML.__FILE__ from init: ", yaml.__file__)
 print("DISTRO.__FILE__ from init: ", distro.__file__)
 print("SIX.__FILE__ from init: ", six.__file__)
-print("ruamel.__FILE__ from init: ", ruamel.__file__)
-ruamel_yaml = ruamel.yaml
-# from ruamel import yaml as ruamel_yaml
+print("RUAMEL.__FILE__ from init: ", ruamel.__file__)
 print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
 print("sys.modules: ", sys.modules)
 print("sys.path: ", sys.path)
