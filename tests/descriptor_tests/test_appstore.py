@@ -380,6 +380,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
             """
             pass
 
+        print("SHOTGUN_MOCK: ", shotgun_mock)
         shotgun_mock.side_effect = shotgun_mock_impl
         urlopen_mock.side_effect = urlopen_mock_impl
 
