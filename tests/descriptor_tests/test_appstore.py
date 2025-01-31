@@ -332,6 +332,14 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         Tests that we can prevent connection to the app store based on usage
         of the `SHOTGUN_DISABLE_APPSTORE_ACCESS` environment variable.
         """
+        print("Shotgun mock call history:", shotgun_mock.call_args_list)
+        try:
+            from tank_vendor.shotgun_api3 import Shotgun
+            from tank_vendor.six.moves.urllib.request import urlopen
+            from tank_vendor import six as requestt
+            print("requestt.__file__: ", requestt.__file__)
+        except Exception as error:
+            print("ERROR: ", error)
 
         def urlopen_mock_impl(*args, **kwargs):
             """
