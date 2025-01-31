@@ -27,7 +27,7 @@ def load_ruamel_yaml():
 
     try:
         # Intentar importación normal
-        from tank_vendor.ruamel import yaml as ruamel_yaml
+        import tank_vendor.ruamel_yaml
         return ruamel_yaml
     except ModuleNotFoundError:
         # Si no está en sys.path, usar importlib para cargarlo
