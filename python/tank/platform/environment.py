@@ -16,7 +16,8 @@ Environment Settings Object and access.
 import os
 import sys
 import copy
-
+import tank_vendor
+print("TANK_VENDOR.__FILE__: ", tank_vendor.__file__)
 from tank_vendor import yaml
 from .bundle import resolve_default_value
 from . import constants
