@@ -13,8 +13,8 @@ pkgs_zip_path = Path(__file__).resolve().parent.parent.parent / "requirements" /
 
 # Add pkgs.zip to sys.path if it exists and isn't already present.
 site_packages_toolchain = None
+import ruamel
 if "ruamel" in sys.modules:
-    import ruamel
     ruamel_for_toolchain = ruamel.__file__
     print("ruamel_for_toolchain: ", ruamel_for_toolchain)
     site_packages_toolchain = os.path.dirname(ruamel_for_toolchain)
