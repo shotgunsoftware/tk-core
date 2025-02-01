@@ -342,6 +342,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
             print("ERROR: ", error)
 
         def urlopen_mock_impl(*args, **kwargs):
+            print("FUNCTION urlopen_mock_impl: ")
             """
             Necessary mock so we can pass beyond:
             - `
@@ -381,6 +382,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
             return MockResponse(None, 404)
 
         def shotgun_mock_impl(*args, **kwargs):
+            print("FNCTION shotgun_mock_impl")
             """
             Mocking up shotgun_api3.Shotgun() constructor.
             We're not really interested in mocking what it does as much as
@@ -389,9 +391,12 @@ class TestAppStoreConnectivity(ShotgunTestBase):
             """
             pass
 
-        print("SHOTGUN_MOCK: ", shotgun_mock)
-        shotgun_mock.side_effect = shotgun_mock_impl
-        urlopen_mock.side_effect = urlopen_mock_impl
+        print("SHOTGUN_MOCK_IMPL: ", shotgun_mock_impl)
+        print("URLOPEN_MOCK_IMPL: ", urlopen_mock_impl)
+        print("SHOTGUN_MOCk: ", shotgun_mock)
+        print("URLOPEN_MOCK: ", urlopen_mock)
+        shotgun_mock.side_effect = shotgun_mock_impl()
+        urlopen_mock.side_effect = urlopen_mock_impl()
 
         # NOTE: We're not using the tank.descriptor.constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
         # constant so we can independently tests that the name of the used environment
