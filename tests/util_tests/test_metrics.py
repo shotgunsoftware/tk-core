@@ -748,6 +748,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         Helper method checking that batch size are limited to N elements.
         :param kwargs:
         """
+        print("_MOCKED_URLOPEN_FOR_TEST_MAXIMUM_BATCH_SIZE: ")
         test_instance = args[0]
         millis = int(round(time.time() * 1000))
         test_instance.mock_calls_timestamp.append(millis)
