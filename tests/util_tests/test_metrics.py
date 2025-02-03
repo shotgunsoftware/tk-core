@@ -847,6 +847,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
+        import tank_vendor.six.moves.urllib.request as requestts
+        print("requestts: ", requestts)
+        print("dir(requestt): ", dir(requestts)) 
         self._urlopen_mock = mock.patch(
             "tank_vendor.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
@@ -882,6 +885,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Checking overall cycle average time NOT individual cycle time
         max_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL * 1000
         count = len(self.mock_calls_timestamp)
+        print("COUNT: ", count)
         first_timestamp_ms = self.mock_calls_timestamp[0]
         last_timestamp_ms = self.mock_calls_timestamp[count - 1]
         avg_time_ms = (last_timestamp_ms - first_timestamp_ms) / count
