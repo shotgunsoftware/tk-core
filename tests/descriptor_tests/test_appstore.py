@@ -395,8 +395,8 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         print("URLOPEN_MOCK_IMPL: ", urlopen_mock_impl)
         print("SHOTGUN_MOCk: ", shotgun_mock)
         print("URLOPEN_MOCK: ", urlopen_mock)
-        shotgun_mock.side_effect = shotgun_mock_impl()
-        urlopen_mock.side_effect = urlopen_mock_impl()
+        shotgun_mock.side_effect = shotgun_mock_impl
+        urlopen_mock.side_effect = urlopen_mock_impl
 
         # NOTE: We're not using the tank.descriptor.constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
         # constant so we can independently tests that the name of the used environment
