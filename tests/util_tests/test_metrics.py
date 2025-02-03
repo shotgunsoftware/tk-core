@@ -751,6 +751,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         print("_MOCKED_URLOPEN_FOR_TEST_MAXIMUM_BATCH_SIZE: ")
         test_instance = args[0]
         millis = int(round(time.time() * 1000))
+        print("millis: ", millis)
         test_instance.mock_calls_timestamp.append(millis)
 
         data = metrics = args[1].data
