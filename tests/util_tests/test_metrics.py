@@ -851,6 +851,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock = None
         import tank_vendor.six.moves.urllib.request as requestts
         print("requestts: ", requestts)
+        print("requests.urlopen: ", requestts.urlopen)
         print("dir(requestt): ", dir(requestts)) 
         self._urlopen_mock = mock.patch(
             "tank_vendor.six.moves.urllib.request.urlopen",
