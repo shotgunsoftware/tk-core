@@ -867,17 +867,13 @@ class WritableEnvironment(InstalledEnvironment):
                 print("RUAMEL_YAML.__FILE__: ", ruamel_yaml.__file__)
 
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
-            # else:
-            #     # use pyyaml parser
-            #     yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
-            #     print("YAML DATA: %s", yaml_data)
-            #     raise Exceptisson(yaml_data)
-        except Exception as error:
-            logger.debug("YAML ERROR: %s", error)
+            else:
+                # use pyyaml parser
+                yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
+        except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
-            # raise Exceptisson("YAML: ", error)
             yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except Exception as e:
             raise TankError(
