@@ -41,5 +41,5 @@ register_alone_py_pgks()
 # Import additional libraries from pkgs.zip or the global environment.
 import yaml
 import distro
-from ruamel import yaml as ruamel_yaml
-print("RUAMEL_YAML.__FILE__ from init: ", ruamel_yaml.__file__)
+from tank_vendor import six
+from tank_vendor import ruamel_yaml
