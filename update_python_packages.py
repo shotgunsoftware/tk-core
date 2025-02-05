@@ -85,11 +85,13 @@ with TemporaryDirectory() as temp_dir:
     package_names = [
         package_name
         for package_name in os.listdir(temp_dir)
-        if all([
-            "info" not in package_name,
-            package_name != "bin",
-            ".pyd" not in package_name,
-        ])
+        if all(
+            [
+                "info" not in package_name,
+                package_name != "bin",
+                ".pyd" not in package_name,
+            ]
+        )
     ]
 
     # Write out the zip file
