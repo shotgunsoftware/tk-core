@@ -71,7 +71,6 @@ with TemporaryDirectory() as temp_dir:
         ["python", "-m", "pip", "freeze", "--path", str(temp_dir)],
         stdout=open(f"requirements/{PYTHON_VERSION}/frozen_requirements.txt", "w"),
     )
-    print("temp_dir: ", temp_dir)
     # Quickly compute the number of requirements we have.
     nb_dependencies = len(
         [
@@ -86,9 +85,11 @@ with TemporaryDirectory() as temp_dir:
     package_names = [
         package_name
         for package_name in os.listdir(temp_dir)
-        if "info" not in package_name
-        and package_name != "bin"
-        and ".pyd" not in package_name
+        if all([
+            "info" not in package_name,
+            package_name != "bin",
+            ".pyd" not in package_name,
+        ])
     ]
 
     # Write out the zip file

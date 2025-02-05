@@ -862,9 +862,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
-                print("SYS.PATH: ", sys.path)
                 from tank_vendor import ruamel_yaml
-                print("RUAMEL_YAML.__FILE__: ", ruamel_yaml.__file__)
 
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             else:
