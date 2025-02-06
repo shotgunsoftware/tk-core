@@ -11,7 +11,7 @@
 
 import os
 import pathlib
-import subprocess
+import subprocess # nosec
 import sys
 import tempfile
 import zipfile
@@ -53,6 +53,7 @@ def ensure_init_file(package_dir):
             init_file_path = pathlib.Path(root) / "__init__.py"
             with open(init_file_path, "w") as f:
                 f.write("")
+
 
 def main():
     with tempfile.TemporaryDirectory() as temp_dir:
