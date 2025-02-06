@@ -16,9 +16,9 @@ This approach centralizes the management of dependencies, ensuring that packages
 
 ### Handling imports for bundled packages
 
-Special care must be taken when adding imports in `tank_vendor/__init__.py` or when using the `register_alone_py_pgks()` function, depending on the type of package added to the `pkgs.zip`.
+Special care must be taken when adding imports in `tank_vendor/__init__.py` or when using the `register_alone_pgks()` function, depending on the type of package added to the `pkgs.zip`.
 
-1. **Single `.py` files**: These packages require explicit registration using the `register_alone_py_pgks()` function. The function dynamically registers these modules under the `tank_vendor` namespace.
+1. **Single `.py` files**: These packages require explicit registration using the `register_alone_pgks()` function. The function dynamically registers these modules under the `tank_vendor` namespace.
 2. **Packages with directories**: These packages are loaded automatically if they follow standard Python package structure (i.e., contain an `__init__.py` file). No additional handling is required.
 
 Incorrect handling of imports or registration can lead to issues such as `ModuleNotFoundError`. Ensure you verify the structure of the package inside `pkgs.zip` to determine the appropriate handling.

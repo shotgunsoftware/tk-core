@@ -853,7 +853,6 @@ class WritableEnvironment(InstalledEnvironment):
             # the ruamel parser doesn't have 2.5 support so
             # only use it on 2.6+
             if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
-                print("_USE_RUAMEL_YAML_PARSER")
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is
                 # written back to disk.
