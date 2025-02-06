@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core &mdash; tk-core v0.21.8 documentation</title>
+  <title>Core &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -274,7 +274,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -548,7 +548,7 @@ using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.l
 <dt class="sig sig-object py" id="sgtk.Sgtk.templates_from_path">
 <span class="sig-name descname"><span class="pre">templates_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.templates_from_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Sgtk.templates_from_path" title="Permalink to this definition"></a></dt>
 <dd><p>Finds templates that matches the given path:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj/assets/Car/Anim/work&quot;</span><span class="p">)</span>
 <span class="go">&lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
@@ -568,7 +568,7 @@ using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.l
 <dt class="sig sig-object py" id="sgtk.Sgtk.template_from_path">
 <span class="sig-name descname"><span class="pre">template_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.template_from_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Sgtk.template_from_path" title="Permalink to this definition"></a></dt>
 <dd><p>Finds a template that matches the given path:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj/assets/Car/Anim/work&quot;</span><span class="p">)</span>
 <span class="go">&lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
@@ -605,7 +605,7 @@ that key as well as those that don’t will be included in the result.</p>
 <p>The result is not ordered in any particular way.</p>
 </div>
 <p>Imagine you have a template <code class="docutils literal notranslate"><span class="pre">maya_work:</span> <span class="pre">sequences/{Sequence}/{Shot}/work/{name}.v{version}.ma</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">maya_work</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_work&quot;</span><span class="p">]</span>
 </pre></div>
@@ -661,7 +661,7 @@ fields are abstract by default.</p>
 <p>The result is not ordered in any particular way.</p>
 </div>
 <p>Imagine you have a template <code class="docutils literal notranslate"><span class="pre">render:</span> <span class="pre">sequences/{Sequence}/{Shot}/images/{eye}/{name}.{SEQ}.exr</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">render</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;render&quot;</span><span class="p">]</span>
 </pre></div>
@@ -1112,7 +1112,7 @@ and <a class="reference internal" href="#sgtk.Sgtk.context_from_path" title="sgt
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">project</span></span><a class="headerlink" href="#sgtk.Context.project" title="Permalink to this definition"></a></dt>
 <dd><p>The shotgun project associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
@@ -1131,7 +1131,7 @@ and <a class="reference internal" href="#sgtk.Sgtk.context_from_path" title="sgt
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">entity</span></span><a class="headerlink" href="#sgtk.Context.entity" title="Permalink to this definition"></a></dt>
 <dd><p>The shotgun entity associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity</span>
@@ -1175,7 +1175,7 @@ was constructured from a PublishedFile.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">step</span></span><a class="headerlink" href="#sgtk.Context.step" title="Permalink to this definition"></a></dt>
 <dd><p>The shotgun step associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">step</span>
@@ -1194,7 +1194,7 @@ was constructured from a PublishedFile.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">task</span></span><a class="headerlink" href="#sgtk.Context.task" title="Permalink to this definition"></a></dt>
 <dd><p>The shotgun task associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/first_pass_lgt/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">task</span>
@@ -1215,7 +1215,7 @@ was constructured from a PublishedFile.</p>
 If the context is incomplete, it is possible that the property is None.</p>
 <p>The user property is special - either it represents a user value that was baked
 into a template path upon folder creation, or it represents the current user:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
@@ -1253,7 +1253,7 @@ Will be an empty list in most cases.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">entity_locations</span></span><a class="headerlink" href="#sgtk.Context.entity_locations" title="Permalink to this definition"></a></dt>
 <dd><p>A list of paths on disk which correspond to the <strong>entity</strong> which this context represents.
 If no folders have been created for this context yet, the value of this property will be an empty list:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity_locations</span>
@@ -1273,7 +1273,7 @@ If no folders have been created for this context yet, the value of this property
 <dd><p>Returns the shotgun detail page url that best represents this context. Depending on
 the context, this may be a task, a shot, an asset or a project. If the context is
 completely empty, the root url of the associated shotgun installation is returned.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">shotgun_url</span>
@@ -1287,7 +1287,7 @@ completely empty, the root url of the associated shotgun installation is returne
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">filesystem_locations</span></span><a class="headerlink" href="#sgtk.Context.filesystem_locations" title="Permalink to this definition"></a></dt>
 <dd><p>A property which holds a list of paths on disk which correspond to this context.
 If no folders have been created for this context yet, the value of this property will be an empty list:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">filesystem_locations</span>
@@ -1324,7 +1324,7 @@ shotgun_entity_type and shotgun_entity_field settings, direct queries to the Sho
 server. The validate parameter can be used to ensure that the method returns all
 context fields required by the template and if it can’t then a <a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a> will be raised.
 Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 
 <span class="go"># Create a template based on a path on disk. Because this path has been</span>
@@ -1385,7 +1385,7 @@ and any of the context fields for the template weren’t found.</p>
 <dd><p>Provides the ability to create a copy of an existing Context for a specific user.</p>
 <p>This is useful if you need to determine a user specific version of a path, e.g.
 when copying files between different user sandboxes. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
@@ -1415,7 +1415,7 @@ This can be useful if you need to pass a Context between different processes.
 As an example, the <code class="docutils literal notranslate"><span class="pre">tk-multi-launchapp</span></code> uses this mechanism to pass the Context
 from the launch process (e.g. for example PTR desktop app) to the
 Application (e.g. Maya) being launched. Example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context_str</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
@@ -1525,7 +1525,7 @@ global commands will be returned. These commands can be executed
 at any point and do not require a project or a configuration to
 be present. Examples of such commands are the core upgrade
 check and the setup_project commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
 <span class="go">[&#39;setup_project&#39;, &#39;core&#39;]</span>
 </pre></div>
@@ -1536,7 +1536,7 @@ are available in the context of a project configuration will be returned.
 This includes for example commands for configuration management,
 anything app or engine related and validation and overview functionality.
 In addition to these commands, the global commands will also be returned:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
 <span class="go">[&#39;setup_project&#39;, &#39;core&#39;, &#39;localize&#39;, &#39;validate&#39;, &#39;cache_apps&#39;, &#39;clear_cache&#39;,</span>
@@ -1589,7 +1589,7 @@ using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.l
 name, description, parameters etc. Execution is carried out by calling the <a class="reference internal" href="#sgtk.SgtkSystemCommand.execute" title="sgtk.SgtkSystemCommand.execute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">execute()</span></code></a> method.</p>
 <p>For a global command which doesn’t require an active configuration,
 execution typically looks like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
 <span class="go">[&#39;setup_project&#39;, &#39;core&#39;]</span>
@@ -1790,12 +1790,12 @@ of when this is useful is Disk I/O, launching of applications, DCC-specific logi
 way to expose the actual loading logic, so that not only can be customized by a user, but
 so that you could even add support for a new DCC to your load app without having to update it.</p>
 <p>First, you would create a <code class="docutils literal notranslate"><span class="pre">hooks/actions.py</span></code> file in your app. This would contain a hook class:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">Actions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Actions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Given some Shotgun publish data, return a list of</span>
 <span class="sd">        actions that can be performed</span>
@@ -1807,7 +1807,7 @@ so that you could even add support for a new DCC to your load app without having
         <span class="c1"># the item in Shotgun</span>
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;show_in_sg&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Execute the given action</span>
 
@@ -1853,12 +1853,12 @@ engine, you want to be able to import maya files into maya. We implement this by
 custom publish hook for maya. This can either be placed with the app itself, in the <code class="docutils literal notranslate"><span class="pre">hooks</span></code>
 folder in the configuration, or in the maya engine. In this case, we’ll add a <code class="docutils literal notranslate"><span class="pre">hooks/actions.py</span></code>
 to the maya engine. This file looks like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">MayaActions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MayaActions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Given some Shotgun publish data, return a list of</span>
 <span class="sd">        actions that can be performed</span>
@@ -1873,7 +1873,7 @@ to the maya engine. This file looks like this:</p>
         <span class="k">if</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Maya Scene&quot;</span><span class="p">:</span>
             <span class="n">actions</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span> <span class="s2">&quot;import&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Execute the given action</span>
 
@@ -2036,12 +2036,12 @@ under <code class="docutils literal notranslate"><span class="pre">sgtk.core.hoo
 <p>If you have complex logic and functionality and want to manage (and version it) as part
 of a framework rather than in a hook, you can do this by calling a configured framework
 from inside a hook:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">SomeHook</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SomeHook</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="c1"># first get a framework handle. This object is similar to an app or engine object</span>
         <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-library_v1.x.x&quot;</span><span class="p">)</span>
@@ -3199,7 +3199,7 @@ execute token specific logic.</p>
 <p>TemplateKeys are used by Template object to move between key values and resolved strings.
 The template keys handle the manner in which this conversion should occur. Template keys come
 in four flavors: string, integer, sequence and timestamp:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
 
 
@@ -3825,7 +3825,7 @@ set self.__traceback__ to tb and return self.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

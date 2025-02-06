@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>cache_location &mdash; tk-core v0.21.8 documentation</title>
+  <title>cache_location &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,16 +143,16 @@
 <span class="sd">Hook to control path cache and bundle cache folder creation.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">sgtk</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">sgtk.util</span> <span class="kn">import</span> <span class="n">filesystem</span><span class="p">,</span> <span class="n">LocalFileStorageManager</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">filesystem</span><span class="p">,</span> <span class="n">LocalFileStorageManager</span>
 
 <span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="CacheLocation"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation">[docs]</a><span class="k">class</span> <span class="nc">CacheLocation</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
-<div class="viewcode-block" id="CacheLocation.get_path_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_path_cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_path_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">):</span>
+<div class="viewcode-block" id="CacheLocation"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CacheLocation</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<div class="viewcode-block" id="CacheLocation.get_path_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_path_cache_path">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_path_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Establish a location for the path cache database file.</span>
 
@@ -241,7 +241,7 @@
 
         <span class="k">return</span> <span class="n">target_path</span></div>
 
-<div class="viewcode-block" id="CacheLocation.get_bundle_data_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_bundle_data_cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_bundle_data_cache_path</span><span class="p">(</span>
+<div class="viewcode-block" id="CacheLocation.get_bundle_data_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_bundle_data_cache_path">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_bundle_data_cache_path</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">bundle</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -356,7 +356,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

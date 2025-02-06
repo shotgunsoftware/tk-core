@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -142,34 +142,34 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Logic for publishing files to Shotgun.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
-<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">urllib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
 
-<span class="kn">from</span> <span class="nn">.publish_util</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.publish_util</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_published_file_entity_type</span><span class="p">,</span>
     <span class="n">get_cached_local_storages</span><span class="p">,</span>
     <span class="n">find_publish</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">ShotgunPublishError</span>
-<span class="kn">from</span> <span class="nn">...errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankMultipleMatchingTemplatesError</span>
-<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPublishError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankMultipleMatchingTemplatesError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..shotgun_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">login</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">sgutils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgutils</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="register_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.register_publish">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Published File in Shotgun.</span>
 
@@ -488,7 +488,7 @@
             <span class="k">raise</span> <span class="n">ShotgunPublishError</span><span class="p">(</span><span class="n">error_message</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_create_published_file</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_published_file</span><span class="p">(</span>
     <span class="n">tk</span><span class="p">,</span>
     <span class="n">context</span><span class="p">,</span>
     <span class="n">path</span><span class="p">,</span>
@@ -766,7 +766,7 @@
         <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates abstract fields for a path into the default abstract value.</span>
 <span class="sd">    For example, the path /foo/bar/xyz.0003.exr will be transformed into</span>
@@ -811,7 +811,7 @@
     <span class="k">return</span> <span class="n">path</span>
 
 
-<span class="k">def</span> <span class="nf">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">publish_entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_dependencies</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">publish_entity</span><span class="p">,</span> <span class="n">dependency_paths</span><span class="p">,</span> <span class="n">dependency_ids</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates dependencies in shotgun from a given entity to</span>
 <span class="sd">    a list of paths and ids. Paths not recognized are skipped.</span>
@@ -897,7 +897,7 @@
         <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">sg_batch_data</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">project_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">project_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates root path name and relative path (including project directory).</span>
 <span class="sd">    returns (root_name, path_cache). The relative path is always using forward</span>
@@ -971,7 +971,7 @@
     <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
 
-<span class="k">def</span> <span class="nf">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">only_current_project</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">only_current_project</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a list of paths on disk, groups them into a data structure suitable for</span>
 <span class="sd">    shotgun. In shotgun, the path_cache field contains an abstracted representation</span>
@@ -1051,7 +1051,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

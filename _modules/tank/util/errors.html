@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.errors &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.errors &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,21 +143,21 @@
 <span class="sd">Utilities related errors.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 
 
-<span class="k">class</span> <span class="nc">ShotgunAttachmentDownloadError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShotgunAttachmentDownloadError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised when a Shotgun attachment could not be downloaded</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">UnresolvableCoreConfigurationError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnresolvableCoreConfigurationError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raises when Toolkit is not able to resolve the path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_path_to_file</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_path_to_file</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str full_path_to_file: Path to the folder where shotgun.yml was expected.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -170,13 +170,13 @@
         <span class="p">)</span>
 
 
-<div class="viewcode-block" id="EnvironmentVariableFileLookupError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.EnvironmentVariableFileLookupError">[docs]</a><span class="k">class</span> <span class="nc">EnvironmentVariableFileLookupError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<div class="viewcode-block" id="EnvironmentVariableFileLookupError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.EnvironmentVariableFileLookupError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">EnvironmentVariableFileLookupError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised when an environment variable specifying a location points to configuration</span>
 <span class="sd">    file that doesn&#39;t exist.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str var_name: Name of the environment variable used.</span>
 <span class="sd">        :param str path: Path to the configuration file that doesn&#39;t exist.</span>
@@ -188,7 +188,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ShotgunPublishError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPublishError">[docs]</a><span class="k">class</span> <span class="nc">ShotgunPublishError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPublishError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPublishError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ShotgunPublishError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised when Toolkit is not able to register a published file in Shotgun.</span>
 
@@ -198,7 +198,7 @@
 <span class="sd">    available in the &#39;entity&#39; property.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_message</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_message</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str error_message: An error message, typically coming from a caught exception.</span>
 <span class="sd">        :param dict entity: The Shotgun entity which was created, if any.</span>
@@ -221,7 +221,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="PublishResolveError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishResolveError">[docs]</a><span class="k">class</span> <span class="nc">PublishResolveError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
+<div class="viewcode-block" id="PublishResolveError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishResolveError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">PublishResolveError</span><span class="p">(</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all errors relating to resolution of paths from publishes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -229,7 +229,7 @@
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="PublishPathNotDefinedError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishPathNotDefinedError">[docs]</a><span class="k">class</span> <span class="nc">PublishPathNotDefinedError</span><span class="p">(</span><span class="n">PublishResolveError</span><span class="p">):</span>
+<div class="viewcode-block" id="PublishPathNotDefinedError"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishPathNotDefinedError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">PublishPathNotDefinedError</span><span class="p">(</span><span class="n">PublishResolveError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception raised when a publish does not have a path</span>
 <span class="sd">    defined for the current operating system platform. It</span>
@@ -240,7 +240,7 @@
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="PublishPathNotSupported"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishPathNotSupported">[docs]</a><span class="k">class</span> <span class="nc">PublishPathNotSupported</span><span class="p">(</span><span class="n">PublishResolveError</span><span class="p">):</span>
+<div class="viewcode-block" id="PublishPathNotSupported"><a class="viewcode-back" href="../../../utils.html#sgtk.util.PublishPathNotSupported">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">PublishPathNotSupported</span><span class="p">(</span><span class="n">PublishResolveError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception raised when a publish has a path defined but it is using a path</span>
 <span class="sd">    definition that cannot be resolved into a local path. This includes for</span>
@@ -257,7 +257,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

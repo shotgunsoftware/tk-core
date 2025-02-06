@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>context_change &mdash; tk-core v0.21.8 documentation</title>
+  <title>context_change &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,10 +143,10 @@
 <span class="sd">This hook gets executed before and after the context changes in Toolkit.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">tank</span> <span class="kn">import</span> <span class="n">get_hook_baseclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_hook_baseclass</span>
 
 
-<div class="viewcode-block" id="ContextChange"><a class="viewcode-back" href="../core.html#context_change.ContextChange">[docs]</a><span class="k">class</span> <span class="nc">ContextChange</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
+<div class="viewcode-block" id="ContextChange"><a class="viewcode-back" href="../core.html#context_change.ContextChange">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ContextChange</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    - If an engine **starts up**, the ``current_context`` passed to the hook</span>
 <span class="sd">      methods will be ``None`` and the ``next_context`` parameter will be set</span>
@@ -169,7 +169,7 @@
 <span class="sd">       ``!=`` operator.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ContextChange.pre_context_change"><a class="viewcode-back" href="../core.html#context_change.ContextChange.pre_context_change">[docs]</a>    <span class="k">def</span> <span class="nf">pre_context_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_context</span><span class="p">,</span> <span class="n">next_context</span><span class="p">):</span>
+<div class="viewcode-block" id="ContextChange.pre_context_change"><a class="viewcode-back" href="../core.html#context_change.ContextChange.pre_context_change">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">pre_context_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_context</span><span class="p">,</span> <span class="n">next_context</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executed before the context has changed.</span>
 
@@ -182,7 +182,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="ContextChange.post_context_change"><a class="viewcode-back" href="../core.html#context_change.ContextChange.post_context_change">[docs]</a>    <span class="k">def</span> <span class="nf">post_context_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">previous_context</span><span class="p">,</span> <span class="n">current_context</span><span class="p">):</span>
+<div class="viewcode-block" id="ContextChange.post_context_change"><a class="viewcode-back" href="../core.html#context_change.ContextChange.post_context_change">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">post_context_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">previous_context</span><span class="p">,</span> <span class="n">current_context</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executed after the context has changed.</span>
 
@@ -203,7 +203,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

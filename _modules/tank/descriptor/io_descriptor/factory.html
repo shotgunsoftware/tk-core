@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -139,22 +139,22 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">IODescriptorBase</span>
 
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">sgutils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgutils</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">create_io_descriptor</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_io_descriptor</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span>
     <span class="n">descriptor_type</span><span class="p">,</span>
     <span class="n">dict_or_uri</span><span class="p">,</span>
@@ -282,7 +282,7 @@
     <span class="k">return</span> <span class="n">descriptor</span>
 
 
-<div class="viewcode-block" id="is_descriptor_version_missing"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.is_descriptor_version_missing">[docs]</a><span class="k">def</span> <span class="nf">is_descriptor_version_missing</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">):</span>
+<div class="viewcode-block" id="is_descriptor_version_missing"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.is_descriptor_version_missing">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_descriptor_version_missing</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method which checks if a descriptor needs a version.</span>
 
@@ -338,7 +338,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="descriptor_uri_to_dict"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_uri_to_dict">[docs]</a><span class="k">def</span> <span class="nf">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
+<div class="viewcode-block" id="descriptor_uri_to_dict"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_uri_to_dict">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates a descriptor uri into a dictionary.</span>
 
@@ -348,7 +348,7 @@
     <span class="k">return</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="descriptor_dict_to_uri"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_dict_to_uri">[docs]</a><span class="k">def</span> <span class="nf">descriptor_dict_to_uri</span><span class="p">(</span><span class="n">ddict</span><span class="p">):</span>
+<div class="viewcode-block" id="descriptor_dict_to_uri"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_dict_to_uri">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">descriptor_dict_to_uri</span><span class="p">(</span><span class="n">ddict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates a descriptor dictionary into a uri.</span>
 
@@ -365,7 +365,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

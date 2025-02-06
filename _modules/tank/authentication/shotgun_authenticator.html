@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -141,19 +141,19 @@
 
 <span class="sd">&quot;&quot;&quot;PTR Authenticator.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">.sso_saml2</span> <span class="kn">import</span> <span class="n">has_sso_info_in_cookies</span><span class="p">,</span> <span class="n">has_unified_login_flow_info_in_cookies</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interactive_authentication</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">user</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">user_impl</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">session_cache</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">IncompleteCredentials</span>
-<span class="kn">from</span> <span class="nn">.defaults_manager</span> <span class="kn">import</span> <span class="n">DefaultsManager</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sso_saml2</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_sso_info_in_cookies</span><span class="p">,</span> <span class="n">has_unified_login_flow_info_in_cookies</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive_authentication</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">user</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">user_impl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">session_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncompleteCredentials</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.defaults_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultsManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ShotgunAuthenticator"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator">[docs]</a><span class="k">class</span> <span class="nc">ShotgunAuthenticator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ShotgunAuthenticator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The ShotgunAuthenticator is the central object in the Shotgun authentication</span>
 <span class="sd">    module. It helps you with authentication and login and makes it easy to</span>
@@ -206,7 +206,7 @@
 <span class="sd">    For more information, please see the individual methods below.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaults_manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaults_manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor</span>
 
@@ -217,7 +217,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span> <span class="o">=</span> <span class="n">defaults_manager</span> <span class="ow">or</span> <span class="n">DefaultsManager</span><span class="p">()</span>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.clear_default_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.clear_default_user">[docs]</a>    <span class="k">def</span> <span class="nf">clear_default_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.clear_default_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.clear_default_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_default_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes the default user&#39;s credentials from disk for the default host. The</span>
 <span class="sd">        next time the ShotgunAuthenticator.get_default_user() method is called,</span>
@@ -237,7 +237,7 @@
             <span class="c1"># Not all credentials were found, so there is no default user.</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.get_user_from_prompt"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">[docs]</a>    <span class="k">def</span> <span class="nf">get_user_from_prompt</span><span class="p">(</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.get_user_from_prompt"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_user_from_prompt</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_host_fixed</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -274,7 +274,7 @@
             <span class="n">session_metadata</span><span class="o">=</span><span class="n">session_metadata</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.create_session_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.create_session_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_session_user</span><span class="p">(</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.create_session_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.create_session_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_session_user</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">login</span><span class="p">,</span>
         <span class="n">session_token</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -322,7 +322,7 @@
             <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">ShotgunWebUser</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">ShotgunUser</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.create_script_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.create_script_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_script_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_script</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.create_script_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.create_script_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_script_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_script</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an AuthenticatedUser given a set of script credentials.</span>
 
@@ -344,7 +344,7 @@
             <span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.get_default_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_host">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.get_default_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_host">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the host from the defaults manager.</span>
 
@@ -352,7 +352,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.get_default_http_proxy"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_http_proxy">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.get_default_http_proxy"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_http_proxy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the HTTP proxy from the defaults manager.</span>
 
@@ -360,7 +360,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_http_proxy</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.get_default_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.get_default_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the default user from the defaults manager.</span>
 
@@ -406,7 +406,7 @@
                 <span class="s2">&quot;unknown credentials configuration: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">credentials</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="ShotgunAuthenticator.get_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunAuthenticator.get_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method will always return a valid user. It will first ask for the</span>
 <span class="sd">        default user to the defaults manager. If none is found, the user will</span>
@@ -444,7 +444,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

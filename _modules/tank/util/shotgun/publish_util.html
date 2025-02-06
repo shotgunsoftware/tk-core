@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,17 +143,17 @@
 <span class="sd">Utility methods related to Published Files in Shotgun</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
 
-<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..shotgun_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">login</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_entity_type_display_name"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.get_entity_type_display_name">[docs]</a><span class="k">def</span> <span class="nf">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type_code</span><span class="p">):</span>
+<div class="viewcode-block" id="get_entity_type_display_name"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.get_entity_type_display_name">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type_code</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the display name for an entity type given its type name.</span>
 <span class="sd">    For example, if a custom entity is named &quot;Workspace&quot; in the</span>
@@ -189,7 +189,7 @@
     <span class="k">return</span> <span class="n">display_name</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a list of all Shotgun local storages.</span>
 <span class="sd">    Use an in-memory cache for performance</span>
@@ -211,7 +211,7 @@
 
 
 <div class="viewcode-block" id="find_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.find_publish">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_publish</span><span class="p">(</span>
     <span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">only_current_project</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -254,7 +254,7 @@
 <span class="sd">    :returns: dictionary keyed by path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># avoid cyclic references</span>
-    <span class="kn">from</span> <span class="nn">.publish_creation</span> <span class="kn">import</span> <span class="n">group_by_storage</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.publish_creation</span><span class="w"> </span><span class="kn">import</span> <span class="n">group_by_storage</span>
 
     <span class="c1"># Map path caches to full paths, grouped by storage</span>
     <span class="c1"># in case of sequences, there will be more than one file</span>
@@ -384,7 +384,7 @@
 
 
 <div class="viewcode-block" id="create_event_log_entry"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.create_event_log_entry">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">create_event_log_entry</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_event_log_entry</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an event log entry inside of Shotgun.</span>
 <span class="sd">    Event log entries can be handy if you want to track a process or a sequence of events.</span>
@@ -422,7 +422,7 @@
     <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;EventLogEntry&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_published_file_entity_type"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.get_published_file_entity_type">[docs]</a><span class="k">def</span> <span class="nf">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+<div class="viewcode-block" id="get_published_file_entity_type"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.get_published_file_entity_type">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the entity type that this toolkit uses for its Publishes.</span>
 
@@ -444,7 +444,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

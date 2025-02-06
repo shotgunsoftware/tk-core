@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.local_file_storage &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -139,18 +139,18 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">filesystem</span>
-<span class="kn">from</span> <span class="nn">.platforms</span> <span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.shotgun_api3.lib</span> <span class="kn">import</span> <span class="n">sgsix</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">urllib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.platforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.shotgun_api3.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgsix</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="LocalFileStorageManager"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager">[docs]</a><span class="k">class</span> <span class="nc">LocalFileStorageManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LocalFileStorageManager"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LocalFileStorageManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that encapsulates logic for resolving local storage paths.</span>
 
@@ -193,7 +193,7 @@
     <span class="p">(</span><span class="n">LOGGING</span><span class="p">,</span> <span class="n">CACHE</span><span class="p">,</span> <span class="n">PERSISTENT</span><span class="p">,</span> <span class="n">PREFERENCES</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 
 <div class="viewcode-block" id="LocalFileStorageManager.get_global_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_global_root">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_global_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_global_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a generic Shotgun storage root.</span>
 
@@ -330,7 +330,7 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sgsix</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LocalFileStorageManager.get_site_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_site_root">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_site_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_site_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a cache root where items can be stored on a per site basis.</span>
 
@@ -373,7 +373,7 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span> <span class="n">base_url</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LocalFileStorageManager.get_configuration_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_configuration_root">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_configuration_root</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_configuration_root</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
         <span class="n">hostname</span><span class="p">,</span>
         <span class="n">project_id</span><span class="p">,</span>
@@ -481,7 +481,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

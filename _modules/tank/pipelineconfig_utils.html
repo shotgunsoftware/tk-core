@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,26 +144,26 @@
 <span class="sd">across storages, configurations etc.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">yaml_cache</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">StorageRoots</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">.util.shotgun</span> <span class="kn">import</span> <span class="n">get_deferred_sg_connection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">StorageRoots</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util.shotgun</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_deferred_sg_connection</span>
 
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">has_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">has_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns ``True`` if the pipeline configuration contains a core descriptor</span>
 <span class="sd">    file.</span>
@@ -175,7 +175,7 @@
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns true if the pipeline configuration contains a localized API</span>
 
@@ -194,7 +194,7 @@
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">api_file</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">is_pipeline_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_pipeline_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns true if the path points to the root of a pipeline configuration</span>
 
@@ -206,7 +206,7 @@
     <span class="k">return</span> <span class="n">StorageRoots</span><span class="o">.</span><span class="n">file_exists</span><span class="p">(</span><span class="n">config_folder</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_metadata</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.</span>
 
@@ -235,7 +235,7 @@
 <span class="c1"># Core API resolve utils</span>
 
 
-<span class="k">def</span> <span class="nf">get_core_descriptor</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_core_descriptor</span><span class="p">(</span>
     <span class="n">pipeline_config_path</span><span class="p">,</span> <span class="n">shotgun_connection</span><span class="p">,</span> <span class="n">bundle_cache_fallback_paths</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -253,7 +253,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># avoid circular dependencies</span>
-    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span><span class="p">,</span> <span class="n">is_descriptor_version_missing</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.descriptor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span><span class="p">,</span> <span class="n">is_descriptor_version_missing</span>
 
     <span class="n">descriptor_file_path</span> <span class="o">=</span> <span class="n">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
 
@@ -300,7 +300,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_path_to_current_core</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_path_to_current_core</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the local path of the currently executing code, assuming that this code is</span>
 <span class="sd">    located inside a standard toolkit install setup. If the code that is running is part</span>
@@ -326,7 +326,7 @@
     <span class="k">return</span> <span class="n">curr_os_core_root</span>
 
 
-<span class="k">def</span> <span class="nf">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an InstalledConfigurationDescriptor for the pipeline configuration</span>
 <span class="sd">    at the given location.</span>
@@ -338,7 +338,7 @@
     <span class="c1"># Do a local import to avoid circular imports. This happens because descriptor_installed_config</span>
     <span class="c1"># and pipelineconfig_utils import each other. At some point we will refactor the functionality from</span>
     <span class="c1"># this file on the ConfigDescriptor objects and these circular includes won&#39;t be necessary anymore.</span>
-    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.descriptor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
 
     <span class="k">return</span> <span class="n">create_descriptor</span><span class="p">(</span>
         <span class="n">get_deferred_sg_connection</span><span class="p">(),</span>
@@ -347,7 +347,7 @@
     <span class="p">)</span>
 
 
-<div class="viewcode-block" id="get_core_python_path_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_core_python_path_for_config">[docs]</a><span class="k">def</span> <span class="nf">get_core_python_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<div class="viewcode-block" id="get_core_python_path_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_core_python_path_for_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_core_python_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the location of the Toolkit library associated with the given pipeline configuration.</span>
 
@@ -364,7 +364,7 @@
     <span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_core_path_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the core api install location associated with the given pipeline configuration.</span>
 
@@ -394,7 +394,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="get_sgtk_module_path"><a class="viewcode-back" href="../../core.html#sgtk.get_sgtk_module_path">[docs]</a><span class="k">def</span> <span class="nf">get_sgtk_module_path</span><span class="p">():</span>
+<div class="viewcode-block" id="get_sgtk_module_path"><a class="viewcode-back" href="../../core.html#sgtk.get_sgtk_module_path">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_sgtk_module_path</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the path to ``sgtk`` module. This path can be used by another process to update its</span>
 <span class="sd">    ``PYTHONPATH`` and use the same ``sgtk`` module as the process invoking this method.</span>
@@ -426,7 +426,7 @@
     <span class="k">return</span> <span class="n">python_folder</span></div>
 
 
-<div class="viewcode-block" id="get_python_interpreter_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_python_interpreter_for_config">[docs]</a><span class="k">def</span> <span class="nf">get_python_interpreter_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<div class="viewcode-block" id="get_python_interpreter_for_config"><a class="viewcode-back" href="../../core.html#sgtk.get_python_interpreter_for_config">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_python_interpreter_for_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves the path to the Python interpreter for a given pipeline configuration</span>
 <span class="sd">    path.</span>
@@ -462,7 +462,7 @@
     <span class="k">return</span> <span class="n">_create_installed_config_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span><span class="o">.</span><span class="n">python_interpreter</span></div>
 
 
-<span class="k">def</span> <span class="nf">resolve_all_os_paths_to_core</span><span class="p">(</span><span class="n">core_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_all_os_paths_to_core</span><span class="p">(</span><span class="n">core_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a core path on the current os platform,</span>
 <span class="sd">    return paths for all platforms,</span>
@@ -474,7 +474,7 @@
     <span class="k">return</span> <span class="n">_get_install_locations</span><span class="p">(</span><span class="n">core_path</span><span class="p">)</span><span class="o">.</span><span class="n">as_system_dict</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">resolve_all_os_paths_to_config</span><span class="p">(</span><span class="n">pc_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_all_os_paths_to_config</span><span class="p">(</span><span class="n">pc_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a pipeline configuration path on the current os platform,</span>
 <span class="sd">    return paths for all platforms, as cached in the install_locations system file</span>
@@ -484,7 +484,7 @@
     <span class="k">return</span> <span class="n">_get_install_locations</span><span class="p">(</span><span class="n">pc_path</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_config_install_location</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_config_install_location</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a pipeline configuration, return the location</span>
 <span class="sd">    on the current platform.</span>
@@ -506,7 +506,7 @@
     <span class="k">return</span> <span class="n">_get_install_locations</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">current_os</span>
 
 
-<span class="k">def</span> <span class="nf">_get_install_locations</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_install_locations</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a pipeline configuration OR core location, return paths on all platforms.</span>
 
@@ -561,7 +561,7 @@
 <span class="c1"># utils for determining core version numbers</span>
 
 
-<span class="k">def</span> <span class="nf">get_currently_running_api_version</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_currently_running_api_version</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the version number string for the core API,</span>
 <span class="sd">    based on the code that is currently executing.</span>
@@ -575,7 +575,7 @@
     <span class="k">return</span> <span class="n">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_core_api_version</span><span class="p">(</span><span class="n">core_install_root</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_core_api_version</span><span class="p">(</span><span class="n">core_install_root</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the version string for the core api associated with this config.</span>
 <span class="sd">    This method is &#39;forgiving&#39; and in the case no associated core API can be</span>
@@ -591,7 +591,7 @@
     <span class="k">return</span> <span class="n">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method.</span>
 <span class="sd">    Returns the version given a manifest.</span>
@@ -608,7 +608,7 @@
     <span class="k">return</span> <span class="n">data</span>
 
 
-<span class="k">def</span> <span class="nf">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method. Returns the path to the config&#39;s core_api.yml file.</span>
 <span class="sd">    (May not exist)</span>
@@ -628,7 +628,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

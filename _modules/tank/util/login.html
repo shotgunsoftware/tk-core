@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.login &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.login &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,14 +144,14 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.platforms</span> <span class="kn">import</span> <span class="n">is_windows</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.platforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_windows</span>
 
 
-<span class="k">def</span> <span class="nf">get_login_name</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_login_name</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves the login name of the current user.</span>
 <span class="sd">    Returns None if no login name was found</span>
@@ -161,7 +161,7 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;USERNAME&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">pwd</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pwd</span>
 
             <span class="n">pwd_entry</span> <span class="o">=</span> <span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">geteuid</span><span class="p">())</span>
             <span class="k">return</span> <span class="n">pwd_entry</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -176,7 +176,7 @@
 <span class="n">g_shotgun_current_user_cache</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
 
 
-<span class="k">def</span> <span class="nf">get_shotgun_user</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_shotgun_user</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    ---- DEPRECATED ---- user get_current_user(tk) instead</span>
@@ -206,7 +206,7 @@
     <span class="k">return</span> <span class="n">g_shotgun_user_cache</span>
 
 
-<div class="viewcode-block" id="get_current_user"><a class="viewcode-back" href="../../../utils.html#sgtk.util.get_current_user">[docs]</a><span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+<div class="viewcode-block" id="get_current_user"><a class="viewcode-back" href="../../../utils.html#sgtk.util.get_current_user">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_current_user</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves the current user as a dictionary of metadata values. Note: This method connects to</span>
 <span class="sd">    shotgun the first time around. The result is then cached to reduce latency.</span>
@@ -224,7 +224,7 @@
         <span class="k">return</span> <span class="n">g_shotgun_current_user_cache</span>
 
     <span class="c1"># Avoids cyclic imports.</span>
-    <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">api</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span>
 
     <span class="n">user</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">()</span>
 
@@ -266,7 +266,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

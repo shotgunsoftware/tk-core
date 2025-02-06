@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun_path &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -139,11 +139,11 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">.platforms</span> <span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.platforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span>
 
 
-<div class="viewcode-block" id="ShotgunPath"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath">[docs]</a><span class="k">class</span> <span class="nc">ShotgunPath</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ShotgunPath</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper class that handles a path on multiple operating systems.</span>
 
@@ -204,7 +204,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ShotgunPath.get_file_name_from_template"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.get_file_name_from_template">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_file_name_from_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_file_name_from_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the complete file name for the current platform based on</span>
 <span class="sd">        file name template passed in.</span>
@@ -227,7 +227,7 @@
         <span class="k">return</span> <span class="n">template</span> <span class="o">%</span> <span class="n">os_name</span></div>
 
 <div class="viewcode-block" id="ShotgunPath.get_shotgun_storage_key"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.get_shotgun_storage_key">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_shotgun_storage_key</span><span class="p">(</span><span class="n">platform</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_shotgun_storage_key</span><span class="p">(</span><span class="n">platform</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a ``sys.platform`` constant, resolve a Shotgun storage key</span>
 
@@ -262,7 +262,7 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunPath.from_shotgun_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_shotgun_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_shotgun_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sg_dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_shotgun_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sg_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a path from data contained in a std shotgun data dict,</span>
 <span class="sd">        containing the paths windows_path, mac_path and linux_path</span>
@@ -277,7 +277,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunPath.from_system_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_system_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_system_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">system_dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_system_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">system_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a path from data contained in a dictionary keyed by</span>
 <span class="sd">        sys.platform constants.</span>
@@ -293,7 +293,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunPath.from_current_os_path"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.from_current_os_path">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_current_os_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_current_os_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a path object for a path on the current platform only.</span>
 
@@ -316,7 +316,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunPath.normalize"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.normalize">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convenience method that normalizes the given path</span>
 <span class="sd">        by running it through the :class:`ShotgunPath` normalization</span>
@@ -334,7 +334,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_current_os_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">current_os</span></div>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windows_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linux_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">macosx_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">windows_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linux_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">macosx_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param windows_path: Path on windows to associate with this path object</span>
 <span class="sd">        :param linux_path: Path on linux to associate with this path object</span>
@@ -344,7 +344,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">linux_path</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_path</span><span class="p">(</span><span class="n">macosx_path</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if one or more of the OSes have a path specified.</span>
 
@@ -353,7 +353,7 @@
         <span class="c1"># If we&#39;re different than an empty path, we&#39;re not zero!</span>
         <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">macosx</span> <span class="k">else</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if one or more of the OSes have a path specified.</span>
 
@@ -363,14 +363,14 @@
         <span class="c1"># both, and return the result of __nonzero__ here.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nonzero__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Path win:&#39;</span><span class="si">%s</span><span class="s2">&#39;, linux:&#39;</span><span class="si">%s</span><span class="s2">&#39;, macosx:&#39;</span><span class="si">%s</span><span class="s2">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_windows_path</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this ShotgunPath instance is equal to the other ShotgunPath instance</span>
 
@@ -386,13 +386,13 @@
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">linux</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates an hash from this ShotgunPath.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">macosx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">linux</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this path is not equal to the given path</span>
 
@@ -404,7 +404,7 @@
             <span class="k">return</span> <span class="bp">NotImplemented</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="n">is_equal</span>
 
-    <span class="k">def</span> <span class="nf">_sanitize_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">separator</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sanitize_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">separator</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Multi-platform sanitize and clean up of paths.</span>
 
@@ -468,13 +468,13 @@
 
         <span class="k">return</span> <span class="n">local_path</span>
 
-    <span class="k">def</span> <span class="nf">_get_macosx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_macosx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The macosx representation of the path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span>
 
-    <span class="k">def</span> <span class="nf">_set_macosx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_macosx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The macosx representation of the path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -482,13 +482,13 @@
 
     <span class="n">macosx</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_macosx</span><span class="p">,</span> <span class="n">_set_macosx</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Windows representation of the path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_windows_path</span>
 
-    <span class="k">def</span> <span class="nf">_set_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Windows representation of the path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -496,13 +496,13 @@
 
     <span class="n">windows</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_windows</span><span class="p">,</span> <span class="n">_set_windows</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_linux</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_linux</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Linux representation of the path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span>
 
-    <span class="k">def</span> <span class="nf">_set_linux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_linux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Windows representation of the path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -510,7 +510,7 @@
 
     <span class="n">linux</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_linux</span><span class="p">,</span> <span class="n">_set_linux</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_current_os</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_current_os</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The path on the current os</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -523,7 +523,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported platform &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_set_current_os</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_current_os</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The path on the current os</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -540,7 +540,7 @@
 
     <span class="n">current_os</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_current_os</span><span class="p">,</span> <span class="n">_set_current_os</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ShotgunPath.as_shotgun_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_shotgun_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_shotgun_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.as_shotgun_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_shotgun_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">as_shotgun_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The path as a shotgun dictionary. With ``include_empty`` set to True::</span>
 
@@ -562,7 +562,7 @@
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;linux_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
-<div class="viewcode-block" id="ShotgunPath.as_system_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_system_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_system_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.as_system_dict"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_system_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">as_system_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The path as a dictionary keyed by sys.platform.</span>
 
@@ -586,7 +586,7 @@
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;linux2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
-<div class="viewcode-block" id="ShotgunPath.as_descriptor_uri"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_descriptor_uri">[docs]</a>    <span class="k">def</span> <span class="nf">as_descriptor_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">for_development</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.as_descriptor_uri"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_descriptor_uri">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">as_descriptor_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">for_development</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Translates the path to a descriptor uri. For more information</span>
 <span class="sd">        about descriptors, see the :ref:`reference documentation&lt;descriptor&gt;`.</span>
@@ -600,7 +600,7 @@
 <span class="sd">        :raises: ValueError if the path object has no paths defined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># local import to avoid cycles</span>
-        <span class="kn">from</span> <span class="nn">..descriptor</span> <span class="kn">import</span> <span class="n">descriptor_dict_to_uri</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..descriptor</span><span class="w"> </span><span class="kn">import</span> <span class="n">descriptor_dict_to_uri</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span>
             <span class="c1"># no paths defined</span>
@@ -623,7 +623,7 @@
         <span class="c1"># convert to string based uri</span>
         <span class="k">return</span> <span class="n">descriptor_dict_to_uri</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ShotgunPath.join"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+<div class="viewcode-block" id="ShotgunPath.join"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.join">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Appends a single folder to the path.</span>
 
@@ -659,7 +659,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.hook &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -142,14 +142,14 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Defines the base class for all Tank Hooks.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">threading</span>
-<span class="kn">from</span> <span class="nn">.util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TankError</span><span class="p">,</span>
     <span class="n">TankFileDoesNotExistError</span><span class="p">,</span>
     <span class="n">TankHookMethodDoesNotExistError</span><span class="p">,</span>
@@ -158,7 +158,7 @@
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../core.html#sgtk.Hook">[docs]</a><span class="k">class</span> <span class="nc">Hook</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Hook"><a class="viewcode-back" href="../../core.html#sgtk.Hook">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Hook</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Hooks are implemented in a python file and they all derive from a :class:`Hook` base class.</span>
 
@@ -326,11 +326,11 @@
     <span class="c1"># default method to execute on hooks</span>
     <span class="n">DEFAULT_HOOK_METHOD</span> <span class="o">=</span> <span class="s2">&quot;execute&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span> <span class="o">=</span> <span class="n">parent</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The sgtk core API instance associated with the Hook parent.</span>
 
@@ -343,7 +343,7 @@
 <span class="sd">                  such cases, ``None`` is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># local import to avoid cycles</span>
-        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Sgtk</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sgtk</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># system hook</span>
@@ -359,7 +359,7 @@
                 <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The sgtk core API instance associated with the Hook parent.</span>
 
@@ -369,7 +369,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The parent object to the executing hook. This varies with the type of</span>
 <span class="sd">        hook that is being executed. For a hook that runs inside an app or an engine,</span>
@@ -383,7 +383,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span>
 
-<div class="viewcode-block" id="Hook.get_publish_path"><a class="viewcode-back" href="../../core.html#sgtk.Hook.get_publish_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
+<div class="viewcode-block" id="Hook.get_publish_path"><a class="viewcode-back" href="../../core.html#sgtk.Hook.get_publish_path">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the path on disk for a publish entity in Shotgun.</span>
 
@@ -398,11 +398,11 @@
 <span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid cyclic refs</span>
-        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_publish_path</span>
 
         <span class="k">return</span> <span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns several local paths on disk given a</span>
 <span class="sd">        list of shotgun data dictionaries representing publishes.</span>
@@ -423,7 +423,7 @@
 <span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotSupported` if any of the paths cannot be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid cyclic refs</span>
-        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_publish_path</span>
 
         <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">sg_publish_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
@@ -431,7 +431,7 @@
         <span class="k">return</span> <span class="n">paths</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The folder on disk where this item is located.</span>
 <span class="sd">        This can be useful if you want to write hook code</span>
@@ -488,7 +488,7 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Standard python :class:`~logging.Logger` handle for this hook.</span>
 
@@ -533,7 +533,7 @@
         <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log_prefix</span><span class="p">,</span> <span class="n">hook_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">full_log_path</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Hook.load_framework"><a class="viewcode-back" href="../../core.html#sgtk.Hook.load_framework">[docs]</a>    <span class="k">def</span> <span class="nf">load_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">framework_instance_name</span><span class="p">):</span>
+<div class="viewcode-block" id="Hook.load_framework"><a class="viewcode-back" href="../../core.html#sgtk.Hook.load_framework">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">framework_instance_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads and returns a framework given an environment instance name.</span>
 
@@ -574,7 +574,7 @@
 <span class="sd">        :param framework_instance_name: Name of the framework instance to load from the environment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid circular refs</span>
-        <span class="kn">from</span> <span class="nn">.platform</span> <span class="kn">import</span> <span class="n">framework</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.platform</span><span class="w"> </span><span class="kn">import</span> <span class="n">framework</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="o">.</span><span class="n">engine</span>
@@ -588,28 +588,28 @@
             <span class="n">engine</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">get_env</span><span class="p">(),</span> <span class="n">framework_instance_name</span>
         <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Legacy support for old style hooks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<span class="k">class</span> <span class="nc">_HooksCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_HooksCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A thread-safe cache of loaded hooks.  This uses the hook file path</span>
 <span class="sd">    and base class as the key to cache all hooks loaded by Toolkit in</span>
 <span class="sd">    the current session.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">thread_exclusive</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">thread_exclusive</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        function decorator to ensure multiple threads can&#39;t access the cache</span>
 <span class="sd">        at the same time.</span>
@@ -618,7 +618,7 @@
 <span class="sd">        :returns:       The return value from func</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Decorator inner function - executes the function within a lock.</span>
 <span class="sd">            :returns:    The return value from func</span>
@@ -633,14 +633,14 @@
         <span class="k">return</span> <span class="n">inner</span>
 
     <span class="nd">@thread_exclusive</span>
-    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Clear the hook cache</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@thread_exclusive</span>
-    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find a hook in the cache using the hook path and base class</span>
 
@@ -654,7 +654,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@thread_exclusive</span>
-    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">,</span> <span class="n">hook_class</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">,</span> <span class="n">hook_class</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add the specified hook to the cache if it isn&#39;t already present</span>
 
@@ -669,7 +669,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">hook_class</span>
 
     <span class="nd">@thread_exclusive</span>
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of items currently in the hook cache</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -680,14 +680,14 @@
 <span class="n">_current_hook_baseclass</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">clear_hooks_cache</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_hooks_cache</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Clears the cache where tank keeps hook classes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Executes a hook, old-school style.</span>
 
@@ -708,7 +708,7 @@
     <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -764,7 +764,7 @@
     <span class="k">return</span> <span class="n">ret_val</span>
 
 
-<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -860,7 +860,7 @@
     <span class="k">return</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_hook_baseclass</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_hook_baseclass</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the base class to use for the hook currently</span>
 <span class="sd">    being loaded. For more details and examples, see the :class:`Hook` documentation.</span>
@@ -875,7 +875,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

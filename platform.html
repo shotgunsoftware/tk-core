@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.21.8 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -178,7 +178,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -243,7 +243,7 @@ interface for launching host applications are also provided.</p>
 <span class="sig-prename descclassname"><span class="pre">sgtk.platform.</span></span><span class="sig-name descname"><span class="pre">start_engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#start_engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.platform.start_engine" title="Permalink to this definition"></a></dt>
 <dd><p>Creates an engine and makes it the current engine.
 Returns the newly created engine object. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
@@ -295,7 +295,7 @@ None if the engine could not be found.</p>
 returns the path to a suitable engine. This helper method is sometimes useful
 when initializing engines for applications that do not have a built in python interpreter.</p>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_engine_path</span><span class="p">(</span><span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
@@ -445,13 +445,13 @@ behavior tied to specific event types.</p>
 <p>It is an engine’s responsibility to monitor its host DCC application’s event or signalling frameworks to
 then emit its associated event. The example below is listening for a Qt signal from a host’s “frontend”
 handle and then emits a FileOpenEvent:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Runs before apps are initialized.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">frontend</span><span class="o">.</span><span class="n">file_opened</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_file_open</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_handle_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Emits a file open event that apps can listen for.</span>
 
@@ -477,7 +477,7 @@ the appropriate logic according to the results.</p></li>
 <p>In the example below, the Toolkit App has reimplemented the <a class="reference internal" href="#sgtk.platform.Application.event_file_open" title="sgtk.platform.Application.event_file_open"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Application.event_file_open()</span></code></a> method in
 order to execute custom logic when the parent <a class="reference internal" href="#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> has indicated that a new file has been
 opened by the host DCC application:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles event notifications from the parent engine.</span>
 
@@ -1148,7 +1148,7 @@ method can introduce a deadlock if the main thread is waiting for a background t
 and the background thread is invoking this method. Since the main thread is waiting
 for the background thread to finish, Qt’s event loop won’t be able to process the request
 to execute in the main thread:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello from the main thread!&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1332,7 +1332,7 @@ the title will be displayed.</p>
 bar. You can do this by adding a property to the widget class you are
 displaying:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
     <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
@@ -1390,7 +1390,7 @@ the title will be displayed.</p>
 bar. You can do this by adding a property to the widget class you are
 displaying:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
     <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
@@ -1430,7 +1430,7 @@ the title will be displayed.</p>
 bar. You can do this by adding a property to the widget class you are
 displaying:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
-<span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
     <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
@@ -2866,18 +2866,18 @@ property:</p>
 <p>In order to import a framework module into app or engine code, use the convenience method
 <a class="reference internal" href="#sgtk.platform.import_framework" title="sgtk.platform.import_framework"><code class="xref py py-meth docutils literal notranslate"><span class="pre">import_framework()</span></code></a>. This method is typically executed right in the beginning
 of the file, before you create any methods or classes:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="n">widgets</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">import_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-widget&quot;</span><span class="p">,</span> <span class="s2">&quot;widgets&quot;</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">MyBrowser</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">BrowserWidget</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyBrowser</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">BrowserWidget</span><span class="p">):</span>
     <span class="o">...</span>
 </pre></div>
 </div>
 <p>If you would like to load the framework instance itself rather than a module which was imported as part of
 the framework initalization, you can use the <a class="reference internal" href="#sgtk.platform.get_framework" title="sgtk.platform.get_framework"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_framework()</span></code></a> method:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="n">fw</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-widget&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -3739,7 +3739,7 @@ info.yml manifest.</p>
 <dd><p>Convenience method for using frameworks code inside of apps, engines and other frameworks.</p>
 <p>This method is intended to replace an import statement.
 Instead of typing:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">foo_bar</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">foo_bar</span>
 </pre></div>
 </div>
 <p>You use the following syntax to load a framework module:</p>
@@ -4146,13 +4146,13 @@ new file instead of the default one:</p>
 from the default hook, our custom hook only really needs to contain the <em>modifications</em> that we are making
 and not the entire logic. So go in and strip back our custom hook in the config folder:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># customized validation hook in CONFIG_ROOT/hooks/validation.py</span>
-<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
 
-<span class="k">class</span> <span class="nc">Validator</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Validator</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">validate_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="c1"># call the built-in hook that comes with the app first</span>
         <span class="n">HookBaseClass</span><span class="o">.</span><span class="n">validate_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
@@ -4176,9 +4176,9 @@ environment config:</p>
 level implementation defined by an environment variable and lastly a project level implementation.</p>
 <p><strong>Accessing a framework inside a hook</strong></p>
 <p>For even more complex hook setups, you can also access frameworks from inside your hooks:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SomeHook</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SomeHook</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="c1"># first get a framework handle. This object is similar to an app or engine object</span>
         <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">&quot;my-framework-library_v123.x.x&quot;</span><span class="p">)</span>
@@ -4262,7 +4262,7 @@ platform considerations in the background. Typically, PySide is being used for Q
 may use PyQT in certain engines. Normally, the code is pretty portable between the two systems and it
 should be no problem writing code that works with both libraries.</p>
 <p>In order to use QT, import it from Sgtk:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 </pre></div>
 </div>
 <p>Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
@@ -4291,13 +4291,13 @@ so that we may update it.</p>
 you from managing this by yourself, but for maximum compatibility and portabilty, we strongly suggest that you l
 et Toolkit handle it. When using Sgtk to set up your UI, just let your UI class derive from QtGui.QWidget and pass
 it to one of the UI factory methods that the engine has. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 
 <span class="c1"># derive from QtGui.QWidget for your UI components.</span>
 
-<span class="k">class</span> <span class="nc">AppDialog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AppDialog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 <span class="c1"># the engine is then used to correctly launch this dialog. In your app code</span>
@@ -4320,12 +4320,12 @@ using the close() method), the parent window that is used to wrap the widget wil
 This is normally done in QT using the methods QDialog.accepted() and QDialog.rejected(), however since the app
 widget typically derives from QWidget, these methods are not available. Instead, Sgtk will look for a member
 property called <code class="docutils literal notranslate"><span class="pre">exit_code</span></code>. Typically, your code for a modal dialog would look something like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">on_ok_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">on_ok_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># user clicked ok</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">Accepted</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<span class="k">def</span> <span class="nf">on_cancel_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">on_cancel_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># user clicked cancel</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="n">Rejected</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -4338,13 +4338,13 @@ property called <code class="docutils literal notranslate"><span class="pre">exi
 <p>By default, the standard Toolkit UI dialog includes a title bar at the top. However, sometimes this is not desirable,
 especially when the contained widget is quite small. To hide the title bar, just add a property called
 <code class="docutils literal notranslate"><span class="pre">hide_tk_title_bar</span></code> to your widget class and set it to a value of True, for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="o">...</span>
 </pre></div>
 </div>
@@ -4372,7 +4372,7 @@ especially when the contained widget is quite small. To hide the title bar, just
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

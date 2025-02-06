@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.software_launcher &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.platform.software_launcher &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,28 +144,28 @@
 <span class="sd">should implement.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
-<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span><span class="p">,</span> <span class="n">is_windows</span><span class="p">,</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_version_older</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPath</span><span class="p">,</span> <span class="n">is_windows</span><span class="p">,</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">validation</span>
 
-<span class="kn">from</span> <span class="nn">.bundle</span> <span class="kn">import</span> <span class="n">resolve_setting_value</span>
-<span class="kn">from</span> <span class="nn">.engine</span> <span class="kn">import</span> <span class="n">get_env_and_descriptor_for_engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_setting_value</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_env_and_descriptor_for_engine</span>
 
 <span class="c1"># std core level logger</span>
 <span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="create_engine_launcher"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.create_engine_launcher">[docs]</a><span class="k">def</span> <span class="nf">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="create_engine_launcher"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.create_engine_launcher">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method that creates a :class:`SoftwareLauncher` subclass</span>
 <span class="sd">    instance implemented by a toolkit engine in the environment config</span>
@@ -243,14 +243,14 @@
     <span class="k">return</span> <span class="n">launcher</span></div>
 
 
-<div class="viewcode-block" id="SoftwareLauncher"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher">[docs]</a><span class="k">class</span> <span class="nc">SoftwareLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SoftwareLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Functionality related to the discovery and launch of a DCC. This class</span>
 <span class="sd">    should only be constructed through the :meth:`create_engine_launcher`</span>
 <span class="sd">    factory method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param tk: :class:`~sgtk.Sgtk` Toolkit instance</span>
 
@@ -305,14 +305,14 @@
     <span class="c1"># properties</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The :class:`~sgtk.Context` associated with this launcher.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__context</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 <span class="sd">        This method may be changed or even removed at some point in the future.</span>
@@ -322,7 +322,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_descriptor</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 <span class="sd">        This method may be changed or even removed at some point in the future.</span>
@@ -332,14 +332,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_settings</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The :class:`~sgtk.Sgtk` instance associated with this item</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disk_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The folder on disk where this item is located.</span>
 <span class="sd">        This can be useful if you want to write app code</span>
@@ -351,7 +351,7 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_this_file</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The display name for the item. Automatically</span>
 <span class="sd">        appends &#39;Startup&#39; to the end of the display</span>
@@ -367,14 +367,14 @@
         <span class="k">return</span> <span class="n">disp_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">engine_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">engine_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the toolkit engine name this launcher is based on as a ``str``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :class:`~logging.Logger` for this launcher. Use this whenever you want to emit or process log messages.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -383,7 +383,7 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :class:`shotgun_api3.Shotgun` handle associated with the currently running</span>
 <span class="sd">        environment. This method is a convenience method that calls out</span>
@@ -392,7 +392,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="o">.</span><span class="n">shotgun</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">minimum_supported_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minimum_supported_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The minimum software version that is supported by the launcher.</span>
 <span class="sd">        Returned as a string, for example `2015` or `2015.3.sp3`.</span>
@@ -402,7 +402,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">products</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">products</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of product names limiting executable discovery.</span>
 
@@ -413,7 +413,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_products</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">versions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">versions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of versions limiting executable discovery.</span>
 
@@ -426,7 +426,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># abstract methods</span>
 
-<div class="viewcode-block" id="SoftwareLauncher.prepare_launch"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.prepare_launch">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.prepare_launch"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.prepare_launch">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is an abstract method that must be implemented by a subclass. The</span>
 <span class="sd">        engine implementation should prepare an environment to launch the specified</span>
@@ -448,7 +448,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-    <span class="k">def</span> <span class="nf">_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Limited implementation of Python 2.6-like str.format.</span>
 
@@ -461,7 +461,7 @@
             <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">template</span>
 
-<div class="viewcode-block" id="SoftwareLauncher._glob_and_match"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._glob_and_match">[docs]</a>    <span class="k">def</span> <span class="nf">_glob_and_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match_template</span><span class="p">,</span> <span class="n">template_key_expressions</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher._glob_and_match"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._glob_and_match">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_glob_and_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match_template</span><span class="p">,</span> <span class="n">template_key_expressions</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is a helper method that can be invoked in an implementation of :meth:`scan_software`.</span>
 
@@ -571,7 +571,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># public methods</span>
 
-<div class="viewcode-block" id="SoftwareLauncher.get_setting"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.get_setting">[docs]</a>    <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.get_setting"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.get_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a value from the item&#39;s settings::</span>
 
@@ -591,7 +591,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="SoftwareLauncher.get_standard_plugin_environment"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">[docs]</a>    <span class="k">def</span> <span class="nf">get_standard_plugin_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.get_standard_plugin_environment"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_standard_plugin_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a standard plugin environment, suitable for</span>
 <span class="sd">        plugins to utilize. This will compute the following</span>
@@ -651,7 +651,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning Plugin Environment: </span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">env</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">env</span></div>
 
-<div class="viewcode-block" id="SoftwareLauncher.scan_software"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.scan_software">[docs]</a>    <span class="k">def</span> <span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.scan_software"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.scan_software">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs a search for supported software installations.</span>
 
@@ -668,7 +668,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># protected methods</span>
 
-<div class="viewcode-block" id="SoftwareLauncher._is_supported"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._is_supported">[docs]</a>    <span class="k">def</span> <span class="nf">_is_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sw_version</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher._is_supported"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._is_supported">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_is_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sw_version</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Inspects the supplied :class:`SoftwareVersion` object to see if it</span>
 <span class="sd">        aligns with this launcher&#39;s known product and version limitations. Will</span>
@@ -716,7 +716,7 @@
         <span class="c1"># passed all checks. must be supported!</span>
         <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__is_version_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__is_version_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns ``True`` if the supplied version string is supported by the</span>
 <span class="sd">        launcher, ``False`` otherwise.</span>
@@ -744,7 +744,7 @@
         <span class="c1"># check versions list</span>
         <span class="k">return</span> <span class="n">version</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">versions</span>
 
-    <span class="k">def</span> <span class="nf">__is_product_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__is_product_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns ``True`` if the supplied product name string is supported by the</span>
 <span class="sd">        launcher, ``False`` otherwise.</span>
@@ -771,13 +771,13 @@
         <span class="k">return</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lower_case_products</span></div>
 
 
-<div class="viewcode-block" id="SoftwareVersion"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareVersion">[docs]</a><span class="k">class</span> <span class="nc">SoftwareVersion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareVersion"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareVersion">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SoftwareVersion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Container class that stores properties of a DCC that</span>
 <span class="sd">    are useful for Toolkit Engine Startup functionality.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str version: Explicit version of the DCC represented</span>
 <span class="sd">                            (e.g. 2017)</span>
@@ -796,7 +796,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_icon_path</span> <span class="o">=</span> <span class="n">icon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">args</span> <span class="ow">or</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns unique str representation of the software version</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -809,7 +809,7 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An explicit version of the DCC represented by this :class`SoftwareVersion`.</span>
 
@@ -818,7 +818,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">product</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">product</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An explicit product name for the DCC represented by this</span>
 <span class="sd">        :class`SoftwareVersion`. Example: &quot;Houdini FX&quot;</span>
@@ -829,7 +829,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">display_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Name to use for this :class`SoftwareVersion` in graphical displays.</span>
 
@@ -838,7 +838,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Specified path to the DCC executable. May be relative.</span>
 
@@ -847,7 +847,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">icon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">icon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Path to the icon to use for graphical displays of this</span>
 <span class="sd">        :class:`SoftwareVersion`. Expected to be a 256x256 (or smaller)</span>
@@ -858,7 +858,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_icon_path</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Command line arguments required to launch the DCC.</span>
 
@@ -867,7 +867,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span></div>
 
 
-<div class="viewcode-block" id="LaunchInformation"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.LaunchInformation">[docs]</a><span class="k">class</span> <span class="nc">LaunchInformation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LaunchInformation"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.LaunchInformation">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LaunchInformation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stores blueprints for how to launch a specific DCC which includes</span>
 <span class="sd">    required environment variables, the executable path, and command</span>
@@ -882,7 +882,7 @@
 <span class="sd">    subclass implementation of :meth:`SoftwareLauncher.prepare_launch``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">environ</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">environ</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str path: Resolved path to DCC</span>
 <span class="sd">        :param str args: Args to pass on the command line</span>
@@ -897,7 +897,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_environment</span> <span class="o">=</span> <span class="n">environ</span> <span class="ow">or</span> <span class="p">{}</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The DCC path to launch</span>
 
@@ -906,7 +906,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments to pass to the DCC on launch</span>
 
@@ -915,7 +915,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Dictionary of environment variables to set before</span>
 <span class="sd">        launching DCC.</span>
@@ -932,7 +932,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.util &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -139,16 +139,16 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">.import_stack</span> <span class="kn">import</span> <span class="n">ImportStack</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
-<span class="kn">from</span> <span class="nn">.engine</span> <span class="kn">import</span> <span class="n">current_engine</span><span class="p">,</span> <span class="n">_restart_engine</span>
-<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.import_stack</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImportStack</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">current_engine</span><span class="p">,</span> <span class="n">_restart_engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 
 
-<span class="k">def</span> <span class="nf">_get_current_bundle</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_current_bundle</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The current import bundle is set by bundle.import_module() and</span>
 <span class="sd">    and is a way to defuse the chicken/egg situation which happens</span>
@@ -162,7 +162,7 @@
 <span class="sd">    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
     <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">ImportStack</span><span class="o">.</span><span class="n">get_current_bundle</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">current_bundle</span><span class="p">:</span>
@@ -203,7 +203,7 @@
     <span class="k">return</span> <span class="n">current_bundle</span>
 
 
-<div class="viewcode-block" id="change_context"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.change_context">[docs]</a><span class="k">def</span> <span class="nf">change_context</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
+<div class="viewcode-block" id="change_context"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.change_context">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">change_context</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Running change_context will attempt to change the context the engine and</span>
 <span class="sd">    its apps are running in on the fly. The current engine must accept the</span>
@@ -249,7 +249,7 @@
         <span class="n">restart</span><span class="p">(</span><span class="n">new_context</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="restart"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.restart">[docs]</a><span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="n">new_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="restart"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.restart">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">(</span><span class="n">new_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Restarts the currently running Toolkit platform. This includes reloading all</span>
 <span class="sd">    configuration files as well as reloading the code for all apps and engines.</span>
@@ -282,7 +282,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">&quot;Toolkit platform was restarted.&quot;</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">current_bundle</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">current_bundle</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the bundle (app, engine or framework) instance for the</span>
 <span class="sd">    app that the calling code is associated with. This is a special method, designed to</span>
@@ -302,7 +302,7 @@
     <span class="k">return</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="get_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_framework">[docs]</a><span class="k">def</span> <span class="nf">get_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">):</span>
+<div class="viewcode-block" id="get_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_framework">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method that returns a framework instance given a framework name.</span>
 
@@ -338,7 +338,7 @@
     <span class="k">return</span> <span class="n">fw</span></div>
 
 
-<span class="k">def</span> <span class="nf">import_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">import_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method for using frameworks code inside of apps, engines and other frameworks.</span>
 
@@ -377,7 +377,7 @@
     <span class="k">return</span> <span class="n">mod</span>
 
 
-<span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">module_name</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">(</span><span class="n">module_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Standard sgtk logging access for python code that runs inside apps.</span>
 
@@ -413,7 +413,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

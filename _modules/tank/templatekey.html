@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.templatekey &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.templatekey &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,20 +143,20 @@
 <span class="sd">Classes for fields on TemplatePaths and TemplateStrings</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="n">collections_abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="n">collections_abc</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">sgutils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgutils</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
 
 
-<div class="viewcode-block" id="TemplateKey"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey">[docs]</a><span class="k">class</span> <span class="nc">TemplateKey</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TemplateKey"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TemplateKey</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all template key types. Should not be used directly.</span>
 
@@ -188,7 +188,7 @@
 <span class="sd">        &lt;Sgtk TimestampKey render_time&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -254,7 +254,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">choice</span><span class="p">)</span> <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The default value for this key. If the default argument was specified</span>
 <span class="sd">        as a callable in the constructor, it is invoked and assumed to take no parameters.</span>
@@ -266,7 +266,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span>
 
-    <span class="k">def</span> <span class="nf">_set_default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the default value for this key.</span>
 
@@ -278,42 +278,42 @@
     <span class="n">default</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_default</span><span class="p">,</span> <span class="n">_set_default</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The name that the template will use to refer to the key.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fixed length that needs to be used for this item or None if any length is valid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shotgun_entity_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_entity_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shotgun entity type associated with this item</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shotgun_entity_type</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shotgun_field_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_field_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shotgun field name associated with this item</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shotgun_field_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">exclusions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exclusions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of values which are not allowed for this item.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exclusions</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">is_abstract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_abstract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A boolean value indicating if this key is abstract. Abstract keys are</span>
 <span class="sd">        typically used in conjunction with path elements which represent clusters</span>
@@ -323,20 +323,20 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_abstract</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of choices available, e.g. ``[&#39;ma&#39;, &#39;mb&#39;]``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_choices</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">labelled_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">labelled_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Dictionary of labelled choices, e.g. ``{&#39;ma&#39;: &#39;Maya Ascii&#39;, &#39;mb&#39;: &#39;Maya Binary&#39;}``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choices</span>
 
-<div class="viewcode-block" id="TemplateKey.str_from_value"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.str_from_value">[docs]</a>    <span class="k">def</span> <span class="nf">str_from_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_type</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="TemplateKey.str_from_value"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.str_from_value">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">str_from_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_type</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a string version of a value as appropriate for the key&#39;s setting.</span>
 
@@ -361,7 +361,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TemplateKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.value_from_str">[docs]</a>    <span class="k">def</span> <span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+<div class="viewcode-block" id="TemplateKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.value_from_str">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validates and translates a string into an appropriate value for this key.</span>
 
@@ -374,7 +374,7 @@
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></div>
 
-<div class="viewcode-block" id="TemplateKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="TemplateKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a value is valid for this key::</span>
 
@@ -425,22 +425,22 @@
 
         <span class="k">return</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">str_value</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="StringKey"><a class="viewcode-back" href="../../core.html#sgtk.StringKey">[docs]</a><span class="k">class</span> <span class="nc">StringKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
+<div class="viewcode-block" id="StringKey"><a class="viewcode-back" href="../../core.html#sgtk.StringKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">StringKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :class:`TemplateKey` representing a string value.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -526,7 +526,7 @@
             <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">filter_by</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_by</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Name of filter type to limit values for string.</span>
 <span class="sd">        ``alphanumeric``, ``alpha``, ``None`` or a regex string.</span>
@@ -534,7 +534,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">subset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a regular expression describing how values should be transformed</span>
 <span class="sd">        when they are being injected into template paths and strings.</span>
@@ -568,7 +568,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">subset_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subset_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the ``subset_format`` string for the given template key. This string is used in conjunction with the</span>
 <span class="sd">        :meth:`subset` parameter and allows for the formatting of the values that are being extracted::</span>
@@ -594,7 +594,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span>
 
-<div class="viewcode-block" id="StringKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="StringKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a value is valid for this key.</span>
 
@@ -605,7 +605,7 @@
         <span class="c1"># are valid.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__validate</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="StringKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.value_from_str">[docs]</a>    <span class="k">def</span> <span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+<div class="viewcode-block" id="StringKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.value_from_str">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validates and translates a string into an appropriate value for this key.</span>
 
@@ -629,7 +629,7 @@
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></div>
 
-    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the given value to a string representation.</span>
 
@@ -679,7 +679,7 @@
 
         <span class="k">return</span> <span class="n">str_value</span>
 
-    <span class="k">def</span> <span class="nf">__validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a value is valid for this key.</span>
 
@@ -739,12 +739,12 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">StringKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TimestampKey"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey">[docs]</a><span class="k">class</span> <span class="nc">TimestampKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
+<div class="viewcode-block" id="TimestampKey"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TimestampKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :class:`TemplateKey` representing a time or date string formatted with strftime.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">format_spec</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">format_spec</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param default: Default value for this field. Acceptable values are:</span>
@@ -797,14 +797,14 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">TimestampKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Specification for formatting when casting to/from a string.</span>
 <span class="sd">        The format follows the convention of :meth:`time.strftime`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span>
 
-    <span class="k">def</span> <span class="nf">__get_current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the current time as a datetime.datetime instance.</span>
 
@@ -816,7 +816,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__get_current_utc_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_current_utc_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the current utc time as a datetime.datetime instance.</span>
 
@@ -828,7 +828,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
 
-<div class="viewcode-block" id="TimestampKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="TimestampKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a value is valid for this key.</span>
 
@@ -855,7 +855,7 @@
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
-    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts a given value as string.</span>
 
@@ -866,7 +866,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts a string into a datetime.datetime.</span>
 
@@ -877,7 +877,7 @@
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="IntegerKey"><a class="viewcode-back" href="../../core.html#sgtk.IntegerKey">[docs]</a><span class="k">class</span> <span class="nc">IntegerKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
+<div class="viewcode-block" id="IntegerKey"><a class="viewcode-back" href="../../core.html#sgtk.IntegerKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">IntegerKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :class:`TemplateKey` representing an integer value.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -890,7 +890,7 @@
     <span class="c1"># Matches a non zero positive integer.</span>
     <span class="n">_NON_ZERO_POSITIVE_INTEGER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -939,7 +939,7 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Specification for formatting when casting to a string.</span>
 <span class="sd">        The form is a zero followed the number of spaces to pad</span>
@@ -948,14 +948,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">strict_matching</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">strict_matching</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates if the padding should be matching exactly the</span>
 <span class="sd">        format_spec when parsing a string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strict_matching</span>
 
-    <span class="k">def</span> <span class="nf">_init_format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asserts that the format_spec parameter is a valid value.</span>
 
@@ -990,7 +990,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span> <span class="o">=</span> <span class="n">format_spec</span>
 
-    <span class="k">def</span> <span class="nf">_init_strict_matching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">strict_matching</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_strict_matching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">strict_matching</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asserts that the strict_matching parameter is a valid value.</span>
 
@@ -1033,7 +1033,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_strict_matching</span> <span class="o">=</span> <span class="n">strict_matching</span>
 
-<div class="viewcode-block" id="IntegerKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.IntegerKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="IntegerKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.IntegerKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="c1"># We have a string, make sure it loosely or strictly matches the format.</span>
@@ -1050,7 +1050,7 @@
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">IntegerKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">_loosely_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_loosely_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if the value loosely matches. The value loosely matches if it can be turned into an</span>
 <span class="sd">        int.</span>
@@ -1078,7 +1078,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_strictly_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_strictly_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if the value strictly matches the format_spec. A value strictly matches the format</span>
 <span class="sd">        it is at least as wide as the minimum character length. If the string is wider, it must</span>
@@ -1116,7 +1116,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts value into a string.</span>
 
@@ -1127,7 +1127,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%%%s</span><span class="s2">d&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span> <span class="o">%</span> <span class="n">value</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">value</span>
 
-    <span class="k">def</span> <span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts value into a string.</span>
 
@@ -1136,7 +1136,7 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SequenceKey"><a class="viewcode-back" href="../../core.html#sgtk.SequenceKey">[docs]</a><span class="k">class</span> <span class="nc">SequenceKey</span><span class="p">(</span><span class="n">IntegerKey</span><span class="p">):</span>
+<div class="viewcode-block" id="SequenceKey"><a class="viewcode-back" href="../../core.html#sgtk.SequenceKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SequenceKey</span><span class="p">(</span><span class="n">IntegerKey</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :class:`TemplateKey` representing an integer sequence, usually used to handle frame sequences.</span>
 
@@ -1186,7 +1186,7 @@
     <span class="c1"># flame sequence pattern regex (&#39;[1234-5434]&#39;)</span>
     <span class="n">FLAME_PATTERN_REGEX</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^\[[0-9]+-[0-9]+\]$&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1231,7 +1231,7 @@
             <span class="n">abstract</span><span class="o">=</span><span class="n">abstract</span><span class="p">,</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="SequenceKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.SequenceKey.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="SequenceKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.SequenceKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 
         <span class="c1"># use a std error message</span>
         <span class="n">full_format_strings</span> <span class="o">=</span> <span class="p">[</span>
@@ -1275,7 +1275,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">SequenceKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span>
@@ -1297,7 +1297,7 @@
         <span class="c1"># resolve it via the integerKey base class</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">SequenceKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_as_string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="n">str_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_specs</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">str_value</span>
@@ -1309,7 +1309,7 @@
         <span class="c1"># resolve it via the integerKey base class</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">SequenceKey</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_as_value</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_extract_format_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_format_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns XYZ given the string &quot;FORMAT:    XYZ&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1322,7 +1322,7 @@
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">return</span> <span class="n">pattern</span>
 
-    <span class="k">def</span> <span class="nf">_resolve_frame_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">format_string</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_frame_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">format_string</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Turns a format_string %d and a format_spec &quot;03&quot; into a sequence identifier (%03d)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1373,7 +1373,7 @@
         <span class="k">return</span> <span class="n">frame_spec</span></div>
 
 
-<span class="k">def</span> <span class="nf">make_keys</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_keys</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method for instantiating template keys.</span>
 
@@ -1419,7 +1419,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.descriptor_core &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.descriptor.descriptor_core &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -139,17 +139,17 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankMissingManifestError</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.descriptor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Descriptor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankMissingManifestError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 
-<div class="viewcode-block" id="CoreDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CoreDescriptor">[docs]</a><span class="k">class</span> <span class="nc">CoreDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
+<div class="viewcode-block" id="CoreDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CoreDescriptor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CoreDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor object which describes a Toolkit Core API version.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -166,7 +166,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">CoreDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A dictionary with version constraints. The absence of a key</span>
 <span class="sd">        indicates that there is no defined constraint. The following keys can be</span>
@@ -185,7 +185,7 @@
 
         <span class="k">return</span> <span class="n">constraints</span>
 
-<div class="viewcode-block" id="CoreDescriptor.get_feature_info"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CoreDescriptor.get_feature_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_feature_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="CoreDescriptor.get_feature_info"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CoreDescriptor.get_feature_info">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_feature_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves information for a given feature in the manifest.</span>
 
@@ -205,7 +205,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">default_value</span></div>
 
-    <span class="k">def</span> <span class="nf">get_features_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_features_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the feature dictionary from the manifest.</span>
 
@@ -219,7 +219,7 @@
             <span class="k">return</span> <span class="p">{}</span>
         <span class="k">return</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;features&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="CoreDescriptor.copy"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CoreDescriptor.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_folder</span><span class="p">):</span>
+<div class="viewcode-block" id="CoreDescriptor.copy"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.CoreDescriptor.copy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_folder</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copy the config descriptor into the specified target location.</span>
 
@@ -235,7 +235,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

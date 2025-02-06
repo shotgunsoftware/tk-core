@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.download &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -142,27 +142,27 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Methods for downloading things from Shotgun</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">urllib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">ShotgunAttachmentDownloadError</span>
-<span class="kn">from</span> <span class="nn">...errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..zip</span> <span class="kn">import</span> <span class="n">unzip_file</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunAttachmentDownloadError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..zip</span><span class="w"> </span><span class="kn">import</span> <span class="n">unzip_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">filesystem</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_url">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method that downloads a file from a given url.</span>
 <span class="sd">    This method will take into account any proxy settings which have</span>
@@ -245,7 +245,7 @@
     <span class="k">return</span> <span class="n">location</span></div>
 
 
-<span class="k">def</span> <span class="nf">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on</span>
 <span class="sd">    Shotgun instance.</span>
@@ -257,7 +257,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Importing this module locally to reduce clutter and facilitate clean up when/if this</span>
     <span class="c1"># functionality gets ported back into the Shotgun API.</span>
-    <span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">http_cookiejar</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">http_cookiejar</span>
 
     <span class="n">sid</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_session_token</span><span class="p">()</span>
     <span class="n">cj</span> <span class="o">=</span> <span class="n">http_cookiejar</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
@@ -288,7 +288,7 @@
     <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="download_and_unpack_attachment"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_attachment">[docs]</a><span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span>
+<div class="viewcode-block" id="download_and_unpack_attachment"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_attachment">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">download_and_unpack_attachment</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -313,7 +313,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="download_and_unpack_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_url">[docs]</a><span class="k">def</span> <span class="nf">download_and_unpack_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="download_and_unpack_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_url">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">download_and_unpack_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the content from the provided url, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
@@ -333,7 +333,7 @@
 
 
 <span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">_download_and_unpack</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_download_and_unpack</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -449,7 +449,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

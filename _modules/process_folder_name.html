@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>process_folder_name &mdash; tk-core v0.21.8 documentation</title>
+  <title>process_folder_name &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -155,13 +155,13 @@
 <span class="sd">       raise TankError(&quot;Shot names cannot start with AA!&quot;)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">tank</span> <span class="kn">import</span> <span class="n">Hook</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank</span><span class="w"> </span><span class="kn">import</span> <span class="n">Hook</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span>
 
 
-<div class="viewcode-block" id="ProcessFolderName"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName">[docs]</a><span class="k">class</span> <span class="nc">ProcessFolderName</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
-<div class="viewcode-block" id="ProcessFolderName.execute"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ProcessFolderName"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ProcessFolderName</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
+<div class="viewcode-block" id="ProcessFolderName.execute"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName.execute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executed when an entity needs to be turned into a string token during folder</span>
 <span class="sd">        creation.</span>
@@ -224,7 +224,7 @@
 
         <span class="k">return</span> <span class="n">str_value</span></div>
 
-    <span class="k">def</span> <span class="nf">_replace_non_alphanumeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">is_project_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_replace_non_alphanumeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">is_project_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Safely replace all non-alphanumeric characters</span>
 <span class="sd">        with dashes (-).</span>
@@ -258,7 +258,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

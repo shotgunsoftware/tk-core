@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.commands.tank_command &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.commands.tank_command &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,40 +144,40 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">.action_base</span> <span class="kn">import</span> <span class="n">Action</span>
-<span class="kn">from</span> <span class="nn">.interaction</span> <span class="kn">import</span> <span class="n">RawInputCommandInteraction</span><span class="p">,</span> <span class="n">YesToEverythingInteraction</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">folders</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">misc</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">move_pc</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pc_overview</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">path_cache</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">update</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">push_pc</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">setup_project</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">setup_project_wizard</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dump_config</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validate_config</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">cache_apps</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">switch</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">app_info</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">core_upgrade</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">core_localize</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">install</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">clone_configuration</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">copy_apps</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">unregister_folders</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">desktop_migration</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">cache_yaml</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">get_entity_commands</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.action_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Action</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.interaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawInputCommandInteraction</span><span class="p">,</span> <span class="n">YesToEverythingInteraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">folders</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">misc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">move_pc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">pc_overview</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">path_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">update</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">push_pc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_project</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_project_wizard</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">dump_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache_apps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">switch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">app_info</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">core_upgrade</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">core_localize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">install</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">clone_configuration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">copy_apps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">unregister_folders</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">desktop_migration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">cache_yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_entity_commands</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">constants_global</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..platform.engine</span> <span class="kn">import</span> <span class="n">start_engine</span><span class="p">,</span> <span class="n">get_environment_from_context</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">constants_global</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..platform.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">start_engine</span><span class="p">,</span> <span class="n">get_environment_from_context</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -218,7 +218,7 @@
 <span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_get_built_in_actions</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_built_in_actions</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of built in actions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -232,20 +232,20 @@
 <span class="c1"># Shell engine tank commands - adapter for creating an action from an app</span>
 
 
-<span class="k">class</span> <span class="nc">ShellEngineAction</span><span class="p">(</span><span class="n">Action</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShellEngineAction</span><span class="p">(</span><span class="n">Action</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Action wrapper around a shell engine command</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">command_key</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">command_key</span><span class="p">):</span>
         <span class="n">Action</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">ENGINE</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="s2">&quot;Shell Engine&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_command_key</span> <span class="o">=</span> <span class="n">command_key</span>
 
-    <span class="k">def</span> <span class="nf">run_interactive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_interactive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_command_key</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of shell engine actions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -287,7 +287,7 @@
 <span class="c1">#   forms the actual interface which we expose via the interface.</span>
 
 
-<div class="viewcode-block" id="list_commands"><a class="viewcode-back" href="../../../core.html#sgtk.list_commands">[docs]</a><span class="k">def</span> <span class="nf">list_commands</span><span class="p">(</span><span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="list_commands"><a class="viewcode-back" href="../../../core.html#sgtk.list_commands">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">list_commands</span><span class="p">(</span><span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Lists the system commands registered with the system.</span>
 
@@ -334,7 +334,7 @@
     <span class="k">return</span> <span class="n">action_names</span></div>
 
 
-<div class="viewcode-block" id="get_command"><a class="viewcode-back" href="../../../core.html#sgtk.get_command">[docs]</a><span class="k">def</span> <span class="nf">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_command"><a class="viewcode-back" href="../../../core.html#sgtk.get_command">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns an instance of a command object that can be used to execute a command.</span>
 
@@ -366,7 +366,7 @@
             <span class="k">return</span> <span class="n">SgtkSystemCommand</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tk</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SgtkSystemCommand"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand">[docs]</a><span class="k">class</span> <span class="nc">SgtkSystemCommand</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SgtkSystemCommand"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SgtkSystemCommand</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a toolkit system command.</span>
 
@@ -393,7 +393,7 @@
     <span class="c1"># this class wraps around a tank.deploy.tank_commands.action_base.Action class</span>
     <span class="c1"># and exposes the &quot;official&quot; interface for it.</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">internal_action_object</span><span class="p">,</span> <span class="n">tk</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">internal_action_object</span><span class="p">,</span> <span class="n">tk</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instances should be constructed using the :meth:`get_command` factory method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -431,7 +431,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The different parameters that needs to be specified and if a</span>
 <span class="sd">        parameter has any default values. For example::</span>
@@ -449,34 +449,34 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">parameters</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A brief description of this command.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">description</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The name of this command.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">category</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">category</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The category for this command. This is typically a short string like &quot;Admin&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">category</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The python :class:`~logging.Logger` associated with this tank command</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__log</span>
 
-<div class="viewcode-block" id="SgtkSystemCommand.set_logger"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.set_logger">[docs]</a>    <span class="k">def</span> <span class="nf">set_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
+<div class="viewcode-block" id="SgtkSystemCommand.set_logger"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.set_logger">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Specify a standard python log instance to send logging output to.</span>
 <span class="sd">        If this is not specify, the standard output mechanism will be used.</span>
@@ -491,7 +491,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__log</span> <span class="o">=</span> <span class="n">log</span></div>
 
-<div class="viewcode-block" id="SgtkSystemCommand.execute"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">interaction_interface</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SgtkSystemCommand.execute"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.execute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">interaction_interface</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute this command.</span>
 
@@ -510,7 +510,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">run_noninteractive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SgtkSystemCommand.terminate"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SgtkSystemCommand.terminate"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.terminate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instructs the command to attempt to terminate its execution.</span>
 <span class="sd">        Not all commands are able to terminate and execution normally</span>
@@ -523,7 +523,7 @@
 <span class="c1"># Main entry points for accessing tank commands from the tank command / shell engine</span>
 
 
-<span class="k">def</span> <span class="nf">get_actions</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_actions</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of Action objects given the current context, api etc.</span>
 <span class="sd">    tk and ctx may be none, indicating that tank is running in a &#39;partial&#39; state.</span>
@@ -578,7 +578,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">actions</span><span class="p">,</span> <span class="n">engine</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">run_action</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_action</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find an action and start execution. This method is tightly coupled with the tank_cmd script.</span>
 
@@ -701,7 +701,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

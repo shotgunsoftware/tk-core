@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Initialization and startup &mdash; tk-core v0.21.8 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -149,7 +149,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -553,19 +553,19 @@ items locally based on the version number inside the descriptor URI. For every c
 a bundle, always create a new version number.</p>
 </div>
 <p>Once the bundles have been uploaded, you can implement the <code class="docutils literal notranslate"><span class="pre">core/bootstrap.py</span></code> hook.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk</span> <span class="kn">import</span> <span class="n">get_hook_baseclass</span>
-<span class="kn">from</span> <span class="nn">sgtk.util.shotgun</span> <span class="kn">import</span> <span class="n">download_and_unpack_attachment</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_hook_baseclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.util.shotgun</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_and_unpack_attachment</span>
 
 
 <span class="c1"># By using sgtk.get_hook_baseclass instead of deriving from sgtk.Hook, we&#39;ll be</span>
 <span class="c1"># getting the default hook&#39;s init method for free.</span>
-<span class="k">class</span> <span class="nc">Bootstrap</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Bootstrap</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This hook allows to download certain bundles from Shotgun instead of</span>
 <span class="sd">    official source for the bundle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if the descriptor has been cached in Shotgun.</span>
 
@@ -579,7 +579,7 @@ a bundle, always create a new version number.</p>
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_bundle_attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_bundle_attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the attachment associated to this descriptor in Shotgun.</span>
 
@@ -613,7 +613,7 @@ a bundle, always create a new version number.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method will retrieve the bundle from the Shotgun site and unpack it</span>
 <span class="sd">        in the destination folder.</span>
@@ -686,11 +686,11 @@ to make sure you always use the core associated with the configuration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># for our hidden forest project the configuration is</span>
 <span class="c1"># installed in /mnt/toolkit/configs/hidden_forest</span>
 <span class="c1"># add the tk-core of the project to the pythonpath</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/configs/hidden_forest/install/core/python&quot;</span><span class="p">)</span>
 
 <span class="c1"># now import the API associated with config</span>
-<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># and create a tk instance by passing in the path to the</span>
 <span class="c1"># configuration or a path to any file associated with the</span>
@@ -711,9 +711,9 @@ to make sure you always use the core associated with the configuration:</p>
 <span class="c1">#</span>
 <span class="c1"># here you could also pip install the tk-core for a fully automated workflow.</span>
 <span class="c1">#</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/my/python/stuff&quot;</span><span class="p">)</span>
-<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># Start up a Toolkit Manager</span>
 <span class="n">mgr</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">ToolkitManager</span><span class="p">()</span>
@@ -760,11 +760,11 @@ primary one will take precendence.</p>
 you add this shared core to the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> and you can launch Toolkit for any
 project file on disk (or Shotgun entity) on your entire site easily:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># add the shared core to the pythonpath</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/shared_core&quot;</span><span class="p">)</span>
 
 <span class="c1"># now import the API</span>
-<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># request that the API produced a tk instance suitable for a given file</span>
 <span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma&quot;</span><span class="p">)</span>
@@ -823,7 +823,7 @@ Toolkit to act as a distribution platform.</p></li>
 </ul>
 <p>The following example code can for example run inside maya in order
 to launch Toolkit’s default config for a Flow Production Tracking Asset:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># Start up a Toolkit Manager</span>
 <span class="n">mgr</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">ToolkitManager</span><span class="p">()</span>
@@ -985,7 +985,7 @@ data.</p>
 <dd><p>Callback invoked after the <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance has been
 created.</p>
 <p>This function should have the following signature:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called before the engine is started.</span>
 
@@ -1091,7 +1091,7 @@ all the config dependencies.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">progress_callback</span></span><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.progress_callback" title="Permalink to this definition"></a></dt>
 <dd><p>Callback that gets called whenever progress should be reported.</p>
 <p>This function should have the following signature:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called whenever toolkit reports progress.</span>
 
@@ -1157,7 +1157,7 @@ apps from the toolkit app store and installing files on disk.</p>
 <p>Two callback functions can be provided.</p>
 <p>A callback function that handles cleanup after successful completion of the bootstrap
 with the following signature:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called by the asynchronous bootstrap upon completion.</span>
 
@@ -1168,7 +1168,7 @@ with the following signature:</p>
 </div>
 <p>A callback function that handles cleanup after failed completion of the bootstrap
 with the following signature:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called by the asynchronous bootstrap if an exception is raised.</span>
 
@@ -1450,8 +1450,8 @@ by that engine.</p>
 are installed on the local filesystem and the proper environment, including command line arguments,
 required for a successful launch.</p>
 <p>The following lines of python code demonstrate how to launch Maya using the core interface:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># Create a Toolkit Core API instance based on a project path or</span>
 <span class="c1"># path that points directly at a pipeline configuration.</span>
@@ -1498,11 +1498,11 @@ paths for the related software installed on the local filesystem and returns a l
 DCC and startup the engine integration.</p></li>
 </ul>
 <p>A basic <code class="docutils literal notranslate"><span class="pre">startup.py</span></code> file for the Maya engine would contain the following:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform</span> <span class="kn">import</span> <span class="n">SoftwareLauncher</span><span class="p">,</span> <span class="n">SoftwareVersion</span><span class="p">,</span> <span class="n">LaunchInformation</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoftwareLauncher</span><span class="p">,</span> <span class="n">SoftwareVersion</span><span class="p">,</span> <span class="n">LaunchInformation</span>
 
-<span class="k">class</span> <span class="nc">MayaLauncher</span><span class="p">(</span><span class="n">SoftwareLauncher</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MayaLauncher</span><span class="p">(</span><span class="n">SoftwareLauncher</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Construct a list of SoftwareVersion instances</span>
         <span class="c1"># representing executable versions of the software</span>
         <span class="c1"># installed on the local filesystem. This can include</span>
@@ -1511,7 +1511,7 @@ DCC and startup the engine integration.</p></li>
         <span class="o">...</span>
         <span class="k">return</span> <span class="n">software_versions</span>
 
-    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Construct an environment to launch the DCC in,</span>
         <span class="c1"># confirm the correct executable path to</span>
         <span class="c1"># launch, and provide required command line args.</span>
@@ -1581,8 +1581,8 @@ subclass manages the business logic for DCC executable path
 discovery and the environmental requirements for launching the DCC.
 Toolkit is automatically started up during the DCC’s launch phase.
 A very simple example of how this works is demonstrated here:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">&quot;tk-maya&quot;</span><span class="p">)</span>
@@ -2074,7 +2074,7 @@ launching DCC.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

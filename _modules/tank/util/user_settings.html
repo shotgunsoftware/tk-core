@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.user_settings &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.util.user_settings &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,21 +143,21 @@
 <span class="sd">User settings management.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">configparser</span>
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">configparser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span>
 
-<span class="kn">from</span> <span class="nn">.local_file_storage</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">EnvironmentVariableFileLookupError</span><span class="p">,</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">.singleton</span> <span class="kn">import</span> <span class="n">Singleton</span>
-<span class="kn">from</span> <span class="nn">.system_settings</span> <span class="kn">import</span> <span class="n">SystemSettings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.local_file_storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnvironmentVariableFileLookupError</span><span class="p">,</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.singleton</span><span class="w"> </span><span class="kn">import</span> <span class="n">Singleton</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.system_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">SystemSettings</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="UserSettings"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings">[docs]</a><span class="k">class</span> <span class="nc">UserSettings</span><span class="p">(</span><span class="n">Singleton</span><span class="p">):</span>
+<div class="viewcode-block" id="UserSettings"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UserSettings</span><span class="p">(</span><span class="n">Singleton</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles finding and loading the user settings for Toolkit. The settings are cached in memory</span>
 <span class="sd">    so the user settings object can be instantiated multiple times without any issue.</span>
@@ -170,7 +170,7 @@
 
     <span class="n">_LOGIN</span> <span class="o">=</span> <span class="s2">&quot;Login&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_init_singleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_singleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Singleton initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -198,7 +198,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;System proxy: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">system_proxy</span><span class="p">))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shotgun_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the value from the ``http_proxy`` setting.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -208,27 +208,27 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;http_proxy&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">app_store_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">app_store_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the value from the ``app_store_http_proxy`` setting.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;app_store_http_proxy&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">default_site</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_site</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the value from the ``default_site`` setting.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;default_site&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">default_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the value from the ``default_login`` setting.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;default_login&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UserSettings.get_section_settings"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_section_settings">[docs]</a>    <span class="k">def</span> <span class="nf">get_section_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
+<div class="viewcode-block" id="UserSettings.get_section_settings"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_section_settings">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_section_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the name of the settings in a given section.</span>
 
@@ -241,7 +241,7 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">section</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="UserSettings.get_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_setting">[docs]</a>    <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="UserSettings.get_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides access to any setting, including ones in user defined sections.</span>
 
@@ -280,7 +280,7 @@
         <span class="s2">&quot;off&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">}</span>
 
-<div class="viewcode-block" id="UserSettings.get_boolean_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_boolean_setting">[docs]</a>    <span class="k">def</span> <span class="nf">get_boolean_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="UserSettings.get_boolean_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_boolean_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_boolean_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides access to any setting, including ones in user defined sections, and casts it</span>
 <span class="sd">        into a boolean.</span>
@@ -314,7 +314,7 @@
                 <span class="p">)</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="UserSettings.get_integer_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_integer_setting">[docs]</a>    <span class="k">def</span> <span class="nf">get_integer_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="UserSettings.get_integer_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_integer_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_integer_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides access to any setting, including ones in user defined sections, and casts it</span>
 <span class="sd">        into an integer.</span>
@@ -339,7 +339,7 @@
                 <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span>
             <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_evaluate_env_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate_env_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluates an environment variable.</span>
 
@@ -363,7 +363,7 @@
         <span class="c1"># Path is set and exist, we&#39;ve found it!</span>
         <span class="k">return</span> <span class="n">path</span>
 
-    <span class="k">def</span> <span class="nf">_compute_config_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_config_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the location of the ``config.ini`` file. It will look in multiple locations:</span>
 
@@ -408,7 +408,7 @@
         <span class="c1"># Nothing was found, just use the default location even tough it&#39;s empty.</span>
         <span class="k">return</span> <span class="n">default_location</span>
 
-    <span class="k">def</span> <span class="nf">_load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the configuration at a given location and returns it.</span>
 
@@ -429,7 +429,7 @@
             <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">config</span>
 
-    <span class="k">def</span> <span class="nf">_get_filtered_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_filtered_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param proxy: Proxy server address for which we required credentials filtering.</span>
 
@@ -448,7 +448,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">proxy</span>
 
-    <span class="k">def</span> <span class="nf">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the value into a meaningful value for the user if the setting is missing or</span>
 <span class="sd">        empty.</span>
@@ -471,7 +471,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,25 +143,25 @@
 <span class="sd">Defines the base class for all Tank Engines.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">pprint</span>
-<span class="kn">import</span> <span class="nn">traceback</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">weakref</span>
-<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span>
 
-<span class="kn">from</span> <span class="nn">..util.qt_importer</span> <span class="kn">import</span> <span class="n">QtImporter</span>
-<span class="kn">from</span> <span class="nn">..util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.qt_importer</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtImporter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">hook</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">TankEngineInitError</span><span class="p">,</span>
     <span class="n">TankUnresolvedEnvironmentError</span><span class="p">,</span>
     <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span>
@@ -169,28 +169,28 @@
     <span class="n">TankMissingEngineError</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
-<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">EventMetric</span>
-<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">MetricsDispatcher</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">metrics_cache</span>
-<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventMetric</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsDispatcher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">application</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validation</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">events</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt5</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt6</span>
-<span class="kn">from</span> <span class="nn">.bundle</span> <span class="kn">import</span> <span class="n">TankBundle</span>
-<span class="kn">from</span> <span class="nn">.framework</span> <span class="kn">import</span> <span class="n">setup_frameworks</span>
-<span class="kn">from</span> <span class="nn">.engine_logging</span> <span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">application</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">validation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">events</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt5</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt6</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankBundle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_frameworks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
 
 <span class="c1"># std core level logger</span>
 <span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine">[docs]</a><span class="k">class</span> <span class="nc">Engine</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Engine</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for an engine. When a new DCC integration is created, it should</span>
 <span class="sd">    derive from this class.</span>
@@ -198,7 +198,7 @@
 
     <span class="n">_ASYNC_INVOKER</span><span class="p">,</span> <span class="n">_SYNC_INVOKER</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Engine instances are constructed by the toolkit launch process</span>
 <span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
@@ -321,7 +321,7 @@
 
         <span class="c1"># Update the authentication module to use the engine&#39;s Qt.</span>
         <span class="c1"># @todo: can this import be untangled? Code references internal part of the auth module</span>
-        <span class="kn">from</span> <span class="nn">..authentication.ui</span> <span class="kn">import</span> <span class="n">qt_abstraction</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..authentication.ui</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt_abstraction</span>
 
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtCore</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtCore</span>
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtGui</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span>
@@ -420,7 +420,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Init complete: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Engine 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, env: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -430,7 +430,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># properties used by internal classes, not part of the public interface</span>
 
-    <span class="k">def</span> <span class="nf">get_env</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_env</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the environment object associated with this engine.</span>
 <span class="sd">        This is a private method which is internal to tank and should</span>
@@ -439,7 +439,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__env</span>
 
-    <span class="k">def</span> <span class="nf">__toggle_debug_logging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__toggle_debug_logging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Toggles global debug logging on and off in the log manager.</span>
 <span class="sd">        This will affect all logging across all of toolkit.</span>
@@ -447,7 +447,7 @@
         <span class="c1"># flip debug logging</span>
         <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span>
 
-    <span class="k">def</span> <span class="nf">__open_log_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__open_log_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the file system folder where log files are being stored.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -455,14 +455,14 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="c1"># only import QT if we have a UI</span>
-            <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
             <span class="n">url</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QUrl</span><span class="o">.</span><span class="n">fromLocalFile</span><span class="p">(</span><span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">log_folder</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDesktopServices</span><span class="o">.</span><span class="n">openUrl</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">&quot;Failed to open folder!&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__is_method_subclassed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__is_method_subclassed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper that determines if the given method name</span>
 <span class="sd">        has been subclassed in the currently running</span>
@@ -481,7 +481,7 @@
         <span class="c1"># will use the universally available __module__ attribute.</span>
         <span class="k">return</span> <span class="n">running_method</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">!=</span> <span class="n">base_method</span><span class="o">.</span><span class="vm">__module__</span>
 
-    <span class="k">def</span> <span class="nf">__has_018_logging_support</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__has_018_logging_support</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine if the engine supports the new logging implementation.</span>
 
@@ -493,7 +493,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_method_subclassed</span><span class="p">(</span><span class="s2">&quot;_emit_log_message&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__initialize_logging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__initialize_logging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a std python logging LogHandler</span>
 <span class="sd">        that dispatches all log messages to the</span>
@@ -534,7 +534,7 @@
 
         <span class="k">return</span> <span class="n">handler</span>
 
-    <span class="k">def</span> <span class="nf">__show_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__show_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Payload for the show_busy method.</span>
 
@@ -546,8 +546,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="c1"># we cannot import QT until here as non-ui engines don&#39;t have QT defined.</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="kn">from</span> <span class="nn">.qt.busy_dialog</span> <span class="kn">import</span> <span class="n">BusyDialog</span>
-                <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.qt.busy_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">BusyDialog</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
             <span class="k">except</span><span class="p">:</span>
                 <span class="c1"># QT import failed. This may be because someone has upgraded the core</span>
@@ -598,7 +598,7 @@
             <span class="c1"># no UI support! Instead, just emit a log message</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">] </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__clear_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__clear_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Payload for clear_busy method.</span>
 <span class="sd">        For details, see the main clear_busy documentation.</span>
@@ -607,13 +607,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">log_user_attribute_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_user_attribute_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is deprecated and shouldn&#39;t be used anymore.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="Engine.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_metrics_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_metrics_properties">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a dictionary with properties to use when emitting a metric event for</span>
 <span class="sd">        this engine.</span>
@@ -639,7 +639,7 @@
             <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_HOST_APP_VERSION</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">host_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
         <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="nf">get_child_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_child_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a child logger for this engine.</span>
 
@@ -653,7 +653,7 @@
     <span class="c1"># properties</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a Shotgun API handle associated with the currently running</span>
 <span class="sd">        environment. This method is a convenience method that calls out</span>
@@ -677,7 +677,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A dictionary with information about the environment.</span>
 
@@ -692,7 +692,7 @@
         <span class="k">return</span> <span class="n">data</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The instance name for this engine. The instance name</span>
 <span class="sd">        is the entry that is defined in the environment file.</span>
@@ -702,7 +702,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_instance_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">apps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Dictionary of apps associated with this engine</span>
 
@@ -711,7 +711,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__applications</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A dictionary representing all the commands that have been registered</span>
 <span class="sd">        by apps in this engine via :meth:`register_command`.</span>
@@ -726,7 +726,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">panels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">panels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Panels which have been registered with the engine via the :meth:`register_panel()`</span>
 <span class="sd">        method. Returns a dictionary keyed by panel unique ids. Each value is a dictionary with keys</span>
@@ -740,7 +740,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__panels</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates that the host application that the engine is connected to has a UI enabled.</span>
 <span class="sd">        This always returns False for some engines (such as the shell engine) and may vary</span>
@@ -754,7 +754,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_qt5</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_qt5</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates that the host application has access to Qt 5 and that the ``sgtk.platform.qt5``  module</span>
 <span class="sd">        has been populated with the Qt 5 modules and information.</span>
@@ -764,7 +764,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_qt6</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_qt6</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates that the host application has access to Qt 6 and that the ``sgtk.platform.qt6`` module</span>
 <span class="sd">        has been populated with the Qt 6 modules and information.</span>
@@ -774,7 +774,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt6</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">metrics_dispatch_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">metrics_dispatch_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates this engine will allow the metrics worker threads to forward</span>
 <span class="sd">        the user metrics logged via core, this engine, or registered apps to</span>
@@ -786,7 +786,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">created_qt_dialogs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">created_qt_dialogs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of dialog objects that have been created by the engine.</span>
 
@@ -795,7 +795,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__created_qt_dialogs</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">host_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">host_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns information about the application hosting this engine.</span>
 
@@ -811,7 +811,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">}</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">register_toggle_debug_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_toggle_debug_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Indicates whether the engine should have a toggle debug logging</span>
 <span class="sd">        command registered during engine initialization.</span>
@@ -823,27 +823,27 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init and destroy</span>
 
-    <span class="k">def</span> <span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Note: Now deprecated - Please use pre_app_init instead.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="Engine.pre_app_init"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.pre_app_init">[docs]</a>    <span class="k">def</span> <span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.pre_app_init"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.pre_app_init">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets up the engine into an operational state. Executed by the system and typically</span>
 <span class="sd">        implemented by deriving classes. This method called before any apps are loaded.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Engine.post_app_init"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.post_app_init">[docs]</a>    <span class="k">def</span> <span class="nf">post_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.post_app_init"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.post_app_init">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">post_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executed by the system and typically implemented by deriving classes.</span>
 <span class="sd">        This method called after all apps have been loaded.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Engine.destroy"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.destroy">[docs]</a>    <span class="k">def</span> <span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.destroy"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.destroy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Destroy all apps, then call destroy_engine so subclasses can add their own tear down code.</span>
 
@@ -879,14 +879,14 @@
         <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">root_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_handler</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__log_handler</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="Engine.destroy_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.destroy_engine">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.destroy_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.destroy_engine">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">destroy_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the engine should tear down itself and all its apps.</span>
 <span class="sd">        Implemented by deriving classes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Engine.change_context"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.change_context">[docs]</a>    <span class="k">def</span> <span class="nf">change_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.change_context"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.change_context">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">change_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the engine is being asked to change contexts. This</span>
 <span class="sd">        will only be allowed if the engine explicitly suppose on-the-fly</span>
@@ -992,7 +992,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># public methods</span>
 
-<div class="viewcode-block" id="Engine.show_busy"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_busy">[docs]</a>    <span class="k">def</span> <span class="nf">show_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.show_busy"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_busy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">show_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Displays or updates a global &quot;busy window&quot; tied to this engine. The window</span>
 <span class="sd">        is a splash screen type window, floats on top and contains details of what</span>
@@ -1021,7 +1021,7 @@
         <span class="c1"># make sure that the UI is always shown in the main thread</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__show_busy</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.clear_busy"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.clear_busy">[docs]</a>    <span class="k">def</span> <span class="nf">clear_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.clear_busy"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.clear_busy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_busy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Closes any active busy window.</span>
 
@@ -1030,7 +1030,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clear_busy</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.register_command"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_command">[docs]</a>    <span class="k">def</span> <span class="nf">register_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.register_command"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_command">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Register a ``command`` with a name and a callback function.</span>
 
@@ -1209,7 +1209,7 @@
             <span class="n">properties</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">LEGACY_MULTI_SELECT_ACTION_FLAG</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># define a generic callback wrapper for metrics logging</span>
-        <span class="k">def</span> <span class="nf">callback_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">callback_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
             <span class="k">if</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">):</span>
                 <span class="c1"># Track which app command is being launched</span>
@@ -1228,7 +1228,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;callback&quot;</span><span class="p">:</span> <span class="n">callback_wrapper</span><span class="p">,</span> <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="n">properties</span><span class="p">}</span></div>
 
-<div class="viewcode-block" id="Engine.register_panel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_panel">[docs]</a>    <span class="k">def</span> <span class="nf">register_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">panel_name</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.register_panel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_panel">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">register_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">panel_name</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Similar to :meth:`register_command()`, but instead of registering a menu item in the form of a</span>
 <span class="sd">        command, this method registers a UI panel. A register_panel call should</span>
@@ -1286,7 +1286,7 @@
 
         <span class="k">return</span> <span class="n">panel_id</span></div>
 
-<div class="viewcode-block" id="Engine.execute_in_main_thread"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.execute_in_main_thread">[docs]</a>    <span class="k">def</span> <span class="nf">execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.execute_in_main_thread"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.execute_in_main_thread">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute the specified function in the main thread when called from a non-main</span>
 <span class="sd">        thread.  This will block the calling thread until the function returns. Note that this</span>
@@ -1309,7 +1309,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_SYNC_INVOKER</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.async_execute_in_main_thread"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.async_execute_in_main_thread">[docs]</a>    <span class="k">def</span> <span class="nf">async_execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.async_execute_in_main_thread"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.async_execute_in_main_thread">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">async_execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute the specified function in the main thread when called from a non-main</span>
 <span class="sd">        thread.  This call will return immediately and will not wait for the code to be</span>
@@ -1324,7 +1324,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ASYNC_INVOKER</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invoker_id</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invoker_id</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the given method and arguments with the specified invoker.</span>
 <span class="sd">        If the invoker is not ready or if the calling thread is the main thread,</span>
@@ -1344,7 +1344,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="k">if</span> <span class="n">invoker_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SYNC_INVOKER</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">invoker</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
@@ -1360,7 +1360,7 @@
             <span class="c1"># we don&#39;t have an invoker so just call the function:</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Engine.get_matching_commands"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_matching_commands">[docs]</a>    <span class="k">def</span> <span class="nf">get_matching_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_selectors</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.get_matching_commands"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_matching_commands">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_matching_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_selectors</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds all the commands that match the given selectors.</span>
 
@@ -1432,7 +1432,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># logging interfaces</span>
 
-<div class="viewcode-block" id="Engine.log_debug"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_debug">[docs]</a>    <span class="k">def</span> <span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.log_debug"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_debug">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs a debug message.</span>
 
@@ -1463,7 +1463,7 @@
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.log_info"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_info">[docs]</a>    <span class="k">def</span> <span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.log_info"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_info">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an info message.</span>
 
@@ -1487,7 +1487,7 @@
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.log_warning"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_warning">[docs]</a>    <span class="k">def</span> <span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.log_warning"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_warning">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an warning message.</span>
 
@@ -1511,7 +1511,7 @@
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.log_error"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_error">[docs]</a>    <span class="k">def</span> <span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.log_error"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_error">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an error message.</span>
 
@@ -1535,7 +1535,7 @@
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.log_exception"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_exception">[docs]</a>    <span class="k">def</span> <span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.log_exception"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.log_exception">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Logs an exception message.</span>
 
@@ -1562,7 +1562,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># debug for tracking Qt Widgets &amp; Dialogs created by the provided methods</span>
 
-<div class="viewcode-block" id="Engine.get_debug_tracked_qt_widgets"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_debug_tracked_qt_widgets">[docs]</a>    <span class="k">def</span> <span class="nf">get_debug_tracked_qt_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.get_debug_tracked_qt_widgets"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_debug_tracked_qt_widgets">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_debug_tracked_qt_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a dictionary of debug info about created Qt dialogs and widgets.</span>
 
@@ -1571,7 +1571,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__qt_debug_info</span></div>
 
-    <span class="k">def</span> <span class="nf">__debug_track_qt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__debug_track_qt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add the qt widget to a list of objects to be tracked.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1581,7 +1581,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># private and protected methods</span>
 
-<div class="viewcode-block" id="Engine._emit_event"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._emit_event">[docs]</a>    <span class="k">def</span> <span class="nf">_emit_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._emit_event"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._emit_event">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_emit_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the engine whenever an event is to be emitted to child</span>
 <span class="sd">        apps of this engine.</span>
@@ -1615,7 +1615,7 @@
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">events</span><span class="o">.</span><span class="n">FileCloseEvent</span><span class="p">):</span>
                 <span class="n">app</span><span class="o">.</span><span class="n">event_file_close</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine._emit_log_message"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._emit_log_message">[docs]</a>    <span class="k">def</span> <span class="nf">_emit_log_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._emit_log_message"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._emit_log_message">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_emit_log_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called by the engine whenever a new log message is available.</span>
 <span class="sd">        All log messages from the toolkit logging namespace will be passed to this method.</span>
@@ -1650,7 +1650,7 @@
 <span class="sd">        &quot;&quot;&quot;</span></div>
         <span class="c1"># default implementation doesn&#39;t do anything.</span>
 
-<div class="viewcode-block" id="Engine._ensure_core_fonts_loaded"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._ensure_core_fonts_loaded">[docs]</a>    <span class="k">def</span> <span class="nf">_ensure_core_fonts_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._ensure_core_fonts_loaded"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._ensure_core_fonts_loaded">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_ensure_core_fonts_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the Shotgun approved fonts that are bundled with tk-core.</span>
 
@@ -1681,7 +1681,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span>
 
         <span class="c1"># if the fonts have been loaded, no need to do anything else</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span><span class="p">:</span>
@@ -1752,7 +1752,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Engine._get_dialog_parent"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._get_dialog_parent">[docs]</a>    <span class="k">def</span> <span class="nf">_get_dialog_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._get_dialog_parent"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._get_dialog_parent">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_get_dialog_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the QWidget parent for all dialogs created through :meth:`show_dialog` :meth:`show_modal`.</span>
 
@@ -1762,11 +1762,11 @@
 <span class="sd">        :return: QT Parent window (:class:`PySide.QtGui.QWidget`)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># By default, this will return the QApplication&#39;s active window:</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span>
 
         <span class="k">return</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">activeWindow</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Engine._create_dialog"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_dialog">[docs]</a>    <span class="k">def</span> <span class="nf">_create_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._create_dialog"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_dialog">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_create_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a TankQDialog with the specified widget embedded. This also connects to the</span>
 <span class="sd">        dialogs dialog_closed event so that it can clean up when the dialog is closed.</span>
@@ -1778,7 +1778,7 @@
 <span class="sd">        :param widget: A QWidget instance to be embedded in the newly created dialog.</span>
 <span class="sd">        :type widget: :class:`PySide.QtGui.QWidget`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">tankqdialog</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">tankqdialog</span>
 
         <span class="c1"># TankQDialog uses the bundled core font. Make sure they are loaded</span>
         <span class="c1"># since know we have a QApplication at this point.</span>
@@ -1798,7 +1798,7 @@
 
         <span class="k">return</span> <span class="n">dialog</span></div>
 
-<div class="viewcode-block" id="Engine._create_widget"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_widget">[docs]</a>    <span class="k">def</span> <span class="nf">_create_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._create_widget"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_widget">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_create_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an instance of the specified widget_class.  This wraps the widget_class so that</span>
 <span class="sd">        the TankQDialog it is embedded in can connect to it more easily in order to handle the</span>
@@ -1815,7 +1815,7 @@
 
 <span class="sd">        Additional parameters specified will be passed through to the widget_class constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">tankqdialog</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">tankqdialog</span>
 
         <span class="c1"># construct the widget object</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1829,14 +1829,14 @@
             <span class="c1"># react.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
 
-            <span class="kn">import</span> <span class="nn">traceback</span>
-            <span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
             <span class="c1"># A very simple widget that ensures that the exception is visible and</span>
             <span class="c1"># selectable should the user need to copy/paste it into a support</span>
             <span class="c1"># ticket.</span>
-            <span class="k">class</span> <span class="nc">_exc_widget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
-                <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">class</span><span class="w"> </span><span class="nc">_exc_widget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                     <span class="nb">super</span><span class="p">(</span><span class="n">_exc_widget</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
                     <span class="bp">self</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;SGTK_CORE_EXC_WIDGET&quot;</span><span class="p">)</span>
@@ -1865,7 +1865,7 @@
 
         <span class="k">return</span> <span class="n">widget</span></div>
 
-<div class="viewcode-block" id="Engine._create_dialog_with_widget"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_dialog_with_widget">[docs]</a>    <span class="k">def</span> <span class="nf">_create_dialog_with_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._create_dialog_with_widget"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_dialog_with_widget">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_create_dialog_with_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convenience method to create an sgtk TankQDialog with a widget instantiated from</span>
 <span class="sd">        widget_class embedded in the main section.</span>
@@ -1894,7 +1894,7 @@
 
         <span class="k">return</span> <span class="p">(</span><span class="n">dialog</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine._on_dialog_closed"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._on_dialog_closed">[docs]</a>    <span class="k">def</span> <span class="nf">_on_dialog_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlg</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._on_dialog_closed"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._on_dialog_closed">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_on_dialog_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when a dialog created by this engine is closed.</span>
 
@@ -1928,7 +1928,7 @@
         <span class="c1"># finally, clean up the widget trash:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cleanup_widget_trash</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">__cleanup_widget_trash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__cleanup_widget_trash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run through the widget trash and clean up any widgets</span>
 <span class="sd">        that are no longer referenced by anything else.</span>
@@ -1967,7 +1967,7 @@
             <span class="s2">&quot;Widget trash contains </span><span class="si">%d</span><span class="s2"> widgets&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span><span class="p">))</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="Engine.show_dialog"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_dialog">[docs]</a>    <span class="k">def</span> <span class="nf">show_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.show_dialog"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_dialog">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">show_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shows a non-modal dialog window in a way suitable for this engine.</span>
 <span class="sd">        The engine will attempt to parent the dialog nicely to the host application.</span>
@@ -2035,7 +2035,7 @@
         <span class="c1"># lastly, return the instantiated widget</span>
         <span class="k">return</span> <span class="n">widget</span></div>
 
-<div class="viewcode-block" id="Engine.show_modal"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_modal">[docs]</a>    <span class="k">def</span> <span class="nf">show_modal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.show_modal"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_modal">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">show_modal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shows a modal dialog window in a way suitable for this engine. The engine will attempt to</span>
 <span class="sd">        integrate it as seamlessly as possible into the host application. This call is blocking</span>
@@ -2079,7 +2079,7 @@
         <span class="c1"># lastly, return the instantiated widget</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.show_panel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_panel">[docs]</a>    <span class="k">def</span> <span class="nf">show_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel_id</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.show_panel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_panel">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">show_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel_id</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shows a panel in a way suitable for this engine. Engines should attempt to</span>
 <span class="sd">        integrate panel support as seamlessly as possible into the host application.</span>
@@ -2119,7 +2119,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_resolve_sg_stylesheet_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style_sheet</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_sg_stylesheet_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style_sheet</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a string containing a qt style sheet,</span>
 <span class="sd">        perform replacements of key toolkit tokens.</span>
@@ -2136,7 +2136,7 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">processed_style_sheet</span>
 
-    <span class="k">def</span> <span class="nf">_apply_external_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_external_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply an std external stylesheet, associated with a bundle, to a widget.</span>
 
@@ -2185,7 +2185,7 @@
     <span class="c1"># so we need this.</span>
     <span class="n">_apply_external_styleshet</span> <span class="o">=</span> <span class="n">_apply_external_stylesheet</span>
 
-    <span class="k">def</span> <span class="nf">_apply_stylesheet_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_stylesheet_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load and apply the given style sheet file to the given widget and all its</span>
 <span class="sd">        children.</span>
@@ -2205,7 +2205,7 @@
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_add_stylesheet_file_watcher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_stylesheet_file_watcher</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set a file watcher which will reload and re-apply the stylesheet file to</span>
 <span class="sd">        the given widget if the file is modified.</span>
@@ -2216,7 +2216,7 @@
 <span class="sd">        :param qss_file: Full path to the style sheet file.</span>
 <span class="sd">        :param widget: A QWidget to apply the stylesheet to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtCore</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
 
         <span class="c1"># We don&#39;t keep any reference to the watcher to let it be deleted with</span>
         <span class="c1"># the widget it is parented under.</span>
@@ -2235,7 +2235,7 @@
         <span class="c1"># were activated by mistake in production.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Watching qss file </span><span class="si">%s</span><span class="s2"> for </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_on_external_stylesheet_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">watcher</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_external_stylesheet_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qss_file</span><span class="p">,</span> <span class="n">watcher</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the style sheet file has been modified and a watcher was set.</span>
 <span class="sd">        Reload and re-apply the style sheet file to the given widget.</span>
@@ -2260,7 +2260,7 @@
         <span class="k">if</span> <span class="n">qss_file</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">watcher</span><span class="o">.</span><span class="n">files</span><span class="p">():</span>
             <span class="n">watcher</span><span class="o">.</span><span class="n">addPath</span><span class="p">(</span><span class="n">qss_file</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Engine._define_qt_base"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._define_qt_base">[docs]</a>    <span class="k">def</span> <span class="nf">_define_qt_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._define_qt_base"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._define_qt_base">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_define_qt_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This will be called at initialisation time and will allow</span>
 <span class="sd">        a user to control various aspects of how QT is being used</span>
@@ -2294,7 +2294,7 @@
 
         <span class="k">return</span> <span class="n">base</span></div>
 
-    <span class="k">def</span> <span class="nf">__define_qt5_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__define_qt5_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This will be called at initialization to discover every PySide 2 modules. It should provide</span>
 <span class="sd">        every Qt modules available as well as two extra attributes, ``__name__`` and</span>
@@ -2307,7 +2307,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">QtImporter</span><span class="p">(</span><span class="n">interface_version_requested</span><span class="o">=</span><span class="n">QtImporter</span><span class="o">.</span><span class="n">QT5</span><span class="p">)</span><span class="o">.</span><span class="n">base</span>
 
-    <span class="k">def</span> <span class="nf">__define_qt6_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__define_qt6_base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This will be called at initialization to discover every PySide6 module. It should provide</span>
 <span class="sd">        every Qt modules available as well as two extra attributes, ``__name__`` and</span>
@@ -2318,7 +2318,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">QtImporter</span><span class="p">(</span><span class="n">interface_version_requested</span><span class="o">=</span><span class="n">QtImporter</span><span class="o">.</span><span class="n">QT6</span><span class="p">)</span><span class="o">.</span><span class="n">base</span>
 
-<div class="viewcode-block" id="Engine._initialize_dark_look_and_feel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._initialize_dark_look_and_feel">[docs]</a>    <span class="k">def</span> <span class="nf">_initialize_dark_look_and_feel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine._initialize_dark_look_and_feel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._initialize_dark_look_and_feel">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_dark_look_and_feel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes a standard toolkit look and feel using a combination of</span>
 <span class="sd">        QPalette and stylesheets.</span>
@@ -2351,13 +2351,13 @@
                 <span class="s2">&quot;Neither Qt5 or Qt6 is available. Toolkit styling will not be applied.&quot;</span>
             <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__initialize_dark_look_and_feel_qt5_qt6</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__initialize_dark_look_and_feel_qt5_qt6</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Applies a dark style for Qt5 environments. This sets the &quot;fusion&quot; style</span>
 <span class="sd">        at the application level, and then constructs and applies a custom palette</span>
 <span class="sd">        that emulates Maya 2017&#39;s color scheme.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span>
 
         <span class="n">app</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
 
@@ -2531,7 +2531,7 @@
         <span class="c1"># used with the fusion style.</span>
         <span class="n">app</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;.QWidget { font-size: 11px; }&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_standard_qt_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_standard_qt_stylesheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        **********************************************************************</span>
 <span class="sd">        THIS METHOD HAS BEEN DEPRECATED AND SHOULD NOT BE USED!</span>
@@ -2555,7 +2555,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_register_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">fw_obj</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_register_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">fw_obj</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Registers a framework with the specified instance name.</span>
 <span class="sd">        This allows framework instances to be shared between bundles.</span>
@@ -2567,7 +2567,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__shared_frameworks</span><span class="p">[</span><span class="n">instance_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fw_obj</span>
 
-    <span class="k">def</span> <span class="nf">_get_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a framework instance by name. If no framework with the specified</span>
 <span class="sd">        name has been loaded yet, None is returned.</span>
@@ -2578,7 +2578,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shared_frameworks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">instance_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__create_invokers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_invokers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create the object used to invoke function calls on the main thread when</span>
 <span class="sd">        called from a different thread.</span>
@@ -2586,18 +2586,18 @@
         <span class="n">invoker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">async_invoker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
             <span class="c1"># Classes are defined locally since Qt might not be available.</span>
             <span class="k">if</span> <span class="n">QtGui</span> <span class="ow">and</span> <span class="n">QtCore</span><span class="p">:</span>
 
-                <span class="k">class</span> <span class="nc">Invoker</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
+                <span class="k">class</span><span class="w"> </span><span class="nc">Invoker</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
 <span class="w">                    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    Invoker class - implements a mechanism to execute a function with arbitrary</span>
 <span class="sd">                    args in the main thread.</span>
 <span class="sd">                    &quot;&quot;&quot;</span>
 
-                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">                        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Construction</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
@@ -2606,7 +2606,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="kc">None</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="kc">None</span>
 
-                    <span class="k">def</span> <span class="nf">invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">                        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Invoke the specified function with the specified args in the main thread</span>
 
@@ -2634,13 +2634,13 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 
                     <span class="nd">@qt</span><span class="o">.</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Slot</span><span class="p">()</span>
-                    <span class="k">def</span> <span class="nf">_do_invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">_do_invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">                        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Execute the function</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span><span class="p">()</span>
 
-                <span class="k">class</span> <span class="nc">AsyncInvoker</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
+                <span class="k">class</span><span class="w"> </span><span class="nc">AsyncInvoker</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
 <span class="w">                    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                    Invoker class - implements a mechanism to execute a function with arbitrary</span>
 <span class="sd">                    args in the main thread asynchronously.</span>
@@ -2648,14 +2648,14 @@
 
                     <span class="n">__signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
 
-                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">                        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Construction</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
                         <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__signal</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__execute_in_main_thread</span><span class="p">)</span>
 
-                    <span class="k">def</span> <span class="nf">invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">                        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Invoke the specified function with the specified args in the main thread</span>
 
@@ -2667,7 +2667,7 @@
 
                         <span class="bp">self</span><span class="o">.</span><span class="n">__signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 
-                    <span class="k">def</span> <span class="nf">__execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">__execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
                         <span class="n">fn</span><span class="p">()</span>
 
                 <span class="c1"># Make sure that the invoker exists in the main thread:</span>
@@ -2684,7 +2684,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># private</span>
 
-    <span class="k">def</span> <span class="nf">__load_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reuse_existing_apps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">old_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__load_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reuse_existing_apps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">old_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Populate the __applications dictionary, skip over apps that fail to initialize.</span>
 
@@ -2908,7 +2908,7 @@
             <span class="k">for</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">command</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__command_pool</span><span class="p">[</span><span class="n">command_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">command</span>
 
-    <span class="k">def</span> <span class="nf">__destroy_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__destroy_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Destroy frameworks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2922,7 +2922,7 @@
             <span class="n">fw</span><span class="o">.</span><span class="n">_destroy_framework</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__shared_frameworks</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="nf">__destroy_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__destroy_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call the destroy_app method on all loaded apps</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2932,7 +2932,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Destroying </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">app</span><span class="p">)</span>
             <span class="n">app</span><span class="o">.</span><span class="n">destroy_app</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__register_reload_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__register_reload_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Registers a &quot;Reload and Restart&quot; command with the engine if any</span>
 <span class="sd">        running apps are registered via a dev descriptor.</span>
@@ -2943,7 +2943,7 @@
                     <span class="s2">&quot;App </span><span class="si">%s</span><span class="s2"> is registered via a dev descriptor. Will add a reload &quot;</span>
                     <span class="s2">&quot;button to the actions listings.&quot;</span> <span class="o">%</span> <span class="n">app</span>
                 <span class="p">)</span>
-                <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">restart</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">restart</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">register_command</span><span class="p">(</span>
                     <span class="s2">&quot;Reload and Restart&quot;</span><span class="p">,</span>
@@ -2957,7 +2957,7 @@
                 <span class="c1"># only need one reload button, so don&#39;t keep iterating :)</span>
                 <span class="k">break</span>
 
-    <span class="k">def</span> <span class="nf">__get_platform_resource_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_platform_resource_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the full path to the given platform resource file or folder.</span>
 <span class="sd">        Resources reside in the core/platform/qt folder.</span>
@@ -2967,7 +2967,7 @@
         <span class="n">this_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">this_folder</span><span class="p">,</span> <span class="s2">&quot;qt&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__run_post_engine_inits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__run_post_engine_inits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the post_engine_init method for all running apps.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2992,7 +2992,7 @@
 <span class="n">g_current_engine</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<span class="k">def</span> <span class="nf">set_current_engine</span><span class="p">(</span><span class="n">eng</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_current_engine</span><span class="p">(</span><span class="n">eng</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets the current engine</span>
 
@@ -3002,7 +3002,7 @@
     <span class="n">g_current_engine</span> <span class="o">=</span> <span class="n">eng</span>
 
 
-<div class="viewcode-block" id="current_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.current_engine">[docs]</a><span class="k">def</span> <span class="nf">current_engine</span><span class="p">():</span>
+<div class="viewcode-block" id="current_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.current_engine">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">current_engine</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the currently active engine.</span>
 
@@ -3012,7 +3012,7 @@
     <span class="k">return</span> <span class="n">g_current_engine</span></div>
 
 
-<div class="viewcode-block" id="get_engine_path"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_engine_path">[docs]</a><span class="k">def</span> <span class="nf">get_engine_path</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="get_engine_path"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_engine_path">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_engine_path</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the path to the engine corresponding to the given engine name or</span>
 <span class="sd">    None if the engine could not be found.</span>
@@ -3048,7 +3048,7 @@
     <span class="k">return</span> <span class="n">engine_path</span></div>
 
 
-<div class="viewcode-block" id="start_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.start_engine">[docs]</a><span class="k">def</span> <span class="nf">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<div class="viewcode-block" id="start_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.start_engine">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an engine and makes it the current engine.</span>
 <span class="sd">    Returns the newly created engine object. Example::</span>
@@ -3074,7 +3074,7 @@
     <span class="k">return</span> <span class="n">_start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_restart_engine</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_restart_engine</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Restarts an engine by destroying the previous one and creating a new one.</span>
 
@@ -3103,7 +3103,7 @@
         <span class="n">engine</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span><span class="s2">&quot;Could not restart the engine!&quot;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_CoreContextChangeHookGuard</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_CoreContextChangeHookGuard</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used with the ``with`` statement, this guard will notify the context_change</span>
 <span class="sd">    core hook with the pre_context_change event on entering and</span>
@@ -3113,7 +3113,7 @@
 
     <span class="n">_depth</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor.</span>
 
@@ -3125,7 +3125,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_old_context</span> <span class="o">=</span> <span class="n">old_context</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_new_context</span> <span class="o">=</span> <span class="n">new_context</span>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the pre context change hook if we&#39;re the first guard instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3138,7 +3138,7 @@
 
     <span class="c1"># Made static so we can introspec the content of the guard during unit testing.</span>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_execute_pre_context_change</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_execute_pre_context_change</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the pre context change hook.</span>
 
@@ -3153,7 +3153,7 @@
             <span class="n">next_context</span><span class="o">=</span><span class="n">new_context</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the post context change hook if we&#39;re the last guard instance.</span>
 
@@ -3169,7 +3169,7 @@
 
     <span class="c1"># Made static so we can introspec the content of the guard during unit testing.</span>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_execute_post_context_change</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_execute_post_context_change</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the post context change hook.</span>
 
@@ -3185,7 +3185,7 @@
         <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Starts an engine for a given Toolkit instance and context.</span>
 
@@ -3240,7 +3240,7 @@
     <span class="k">return</span> <span class="n">engine</span>
 
 
-<div class="viewcode-block" id="find_app_settings"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.find_app_settings">[docs]</a><span class="k">def</span> <span class="nf">find_app_settings</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="find_app_settings"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.find_app_settings">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">find_app_settings</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Utility method to find the settings for an app in an engine in the</span>
 <span class="sd">    environment determined for the context by pick environment hook.</span>
@@ -3322,7 +3322,7 @@
     <span class="k">return</span> <span class="n">app_settings</span></div>
 
 
-<span class="k">def</span> <span class="nf">start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Special, internal method that handles the shotgun engine.</span>
 
@@ -3378,7 +3378,7 @@
     <span class="k">return</span> <span class="n">obj</span>
 
 
-<span class="k">def</span> <span class="nf">get_environment_from_context</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_environment_from_context</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns an environment object given a context.</span>
 <span class="sd">    Returns None if no environment was found.</span>
@@ -3399,7 +3399,7 @@
     <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">show_global_busy</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">show_global_busy</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method.</span>
 
@@ -3414,7 +3414,7 @@
         <span class="n">engine</span><span class="o">.</span><span class="n">show_busy</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">clear_global_busy</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_global_busy</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method.</span>
 
@@ -3430,7 +3430,7 @@
 <span class="c1"># utilities</span>
 
 
-<span class="k">def</span> <span class="nf">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Utility method to return commonly needed objects when instantiating engines.</span>
 
@@ -3458,7 +3458,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">__pick_environment</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">__pick_environment</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Call out to the pick_environment core hook to determine which environment we should load</span>
 <span class="sd">    based on the current context. The Shotgun engine provides its own implementation.</span>
@@ -3494,7 +3494,7 @@
     <span class="k">return</span> <span class="n">env_name</span>
 
 
-<span class="k">def</span> <span class="nf">_get_command_prefix</span><span class="p">(</span><span class="n">properties</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_command_prefix</span><span class="p">(</span><span class="n">properties</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If multiple commands are registered with the same name, attempt to construct a unique</span>
 <span class="sd">    prefix from other information in the command&#39;s properties dictionary to distinguish one</span>
@@ -3521,7 +3521,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.errors &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.platform.errors &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,48 +143,48 @@
 <span class="sd">All custom exceptions that the tank platform module emits are defined here.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">errors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">errors</span>
 
 
-<div class="viewcode-block" id="TankContextChangeNotSupportedError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankContextChangeNotSupportedError">[docs]</a><span class="k">class</span> <span class="nc">TankContextChangeNotSupportedError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankContextChangeNotSupportedError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankContextChangeNotSupportedError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TankContextChangeNotSupportedError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that a requested context change is not allowed</span>
 <span class="sd">    based on a check of the current engine and all of its active apps.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="TankEngineInitError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankEngineInitError">[docs]</a><span class="k">class</span> <span class="nc">TankEngineInitError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankEngineInitError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankEngineInitError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TankEngineInitError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that an engine could not start up.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="TankMissingEngineError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankMissingEngineError">[docs]</a><span class="k">class</span> <span class="nc">TankMissingEngineError</span><span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">):</span>
+<div class="viewcode-block" id="TankMissingEngineError"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.TankMissingEngineError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TankMissingEngineError</span><span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that an engine could not start up.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<span class="k">class</span> <span class="nc">TankUnresolvedEnvironmentError</span><span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TankUnresolvedEnvironmentError</span><span class="p">(</span><span class="n">TankEngineInitError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that the pick_environment hook did not return a valid environment</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">TankEngineEventError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TankEngineEventError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that is raised when there is a problem during engine event emission.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">TankCurrentModuleNotFoundError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TankCurrentModuleNotFoundError</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that is raised when :meth:`sgtk.platform.current_bundle` couldn&#39;t</span>
 <span class="sd">    resolve a bundle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">TankMissingEnvironmentFile</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TankMissingEnvironmentFile</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">TankError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Exception that indicates that an environment file can&#39;t be found on disk.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -202,7 +202,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

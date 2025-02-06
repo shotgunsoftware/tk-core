@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.context &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.context &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,25 +144,25 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">yaml</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">authentication</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">authentication</span>
 
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">login</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun_entity</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">shotgun</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">get_sg_entity_name_field</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">json</span> <span class="k">as</span> <span class="n">sgjson</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankContextDeserializationError</span>
-<span class="kn">from</span> <span class="nn">.path_cache</span> <span class="kn">import</span> <span class="n">PathCache</span>
-<span class="kn">from</span> <span class="nn">.template</span> <span class="kn">import</span> <span class="n">TemplatePath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">login</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">shotgun_entity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">shotgun</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sg_entity_name_field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">json</span> <span class="k">as</span> <span class="n">sgjson</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankContextDeserializationError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.path_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathCache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.template</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplatePath</span>
 
 
-<div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../core.html#sgtk.Context">[docs]</a><span class="k">class</span> <span class="nc">Context</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../core.html#sgtk.Context">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Context</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A context instance is used to collect a set of key fields describing the</span>
 <span class="sd">    current Context. We sometimes refer to the context as the current work area.</span>
@@ -193,7 +193,7 @@
 <span class="sd">    currently operating user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tk</span><span class="p">,</span>
         <span class="n">project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -219,7 +219,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span> <span class="o">=</span> <span class="n">source_entity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_entity_fields_cache</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># multi line repr</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;  Project: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__project</span><span class="p">))</span>
@@ -233,7 +233,7 @@
 
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Context: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation for context</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -280,7 +280,7 @@
 
         <span class="k">return</span> <span class="n">ctx_name</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this Context instance is equal to the other Context instance</span>
 
@@ -289,7 +289,7 @@
 <span class="sd">                        otherwise False</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_entity_dicts_eq</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_entity_dicts_eq</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Test to see if two entity dictionaries are equal.  They are considered</span>
 <span class="sd">            equal if both are dictionaries containing &#39;type&#39; and &#39;id&#39; with the same</span>
@@ -351,7 +351,7 @@
 
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if this Context instance is not equal to the other Context instance</span>
 
@@ -363,7 +363,7 @@
             <span class="k">return</span> <span class="bp">NotImplemented</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="n">is_equal</span>
 
-    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a unique hash for the Context.</span>
 
@@ -374,7 +374,7 @@
         <span class="c1"># however this is expected behavior for __hash__.</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Allow Context objects to be deepcopied - Note that the tk</span>
 <span class="sd">        member is _never_ copied</span>
@@ -400,7 +400,7 @@
     <span class="c1"># properties</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun project associated with this context.</span>
 
@@ -417,7 +417,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__project</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun entity associated with this context.</span>
 
@@ -434,7 +434,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__entity</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">source_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Shotgun entity that was used to construct this Context.</span>
 
@@ -456,7 +456,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__source_entity</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun step associated with this context.</span>
 
@@ -473,7 +473,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__step</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The shotgun task associated with this context.</span>
 
@@ -490,7 +490,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A property which holds the user associated with this context.</span>
 <span class="sd">        If the context is incomplete, it is possible that the property is None.</span>
@@ -520,7 +520,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__user</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">additional_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">additional_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List of entities that are required to provide a full context in non-standard configurations.</span>
 <span class="sd">        The &quot;context_additional_entities&quot; core hook gives the context construction code hints about how</span>
@@ -535,7 +535,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__additional_entities</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">entity_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">entity_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of paths on disk which correspond to the **entity** which this context represents.</span>
 <span class="sd">        If no folders have been created for this context yet, the value of this property will be an empty list::</span>
@@ -557,7 +557,7 @@
         <span class="k">return</span> <span class="n">paths</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shotgun_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the shotgun detail page url that best represents this context. Depending on</span>
 <span class="sd">        the context, this may be a task, a shot, an asset or a project. If the context is</span>
@@ -593,7 +593,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">shotgun_url</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">filesystem_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filesystem_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A property which holds a list of paths on disk which correspond to this context.</span>
 <span class="sd">        If no folders have been created for this context yet, the value of this property will be an empty list::</span>
@@ -656,7 +656,7 @@
         <span class="k">return</span> <span class="n">matching_paths</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Toolkit API instance associated with this context</span>
 
@@ -665,7 +665,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Legacy equivalent of :meth:`sgtk`</span>
 
@@ -676,7 +676,7 @@
     <span class="c1">################################################################################################</span>
     <span class="c1"># public methods</span>
 
-<div class="viewcode-block" id="Context.as_template_fields"><a class="viewcode-back" href="../../core.html#sgtk.Context.as_template_fields">[docs]</a>    <span class="k">def</span> <span class="nf">as_template_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Context.as_template_fields"><a class="viewcode-back" href="../../core.html#sgtk.Context.as_template_fields">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">as_template_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the context object as a dictionary of template fields.</span>
 
@@ -815,7 +815,7 @@
 
         <span class="k">return</span> <span class="n">fields</span></div>
 
-<div class="viewcode-block" id="Context.create_copy_for_user"><a class="viewcode-back" href="../../core.html#sgtk.Context.create_copy_for_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_copy_for_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+<div class="viewcode-block" id="Context.create_copy_for_user"><a class="viewcode-back" href="../../core.html#sgtk.Context.create_copy_for_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_copy_for_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides the ability to create a copy of an existing Context for a specific user.</span>
 
@@ -842,7 +842,7 @@
     <span class="c1">################################################################################################</span>
     <span class="c1"># serialization</span>
 
-<div class="viewcode-block" id="Context.serialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_user_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Context.serialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.serialize">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_user_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Serializes the context into a string.</span>
 
@@ -872,7 +872,7 @@
 <span class="sd">        :returns: String representation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Avoids cyclic imports</span>
-        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">get_authenticated_user</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_authenticated_user</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;_pc_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
@@ -893,7 +893,7 @@
             <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Context.deserialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.deserialize">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">context_str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">context_str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The inverse of :meth:`Context.serialize`.</span>
 
@@ -905,7 +905,7 @@
 <span class="sd">        :returns: :class:`Context`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># lazy load this to avoid cyclic dependencies</span>
-        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Tank</span><span class="p">,</span> <span class="n">set_authenticated_user</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tank</span><span class="p">,</span> <span class="n">set_authenticated_user</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># If the serialized payload starts with a {, we have a</span>
@@ -943,7 +943,7 @@
         <span class="c1"># and lastly make the obejct</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Context.to_dict"><a class="viewcode-back" href="../../core.html#sgtk.Context.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Context.to_dict"><a class="viewcode-back" href="../../core.html#sgtk.Context.to_dict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the context into a dictionary with keys ``project``,</span>
 <span class="sd">        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and</span>
@@ -968,7 +968,7 @@
             <span class="s2">&quot;source_entity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_entity</span><span class="p">),</span>
         <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="nf">_cleanup_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cleanup_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cleanup the entity dictionary.</span>
 
@@ -995,7 +995,7 @@
         <span class="k">return</span> <span class="n">filtered_entity</span>
 
 <div class="viewcode-block" id="Context.from_dict"><a class="viewcode-back" href="../../core.html#sgtk.Context.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts a dictionary into a :class:`Context` object.</span>
 
@@ -1013,7 +1013,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a Context object based on the arguments found in a dictionary, but</span>
 <span class="sd">        only the ones that the Context understands.</span>
@@ -1039,7 +1039,7 @@
     <span class="c1">################################################################################################</span>
     <span class="c1"># private methods</span>
 
-    <span class="k">def</span> <span class="nf">_fields_from_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">validate</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fields_from_shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">validate</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query Shotgun server for keys used by this template whose values come directly</span>
 <span class="sd">        from Shotgun fields.</span>
@@ -1138,7 +1138,7 @@
 
         <span class="k">return</span> <span class="n">fields</span>
 
-    <span class="k">def</span> <span class="nf">_fields_from_entity_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fields_from_entity_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines a template&#39;s key values based on context by walking up the context entities paths until</span>
 <span class="sd">        matches for the template are found.</span>
@@ -1213,7 +1213,7 @@
 
         <span class="k">return</span> <span class="n">fields</span>
 
-    <span class="k">def</span> <span class="nf">_fields_from_template_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">known_fields</span><span class="p">,</span> <span class="n">context_entities</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fields_from_template_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">known_fields</span><span class="p">,</span> <span class="n">context_entities</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines values for a template&#39;s keys based on the context by walking down the template tree</span>
 <span class="sd">        matching template keys with entity types.</span>
@@ -1357,7 +1357,7 @@
 
         <span class="k">return</span> <span class="n">found_fields</span>
 
-    <span class="k">def</span> <span class="nf">_get_project_roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_project_roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the project root paths for the current pipeline configuration.</span>
 
@@ -1371,7 +1371,7 @@
 <span class="c1"># factory methods for constructing new Context objects, primarily called from the Tank object</span>
 
 
-<span class="k">def</span> <span class="nf">create_empty</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_empty</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs an empty context.</span>
 
@@ -1380,7 +1380,7 @@
     <span class="k">return</span> <span class="n">Context</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_entity</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun entity.</span>
 
@@ -1395,7 +1395,7 @@
     <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">entity_type</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from the entity type and id as stored in the given</span>
 <span class="sd">    entity. Any other data necessary to construct the context beyond the type</span>
@@ -1492,7 +1492,7 @@
     <span class="k">return</span> <span class="n">Context</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun entity dictionary.</span>
 
@@ -1507,7 +1507,7 @@
     <span class="k">return</span> <span class="n">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a Shotgun entity dictionary.</span>
 
@@ -1602,7 +1602,7 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">fallback_to_ctx_from_entity</span><span class="p">:</span>
         <span class="c1"># clean up entities and populate context structure:</span>
-        <span class="k">def</span> <span class="nf">_build_clean_entity</span><span class="p">(</span><span class="n">ent</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_build_clean_entity</span><span class="p">(</span><span class="n">ent</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Ensure entity has id, type and name fields and build a clean</span>
 <span class="sd">            entity dictionary containing just those fields to return, stripping</span>
@@ -1662,7 +1662,7 @@
     <span class="k">return</span> <span class="n">Context</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_path</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method that constructs a context object from a path on disk.</span>
 
@@ -1815,7 +1815,7 @@
 <span class="c1"># serialization</span>
 
 
-<span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Serializes the context into a string.</span>
 
@@ -1825,7 +1825,7 @@
     <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">context_str</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="n">context_str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The inverse of :meth:`serialize`.</span>
 
@@ -1839,7 +1839,7 @@
 <span class="c1"># YAML representer/constructor</span>
 
 
-<span class="k">def</span> <span class="nf">context_yaml_representer</span><span class="p">(</span><span class="n">dumper</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">context_yaml_representer</span><span class="p">(</span><span class="n">dumper</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom serializer.</span>
 <span class="sd">    Creates yaml code for a context object.</span>
@@ -1862,7 +1862,7 @@
     <span class="k">return</span> <span class="n">dumper</span><span class="o">.</span><span class="n">represent_mapping</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;!TankContext&quot;</span><span class="p">,</span> <span class="n">context_dict</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">context_yaml_constructor</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">context_yaml_constructor</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom deserializer.</span>
 <span class="sd">    Constructs a context object given the yaml data provided.</span>
@@ -1873,7 +1873,7 @@
 <span class="sd">        currently authenticated user.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># lazy load this to avoid cyclic dependencies</span>
-    <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Tank</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tank</span>
 
     <span class="c1"># get the dict from yaml</span>
     <span class="n">context_constructor_dict</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">construct_mapping</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1896,7 +1896,7 @@
 <span class="c1"># utility methods</span>
 
 
-<span class="k">def</span> <span class="nf">_get_entity_name</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_entity_name</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract the entity name from the specified entity dictionary if it can</span>
 <span class="sd">    be found.  The entity dictionary must contain at least &#39;type&#39;</span>
@@ -1914,7 +1914,7 @@
     <span class="k">return</span> <span class="n">entity_name</span>
 
 
-<span class="k">def</span> <span class="nf">_task_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">additional_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_task_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">additional_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun task.</span>
 <span class="sd">    Because we are constructing the context from a task, we will get a context</span>
@@ -1977,7 +1977,7 @@
     <span class="k">return</span> <span class="n">context</span>
 
 
-<span class="k">def</span> <span class="nf">_entity_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_entity_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determines the entity details for the specified entity type and id by querying Shotgun.</span>
 
@@ -2031,7 +2031,7 @@
     <span class="k">return</span> <span class="n">context</span>
 
 
-<span class="k">def</span> <span class="nf">_context_data_from_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_context_data_from_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds data to context based on path cache.</span>
 
 <span class="sd">    :param tk: a Sgtk API instance</span>
@@ -2103,7 +2103,7 @@
     <span class="k">return</span> <span class="n">context</span>
 
 
-<span class="k">def</span> <span class="nf">_values_from_path_cache</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">cur_template</span><span class="p">,</span> <span class="n">path_cache</span><span class="p">,</span> <span class="n">required_fields</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_values_from_path_cache</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">cur_template</span><span class="p">,</span> <span class="n">path_cache</span><span class="p">,</span> <span class="n">required_fields</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determine values for template fields based on an entities cached paths.</span>
 
@@ -2161,7 +2161,7 @@
     <span class="k">return</span> <span class="n">unique_fields</span>
 
 
-<span class="k">def</span> <span class="nf">_get_template_ancestors</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_template_ancestors</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return templates branch of the template tree, ordered from first template</span>
 <span class="sd">    below the project root down to and including the input template.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2182,7 +2182,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    

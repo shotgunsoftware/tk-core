@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.21.8 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.22.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -85,7 +85,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.21.8.<br>
+    <b>tk-core</b> v0.22.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -139,23 +139,23 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span><span class="p">,</span> <span class="n">CheckVersionConstraintsError</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">shotgun</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">pipelineconfig_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.descriptor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Descriptor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankDescriptorError</span><span class="p">,</span> <span class="n">CheckVersionConstraintsError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.version</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_version_older</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">shotgun</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipelineconfig_utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">BundleDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BundleDescriptor</span><span class="p">(</span><span class="n">Descriptor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Bundle (App/Engine/Framework)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
@@ -167,7 +167,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="n">sg_connection</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A dictionary with version constraints. The absence of a key</span>
 <span class="sd">        indicates that there is no defined constraint. The following keys can be</span>
@@ -196,7 +196,7 @@
         <span class="k">return</span> <span class="n">constraints</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_get_sg_version</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_sg_version</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the version of the studio shotgun server. It caches the result per site.</span>
 
@@ -215,7 +215,7 @@
 
         <span class="k">return</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">version_tuple</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">_test_version_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">item_name</span><span class="p">,</span> <span class="n">reasons</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_test_version_constraint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">current_version</span><span class="p">,</span> <span class="n">item_name</span><span class="p">,</span> <span class="n">reasons</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tests a version constraint by ensuring the user provided a version that is not older than the expected</span>
 <span class="sd">        one.</span>
@@ -242,7 +242,7 @@
                     <span class="o">%</span> <span class="p">(</span><span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">,</span> <span class="n">current_version</span><span class="p">)</span>
                 <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">check_version_constraints</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_version_constraints</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">core_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">desktop_version</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -320,7 +320,7 @@
             <span class="k">raise</span> <span class="n">CheckVersionConstraintsError</span><span class="p">(</span><span class="n">reasons</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The required context, if there is one defined, for a bundle.</span>
 <span class="sd">        This is a list of strings, something along the lines of</span>
@@ -336,7 +336,7 @@
         <span class="k">return</span> <span class="n">rc</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The platforms supported. Possible values</span>
 <span class="sd">        are windows, linux and mac.</span>
@@ -354,7 +354,7 @@
         <span class="k">return</span> <span class="n">sp</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The manifest configuration schema for this bundle.</span>
 <span class="sd">        Always returns a dictionary.</span>
@@ -370,7 +370,7 @@
         <span class="k">return</span> <span class="n">cfg</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The engines supported by this app or framework. Examples</span>
 <span class="sd">        of return values:</span>
@@ -382,7 +382,7 @@
         <span class="k">return</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_engines&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A list of required frameworks for this item.</span>
 
@@ -405,28 +405,28 @@
     <span class="c1"># compatibility accessors to ensure that all systems</span>
     <span class="c1"># calling this (previously internal!) parts of toolkit</span>
     <span class="c1"># will still work.</span>
-    <span class="k">def</span> <span class="nf">get_version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
 
-    <span class="k">def</span> <span class="nf">get_required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_required_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_context</span>
 
-    <span class="k">def</span> <span class="nf">get_supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_supported_platforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_platforms</span>
 
-    <span class="k">def</span> <span class="nf">get_configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_configuration_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration_schema</span>
 
-    <span class="k">def</span> <span class="nf">get_supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_supported_engines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
 
-    <span class="k">def</span> <span class="nf">get_required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_frameworks</span>  <span class="c1"># noqa</span>
 
     <span class="c1">###############################################################################################</span>
     <span class="c1"># helper methods</span>
 
-    <span class="k">def</span> <span class="nf">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensures that any shotgun fields a particular descriptor requires</span>
 <span class="sd">        exists in shotgun. In the metadata (``info.yml``) for an app or an engine,</span>
@@ -513,7 +513,7 @@
                             <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">)</span>
                         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If a post install hook exists in a descriptor, execute it. In the</span>
 <span class="sd">        hooks directory for an app or engine, if a &#39;post_install.py&#39; hook</span>
@@ -546,12 +546,12 @@
             <span class="p">)</span>
 
 
-<div class="viewcode-block" id="EngineDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.EngineDescriptor">[docs]</a><span class="k">class</span> <span class="nc">EngineDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
+<div class="viewcode-block" id="EngineDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.EngineDescriptor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">EngineDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Engine</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -568,12 +568,12 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">EngineDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="AppDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.AppDescriptor">[docs]</a><span class="k">class</span> <span class="nc">AppDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
+<div class="viewcode-block" id="AppDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.AppDescriptor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">AppDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit App</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -590,12 +590,12 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">AppDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="FrameworkDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor">[docs]</a><span class="k">class</span> <span class="nc">FrameworkDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
+<div class="viewcode-block" id="FrameworkDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">FrameworkDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Framework</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -611,7 +611,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FrameworkDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
 
-<div class="viewcode-block" id="FrameworkDescriptor.is_shared_framework"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor.is_shared_framework">[docs]</a>    <span class="k">def</span> <span class="nf">is_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FrameworkDescriptor.is_shared_framework"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor.is_shared_framework">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a boolean indicating whether the bundle is a shared framework.</span>
 <span class="sd">        Shared frameworks only have a single instance per instance name in the</span>
@@ -635,7 +635,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Autodesk.</p>
+    <p>&#169; Copyright 2025, Autodesk.</p>
   </div>
 
    
