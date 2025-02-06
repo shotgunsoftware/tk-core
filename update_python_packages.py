@@ -11,7 +11,7 @@
 
 import os
 import pathlib
-import subprocess # nosec
+import subprocess  # nosec
 import sys
 import tempfile
 import zipfile
@@ -81,12 +81,12 @@ def main():
                 str(temp_dir),
                 "--upgrade",
             ]
-        ) # nosec
+        )  # nosec
         print("Writing out frozen requirements...")
         subprocess.run(
             ["python", "-m", "pip", "freeze", "--path", str(temp_dir)],
             stdout=open(f"requirements/{PYTHON_VERSION}/frozen_requirements.txt", "w"),
-        ) # nosec
+        )  # nosec
 
         # Figure out if those packages were installed as single file packages or folders.
         package_names = [
@@ -103,7 +103,11 @@ def main():
 
         # Write out the zip file
         pkgsZip = zipfile.ZipFile(
-            pathlib.Path(__file__).parent / "requirements" / PYTHON_VERSION / "pkgs.zip", "w"
+            pathlib.Path(__file__).parent
+            / "requirements"
+            / PYTHON_VERSION
+            / "pkgs.zip",
+            "w",
         )
         # For every single package
         for package_name in package_names:
@@ -111,7 +115,9 @@ def main():
             # If we have a .py file to zip, simple write it
             full_package_path = temp_dir / package_name
             if full_package_path.suffix == ".py":
-                pkgsZip.write(full_package_path, full_package_path.relative_to(temp_dir))
+                pkgsZip.write(
+                    full_package_path, full_package_path.relative_to(temp_dir)
+                )
             else:
                 # Otherwise zip package folders recursively.
                 ensure_init_file(full_package_path)
