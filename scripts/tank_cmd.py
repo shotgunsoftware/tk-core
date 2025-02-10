@@ -498,7 +498,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
 
     # extract actions into cache file
     res = []
-    for (cmd_name, cmd_params) in engine_commands.items():
+    for cmd_name, cmd_params in engine_commands.items():
 
         # some apps provide a special deny_platforms entry
         if "deny_platforms" in cmd_params["properties"]:
