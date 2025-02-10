@@ -254,7 +254,7 @@ class PySide6Patcher(PySide2Patcher):
             try:
                 screen = widget.screen()
                 return QtGui.QGuiApplication.screens().index(screen)
-            except IndexError:
+            except (IndexError, AttributeError):
                 return -1
 
         def screenCount(self):
