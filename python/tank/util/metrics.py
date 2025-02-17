@@ -71,7 +71,7 @@ class PlatformInfo(object):
         :return: A str of a simple OS version string.
         """
 
-        os_version = "Unknown macOS"
+        os_version = "Unknown"
 
         # Now that we have 'raw' output secured, try limiting the version
         try:
@@ -97,7 +97,7 @@ class PlatformInfo(object):
 
         :return: A str of a simple OS version string.
         """
-        os_version = "Unknown Linux"
+        os_version = "Unknown"
 
         try:
             # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
@@ -121,7 +121,7 @@ class PlatformInfo(object):
 
         :return: A str of a simple OS version string.
         """
-        os_version = "Unknown Windows"
+        os_version = "Unknown"
 
         try:
             # On Windows, we can simply use the 'Release()' method
