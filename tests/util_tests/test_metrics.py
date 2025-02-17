@@ -1300,7 +1300,7 @@ class TestPlatformInfo(unittest.TestCase):
         platform_info = PlatformInfo.get_platform_info()
         self.assertIsNotNone(platform_info)
         self.assertEqual("Unsupported system: (BSD)", platform_info["OS"])
-        self.assertEqual("Unknown", platform_info["OS Version"])
+        self.assertEqual("Unknown Linux", platform_info["OS Version"])
         self.assertTrue(mocked_system.called)
         self.assertFalse(mocked_linux_distribution.called)
 
@@ -1315,7 +1315,7 @@ class TestPlatformInfo(unittest.TestCase):
         platform_info = PlatformInfo.get_platform_info()
         self.assertIsNotNone(platform_info)
         self.assertEqual("Linux", platform_info["OS"])
-        self.assertEqual("Unknown", platform_info["OS Version"])
+        self.assertEqual("Unknown Linux", platform_info["OS Version"])
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_linux_distribution.called)
 
@@ -1328,7 +1328,7 @@ class TestPlatformInfo(unittest.TestCase):
         platform_info = PlatformInfo.get_platform_info()
         self.assertIsNotNone(platform_info)
         self.assertEqual("Mac", platform_info["OS"])
-        self.assertEqual("Unknown", platform_info["OS Version"])
+        self.assertEqual("Unknown macOS", platform_info["OS Version"])
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_mac_ver.called)
 
@@ -1341,7 +1341,7 @@ class TestPlatformInfo(unittest.TestCase):
         platform_info = PlatformInfo.get_platform_info()
         self.assertIsNotNone(platform_info)
         self.assertEqual("Windows", platform_info["OS"])
-        self.assertEqual("Unknown", platform_info["OS Version"])
+        self.assertEqual("Unknown Windows", platform_info["OS Version"])
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_release.called)
 
