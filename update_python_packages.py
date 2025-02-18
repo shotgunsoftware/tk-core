@@ -20,51 +20,46 @@ PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
 def zip_recursively(zip_file, root_dir, folder_name):
+    """Zip the files at the given folder recursively."""
+
+    path = root_dir / folder_name
+    if path.is_dir():
+        # for root, _, files in os.walk(root_dir / folder_name):
+        for root, _, files in os.walk(path):
+            for f in files:
+                full_file_path = pathlib.Path(os.path.join(root, f))
+                zip_file.write(full_file_path, full_file_path.relative_to(root_dir))
+    else:
+        zip_file.write(path, path.relative_to(root_dir))
+
+
+def install_common_python_packages(python_dist_dir):
     """
-    Recursively adds all files within a given folder to a zip archive.
+    Install common Python packages.
 
-    Args:
-        zip_file (zipfile.ZipFile): The zip archive where the files will be added.
-        root_dir (pathlib.Path): The base directory containing the folder to zip.
-        folder_name (str): The name of the folder within root_dir to be zipped.
-
-    The function traverses all subdirectories and files within `folder_name`,
-    maintaining their relative paths within the zip archive.
+    :param python_dist_dir: The path containing the package requirements.txt
+        file, and where to install the packages.
+    :type python_dist_dir: str
     """
-    for root, _, files in os.walk(root_dir / folder_name):
-        for file in files:
-            full_file_path = pathlib.Path(os.path.join(root, file))
-            zip_file.write(full_file_path, full_file_path.relative_to(root_dir))
 
+    if not os.path.exists(python_dist_dir):
+        print(f"Cannot find Python distribution folder {python_dist_dir}")
+        return
 
-def ensure_init_file(package_dir):
-    """
-    Ensures that every directory in the given package path contains an __init__.py file.
-
-    Args:
-        package_dir (str or pathlib.Path): The root directory where package folders are located.
-
-    This function walks through all subdirectories of `package_dir` and checks if
-    an `__init__.py` file exists. If not, it creates an empty one, ensuring that
-    Python recognizes the directory as a package.
-    """
-    for root, _, files in os.walk(package_dir):
-        if "__init__.py" not in files:
-            init_file_path = pathlib.Path(root) / "__init__.py"
-            with open(init_file_path, "w") as f:
-                f.write("")
-
-
-def main():
     with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = pathlib.Path(temp_dir)
+        print("Installing common Python packages...")
 
-        # Make sure the requirements folder exists
-        if not os.path.exists(f"requirements/{PYTHON_VERSION}/requirements.txt"):
-            raise RuntimeError(f"Python {PYTHON_VERSION} requirements not found.")
+        temp_dir_path = pathlib.Path(temp_dir)
+
+        requirements_txt = os.path.join(python_dist_dir, "requirements.txt")
+        if not os.path.exists(requirements_txt):
+            raise Exception(f"Cannot find requirements file {requirements_txt}")
+
+        frozen_requirements_txt = os.path.join(
+            python_dist_dir, "frozen_requirements.txt"
+        )
 
         # Pip install everything and capture everything that was installed.
-        print(f"Installing Python {PYTHON_VERSION} requirements...")
         subprocess.run(
             [
                 "python",
@@ -72,56 +67,49 @@ def main():
                 "pip",
                 "install",
                 "-r",
-                f"requirements/{PYTHON_VERSION}/requirements.txt",
+                requirements_txt,
                 "--no-compile",
                 # The combination of --target and --upgrade forces pip to install
                 # all packages to the temporary directory, even if an already existing
                 # version is installed
                 "--target",
-                str(temp_dir),
+                temp_dir,
                 "--upgrade",
             ]
-        )  # nosec
-        print("Writing out frozen requirements...")
+        )
         subprocess.run(
-            ["python", "-m", "pip", "freeze", "--path", str(temp_dir)],
-            stdout=open(f"requirements/{PYTHON_VERSION}/frozen_requirements.txt", "w"),
-        )  # nosec
+            ["python", "-m", "pip", "freeze", "--path", temp_dir],
+            stdout=open(frozen_requirements_txt, "w"),
+        )
+
+        # Quickly compute the number of requirements we have.
+        nb_dependencies = len([_ for _ in open(frozen_requirements_txt, "rt")])
 
         # Figure out if those packages were installed as single file packages or folders.
         package_names = [
             package_name
             for package_name in os.listdir(temp_dir)
-            if all(
-                [
-                    "info" not in package_name,
-                    package_name != "bin",
-                    ".pyd" not in package_name,
-                ]
-            )
+            if "info" not in package_name and package_name != "bin"
         ]
 
-        # Write out the zip file
-        pkgsZip = zipfile.ZipFile(
-            pathlib.Path(__file__).parent
-            / "requirements"
-            / PYTHON_VERSION
-            / "pkgs.zip",
-            "w",
-        )
-        # For every single package
+        # Make sure we found as many Python packages as there
+        # are packages listed inside frozen_requirements.txt
+        # assert len(package_names) == nb_dependencies
+        assert len(package_names) >= nb_dependencies
+
+        # Write out the zip file for python packages. Compress the zip file with ZIP_DEFLATED. Note
+        # that this requires zlib to decompress when importing. Compression also causes import to
+        # be slower, but the file size is simply too large to not be compressed
+        pkgs_zip_path = os.path.join(python_dist_dir, "pkgs.zip")
+        pkgs_zip = zipfile.ZipFile(pkgs_zip_path, "w", zipfile.ZIP_DEFLATED)
+
         for package_name in package_names:
             print(f"Zipping {package_name}...")
-            # If we have a .py file to zip, simple write it
-            full_package_path = temp_dir / package_name
-            if full_package_path.suffix == ".py":
-                pkgsZip.write(
-                    full_package_path, full_package_path.relative_to(temp_dir)
-                )
-            else:
-                # Otherwise zip package folders recursively.
-                ensure_init_file(full_package_path)
-                zip_recursively(pkgsZip, temp_dir, package_name)
+            zip_recursively(pkgs_zip, temp_dir_path, package_name)
+
+
+def main():
+    install_common_python_packages(f"requirements/{PYTHON_VERSION}")
 
 
 if __name__ == "__main__":
