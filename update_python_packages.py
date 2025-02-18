@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) 2024 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -11,37 +10,20 @@
 
 import os
 import pathlib
-import subprocess  # nosec
+import subprocess  # nosec B404
 import sys
 import tempfile
 import zipfile
 
 
-def zip_recursively(zip_file, root_dir, folder_name):
-    """Zip the files at the given folder recursively."""
-
-    path = root_dir / folder_name
-    if path.is_dir():
-        for root, _, files in os.walk(path):
-            for f in files:
-                full_file_path = pathlib.Path(os.path.join(root, f))
-                zip_file.write(full_file_path, full_file_path.relative_to(root_dir))
-    else:
-        zip_file.write(path, path.relative_to(root_dir))
-
-
-def install_common_python_packages(python_dist_dir):
+def main():
     """
     Install common Python packages.
-
-    :param python_dist_dir: The path containing the package requirements.txt
-        file, and where to install the packages.
-    :type python_dist_dir: str
     """
 
+    python_dist_dir = f"requirements/{sys.version_info.major}.{sys.version_info.minor}"
     if not os.path.exists(python_dist_dir):
-        print(f"Cannot find Python distribution folder {python_dist_dir}")
-        return
+        raise Exception(f"Cannot find Python distribution folder {python_dist_dir}")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         print("Installing common Python packages...")
@@ -57,7 +39,7 @@ def install_common_python_packages(python_dist_dir):
         )
 
         # Pip install everything and capture everything that was installed.
-        subprocess.run(
+        subprocess.run(  # nosec B603, B607
             [
                 "python",
                 "-m",
@@ -74,7 +56,7 @@ def install_common_python_packages(python_dist_dir):
                 "--upgrade",
             ]
         )
-        subprocess.run(
+        subprocess.run(  # nosec B603, B607
             ["python", "-m", "pip", "freeze", "--path", temp_dir],
             stdout=open(frozen_requirements_txt, "w"),
         )
@@ -105,9 +87,17 @@ def install_common_python_packages(python_dist_dir):
             zip_recursively(pkgs_zip, temp_dir_path, package_name)
 
 
-def main():
-    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    install_common_python_packages(f"requirements/{python_version}")
+def zip_recursively(zip_file, root_dir, folder_name):
+    """Zip the files at the given folder recursively."""
+
+    path = root_dir / folder_name
+    if path.is_dir():
+        for root, _, files in os.walk(path):
+            for f in files:
+                full_file_path = pathlib.Path(os.path.join(root, f))
+                zip_file.write(full_file_path, full_file_path.relative_to(root_dir))
+    else:
+        zip_file.write(path, path.relative_to(root_dir))
 
 
 if __name__ == "__main__":
