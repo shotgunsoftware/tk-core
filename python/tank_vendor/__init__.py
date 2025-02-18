@@ -1,6 +1,4 @@
-import importlib.util
 import sys
-import zipfile
 
 from pathlib import Path
 
@@ -13,11 +11,14 @@ if not pkgs_zip_path.exists():
     raise RuntimeError(f"{pkgs_zip_path} does not exists")
 sys.path.insert(0, str(pkgs_zip_path))
 
-# # Import additional libraries from pkgs.zip or the global environment.
+# If other modules use from tank_vendor import distro, Python expects tank_vendor.distro
+# to exist in sys.modules, which doesn’t happen automatically by just adding pkgs.zip to
+# sys.path. Importing distro and yaml globally in __init__.py ensures
+# they are properly registered and accessible
 import yaml
 import distro
 
-# Explicitly import six and ruamel_yaml from the tank_vendor folder instead of dynamically loading from pkgs.zip.
+# Explicitly import six and ruamel_yaml from the tank_vendor folder instead of loading from pkgs.zip.
 # This ensures that these packages are always used from the tank_vendor namespace, 
 # avoiding potential conflicts with versions inside pkgs.zip.
 from tank_vendor import six

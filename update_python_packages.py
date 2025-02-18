@@ -16,15 +16,12 @@ import sys
 import tempfile
 import zipfile
 
-PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
-
 
 def zip_recursively(zip_file, root_dir, folder_name):
     """Zip the files at the given folder recursively."""
 
     path = root_dir / folder_name
     if path.is_dir():
-        # for root, _, files in os.walk(root_dir / folder_name):
         for root, _, files in os.walk(path):
             for f in files:
                 full_file_path = pathlib.Path(os.path.join(root, f))
@@ -109,7 +106,8 @@ def install_common_python_packages(python_dist_dir):
 
 
 def main():
-    install_common_python_packages(f"requirements/{PYTHON_VERSION}")
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    install_common_python_packages(f"requirements/{python_version}")
 
 
 if __name__ == "__main__":
