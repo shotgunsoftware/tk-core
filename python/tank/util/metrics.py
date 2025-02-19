@@ -495,29 +495,32 @@ class MetricsDispatchWorkerThread(Thread):
             data = metric.data
             # As second pass re-structure unsupported events from supported groups
             # (see more complete comment below)
-            if metric.is_desktop_event:
-                # We split <desktop version> / <startup version>
-                # And store the <startup version> as a separate property
-                host_app_version = data["event_properties"].get(
-                    EventMetric.KEY_HOST_APP_VERSION
-                )
-                desktop_version, startup_version = host_app_version.split("/")
-
-                data["event_properties"][
-                    EventMetric.KEY_HOST_APP_VERSION
-                ] = desktop_version.strip()
-                data["event_properties"]["Event Data"] = {
-                    "Startup Version": startup_version.strip()
-                }
-                data["event_properties"][
-                    EventMetric.KEY_CORE_VERSION
-                ] = self._engine.sgtk.version
-            elif metric.is_supported_event:
+            if metric.is_supported_event:
                 # If this is a supported event, we just need to tack on the
                 # version of the core api being used.
                 data["event_properties"][
                     EventMetric.KEY_CORE_VERSION
                 ] = self._engine.sgtk.version
+
+                # If it's a desktop event...
+                # We split <desktop version> / <startup version>
+                # And store the <startup version> as the `Event Data` dict
+                if metric.is_desktop_event:
+                    host_app_version = data["event_properties"].get(
+                        EventMetric.KEY_HOST_APP_VERSION
+                    )
+                    try:
+                        desktop_version, startup_version = host_app_version.split("/")
+                    except ValueError:
+                        # host_app_version can be `unknown` on development/tests.
+                        pass
+                    else:
+                        data["event_properties"][
+                            EventMetric.KEY_HOST_APP_VERSION
+                        ] = desktop_version.strip()
+                        data["event_properties"]["Event Data"] = {
+                            "Startup Version": startup_version.strip()
+                        }
             else:
                 # Still log the event but change its name so it's easy to
                 # spot all unofficial events which are logged.
