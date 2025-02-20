@@ -49,6 +49,22 @@ class PySide6Patcher(PySide2Patcher):
     )
 
     @classmethod
+    def _patch_QApplication(cls, QtGui):
+        """Patch QApplication."""
+
+        def desktop(*args):
+            """
+            QDesktopWidget removed along with QApplication.desktop, in favor or QScreen.
+            """
+            return QtGui.QApplication.primaryScreen()
+
+        # First apply the patch from PySide2 patcher
+        super()._patch_QApplication(QtGui)
+
+        # Now apply any PySide6 specific patches
+        QtGui.QApplication.desktop = desktop
+
+    @classmethod
     def _patch_QAbstractItemView(cls, QtGui):
         """Patch QAbstractItemView."""
 
@@ -210,29 +226,35 @@ class PySide6Patcher(PySide2Patcher):
 
 
         original_QScreen_availableGeometry = QtGui.QScreen.availableGeometry
-        def availableGeometry(self, widget=None):
-            """Patch QScreen to also act as QDesktopWidget."""
-            if widget is None:
+        def availableGeometry(self, arg__1=None):
+            """
+            Patch QScreen to also act as QDesktopWidget.
+
+            :param arg__1 Union(int, QtGui.QWidget, QtCore.QPoint): A widget, screen index or point.
+            """
+            if arg__1 is None:
                 return original_QScreen_availableGeometry(self)
 
-            if isinstance(widget, int):
+            if isinstance(arg__1, int):
                 screens = QtGui.QGuiApplication.screens()
                 try:
-                    screen = screens[widget]
+                    screen = screens[arg__1]
                 except IndexError:
                     return QtCore.QRect()
+            elif isinstance(arg__1, QtCore.QPoint):
+                return original_QScreen_availableGeometry(self)
             else:
-                screen = widget.screen()
+                screen = arg__1.screen()
 
             return screen.availableGeometry()
 
         def screenNumber(self, widget):
             """Provide QDesktopWidget method through QScreen."""
 
-            screen = widget.screen()
             try:
+                screen = widget.screen()
                 return QtGui.QGuiApplication.screens().index(screen)
-            except IndexError:
+            except (IndexError, AttributeError):
                 return -1
 
         def screenCount(self):
@@ -534,12 +556,10 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#the-qabstractitemview-class
         cls._patch_QAbstractItemView(qt_gui_shim)
 
-        # QDesktopWidget removed along with QApplication.desktop, in favor or QScreen. Patch
-        # QScreen such that it can be used as if it were a QDesktopWidget instance
+        # Patch QScreen such that it can be used as if it were a QDesktopWidget instance
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#qdesktopwidget-and-qapplication-desktop
         cls._patch_QScreen(qt_core_shim, qt_gui_shim)
         qt_gui_shim.QDesktopWidget = qt_gui_shim.QScreen
-        qt_gui_shim.QApplication.desktop = lambda: qt_gui_shim.QApplication.primaryScreen()
 
         # The default timeout parameter removed. This param, if given, will be ignored. It will
         # always timeout after 100 ms
