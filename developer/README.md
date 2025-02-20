@@ -5,12 +5,12 @@
 The `requirements` folder contains subdirectories for different Python versions (e.g., `3.7`, `3.9`, `3.10`, and `3.11`). Each subdirectory includes the following files:
 
 - **`requirements.txt`**: Specifies the dependencies for the corresponding Python version. This file is primarily used to document which packages are required for the application.
-- **`frozen_requirements.txt`**: A frozen version of the dependencies, capturing exact package versions installed to ensure consistent environments.
+- **`frozen_requirements.txt`**: A frozen version of the dependencies, capturing exact package versions installed, including sub-dependencies, to ensure consistent and reproducible environments.
 - **`pkgs.zip`**: A zip file containing the bundled packages for the corresponding Python version.
 
 ### How bundled packages are used
 
-The `tank_vendor` folder no longer contains explicit copies of the required packages. Instead, the `__init__.py` file dynamically references and loads packages directly from the appropriate `pkgs.zip` file in the `requirements` folder.
+The `__init__.py` file in the `tank_vendor` folder dynamically references and loads packages from the appropriate `pkgs.zip` file in the `requirements` folder.
 
 This approach centralizes the management of dependencies, ensuring that packages are versioned and bundled consistently across different Python versions.
 

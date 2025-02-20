@@ -88,7 +88,9 @@ def main():
 
 
 def zip_recursively(zip_file, root_dir, folder_name):
-    """Zip the files at the given folder recursively."""
+    """
+    Zip the files at the given folder recursively.
+    """
 
     path = root_dir / folder_name
     if path.is_dir():

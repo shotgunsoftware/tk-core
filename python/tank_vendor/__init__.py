@@ -37,11 +37,8 @@ try:
     # of loading from pkgs.zip.
     # This ensures that these packages are always used from the tank_vendor
     # namespace, avoiding potential conflicts with versions inside pkgs.zip.
-    from tank_vendor import six
-    from tank_vendor import ruamel_yaml
+    from . import ruamel_yaml, six
 
-finally:
-    try:
-        sys.path.remove(str(pkgs_zip_path))
-    except ValueError:
-        pass
+except Exception as e:
+    sys.path.remove(str(pkgs_zip_path))
+    raise RuntimeError(f"Failed to import required modules: {e}") from e
