@@ -615,6 +615,7 @@ class EventMetric(object):
     EVENT_NAME_FORMAT = "%s: %s"
 
     # List of events suported by our backend
+    # New events that use `EventMetric.log` should be added here.
     SUPPORTED_EVENTS = [
         EVENT_NAME_FORMAT % (GROUP_APP, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_APP, "Logged Out"),
@@ -636,6 +637,20 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Executed websockets command"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Render & Submit Version"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Breakdown2 App"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launch Open Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launch New Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Transcode & Publish"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Connected"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Create"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Shot Export"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Data Validation App"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Collate/Cut Length"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Export"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Processed"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Collate/Clip Length"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Sequence Export"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Audio Export"),
     ]
 
     # Event property keys
