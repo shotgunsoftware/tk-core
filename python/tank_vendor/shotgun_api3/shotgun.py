@@ -105,6 +105,8 @@ mimetypes.add_type("video/mp4", ".mp4")    # from some OS/distros
 
 SG_TIMEZONE = SgTimezone()
 
+SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION = False
+
 NO_SSL_VALIDATION = False
 """
 Turns off hostname matching validation for SSL certificates
@@ -116,7 +118,7 @@ not require the added security provided by enforcing this.
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.6.2"
+__version__ = "3.7.0"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -649,7 +651,11 @@ class Shotgun(object):
         if self.config.rpc_attempt_interval < 0:
             raise ValueError("Value of SHOTGUN_API_RETRY_INTERVAL must be positive, "
                              "got '%s'." % self.config.rpc_attempt_interval)
-
+        
+        global SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION
+        if os.environ.get("SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION", "0").strip().lower() == "1":
+            SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION = True
+            
         self._connection = None
 
         self.__ca_certs = self._get_certs_file(ca_certs)
@@ -1126,6 +1132,28 @@ class Shotgun(object):
             params["project"] = project_entity
 
         return params
+    
+    def _translate_update_params(
+        self, entity_type, entity_id, data, multi_entity_update_modes
+    ):
+        global SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION
+
+        def optimize_field(field_dict):
+            if SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION:
+                return {k: _get_type_and_id_from_value(v) for k, v in field_dict.items()}
+            return field_dict
+
+        full_fields = self._dict_to_list(
+            data,
+            extra_data=self._dict_to_extra_data(
+                multi_entity_update_modes, "multi_entity_update_mode"
+            ),
+        )
+        return {
+            "type": entity_type,
+            "id": entity_id,
+            "fields": [optimize_field(field_dict) for field_dict in full_fields],
+        }
 
     def summarize(self,
                   entity_type,
@@ -1457,14 +1485,7 @@ class Shotgun(object):
             upload_filmstrip_image = data.pop("filmstrip_image")
 
         if data:
-            params = {
-                "type": entity_type,
-                "id": entity_id,
-                "fields": self._dict_to_list(
-                    data,
-                    extra_data=self._dict_to_extra_data(
-                        multi_entity_update_modes, "multi_entity_update_mode"))
-            }
+            params = self._translate_update_params(entity_type, entity_id, data, multi_entity_update_modes)
             record = self._call_rpc("update", params)
             result = self._parse_records(record)[0]
         else:
@@ -4130,16 +4151,16 @@ class Shotgun(object):
         :returns: upload url.
         :rtype: str
         """
-        opener = self._build_opener(urllib.request.HTTPHandler)
-
-        request = urllib.request.Request(storage_url, data=data)
-        request.add_header("Content-Type", content_type)
-        request.add_header("Content-Length", size)
-        request.get_method = lambda: "PUT"
 
         attempt = 1
         while attempt <= self.MAX_ATTEMPTS:
             try:
+                opener = self._build_opener(urllib.request.HTTPHandler)
+
+                request = urllib.request.Request(storage_url, data=data)
+                request.add_header("Content-Type", content_type)
+                request.add_header("Content-Length", size)
+                request.get_method = lambda: "PUT"
                 result = self._make_upload_request(request, opener)
 
                 LOG.debug("Completed request to %s" % request.get_method())
@@ -4246,12 +4267,12 @@ class Shotgun(object):
 
         params.update(self._auth_params())
 
-        opener = self._build_opener(FormPostHandler)
 
         attempt = 1
         while attempt <= self.MAX_ATTEMPTS:
             # Perform the request
             try:
+                opener = self._build_opener(FormPostHandler)
                 resp = opener.open(url, params)
                 result = resp.read()
                 # response headers are in str(resp.info()).splitlines()
@@ -4288,11 +4309,11 @@ class CACertsHTTPSConnection(http_client.HTTPConnection):
         """
         # Pop that argument,
         self.__ca_certs = kwargs.pop("ca_certs")
-        http_client.HTTPConnection.__init__(self, *args, **kwargs)
+        super().__init__(self, *args, **kwargs)
 
     def connect(self):
         "Connect to a host on a given (SSL) port."
-        http_client.HTTPConnection.connect(self)
+        super().connect(self)
         # Now that the regular HTTP socket has been created, wrap it with our SSL certs.
         if six.PY38:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -4309,13 +4330,13 @@ class CACertsHTTPSConnection(http_client.HTTPConnection):
             )
 
 
-class CACertsHTTPSHandler(urllib.request.HTTPSHandler):
+class CACertsHTTPSHandler(urllib.request.HTTPHandler):
     """
     Handler that ensures https connections are created with the custom CA certs.
     """
 
     def __init__(self, cacerts):
-        urllib.request.HTTPSHandler.__init__(self)
+        super().__init__(self)
         self.__ca_certs = cacerts
 
     def https_open(self, req):
@@ -4470,6 +4491,17 @@ def _translate_filters_simple(sg_filter):
     if len(values) == 1 and isinstance(values[0], (list, tuple)):
         values = values[0]
 
+    # Payload optimization: Do not send a full object
+    # just send the `type` and `id` when combining related queries
+    global SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION
+    if (
+        SHOTGUN_API_ENABLE_ENTITY_OPTIMIZATION
+        and condition["path"] != "id"
+        and condition["relation"] in ["is", "is_not", "in", "not_in"]
+        and isinstance(values[0], dict)
+    ):
+        values = [_get_type_and_id_from_value(v) for v in values]
+
     condition["values"] = values
 
     return condition
@@ -4480,3 +4512,19 @@ def _version_str(version):
     Convert a tuple of int's to a '.' separated str.
     """
     return ".".join(map(str, version))
+
+
+def _get_type_and_id_from_value(value):
+    """
+    For an entity dictionary, returns a new dictionary with only the type and id keys.
+    If any of these keys are not present, the original dictionary is returned.
+    """
+    try:
+        if isinstance(value, dict):
+            return {"type": value["type"], "id": value["id"]}
+        elif isinstance(value, list):
+            return [{"type": v["type"], "id": v["id"]} for v in value]    
+    except (KeyError, TypeError):
+        LOG.debug(f"Could not optimize entity value {value}")
+
+    return value
