@@ -181,7 +181,7 @@ class ConsoleAuthenticationHandlerBase(object):
         print()
         session_info = app_session_launcher.process(
             hostname,
-            webbrowser.open,  # browser_open_callback
+            browser_open_callback=webbrowser.open,
             http_proxy=http_proxy,
         )
 

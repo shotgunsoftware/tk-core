@@ -975,7 +975,7 @@ class ASL_AuthTask(QtCore.QThread):
         try:
             self.session_info = app_session_launcher.process(
                 self._sg_url,
-                lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
+                browser_open_callback=lambda u: QtGui.QDesktopServices.openUrl(u),
                 http_proxy=self._http_proxy,
                 product=self._product,
                 keep_waiting_callback=self.should_continue,

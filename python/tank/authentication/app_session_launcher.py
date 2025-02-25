@@ -9,15 +9,15 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import json
+import http.client
 import os
 import platform
 import random
 import sys
 import time
+import urllib
 
 import tank
-from tank_vendor import six
-from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
 from .. import platform as sgtk_platform
@@ -62,9 +62,10 @@ class AuthenticationError(errors.AuthenticationError):
 
 def process(
     sg_url,
-    browser_open_callback,
+    *,
     http_proxy=None,
     product=None,
+    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
@@ -103,7 +104,7 @@ def process(
 
     request = urllib.request.Request(
         urllib.parse.urljoin(sg_url, "/internal_api/app_session_request"),
-        # method="POST", # see below
+        method="POST",
         data=urllib.parse.urlencode(
             {
                 "appName": product,
@@ -114,9 +115,6 @@ def process(
             "User-Agent": user_agent,
         },
     )
-
-    # Hook for Python 2
-    request.get_method = lambda: "POST"
 
     response = http_request(url_opener, request)
     logger.debug(
@@ -134,7 +132,7 @@ def process(
         )
 
     elif response_code_major == 4:
-        if response.code == http_client.FORBIDDEN and hasattr(response, "json"):
+        if response.code == http.client.FORBIDDEN and hasattr(response, "json"):
             logger.debug(
                 "HTTP response Forbidden: {data}".format(data=response.json),
                 exc_info=getattr(response, "exception", None),
@@ -151,7 +149,7 @@ def process(
             parent_exception=response.exception,
         )
 
-    elif response.code != http_client.OK:
+    elif response.code != http.client.OK:
         raise AuthenticationError(
             "Unexpected response from the Flow Production Tracking site",
             payload=getattr(response, "json", response),
@@ -201,6 +199,10 @@ def process(
         "/internal_api/app_session_request/{session_id}".format(
             session_id=session_id,
         ),
+        method="PUT",
+        headers={
+            "User-Agent": user_agent,
+        },
     )
 
     approved = False
@@ -264,7 +266,7 @@ def process(
                 exc_info=getattr(response, "exception", None),
             )
 
-            if response.code == http_client.NOT_FOUND and hasattr(response, "json"):
+            if response.code == http.client.NOT_FOUND and hasattr(response, "json"):
                 raise AuthenticationError(
                     "The request has been rejected or has expired."
                 )
@@ -274,7 +276,7 @@ def process(
                 parent_exception=getattr(response, "exception", None),
             )
 
-        elif response.code != http_client.OK:
+        elif response.code != http.client.OK:
             logger.debug("Request denied: http code is: {code}".format(
                 code=response.code,
             ))
@@ -355,14 +357,6 @@ def get_product_name():
     return PRODUCT_DEFAULT
 
 
-def _get_content_type(headers):
-    if six.PY2:
-        value = headers.get("content-type", "text/plain")
-        return value.split(";", 1)[0].lower()
-    else:
-        return headers.get_content_type()
-
-
 def http_request(opener, req, max_attempts=4):
     attempt = 0
     backoff = 0.75  # Seconds to wait before retry, times the attempt number
@@ -422,7 +416,7 @@ def http_request(opener, req, max_attempts=4):
                 parent_exception=exc,
             )
 
-    if _get_content_type(response.headers) == "application/json":
+    if response.headers.get_content_type() == "application/json":
         try:
             response.json = json.load(response)
         except json.JSONDecodeError as exc:
