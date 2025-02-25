@@ -12,6 +12,7 @@ import json
 import os
 import platform
 import random
+import ssl
 import sys
 import time
 
@@ -87,7 +88,11 @@ def process(
         logger.debug(f"Set CaCert handler to {ca_certs}")
 
         url_handlers.append(
-            shotgun_api3.shotgun.CACertsHTTPSHandler(ca_certs),
+            urllib.request.HTTPSHandler(
+                context = ssl.create_default_context(
+                    cafile=ca_certs,
+                ),
+            ),
         )
 
     if http_proxy:
