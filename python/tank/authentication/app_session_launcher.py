@@ -87,7 +87,7 @@ def process(
         logger.debug(f"Set CaCert handler to {ca_certs}")
 
         url_handlers.append(
-            shotgun_api3.CACertsHTTPSHandler(ca_certs),
+            shotgun_api3.shotgun.CACertsHTTPSHandler(ca_certs),
         )
 
     if http_proxy:
