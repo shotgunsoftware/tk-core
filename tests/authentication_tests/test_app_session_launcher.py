@@ -55,7 +55,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
             )
 
         with self.assertRaises(AssertionError):
-            unified_login_flow2.process(
+            app_session_launcher.process(
                 "https://test.shotgunstudio.com",
                 browser_open_callback=lambda: True,
                 keep_waiting_callback=None,
