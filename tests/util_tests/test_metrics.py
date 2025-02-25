@@ -352,7 +352,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             expected_event_name = "Unknown Event"
 
         # Make at least one metric related call!
+        props = properties.copy()
         EventMetric.log(group, name, properties)
+        # Recover overwritten properties
+        properties.update(props)
 
         TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
         timeout = time.time() + TIMEOUT_SECONDS
@@ -499,13 +502,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         )
 
     def helper_test_event_whitelist(
-        self, event_group, event_name, expecting_unknown=False, setup_shotgun=False
+        self, event_group, event_name, properties=None, expecting_unknown=False, setup_shotgun=False
     ):
         """
         Helper method for the 'test_event_whitelist' test
         """
+        props = properties or {}
         server_received_metric = self._helper_test_end_to_end(
-            event_group, event_name, {}, setup_shotgun
+            event_group, event_name, props, setup_shotgun
         )
 
         # Test the metric that was encoded and transmitted to the mock server
@@ -537,7 +541,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.helper_test_event_whitelist("Tasks", "Created Task")
         self.helper_test_event_whitelist("Toolkit", "Launched Action")
         self.helper_test_event_whitelist("Toolkit", "Launched Command")
-        self.helper_test_event_whitelist("Toolkit", "Launched Software")
+        self.helper_test_event_whitelist("Toolkit", "Launched Software", properties={
+            EventMetric.KEY_HOST_APP: "tk-desktop",
+            EventMetric.KEY_HOST_APP_VERSION: "v1.2.3 / v4.5.6",
+        })
         self.helper_test_event_whitelist("Toolkit", "Loaded Published File")
         self.helper_test_event_whitelist("Toolkit", "Published")
         self.helper_test_event_whitelist("Toolkit", "New Workfile")
@@ -545,8 +552,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.helper_test_event_whitelist("Toolkit", "Saved Workfile")
 
         # Testing out unknown events
-        self.helper_test_event_whitelist("CarAndDriver", "Reviewed New Car", True)
-        self.helper_test_event_whitelist("Firmwares", "Updated Router Firmware", True)
+        self.helper_test_event_whitelist("CarAndDriver", "Reviewed New Car", expecting_unknown=True)
+        self.helper_test_event_whitelist("Firmwares", "Updated Router Firmware", expecting_unknown=True)
 
     def test_end_to_end_unsupported_event(self):
         """

@@ -501,6 +501,26 @@ class MetricsDispatchWorkerThread(Thread):
                 data["event_properties"][
                     EventMetric.KEY_CORE_VERSION
                 ] = self._engine.sgtk.version
+
+                # If it's a desktop event...
+                # We split <desktop version> / <startup version>
+                # And store the <startup version> as the `Event Data` dict
+                if metric.is_desktop_event:
+                    host_app_version = data["event_properties"].get(
+                        EventMetric.KEY_HOST_APP_VERSION
+                    )
+                    try:
+                        desktop_version, startup_version = host_app_version.split("/")
+                    except ValueError:
+                        # host_app_version can be `unknown` on development/tests.
+                        pass
+                    else:
+                        data["event_properties"][
+                            EventMetric.KEY_HOST_APP_VERSION
+                        ] = desktop_version.strip()
+                        data["event_properties"]["Event Data"] = {
+                            "Startup Version": startup_version.strip()
+                        }
             else:
                 # Still log the event but change its name so it's easy to
                 # spot all unofficial events which are logged.
@@ -711,6 +731,24 @@ class EventMetric(object):
         :return: ``True`` if this event is supported and handled by ToolKit, ``False`` otherwise.
         """
         return repr(self) in EventMetric.SUPPORTED_EVENTS
+
+    @property
+    def is_desktop_event(self):
+        """
+        Determine whether the metric is a "Launched Software" event.
+
+        :return: ``True`` if this event is a "Launched Software" event, ``False`` otherwise.
+        """
+        return any(
+            (
+                self._group == EventMetric.GROUP_TOOLKIT
+                and self._name == "Launched Software",
+                self._group == EventMetric.GROUP_NAVIGATION
+                and self._name == "Viewed Projects",
+                self._group == EventMetric.GROUP_PROJECTS
+                and self._name == "Viewed Project Commands",
+            )
+        )
 
     @classmethod
     def log(cls, group, name, properties=None, log_once=False, bundle=None):
