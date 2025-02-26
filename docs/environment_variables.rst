@@ -10,6 +10,17 @@ A number of different environment variables exist to help control the behavior o
 General
 =======
 
+``SHOTGUN_API_CACERTS``
+-----------------------
+This variable can be used to override the default Trusted Root Certification
+Authorities Certificate Store bundled with Toolkit.
+By default, Toolkit relies on `certifi <https://pypi.org/project/certifi/>`_ as
+Root CA store.
+
+For an example on how to use this variable, see the
+`SSLHandshakeError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_qa_troubleshooting_qa_sslhandshakeerror_ssl_certificate_verify_failed_html>`_
+article.
+
 ``SHOTGUN_HOME``
 ----------------
 Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.
