@@ -12,13 +12,13 @@ General
 
 ``SHOTGUN_API_CACERTS``
 -----------------------
-This variable can be used to override the default Trusted Root Certification
-Authorities Certificate Store bundled with Toolkit.
+Use this variable to override the default Trusted Root Certification Authorities
+Certificate Store bundled with Toolkit.
 By default, Toolkit relies on `certifi <https://pypi.org/project/certifi/>`_ as
-Root CA store.
+its Root CA store.
 
-For an example on how to use this variable, see the
-`SSLHandshakeError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_qa_troubleshooting_qa_sslhandshakeerror_ssl_certificate_verify_failed_html>`_
+For an example about using ``SHOTGUN_API_CACERTS`` to fix a certificate issue,
+see the `SSLHandshakeError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_qa_troubleshooting_qa_sslhandshakeerror_ssl_certificate_verify_failed_html>`_
 article.
 
 ``SHOTGUN_HOME``
