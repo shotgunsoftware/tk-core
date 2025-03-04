@@ -129,13 +129,6 @@ def _is_pyside_missing():
     Tests is PySide is available.
     :returns: True is PySide is available, False otherwise.
     """
-    try:
-        # First try PySide
-        import PySide  # noqa
-
-        return False
-    except ImportError:
-        pass
 
     try:
         # If PySide wasn't found, check for PySide2
