@@ -334,7 +334,7 @@ class UnitTestTimer(object):
 
 
 timer = UnitTestTimer()
-atexit.register(timer.print_stats)
+# atexit.register(timer.print_stats)
 
 
 @timer.clock_func("setUpModule")
