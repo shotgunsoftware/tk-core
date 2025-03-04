@@ -12,11 +12,15 @@ import json
 import os
 import platform
 import random
+import ssl
 import sys
 import time
 
 import tank
-from tank_vendor import six
+from tank_vendor import (
+    shotgun_api3,
+    six,
+)
 from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
@@ -78,6 +82,19 @@ def process(
     assert callable(keep_waiting_callback)
 
     url_handlers = [urllib.request.HTTPHandler]
+
+    ca_certs = shotgun_api3.Shotgun._get_certs_file(None)
+    if ca_certs:
+        logger.debug(f"Set CaCert handler to {ca_certs}")
+
+        url_handlers.append(
+            urllib.request.HTTPSHandler(
+                context = ssl.create_default_context(
+                    cafile=ca_certs,
+                ),
+            ),
+        )
+
     if http_proxy:
         proxy_addr = _build_proxy_addr(http_proxy)
         sg_url_parsed = urllib.parse.urlparse(sg_url)
