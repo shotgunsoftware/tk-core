@@ -855,10 +855,9 @@ A valid setting could look like this::
 Using QT inside your Toolkit App
 ========================================
 
-You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
-platform considerations in the background. Typically, PySide is being used for QT integration, but Sgtk
-may use PyQT in certain engines. Normally, the code is pretty portable between the two systems and it
-should be no problem writing code that works with both libraries.
+You can use QT classes inside your app code. Sgtk will handle the import andgracefully manage different
+platform considerations in the background. Typically, PySide2 or PySide6. Normally, the code is pretty
+portable between the two systems and it should be no problem writing code that works with both libraries.
 
 In order to use QT, import it from Sgtk::
 
@@ -868,16 +867,16 @@ Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many 
 may not have a functional Qt that can be imported when they run in batch mode.
 
 
-Using QT 5 inside your Toolkit App
+PySide - Qt4 emulation layer
 ========================================
 
-When running in an environment with PySide 2 , Toolkit will provide under ``sgtk.platform.qt`` an
-emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don't
+Whether running with PySide2 or PySide6, Toolkit will provide under ``sgtk.platform.qt`` an
+emulation layer that mimics the PySide 1 API on top of PySide 2/6 so that your Toolkit applications don't
 need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
 can access it through the ``sgtk.platform.qt5`` module. Detecting the availability of Qt 5 can be done
-through :meth:`Engine.has_qt5`.
+through :meth:`Engine.has_qt5`. The equivalent is available for PySide6.
 
-.. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+.. warning:: The PySide 1 emulation layer for PySide 2/6 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
              in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/contact-support
              so that we may update it.
