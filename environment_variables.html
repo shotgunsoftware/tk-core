@@ -6,10 +6,11 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; tk-core v0.22.0 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.22.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -67,6 +68,7 @@
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Environment Variables</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#general">General</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-api-cacerts"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_API_CACERTS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgun-home"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-preferences-location"><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-bootstrap-config-override"><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code></a></li>
@@ -120,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.0.<br>
+    <b>tk-core</b> v0.22.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -167,6 +169,16 @@
 <p>A number of different environment variables exist to help control the behavior of the Toolkit Startup.</p>
 <section id="general">
 <span id="environment-variables-general"></span><h2>General<a class="headerlink" href="#general" title="Permalink to this heading"></a></h2>
+<section id="shotgun-api-cacerts">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_API_CACERTS</span></code><a class="headerlink" href="#shotgun-api-cacerts" title="Permalink to this heading"></a></h3>
+<p>Use this variable to override the default Trusted Root Certification Authorities
+Certificate Store bundled with Toolkit.
+By default, Toolkit relies on <a class="reference external" href="https://pypi.org/project/certifi/">certifi</a> as
+its Root CA store.</p>
+<p>For an example about using <code class="docutils literal notranslate"><span class="pre">SHOTGUN_API_CACERTS</span></code> to fix a certificate issue,
+see the <a class="reference external" href="https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_qa_troubleshooting_qa_sslhandshakeerror_ssl_certificate_verify_failed_html">SSLHandshakeError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed</a>
+article.</p>
+</section>
 <section id="shotgun-home">
 <h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code><a class="headerlink" href="#shotgun-home" title="Permalink to this heading"></a></h3>
 <p>Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.</p>
