@@ -27,8 +27,11 @@ import tank
 from sgtk.platform import engine
 from tank.errors import TankError
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (TankTestBase, skip_if_pyside_missing,
-                                      suppress_generated_code_qt_warnings)
+from tank_test.tank_test_base import (
+    TankTestBase,
+    skip_if_pyside_missing,
+    suppress_generated_code_qt_warnings,
+)
 
 
 class TestEngineBase(TankTestBase):
