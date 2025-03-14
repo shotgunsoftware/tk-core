@@ -12,27 +12,23 @@
 Engine-related unit tests.
 """
 
-from __future__ import with_statement, print_function
-
-import os
-import sys
-import threading
-import random
-import time
-
-from tank_test.tank_test_base import (
-    TankTestBase,
-    skip_if_pyside_missing,
-    suppress_generated_code_qt_warnings,
-)
-from tank_test.tank_test_base import setUpModule  # noqa
+from __future__ import print_function, with_statement
 
 import contextlib
-import tank
+import os
+import random
+import sys
+import threading
+import time
+from unittest import mock
+
 import sgtk
+import tank
 from sgtk.platform import engine
 from tank.errors import TankError
-import mock
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (TankTestBase, skip_if_pyside_missing,
+                                      suppress_generated_code_qt_warnings)
 
 
 class TestEngineBase(TankTestBase):

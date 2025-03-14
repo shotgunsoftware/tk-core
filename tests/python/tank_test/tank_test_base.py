@@ -587,7 +587,7 @@ class TankTestBase(unittest.TestCase):
         """
         self.assertTrue(self._tear_down_called)
 
-    @timer.clock_func("TankTestBase.tearDown")
+    # @timer.clock_func("TankTestBase.tearDown")
     def tearDown(self):
         """
         Cleans up after tests.

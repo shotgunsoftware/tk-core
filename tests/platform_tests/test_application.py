@@ -10,20 +10,19 @@
 
 from __future__ import with_statement
 
-import sys
+import inspect
+import logging
 import os
 import shutil
-import logging
 import tempfile
-import mock
-import inspect
+from unittest import mock
 
-from tank_test.tank_test_base import *
 import tank
+from tank.deploy import descriptor
 from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application, constants, validation
 from tank.template import Template
-from tank.deploy import descriptor
+from tank_test.tank_test_base import *
 from tank_vendor import six
 from tank_vendor.six import StringIO
 
