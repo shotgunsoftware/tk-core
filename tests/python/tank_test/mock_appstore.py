@@ -16,17 +16,15 @@ from __future__ import with_statement
 
 import functools
 import sys
+from unittest import mock
 
-import mock
-
-from sgtk.descriptor import Descriptor
+from sgtk.descriptor import Descriptor, create_descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
-from sgtk.descriptor import create_descriptor
 from sgtk.util import sgre as re
-
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
 from tank.util import suppress_known_deprecation
+
 if sys.version_info[0:2] >= (3, 10):
     from setuptools._distutils.version import LooseVersion
 else:
