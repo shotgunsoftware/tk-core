@@ -566,8 +566,8 @@ class TemplatePath(Template):
 
         :returns: :class:`Template`
         """
-        parent_definition = os.path.dirname(self.definition)
-        if parent_definition:
+        parent_definition = os.path.dirname(self._repr_def)
+        if parent_definition and parent_definition != "/":
             return TemplatePath(
                 parent_definition,
                 self.keys,
