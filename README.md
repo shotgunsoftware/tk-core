@@ -24,3 +24,4 @@ https://help.autodesk.com/view/SGDEV/ENU/?contextId=SA_INTEGRATIONS_USER_GUIDE
 
 Release Notes for the Core API are also maintained as a wiki document
 and can be found here: https://github.com/shotgunsoftware/tk-core/wiki/Release-Notes
+
