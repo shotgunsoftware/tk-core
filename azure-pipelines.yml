@@ -38,6 +38,11 @@ variables:
 - group: deploy-secrets
 
 jobs:
+- template: pip-install-packages.yml@templates
+    parameters:
+      packages:
+      - mock
+
 - template: build-pipeline.yml@templates
   parameters:
     # After the tests have run, run the integration tests.
