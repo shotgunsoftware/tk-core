@@ -37,8 +37,7 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-        # We need one or the other
-        assert qt.QtWebKit or qt.QtWebEngineWidgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
@@ -62,16 +61,7 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-        try:
-            qt_web_kit = qt.QtWebKit
-        except KeyError:
-            qt_web_kit = None
-        try:
-            qt_web_engine_widgets = qt.QtWebEngineWidgets
-        except KeyError:
-            qt_web_engine_widgets = None
-        # We need one or the other
-        assert qt_web_kit or qt_web_engine_widgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
@@ -96,8 +86,7 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken6"
-        # We need one or the other
-        assert qt.QtWebKit or qt.QtWebEngineWidgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide6"
@@ -122,16 +111,7 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken6"
-        try:
-            qt_web_kit = qt.QtWebKit
-        except KeyError:
-            qt_web_kit = None
-        try:
-            qt_web_engine_widgets = qt.QtWebEngineWidgets
-        except KeyError:
-            qt_web_engine_widgets = None
-        # We need one or the other
-        assert qt_web_kit or qt_web_engine_widgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide6"

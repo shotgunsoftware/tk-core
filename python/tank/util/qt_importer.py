@@ -66,13 +66,6 @@ class QtImporter(object):
         return self._modules["QtGui"] if self._modules else None
 
     @property
-    def QtWebKit(self):
-        """
-        :returns: QtWebKit module, if available.
-        """
-        return self._modules["QtWebKit"] if self._modules else None
-
-    @property
     def QtNetwork(self):
         """
         :returns: QtNetwork module, if available.
@@ -191,8 +184,6 @@ class QtImporter(object):
             "QtTest",
             "QtUiTools",
             "QtWebChannel",
-            "QtWebKit",
-            "QtWebKitWidgets",
             "QtWidgets",
             "QtWebSockets",
             "QtXml",
@@ -257,7 +248,6 @@ class QtImporter(object):
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
-        QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
         QtWebEngineWidgets = self._import_module_by_name(
             "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
         )
@@ -270,7 +260,6 @@ class QtImporter(object):
                 "QtCore": QtCore,
                 "QtGui": QtGui,
                 "QtNetwork": QtNetwork,
-                "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
                 "shiboken": shiboken2,
             },
@@ -290,7 +279,6 @@ class QtImporter(object):
 
         QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
         QtNetwork = self._import_module_by_name("PySide6", "QtNetwork")
-        QtWebKit = self._import_module_by_name("PySide6.QtWebKitWidgets", "QtWebKit")
 
         return (
             PySide6.__name__,
@@ -300,7 +288,6 @@ class QtImporter(object):
                 "QtCore": QtCore,
                 "QtGui": QtGui,
                 "QtNetwork": QtNetwork,
-                "QtWebKit": QtWebKit,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
                 "shiboken": shiboken6,
             },
