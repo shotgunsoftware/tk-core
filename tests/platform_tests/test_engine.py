@@ -22,7 +22,7 @@ import time
 
 from tank_test.tank_test_base import (
     TankTestBase,
-    skip_if_pyside_missing,
+    skip_if_pysideX,
     suppress_generated_code_qt_warnings,
 )
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -101,7 +101,7 @@ class TestDialogCreation(TestEngineBase):
 
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
-    @skip_if_pyside_missing
+    @skip_if_pysideX(found=False)
     def test_create_widget(self):
         """
         Ensures that the _create_widget method is exception safe.
@@ -116,7 +116,7 @@ class TestDialogCreation(TestEngineBase):
         # Ensure we don't bubble up an exception.
         sgtk.platform.current_engine()._create_widget(_test_widget)
 
-    @skip_if_pyside_missing
+    @skip_if_pysideX(found=False)
     def tearDown(self):
         """
         Tears down the current engine.
@@ -197,7 +197,7 @@ class TestLegacyStartShotgunEngine(TestEngineBase):
         )
 
 
-@skip_if_pyside_missing
+@skip_if_pysideX(found=False)
 class TestExecuteInMainThread(TestEngineBase):
     """
     Tests the execute_in_main_thread and async_execute_in_main_thread methods.
@@ -262,7 +262,7 @@ class TestExecuteInMainThread(TestEngineBase):
         )
         self._app.quit()
 
-    @skip_if_pyside_missing
+    @skip_if_pysideX(found=False)
     def test_exec_in_main_thread_deadlock(self):
         """
         Makes sure the main thread invoker doesn't deadlock when called from the main thread.
@@ -271,7 +271,7 @@ class TestExecuteInMainThread(TestEngineBase):
             self._assert_run_in_main_thread_and_quit
         )
 
-    @skip_if_pyside_missing
+    @skip_if_pysideX(found=False)
     def test_async_exec_in_main_thread_deadlock(self):
         """
         Makes sure the main thread async invoker doesn't deadlock when called from the main thread.
@@ -646,7 +646,7 @@ class TestCompatibility(TankTestBase):
         self.assertEqual(sgtk.platform.TankEngineInitError, sgtk.TankEngineInitError)
 
 
-@skip_if_pyside_missing
+@skip_if_pysideX(found=False)
 class TestShowDialog(TestEngineBase):
     """
     Tests the engine.show_dialog method.

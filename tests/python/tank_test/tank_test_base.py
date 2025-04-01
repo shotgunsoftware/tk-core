@@ -49,7 +49,7 @@ __all__ = [
     "TankTestBase",
     "tank",
     "interactive",
-    "skip_if_pyside_missing",
+    "skip_if_pysideX",
     "skip_if_pyside2",
     "skip_if_pyside6",
 ]
@@ -124,36 +124,47 @@ def skip_if_git_missing(func):
     return unittest.skipIf(_is_git_missing(), "git is missing from PATH")(func)
 
 
-def _is_pyside_missing():
+def _has_pysideX():
     """
-    Tests is PySide is available.
-    :returns: True is PySide is available, False otherwise.
+    Tests if either PySide6 or PySide2 is avalable.
+    :returns: True if any is available, False otherwise.
     """
-
-    try:
-        # If PySide wasn't found, check for PySide2
-        import PySide2  # noqa
-
-        return False
-    except ImportError:
-        pass
 
     try:
         # Check for PySide6
         import PySide6  # noqa
 
-        return False
-    except ImportError:
         return True
+    except ImportError:
+        pass
 
+    try:
+        # If PySide wasn't found, check for PySide2
+        import PySide2  # noqa
 
-def skip_if_pyside_missing(func):
+        return True
+    except ImportError:
+        pass
+
+    return False
+
+def skip_if_pysideX(found=True):
     """
-    Decorator that allows to skip tests if no version of PySide is found.
+    Decorator that allows to skip tests based on if either PySide2 or PySide6
+    modules found or not.
     :param func: Function to be decorated.
+    :param found: True will skip if either PySide2 or PySide6 is found, else
+        will skip if PySide2 not found
+        (e.g. missing). Default to skip if found.
     :returns: The decorated function.
     """
-    return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
+
+    def _skip_if_pysideX(func):
+        found_pysideX = _has_pysideX()
+        msg = "PySideX found" if found else "PySideX missing"
+        return unittest.skipIf(found_pysideX == found, msg)(func)
+
+    return _skip_if_pysideX
 
 def _has_pyside2():
     """
