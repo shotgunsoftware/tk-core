@@ -25,6 +25,13 @@ article.
 ----------------
 Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.
 
+``SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT``
+------------------------------------------
+Use this variable to prevent Toolkit from importing the QtWebEngine modules when
+importing the PySide2/PySide6 modules.
+This variable has been proven useful in odd case where a DCC would deadlock when
+importing the module.
+
 ``SGTK_PREFERENCES_LOCATION``
 -----------------------------
 Allows you to store your configuration file somewhere else on your computer or on your network. See the `documentation here <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#toolkit-configuration-file>`_.
