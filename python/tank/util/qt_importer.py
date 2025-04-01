@@ -87,13 +87,6 @@ class QtImporter(object):
         return self._modules["QtWebEngineWidgets"] if self._modules else None
 
     @property
-    def QtWebEngineCore(self):
-        """
-        :returns: QtWebEngineCore module, if available.
-        """
-        return self._modules["QtWebEngineCore"] if self._modules else None
-
-    @property
     def binding(self):
         """
         :returns: The PySide* or PyQt* root module.

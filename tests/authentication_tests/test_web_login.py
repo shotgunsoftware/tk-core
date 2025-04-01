@@ -46,10 +46,3 @@ class WebLoginTests(ShotgunTestBase):
 
         # coverage
         obj._core._view.page().createWindow(None)
-
-    def test_qt6_coverage(self):
-        from tank.util import qt_importer
-
-        qt_imp = qt_importer.QtImporter()
-        with self.assertRaises(KeyError):
-            qt_imp.QtWebEngineCore
