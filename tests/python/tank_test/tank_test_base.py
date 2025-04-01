@@ -126,21 +126,21 @@ def skip_if_git_missing(func):
 
 def _has_pysideX():
     """
-    Tests if either PySide6 or PySide2 is avalable.
+    Tests if either PySide6 or PySide2 is available.
     :returns: True if any is available, False otherwise.
     """
 
     try:
-        # Check for PySide6
-        import PySide6  # noqa
+        # If PySide wasn't found, check for PySide2
+        import PySide2  # noqa
 
         return True
     except ImportError:
         pass
 
     try:
-        # If PySide wasn't found, check for PySide2
-        import PySide2  # noqa
+        # Check for PySide6
+        import PySide6  # noqa
 
         return True
     except ImportError:
