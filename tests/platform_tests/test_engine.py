@@ -32,7 +32,7 @@ import tank
 import sgtk
 from sgtk.platform import engine
 from tank.errors import TankError
-import mock
+from unittest import mock
 
 
 class TestEngineBase(TankTestBase):
