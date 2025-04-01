@@ -15,7 +15,7 @@ import os
 import shutil
 import logging
 import tempfile
-import mock
+from unittest import mock
 import inspect
 
 from tank_test.tank_test_base import *

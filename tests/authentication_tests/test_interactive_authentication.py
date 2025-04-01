@@ -22,7 +22,7 @@ import os
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
-    skip_if_pyside_missing,
+    skip_if_pysideX,
     interactive,
     mock,
     suppress_generated_code_qt_warnings,
@@ -51,7 +51,7 @@ import tank
 import tank_vendor.shotgun_api3
 
 
-@skip_if_pyside_missing
+@skip_if_pysideX(found=False)
 class InteractiveTests(ShotgunTestBase):
     """
     Tests ui and console based authentication.

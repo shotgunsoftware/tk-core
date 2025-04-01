@@ -14,14 +14,14 @@ from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     only_run_on_nix,
-    skip_if_pyside_missing,
+    skip_if_pysideX,
 )
 
 from tank.authentication.sso_saml2 import SsoSaml2Toolkit
 
 
 @only_run_on_nix  # This test issues a seg-fault on Windows
-@skip_if_pyside_missing
+@skip_if_pysideX(found=False)
 class WebLoginTests(ShotgunTestBase):
     """
     The main goal of these test is to add code coverage.

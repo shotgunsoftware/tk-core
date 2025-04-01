@@ -17,7 +17,7 @@ from __future__ import with_statement
 import functools
 import sys
 
-import mock
+from unittest import mock
 
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
