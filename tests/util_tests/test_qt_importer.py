@@ -141,7 +141,6 @@ class QtImporterTests(TankTestBase):
         assert qt.base["__name__"] is qt.binding_name
         assert qt.base["__version__"] is qt.binding_version
 
-
     @skip_if_pyside2(found=False)
     @skip_if_pyside6(found=True)
     @unittest.mock.patch(
@@ -174,7 +173,6 @@ class QtImporterTests(TankTestBase):
         # Ensure the QtWebEngineWidgets module is NOT imported
         with self.assertRaises(KeyError):
             qt.QtWebEngineWidgets
-
 
     @skip_if_pyside6(found=False)
     @skip_if_pyside2(found=True)

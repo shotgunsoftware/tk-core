@@ -289,12 +289,11 @@ class QtImporter(object):
             QtWebEngineWidgets = self._import_module_by_name(
                 "PySide6", "QtWebEngineWidgets"
             )
-            QtWebEngineCore = self._import_module_by_name(
-                "PySide6", "QtWebEngineCore"
-            )
+            QtWebEngineCore = self._import_module_by_name("PySide6", "QtWebEngineCore")
 
         QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch(
-            QtWebEngineWidgets, QtWebEngineCore,
+            QtWebEngineWidgets,
+            QtWebEngineCore,
         )
 
         QtNetwork = self._import_module_by_name("PySide6", "QtNetwork")

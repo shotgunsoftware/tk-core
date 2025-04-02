@@ -29,8 +29,7 @@ Overrides the location where Toolkit stores data, which includes bootstrap data 
 ------------------------------------------
 Use this variable to prevent Toolkit from importing the QtWebEngine modules when
 importing the PySide2/PySide6 modules.
-This variable has been proven useful in odd case where a DCC would deadlock when
-importing the module.
+This variable is useful when a DCC deadlocks while importing the module.
 
 ``SGTK_PREFERENCES_LOCATION``
 -----------------------------
