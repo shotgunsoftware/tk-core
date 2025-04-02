@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.22.1 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.22.2 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -145,7 +145,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#using-qt-5-inside-your-toolkit-app">Using QT 5 inside your Toolkit App</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyside-qt4-emulation-layer">PySide - Qt4 emulation layer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#creating-dialogs">Creating Dialogs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#modal-dialogs-and-exit-codes">Modal dialogs and exit codes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hiding-the-default-toolkit-title-bar">Hiding the default Toolkit title bar</a></li>
@@ -179,7 +179,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.1.<br>
+    <b>tk-core</b> v0.22.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -4258,10 +4258,9 @@ default values, and type info for the values which will be used for validation:<
 </section>
 <section id="using-qt-inside-your-toolkit-app">
 <h3>Using QT inside your Toolkit App<a class="headerlink" href="#using-qt-inside-your-toolkit-app" title="Permalink to this heading"></a></h3>
-<p>You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
-platform considerations in the background. Typically, PySide is being used for QT integration, but Sgtk
-may use PyQT in certain engines. Normally, the code is pretty portable between the two systems and it
-should be no problem writing code that works with both libraries.</p>
+<p>You can use QT classes inside your app code. Sgtk will handle the import andgracefully manage different
+platform considerations in the background. Typically, PySide2 or PySide6. Normally, the code is pretty
+portable between the two systems and it should be no problem writing code that works with both libraries.</p>
 <p>In order to use QT, import it from Sgtk:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 </pre></div>
@@ -4269,16 +4268,16 @@ should be no problem writing code that works with both libraries.</p>
 <p>Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.</p>
 </section>
-<section id="using-qt-5-inside-your-toolkit-app">
-<h3>Using QT 5 inside your Toolkit App<a class="headerlink" href="#using-qt-5-inside-your-toolkit-app" title="Permalink to this heading"></a></h3>
-<p>When running in an environment with PySide 2 , Toolkit will provide under <code class="docutils literal notranslate"><span class="pre">sgtk.platform.qt</span></code> an
-emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don’t
+<section id="pyside-qt4-emulation-layer">
+<h3>PySide - Qt4 emulation layer<a class="headerlink" href="#pyside-qt4-emulation-layer" title="Permalink to this heading"></a></h3>
+<p>Whether running with PySide2 or PySide6, Toolkit will provide under <code class="docutils literal notranslate"><span class="pre">sgtk.platform.qt</span></code> an
+emulation layer that mimics the PySide 1 API on top of PySide 2/6 so that your Toolkit applications don’t
 need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
 can access it through the <code class="docutils literal notranslate"><span class="pre">sgtk.platform.qt5</span></code> module. Detecting the availability of Qt 5 can be done
-through <a class="reference internal" href="#sgtk.platform.Engine.has_qt5" title="sgtk.platform.Engine.has_qt5"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Engine.has_qt5()</span></code></a>.</p>
+through <a class="reference internal" href="#sgtk.platform.Engine.has_qt5" title="sgtk.platform.Engine.has_qt5"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Engine.has_qt5()</span></code></a>. The equivalent is available for PySide6.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+<p>The PySide 1 emulation layer for PySide 2/6 may be missing some features. It provides enough
 coverage to run the officially supported Toolkit applications. If you find that something
 in the PySide 1 emulation layer is not working or missing, please contact <a class="reference external" href="https://knowledge.autodesk.com/contact-support">https://knowledge.autodesk.com/contact-support</a>
 so that we may update it.</p>
