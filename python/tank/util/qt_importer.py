@@ -148,14 +148,13 @@ class QtImporter(object):
 
         :returns: The module loaded, or None if it could not be loaded.
         """
-        module = None
+
         try:
             module = __import__(parent_module_name, globals(), locals(), [module_name])
-            module = getattr(module, module_name)
+            return getattr(module, module_name)
         except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
-            pass
-        return module
+
 
     def _import_pyside2(self):
         """
