@@ -32,7 +32,6 @@ from tank_test.tank_test_base import (
     skip_if_pyside_missing,
     suppress_generated_code_qt_warnings,
 )
-from tank_test.tank_test_base import setUpModule  # noqa
 
 
 class TestEngineBase(TankTestBase):

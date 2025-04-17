@@ -8,7 +8,7 @@
 # agreement to the ShotGrid Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk.
 
-
+import types
 import unittest.mock
 
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -39,8 +39,12 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-        # We need one or the other
-        assert qt.QtWebKit or qt.QtWebEngineWidgets
+
+        assert isinstance(qt.QtWebKit, (types.NoneType, types.ModuleType))
+        assert isinstance(
+            qt.QtWebEngineWidgets,
+            (types.NoneType, types.ModuleType)
+        )
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
@@ -64,16 +68,9 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-        try:
-            qt_web_kit = qt.QtWebKit
-        except KeyError:
-            qt_web_kit = None
-        try:
-            qt_web_engine_widgets = qt.QtWebEngineWidgets
-        except KeyError:
-            qt_web_engine_widgets = None
+
         # We need one or the other
-        assert qt_web_kit or qt_web_engine_widgets
+        assert qt.QtWebKit or qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
@@ -124,16 +121,9 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken6"
-        try:
-            qt_web_kit = qt.QtWebKit
-        except KeyError:
-            qt_web_kit = None
-        try:
-            qt_web_engine_widgets = qt.QtWebEngineWidgets
-        except KeyError:
-            qt_web_engine_widgets = None
+
         # We need one or the other
-        assert qt_web_kit or qt_web_engine_widgets
+        assert qt.QtWebKit or qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide6"
