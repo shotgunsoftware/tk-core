@@ -40,10 +40,14 @@ class QtImporterTests(TankTestBase):
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
 
-        assert isinstance(qt.QtWebKit, (types.NoneType, types.ModuleType))
-        assert isinstance(
-            qt.QtWebEngineWidgets,
-            (types.NoneType, types.ModuleType)
+        assert (
+            qt.QtWebKit is None or
+            isinstance(qt.QtWebKit, types.ModuleType)
+        )
+
+        assert (
+            qt.QtWebEngineWidgets is None or
+            isinstance(qt.QtWebEngineWidgets, types.ModuleType)
         )
 
         # Expect PySide2 as the binding
@@ -69,8 +73,16 @@ class QtImporterTests(TankTestBase):
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
 
+        try:
+            qt_web_kit = qt.QtWebKit
+        except KeyError:
+            qt_web_kit = None
+        try:
+            qt_web_engine_widgets = qt.QtWebEngineWidgets
+        except KeyError:
+            qt_web_engine_widgets = None
         # We need one or the other
-        assert qt.QtWebKit or qt.QtWebEngineWidgets
+        assert qt_web_kit or qt_web_engine_widgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"

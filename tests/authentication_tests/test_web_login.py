@@ -32,6 +32,9 @@ class WebLoginTests(ShotgunTestBase):
     def test_web_login(self):
         from tank.authentication.ui import qt_abstraction
 
+        if not qt_abstraction.QtWebEngineWidgets:
+            self.skipTest("This tests requires QtWebEngineWidgets")
+
         if qt_abstraction.QtGui.QApplication.instance() is None:
             self._app = qt_abstraction.QtGui.QApplication([])
 
@@ -42,9 +45,7 @@ class WebLoginTests(ShotgunTestBase):
                 "QtGui": qt_abstraction.QtGui,
                 "QtNetwork": qt_abstraction.QtNetwork,
                 "QtWebKit": qt_abstraction.QtWebKit,
-                "QtWebEngineWidgets": (
-                    qt_abstraction.QtWebEngineWidgets or unittest.mock.Mock()
-                ),
+                "QtWebEngineWidgets": qt_abstraction.QtWebEngineWidgets,
             },
         )
 
