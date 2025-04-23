@@ -87,13 +87,6 @@ class QtImporter(object):
         return self._modules["QtWebEngineWidgets"] if self._modules else None
 
     @property
-    def QtWebEngineCore(self):
-        """
-        :returns: QtWebEngineCore module, if available.
-        """
-        return self._modules["QtWebEngineCore"] if self._modules else None
-
-    @property
     def binding(self):
         """
         :returns: The PySide* or PyQt* root module.
@@ -155,14 +148,13 @@ class QtImporter(object):
 
         :returns: The module loaded, or None if it could not be loaded.
         """
-        module = None
+
         try:
             module = __import__(parent_module_name, globals(), locals(), [module_name])
-            module = getattr(module, module_name)
+            return getattr(module, module_name)
         except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
-            pass
-        return module
+
 
     def _import_pyside2(self):
         """
@@ -258,9 +250,12 @@ class QtImporter(object):
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
-        QtWebEngineWidgets = self._import_module_by_name(
-            "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
-        )
+
+        QtWebEngineWidgets = None
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
+            QtWebEngineWidgets = self._import_module_by_name(
+                "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
+            )
 
         return (
             "PySide2",
@@ -288,7 +283,18 @@ class QtImporter(object):
         import shiboken6
         from .pyside6_patcher import PySide6Patcher
 
-        QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch()
+        QtWebEngineWidgets, QtWebEngineCore = None, None
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
+            QtWebEngineWidgets = self._import_module_by_name(
+                "PySide6", "QtWebEngineWidgets"
+            )
+            QtWebEngineCore = self._import_module_by_name("PySide6", "QtWebEngineCore")
+
+        QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch(
+            QtWebEngineWidgets,
+            QtWebEngineCore,
+        )
+
         QtNetwork = self._import_module_by_name("PySide6", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide6.QtWebKitWidgets", "QtWebKit")
 
@@ -318,6 +324,12 @@ class QtImporter(object):
         import shiboken6
 
         sub_modules = pkgutil.iter_modules(PySide6.__path__)
+
+        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" in os.environ:
+            sub_modules = [
+                m for m in sub_modules if not m.name.startswith("QtWebEngine")
+            ]
+
         modules_dict = {}
         # Add shiboken6 to the modules dict
         modules_dict["shiboken"] = shiboken6

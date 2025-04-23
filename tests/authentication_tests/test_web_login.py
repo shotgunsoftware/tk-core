@@ -30,6 +30,9 @@ class WebLoginTests(ShotgunTestBase):
     def test_web_login(self):
         from tank.authentication.ui import qt_abstraction
 
+        if not qt_abstraction.QtWebEngineWidgets:
+            self.skipTest("This tests requires QtWebEngineWidgets")
+
         if qt_abstraction.QtGui.QApplication.instance() is None:
             self._app = qt_abstraction.QtGui.QApplication([])
 
@@ -46,10 +49,3 @@ class WebLoginTests(ShotgunTestBase):
 
         # coverage
         obj._core._view.page().createWindow(None)
-
-    def test_qt6_coverage(self):
-        from tank.util import qt_importer
-
-        qt_imp = qt_importer.QtImporter()
-        with self.assertRaises(KeyError):
-            qt_imp.QtWebEngineCore

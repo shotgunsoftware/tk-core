@@ -24,7 +24,7 @@ class PySide6PatcherTests(TankTestBase):
     def test_patch(self):
         """Test the PySide6Patcher patch method that patches PySide6 as PySide."""
 
-        core, gui, _ = pyside6_patcher.PySide6Patcher.patch()
+        core, gui, _ = pyside6_patcher.PySide6Patcher.patch(None, None)
         # Assert the core ang gui modules are created and returned
         assert core
         assert gui
