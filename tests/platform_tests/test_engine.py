@@ -20,6 +20,7 @@ import random
 import sys
 import threading
 import time
+import unittest
 from unittest import mock
 
 import sgtk
@@ -221,6 +222,13 @@ class TestExecuteInMainThread(TestEngineBase):
 
         tank.platform.start_engine("test_engine", self.tk, self.context)
 
+    @unittest.skipIf(
+        (
+            (sys.version_info.major, sys.version_info.minor) == (3, 11)
+            and sys.platform.startswith("linux")
+        ),
+        "Problem - SG-38851",
+    )
     def test_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
