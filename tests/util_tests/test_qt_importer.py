@@ -41,13 +41,13 @@ class QtImporterTests(TankTestBase):
         assert qt.shiboken.__name__ == "shiboken2"
 
         assert (
-            qt.QtWebKit is None or
-            isinstance(qt.QtWebKit, types.ModuleType)
+            qt.QtWebKit is None
+            or isinstance(qt.QtWebKit, types.ModuleType)
         )
 
         assert (
-            qt.QtWebEngineWidgets is None or
-            isinstance(qt.QtWebEngineWidgets, types.ModuleType)
+            qt.QtWebEngineWidgets is None
+            or isinstance(qt.QtWebEngineWidgets, types.ModuleType)
         )
 
         # Expect PySide2 as the binding
@@ -72,7 +72,6 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-
         try:
             qt_web_kit = qt.QtWebKit
         except KeyError:
@@ -133,7 +132,6 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken6"
-
         try:
             qt_web_kit = qt.QtWebKit
         except KeyError:
