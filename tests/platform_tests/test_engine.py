@@ -12,27 +12,27 @@
 Engine-related unit tests.
 """
 
-from __future__ import with_statement, print_function
+from __future__ import print_function, with_statement
 
+import contextlib
 import os
+import random
 import sys
 import threading
-import random
 import time
+import unittest
+from unittest import mock
 
+import sgtk
+import tank
+from sgtk.platform import engine
+from tank.errors import TankError
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     skip_if_pyside_missing,
     suppress_generated_code_qt_warnings,
 )
-from tank_test.tank_test_base import setUpModule  # noqa
-
-import contextlib
-import tank
-import sgtk
-from sgtk.platform import engine
-from tank.errors import TankError
-import mock
 
 
 class TestEngineBase(TankTestBase):
@@ -222,6 +222,13 @@ class TestExecuteInMainThread(TestEngineBase):
 
         tank.platform.start_engine("test_engine", self.tk, self.context)
 
+    @unittest.skipIf(
+        (
+            (sys.version_info.major, sys.version_info.minor) == (3, 11)
+            and sys.platform.startswith("linux")
+        ),
+        "Problem - SG-38851",
+    )
     def test_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
