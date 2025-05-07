@@ -254,7 +254,7 @@ class QtImporter(object):
         QtWebEngineWidgets = None
         if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
             QtWebEngineWidgets = self._import_module_by_name(
-                "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
+                "PySide2", "QtWebEngineWidgets"
             )
 
         return (

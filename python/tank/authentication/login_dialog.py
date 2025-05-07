@@ -481,24 +481,27 @@ class LoginDialog(QtGui.QDialog):
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
 
-        # With a SSO site, we have no choice but to use the web to login.
-        can_use_web = self.site_info.sso_enabled
+        can_use_web = self._sso_saml2 is not None
         can_use_asl = self.site_info.app_session_launcher_enabled
 
-        # The user may decide to force the use of the old dialog:
-        # - due to graphical issues with Qt and its WebEngine
-        # - they need to use the legacy login / passphrase to use a PAT with
-        #   Autodesk Identity authentication
-        if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-            logger.info("Using the standard login dialog with the Flow Production Tracking")
-        else:
-            if _is_running_in_desktop():
-                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+        if can_use_web:
+            # With a SSO site, we have no choice but to use the web to login.
+            can_use_web = self.site_info.sso_enabled
 
-            # If we have full support for Web-based login, or if we enable it in our
-            # environment, use the Unified Login Flow for all authentication modes.
-            if get_shotgun_authenticator_support_web_login():
-                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
+            # The user may decide to force the use of the old dialog:
+            # - due to graphical issues with Qt and its WebEngine
+            # - they need to use the legacy login / passphrase to use a PAT with
+            #   Autodesk Identity authentication
+            if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+                logger.info("Using the standard login dialog with the Flow Production Tracking")
+            else:
+                if _is_running_in_desktop():
+                    can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+
+                # If we have full support for Web-based login, or if we enable it in our
+                # environment, use the Unified Login Flow for all authentication modes.
+                if get_shotgun_authenticator_support_web_login():
+                    can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
         if method_selected:
             # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
