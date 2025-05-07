@@ -13,7 +13,7 @@ or renew a session against a Shotgun site that uses SSO/Autodesk Identity, it
 will fail to do so and will not provide meaningful feedback to the user.
 
 The requirements are:
-- Full support for WebKit/WebEngine with access to the cookie store,
+- Full support for WebEngine with access to the cookie store,
 - SSL support
 - TLS v1.2 support
 - NTLM patch
