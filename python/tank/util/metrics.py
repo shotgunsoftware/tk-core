@@ -629,6 +629,7 @@ class EventMetric(object):
     GROUP_MEDIA = "Media"
     GROUP_NAVIGATION = "Navigation"
     GROUP_PROJECTS = "Projects"
+    GROUP_RV = "RV"
     GROUP_TASKS = "Tasks"
     GROUP_TOOLKIT = "Toolkit"
 
@@ -645,6 +646,17 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Projects"),
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Panel"),
         EVENT_NAME_FORMAT % (GROUP_PROJECTS, "Viewed Project Commands"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Assign Presenter"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Feedback Form Opened"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Feedback Form Submitted"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Join Session"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Join Session Failed"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Leave Session"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Link Copied"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Panel Toggled"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session Created"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session ID Copied from menu"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session Joined"),
         EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
