@@ -29,13 +29,22 @@ __version__ = "HEAD"
 # configuration has its python sgtk/tank module imported directly, it will associate
 # itself with the primary config rather than with the config where the code is located.
 
+import inspect
 import os
 import sys
 import uuid
-import inspect
+import warnings
 
 if sys.version_info < (3, 7):
     raise Exception("This module requires Python version 3.7 or higher.")
+elif sys.version_info < (3, 9):
+    warnings.warn(
+        "Python versions older than 3.9 are no longer supported since 2025-03 "
+        "and compatibility will be removed at any time after 2026-01. "
+        "Please update to Python 3.9 or a newer supported version.",
+        DeprecationWarning,
+    )
+
 
 def __fix_tank_vendor():
     # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,
