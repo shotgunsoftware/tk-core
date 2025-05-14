@@ -36,6 +36,13 @@ import inspect
 
 if sys.version_info < (3, 7):
     raise Exception("This module requires Python version 3.7 or higher.")
+elif sys.version_info < (3, 9):
+    warnings.warn(
+        "Python version older than 3.9 are no longer supported since 2025-03 "
+        "Please update to Python 3.9 or a newer supported version.",
+        DeprecationWarning,
+    )
+
 
 def __fix_tank_vendor():
     # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,
