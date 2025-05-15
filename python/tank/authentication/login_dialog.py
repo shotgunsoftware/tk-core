@@ -44,9 +44,9 @@ from . import app_session_launcher
 from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
-    SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
 )
+from .sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
 
 from .. import LogManager
 
