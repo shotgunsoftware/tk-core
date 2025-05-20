@@ -13,6 +13,7 @@ Methods for handling of the tank command
 
 """
 
+import argparse
 import logging
 
 from .action_base import Action
@@ -549,6 +550,29 @@ def run_action(log, tk, ctx, command, args):
                 "The command '%s' needs the shell engine running." % found_action.name
             )
 
+
+        found_action
+
+        parser = argparse.ArgumentParser(
+            prog=found_action.name,
+            description=found_action.description,
+        )
+
+        for name, parameter in found_action.parameters.items():
+            paramter_kwargs = {}
+            if parameter["default"] is not None:
+                paramter_kwargs["default"] = parameter["default"]
+            else:
+                paramter_kwargs["nargs"] = 1
+
+            # TODO tests all that and setting types
+            parser.add_argument(
+                f"--{ name.replace('_', '-') }",
+                **paramter_kwargs,
+            )
+
+        parser_args = parser.parse_args(args=args)
+
         # ok all good
         log.info("- Running command %s..." % found_action.name)
         log.info("")
@@ -560,4 +584,4 @@ def run_action(log, tk, ctx, command, args):
 
         found_action.set_interaction_interface(RawInputCommandInteraction())
 
-        return found_action.run_interactive(log, args)
+        return found_action.run_interactive(log, parser_args)

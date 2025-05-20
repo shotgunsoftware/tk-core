@@ -464,7 +464,7 @@ class AttachToCoreAction(Action):
         :param args: command line args
         """
 
-        if len(args) != 1:
+        if not args.path:
             log.info("Syntax: attach_to_core path_to_core")
             log.info("")
             log.info(
