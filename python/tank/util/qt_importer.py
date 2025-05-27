@@ -350,13 +350,11 @@ class QtImporter(object):
 
     def _import_modules(self, interface_version_requested):
         """
-        Tries to import different Qt binding implementation in the following order:
-            - PySide2
-            - PySide6
+        Tries to import different Qt binding implementation according to the
+        requested interface version.
 
-        PySide6 is attempted to be imported last at the moment because it is is not yet fully
-        supported. If a DCC requires PySide6, it can run with the current level of support,
-        but be warned that you may encounter issues.
+        First, we try to import the exact interface version. Then, if not found,
+        we try a "as" method using our patcher classes
 
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
             no binding is avaialble.
@@ -370,7 +368,7 @@ class QtImporter(object):
         logger.debug("Requesting %s-like interface", interface)
 
         if interface_version_requested == self.QT4:
-            # First, try PySide 2 since Toolkit ships with PySide2.
+            # First, try PySide 2
             try:
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
@@ -378,8 +376,7 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-            # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
-            # require PySide6 to run with the current support
+            # Then, try PySide6
             try:
                 pyside6 = self._import_pyside6_as_pyside()
                 logger.debug("Imported PySide6 as PySide.")
@@ -395,7 +392,7 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-            # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
+            # We do not support PyQt5 or any other binding for Qt5.
 
         elif interface_version_requested == self.QT6:
             try:
