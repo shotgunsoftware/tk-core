@@ -14,14 +14,14 @@ Module to support Web login via a web browser and automated session renewal.
 from __future__ import print_function
 
 # pylint: disable=import-error
-from ...ui.qt_abstraction import QtCore, QtGui
+from ...ui.qt_abstraction import QtCore, QtGui, QtWidgets
 
 # No point in proceeding if QtGui is None.
 if QtGui is None:
     raise ImportError("Unable to import QtGui")
 
 
-class UsernamePasswordDialog(QtGui.QDialog):
+class UsernamePasswordDialog(QtWidgets.QDialog):
     """Simple dialog to request a username and password from the user."""
 
     def __init__(self, window_title=None, message=None):

@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .qt_abstraction import QtGui
+from .qt_abstraction import QtGui, QtWidgets
 from .qt_abstraction import QtCore
 
 
@@ -69,4 +69,4 @@ class AspectPreservingLabel(QtGui.QLabel):
         scaled_pixmap = self._pix.scaled(
             self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
         QtGui.QLabel.setPixmap(self, scaled_pixmap)
-        QtGui.QApplication.instance().processEvents()
+        QtWidgets.QApplication.instance().processEvents()

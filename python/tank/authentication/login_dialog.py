@@ -38,6 +38,7 @@ from .ui.qt_abstraction import (
     QtNetwork,
     QtWebKit,
     QtWebEngineWidgets,
+    QtWidgets,
     qt_version_tuple,
 )
 from . import app_session_launcher
@@ -746,7 +747,7 @@ class LoginDialog(QtGui.QDialog):
         Validate the values, accepting if login is successful and display an error message if not.
         """
         # Wait for any ongoing Site Configuration check thread.
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
                 logger.warning(
@@ -754,7 +755,7 @@ class LoginDialog(QtGui.QDialog):
                     % self._get_current_site()
                 )
         finally:
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
         # pull values from the gui
         site = self._get_current_site()
@@ -836,8 +837,8 @@ class LoginDialog(QtGui.QDialog):
                     return
             else:
                 # set the wait cursor
-                QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+                QtWidgets.QApplication.processEvents()
 
                 # try and authenticate
                 self._new_session_token = session_cache.generate_session_token(
@@ -850,9 +851,9 @@ class LoginDialog(QtGui.QDialog):
             success = True
         finally:
             # restore the cursor
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
             # dialog is done
-            QtGui.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
 
         # Do not accept while the cursor is overriden, if freezes the dialog.
         if success:

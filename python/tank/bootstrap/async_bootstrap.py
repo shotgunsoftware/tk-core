@@ -14,6 +14,7 @@ from ..util.qt_importer import QtImporter
 importer = QtImporter()
 QtCore = importer.QtCore
 QtGui = importer.QtGui
+QtWidgets = importer.QtWidgets
 if QtCore is None:
     # Raise an exception when Qt is not available.
     raise ImportError
@@ -273,8 +274,8 @@ def _get_thread_info_msg(caller):
     :return: Generated information message.
     """
 
-    if QtGui.QApplication.instance():
-        if QtCore.QThread.currentThread() == QtGui.QApplication.instance().thread():
+    if QtWidgets.QApplication.instance():
+        if QtCore.QThread.currentThread() == QtWidgets.QApplication.instance().thread():
             msg = "%s is running in main Qt thread."
         else:
             msg = "%s is running in background Qt thread."

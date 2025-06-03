@@ -1213,12 +1213,12 @@ class Engine(TankBundle):
             self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
         )
         if invoker:
-            from .qt import QtGui, QtCore
+            from .qt import QtGui, QtCore, QtWidgets
 
             if (
-                QtGui.QApplication.instance()
+                QtWidgets.QApplication.instance()
                 and QtCore.QThread.currentThread()
-                != QtGui.QApplication.instance().thread()
+                != QtWidgets.QApplication.instance().thread()
             ):
                 # invoke the function on the thread that the QtGui.QApplication was created on.
                 return invoker.invoke(func, *args, **kwargs)
@@ -1550,7 +1550,7 @@ class Engine(TankBundle):
         if not self.has_ui:
             return
 
-        from sgtk.platform.qt import QtGui
+        from sgtk.platform.qt import QtGui, QtWidgets
 
         # if the fonts have been loaded, no need to do anything else
         if self.__fonts_loaded:
@@ -1560,7 +1560,7 @@ class Engine(TankBundle):
             # it is possible that QtGui is not available (test suite).
             return
 
-        if not QtGui.QApplication.instance():
+        if not QtWidgets.QApplication.instance():
             # there is a QApplication, so we can load fonts.
             return
 
@@ -1631,9 +1631,9 @@ class Engine(TankBundle):
         :return: QT Parent window (:class:`PySide.QtGui.QWidget`)
         """
         # By default, this will return the QApplication's active window:
-        from .qt import QtGui
+        from .qt import QtGui, QtWidgets
 
-        return QtGui.QApplication.activeWindow()
+        return QtWidgets.QApplication.activeWindow()
 
     def _create_dialog(self, title, bundle, widget, parent):
         """
@@ -2226,9 +2226,9 @@ class Engine(TankBundle):
         at the application level, and then constructs and applies a custom palette
         that emulates Maya 2017's color scheme.
         """
-        from .qt import QtGui
+        from .qt import QtGui, QtWidgets
 
-        app = QtGui.QApplication.instance()
+        app = QtWidgets.QApplication.instance()
 
         # Set the fusion style, which gives us a good base to build on. With
         # this, we'll be sticking largely to the style and won't need to

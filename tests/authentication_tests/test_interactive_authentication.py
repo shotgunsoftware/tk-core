@@ -61,20 +61,20 @@ class InteractiveTests(ShotgunTestBase):
         """
         Adds Qt modules to tank.platform.qt and initializes QApplication
         """
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # See if a QApplication instance exists, and if not create one.  Use the
         # QApplication.instance() method, since qApp can contain a non-None
         # value even if no QApplication has been constructed on PySide2.
-        if not QtGui.QApplication.instance():
-            self._app = QtGui.QApplication(sys.argv)
+        if not QtWidgets.QApplication.instance():
+            self._app = QtWidgets.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
     def tearDown(self):
         super(InteractiveTests, self).tearDown()
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     @suppress_generated_code_qt_warnings
     def test_site_and_user_disabled_on_session_renewal(self):
@@ -90,13 +90,13 @@ class InteractiveTests(ShotgunTestBase):
         Prepares the dialog so the events get processed and focus is attributed to the right
         widget.
         """
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         ld.show()
         ld.raise_()
         ld.activateWindow()
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     @contextlib.contextmanager
     def _login_dialog(self, is_session_renewal=False, **kwargs):
@@ -259,18 +259,18 @@ class InteractiveTests(ShotgunTestBase):
 
             pass
 
-        from tank.authentication.ui.qt_abstraction import QtCore, QtGui
+        from tank.authentication.ui.qt_abstraction import QtCore, QtWidgets
 
         # Create a QApplication instance.
-        if not QtGui.QApplication.instance():
-            QtGui.QApplication(sys.argv)
+        if not QtWidgets.QApplication.instance():
+            QtWidgets.QApplication(sys.argv)
 
         def thrower():
             """
             Method that will throw.
             :throws: FromMainThreadException
             """
-            if QtGui.QApplication.instance().thread() != QtCore.QThread.currentThread():
+            if QtWidgets.QApplication.instance().thread() != QtCore.QThread.currentThread():
                 raise Exception("This should have been invoked in the main thread.")
             raise FromMainThreadException()
 
@@ -296,13 +296,13 @@ class InteractiveTests(ShotgunTestBase):
                     # Make sure we have a QObject derived object and not a regular Python function.
                     if not isinstance(invoker_obj, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")
-                    if invoker_obj.thread() != QtGui.QApplication.instance().thread():
+                    if invoker_obj.thread() != QtWidgets.QApplication.instance().thread():
                         raise Exception(
                             "Invoker should be of the same thread as the QApplication."
                         )
                     if QtCore.QThread.currentThread() != self:
                         raise Exception("Current thread not self.")
-                    if QtGui.QApplication.instance().thread == self:
+                    if QtWidgets.QApplication.instance().thread == self:
                         raise Exception(
                             "QApplication should be in the main thread, not self."
                         )
@@ -310,7 +310,7 @@ class InteractiveTests(ShotgunTestBase):
                 except Exception as e:
                     self._exception = e
                 finally:
-                    QtGui.QApplication.instance().exit()
+                    QtWidgets.QApplication.instance().exit()
 
             def wait(self):
                 """
@@ -325,7 +325,7 @@ class InteractiveTests(ShotgunTestBase):
         bg = BackgroundThread()
         bg.start()
         # process events
-        QtGui.QApplication.instance().exec_()
+        QtWidgets.QApplication.instance().exec_()
 
         # Make sure the thread got the exception that was thrown from the main thread.
         with self.assertRaises(FromMainThreadException):

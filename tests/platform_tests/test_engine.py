@@ -94,10 +94,10 @@ class TestDialogCreation(TestEngineBase):
         super(TestDialogCreation, self).setUp()
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
-        if QtGui.QApplication.instance() is None:
-            QtGui.QApplication([])
+        if QtWidgets.QApplication.instance() is None:
+            QtWidgets.QApplication([])
 
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -210,15 +210,15 @@ class TestExecuteInMainThread(TestEngineBase):
         super(TestExecuteInMainThread, self).setUp()
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # See if a QApplication instance exists, and if not create one.  Use the
         # QApplication.instance() method, since qApp can contain a non-None
         # value even if no QApplication has been constructed on PySide2.
-        if not QtGui.QApplication.instance():
-            self._app = QtGui.QApplication(sys.argv)
+        if not QtWidgets.QApplication.instance():
+            self._app = QtWidgets.QApplication(sys.argv)
         else:
-            self._app = QtGui.QApplication.instance()
+            self._app = QtWidgets.QApplication.instance()
 
         tank.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -669,14 +669,14 @@ class TestShowDialog(TestEngineBase):
         self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgetsvvvv
 
         # Create an application instance so we can take control of the execution
         # of the dialog.
-        if QtGui.QApplication.instance() is None:
-            self._app = QtGui.QApplication(sys.argv)
+        if QtWidgets.QApplication.instance() is None:
+            self._app = QtWidgets.QApplication(sys.argv)
         else:
-            self._app = QtGui.QApplication.instance()
+            self._app = QtWidgets.QApplication.instance()
 
         self._dialog_dimissed = False
 

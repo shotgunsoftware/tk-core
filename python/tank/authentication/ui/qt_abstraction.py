@@ -19,6 +19,7 @@ QtCore = _importer.QtCore
 QtGui = _importer.QtGui
 QtWebKit = _importer.QtWebKit
 QtNetwork = _importer.QtNetwork
+QtWidgets = _importer.QtWidgets
 QtWebEngineWidgets = _importer.QtWebEngineWidgets
 qt_version_tuple = _importer.qt_version_tuple
 del _importer

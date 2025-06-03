@@ -33,8 +33,8 @@ class WebLoginTests(ShotgunTestBase):
         if not qt_abstraction.QtWebEngineWidgets:
             self.skipTest("This tests requires QtWebEngineWidgets")
 
-        if qt_abstraction.QtGui.QApplication.instance() is None:
-            self._app = qt_abstraction.QtGui.QApplication([])
+        if qt_abstraction.QtWidgets.QApplication.instance() is None:
+            self._app = qt_abstraction.QtWidgets.QApplication([])
 
         obj = SsoSaml2Toolkit(
             "Test Web Login",
