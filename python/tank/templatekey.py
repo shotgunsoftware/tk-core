@@ -689,13 +689,13 @@ class TimestampKey(TemplateKey):
         """
         Returns the current utc time as a datetime.datetime instance.
 
-        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.utcnow method,
-        we can't mock datatime.datetime.utcnow since it's builtin and will make unit tests more complicated to
+        Do not streamline the code so the __init__ method simply passesd the datetime.now(timezone.utc) method,
+        we can't mock datetime.now(timezone.utc) since it's builtin and will make unit tests more complicated to
         write.
 
         :returns: A datetime object representing time current time in the UTC timezone.
         """
-        return datetime.datetime.utcnow()
+        return datetime.datetime.now(datetime.timezone.utc)
 
     def validate(self, value):
         """
