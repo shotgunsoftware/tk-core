@@ -18,7 +18,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .qt_abstraction import QtGui, QtCore, QtWidgets
+from .qt_abstraction import QtCore, QtWidgets
 from .completion_filter_proxy import CompletionFilterProxy
 
 

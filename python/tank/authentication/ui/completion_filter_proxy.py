@@ -20,7 +20,7 @@ at any point.
 
 from tank.util import sgre as re
 
-from .qt_abstraction import QtGui, QtCore
+from .qt_abstraction import QtCore
 
 
 class FuzzyMatcher():

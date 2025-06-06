@@ -30,7 +30,10 @@ logger = LogManager.get_logger(__name__)
 # something usually done by the Toolkit. The worry is that the import may fail
 # in the context of a DCC, but occur too early for the Toolkit logging to be
 # fully in place to record it.
-
+try:
+    from .login_dialog import LoginDialog
+except Exception:
+    LoginDialog = None
 
 
 class UiAuthenticationHandler(object):
@@ -64,12 +67,6 @@ class UiAuthenticationHandler(object):
             logger.debug("Requesting password in a dialog.")
         else:
             logger.debug("Requesting username and password in a dialog.")
-        try:
-            from .login_dialog import LoginDialog
-        except Exception as e:
-            logger.debug(f"Failed to import LoginDialog: {e}")
-            LoginDialog = None
-        logger.debug(f"LoginDialog is {LoginDialog}")
         if LoginDialog is None:
             logger.error("Unexpected state. LoginDialog should be available.")
             raise ShotgunAuthenticationError("Could not instantiated login dialog.")

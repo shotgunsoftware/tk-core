@@ -13,8 +13,8 @@ from ..util.qt_importer import QtImporter
 
 importer = QtImporter()
 QtCore = importer.QtCore
-QtGui = importer.QtGui
 QtWidgets = importer.QtWidgets
+
 if QtCore is None:
     # Raise an exception when Qt is not available.
     raise ImportError

@@ -38,6 +38,7 @@ from .ui.qt_abstraction import (
     QtNetwork,
     QtWebEngineWidgets,
     QtWidgets,
+    QtWebEngineCore,
     qt_version_tuple,
 )
 from . import app_session_launcher
@@ -153,6 +154,7 @@ class LoginDialog(QtWidgets.QDialog):
             "QtNetwork": QtNetwork,
             "QtWidgets": QtWidgets,
             "QtWebEngineWidgets": QtWebEngineWidgets,
+            "QtWebEngineCore": QtWebEngineCore,
         }
         try:
             self._sso_saml2 = SsoSaml2Toolkit(
@@ -251,19 +253,19 @@ class LoginDialog(QtWidgets.QDialog):
         self.ui.button_options.setMenu(menu)
         self.ui.button_options.setVisible(False)
 
-        self.menu_action_asl = QtWidgets.QAction(
+        self.menu_action_asl = QtGui.QAction(
             "Authenticate with the App Session Launcher",
             menu,
         )
         self.menu_action_asl.triggered.connect(self._menu_activated_action_asl)
 
-        self.menu_action_ulf = QtWidgets.QAction(
+        self.menu_action_ulf = QtGui.QAction(
             "Authenticate with the Flow Production Tracking browser",
             menu,
         )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
 
-        self.menu_action_legacy = QtWidgets.QAction(
+        self.menu_action_legacy = QtGui.QAction(
             "Authenticate with Legacy Flow Production Tracking Login Credentials",
             menu,
         )
@@ -355,7 +357,7 @@ class LoginDialog(QtWidgets.QDialog):
         self._query_task.wait()
 
     def _confirm_exit(self):
-        return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
+        return self.confirm_box.exec_() == QtWidgets.QMessageBox.StandardButton.Yes
         # PySide uses "exec_" instead of "exec" because "exec" is a reserved
         # keyword in Python 2.
 

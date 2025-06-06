@@ -29,9 +29,9 @@ logger = LogManager.get_logger(__name__)
 # in the context of a DCC, but occur too early for the Toolkit logging to be
 # fully in place to record it.
 try:
-    from .ui.qt_abstraction import QtCore, QtGui, QtWidgets
+    from .ui.qt_abstraction import QtCore, QtWidgets
 except Exception:
-    QtCore, QtGui = None, None
+    QtCore, QtWidgets = None, None
 
 
 def create():

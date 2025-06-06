@@ -14,11 +14,11 @@ Module to support Web login via a web browser and automated session renewal.
 from __future__ import print_function
 
 # pylint: disable=import-error
-from ...ui.qt_abstraction import QtCore, QtGui, QtWidgets
+from ...ui.qt_abstraction import QtCore, QtWidgets
 
-# No point in proceeding if QtGui is None.
-if QtGui is None:
-    raise ImportError("Unable to import QtGui")
+# No point in proceeding if QtWidgets is None.
+if QtWidgets is None:
+    raise ImportError("Unable to import QtWidgets")
 
 
 class UsernamePasswordDialog(QtWidgets.QDialog):
@@ -39,7 +39,7 @@ class UsernamePasswordDialog(QtWidgets.QDialog):
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # set up the layout
-        form_grid_layout = QtGui.QGridLayout(self)
+        form_grid_layout = QtWidgets.QGridLayout(self)
 
         # initialize the username combo box so that it is editable
         self._edit_username = QtWidgets.QLineEdit(self)
@@ -56,11 +56,11 @@ class UsernamePasswordDialog(QtWidgets.QDialog):
         label_message.setWordWrap(True)
 
         # initialize buttons
-        buttons = QtGui.QDialogButtonBox(self)
-        buttons.addButton(QtGui.QDialogButtonBox.Ok)
-        buttons.addButton(QtGui.QDialogButtonBox.Cancel)
-        buttons.button(QtGui.QDialogButtonBox.Ok).setText("Login")
-        buttons.button(QtGui.QDialogButtonBox.Cancel).setText("Cancel")
+        buttons = QtWidgets.QDialogButtonBox(self)
+        buttons.addButton(QtWidgets.QDialogButtonBox.Ok)
+        buttons.addButton(QtWidgets.QDialogButtonBox.Cancel)
+        buttons.button(QtWidgets.QDialogButtonBox.Ok).setText("Login")
+        buttons.button(QtWidgets.QDialogButtonBox.Cancel).setText("Cancel")
 
         # place components into the dialog
         form_grid_layout.addWidget(label_message, 0, 0)
@@ -71,10 +71,10 @@ class UsernamePasswordDialog(QtWidgets.QDialog):
 
         self.setLayout(form_grid_layout)
 
-        buttons.button(QtGui.QDialogButtonBox.Ok).clicked.connect(
+        buttons.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(
             self._on_enter_credentials
         )
-        buttons.button(QtGui.QDialogButtonBox.Cancel).clicked.connect(self.close)
+        buttons.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(self.close)
 
         # On Qt4, this sets the look-and-feel to that of the toolkit.
         self.setStyleSheet(

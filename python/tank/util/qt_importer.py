@@ -85,6 +85,13 @@ class QtImporter(object):
         :returns: QtWidgets module, if available.
         """
         return self._modules["QtWidgets"] if self._modules else None
+    
+    @property
+    def QtWebEngineCore(self):
+        """
+        :returns: QtWebEngineCore module, if available.
+        """
+        return self._modules["QtWebEngineCore"] if self._modules else None
 
     @property
     def binding(self):
@@ -316,13 +323,6 @@ class QtImporter(object):
         import PySide6
         import shiboken6
 
-        sub_modules = pkgutil.iter_modules(PySide6.__path__)
-
-        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" in os.environ:
-            sub_modules = [
-                m for m in sub_modules if not m.name.startswith("QtWebEngine")
-            ]
-
         modules_dict = {}
         # Add shiboken6 to the modules dict
         modules_dict["shiboken"] = shiboken6
@@ -357,14 +357,22 @@ class QtImporter(object):
 
         import PySide2 
         import shiboken2
+        from .pyside2_as_pyside6_patcher import PySide2asPySide6Patcher
 
         QtCore = self._import_module_by_name("PySide2", "QtCore")
         QtGui = self._import_module_by_name("PySide2", "QtGui")
         QtWidgets = self._import_module_by_name("PySide2", "QtWidgets")
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
         QtWebEngineWidgets = self._import_module_by_name("PySide2", "QtWebEngineWidgets")
-
-        # ... other necessary patches and imports ...
+        QtWebEngineCore = self._import_module_by_name("PySide2", "QtWebEngineCore")
+        QtWebEngineCore = PySide2asPySide6Patcher._patch_QtWebEngineCore(
+            QtWebEngineCore,
+            [
+                QtWebEngineWidgets.QWebEnginePage,
+                QtWebEngineWidgets.QWebEngineProfile,
+            ]
+        )
+        QtGui = PySide2asPySide6Patcher._patch_QtGui(QtGui, [QtWidgets.QAction])
 
         return (
             "PySide2",
@@ -376,6 +384,7 @@ class QtImporter(object):
                 "QtNetwork": QtNetwork,
                 "QtWebEngineWidgets": QtWebEngineWidgets,
                 "QtWidgets": QtWidgets,
+                "QtWebEngineCore": QtWebEngineCore,
                 "shiboken": shiboken2,
             },
             self._to_version_tuple(QtCore.qVersion()),
@@ -413,6 +422,7 @@ class QtImporter(object):
         }.get(interface_version_requested)
         logger.debug("Requesting %s-like interface", interface)
 
+        # TODO: Remove this condition sgtk.platform.qt6 is fully supported across all Toolkit repositories.
         if interface_version_requested == self.QT4:
             # First, try PySide 2 since Toolkit ships with PySide2.
             try:
@@ -430,7 +440,7 @@ class QtImporter(object):
                 return pyside6
             except ImportError:
                 pass
-        
+
         elif interface_version_requested == self.QT5:
             try:
                 pyside2 = self._import_pyside2()
