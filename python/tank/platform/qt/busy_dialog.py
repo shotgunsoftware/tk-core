@@ -8,11 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import QtCore, QtGui
+from . import QtWidgets
 from .ui_busy_dialog import Ui_BusyDialog
 
 
-class BusyDialog(QtGui.QWidget):
+class BusyDialog(QtWidgets.QWidget):
     """
     Global progress dialog. Displays a dialog that contains a small progress message.
     This is handled by the engine.display_global_progress() and engine.clear_global_progress()
@@ -25,7 +25,7 @@ class BusyDialog(QtGui.QWidget):
         Constructor
         """
         # first, call the base class and let it do its thing.
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
 
         # now load in the UI that was created in the UI designer
         self.ui = Ui_BusyDialog()
@@ -47,7 +47,7 @@ class BusyDialog(QtGui.QWidget):
 
         :param event: QEvent
         """
-        QtGui.QWidget.mousePressEvent(self, event)
+        QtWidgets.QWidget.mousePressEvent(self, event)
         # close the window if someone clicks it
         self.close()
 

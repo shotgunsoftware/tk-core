@@ -13,7 +13,7 @@ Default implementation for the Tank Dialog
 
 """
 
-from . import QtCore, QtGui
+from . import QtCore, QtGui, QtWidgets
 from . import ui_tank_dialog
 from . import TankDialogBase
 from .config_item import ConfigItem
@@ -568,7 +568,7 @@ class TankQDialog(TankDialogBase):
         This is called when the contained widget is closed - it
         handles the event and then closes the dialog
         """
-        exit_code = QtGui.QDialog.Accepted
+        exit_code = QtWidgets.QDialog.Accepted
 
         # look if the hosted widget has an exit_code we should pick up
         if self._widget and hasattr(self._widget, "exit_code"):

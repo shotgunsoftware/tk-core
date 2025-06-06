@@ -324,7 +324,7 @@ class Engine(TankBundle):
 
         if self.has_ui:
             # only import QT if we have a UI
-            from .qt import QtGui, QtCore
+            from .qt6 import QtGui, QtCore
 
             url = QtCore.QUrl.fromLocalFile(LogManager().log_folder)
             status = QtGui.QDesktopServices.openUrl(url)
@@ -1164,8 +1164,8 @@ class Engine(TankBundle):
         for the background thread to finish, Qt's event loop won't be able to process the request
         to execute in the main thread::
 
-            >>> from sgtk.platform.qt import QtGui
-            >>> engine.execute_in_main_thread(QtGui.QMessageBox.information, None, "Hello", "Hello from the main thread!")
+            >>> from sgtk.platform.qt import QtWidgets
+            >>> engine.execute_in_main_thread(QtWidgets.QMessageBox.information, None, "Hello", "Hello from the main thread!")
 
         .. note:: This currently only works if Qt is available, otherwise it just
                   executes immediately on the current thread.
@@ -1213,12 +1213,12 @@ class Engine(TankBundle):
             self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
         )
         if invoker:
-            from .qt import QtGui, QtCore
+            from .qt6 import QtGui, QtCore, QtWidgets
 
             if (
-                QtGui.QApplication.instance()
+                QtWidgets.QApplication.instance()
                 and QtCore.QThread.currentThread()
-                != QtGui.QApplication.instance().thread()
+                != QtWidgets.QApplication.instance().thread()
             ):
                 # invoke the function on the thread that the QtGui.QApplication was created on.
                 return invoker.invoke(func, *args, **kwargs)
@@ -1550,7 +1550,7 @@ class Engine(TankBundle):
         if not self.has_ui:
             return
 
-        from sgtk.platform.qt import QtGui
+        from sgtk.platform.qt6 import QtGui, QtWidgets
 
         # if the fonts have been loaded, no need to do anything else
         if self.__fonts_loaded:
@@ -1560,7 +1560,7 @@ class Engine(TankBundle):
             # it is possible that QtGui is not available (test suite).
             return
 
-        if not QtGui.QApplication.instance():
+        if not QtWidgets.QApplication.instance():
             # there is a QApplication, so we can load fonts.
             return
 
@@ -1628,12 +1628,12 @@ class Engine(TankBundle):
         Can be overriden in derived classes to return the QWidget to be used as the parent
         for all TankQDialog's.
 
-        :return: QT Parent window (:class:`PySide.QtGui.QWidget`)
+        :return: QT Parent window (:class:`PySide.QtWidgets.QWidget`)
         """
         # By default, this will return the QApplication's active window:
-        from .qt import QtGui
+        from .qt6 import QtWidgets
 
-        return QtGui.QApplication.activeWindow()
+        return QtWidgets.QApplication.activeWindow()
 
     def _create_dialog(self, title, bundle, widget, parent):
         """
@@ -1645,7 +1645,7 @@ class Engine(TankBundle):
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget: A QWidget instance to be embedded in the newly created dialog.
-        :type widget: :class:`PySide.QtGui.QWidget`
+        :type widget: :class:`PySide.QtWidgets.QWidget`
         """
         from .qt import tankqdialog
 
@@ -1680,7 +1680,7 @@ class Engine(TankBundle):
         .. note:: For more information, see the documentation for :meth:`show_dialog()`.
 
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        :type widget_class: :class:`PySide.QtGui.QWidget`
+        :type widget_class: :class:`PySide.QtWidgets.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
         """
@@ -1699,18 +1699,18 @@ class Engine(TankBundle):
             self.logger.exception(exc)
 
             import traceback
-            from sgtk.platform.qt import QtGui, QtCore
+            from sgtk.platform.qt6 import QtGui, QtCore, QtWidgets
 
             # A very simple widget that ensures that the exception is visible and
             # selectable should the user need to copy/paste it into a support
             # ticket.
-            class _exc_widget(QtGui.QWidget):
+            class _exc_widget(QtWidgets.QWidget):
                 def __init__(self, msg, *args, **kwargs):
                     super(_exc_widget, self).__init__(*args, **kwargs)
 
                     self.setObjectName("SGTK_CORE_EXC_WIDGET")
 
-                    self._label = QtGui.QLabel(
+                    self._label = QtWidgets.QLabel(
                         "<big>The requested dialog could not be built "
                         "due to an exception that was raised:</big>"
                     )
@@ -1720,7 +1720,7 @@ class Engine(TankBundle):
                     self._text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
                     self._text.setText(msg)
 
-                    self._layout = QtGui.QVBoxLayout(self)
+                    self._layout = QtWidgets.QVBoxLayout(self)
                     self._layout.addWidget(self._label)
                     self._layout.addWidget(self._text)
 
@@ -1744,7 +1744,7 @@ class Engine(TankBundle):
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        :type widget_class: :class:`PySide.QtGui.QWidget`
+        :type widget_class: :class:`PySide.QtWidgets.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
         """
@@ -1768,7 +1768,7 @@ class Engine(TankBundle):
         Called when a dialog created by this engine is closed.
 
         :param dlg: The dialog being closed
-        :type dlg: :class:`PySide.QtGui.QWidget`
+        :type dlg: :class:`PySide.QtWidgets.QWidget`
 
         Derived implementations of this method should be sure to call
         the base implementation
@@ -1880,7 +1880,7 @@ class Engine(TankBundle):
         :param title: The title of the window. This will appear in the Toolkit title bar.
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        :type widget_class: :class:`PySide.QtGui.QWidget`
+        :type widget_class: :class:`PySide.QtWidgets.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
 
@@ -1924,7 +1924,7 @@ class Engine(TankBundle):
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        :type widget_class: :class:`PySide.QtGui.QWidget`
+        :type widget_class: :class:`PySide.QtWidgets.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
 
@@ -1974,7 +1974,7 @@ class Engine(TankBundle):
         :param title: The title of the panel
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
-        :type widget_class: :class:`PySide.QtGui.QWidget`
+        :type widget_class: :class:`PySide.QtWidgets.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
 
@@ -2085,7 +2085,7 @@ class Engine(TankBundle):
         :param qss_file: Full path to the style sheet file.
         :param widget: A QWidget to apply the stylesheet to.
         """
-        from .qt import QtCore
+        from .qt6 import QtCore
 
         # We don't keep any reference to the watcher to let it be deleted with
         # the widget it is parented under.
@@ -2145,7 +2145,7 @@ class Engine(TankBundle):
         """
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            importer = QtImporter()
+            importer = QtImporter(interface_version_requested=QtImporter.QT4)
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
             if importer.QtGui:
@@ -2185,7 +2185,7 @@ class Engine(TankBundle):
 
         :returns: A dictionary with all the modules, __version__ and __name__.
         """
-        return QtImporter(interface_version_requested=QtImporter.QT6).base
+        return QtImporter().base
 
     def _initialize_dark_look_and_feel(self):
         """
@@ -2226,9 +2226,9 @@ class Engine(TankBundle):
         at the application level, and then constructs and applies a custom palette
         that emulates Maya 2017's color scheme.
         """
-        from .qt import QtGui
+        from .qt6 import QtGui, QtWidgets
 
-        app = QtGui.QApplication.instance()
+        app = QtWidgets.QApplication.instance()
 
         # Set the fusion style, which gives us a good base to build on. With
         # this, we'll be sticking largely to the style and won't need to
@@ -2455,7 +2455,7 @@ class Engine(TankBundle):
         invoker = None
         async_invoker = None
         if self.has_ui:
-            from .qt import QtGui, QtCore
+            from .qt6 import QtGui, QtCore
 
             # Classes are defined locally since Qt might not be available.
             if QtGui and QtCore:
