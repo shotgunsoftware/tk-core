@@ -397,7 +397,7 @@ class QtImporter(object):
         return tuple([int(c) for c in version_str.split(".")])
 
     def _import_modules(self, interface_version_requested):
-        """  
+        """
         Attempts to import different Qt binding implementations in the following order:
             - PySide6 (for Qt6 interface)
             - PySide2 (for Qt5 and Qt4 interfaces)
