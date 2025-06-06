@@ -324,7 +324,7 @@ class Engine(TankBundle):
 
         if self.has_ui:
             # only import QT if we have a UI
-            from .qt import QtGui, QtCore
+            from .qt6 import QtGui, QtCore
 
             url = QtCore.QUrl.fromLocalFile(LogManager().log_folder)
             status = QtGui.QDesktopServices.openUrl(url)
@@ -1213,7 +1213,7 @@ class Engine(TankBundle):
             self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
         )
         if invoker:
-            from .qt import QtGui, QtCore, QtWidgets
+            from .qt6 import QtGui, QtCore, QtWidgets
 
             if (
                 QtWidgets.QApplication.instance()
@@ -1631,7 +1631,7 @@ class Engine(TankBundle):
         :return: QT Parent window (:class:`PySide.QtWidgets.QWidget`)
         """
         # By default, this will return the QApplication's active window:
-        from .qt import QtGui, QtWidgets
+        from .qt6 import QtWidgets
 
         return QtWidgets.QApplication.activeWindow()
 
@@ -2085,7 +2085,7 @@ class Engine(TankBundle):
         :param qss_file: Full path to the style sheet file.
         :param widget: A QWidget to apply the stylesheet to.
         """
-        from .qt import QtCore
+        from .qt6 import QtCore
 
         # We don't keep any reference to the watcher to let it be deleted with
         # the widget it is parented under.
@@ -2226,7 +2226,7 @@ class Engine(TankBundle):
         at the application level, and then constructs and applies a custom palette
         that emulates Maya 2017's color scheme.
         """
-        from .qt import QtGui, QtWidgets
+        from .qt6 import QtGui, QtWidgets
 
         app = QtWidgets.QApplication.instance()
 
@@ -2455,7 +2455,7 @@ class Engine(TankBundle):
         invoker = None
         async_invoker = None
         if self.has_ui:
-            from .qt import QtGui, QtCore
+            from .qt6 import QtGui, QtCore
 
             # Classes are defined locally since Qt might not be available.
             if QtGui and QtCore:

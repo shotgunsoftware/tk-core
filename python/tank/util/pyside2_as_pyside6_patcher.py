@@ -4,7 +4,7 @@ class PySide2asPySide6Patcher:
         for cls in classes:
             setattr(qt_webengine_core, cls.__name__, cls)
         return qt_webengine_core
-    
+
     @staticmethod
     def _patch_QtGui(qt_gui, classes):
         for cls in classes:

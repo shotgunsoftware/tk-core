@@ -154,7 +154,9 @@ class SsoSaml2Core(object):
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
-                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebEngineWidgets
+                             For Qt5/PySide2, we require modules QtCore, QtGui,
+                             QtNetwork and QtWebEngineWidgets
+
 
         :returns: The SsoSaml2Core oject.
         """
@@ -189,7 +191,7 @@ class SsoSaml2Core(object):
 
         if QtWebEngineWidgets is None:
             raise SsoSaml2MissingQtWebEngineWidgets(
-                "The QtWebEngineWidgets modules are unavailable"
+                "The QtWebEngineWidgets module is unavailable"
             )
 
         # If PySide2 is being used, we need to make  extra checks to ensure
@@ -498,12 +500,11 @@ class SsoSaml2Core(object):
 
         # Given that QWebEngineCookieStore's setCookie and deleteCookie are
         # not yet exposed to PySide2/Qt5, we need to rely on the profile for
-        # cookie persistency as well as keeping our own copy in the tk-core
-        # session. This is in case a PySide/Qt4 application is used later on.
-        if not self._QtWebKit and not qt_cookies:
+        # cookie persistency.
+        if not qt_cookies:
             self._logger.debug("Clearing all of the browser cookies")
             self._profile.cookieStore().deleteAllCookies()
-            pass
+
         self._cookie_jar.setAllCookies(qt_cookies)
 
     def is_session_renewal_active(self):
@@ -789,7 +790,7 @@ class SsoSaml2Core(object):
         # pylint: disable=invalid-name
         QtCore = self._QtCore  # noqa
 
-        if not self._QtWebKit and profile_location:
+        if profile_location:
             # Having separate Chromium profile persistency location have been proven
             # necessary for a few reasons:
             # - Because all of the cookies are serialized to the user's cache, this makes
@@ -809,15 +810,13 @@ class SsoSaml2Core(object):
             #   with PySide. We cannot inject individual cookies in a Chromium profile
             #   The APIs, QWebEngineCookieStore's setCookie and deleteCookie, while
             #   documented are unfortunately not yet available to PySide2/Qt5. Our only
-            #   solution is to have the Chromium profile do the persistency (with our
-            #   own cache in case we are called by a PySide/Qt4 application). With
+            #   solution is to have the Chromium profile do the persistency. With
             #   the occasional use of deleteAllCookies() when deemed necessary.
             #
             # While having separate profiles for different sites seems contrary to the
             # use of SSO : in a browser, you could access all the sites behind the same
             # IdP by authenticating once, while with the Toolkit you will likely need
-            # to authenticate once per site. But this is the same behaviour as we
-            # have in our Qt4 environment.
+            # to authenticate once per site.
             profile_path = os.path.join(profile_location, "QWebEngineProfile")
             self._profile.setPersistentStoragePath(profile_path)
             self._logger.debug(

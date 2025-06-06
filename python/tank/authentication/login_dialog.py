@@ -116,6 +116,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         self._site_info.reload(self._url_to_test, self._http_proxy)
 
+
 class LoginDialog(QtWidgets.QDialog):
     """
     Dialog for getting user credentials.
@@ -483,24 +484,33 @@ class LoginDialog(QtWidgets.QDialog):
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
 
-        # With a SSO site, we have no choice but to use the web to login.
-        can_use_web = self.site_info.sso_enabled
+        can_use_web = self._sso_saml2 is not None
         can_use_asl = self.site_info.app_session_launcher_enabled
 
-        # The user may decide to force the use of the old dialog:
-        # - due to graphical issues with Qt and its WebEngine
-        # - they need to use the legacy login / passphrase to use a PAT with
-        #   Autodesk Identity authentication
-        if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-            logger.info("Using the standard login dialog with the Flow Production Tracking")
-        else:
-            if _is_running_in_desktop():
-                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+        if can_use_web:
+            # With a SSO site, we have no choice but to use the web to login.
+            can_use_web = self.site_info.sso_enabled
 
-            # If we have full support for Web-based login, or if we enable it in our
-            # environment, use the Unified Login Flow for all authentication modes.
-            if get_shotgun_authenticator_support_web_login():
-                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
+            # The user may decide to force the use of the old dialog:
+            # - due to graphical issues with Qt and its WebEngine
+            # - they need to use the legacy login / passphrase to use a PAT with
+            #   Autodesk Identity authentication
+            if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+                logger.info(
+                    "Using the standard login dialog with the Flow Production Tracking"
+                )
+            else:
+                if _is_running_in_desktop():
+                    can_use_web = (
+                        can_use_web or self.site_info.autodesk_identity_enabled
+                    )
+
+                # If we have full support for Web-based login, or if we enable it in our
+                # environment, use the Unified Login Flow for all authentication modes.
+                if get_shotgun_authenticator_support_web_login():
+                    can_use_web = (
+                        can_use_web or self.site_info.unified_login_flow_enabled
+                    )
 
         if method_selected:
             # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
@@ -512,9 +522,7 @@ class LoginDialog(QtWidgets.QDialog):
             method_selected = session_cache.get_preferred_method(site)
 
         # Make sure that the method_selected is currently supported
-        if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
-        ) or (
+        if (method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
@@ -526,9 +534,7 @@ class LoginDialog(QtWidgets.QDialog):
             )
 
         # Make sure that the method_selected is currently supported
-        if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
-        ) or (
+        if (method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
@@ -703,7 +709,9 @@ class LoginDialog(QtWidgets.QDialog):
             "Logged In",
             properties={
                 "authentication_method": self.site_info.user_authentication_method,
-                "authentication_experience": auth_constants.method_resolve.get(self.method_selected),
+                "authentication_experience": auth_constants.method_resolve.get(
+                    self.method_selected
+                ),
                 "authentication_interface": "qt_dialog",
                 "authentication_renewal": self._is_session_renewal,
             },
@@ -772,7 +780,10 @@ class LoginDialog(QtWidgets.QDialog):
 
         # Cleanup the URL and update the GUI.
         if self.method_selected != auth_constants.METHOD_BASIC:
-            if site.startswith("http://") and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ:
+            if (
+                site.startswith("http://")
+                and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ
+            ):
                 site = "https" + site[4:]
             self.ui.site.setEditText(site)
 

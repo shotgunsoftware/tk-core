@@ -12,7 +12,7 @@ import os
 import shutil
 import sys
 
-from . import QtCore, QtWidgets
+from . import QtWidgets
 from .ui_item import Ui_Item
 from ..bundle import resolve_default_value
 from ..engine import current_engine

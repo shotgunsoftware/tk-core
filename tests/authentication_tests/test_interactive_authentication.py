@@ -178,7 +178,7 @@ class InteractiveTests(ShotgunTestBase):
             print(text)
             print("=" * len(text))
         else:
-            from tank.authentication.ui.qt_abstraction import QtGui, QtWidgets
+            from tank.authentication.ui.qt_abstraction import QtWidgets
 
             mb = QtWidgets.QMessageBox()
             mb.setText(text)
@@ -270,7 +270,10 @@ class InteractiveTests(ShotgunTestBase):
             Method that will throw.
             :throws: FromMainThreadException
             """
-            if QtWidgets.QApplication.instance().thread() != QtCore.QThread.currentThread():
+            if (
+                QtWidgets.QApplication.instance().thread()
+                != QtCore.QThread.currentThread()
+            ):
                 raise Exception("This should have been invoked in the main thread.")
             raise FromMainThreadException()
 
@@ -296,7 +299,10 @@ class InteractiveTests(ShotgunTestBase):
                     # Make sure we have a QObject derived object and not a regular Python function.
                     if not isinstance(invoker_obj, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")
-                    if invoker_obj.thread() != QtWidgets.QApplication.instance().thread():
+                    if (
+                        invoker_obj.thread()
+                        != QtWidgets.QApplication.instance().thread()
+                    ):
                         raise Exception(
                             "Invoker should be of the same thread as the QApplication."
                         )
@@ -492,7 +498,7 @@ class InteractiveTests(ShotgunTestBase):
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication.ui.qt_abstraction import QtGui, QtWidgets
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         with self._login_dialog() as ld:
             # For each widget in the ui, make sure that the text is properly cleaned
@@ -707,7 +713,7 @@ class InteractiveTests(ShotgunTestBase):
         ],
     )
     def test_ui_auth_2fa(self, *mocks):
-        from tank.authentication.ui.qt_abstraction import QtWidgets, QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         with mock.patch.object(
             QtWidgets.QDialog,
@@ -806,7 +812,7 @@ class InteractiveTests(ShotgunTestBase):
         Not doing much at the moment. Just try to increase code coverage
         """
 
-        from tank.authentication.ui.qt_abstraction import QtGui, QtWidgets
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         with mock.patch.object(
             QtWidgets.QDialog,
