@@ -12,19 +12,19 @@ import os
 import shutil
 import sys
 
-from . import QtCore, QtGui
+from . import QtCore, QtWidgets
 from .ui_item import Ui_Item
 from ..bundle import resolve_default_value
 from ..engine import current_engine
 
 
-class ConfigItem(QtGui.QWidget):
+class ConfigItem(QtWidgets.QWidget):
     """
     Describes a configuration setting with data and methods
     """
 
     def __init__(self, setting, params, value, bundle, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         # set up the UI
         self.ui = Ui_Item()

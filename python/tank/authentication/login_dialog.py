@@ -36,7 +36,6 @@ from .ui.qt_abstraction import (
     QtGui,
     QtCore,
     QtNetwork,
-    QtWebKit,
     QtWebEngineWidgets,
     QtWidgets,
     qt_version_tuple,
@@ -116,7 +115,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         self._site_info.reload(self._url_to_test, self._http_proxy)
 
-class LoginDialog(QtGui.QDialog):
+class LoginDialog(QtWidgets.QDialog):
     """
     Dialog for getting user credentials.
     """
@@ -146,13 +145,13 @@ class LoginDialog(QtGui.QDialog):
         :param parent: The Qt parent for the dialog (defaults to None)
         :param session_metadata: Metadata used in the context of SSO. This is an obscure blob of data.
         """
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
 
         qt_modules = {
             "QtCore": QtCore,
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
-            "QtWebKit": QtWebKit,
+            "QtWidgets": QtWidgets,
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
@@ -248,23 +247,23 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
         # Initialize Options menu
-        menu = QtGui.QMenu(self.ui.button_options)
+        menu = QtWidgets.QMenu(self.ui.button_options)
         self.ui.button_options.setMenu(menu)
         self.ui.button_options.setVisible(False)
 
-        self.menu_action_asl = QtGui.QAction(
+        self.menu_action_asl = QtWidgets.QAction(
             "Authenticate with the App Session Launcher",
             menu,
         )
         self.menu_action_asl.triggered.connect(self._menu_activated_action_asl)
 
-        self.menu_action_ulf = QtGui.QAction(
+        self.menu_action_ulf = QtWidgets.QAction(
             "Authenticate with the Flow Production Tracking browser",
             menu,
         )
         self.menu_action_ulf.triggered.connect(self._menu_activated_action_web_legacy)
 
-        self.menu_action_legacy = QtGui.QAction(
+        self.menu_action_legacy = QtWidgets.QAction(
             "Authenticate with Legacy Flow Production Tracking Login Credentials",
             menu,
         )
@@ -324,11 +323,11 @@ class LoginDialog(QtGui.QDialog):
             )
 
         # Initialize exit confirm message box
-        self.confirm_box = QtGui.QMessageBox(
-            QtGui.QMessageBox.Question,
+        self.confirm_box = QtWidgets.QMessageBox(
+            QtWidgets.QMessageBox.Question,
             "Flow Production Tracking Login",  # title
             "Would you like to cancel your request?",  # text
-            buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            buttons=QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
             # parent=self,
             # Passing the parent parameter here, in the constructor, makes
             # Nuke versions<=13 crash.
@@ -667,7 +666,7 @@ class LoginDialog(QtGui.QDialog):
         # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
         # other flags.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        return QtGui.QDialog.exec_(self)
+        return QtWidgets.QDialog.exec_(self)
 
     def result(self):
         """
@@ -688,13 +687,13 @@ class LoginDialog(QtGui.QDialog):
                 profile_location=profile_location,
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
-            if res != QtGui.QDialog.Accepted:
+            if res != QtWidgets.QDialog.Accepted:
                 return
 
             return self._sso_saml2.get_session_data()
 
         res = self.exec_()
-        if res != QtGui.QDialog.Accepted:
+        if res != QtWidgets.QDialog.Accepted:
             return
 
         metrics_cache.log(
@@ -827,7 +826,7 @@ class LoginDialog(QtGui.QDialog):
                     product=PRODUCT_IDENTIFIER,
                     profile_location=profile_location,
                 )
-                if res == QtGui.QDialog.Accepted:
+                if res == QtWidgets.QDialog.Accepted:
                     self._new_session_token = self._sso_saml2.session_id
                     self._session_metadata = self._sso_saml2.cookies
                 else:

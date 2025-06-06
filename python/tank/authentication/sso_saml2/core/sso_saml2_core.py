@@ -28,7 +28,7 @@ from .errors import (
     SsoSaml2MissingQtCore,
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtNetwork,
-    SsoSaml2MissingQtWebKit,
+    SsoSaml2MissingQtWebEngineWidgets,
 )
 from .utils import (
     _decode_cookies,
@@ -154,7 +154,7 @@ class SsoSaml2Core(object):
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
-                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
+                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebEngineWidgets
 
         :returns: The SsoSaml2Core oject.
         """
@@ -170,7 +170,7 @@ class SsoSaml2Core(object):
         QtCore = self._QtCore = qt_modules.get("QtCore")  # noqa
         QtGui = self._QtGui = qt_modules.get("QtGui")  # noqa
         QtNetwork = self._QtNetwork = qt_modules.get("QtNetwork")  # noqa
-        QtWebKit = self._QtWebKit = qt_modules.get("QtWebKit")  # noqa
+        QtWidgets = self._QtWidgets = qt_modules.get("QtWidgets")  # noqa
         QtWebEngineWidgets = self._QtWebEngineWidgets = qt_modules.get(
             "QtWebEngineWidgets"
         )  # noqa
@@ -184,9 +184,9 @@ class SsoSaml2Core(object):
         if QtNetwork is None:
             raise SsoSaml2MissingQtNetwork("The QtNetwork module is unavailable")
 
-        if QtWebKit is None and QtWebEngineWidgets is None:
-            raise SsoSaml2MissingQtWebKit(
-                "The QtWebKit or QtWebEngineWidgets modules are unavailable"
+        if QtWebEngineWidgets is None:
+            raise SsoSaml2MissingQtWebEngineWidgets(
+                "The QtWebEngineWidgets modules are unavailable"
             )
 
         # If PySide2 is being used, we need to make  extra checks to ensure
@@ -279,13 +279,13 @@ class SsoSaml2Core(object):
         self._sessions_stack = []
         self._session_renewal_active = False
 
-        self._dialog = QtGui.QDialog()
+        self._dialog = QtWidgets.QDialog()
         self._dialog.setWindowTitle(window_title)
         self._dialog.finished.connect(self.on_dialog_closed)
 
         # This is to ensure that we can resize the window nicely, and that the
         # WebView will follow.
-        self._layout = QtGui.QVBoxLayout(self._dialog)
+        self._layout = QtWidgets.QVBoxLayout(self._dialog)
         self._layout.setSpacing(0)
         self._layout.setContentsMargins(0, 0, 0, 0)
 
@@ -860,14 +860,14 @@ class SsoSaml2Core(object):
         This can be the result of a callback, a timeout or user interaction.
 
         :param result: Qt result following the closing of the dialog.
-                       QtGui.QDialog.Accepted or QtGui.QDialog.Rejected
+                       QtWidgets.QDialog.Accepted or QtGui.QDialog.Rejected
         """
         self._logger.debug("SSO dialog closed")
         # pylint: disable=invalid-name
-        QtGui = self._QtGui  # noqa
+        QtWidgets = self._QtWidgets  # noqa
 
         if self.is_handling_event():
-            if result == QtGui.QDialog.Rejected and self._session.cookies != "":
+            if result == QtWidgets.QDialog.Rejected and self._session.cookies != "":
                 # We got here because of a timeout attempting a GUI-less login.
                 # Let's clear the cookies, and force the use of the GUI.
                 self._session.cookies = ""
@@ -882,7 +882,7 @@ class SsoSaml2Core(object):
                 self.resolve_event()
         else:
             # Should we get a rejected dialog, then we have had a timeout.
-            if result == QtGui.QDialog.Rejected:
+            if result == QtWidgets.QDialog.Rejected:
                 # @FIXME: Figure out exactly what to do when we have a timeout.
                 self._logger.warn(
                     "Our QDialog got canceled outside of an event handling"

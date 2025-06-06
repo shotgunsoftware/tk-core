@@ -42,7 +42,7 @@ from tank.util import is_windows
 # in the context of a DCC, but occur too early for the Toolkit logging to be
 # fully in place to record it.
 try:
-    from .ui.qt_abstraction import QtGui
+    from .ui.qt_abstraction import QtGui, QtWidgets
 except Exception:
     QtGui = None
 
@@ -77,7 +77,7 @@ def _get_ui_state():
     Returns the state of UI: do we have a ui or not.
     :returns: True or False)
     """
-    if QtGui and QtGui.QApplication.instance() is not None:
+    if QtWidgets and QtWidgets.QApplication.instance() is not None:
         return True
     else:
         return False

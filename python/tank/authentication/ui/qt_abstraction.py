@@ -17,7 +17,6 @@ from ...util.qt_importer import QtImporter
 _importer = QtImporter()
 QtCore = _importer.QtCore
 QtGui = _importer.QtGui
-QtWebKit = _importer.QtWebKit
 QtNetwork = _importer.QtNetwork
 QtWidgets = _importer.QtWidgets
 QtWebEngineWidgets = _importer.QtWebEngineWidgets

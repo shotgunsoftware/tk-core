@@ -42,16 +42,16 @@ class UsernamePasswordDialog(QtWidgets.QDialog):
         form_grid_layout = QtGui.QGridLayout(self)
 
         # initialize the username combo box so that it is editable
-        self._edit_username = QtGui.QLineEdit(self)
+        self._edit_username = QtWidgets.QLineEdit(self)
         self._edit_username.setPlaceholderText("Domain\\Username or email address")
 
         # initialize the password field so that it does not echo characters
-        self._edit_password = QtGui.QLineEdit(self)
-        self._edit_password.setEchoMode(QtGui.QLineEdit.Password)
+        self._edit_password = QtWidgets.QLineEdit(self)
+        self._edit_password.setEchoMode(QtWidgets.QLineEdit.Password)
         self._edit_password.setPlaceholderText("Password")
 
         # initialize the labels
-        label_message = QtGui.QLabel(self)
+        label_message = QtWidgets.QLabel(self)
         label_message.setText(message)
         label_message.setWordWrap(True)
 
@@ -138,7 +138,7 @@ class UsernamePasswordDialog(QtWidgets.QDialog):
 
 def main():
     """Simple test"""
-    _ = QtGui.QApplication([])
+    _ = QtWidgets.QApplication([])
     window_title = "A title"
     message = "A message"
     login_dialog = UsernamePasswordDialog(window_title=window_title, message=message)

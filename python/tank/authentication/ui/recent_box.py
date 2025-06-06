@@ -18,11 +18,11 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .qt_abstraction import QtGui
+from .qt_abstraction import QtGui, QtCore, QtWidgets
 from .completion_filter_proxy import CompletionFilterProxy
 
 
-class RecentBox(QtGui.QComboBox):
+class RecentBox(QtWidgets.QComboBox):
     """
     Combo box specialisation that handles all the filtering, sorting and auto-completion
     for a list of recent items. Items are sorted alphabetically so they can be found easily
@@ -35,18 +35,18 @@ class RecentBox(QtGui.QComboBox):
         self.setEditable(True)
 
         # Using QLineEdit so we have a placeholder even when the line edit is selected.
-        self.setLineEdit(QtGui.QLineEdit(self))
+        self.setLineEdit(QtWidgets.QLineEdit(self))
 
         # Create a model sorted alphabetically for the recent items.
-        self._recent_items_model = QtGui.QStringListModel(self)
-        self._drop_down_model = QtGui.QSortFilterProxyModel(self)
+        self._recent_items_model = QtCore.QStringListModel(self)
+        self._drop_down_model = QtCore.QSortFilterProxyModel(self)
         self._drop_down_model.setSourceModel(self._recent_items_model)
         self.setModel(self._drop_down_model)
 
         # We'll use a completer that shows all results and we'll do the matching ourselves, as the completion
         # engine can only work from the beginning of a string...
-        self._completer = QtGui.QCompleter(self)
-        self._completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+        self._completer = QtWidgets.QCompleter(self)
+        self._completer.setCompletionMode(QtWidgets.QCompleter.UnfilteredPopupCompletion)
 
         # We'll do our own filtering.
         self._filter_model = CompletionFilterProxy(self)

@@ -20,7 +20,7 @@ at any point.
 
 from tank.util import sgre as re
 
-from .qt_abstraction import QtGui
+from .qt_abstraction import QtGui, QtCore
 
 
 class FuzzyMatcher():
@@ -47,7 +47,7 @@ class FuzzyMatcher():
             return 100.0 / ((1 + match.start()) * (match.end() - match.start() + 1))
 
 
-class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
+class CompletionFilterProxy(QtCore.QSortFilterProxyModel):
     """
     Filters rows based on fuzzy matching and sorts them based on their score.
     """

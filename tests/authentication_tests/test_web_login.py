@@ -42,7 +42,7 @@ class WebLoginTests(ShotgunTestBase):
                 "QtCore": qt_abstraction.QtCore,
                 "QtGui": qt_abstraction.QtGui,
                 "QtNetwork": qt_abstraction.QtNetwork,
-                "QtWebKit": qt_abstraction.QtWebKit,
+                # "QtWebKit": qt_abstraction.QtWebKit,
                 "QtWebEngineWidgets": qt_abstraction.QtWebEngineWidgets,
             },
         )
