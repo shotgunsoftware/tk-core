@@ -11,7 +11,7 @@
 # Import Qt without having to worry about the version to use.
 from ..util.qt_importer import QtImporter
 
-importer = QtImporter()
+importer = QtImporter(interface_version_requested=QtImporter.QT6)
 QtCore = importer.QtCore
 QtWidgets = importer.QtWidgets
 

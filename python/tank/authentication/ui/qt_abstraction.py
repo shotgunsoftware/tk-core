@@ -14,7 +14,7 @@ Imports Qt without having to worry which version of Qt we are using.
 
 from ...util.qt_importer import QtImporter
 
-_importer = QtImporter()
+_importer = QtImporter(interface_version_requested=QtImporter.QT6)
 QtCore = _importer.QtCore
 QtGui = _importer.QtGui
 QtNetwork = _importer.QtNetwork

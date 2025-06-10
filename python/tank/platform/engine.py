@@ -182,11 +182,17 @@ class Engine(TankBundle):
         self.__has_qt5 = len(qt5_base) > 0
         for name, value in qt5_base.items():
             setattr(qt5, name, value)
+        qt_widgets = qt5_base.get("QtWidgets")
+        if qt_widgets:
+            setattr(qt5, "TankDialogBase", qt_widgets.QDialog)
 
         qt6_base = self.__define_qt6_base()
         self.__has_qt6 = len(qt6_base) > 0
         for name, value in qt6_base.items():
             setattr(qt6, name, value)
+        qt_widgets = qt6_base.get("QtWidgets")
+        if qt_widgets:
+            setattr(qt6, "TankDialogBase", qt_widgets.QDialog)
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -415,8 +421,8 @@ class Engine(TankBundle):
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
             try:
-                from .qt.busy_dialog import BusyDialog
-                from .qt import QtGui, QtCore
+                from .qt6.busy_dialog import BusyDialog
+                from .qt6 import QtGui, QtCore
 
             except:
                 # QT import failed. This may be because someone has upgraded the core
@@ -1164,7 +1170,7 @@ class Engine(TankBundle):
         for the background thread to finish, Qt's event loop won't be able to process the request
         to execute in the main thread::
 
-            >>> from sgtk.platform.qt import QtWidgets
+            >>> from sgtk.platform.qt6 import QtWidgets
             >>> engine.execute_in_main_thread(QtWidgets.QMessageBox.information, None, "Hello", "Hello from the main thread!")
 
         .. note:: This currently only works if Qt is available, otherwise it just
@@ -1213,7 +1219,7 @@ class Engine(TankBundle):
             self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
         )
         if invoker:
-            from .qt6 import QtGui, QtCore, QtWidgets
+            from .qt6 import QtCore, QtWidgets
 
             if (
                 QtWidgets.QApplication.instance()
@@ -1647,7 +1653,7 @@ class Engine(TankBundle):
         :param widget: A QWidget instance to be embedded in the newly created dialog.
         :type widget: :class:`PySide.QtWidgets.QWidget`
         """
-        from .qt import tankqdialog
+        from .qt6 import tankqdialog
 
         # TankQDialog uses the bundled core font. Make sure they are loaded
         # since know we have a QApplication at this point.
@@ -1684,7 +1690,8 @@ class Engine(TankBundle):
 
         Additional parameters specified will be passed through to the widget_class constructor.
         """
-        from .qt import tankqdialog
+        from .qt6 import tankqdialog
+        # from qt6 import tankqdialog
 
         # construct the widget object
         try:
@@ -2145,7 +2152,7 @@ class Engine(TankBundle):
         """
         base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
         try:
-            importer = QtImporter(interface_version_requested=QtImporter.QT4)
+            importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
             if importer.QtGui:
@@ -2185,7 +2192,7 @@ class Engine(TankBundle):
 
         :returns: A dictionary with all the modules, __version__ and __name__.
         """
-        return QtImporter().base
+        return QtImporter(interface_version_requested=QtImporter.QT6).base
 
     def _initialize_dark_look_and_feel(self):
         """

@@ -36,7 +36,7 @@ class QtImporter(object):
 
     QT4, QT5, QT6 = range(4, 7)
 
-    def __init__(self, interface_version_requested=QT6):
+    def __init__(self, interface_version_requested=QT4):
         """
         Imports the Qt modules and sets the QtCore, QtGui and wrapper attributes
         on this object.
@@ -84,7 +84,7 @@ class QtImporter(object):
         """
         :returns: QtWidgets module, if available.
         """
-        return self._modules["QtWidgets"] if self._modules else None
+        return self._modules.get("QtWidgets") if self._modules else None
 
     @property
     def QtWebEngineCore(self):
@@ -133,8 +133,8 @@ class QtImporter(object):
         qt_base = {}
 
         qt_base.update(self._modules)
-        qt_base["__name__"] = self._binding_name
-        qt_base["__version__"] = self._binding_version
+        # qt_base["__name__"] = self._binding_name
+        # qt_base["__version__"] = self._binding_version
 
         return qt_base
 
