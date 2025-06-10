@@ -12,13 +12,11 @@
 PySide 2 backwards compatibility layer for use with PySide 1 code.
 """
 
-from __future__ import with_statement
-
 import os
 import sys
 import functools
-import imp
 import subprocess
+import types
 import webbrowser
 
 from .. import constants
@@ -363,8 +361,8 @@ class PySide2Patcher(object):
         :param QtGui: The QtGui module.
         :param QtWidgets: The QtWidgets module.
         """
-        qt_core_shim = imp.new_module("PySide.QtCore")
-        qt_gui_shim = imp.new_module("PySide.QtGui")
+        qt_core_shim = types.ModuleType("PySide.QtCore")
+        qt_gui_shim = types.ModuleType("PySide.QtGui")
 
         # Move everything from QtGui and QtWidgets unto the QtGui shim since
         # they belonged there in Qt 4.

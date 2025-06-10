@@ -14,7 +14,7 @@ Methods for loading and managing plugins, e.g. Apps, Engines, Hooks etc.
 """
 
 import sys
-import imp
+import importlib.util
 import traceback
 import inspect
 
@@ -55,8 +55,10 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     module_uid = uuid.uuid4().hex
     module = None
     try:
-        imp.acquire_lock()
-        module = imp.load_source(module_uid, plugin_file)
+        plugin_spec = importlib.util.spec_from_file_location(module_uid, plugin_file)
+        module = importlib.util.module_from_spec(plugin_spec)
+        plugin_spec.loader.exec_module(module)
+        sys.modules[module.__name__] = module
     except Exception:
         # log the full callstack to make sure that whatever the
         # calling code is doing, this error is logged to help
@@ -74,8 +76,6 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
         message += "Traceback (most recent call last):\n"
         message += "\n".join(traceback.format_tb(exc_traceback))
         raise TankLoadPluginError(message)
-    finally:
-        imp.release_lock()
 
     # cool, now validate the module
     found_classes = list()
