@@ -123,7 +123,9 @@ class TestSetupProjectWizard(TankTestBase):
         """
         self._wizard.set_project_disk_name(self.short_test_name)
         locations = self._wizard.get_default_configuration_location()
-        self.assertEqual(locations, {"win32": None, "darwin": None, "linux2": None})
+        self.assertTrue(self.short_test_name in locations["win32"])
+        self.assertTrue(self.short_test_name in locations["darwin"])
+        self.assertTrue(self.short_test_name in locations["linux2"])
 
     def test_default_configuration_location_with_existing_pipeline_configuration(self):
         """
