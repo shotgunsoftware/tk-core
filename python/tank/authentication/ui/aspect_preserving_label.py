@@ -8,11 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .qt_abstraction import QtGui
-from .qt_abstraction import QtCore
+from .qt_abstraction import QtCore, QtWidgets
 
 
-class AspectPreservingLabel(QtGui.QLabel):
+class AspectPreservingLabel(QtWidgets.QLabel):
     """
     Label that displays a scaled down version of an image if it is bigger
     than the label.
@@ -23,7 +22,7 @@ class AspectPreservingLabel(QtGui.QLabel):
 
         :params parent: Parent widget.
         """
-        QtGui.QLabel.__init__(self, parent)
+        QtWidgets.QLabel.__init__(self, parent)
 
         self._pix = None
 
@@ -36,7 +35,7 @@ class AspectPreservingLabel(QtGui.QLabel):
         self._pix = pixmap
         scaled_pixmap = self._pix.scaled(
             self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
-        QtGui.QLabel.setPixmap(self, scaled_pixmap)
+        QtWidgets.QLabel.setPixmap(self, scaled_pixmap)
 
     def heightForWidth(self, width):
         """
@@ -48,7 +47,7 @@ class AspectPreservingLabel(QtGui.QLabel):
         """
         if self._pix is None:
             return self._pix.height() * width / self._pix.width()
-        return QtGui.QLabel.heightForWidth(self, width)
+        return QtWidgets.QLabel.heightForWidth(self, width)
 
     def sizeHint(self):
         """
@@ -68,5 +67,5 @@ class AspectPreservingLabel(QtGui.QLabel):
 
         scaled_pixmap = self._pix.scaled(
             self.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
-        QtGui.QLabel.setPixmap(self, scaled_pixmap)
-        QtGui.QApplication.instance().processEvents()
+        QtWidgets.QLabel.setPixmap(self, scaled_pixmap)
+        QtWidgets.QApplication.instance().processEvents()

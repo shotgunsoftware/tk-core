@@ -861,7 +861,7 @@ portable between the two systems and it should be no problem writing code that w
 
 In order to use QT, import it from Sgtk::
 
-    from sgtk.platform.qt import QtCore, QtGui
+    from sgtk.platform.qt6 import QtCore, QtGui
 
 Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.
@@ -892,14 +892,14 @@ you from managing this by yourself, but for maximum compatibility and portabilty
 et Toolkit handle it. When using Sgtk to set up your UI, just let your UI class derive from QtGui.QWidget and pass
 it to one of the UI factory methods that the engine has. For example::
 
-    from sgtk.platform.qt import QtCore, QtGui
+    from sgtk.platform.qt6 import QtWidgets
 
-    # derive from QtGui.QWidget for your UI components.
+    # derive from QtWidgets.QWidget for your UI components.
 
-    class AppDialog(QtGui.QWidget):
+    class AppDialog(QtWidgets.QWidget):
 
         def __init__(self, param1, param2):
-            QtGui.QWidget.__init__(self)
+            QtWidgets.QWidget.__init__(self)
 
     # the engine is then used to correctly launch this dialog. In your app code
     # you can now do create a window using the engine's factory methods.
@@ -924,12 +924,12 @@ property called ``exit_code``. Typically, your code for a modal dialog would loo
 
         def on_ok_button_clicked(self):
             # user clicked ok
-            self.exit_code = QtGui.QDialog.Accepted
+            self.exit_code = QtWidgets.QDialog.Accepted
             self.close()
 
         def on_cancel_button_clicked(self):
             # user clicked cancel
-            self.exit_code = QtGui.QDialog.Rejected
+            self.exit_code = QtWidgets.QDialog.Rejected
             self.close()
 
 The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.

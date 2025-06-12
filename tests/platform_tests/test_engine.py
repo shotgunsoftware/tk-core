@@ -94,10 +94,10 @@ class TestDialogCreation(TestEngineBase):
         super(TestDialogCreation, self).setUp()
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
-        if QtGui.QApplication.instance() is None:
-            QtGui.QApplication([])
+        if QtWidgets.QApplication.instance() is None:
+            QtWidgets.QApplication([])
 
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -107,9 +107,9 @@ class TestDialogCreation(TestEngineBase):
         Ensures that the _create_widget method is exception safe.
         """
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
-        class _test_widget(QtGui.QWidget):
+        class _test_widget(QtWidgets.QWidget):
             def __init__(self, *args, **kwargs):
                 raise Exception("Testing...")
 
@@ -210,15 +210,15 @@ class TestExecuteInMainThread(TestEngineBase):
         super(TestExecuteInMainThread, self).setUp()
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # See if a QApplication instance exists, and if not create one.  Use the
         # QApplication.instance() method, since qApp can contain a non-None
         # value even if no QApplication has been constructed on PySide2.
-        if not QtGui.QApplication.instance():
-            self._app = QtGui.QApplication(sys.argv)
+        if not QtWidgets.QApplication.instance():
+            self._app = QtWidgets.QApplication(sys.argv)
         else:
-            self._app = QtGui.QApplication.instance()
+            self._app = QtWidgets.QApplication.instance()
 
         tank.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -261,7 +261,7 @@ class TestExecuteInMainThread(TestEngineBase):
         t.join()
 
     def _assert_run_in_main_thread_and_quit(self):
-        from sgtk.platform.qt import QtCore
+        from sgtk.platform.qt6 import QtCore
 
         # Make sure we are running in the main thread.
         self.assertEqual(
@@ -302,7 +302,7 @@ class TestExecuteInMainThread(TestEngineBase):
         runs a simple test a number of times in multiple threads and asserts the result
         returned is as expected.
         """
-        from sgtk.platform.qt import QtCore
+        from sgtk.platform.qt6 import QtCore
 
         num_test_threads = 20
         num_thread_iterations = 30
@@ -669,14 +669,14 @@ class TestShowDialog(TestEngineBase):
         self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # Create an application instance so we can take control of the execution
         # of the dialog.
-        if QtGui.QApplication.instance() is None:
-            self._app = QtGui.QApplication(sys.argv)
+        if QtWidgets.QApplication.instance() is None:
+            self._app = QtWidgets.QApplication(sys.argv)
         else:
-            self._app = QtGui.QApplication.instance()
+            self._app = QtWidgets.QApplication.instance()
 
         self._dialog_dimissed = False
 

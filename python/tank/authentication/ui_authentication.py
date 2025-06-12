@@ -67,7 +67,6 @@ class UiAuthenticationHandler(object):
             logger.debug("Requesting password in a dialog.")
         else:
             logger.debug("Requesting username and password in a dialog.")
-
         if LoginDialog is None:
             logger.error("Unexpected state. LoginDialog should be available.")
             raise ShotgunAuthenticationError("Could not instantiated login dialog.")

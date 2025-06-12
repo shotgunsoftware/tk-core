@@ -16,6 +16,10 @@ from .qt_abstraction import QtGui
 for name, cls in QtGui.__dict__.items():
     if isinstance(cls, type): globals()[name] = cls
 
+from .qt_abstraction import QtWidgets
+for name, cls in QtWidgets.__dict__.items():
+    if isinstance(cls, type): globals()[name] = cls
+
 
 from .recent_box import RecentBox
 from .aspect_preserving_label import AspectPreservingLabel

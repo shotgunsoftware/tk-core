@@ -61,20 +61,20 @@ class InteractiveTests(ShotgunTestBase):
         """
         Adds Qt modules to tank.platform.qt and initializes QApplication
         """
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # See if a QApplication instance exists, and if not create one.  Use the
         # QApplication.instance() method, since qApp can contain a non-None
         # value even if no QApplication has been constructed on PySide2.
-        if not QtGui.QApplication.instance():
-            self._app = QtGui.QApplication(sys.argv)
+        if not QtWidgets.QApplication.instance():
+            self._app = QtWidgets.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
     def tearDown(self):
         super(InteractiveTests, self).tearDown()
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     @suppress_generated_code_qt_warnings
     def test_site_and_user_disabled_on_session_renewal(self):
@@ -90,13 +90,13 @@ class InteractiveTests(ShotgunTestBase):
         Prepares the dialog so the events get processed and focus is attributed to the right
         widget.
         """
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         ld.show()
         ld.raise_()
         ld.activateWindow()
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     @contextlib.contextmanager
     def _login_dialog(self, is_session_renewal=False, **kwargs):
@@ -178,9 +178,9 @@ class InteractiveTests(ShotgunTestBase):
             print(text)
             print("=" * len(text))
         else:
-            from tank.authentication.ui.qt_abstraction import QtGui
+            from tank.authentication.ui.qt_abstraction import QtWidgets
 
-            mb = QtGui.QMessageBox()
+            mb = QtWidgets.QMessageBox()
             mb.setText(text)
             mb.exec_()
 
@@ -259,18 +259,21 @@ class InteractiveTests(ShotgunTestBase):
 
             pass
 
-        from tank.authentication.ui.qt_abstraction import QtCore, QtGui
+        from tank.authentication.ui.qt_abstraction import QtCore, QtWidgets
 
         # Create a QApplication instance.
-        if not QtGui.QApplication.instance():
-            QtGui.QApplication(sys.argv)
+        if not QtWidgets.QApplication.instance():
+            QtWidgets.QApplication(sys.argv)
 
         def thrower():
             """
             Method that will throw.
             :throws: FromMainThreadException
             """
-            if QtGui.QApplication.instance().thread() != QtCore.QThread.currentThread():
+            if (
+                QtWidgets.QApplication.instance().thread()
+                != QtCore.QThread.currentThread()
+            ):
                 raise Exception("This should have been invoked in the main thread.")
             raise FromMainThreadException()
 
@@ -296,13 +299,16 @@ class InteractiveTests(ShotgunTestBase):
                     # Make sure we have a QObject derived object and not a regular Python function.
                     if not isinstance(invoker_obj, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")
-                    if invoker_obj.thread() != QtGui.QApplication.instance().thread():
+                    if (
+                        invoker_obj.thread()
+                        != QtWidgets.QApplication.instance().thread()
+                    ):
                         raise Exception(
                             "Invoker should be of the same thread as the QApplication."
                         )
                     if QtCore.QThread.currentThread() != self:
                         raise Exception("Current thread not self.")
-                    if QtGui.QApplication.instance().thread == self:
+                    if QtWidgets.QApplication.instance().thread == self:
                         raise Exception(
                             "QApplication should be in the main thread, not self."
                         )
@@ -310,7 +316,7 @@ class InteractiveTests(ShotgunTestBase):
                 except Exception as e:
                     self._exception = e
                 finally:
-                    QtGui.QApplication.instance().exit()
+                    QtWidgets.QApplication.instance().exit()
 
             def wait(self):
                 """
@@ -325,7 +331,7 @@ class InteractiveTests(ShotgunTestBase):
         bg = BackgroundThread()
         bg.start()
         # process events
-        QtGui.QApplication.instance().exec_()
+        QtWidgets.QApplication.instance().exec_()
 
         # Make sure the thread got the exception that was thrown from the main thread.
         with self.assertRaises(FromMainThreadException):
@@ -492,7 +498,7 @@ class InteractiveTests(ShotgunTestBase):
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         with self._login_dialog() as ld:
             # For each widget in the ui, make sure that the text is properly cleaned
@@ -500,14 +506,14 @@ class InteractiveTests(ShotgunTestBase):
             for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
                 # Give the focus, so that editingFinished can be triggered.
                 widget.setFocus()
-                if isinstance(widget, QtGui.QLineEdit):
+                if isinstance(widget, QtWidgets.QLineEdit):
                     widget.setText(" text ")
                 else:
                     widget.lineEdit().setText(" text ")
                 # Give the focus to another widget, which should trigger the editingFinished
                 # signal and the dialog will clear the extra spaces in it.
                 ld.ui.password.setFocus()
-                if isinstance(widget, QtGui.QLineEdit):
+                if isinstance(widget, QtWidgets.QLineEdit):
                     # Text should be cleaned of spaces now.
                     self.assertEqual(widget.text(), "text")
                 else:
@@ -587,22 +593,22 @@ class InteractiveTests(ShotgunTestBase):
         Make sure that the site and user fields are disabled when doing session renewal
         """
 
-        from tank.authentication.ui.qt_abstraction import QtGui, QtCore
+        from tank.authentication.ui.qt_abstraction import QtGui, QtCore, QtWidgets
 
         # Test window close event
         with self._login_dialog() as ld:
             # First, simulate user clicks on the No button
-            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.No
+            ld.confirm_box.exec_ = lambda: QtWidgets.QMessageBox.StandardButton.No
 
             self.assertEqual(ld.close(), False)
             self.assertIsNone(ld.my_result)
             self.assertEqual(ld.isVisible(), True)
 
             # Then, simulate user clicks on the Yes button
-            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
+            ld.confirm_box.exec_ = lambda: QtWidgets.QMessageBox.StandardButton.Yes
 
             self.assertEqual(ld.close(), True)
-            self.assertEqual(ld.my_result, QtGui.QDialog.Rejected)
+            self.assertEqual(ld.my_result, QtWidgets.QDialog.Rejected)
             self.assertEqual(ld.isVisible(), False)
 
         # Test escape key event
@@ -617,21 +623,21 @@ class InteractiveTests(ShotgunTestBase):
             )
 
             # First, simulate user clicks on the No button
-            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.No
+            ld.confirm_box.exec_ = lambda: QtWidgets.QMessageBox.StandardButton.No
 
             self.assertIsNone(ld.keyPressEvent(event))
             self.assertIsNone(ld.my_result)
             self.assertEqual(ld.isVisible(), True)
 
             # Then, simulate user clicks on the Yes button
-            ld.confirm_box.exec_ = lambda: QtGui.QMessageBox.StandardButton.Yes
+            ld.confirm_box.exec_ = lambda: QtWidgets.QMessageBox.StandardButton.Yes
 
             # Initialize the ASL process - mostly for coverage
             ld._asl_process("https://host.shotgunstudio.com")
 
             # Test Escape key
             self.assertIsNone(ld.keyPressEvent(event))
-            self.assertEqual(ld.my_result, QtGui.QDialog.Rejected)
+            self.assertEqual(ld.my_result, QtWidgets.QDialog.Rejected)
             self.assertEqual(ld.isVisible(), False)
 
     @suppress_generated_code_qt_warnings
@@ -707,12 +713,12 @@ class InteractiveTests(ShotgunTestBase):
         ],
     )
     def test_ui_auth_2fa(self, *mocks):
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         with mock.patch.object(
-            QtGui.QDialog,
+            QtWidgets.QDialog,
             "exec_",
-            return_value=QtGui.QDialog.Accepted,
+            return_value=QtWidgets.QDialog.Accepted,
         ), self._login_dialog(
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
@@ -763,8 +769,8 @@ class InteractiveTests(ShotgunTestBase):
 
             # This is supposed to work
             self.assertEqual(
-                QtGui.QDialog.result(ld),
-                QtGui.QDialog.Accepted,
+                QtWidgets.QDialog.result(ld),
+                QtWidgets.QDialog.Accepted,
             )
 
             self.assertEqual(
@@ -806,12 +812,12 @@ class InteractiveTests(ShotgunTestBase):
         Not doing much at the moment. Just try to increase code coverage
         """
 
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         with mock.patch.object(
-            QtGui.QDialog,
+            QtWidgets.QDialog,
             "exec_",
-            return_value=QtGui.QDialog.Accepted,
+            return_value=QtWidgets.QDialog.Accepted,
         ), self._login_dialog(
             is_session_renewal=True,
             hostname="https://host.shotgunstudio.com",
@@ -1041,7 +1047,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=["john", "bob"],
     )
     def test_login_dialog_app_session_launcher(self, *unused_mocks):
-        from tank.authentication.ui.qt_abstraction import QtGui
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # First basic and ASL methods
         with mock.patch(
@@ -1050,9 +1056,9 @@ class InteractiveTests(ShotgunTestBase):
                 "authentication_app_session_launcher_enabled": True,
             },
         ), mock.patch.object(
-            QtGui.QDialog,
+            QtWidgets.QDialog,
             "exec_",
-            return_value=QtGui.QDialog.Accepted,
+            return_value=QtWidgets.QDialog.Accepted,
         ), self._login_dialog(
             is_session_renewal=True,
             hostname="http://host.shotgunstudio.com",  # HTTP only for code coverage
@@ -1107,8 +1113,8 @@ class InteractiveTests(ShotgunTestBase):
 
             # Verify that the dialog succeeded
             self.assertEqual(
-                QtGui.QDialog.result(ld),
-                QtGui.QDialog.Accepted,
+                QtWidgets.QDialog.result(ld),
+                QtWidgets.QDialog.Accepted,
             )
 
             self.assertEqual(
@@ -1533,7 +1539,10 @@ class SsoSaml2CoreTests(ShotgunTestBase):
             "QtGui": mock.Mock(),
             "QtNetwork": mock.Mock(),
             "QtWebEngineWidgets": mock.Mock(),
+            "QtWidgets": mock.Mock(),
+            "QtWebEngineCore": mock.Mock(),
         }
+        qt_modules_mock["QtWebEngineCore"].QWebEnginePage = mock.Mock()
         self.sso_saml2 = SsoSaml2Core(qt_modules=qt_modules_mock)
         super(SsoSaml2CoreTests, self).setUp()
 

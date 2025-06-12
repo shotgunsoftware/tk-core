@@ -19,6 +19,7 @@ from .core.errors import (  # noqa
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtModuleError,
     SsoSaml2MissingQtNetwork,
+    SsoSaml2MissingQtWebEngineWidgets,
     SsoSaml2MultiSessionNotSupportedError,
 )
 

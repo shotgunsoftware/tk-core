@@ -77,7 +77,21 @@ class QtImporter(object):
         """
         :returns: QtWebEngineWidgets module, if available.
         """
-        return self._modules["QtWebEngineWidgets"] if self._modules else None
+        return self._modules.get("QtWebEngineWidgets") if self._modules else None
+
+    @property
+    def QtWidgets(self):
+        """
+        :returns: QtWidgets module, if available.
+        """
+        return self._modules.get("QtWidgets") if self._modules else None
+
+    @property
+    def QtWebEngineCore(self):
+        """
+        :returns: QtWebEngineCore module, if available.
+        """
+        return self._modules.get("QtWebEngineCore") if self._modules else None
 
     @property
     def binding(self):
@@ -117,10 +131,7 @@ class QtImporter(object):
             return {}
 
         qt_base = {}
-
         qt_base.update(self._modules)
-        qt_base["__name__"] = self._binding_name
-        qt_base["__version__"] = self._binding_version
 
         return qt_base
 
@@ -147,7 +158,6 @@ class QtImporter(object):
             return getattr(module, module_name)
         except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
-
 
     def _import_pyside2(self):
         """
@@ -185,12 +195,6 @@ class QtImporter(object):
             "QtOpenGL",
             "QtMultimedia",
         ]
-
-        # We have the potential for a deadlock in Maya 2018 on Windows if this
-        # is imported. We set the env var from the tk-maya engine when we
-        # detect that we are in this situation.
-        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
-            sub_modules.append("QtWebEngineWidgets")
 
         modules_dict = {"QtCore": QtCore}
 
@@ -309,17 +313,10 @@ class QtImporter(object):
         import PySide6
         import shiboken6
 
-        sub_modules = pkgutil.iter_modules(PySide6.__path__)
-
-        if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" in os.environ:
-            sub_modules = [
-                m for m in sub_modules if not m.name.startswith("QtWebEngine")
-            ]
-
         modules_dict = {}
         # Add shiboken6 to the modules dict
         modules_dict["shiboken"] = shiboken6
-        for module in sub_modules:
+        for module in pkgutil.iter_modules(PySide6.__path__):
             module_name = module.name
             try:
                 wrapper = __import__("PySide6", globals(), locals(), [module_name])
@@ -337,6 +334,54 @@ class QtImporter(object):
             self._to_version_tuple(PySide6.__version__),
         )
 
+    def _import_pyside2_as_pyside6(self):
+        """
+        Imports PySide2 and makes it compatible with PySide6.
+
+        Returns a tuple containing the version information, the PySide2 module,
+        and a dictionary of imported modules.
+
+        :returns: A tuple containing the version information, the PySide2 module,
+            and a dictionary of imported modules.
+        """
+
+        import PySide2
+        import shiboken2
+        from .pyside2_as_pyside6_patcher import PySide2asPySide6Patcher
+
+        QtCore = self._import_module_by_name("PySide2", "QtCore")
+        QtGui = self._import_module_by_name("PySide2", "QtGui")
+        QtWidgets = self._import_module_by_name("PySide2", "QtWidgets")
+        QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
+        QtWebEngineWidgets = self._import_module_by_name(
+            "PySide2", "QtWebEngineWidgets"
+        )
+        QtWebEngineCore = self._import_module_by_name("PySide2", "QtWebEngineCore")
+        QtWebEngineCore = PySide2asPySide6Patcher._patch_QtWebEngineCore(
+            QtWebEngineCore,
+            [
+                QtWebEngineWidgets.QWebEnginePage,
+                QtWebEngineWidgets.QWebEngineProfile,
+            ],
+        )
+        QtGui = PySide2asPySide6Patcher._patch_QtGui(QtGui, [QtWidgets.QAction])
+
+        return (
+            "PySide2",
+            PySide2.__version__,
+            PySide2,
+            {
+                "QtCore": QtCore,
+                "QtGui": QtGui,
+                "QtNetwork": QtNetwork,
+                "QtWebEngineWidgets": QtWebEngineWidgets,
+                "QtWidgets": QtWidgets,
+                "QtWebEngineCore": QtWebEngineCore,
+                "shiboken6": shiboken2,
+            },
+            self._to_version_tuple(QtCore.qVersion()),
+        )
+
     def _to_version_tuple(self, version_str):
         """
         Converts a version string with the dotted notation into a tuple
@@ -350,16 +395,17 @@ class QtImporter(object):
 
     def _import_modules(self, interface_version_requested):
         """
-        Tries to import different Qt binding implementation in the following order:
-            - PySide2
-            - PySide6
+        Attempts to import different Qt binding implementations in the following order:
+            - PySide6 (for Qt6 interface)
+            - PySide2 (for Qt5 and Qt4 interfaces)
 
-        PySide6 is attempted to be imported last at the moment because it is is not yet fully
-        supported. If a DCC requires PySide6, it can run with the current level of support,
+        If a DCC requires PySide6, it can run with the current level of support,
         but be warned that you may encounter issues.
 
-        :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
-            no binding is avaialble.
+        :param interface_version_requested: The requested Qt interface version (QT4, QT5, or QT6)
+
+        :returns: A tuple containing the binding name, binding version,and imported
+            modules, or (None, None, None, None, None) if no binding is available.
         """
 
         interface = {
@@ -369,6 +415,7 @@ class QtImporter(object):
         }.get(interface_version_requested)
         logger.debug("Requesting %s-like interface", interface)
 
+        # TODO: Remove this condition sgtk.platform.qt6 is fully supported across all Toolkit repositories.
         if interface_version_requested == self.QT4:
             # First, try PySide 2 since Toolkit ships with PySide2.
             try:
@@ -395,8 +442,6 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-            # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
-
         elif interface_version_requested == self.QT6:
             try:
                 pyside6 = self._import_pyside6()
@@ -405,8 +450,12 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-            # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
-            logger.debug("Qt6 interface not implemented for Qt5")
+            try:
+                pyside2_as_pyside6 = self._import_pyside2_as_pyside6()
+                logger.debug("Imported PySide2 as PySide6.")
+                return pyside2_as_pyside6
+            except ImportError:
+                pass
 
         logger.debug("No Qt matching that interface was found.")
 
