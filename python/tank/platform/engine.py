@@ -183,16 +183,14 @@ class Engine(TankBundle):
         for name, value in qt5_base.items():
             setattr(qt5, name, value)
         qt_widgets = qt5_base.get("QtWidgets")
-        if qt_widgets:
-            setattr(qt5, "TankDialogBase", qt_widgets.QDialog)
+        qt5.TankDialogBase = qt_widgets.QDialog if qt_widgets else None
 
         qt6_base = self.__define_qt6_base()
         self.__has_qt6 = len(qt6_base) > 0
         for name, value in qt6_base.items():
             setattr(qt6, name, value)
         qt_widgets = qt6_base.get("QtWidgets")
-        if qt_widgets:
-            setattr(qt6, "TankDialogBase", qt_widgets.QDialog)
+        qt6.TankDialogBase = qt_widgets.QDialog if qt_widgets else None
 
         # Update the authentication module to use the engine's Qt.
         # @todo: can this import be untangled? Code references internal part of the auth module
@@ -422,7 +420,7 @@ class Engine(TankBundle):
             # we cannot import QT until here as non-ui engines don't have QT defined.
             try:
                 from .qt6.busy_dialog import BusyDialog
-                from .qt6 import QtGui, QtCore
+                from .qt6 import QtCore
 
             except:
                 # QT import failed. This may be because someone has upgraded the core
@@ -1706,7 +1704,7 @@ class Engine(TankBundle):
             self.logger.exception(exc)
 
             import traceback
-            from sgtk.platform.qt6 import QtGui, QtCore, QtWidgets
+            from sgtk.platform.qt6 import QtCore, QtWidgets
 
             # A very simple widget that ensures that the exception is visible and
             # selectable should the user need to copy/paste it into a support
