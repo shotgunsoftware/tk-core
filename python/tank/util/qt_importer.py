@@ -77,7 +77,7 @@ class QtImporter(object):
         """
         :returns: QtWebEngineWidgets module, if available.
         """
-        return self._modules["QtWebEngineWidgets"] if self._modules else None
+        return self._modules.get("QtWebEngineWidgets") if self._modules else None
 
     @property
     def QtWidgets(self):

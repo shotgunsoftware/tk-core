@@ -1539,6 +1539,7 @@ class SsoSaml2CoreTests(ShotgunTestBase):
             "QtGui": mock.Mock(),
             "QtNetwork": mock.Mock(),
             "QtWebEngineWidgets": mock.Mock(),
+            "QtWebEngineCore": mock.Mock(),
         }
         self.sso_saml2 = SsoSaml2Core(qt_modules=qt_modules_mock)
         super(SsoSaml2CoreTests, self).setUp()

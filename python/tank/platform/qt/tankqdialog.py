@@ -22,10 +22,8 @@ from .. import application
 from .. import constants
 from ...errors import TankError
 
-import sys
 import os
 import inspect
-from tank_vendor import six
 
 
 class TankQDialog(TankDialogBase):

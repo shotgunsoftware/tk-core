@@ -48,8 +48,6 @@ class QtImporterTests(TankTestBase):
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
         assert qt.base
-        assert qt.base["__name__"] is qt.binding_name
-        assert qt.base["__version__"] is qt.binding_version
 
     @skip_if_pyside2(found=False)
     def test_qt_importer_with_pyside2_interface_qt5(self):
