@@ -1047,7 +1047,7 @@ class InteractiveTests(ShotgunTestBase):
         return_value=["john", "bob"],
     )
     def test_login_dialog_app_session_launcher(self, *unused_mocks):
-        from tank.authentication.ui.qt_abstraction import QtGui, QtWidgets
+        from tank.authentication.ui.qt_abstraction import QtWidgets
 
         # First basic and ASL methods
         with mock.patch(

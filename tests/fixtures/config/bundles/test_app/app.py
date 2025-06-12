@@ -35,13 +35,13 @@ class TestApp(Application):
         """
         Shows an app with a button in it.
         """
-        from sgtk.platform.qt6 import QtGui, QtWidgets
+        from sgtk.platform.qt6 import QtWidgets
 
         class AppDialog(QtWidgets.QWidget):
             def __init__(self, parent=None):
                 super(AppDialog, self).__init__(parent)
                 self._layout = QtWidgets.QVBoxLayout(self)
-                self.button = QtGui.QPushButton("Close", parent=self)
+                self.button = QtWidgets.QPushButton("Close", parent=self)
                 self.button.clicked.connect(self.close)
                 self._layout.addWidget(self.button)
 

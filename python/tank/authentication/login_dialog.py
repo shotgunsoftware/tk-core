@@ -674,7 +674,7 @@ class LoginDialog(QtWidgets.QDialog):
         # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
         # other flags.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        return QtWidgets.QDialog.exec_(self)
+        return QtWidgets.QDialog.exec(self)
 
     def result(self):
         """

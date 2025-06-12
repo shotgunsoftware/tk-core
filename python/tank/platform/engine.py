@@ -1722,9 +1722,9 @@ class Engine(TankBundle):
                         "due to an exception that was raised:</big>"
                     )
                     self._label.setTextFormat(QtCore.Qt.RichText)
-                    self._text = QtGui.QTextEdit()
+                    self._text = QtWidgets.QTextEdit()
                     self._text.setReadOnly(True)
-                    self._text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+                    self._text.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
                     self._text.setText(msg)
 
                     self._layout = QtWidgets.QVBoxLayout(self)

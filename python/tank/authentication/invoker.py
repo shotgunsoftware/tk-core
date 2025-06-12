@@ -44,7 +44,7 @@ def create():
         def show_ui():
             # show QT dialog
             dlg = MyQtDialog()
-            result = dlg.exec_()
+            result = dlg.exec()
             return result
 
         # create invoker object

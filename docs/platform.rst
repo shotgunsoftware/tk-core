@@ -861,7 +861,7 @@ portable between the two systems and it should be no problem writing code that w
 
 In order to use QT, import it from Sgtk::
 
-    from sgtk.platform.qt import QtCore, QtGui
+    from sgtk.platform.qt6 import QtCore, QtGui
 
 Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
 may not have a functional Qt that can be imported when they run in batch mode.
@@ -892,7 +892,7 @@ you from managing this by yourself, but for maximum compatibility and portabilty
 et Toolkit handle it. When using Sgtk to set up your UI, just let your UI class derive from QtGui.QWidget and pass
 it to one of the UI factory methods that the engine has. For example::
 
-    from sgtk.platform.qt import QtCore, QtWidgets
+    from sgtk.platform.qt6 import QtWidgets
 
     # derive from QtWidgets.QWidget for your UI components.
 

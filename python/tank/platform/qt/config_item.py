@@ -8,10 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import shutil
-import sys
-
 from . import QtWidgets
 from .ui_item import Ui_Item
 from ..bundle import resolve_default_value
