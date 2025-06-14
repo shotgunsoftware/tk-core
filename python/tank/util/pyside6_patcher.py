@@ -479,7 +479,7 @@ class PySide6Patcher(PySide2Patcher):
         qt_web_engine_widgets_shim = None
         if QtWebEngineWidgets:
             qt_web_engine_widgets_shim = types.ModuleType(
-                "PySide.QtWebEnginWidgets",
+                "PySide.QtWebEngineWidgets",
             )
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
