@@ -18,8 +18,6 @@ from unittest import TestCase
 from sgtk.util import json as tk_json
 from sgtk.util import pickle
 
-from tank_vendor import six
-
 
 class Impl:
     class SerializationTests(TestCase):
@@ -103,41 +101,21 @@ class Impl:
             """
             Ensures the unicode or bytes detection method actually works.
             """
-            if six.PY2:
-                self._assert_no_unicode({})
-                self._assert_no_unicode(1)
-                self._assert_no_unicode(False)
-                self._assert_no_unicode(None)
-                self._assert_no_unicode(self.kanji)
-                self._assert_no_unicode({"k": "v"})
+            self._assert_no_bytes({})
+            self._assert_no_bytes(1)
+            self._assert_no_bytes(False)
+            self._assert_no_bytes(None)
+            self._assert_no_bytes(self.kanji)
+            self._assert_no_bytes({"k": "v"})
 
-                with self.assertRaisesRegex(
-                    Exception, "unicode string found in u'allo'"
-                ):
-                    self._assert_no_unicode(u"allo")
-            elif six.PY3:
-                self._assert_no_bytes({})
-                self._assert_no_bytes(1)
-                self._assert_no_bytes(False)
-                self._assert_no_bytes(None)
-                self._assert_no_bytes(self.kanji)
-                self._assert_no_bytes({"k": "v"})
-
-                with self.assertRaisesRegex(Exception, "bytes found in b'allo'"):
-                    self._assert_no_bytes(b"allo")
+            with self.assertRaisesRegex(Exception, "bytes found in b'allo'"):
+                self._assert_no_bytes(b"allo")
 
         def test_scalar_values(self):
             """
             Ensures we can properly encode scalar values.
             """
-            if six.PY2:
-                # In the case of Python2, ensure that we get str instances back with
-                # no unicode after loading.
-                assertion = self._assert_no_unicode_after_load
-            else:
-                # For Python3 and above, ensure that no bytes objects are returned
-                # after loading.
-                assertion = self._assert_no_bytes_after_load
+            assertion = self._assert_no_bytes_after_load
 
             # Integer
             assertion(1)
@@ -248,7 +226,7 @@ class JSONTests(Impl.SerializationTests):
     # Parametrizes the tests from the base class.
     filename = "json_saved_with_python_{0}.{1}.json"
     mode = "t"
-    write_mode = "wb" if six.PY2 else "wt"
+    write_mode = "wt"
     loader_module = tk_json
     dumper_module = json
 
@@ -279,7 +257,7 @@ if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
 
     # PYTHONPATH=../../python python test_json_and_pickle.py
-    # with python 2 and python 3 to generate the files.
+    # with python 3 to generate the files.
     file_path = JSONTests.file_location(sys.version_info[0], sys.version_info[1])
     with open(file_path, "wt") as fh:
         json.dump(JSONTests.dict_with_unicode, fh, sort_keys=True)
@@ -287,12 +265,3 @@ if __name__ == "__main__":
     file_path = PickleTests.file_location(sys.version_info[0], sys.version_info[1])
     with open(file_path, "wb") as fh:
         pickle.dump(PickleTests.dict_with_unicode, fh)
-
-    if six.PY2:
-        # call directly the cPickle.dump method. Older Toolkit cores
-        # would save pickles with protocol==2, so make sure we can
-        # read those as well with the pickle module wrapper.
-        import cPickle
-
-        with open(PickleTests.protocol_2_file_location, "wb") as fh:
-            cPickle.dump(PickleTests.dict_with_unicode, fh, protocol=2)

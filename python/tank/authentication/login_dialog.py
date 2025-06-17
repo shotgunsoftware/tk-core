@@ -49,11 +49,6 @@ from .sso_saml2 import (
 
 from .. import LogManager
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 logger = LogManager.get_logger(__name__)
 
 # Name used to identify the client application when connecting via SSO to Shotugn.
@@ -368,7 +363,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).closeEvent(event)
+        return super().closeEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
@@ -382,7 +377,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).keyPressEvent(event)
+        return super().keyPressEvent(event)
 
     def _get_current_site(self):
         """
@@ -390,9 +385,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return sgutils.ensure_str(
-            connection.sanitize_url(self.ui.site.currentText().strip())
-        )
+        return str(connection.sanitize_url(self.ui.site.currentText().strip()))
 
     def _get_current_user(self):
         """
@@ -400,7 +393,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The login to use for authentication.
         """
-        return sgutils.ensure_str(self.ui.login.currentText().strip())
+        return self.ui.login.currentText().strip()
 
     def _update_ui_according_to_site_support(self):
         """
@@ -954,7 +947,7 @@ class ASL_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
     def __init__(self, parent, sg_url, http_proxy=None):
-        super(ASL_AuthTask, self).__init__(parent)
+        super().__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url

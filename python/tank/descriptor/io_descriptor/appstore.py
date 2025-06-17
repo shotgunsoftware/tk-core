@@ -12,10 +12,11 @@
 Toolkit App Store Descriptor.
 """
 
+import json
 import os
-from tank_vendor.six.moves import urllib
+import urllib
 import fnmatch
-from tank_vendor.six.moves import http_client
+import http.client
 from tank_vendor.shotgun_api3.lib import httplib2
 
 from ...util import shotgun
@@ -34,11 +35,8 @@ from .downloadable import IODescriptorDownloadable
 
 from ...constants import SUPPORT_URL
 
-# use api json to cover py 2.5
 from tank_vendor import shotgun_api3
-from tank_vendor import six
 
-json = shotgun_api3.shotgun.json
 
 log = LogManager.get_logger(__name__)
 
@@ -125,7 +123,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
-        super(IODescriptorAppStore, self).__init__(
+        super().__init__(
             descriptor_dict, sg_connection, bundle_type
         )
 
@@ -317,7 +315,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :return: List of path strings
         """
         # get default cache paths from base class
-        paths = super(IODescriptorAppStore, self)._get_cache_paths()
+        paths = super()._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -787,7 +785,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             except (
                 httplib2.HttpLib2Error,
                 httplib2.socks.HTTPError,
-                http_client.HTTPException,
+                http.client.HTTPException,
             ) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes
@@ -866,7 +864,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         post_data = {"session_token": session_token}
         response = urllib.request.urlopen(
             "%s/api3/sgtk_install_script" % sg.base_url,
-            six.ensure_binary(urllib.parse.urlencode(post_data)),
+            urllib.parse.urlencode(post_data).encode('utf-8'),
         )
         html = response.read()
         data = json.loads(html)

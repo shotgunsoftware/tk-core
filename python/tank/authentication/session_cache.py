@@ -18,8 +18,6 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-
-from __future__ import with_statement
 import os
 import socket
 from tank_vendor.shotgun_api3 import (

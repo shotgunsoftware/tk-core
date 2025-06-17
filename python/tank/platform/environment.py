@@ -26,8 +26,6 @@ from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 
 logger = LogManager.get_logger(__name__)
 
@@ -152,7 +150,7 @@ class Environment(object):
         deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
         nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
-            sgsix.platform
+            sys.platform
         ]
         if nice_system_name in deny_platforms:
             return True
@@ -691,7 +689,7 @@ class Environment(object):
             is determined by whether it is a string, and if so, it is an
             included value if it has an @ at its head.
             """
-            return isinstance(item, six.string_types) and item.startswith("@")
+            return isinstance(item, str) and item.startswith("@")
 
         if is_included(bundle_section):
             # The whole section is a reference! The token is just the include
@@ -759,7 +757,7 @@ class InstalledEnvironment(Environment):
                         context-based include file resolve will be
                         skipped.
         """
-        super(InstalledEnvironment, self).__init__(env_path, context)
+        super().__init__(env_path, context)
         self.__pipeline_config = pipeline_config
 
     def get_framework_descriptor(self, framework_name):
@@ -833,7 +831,7 @@ class WritableEnvironment(InstalledEnvironment):
                         skipped.
         """
         self.set_yaml_preserve_mode(True)
-        super(WritableEnvironment, self).__init__(env_path, pipeline_config, context)
+        super().__init__(env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
         """

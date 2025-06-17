@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 __all__ = ['BaseDumper', 'SafeDumper', 'Dumper', 'RoundTripDumper']
 
 from .emitter import *

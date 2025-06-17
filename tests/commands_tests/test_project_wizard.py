@@ -12,8 +12,6 @@
 Unit tests tank updates.
 """
 
-from __future__ import with_statement
-
 import datetime
 import os
 import sgtk
@@ -37,7 +35,7 @@ class TestSetupProjectWizard(TankTestBase):
         """
         Prepare unit test.
         """
-        super(TestSetupProjectWizard, self).setUp(
+        super().setUp(
             parameters={"primary_root_name": "primary"}
         )
         self._wizard = sgtk.get_command("setup_project_factory").execute({})

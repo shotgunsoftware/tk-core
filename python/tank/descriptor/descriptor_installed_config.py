@@ -7,9 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from __future__ import with_statement
-
 import os
 
 from .descriptor_config import ConfigDescriptor
@@ -52,7 +49,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(InstalledConfigDescriptor, self).__init__(
+        super().__init__(
             sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
         )
         self._io_descriptor.set_is_copiable(False)

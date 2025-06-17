@@ -12,8 +12,6 @@
 Unit tests tank updates.
 """
 
-from __future__ import with_statement
-
 import os
 import sys
 import logging
@@ -92,9 +90,6 @@ class TestSimpleUpdates(TankTestBase):
         command.set_logger(logging.getLogger("/dev/null"))
         results = command.execute({"environment_filter": "simple"})
 
-        # The expected results in this situation are the same between python 2 and 3,
-        # but if the environment is changed with future updates, then this may not be the
-        # case. See `test_update_include` for more details.
         expected_results = [
             {
                 "environment": "simple",

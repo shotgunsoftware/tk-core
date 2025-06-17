@@ -12,8 +12,6 @@
 Engine-related unit tests.
 """
 
-from __future__ import print_function, with_statement
-
 import contextlib
 import os
 import random
@@ -44,7 +42,7 @@ class TestEngineBase(TankTestBase):
         """
         Sets up a few entities so we can create a vaid context.
         """
-        super(TestEngineBase, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -79,7 +77,7 @@ class TestEngineBase(TankTestBase):
         os.remove(self.test_resource)
 
         # important to call base class so it can clean up memory
-        super(TestEngineBase, self).tearDown()
+        super().tearDown()
 
 
 class TestDialogCreation(TestEngineBase):
@@ -91,7 +89,7 @@ class TestDialogCreation(TestEngineBase):
         """
         We need a QApplication to run these tests.
         """
-        super(TestDialogCreation, self).setUp()
+        super().setUp()
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
@@ -126,7 +124,7 @@ class TestDialogCreation(TestEngineBase):
             cur_engine.destroy()
 
         # important to call base class so it can clean up memory
-        super(TestEngineBase, self).tearDown()
+        super().tearDown()
 
 
 class TestStartEngine(TestEngineBase):
@@ -207,7 +205,7 @@ class TestExecuteInMainThread(TestEngineBase):
         """
         Starts up an engine and makes sure Qt is ready to be used.
         """
-        super(TestExecuteInMainThread, self).setUp()
+        super().setUp()
 
         # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
@@ -389,14 +387,11 @@ class TestContextChange(TestEngineBase):
         :param new_context: Context to compare with the new context parameter in
             the hooks.
         """
-        # Multi item "with"s are not supported in Python 2.5, so do one after
-        # the other.
-        with self._pre_patch as pre_mock:
-            with self._post_patch as post_mock:
-                # Invokes the code within the caller's 'with' statement. (that's really cool!)
-                yield
-                pre_mock.assert_called_once_with(self.tk, old_context, new_context)
-                post_mock.assert_called_once_with(self.tk, old_context, new_context)
+        with self._pre_patch as pre_mock, self._post_patch as post_mock:
+            # Invokes the code within the caller's 'with' statement. (that's really cool!)
+            yield
+            pre_mock.assert_called_once_with(self.tk, old_context, new_context)
+            post_mock.assert_called_once_with(self.tk, old_context, new_context)
 
     def test_on_engine_start(self):
         """
@@ -663,7 +658,7 @@ class TestShowDialog(TestEngineBase):
         """
         Prepares the engine and makes sure Qt is ready.
         """
-        super(TestShowDialog, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
@@ -682,7 +677,7 @@ class TestShowDialog(TestEngineBase):
 
     def tearDown(self):
         self.engine.destroy()
-        super(TestShowDialog, self).tearDown()
+        super().tearDown()
 
     @suppress_generated_code_qt_warnings
     def test_gui_app_and_close(self):

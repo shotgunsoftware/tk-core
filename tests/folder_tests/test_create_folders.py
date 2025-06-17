@@ -17,15 +17,9 @@ from tank import TankError
 from tank import hook
 from tank import path_cache
 from tank import folder
-from tank_vendor.six import b
 from tank_test.tank_test_base import *
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
 
 class TestSchemaCreateFolders(TankTestBase):
     def setUp(self, project_tank_name="project_code"):
@@ -33,7 +27,7 @@ class TestSchemaCreateFolders(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFolders, self).setUp(
+        super().setUp(
             parameters={"project_tank_name": project_tank_name}
         )
         self.setup_fixtures()
@@ -92,7 +86,7 @@ class TestSchemaCreateFolders(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFolders, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -126,12 +120,11 @@ class TestSchemaCreateFolders(TankTestBase):
         # some japanese characters, UTF-8 encoded, just like we would get the from
         # the shotgun API.
 
-        self.shot["code"] = sgutils.ensure_str(
-            b("\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88 foo bar")
-        )
+        self.shot["code"] = b"\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88 foo bar".decode("utf-8")
+
 
         expected_paths = self._construct_shot_paths(
-            shot_name=sgutils.ensure_str(b("\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88-foo-bar"))
+            shot_name=b"\xe3\x81\xbe\xe3\x82\x93\xe3\x81\x88-foo-bar".decode("utf-8")
         )
 
         folder.process_filesystem_structure(
@@ -295,11 +288,11 @@ class TestSchemaCreateFolders(TankTestBase):
         # define paths we expect for entities
         if not sequence_name:
             sequence_name = self.seq["code"]
-        sequence_name = sgutils.ensure_str(sequence_name)
+        sequence_name = str(sequence_name)
 
-        static_seq = os.path.join(sgutils.ensure_str(self.project_root), "sequences")
+        static_seq = os.path.join(str(self.project_root), "sequences")
 
-        project_root = sgutils.ensure_str(self.project_root)
+        project_root = str(self.project_root)
         expected_paths = [
             project_root,
             os.path.join(project_root, "reference"),
@@ -313,10 +306,10 @@ class TestSchemaCreateFolders(TankTestBase):
         sequence_path = os.path.join(project_root, "sequences", sequence_name)
         if not shot_name:
             shot_name = self.shot["code"]
-        shot_name = sgutils.ensure_str(shot_name)
+        shot_name = str(shot_name)
         shot_path = os.path.join(sequence_path, shot_name)
 
-        step_path = os.path.join(shot_path, sgutils.ensure_str(self.step["short_name"]))
+        step_path = os.path.join(shot_path, str(self.step["short_name"]))
         expected_paths.extend([sequence_path, shot_path, step_path])
         # add non-entity paths
         expected_paths.append(os.path.join(step_path, "publish"))
@@ -339,7 +332,7 @@ class TestSchemaCreateFoldersMultiLevelProjectRoot(TestSchemaCreateFolders):
     """
 
     def setUp(self):
-        super(TestSchemaCreateFoldersMultiLevelProjectRoot, self).setUp(
+        super().setUp(
             project_tank_name="multi/root/project/name"
         )
 
@@ -352,7 +345,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersMultiRoot, self).setUp()
+        super().setUp()
 
         self.setup_multi_root_fixtures()
 
@@ -398,7 +391,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersMultiRoot, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -517,7 +510,7 @@ class TestCreateFilesystemStructure(TankTestBase):
     """Tests of the function schema.create_folders."""
 
     def setUp(self):
-        super(TestCreateFilesystemStructure, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.seq = {
@@ -642,7 +635,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersWorkspaces, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/multi_link_core"})
 
@@ -731,7 +724,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersWorkspaces, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -797,7 +790,7 @@ class TestFolderCreationPathCache(TankTestBase):
     """
 
     def setUp(self):
-        super(TestFolderCreationPathCache, self).setUp()
+        super().setUp()
 
         # Use a task based fixtures, as task folders generate two path cache entries with same path, one linked
         # to a task as a primary item, and one linked to a step as a secondary item.
@@ -854,7 +847,7 @@ class TestFolderCreationPathCache(TankTestBase):
         self.path_cache = None
 
         # important to call base class so it can clean up memory
-        super(TestFolderCreationPathCache, self).tearDown()
+        super().tearDown()
 
     def test_shotgun_path_cache_counts(self):
         """
@@ -924,7 +917,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
     """
 
     def setUp(self):
-        super(TestFolderCreationEdgeCases, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -972,7 +965,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         self.path_cache = None
 
         # important to call base class so it can clean up memory
-        super(TestFolderCreationEdgeCases, self).tearDown()
+        super().tearDown()
 
     def test_delete_shot_then_recreate(self):
 

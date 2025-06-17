@@ -11,9 +11,6 @@
 """
 Utility methods related to Published Files in Shotgun
 """
-
-from __future__ import with_statement
-
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants

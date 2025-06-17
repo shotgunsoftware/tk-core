@@ -44,7 +44,7 @@ class IODescriptorDev(IODescriptorPath):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorDev, self).__init__(
+        super().__init__(
             descriptor_dict, sg_connection, bundle_type
         )
 

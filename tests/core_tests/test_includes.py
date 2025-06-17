@@ -8,9 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 import itertools
+import sys
 
 import tank
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -24,7 +24,6 @@ from tank.template_includes import _get_includes as get_template_includes
 from tank.platform.environment_includes import (
     _resolve_includes as get_environment_includes,
 )
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class Includes(object):
@@ -123,7 +122,7 @@ class Includes(object):
             # Make sure that we are returning the include for the current platform.
             self.assertEqual(
                 self._resolve_includes(set(paths.values())),  # get unique values.
-                [paths[sgsix.platform]],  # get the value for the current platform
+                [paths[sys.platform]],  # get the value for the current platform
             )
 
         @mock.patch("os.path.exists", return_value=True)
@@ -162,8 +161,6 @@ class Includes(object):
             # always return in the same order. This is important as values found
             # in later includes override earlier ones.
 
-            # We do permutations here because Python 2 and Python 3 handle
-            # set ordering differently.
             for includes in itertools.permutations(["a.yml", "b.yml", "c.yml"]):
                 self.assertEqual(
                     self._resolve_includes(includes),

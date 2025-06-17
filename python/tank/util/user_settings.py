@@ -13,8 +13,7 @@ User settings management.
 """
 
 import os
-from tank_vendor.six.moves import configparser
-from tank_vendor import six
+import configparser
 
 from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError, TankError
@@ -285,15 +284,7 @@ class UserSettings(Singleton):
 
         :returns: A ConfigParser instance with the contents from the configuration file.
         """
-        # In Python 3.2, SafeConfigParser has been renamed to ConfigParser and using the
-        # old class name generates a warning.
-        if six.PY2:
-            config = configparser.SafeConfigParser()
-        else:
-            # Technically this only appeared in Python 3.2, but we don't support
-            # less than 3.7, so we don't have to be very precise about which
-            # version of Python 3 we are running.
-            config = configparser.ConfigParser()
+        config = configparser.ConfigParser()
         if os.path.exists(path):
             config.read(path)
         return config

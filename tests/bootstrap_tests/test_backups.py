@@ -7,9 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from __future__ import with_statement
-
 import os
 import fnmatch
 import stat
@@ -26,7 +23,6 @@ from tank_test.tank_test_base import (
 )
 
 
-# Copied from Python 2.7's source code.
 def ignore_patterns(*patterns):
     """Function that can be used as copytree() ignore parameter.
 
@@ -44,7 +40,7 @@ def ignore_patterns(*patterns):
 
 class TestBackups(ShotgunTestBase):
     def setUp(self):
-        super(TestBackups, self).setUp()
+        super().setUp()
 
         pathHead, pathTail = os.path.split(__file__)
         self._core_repo_path = os.path.join(pathHead, "..", "..")

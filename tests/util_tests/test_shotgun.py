@@ -8,11 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 import shutil
 import datetime
-from tank_vendor.six.moves import urllib
+import urllib
 
 import tank
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -53,7 +52,7 @@ class TestShotgunFindPublish(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
 
-        super(TestShotgunFindPublish, self).setUp()
+        super().setUp()
 
         project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
@@ -401,7 +400,7 @@ class TestShotgunFindPublish(TankTestBase):
 
 class TestMultiRoot(TankTestBase):
     def setUp(self):
-        super(TestMultiRoot, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
 
     def test_multi_root(self):
@@ -522,7 +521,7 @@ class TestMultiRoot(TankTestBase):
 
 class TestShotgunDownloadUrl(ShotgunTestBase):
     def setUp(self):
-        super(TestShotgunDownloadUrl, self).setUp()
+        super().setUp()
 
         # Identify the source file to "download"
         self.download_source = os.path.join(
@@ -557,7 +556,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
             os.remove(self.download_destination)
 
         # important to call base class so it can clean up memory
-        super(TestShotgunDownloadUrl, self).tearDown()
+        super().tearDown()
 
     def test_download(self):
         """
@@ -606,7 +605,7 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestShotgunDownloadAndUnpack, self).setUp()
+        super().setUp()
 
         zip_file_location = os.path.join(self.fixtures_root, "misc", "zip")
         # Identify the source file to "download"

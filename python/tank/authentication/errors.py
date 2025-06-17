@@ -56,7 +56,7 @@ class UnresolvableUser(ShotgunAuthenticationError):
     """
 
     def __init__(self, nice_user_type, user_type, key_name, key_value):
-        super(UnresolvableUser, self).__init__(
+        super().__init__(
             "The {0} named '{3}' could not be resolved. Check if the "
             "permissions for the current user are hiding the field '{1}.{2}'.".format(
                 nice_user_type, user_type, key_name, key_value
@@ -73,7 +73,7 @@ class UnresolvableHumanUser(UnresolvableUser):
         """
         :param str login: ``login`` field value of the ``HumanUser`` that could not be resolved.
         """
-        super(UnresolvableHumanUser, self).__init__(
+        super().__init__(
             "person", "HumanUser", "login", login
         )
 
@@ -87,7 +87,7 @@ class UnresolvableScriptUser(UnresolvableUser):
         """
         :param str script_name: ``firstname`` field value of the ``ApiUser`` that could not be resolved.
         """
-        super(UnresolvableScriptUser, self).__init__(
+        super().__init__(
             "script", "ApiUser", "firstname", script_name
         )
 
@@ -104,7 +104,7 @@ class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):
         :param str site_auth_type: type of authentication, e.g. SSO, Identity.
                                    The default value is for backward compatibility.
         """
-        super(ConsoleLoginNotSupportedError, self).__init__(
+        super().__init__(
             "Authentication using username/password is not supported on "
             "the console %s for sites using %s." % (url, site_auth_type)
         )

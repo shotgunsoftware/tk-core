@@ -19,17 +19,8 @@ import binascii
 import logging
 import urllib
 
-# For Python 2/3 compatibility without a dependency on six, we'll just try
-# to import as in Python 2, and fall back to Python 3 locations if the imports
-# fail.
-try:
-    from urllib import unquote_plus
-except ImportError:
-    from urllib.parse import unquote_plus
-try:
-    from http.cookies import SimpleCookie
-except ImportError:
-    from Cookie import SimpleCookie
+from urllib.parse import unquote_plus
+from http.cookies import SimpleCookie
 
 
 from .errors import SsoSaml2MultiSessionNotSupportedError
@@ -70,12 +61,8 @@ def _decode_cookies(encoded_cookies):
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
             if not isinstance(decoded_cookies, str):
-                # If decoded_cookies is not a string, it's likely we're on
-                # Python3, and decoded_cookies is binary.  Try to decode it.
                 decoded_cookies = decoded_cookies.decode()
-        except (TypeError, binascii.Error) as e:
-            # In Python 2 this raises a TypeError, while in 3 it will raise a
-            # binascii.Error.  Catch either and handle them the same.
+        except (binascii.Error) as e:
             get_logger().error("Unable to decode the cookies: %s", str(e))
     # Should the decoded cookies be used with SimpleCookie, we strip out the
     # 'Set-Cookie: ' prefix to maintain Python2 and Python3 compatibility.
@@ -93,15 +80,10 @@ def _encode_cookies(cookies):
 
     :returns: An encoded string representing the cookie jar.
     """
-    PY3 = sys.version_info[0] == 3
-    if PY3 and isinstance(cookies, str):
-        # On Python 3, encode str to binary before passing it to b64encode.
+    if isinstance(cookies, str):
         cookies = cookies.encode()
-    encoded_cookies = base64.b64encode(cookies)
-    if PY3:
-        # On Python 3, b64encode returns a bytes object that we'll want to
-        # decode to a string for compatibility between Python 2 and 3.
-        encoded_cookies = encoded_cookies.decode()
+    encoded_cookies = base64.b64encode(cookies).decode()
+
     return encoded_cookies
 
 

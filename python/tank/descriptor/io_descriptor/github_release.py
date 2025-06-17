@@ -9,8 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import json
 import os
-
-from tank_vendor.six.moves import urllib
+import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ..errors import TankError, TankDescriptorError
@@ -35,7 +34,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGithubRelease, self).__init__(
+        super().__init__(
             descriptor_dict, sg_connection, bundle_type
         )
         self._validate_descriptor(
@@ -304,10 +303,6 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
             can_connect = response_code == 200
-            # @todo Perhaps deal with redirects (which may occur in the case of a
-            # renamed repo) here. The HTTPRedirectHandler may be a good option
-            # for this.
-            # (https://docs.python.org/2/library/urllib2.html#urllib2.HTTPRedirectHandler)
             if can_connect:
                 log.debug("...connection established!")
             else:

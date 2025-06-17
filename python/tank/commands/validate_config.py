@@ -7,9 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from __future__ import print_function
-
 import os
 from .action_base import Action
 from ..errors import TankError
@@ -160,7 +157,7 @@ class ValidateConfigAction(Action):
         """
 
         # do the base class default validation
-        parameters = super(ValidateConfigAction, self)._validate_parameters(parameters)
+        parameters = super()._validate_parameters(parameters)
 
         # get a list of valid env names
         valid_env_names = self.tk.pipeline_configuration.get_environments()

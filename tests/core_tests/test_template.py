@@ -11,6 +11,7 @@
 import copy
 import os
 import time
+import sys
 
 import unittest
 import tank
@@ -26,15 +27,13 @@ from tank.templatekey import (
     TimestampKey,
 )
 
-from tank_vendor.shotgun_api3.lib import sgsix
-
 
 class TestTemplate(unittest.TestCase):
     """Base class for tests of Template.
     Do no add tests to this class directly."""
 
     def setUp(self):
-        super(TestTemplate, self).setUp()
+        super().setUp()
 
         # Make various types of keys(fields)
         self.keys = {
@@ -295,7 +294,7 @@ class TestSplitPath(unittest.TestCase):
 
 class TestMakeTemplatePaths(ShotgunTestBase):
     def setUp(self):
-        super(TestMakeTemplatePaths, self).setUp()
+        super().setUp()
         self.keys = {"Shot": StringKey("Shot")}
         self.multi_os_data_roots = {
             "unit_tests": {
@@ -370,7 +369,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
         self.assertEqual(
-            modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path
+            modified_roots["alternate_1"][sys.platform], alt_templatte.root_path
         )
 
         # Now test with the primary root name not specified, tk-core will assume
@@ -391,13 +390,13 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
         self.assertEqual(
-            modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path
+            modified_roots["alternate_1"][sys.platform], alt_templatte.root_path
         )
 
 
 class TestMakeTemplateStrings(ShotgunTestBase):
     def setUp(self):
-        super(TestMakeTemplateStrings, self).setUp()
+        super().setUp()
         self.keys = {"Shot": StringKey("Shot")}
         self.template_path = TemplatePath(
             "something/{Shot}", self.keys, self.project_root
@@ -451,7 +450,7 @@ class TestReadTemplates(TankTestBase):
     """Test reading templates file."""
 
     def setUp(self):
-        super(TestReadTemplates, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_choices(self):

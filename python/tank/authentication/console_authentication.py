@@ -18,8 +18,6 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-from __future__ import print_function
-
 from . import constants
 from . import session_cache
 from .. import LogManager
@@ -37,7 +35,6 @@ from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
 import webbrowser
-from tank_vendor.six.moves import input
 
 logger = LogManager.get_logger(__name__)
 
@@ -353,7 +350,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         """
         Constructor.
         """
-        super(ConsoleLoginHandler, self).__init__()
+        super().__init__()
         self._fixed_host = fixed_host
 
     def _get_sg_url(self, hostname, http_proxy):

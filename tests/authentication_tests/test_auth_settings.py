@@ -11,9 +11,6 @@
 """
 Tests settings retrieval through the DefaultsManager
 """
-
-from __future__ import with_statement
-
 from tank_test.tank_test_base import (
     mock,
     ShotgunTestBase,

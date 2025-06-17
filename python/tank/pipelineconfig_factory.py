@@ -24,11 +24,6 @@ from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 log = LogManager.get_logger(__name__)
 
 
@@ -600,8 +595,8 @@ def _get_pipeline_configs_for_path(path, data):
     for project_path in project_paths:
 
         # (like the PTR API, this logic is case preserving, not case insensitive)
-        path_lower = sgutils.ensure_str(path.lower())
-        proj_path_lower = sgutils.ensure_str(project_path.lower())
+        path_lower = str(path.lower())
+        proj_path_lower = str(project_path.lower())
         # check if the path matches. Either
         # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
         # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/

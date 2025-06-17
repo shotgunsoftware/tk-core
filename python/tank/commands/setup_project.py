@@ -7,10 +7,8 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from __future__ import print_function
-
 import os
+import sys
 import textwrap
 import traceback
 
@@ -27,8 +25,6 @@ from ..util.filesystem import ensure_folder_exists
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import input
 
 
 class SetupProjectAction(Action):
@@ -221,7 +217,7 @@ class SetupProjectAction(Action):
 
         if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
 
-            config_path = params.get_configuration_location(sgsix.platform)
+            config_path = params.get_configuration_location(sys.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current
@@ -316,7 +312,7 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, params)
 
-        config_path = params.get_configuration_location(sgsix.platform)
+        config_path = params.get_configuration_location(sys.platform)
 
         # if the new project's config has a core descriptor, then we should
         # localize it to use that version of core. alternatively, if the current
@@ -584,7 +580,7 @@ class SetupProjectAction(Action):
         log.info("defined in the PTR Site Preferences:")
         log.info("")
         for storage_name in params.get_required_storages():
-            current_os_path = params.get_storage_path(storage_name, sgsix.platform)
+            current_os_path = params.get_storage_path(storage_name, sys.platform)
             log.info(" - %s: '%s'" % (storage_name, current_os_path))
 
         # first, display a preview
@@ -599,7 +595,7 @@ class SetupProjectAction(Action):
         log.info("")
         for storage_name in params.get_required_storages():
             proj_path = params.preview_project_path(
-                storage_name, suggested_folder_name, sgsix.platform
+                storage_name, suggested_folder_name, sys.platform
             )
             log.info(" - %s: %s" % (storage_name, proj_path))
 
@@ -629,7 +625,7 @@ class SetupProjectAction(Action):
             for storage_name in params.get_required_storages():
 
                 proj_path = params.preview_project_path(
-                    storage_name, proj_name, sgsix.platform
+                    storage_name, proj_name, sys.platform
                 )
 
                 if os.path.exists(proj_path):
@@ -736,7 +732,7 @@ class SetupProjectAction(Action):
         # tk-config-basic, so we should skip storage detection.
         if default_storage_name:
             primary_local_path = params.get_storage_path(
-                default_storage_name, sgsix.platform
+                default_storage_name, sys.platform
             )
         else:
             primary_local_path = None
@@ -755,7 +751,7 @@ class SetupProjectAction(Action):
             # a default parameter.
             pass
 
-        elif core_locations[sgsix.platform] is None:
+        elif core_locations[sys.platform] is None:
             # edge case: the shared core location that we are trying to install from
             # is not set up to work with this operating system. In that case, skip
             # default generation
@@ -764,7 +760,7 @@ class SetupProjectAction(Action):
         elif (
             primary_local_path is not None
             and os.path.abspath(
-                os.path.join(core_locations[sgsix.platform], "..")
+                os.path.join(core_locations[sys.platform], "..")
             ).lower()
             == primary_local_path.lower()
         ):

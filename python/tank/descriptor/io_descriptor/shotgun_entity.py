@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
+import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
@@ -75,7 +75,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(
+        super().__init__(
             descriptor_dict, sg_connection, bundle_type
         )
 

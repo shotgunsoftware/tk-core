@@ -11,8 +11,6 @@
 """
 Various helper methods relating to user interaction via the shell.
 """
-from __future__ import print_function
-
 import textwrap
 
 from .. import pipelineconfig_utils

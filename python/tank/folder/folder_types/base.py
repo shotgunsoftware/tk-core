@@ -12,7 +12,6 @@ import os
 import copy
 
 from .expression_tokens import SymlinkToken
-from tank_vendor import six
 
 
 class Folder(object):
@@ -276,7 +275,7 @@ class Folder(object):
         # then check each one for a match. If *any* of them match then return True to process!
         engine_str_list = [x.strip() for x in engine_str.split(",")]
         for engine_str_val in engine_str_list:
-            if isinstance(dc_value, six.string_types) and dc_value == engine_str_val:
+            if isinstance(dc_value, str) and dc_value == engine_str_val:
                 # defer_creation parameter is a string and this matches the engine_str_val!
                 return True
 

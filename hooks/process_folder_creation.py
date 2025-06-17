@@ -15,14 +15,8 @@ called.
 
 from tank import Hook
 import os
-import sys
 import shutil
 from tank.util import is_windows
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
 
 
 class ProcessFolderCreation(Hook):
@@ -189,7 +183,7 @@ class ProcessFolderCreation(Hook):
                         if not preview_mode:
                             # create the file
                             fp = open(path, "wb")
-                            fp.write(sgutils.ensure_binary(content))
+                            fp.write(content.encode('utf-8'))
                             fp.close()
                             # and set permissions to open
                             os.chmod(path, 0o666)

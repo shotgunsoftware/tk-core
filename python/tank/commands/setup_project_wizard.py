@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
+
 from distutils.version import StrictVersion
 
 from .action_base import Action
@@ -22,7 +24,6 @@ from .. import pipelineconfig_utils
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class SetupProjectFactoryAction(Action):
@@ -380,7 +381,7 @@ class SetupProjectWizard(object):
 
                 # get the full path
                 proj_path = self._params.preview_project_path(
-                    s, project_disk_name, sgsix.platform
+                    s, project_disk_name, sys.platform
                 )
 
                 if not os.path.exists(proj_path):
@@ -609,7 +610,7 @@ class SetupProjectWizard(object):
             elif is_windows():
                 path_args = [os.path.expandvars(curr_core_path), None, None]
             else:
-                msg = "Unsupported OS detected: %s" % sgsix.platform
+                msg = "Unsupported OS detected: %s" % sys.platform
                 raise TankError(msg)
 
             core_path_object = ShotgunPath(*path_args).as_system_dict()
@@ -764,7 +765,7 @@ class SetupProjectWizard(object):
             # the PTR desktop app's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
-            config_path = self._params.get_configuration_location(sgsix.platform)
+            config_path = self._params.get_configuration_location(sys.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current

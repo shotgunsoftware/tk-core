@@ -24,25 +24,11 @@ from ...util import is_windows
 log = LogManager.get_logger(__name__)
 
 
-def _can_hide_terminal():
-    """
-    Ensures this version of Python can hide the terminal of a subprocess
-    launched with the subprocess module.
-    """
-    try:
-        # These values are not defined between Python 2.6.6 and 2.7.1 inclusively.
-        subprocess.STARTF_USESHOWWINDOW
-        subprocess.SW_HIDE
-        return True
-    except Exception:
-        return False
-
-
 def _check_output(*args, **kwargs):
     """
     Wraps the call to subprocess_check_output so it can run headless on Windows.
     """
-    if is_windows() and _can_hide_terminal():
+    if is_windows():
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startupinfo.wShowWindow = subprocess.SW_HIDE
@@ -77,7 +63,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGit, self).__init__(
+        super().__init__(
             descriptor_dict, sg_connection, bundle_type
         )
 
@@ -162,7 +148,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # Note: We only try this workflow if we can actually hide the terminal on Windows.
         # If we can't there's no point doing all of this and we should just use
         # os.system.
-        if is_windows() and _can_hide_terminal():
+        if is_windows():
             log.debug("Executing command '%s' using subprocess module." % cmd)
             try:
                 # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will

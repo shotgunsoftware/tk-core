@@ -49,7 +49,7 @@ except ImportError:
     # environment.
     UsernamePasswordDialog = None
 
-from tank_vendor.six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 # Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To PTR site."
@@ -223,7 +223,7 @@ class SsoSaml2Core(object):
                 Class Constructor.
                 """
                 get_logger().debug("TKWebPageQtWebEngine.__init__")
-                super(TKWebPageQtWebEngine, self).__init__(profile, parent)
+                super().__init__(profile, parent)
                 self._profile = profile
                 self._developer_mode = developer_mode
 

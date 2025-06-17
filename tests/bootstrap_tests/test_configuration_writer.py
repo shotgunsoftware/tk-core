@@ -7,9 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from __future__ import with_statement
-
 import os
 import sys
 
@@ -158,7 +155,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def setUp(self):
         # Makes sure every unit test run in its own sandbox.
-        super(TestInterpreterFilesWriter, self).setUp()
+        super().setUp()
         self._root = os.path.join(self.tank_temp, self.short_test_name)
         os.makedirs(self._root)
         self._cw = ConfigurationWriter(

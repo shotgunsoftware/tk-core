@@ -11,10 +11,8 @@
 """
 Logic for publishing files to Shotgun.
 """
-from __future__ import with_statement
-
 import os
-from tank_vendor.six.moves import urllib
+import urllib
 import pprint
 
 from .publish_util import (
@@ -28,11 +26,6 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
 
 log = LogManager.get_logger(__name__)
 
@@ -670,7 +663,7 @@ def _translate_abstract_fields(tk, path):
                     if abstract_key_name in cur_fields:
                         cur_fields[abstract_key_name] = template.keys[
                             abstract_key_name
-                        ]._get_default()
+                        ].default
                 path = template._apply_fields(cur_fields, skip_defaults=True)
         else:
             log.debug(
@@ -801,7 +794,7 @@ def _calc_path_cache(tk, path, project_names=None):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = sgutils.ensure_str(norm_path.replace("\\", "/"))
+    norm_path = str(norm_path.replace("\\", "/"))
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
@@ -821,7 +814,7 @@ def _calc_path_cache(tk, path, project_names=None):
 
             # append project and normalize
             proj_path = root_path_obj.join(project_name).current_os
-            proj_path = sgutils.ensure_str(proj_path.replace(os.sep, "/"))
+            proj_path = str(proj_path.replace(os.sep, "/"))
 
             if norm_path.lower().startswith(proj_path.lower()):
                 # our path matches this storage!

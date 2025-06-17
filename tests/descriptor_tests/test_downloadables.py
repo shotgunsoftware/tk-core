@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
 from functools import reduce
 import multiprocessing
 import os
@@ -32,7 +31,6 @@ from tank_test.tank_test_base import (
 import sgtk
 import tank
 from tank.util import is_windows
-from tank_vendor.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -67,7 +65,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Instantiate the actual test class that is are pickle-able by multiprocessing
         and pass any information required for the test to function.
         """
-        super(TestDownloadableIODescriptors, self).setUp()
+        super().setUp()
         self.imp = Implementation(
             self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
         )
@@ -244,7 +242,7 @@ class Implementation(object):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write(b("\0"))
+            f.write(b"\0")
 
         zip_file_path = os.path.join(
             tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex

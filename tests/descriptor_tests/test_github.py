@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import urllib
 from sgtk.util import sgre as re
-from tank_vendor.six.moves import urllib
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -129,7 +129,7 @@ class GithubIODescriptorTestBase(ShotgunTestBase):
             "repository": "tk-core",
             "version": "v1.2.1",
         }
-        super(GithubIODescriptorTestBase, self).setUp()
+        super().setUp()
 
     def _create_desc(
         self, location=None, resolve_latest=False, desc_type=Descriptor.CONFIG
@@ -158,11 +158,11 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         self._has_remote_access_mock = mock.patch(_TESTED_CLASS + ".has_remote_access")
         self._has_remote_access_mock.start()
         self._has_remote_access_mock.return_value = True
-        super(TestGithubIODescriptorWithRemoteAccess, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         self._has_remote_access_mock.stop()
-        super(TestGithubIODescriptorWithRemoteAccess, self).tearDown()
+        super().tearDown()
 
     def test_construction(self):
         """
@@ -380,11 +380,11 @@ class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
         self._has_remote_access_mock = mock.patch(_TESTED_CLASS + ".has_remote_access")
         self._has_remote_access_mock.start()
         self._has_remote_access_mock.return_value = False
-        super(TestGithubIODescriptorWithoutRemoteAccess, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         self._has_remote_access_mock.stop()
-        super(TestGithubIODescriptorWithoutRemoteAccess, self).tearDown()
+        super().tearDown()
 
     def test_get_latest_cached_release(self):
         """

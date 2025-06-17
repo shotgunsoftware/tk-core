@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import logging
 import os
 
@@ -25,12 +23,11 @@ from tank.platform import SoftwareVersion
 from tank.platform import LaunchInformation
 
 from tank.errors import TankEngineInitError
-from tank_vendor import six
 
 
 class TestEngineLauncher(TankTestBase):
     def setUp(self):
-        super(TestEngineLauncher, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -301,7 +298,7 @@ class TestEngineLauncher(TankTestBase):
                 self.assertEqual(reason, "")
             else:
                 self.assertEqual(supported, False)
-                self.assertIsInstance(reason, six.string_types)
+                self.assertIsInstance(reason, str)
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"
@@ -368,7 +365,7 @@ class TestEngineLauncher(TankTestBase):
 
 class TestSoftwareVersion(TankTestBase):
     def setUp(self):
-        super(TestSoftwareVersion, self).setUp()
+        super().setUp()
 
         self._version = "v293.49.2.dev"
         self._product = "My Custom App"
@@ -393,7 +390,7 @@ class TestSoftwareVersion(TankTestBase):
 
 class TestLaunchInformation(TankTestBase):
     def setUp(self):
-        super(TestLaunchInformation, self).setUp()
+        super().setUp()
 
         self._path = "/my/path/to/app/{version}/my_custom_app"
         self._args = "-t 1-30 --show_all -v --select ship"

@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 import sgtk
 
@@ -321,7 +320,7 @@ class TestConfigDescriptor(TankTestBase):
 class TestDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
-        super(TestDescriptorSupport, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"
@@ -480,8 +479,6 @@ class TestDescriptorSupport(TankTestBase):
         """
         Ensures that app store connection errors don't bubble up to the surface.
         """
-        # Nested patches because Python 2.5 doesn't support multiple arguments to the `with`
-        # keyword.
         with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             "._IODescriptorAppStore__create_sg_app_store_connection",
@@ -709,7 +706,7 @@ class TestConstraintValidation(unittest.TestCase):
         """
         Ensures the Shotgun version cache is cleared between tests.
         """
-        super(TestConstraintValidation, self).setUp()
+        super().setUp()
         # Set the server info on the Mockgun object.
         self._up_to_date_sg = Mockgun("https://foo.shotgunstudio.com")
         self._up_to_date_sg.server_info = {"version": (6, 6, 6)}

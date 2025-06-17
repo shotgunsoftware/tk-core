@@ -9,8 +9,6 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from __future__ import with_statement
 import base64
 import pytest
 
@@ -23,22 +21,13 @@ from tank_test.tank_test_base import (
 from tank.authentication import user, user_impl, errors
 from tank_vendor.shotgun_api3 import AuthenticationFault
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 # Create a set of valid cookies, for SSO and Web related tests.
 # For a Web session, we detect the presence of the shotgun_current_session_expiration cookie.
-valid_web_session_metadata = base64.b64encode(
-    sgutils.ensure_binary("shotgun_current_session_expiration=1234")
-)
+valid_web_session_metadata = base64.b64encode(b"shotgun_current_session_expiration=1234")
 # For a Saml session, we detect the presence of the shotgun_sso_session_expiration_u* cookie.
 # But we also need to figure out what the user ID is, for which we use the csrf_token_u* suffix.
 valid_sso_session_metadata = base64.b64encode(
-    sgutils.ensure_binary(
-        "csrf_token_u00=fedcba;shotgun_sso_session_expiration_u00=4321"
-    )
+    b"csrf_token_u00=fedcba;shotgun_sso_session_expiration_u00=4321"
 )
 
 
@@ -112,7 +101,7 @@ class UserTests(ShotgunTestBase):
 
         class CustomUser(user_impl.ShotgunUserImpl):
             def __init__(self, login):
-                super(CustomUser, self).__init__("https://test.shotgunstudio.com", None)
+                super().__init__("https://test.shotgunstudio.com", None)
                 self.login = login
 
             def get_login(self):

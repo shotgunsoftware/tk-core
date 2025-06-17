@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
@@ -22,7 +20,7 @@ class TestShotgunPath(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestShotgunPath, self).setUp()
+        super().setUp()
 
     def test_construction(self):
         """

@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 import sys
 
@@ -16,8 +15,6 @@ import sgtk
 from tank import context, errors
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase, setUpModule
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestCoreHook(TankTestBase):
@@ -26,7 +23,7 @@ class TestCoreHook(TankTestBase):
     """
 
     def setUp(self):
-        super(TestCoreHook, self).setUp()
+        super().setUp()
         self.setup_fixtures(name="publish_resolve")
 
     def test_unsupported_url(self):
@@ -100,7 +97,7 @@ class TestUnsupported(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUnsupported, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_no_path(self):
@@ -170,7 +167,7 @@ class TestLocalFileLink(TankTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileLink, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.storage = {
@@ -195,7 +192,7 @@ class TestLocalFileLink(TankTestBase):
         if "SHOTGUN_PATH_LINUX_HOME" in os.environ:
             del os.environ["SHOTGUN_PATH_LINUX_HOME"]
 
-        super(TestLocalFileLink, self).tearDown()
+        super().tearDown()
 
     def test_basic_case(self):
         """
@@ -223,9 +220,9 @@ class TestLocalFileLink(TankTestBase):
         # get the current os platform
         local_path = {
             "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
+            "linux": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
-        }[sgsix.platform]
+        }[sys.platform]
         sg_dict["path"]["local_path"] = local_path
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -264,9 +261,9 @@ class TestLocalFileLink(TankTestBase):
         # get the current os platform
         local_path = {
             "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
+            "linux": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
-        }[sgsix.platform]
+        }[sys.platform]
         sg_dict["path"]["local_path"] = local_path
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -282,7 +279,7 @@ class TestLocalFileLinkRaises(TankTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileLinkRaises, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_raises(self):
@@ -303,9 +300,9 @@ class TestLocalFileLinkRaises(TankTestBase):
 
         current_path_field = {
             "win32": "windows_path",
-            "linux2": "linux_path",
+            "linux": "linux_path",
             "darwin": "mac_path",
-        }[sgsix.platform]
+        }[sys.platform]
 
         self.storage[current_path_field] = None
         self.add_to_sg_mock_db([self.storage])
@@ -332,9 +329,9 @@ class TestLocalFileLinkRaises(TankTestBase):
 
         current_path_field = {
             "win32": "local_path_windows",
-            "linux2": "local_path_linux",
+            "linux": "local_path_linux",
             "darwin": "local_path_mac",
-        }[sgsix.platform]
+        }[sys.platform]
 
         sg_dict["path"][current_path_field] = None
 
@@ -356,7 +353,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileLinkEnvVarOverride, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def tearDown(self):
@@ -370,7 +367,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
         if "SHOTGUN_PATH_LINUX_HOME" in os.environ:
             del os.environ["SHOTGUN_PATH_LINUX_HOME"]
 
-        super(TestLocalFileLinkEnvVarOverride, self).tearDown()
+        super().tearDown()
 
     def test_env_var(self):
         """
@@ -390,9 +387,9 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
 
         current_path_field = {
             "win32": "windows_path",
-            "linux2": "linux_path",
+            "linux": "linux_path",
             "darwin": "mac_path",
-        }[sgsix.platform]
+        }[sys.platform]
 
         self.storage[current_path_field] = None
         self.add_to_sg_mock_db([self.storage])
@@ -440,7 +437,7 @@ class TestUrlNoStorages(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlNoStorages, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_nix_path(self):
@@ -519,28 +516,16 @@ class TestUrlWithEnvVars(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithEnvVars, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # set override
         os.environ["SHOTGUN_PATH_WINDOWS"] = r"\\share"
         os.environ["SHOTGUN_PATH_MAC"] = "/mac"
         os.environ["SHOTGUN_PATH_LINUX"] = "/linux"
-
-        if six.PY3:
-            # Because of dictionary order differences between Python2 and 3, a
-            # bug in storage resolution is being hit by tests in Python 3 now
-            # that hadn't previously been discovered.  A ticket has been logged
-            # (SG-14149), but in the meantime we will continue to test the rest
-            # of the functionality in Python 3 by altering the test data to
-            # avoid hitting the bug.
-            os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
-            os.environ["SHOTGUN_PATH_MAC_2"] = "/altmac"
-            os.environ["SHOTGUN_PATH_LINUX_2"] = "/altlinux"
-        else:
-            os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
-            os.environ["SHOTGUN_PATH_MAC_2"] = "/mac2"
-            os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux2"
+        os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
+        os.environ["SHOTGUN_PATH_MAC_2"] = "/mac2"
+        os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux2"
 
     def tearDown(self):
 
@@ -551,7 +536,7 @@ class TestUrlWithEnvVars(TankTestBase):
         del os.environ["SHOTGUN_PATH_MAC_2"]
         del os.environ["SHOTGUN_PATH_LINUX_2"]
 
-        super(TestUrlWithEnvVars, self).tearDown()
+        super().tearDown()
 
     def test_no_storages(self):
         """
@@ -573,9 +558,9 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\storage_3\bar.baz",
-            "linux2": "/storage_3/bar.baz",
+            "linux": "/storage_3/bar.baz",
             "darwin": "/storage_3/bar.baz",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -602,7 +587,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "win32": r"\\share\path\to\file",
             "linux2": "/linux/path/to/file",
             "darwin": "/mac/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -627,9 +612,9 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": os.environ["SHOTGUN_PATH_WINDOWS_2"] + r"path\to\file",
-            "linux2": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
+            "linux": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
             "darwin": os.environ["SHOTGUN_PATH_MAC_2"] + "/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -654,9 +639,9 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": os.environ["SHOTGUN_PATH_WINDOWS_2"] + r"path\to\file",
-            "linux2": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
+            "linux": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
             "darwin": os.environ["SHOTGUN_PATH_MAC_2"] + "/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -668,7 +653,7 @@ class TestUrlWithStorages(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithStorages, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -713,9 +698,9 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\storage_3\bar.baz",
-            "linux2": "/storage_3/bar.baz",
+            "linux": "/storage_3/bar.baz",
             "darwin": "/storage_3/bar.baz",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -740,9 +725,9 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\\storage2_win\path\to\file",
-            "linux2": "/storage2_linux/path/to/file",
+            "linux": "/storage2_linux/path/to/file",
             "darwin": "/storage2_mac/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -767,9 +752,9 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"x:\storage1_win\path\to\file",
-            "linux2": "/storage1_linux/path/to/file",
+            "linux": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -794,9 +779,9 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"x:\storage1_win\path\to\file",
-            "linux2": "/storage1_linux/path/to/file",
+            "linux": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -808,7 +793,7 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithStoragesAndOverrides, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -845,9 +830,9 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\\storage_win\path\to\file",
-            "linux2": "/storage_linux/path/to/file",
+            "linux": "/storage_linux/path/to/file",
             "darwin": "/storage_mac/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -860,7 +845,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithStoragesAndOverrides2, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -885,7 +870,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
         del os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"]
         del os.environ["SHOTGUN_PATH_WINDOWS_STORAGE_1"]
 
-        super(TestUrlWithStoragesAndOverrides2, self).tearDown()
+        super().tearDown()
 
     def test_augument_local_storage(self):
         """
@@ -907,9 +892,9 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"x:\storage_win\path\to\file",
-            "linux2": "/storage_linux/path/to/file",
+            "linux": "/storage_linux/path/to/file",
             "darwin": "/storage_mac/path/to/file",
-        }[sgsix.platform]
+        }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)

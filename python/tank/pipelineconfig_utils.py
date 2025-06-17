@@ -12,9 +12,6 @@
 Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
-
-from __future__ import with_statement
-
 import os
 
 from tank_vendor import yaml

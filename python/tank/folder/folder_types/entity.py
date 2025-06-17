@@ -121,7 +121,7 @@ class Entity(Folder):
             return False
 
         # base class implementation
-        return super(Entity, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def _get_additional_sg_fields(self):
         """

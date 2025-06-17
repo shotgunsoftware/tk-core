@@ -10,8 +10,6 @@
 
 
 # thin proxy wrapper which finds the real sgtk and replaces itself with that
-
-from __future__ import absolute_import
 import os
 import sys
 

@@ -60,7 +60,7 @@ class BakedConfiguration(Configuration):
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         :param descriptor: ConfigDescriptor for the associated config
         """
-        super(BakedConfiguration, self).__init__(path, descriptor)
+        super().__init__(path, descriptor)
         self._path = path
         self._sg_connection = sg
 
