@@ -56,13 +56,13 @@ class TestEventMetric(ShotgunTestBase):
         self.assertTrue("event_properties" in metric)
 
     def test_init_with_invalid_parameters(self):
-        """ Simply assert that the constructor is exception free and is
-            able to deal with invalid parameters and various type of extra
-            properties.
+        """Simply assert that the constructor is exception free and is
+        able to deal with invalid parameters and various type of extra
+        properties.
 
-            Also tests the '_add_system_info_properties' method which
-            gets called in constructor
-            """
+        Also tests the '_add_system_info_properties' method which
+        gets called in constructor
+        """
 
         try:
             EventMetric(None, "Testing No event group"),
@@ -78,11 +78,11 @@ class TestEventMetric(ShotgunTestBase):
             )
 
     def test_init_with_valid_parameters(self):
-        """ Simply assert that the constructor is exception free.
+        """Simply assert that the constructor is exception free.
 
-            Also tests the '_add_system_info_properties' method which
-            gets called in constructor
-            """
+        Also tests the '_add_system_info_properties' method which
+        gets called in constructor
+        """
         try:
 
             EventMetric("App", "Test Log Metric without additional properties")
@@ -104,7 +104,7 @@ class TestEventMetric(ShotgunTestBase):
             )
 
     def test_usage_of_extra_properties(self):
-        """ Simply assert usage of the properties parameter is exception free. """
+        """Simply assert usage of the properties parameter is exception free."""
         EventMetric("App", "Test add_event_properties", None)
 
         EventMetric(
@@ -205,7 +205,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         tank.set_authenticated_user(None)
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch(
+            "tank_vendor.shotgun_api3.Shotgun.server_caps"
+        )
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
@@ -229,7 +231,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        
+
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -436,9 +438,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in server_received_metric["event_properties"])
         self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
-        self.assertTrue(
-            isinstance(server_received_metric["event_group"], str)
-        )
+        self.assertTrue(isinstance(server_received_metric["event_group"], str))
         self.assertTrue(isinstance(server_received_metric["event_name"], str))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
@@ -486,7 +486,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         )
 
     def helper_test_event_whitelist(
-        self, event_group, event_name, properties=None, expecting_unknown=False, setup_shotgun=False
+        self,
+        event_group,
+        event_name,
+        properties=None,
+        expecting_unknown=False,
+        setup_shotgun=False,
     ):
         """
         Helper method for the 'test_event_whitelist' test
@@ -525,10 +530,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.helper_test_event_whitelist("Tasks", "Created Task")
         self.helper_test_event_whitelist("Toolkit", "Launched Action")
         self.helper_test_event_whitelist("Toolkit", "Launched Command")
-        self.helper_test_event_whitelist("Toolkit", "Launched Software", properties={
-            EventMetric.KEY_HOST_APP: "tk-desktop",
-            EventMetric.KEY_HOST_APP_VERSION: "v1.2.3 / v4.5.6",
-        })
+        self.helper_test_event_whitelist(
+            "Toolkit",
+            "Launched Software",
+            properties={
+                EventMetric.KEY_HOST_APP: "tk-desktop",
+                EventMetric.KEY_HOST_APP_VERSION: "v1.2.3 / v4.5.6",
+            },
+        )
         self.helper_test_event_whitelist("Toolkit", "Loaded Published File")
         self.helper_test_event_whitelist("Toolkit", "Published")
         self.helper_test_event_whitelist("Toolkit", "New Workfile")
@@ -536,8 +545,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.helper_test_event_whitelist("Toolkit", "Saved Workfile")
 
         # Testing out unknown events
-        self.helper_test_event_whitelist("CarAndDriver", "Reviewed New Car", expecting_unknown=True)
-        self.helper_test_event_whitelist("Firmwares", "Updated Router Firmware", expecting_unknown=True)
+        self.helper_test_event_whitelist(
+            "CarAndDriver", "Reviewed New Car", expecting_unknown=True
+        )
+        self.helper_test_event_whitelist(
+            "Firmwares", "Updated Router Firmware", expecting_unknown=True
+        )
 
     def test_end_to_end_unsupported_event(self):
         """
@@ -588,9 +601,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in preserved_properties)
         self.assertTrue("ListProp" in preserved_properties)
 
-        self.assertTrue(
-            isinstance(server_received_metric["event_group"], str)
-        )
+        self.assertTrue(isinstance(server_received_metric["event_group"], str))
         self.assertTrue(isinstance(server_received_metric["event_name"], str))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
@@ -892,15 +903,15 @@ class TestMetricsQueueSingleton(unittest.TestCase):
 
 
 class TestMetricsDeprecatedFunctions(ShotgunTestBase):
-    """ Cases testing tank.util.metrics of deprecated functions
+    """Cases testing tank.util.metrics of deprecated functions
 
-        Test that the `log_metric`, `log_user_activity_metric` and
-        `log_user_attribute_metric` methods are deprecated by creating a
-        mock of the `MetricsQueueSingleton.log` method and then
-        verifiying whether or not it was called.
+    Test that the `log_metric`, `log_user_activity_metric` and
+    `log_user_attribute_metric` methods are deprecated by creating a
+    mock of the `MetricsQueueSingleton.log` method and then
+    verifiying whether or not it was called.
 
-        Also test that method still exist for retro-compatibility although
-        there're basically empty no-op methods.
+    Also test that method still exist for retro-compatibility although
+    there're basically empty no-op methods.
     """
 
     def setUp(self):

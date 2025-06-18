@@ -183,7 +183,7 @@ class ProcessFolderCreation(Hook):
                         if not preview_mode:
                             # create the file
                             fp = open(path, "wb")
-                            fp.write(content.encode('utf-8'))
+                            fp.write(content.encode("utf-8"))
                             fp.close()
                             # and set permissions to open
                             os.chmod(path, 0o666)

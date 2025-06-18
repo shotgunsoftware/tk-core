@@ -34,13 +34,11 @@ def dumps(data):
     Return the pickled representation of ``data`` as a ``str``.
 
     :param data: The object to pickle and store.
-    :returns: A pickled str of the input object.
-    :rtype: str
+    :returns: A pickled binary of the input object.
+    :rtype: binary
     """
-    # Protocol 0 is non-binary and ensures compatibility with older systems,
-    serialized = pickle.dumps(data, **DUMP_KWARGS)
     try:
-        return serialized.decode("utf-8")
+        return pickle.dumps(data, **DUMP_KWARGS)
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
@@ -48,8 +46,7 @@ def dumps(data):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
-                serialized = pickle.dumps(data, **DUMP_KWARGS)
-            return serialized.hex()
+                return pickle.dumps(data, **DUMP_KWARGS)
 
         raise
 
@@ -75,7 +72,7 @@ def loads(data):
     """
     if isinstance(data, str):
         data = data.encode("utf-8")
-    loads_data = ensure_contains_str(pickle.loads(data, **LOAD_KWARGS))
+    loads_data = ensure_contains_str(pickle.loads(data))
 
     if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
         encoding = loads_data[FALLBACK_ENCODING_KEY]
