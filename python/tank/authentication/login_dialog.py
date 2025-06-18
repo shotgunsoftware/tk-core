@@ -337,6 +337,19 @@ class LoginDialog(QtGui.QDialog):
 
         self.confirm_box.setStyleSheet(self.styleSheet())
 
+        # Init UI Spinner
+        self.ui.spinner_movie = QtGui.QMovie(":/spinning_wheel.gif")
+        if self.ui.spinner_movie.loopCount() != -1:
+            self.ui.spinner_movie.finished.connect(self.ui.spinner_movie.start)
+            # TODO get a better GIF that loop forever
+
+        self.ui.refresh_site_info_spinner.setMovie(self.ui.spinner_movie)
+
+        # TODO: Init which widget are display by default
+        # IF not host at all in the recent box: nothing but the site widget
+        # IF host exists: spinner mode
+
+
     def __del__(self):
         """
         Destructor.
@@ -398,6 +411,16 @@ class LoginDialog(QtGui.QDialog):
         the username/password fields.
         TODO the name and description of this method are not accurate!!!!!
         """
+
+        self.ui.login.setVisible(False)
+        self.ui.password.setVisible(False)
+        self.ui.message.setVisible(False)
+        self.ui.forgot_password_link.setVisible(False)
+        self.ui.button_options.setVisible(False)
+        self.ui.sign_in.setVisible(False) # maybe setEnable instead?
+
+        self.ui.refresh_site_info_spinner.setVisible(True)
+        self.ui.refresh_site_info_label.setVisible(True)
 
         logger.debug("_update_ui_according_to_site_support")
         self._query_task.url_to_test = self._get_current_site()
@@ -558,6 +581,11 @@ class LoginDialog(QtGui.QDialog):
 
         self.method_selected = method_selected
 
+        self.ui.refresh_site_info_spinner.setVisible(False)
+        self.ui.refresh_site_info_label.setVisible(False)
+        self.ui.message.setVisible(True)
+        self.ui.sign_in.setVisible(True)
+
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.
         # In web-based authentication, the web form is in charge of obtaining
@@ -701,13 +729,18 @@ class LoginDialog(QtGui.QDialog):
 
             return self._sso_saml2.get_session_data()
 
-        # We want to wait until we know what is supported by the site, to avoid
-        # flickering GUI.
-        if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
-            logger.warning(
-                "Timed out awaiting requesting information: %s"
-                % self._get_current_site()
-            )
+        # # We want to wait until we know what is supported by the site, to avoid
+        # # flickering GUI.
+        # if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
+        #     logger.warning(
+        #         "Timed out awaiting requesting information: %s"
+        #         % self._get_current_site()
+        #     )
+
+        # Configure the GUI according to what we know: site and user preferences
+        # TODO ->        self._toggle_web....
+
+        self.ui.spinner_movie.start()
 
         res = self.exec_()
         if res != QtGui.QDialog.Accepted:

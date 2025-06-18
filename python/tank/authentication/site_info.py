@@ -40,6 +40,13 @@ def _get_site_infos(url, http_proxy=None):
     :returns:   A dictionary with the site infos.
     """
 
+    time.sleep(3)
+    return {
+        "user_authentication_method": "oxygen",
+        "unified_login_flow_enabled": True,
+        "authentication_app_session_launcher_enabled": True,
+    }
+
     # logger.info("Sleep for 10s")
     # time.sleep(30)
     # logger.info("done sleeping")
@@ -114,6 +121,14 @@ class SiteInfo(object):
             # Silently ignore exceptions
             logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
             return
+
+
+        # TODO emit a signal with the infos dict instead of waiting for the comsumer to retrieve it.
+        # Because the thread might already run with different URL at that point....
+
+
+        # ALSO, the following logs should only run if needed
+        # ALSO, why don't we consume the cache here ?!
 
         self._url = url
         self._infos = infos
