@@ -123,7 +123,7 @@ class TestSetupProjectWizard(TankTestBase):
         locations = self._wizard.get_default_configuration_location()
         self.assertTrue(self.short_test_name in locations["win32"])
         self.assertTrue(self.short_test_name in locations["darwin"])
-        self.assertTrue(self.short_test_name in locations["linux2"])
+        self.assertTrue(self.short_test_name in locations["linux"])
 
     def test_default_configuration_location_with_existing_pipeline_configuration(self):
         """
@@ -158,7 +158,7 @@ class TestSetupProjectWizard(TankTestBase):
             locations,
             {
                 "darwin": "/Volumes/configs/{0}".format(self.short_test_name),
-                "linux2": "/mnt/configs/{0}".format(self.short_test_name),
+                "linux": "/mnt/configs/{0}".format(self.short_test_name),
                 "win32": "Z:\\configs\\{0}".format(self.short_test_name),
             },
         )

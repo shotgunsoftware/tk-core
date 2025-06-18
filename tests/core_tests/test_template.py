@@ -299,7 +299,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         self.multi_os_data_roots = {
             "unit_tests": {
                 "win32": os.path.join(self.tank_temp, "project_code"),
-                "linux2": os.path.join(self.tank_temp, "project_code"),
+                "linux": os.path.join(self.tank_temp, "project_code"),
                 "darwin": os.path.join(self.tank_temp, "project_code"),
             }
         }
@@ -347,7 +347,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
 
         modified_roots["alternate_1"] = {}
         modified_roots["alternate_1"]["win32"] = "z:\\some\\fake\\path"
-        modified_roots["alternate_1"]["linux2"] = "/some/fake/path"
+        modified_roots["alternate_1"]["linux"] = "/some/fake/path"
         modified_roots["alternate_1"]["darwin"] = "/some/fake/path"
 
         # Test with root names specified for all templates

@@ -525,7 +525,7 @@ class TestUrlWithEnvVars(TankTestBase):
         os.environ["SHOTGUN_PATH_LINUX"] = "/linux"
         os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
         os.environ["SHOTGUN_PATH_MAC_2"] = "/mac2"
-        os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux2"
+        os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux"
 
     def tearDown(self):
 
@@ -585,7 +585,7 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\\share\path\to\file",
-            "linux2": "/linux/path/to/file",
+            "linux": "/linux/path/to/file",
             "darwin": "/mac/path/to/file",
         }[sys.platform]
 

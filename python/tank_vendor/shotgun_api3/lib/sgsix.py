@@ -71,14 +71,14 @@ def normalize_platform(platform, python2=True):
 
     :param str platform: The platform string to normalize
     :param bool python2: The python version behavior to target.  If True, a
-        Python2-style platform string will be returned (i.e. 'linux2'), otherwise
+        Python2-style platform string will be returned (i.e. 'linux'), otherwise
         the modern 'linux' platform string will be returned.
 
     :returns: The normalized platform string.
     :rtype: str
     """
     if python2:
-        return "linux2" if platform.startswith("linux") else platform
+        return "linux" if platform.startswith("linux") else platform
     return "linux" if platform.startswith("linux") else platform
 
 

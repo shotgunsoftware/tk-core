@@ -772,7 +772,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertIsNotNone(pcs[0]["config_descriptor"])
 
         field_lookup = dict(
-            linux2="linux_path", darwin="mac_path", win32="windows_path"
+            linux="linux_path", darwin="mac_path", win32="windows_path"
         )
 
         base_path = "sg_path"

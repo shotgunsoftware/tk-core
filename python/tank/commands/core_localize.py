@@ -508,7 +508,7 @@ class AttachToCoreAction(Action):
             log,
             core_locations["darwin"],
             core_locations["win32"],
-            core_locations["linux2"],
+            core_locations["linux"],
             self._interaction_interface,
             copy_core=False,
         )

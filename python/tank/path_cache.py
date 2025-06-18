@@ -1004,7 +1004,7 @@ class PathCache(object):
 
         # get the local path from our attachment entity dict
         sg_local_storage_os_map = {
-            "linux2": "local_path_linux",
+            "linux": "local_path_linux",
             "win32": "local_path_windows",
             "darwin": "local_path_mac",
         }

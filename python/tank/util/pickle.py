@@ -21,7 +21,7 @@ log = LogManager.get_logger(__name__)
 LOAD_KWARGS = {"encoding": "bytes"}
 # Protocol 0 ensures ASCII encoding, which is required when writing
 # a pickle to an environment variable.
-DUMP_KWARGS = {"protocol": pickle.HIGHEST_PROTOCOL}
+DUMP_KWARGS = {"protocol": 0}
 
 # Fix unicode issue when ensuring string values
 # https://jira.autodesk.com/browse/SG-6588
@@ -31,7 +31,7 @@ FALLBACK_ENCODING_KEY = "_payload_encoding"
 
 def dumps(data):
     """
-    Return the pickled representation of ``data`` as a ``str``.
+    Return the pickled representation of ``data`` as a ``binary``.
 
     :param data: The object to pickle and store.
     :returns: A pickled binary of the input object.
@@ -112,11 +112,10 @@ def store_env_var_pickled(key, data):
     :param key: The name of the environment variable to store the data in.
     :param data: The object to pickle and store.
     """
-    pickled_data = dumps(data) 
-    encoded_data = pickled_data
-    if isinstance(pickled_data, bytes): 
-        encoded_data = pickled_data.decode("utf-8")
-    os.environ[key] = encoded_data
+    pickled_data = dumps(data)
+    if isinstance(pickled_data, bytes):
+        pickled_data = pickled_data.decode("utf-8")
+    os.environ[key] = pickled_data
 
 
 def retrieve_env_var_pickled(key):
