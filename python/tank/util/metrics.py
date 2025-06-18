@@ -657,6 +657,7 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session Created"),
         EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session ID Copied from menu"),
         EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session Joined"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Output Video Device Changed"),
         EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
