@@ -93,6 +93,7 @@ def create_io_descriptor(
 
     # instantiate the Descriptor
     descriptor = IODescriptorBase.create(descriptor_type, descriptor_dict, sg)
+    print("Descriptor = %r" % descriptor)
 
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
