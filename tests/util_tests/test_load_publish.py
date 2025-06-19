@@ -523,9 +523,10 @@ class TestUrlWithEnvVars(TankTestBase):
         os.environ["SHOTGUN_PATH_WINDOWS"] = r"\\share"
         os.environ["SHOTGUN_PATH_MAC"] = "/mac"
         os.environ["SHOTGUN_PATH_LINUX"] = "/linux"
+
         os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
-        os.environ["SHOTGUN_PATH_MAC_2"] = "/mac2"
-        os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux"
+        os.environ["SHOTGUN_PATH_MAC_2"] = "/altmac"
+        os.environ["SHOTGUN_PATH_LINUX_2"] = "/altlinux"
 
     def tearDown(self):
 
@@ -642,12 +643,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "linux": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
             "darwin": os.environ["SHOTGUN_PATH_MAC_2"] + "/path/to/file",
         }[sys.platform]
-        print("selg.tk", self.tk)
-        print("sg_dict", sg_dict)
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        print()
-        print("Evaluated path:", evaluated_path)
-        print("Expected path:", expected_path)
         self.assertEqual(evaluated_path, expected_path)
 
 

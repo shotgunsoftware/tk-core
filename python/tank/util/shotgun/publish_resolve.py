@@ -76,8 +76,6 @@ def resolve_publish_path(tk, sg_publish_data):
     custom_path = tk.execute_core_hook_method(
         "resolve_publish", "resolve_path", sg_publish_data=sg_publish_data
     )
-    print("custom_path", custom_path)
-    print("path_field", path_field)
     if custom_path:
         log.debug("Publish resolve core hook returned path '%s'" % custom_path)
         return custom_path
@@ -265,7 +263,6 @@ def __resolve_url_link(tk, attachment_data):
     #  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},
 
     parsed_url = urllib.parse.urlparse(attachment_data["url"])
-    print("parsed_url", parsed_url)
 
     # url = "file:///path/to/some/file.txt"
     # ParseResult(
@@ -323,7 +320,6 @@ def __resolve_url_link(tk, attachment_data):
     # /path/to/file.ext
     # d:/path/to/file.ext
     # //share/path/to/file.ext
-    print("resolved_path", resolved_path)
     log.debug("Path extracted from url: '%s'" % resolved_path)
 
     # create a lookup table of shotgun paths,
@@ -350,14 +346,10 @@ def __resolve_url_link(tk, attachment_data):
 
     # look for storage overrides
     for env_var in os.environ.keys():
-        print("env_var", env_var)
         expr = re.match("^SHOTGUN_PATH_(WINDOWS|MAC|LINUX)_(.*)$", env_var)
-        print("expr", expr)
         if expr:
             platform = expr.group(1)
-            print("platform", platform)
             storage_name = expr.group(2).upper()
-            print("storage_name", storage_name)
             log.debug(          
                 "Added %s environment override for %s: %s"
                 % (platform, storage_name, os.environ[env_var])
@@ -405,12 +397,10 @@ def __resolve_url_link(tk, attachment_data):
 
     # now see if the given url starts with any storage def in our setup
     for storage, sg_path in storage_lookup.items():
-        print("sg_path", sg_path)
         # go through each storage, see if any of the os
         # path defs for the storage matches the beginning of the
         # url path. Compare lower case (most file systems are case preserving).
         adjusted_path = None
-        print("resolved_path", resolved_path)
         if sg_path.windows and resolved_path.lower().startswith(
             sg_path.windows.replace("\\", "/").lower()
         ):
@@ -420,7 +410,6 @@ def __resolve_url_link(tk, attachment_data):
 
         elif sg_path.linux and resolved_path.lower().startswith(sg_path.linux.lower()):
             adjusted_path = sg_path.join(resolved_path[len(sg_path.linux) :]).current_os
-            print("adjusted_path", adjusted_path)
 
         elif sg_path.macosx and resolved_path.lower().startswith(
             sg_path.macosx.lower()
@@ -438,7 +427,6 @@ def __resolve_url_link(tk, attachment_data):
             break
 
     # adjust native platform slashes
-    print("resolved_path", resolved_path)
     resolved_path = resolved_path.replace("/", os.path.sep)
     log.debug("Converted %s -> %s" % (attachment_data["url"], resolved_path))
     return resolved_path
