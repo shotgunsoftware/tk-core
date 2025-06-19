@@ -572,7 +572,6 @@ def get_recent_users(site):
     """
     info_path = _get_site_authentication_file_location(site)
     document = _try_load_site_authentication_file(info_path)
-    logger.debug("Recent users are: %s", document[_RECENT_USERS])
     return _get_recent_items(document, _RECENT_USERS, _CURRENT_USER, "users")
 
 
