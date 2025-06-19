@@ -39,6 +39,8 @@ class DefaultsManager(object):
         self._user_settings = UserSettings()
         self._system_settings = SystemSettings()
         self._fixed_host = fixed_host
+        self._host = False # current value might be None
+        self._login = False # current value might be None
 
     def is_host_fixed(self):
         """
@@ -78,11 +80,15 @@ class DefaultsManager(object):
 
         :returns: A string containing the default host name.
         """
-        return (
-            self._fixed_host
-            or session_cache.get_current_host()
-            or self._user_settings.default_site
-        )
+
+        if self._host is False:
+            self._host = (
+                self._fixed_host
+                or session_cache.get_current_host()
+                or self._user_settings.default_site
+            )
+
+        return self._host
 
     def set_host(self, host):
         """
@@ -94,6 +100,9 @@ class DefaultsManager(object):
         if self.is_host_fixed():
             return
         session_cache.set_current_host(host)
+        self._host = host
+        # Reset login
+        self._login = False
 
     def get_http_proxy(self):
         """
@@ -130,13 +139,17 @@ class DefaultsManager(object):
         """
         # Make sure there is a current host. There could be none if no-one has
         # logged in with Toolkit yet.
-        if self.get_host():
-            return (
-                session_cache.get_current_user(self.get_host())
-                or self._user_settings.default_login
-            )
-        else:
-            return self._user_settings.default_login
+
+        if self._login is False:
+            if self.get_host():
+                self._login = (
+                    session_cache.get_current_user(self.get_host())
+                    or self._user_settings.default_login
+                )
+            else:
+                self._login = self._user_settings.default_login
+
+        return self._login
 
     def get_user_credentials(self):
         """
@@ -163,8 +176,6 @@ class DefaultsManager(object):
         """
         if self.get_host() and self.get_login():
             return session_cache.get_session_data(self.get_host(), self.get_login())
-        else:
-            return None
 
     def set_login(self, login):
         """
