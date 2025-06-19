@@ -240,8 +240,8 @@ class ShotgunAuthenticator(object):
 
         # There is no default user.
         if not credentials:
-            logger.debug("No default user found.")
-            return None
+            logger.debug("No default user found")
+            return
 
         # If this looks like an api user, delegate to create_script_user.
         # If some of the arguments are missing, don't worry, create_script_user
