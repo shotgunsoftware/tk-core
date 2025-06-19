@@ -90,10 +90,10 @@ def create_io_descriptor(
     version = descriptor_dict.get("version")
     if isinstance(version, bytes):
         descriptor_dict["version"] = version.decode("utf-8")
+    descriptor_dict["version"] = str(version)
 
     # instantiate the Descriptor
     descriptor = IODescriptorBase.create(descriptor_type, descriptor_dict, sg)
-    print("Descriptor = %r" % descriptor)
 
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
