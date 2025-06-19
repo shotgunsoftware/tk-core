@@ -22,6 +22,7 @@ at any point.
 from __future__ import with_statement
 import os
 import socket
+import time
 from tank_vendor.shotgun_api3 import (
     Shotgun,
     AuthenticationFault,
@@ -148,7 +149,33 @@ def _ensure_folder_for_file(filepath):
     return filepath
 
 
+_YML_CONMTENT_CACHE = {}
+_YML_CONMTENT_CACHE_TIMEOUT = 300 # 5 minutes
+
 def _try_load_yaml_file(file_path):
+    global _YML_CONMTENT_CACHE
+    global _YML_CONMTENT_CACHE_TIMEOUT
+
+    cache = _YML_CONMTENT_CACHE.get(file_path, None)
+    if cache and (time.time() - _YML_CONMTENT_CACHE_TIMEOUT > cache.get("timeout", 0)):
+        try:
+            del(_YML_CONMTENT_CACHE[file_path])
+        except KeyError:
+            pass
+
+        cache = None
+
+    if not cache:
+        cache = {
+            "timeout": time.time(),
+            "content": _try_load_yaml_file_real(file_path),
+        }
+        _YML_CONMTENT_CACHE[file_path] = cache
+
+    return cache["content"]
+
+
+def _try_load_yaml_file_real(file_path):
     """
     Loads a yaml file.
 
@@ -306,6 +333,11 @@ def _write_yaml_file(file_path, users_data):
     finally:
         os.umask(old_umask)
 
+    global _YML_CONMTENT_CACHE
+    try:
+        del(_YML_CONMTENT_CACHE[file_path])
+    except KeyError:
+        pass
 
 def delete_session_data(host, login):
     """
