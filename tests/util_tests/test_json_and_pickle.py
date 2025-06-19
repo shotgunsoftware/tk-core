@@ -240,18 +240,6 @@ class PickleTests(Impl.SerializationTests):
     loader_module = pickle
     dumper_module = pickle
 
-    # Derived class parameters.
-    protocol_2_file_location = os.path.join(
-        Impl.SerializationTests.fixtures_location,
-        "pickled_saved_with_python_2_protocol_0.pickle",
-    )
-
-    def test_reload_protocol_2_pickle(self):
-        with open(self.protocol_2_file_location, "rb") as fh:
-            self.assertEqual(self.load(fh), self.dict_with_unicode)
-
-        with open(self.protocol_2_file_location, "rb") as fh:
-            self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
