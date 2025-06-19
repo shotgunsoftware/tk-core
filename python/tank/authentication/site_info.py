@@ -40,6 +40,10 @@ def _get_site_infos(url, http_proxy=None):
     :returns:   A dictionary with the site infos.
     """
 
+    # logger.info("Sleep for 10s")
+    # time.sleep(30)
+    # logger.info("done sleeping")
+
     # Checks if the information is in the cache, is missing or out of date.
     if url not in INFOS_CACHE or (
         (time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT
