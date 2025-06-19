@@ -206,6 +206,7 @@ class LoginDialog(QtGui.QDialog):
         # This is to make the UX smoother, as we do not check after each character
         # typed, but instead wait for a period of inactivity from the user.
         self._url_changed_timer = QtCore.QTimer(self)
+        self._url_changed_timer.setInterval(USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST)
         self._url_changed_timer.setSingleShot(True)
         self._url_changed_timer.timeout.connect(
             self._update_ui_according_to_site_support
@@ -406,7 +407,7 @@ class LoginDialog(QtGui.QDialog):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
-        self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST)
+        self._url_changed_timer.start()
 
     def _on_site_changed(self):
         """
