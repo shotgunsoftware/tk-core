@@ -312,14 +312,6 @@ class LoginDialog(QtGui.QDialog):
         self._query_task.finished.connect(self._toggle_web)
         self._update_ui_according_to_site_support()
 
-        # We want to wait until we know what is supported by the site, to avoid
-        # flickering GUI.
-        if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
-            logger.warning(
-                "Timed out awaiting requesting information: %s"
-                % self._get_current_site()
-            )
-
         # Initialize exit confirm message box
         self.confirm_box = QtGui.QMessageBox(
             QtGui.QMessageBox.Question,
@@ -692,6 +684,14 @@ class LoginDialog(QtGui.QDialog):
                 return
 
             return self._sso_saml2.get_session_data()
+
+        # We want to wait until we know what is supported by the site, to avoid
+        # flickering GUI.
+        if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
+            logger.warning(
+                "Timed out awaiting requesting information: %s"
+                % self._get_current_site()
+            )
 
         res = self.exec_()
         if res != QtGui.QDialog.Accepted:
