@@ -642,8 +642,12 @@ class TestUrlWithEnvVars(TankTestBase):
             "linux": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
             "darwin": os.environ["SHOTGUN_PATH_MAC_2"] + "/path/to/file",
         }[sys.platform]
-
+        print("selg.tk", self.tk)
+        print("sg_dict", sg_dict)
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
+        print()
+        print("Evaluated path:", evaluated_path)
+        print("Expected path:", expected_path)
         self.assertEqual(evaluated_path, expected_path)
 
 
