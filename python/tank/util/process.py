@@ -68,6 +68,8 @@ def subprocess_check_output(*popenargs, **kwargs):
     # to retrieve text from the console to parse it and not binary, so for our
     # use case converting to a str will always make case and simplifies
     # the caller's logic.
+    if isinstance(output, bytes):
+        return output.decode("utf-8")
     output = str(output)
     retcode = process.poll()
 
