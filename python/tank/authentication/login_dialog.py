@@ -208,9 +208,7 @@ class LoginDialog(QtGui.QDialog):
         self._url_changed_timer = QtCore.QTimer(self)
         self._url_changed_timer.setInterval(USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST)
         self._url_changed_timer.setSingleShot(True)
-        self._url_changed_timer.timeout.connect(
-            self._update_ui_according_to_site_support
-        )
+        self._url_changed_timer.timeout.connect(self._on_site_changed)
 
         # If the host is fixed, disable the site textbox.
         if fixed_host:
@@ -311,7 +309,8 @@ class LoginDialog(QtGui.QDialog):
 
         self._query_task = QuerySiteAndUpdateUITask(self, self.site_info, http_proxy)
         self._query_task.finished.connect(self._toggle_web)
-        self._update_ui_according_to_site_support()
+
+        self._on_site_changed()  # trigger the first site info request
 
         # Initialize exit confirm message box
         self.confirm_box = QtGui.QMessageBox(
@@ -383,9 +382,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return sgutils.ensure_str(
-            connection.sanitize_url(self.ui.site.currentText().strip())
-        )
+        return self.host_selected
 
     def _get_current_user(self):
         """
@@ -399,7 +396,10 @@ class LoginDialog(QtGui.QDialog):
         """
         Updates the GUI according to the site's information, hiding or showing
         the username/password fields.
+        TODO the name and description of this method are not accurate!!!!!
         """
+
+        logger.debug("_update_ui_according_to_site_support")
         self._query_task.url_to_test = self._get_current_site()
         self._query_task.start()
 
@@ -408,14 +408,24 @@ class LoginDialog(QtGui.QDialog):
         Starts a timer to wait until the user stops entering the URL .
         """
         self._url_changed_timer.start()
+        # If the timer is already running, it will be stopped and restarted
 
     def _on_site_changed(self):
         """
         Called when the user is done editing the site. It will refresh the
         list of recent users.
         """
-        self.ui.login.clear()
-        self._populate_user_dropdown(self._get_current_site())
+
+        host_selected = connection.sanitize_url(self.ui.site.currentText())
+        if host_selected == self.host_selected:
+            logger.debug(f"_on_site_changed - site has not changed: {host_selected}")
+            # No change, nothing to do.
+            return
+
+        self.host_selected = host_selected
+
+        self.ui.login.clear()  ## TODO do we really want to do that here?
+        self._populate_user_dropdown(self._get_current_site())  # same TOTO
         self._update_ui_according_to_site_support()
 
     def _populate_user_dropdown(self, site):
@@ -467,7 +477,13 @@ class LoginDialog(QtGui.QDialog):
         """
 
         site = self._query_task.url_to_test
-        self.method_selected_user = None
+        if self._get_current_site() != site:
+            logger.debug("_toggle_web - site-info thread finished too late, we already selected another host")
+            # the thread finished too late, We already selected another host
+            return
+            # Careful, this method is called from a lot different use cases.......!!!!!!
+
+        # self.method_selected_user = None ## WHY ?????
 
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
@@ -533,14 +549,13 @@ class LoginDialog(QtGui.QDialog):
             else:
                 method_selected = auth_constants.METHOD_BASIC
 
-        if site == self.host_selected and method_selected == self.method_selected:
+        if method_selected == self.method_selected:
             # We don't want to go further if the UI is already configured for
             # this site and this mode.
             # This prevents erasing any error message when various events would
             # toggle this method
             return
 
-        self.host_selected = site
         self.method_selected = method_selected
 
         # if we are switching from one mode (using the web) to another (not using

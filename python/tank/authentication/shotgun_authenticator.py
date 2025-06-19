@@ -232,6 +232,8 @@ class ShotgunAuthenticator(object):
     def get_default_user(self):
         """
         Returns the default user from the defaults manager.
+        TODO this method's name and description is not accurate. This method tries to return the current user with credentials. ...
+        This is misleading......
 
         :returns: A :class:`ShotgunUser` derived instance if available, None otherwise.
         """
