@@ -18,7 +18,7 @@ class TestSgre(TestCase):
     def test_wrap(self):
         """
         Ensure that sgre injects the re.ASCII flag appropriately, and that
-        unicode characters do not match `\w`.
+        unicode characters do not match.
         """
         char = u"漢字"
         expr = r"\w+"
@@ -34,7 +34,7 @@ class TestSgre(TestCase):
     def test_wrap_positional(self):
         """
         Ensure that `sgre` injects the `re.ASCII` flag appropriately when flags
-        are passed positionally, and that Unicode characters do not match `\w`.
+        are passed positionally, and that Unicode characters do not match.
         """
         char = u"a漢字"
         expr = r"a\w+"
@@ -51,7 +51,7 @@ class TestSgre(TestCase):
         """
         Ensure that sgre injects the re.ASCII flag appropriately when flags are
         also passed as keyword arguments, and that unicode characters do not
-        match `\w`.
+        match.
         """
         char = u"a漢字"
         expr = r"a\w+"

@@ -1282,7 +1282,7 @@ class TestSerialize(TestContext):
         context_1 = context.Context(**self.kws)
         serialized = context_1.serialize()
         # Ensure the serialized context is a string
-        self.assertIsInstance(serialized, str)
+        self.assertIsInstance(serialized, bytes)
         context_2 = tank.Context.deserialize(serialized)
         self._assert_equal_contexts(context_1, context_2)
 
@@ -1306,7 +1306,7 @@ class TestSerialize(TestContext):
         pickle.loads(unserialized_pickle["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, str)
+        self.assertIsInstance(ctx_str, bytes)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1346,7 +1346,7 @@ class TestSerialize(TestContext):
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, str)
+        self.assertIsInstance(ctx_str, bytes)
 
         # Change the current user to make sure that the deserialize operation doesn't
         # change it back to the original user.

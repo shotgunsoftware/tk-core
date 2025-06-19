@@ -601,7 +601,7 @@ def deserialize_user(payload):
     """
     # If the serialized payload starts with a {, we have a JSON-encoded string.
     if payload[0] in ("{", b"{"):
-        user_dict = sgjson.loads(payload.decode("utf-8"))
+        user_dict = sgjson.loads(payload)
     else:
         # Unpickle the dictionary
         user_dict = pickle.loads(payload)
