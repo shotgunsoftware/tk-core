@@ -369,10 +369,10 @@ def delete_session_data(host, login):
 
 def get_session_data(base_url, login):
     """
-    Returns the cached login info if found.
+    Returns the cached authentication info if found.
 
-    :param base_url: The site to look for the login information.
-    :param login: The user we want the login information for.
+    :param base_url: The site to look for the authentication information.
+    :param login: The user we want the authentication information for.
 
     :returns: Returns a dictionary with keys login and session_token or None
     """
@@ -400,10 +400,11 @@ def get_session_data(base_url, login):
                 session_data[_SESSION_METADATA] = user[_SESSION_METADATA]
 
             return session_data
-        logger.debug("No cached user found for %s" % login)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
-        return None
+        return
+
+    logger.debug(f"No authentication info found for user {login}")
 
 
 def cache_session_data(host, login, session_token, session_metadata=None):
