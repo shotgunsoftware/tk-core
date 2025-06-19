@@ -231,7 +231,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-
+        self._urlopen_mock = mock.patch("urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -850,7 +850,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = mock.patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+            "urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
