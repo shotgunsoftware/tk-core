@@ -110,9 +110,9 @@ class InteractiveTests(ShotgunTestBase):
                 self.my_result = r
                 return super(MyLoginDialog, self).done(r)
 
-        # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
+        # Patch out the SsoSaml2 class to avoid threads being created, which cause
         # issues with tests.
-        with mock.patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+        with mock.patch("tank.authentication.login_dialog.SsoSaml2"):
             with contextlib.closing(MyLoginDialog(is_session_renewal, **kwargs)) as ld:
                 try:
                     self._prepare_window(ld)

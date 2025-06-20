@@ -17,7 +17,7 @@ from tank_test.tank_test_base import (
     skip_if_pyside_missing,
 )
 
-from tank.authentication.sso_saml2 import SsoSaml2Toolkit
+from tank.authentication.sso_saml2 import SsoSaml2
 
 
 @only_run_on_nix  # This test issues a seg-fault on Windows
@@ -36,7 +36,7 @@ class WebLoginTests(ShotgunTestBase):
         if qt_abstraction.QtGui.QApplication.instance() is None:
             self._app = qt_abstraction.QtGui.QApplication([])
 
-        obj = SsoSaml2Toolkit(
+        obj = SsoSaml2(
             "Test Web Login",
             qt_modules={
                 "QtCore": qt_abstraction.QtCore,
