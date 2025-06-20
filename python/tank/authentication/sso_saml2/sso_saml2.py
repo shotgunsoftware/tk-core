@@ -138,7 +138,7 @@ class SsoSaml2(object):
 
     def get_session_data(self):
         """
-        Get a mimimal subset of session data, for the Shotgun Toolkit.
+        Get a minimal subset of session data, for the Shotgun Toolkit.
 
         :returns: A tuple of the hostname, user_id, session_id and cookies.
         """
