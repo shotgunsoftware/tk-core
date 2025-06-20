@@ -25,7 +25,7 @@ class SGTKImportTests(SgtkIntegrationTest):
     def test(self):
         self.assertIn("sgtk", sys.modules)
         self.assertNotIn("sgtk.authentication.ui.qt_abstraction", sys.modules)
-        self.assertEquals(
+        self.assertEqual(
              len([ i for i in sys.modules if i.startswith("PYSide") ]),
              0,
         )
