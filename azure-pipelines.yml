@@ -53,3 +53,17 @@ jobs:
           # Azure Pipelines 1-10
           SHOTGUN_TEST_ENTITY_SUFFIX: '$(Agent.Name)'
         condition: eq(variables['System.PullRequest.IsFork'], 'False')
+- job: pip_install_sgtk
+  displayName: PIP install sgtk
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.11'
+    displayName: Use Python 3.11
+  - bash: pip install git+https://github.com/shotgunsoftware/tk-core@v0.22.1
+    displayName: Install tk-core using PIP
+  # TODO: add more steps
+  # - bash: python path/to/specific_test.py
+  #   displayName: Run specific test
