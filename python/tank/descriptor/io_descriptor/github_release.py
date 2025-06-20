@@ -34,9 +34,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "organization", "repository", "version"],

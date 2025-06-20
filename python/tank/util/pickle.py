@@ -42,7 +42,10 @@ def dumps(data):
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
-        if e.encoding == "utf-8" and e.reason in ("invalid continuation byte", "invalid start byte"):
+        if e.encoding == "utf-8" and e.reason in (
+            "invalid continuation byte",
+            "invalid start byte",
+        ):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
@@ -134,6 +137,6 @@ def retrieve_env_var_pickled(key):
     :returns: The original object that was stored.
     """
     if isinstance(key, str):
-        envvar_contents = key.encode("utf-8")  
+        envvar_contents = key.encode("utf-8")
 
     return loads(envvar_contents)

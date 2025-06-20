@@ -36,6 +36,7 @@ from re import escape  # noqa import into namespace
 import re as _re
 import typing as _typing
 
+
 def _re_wrap(fn, flags_arg_position):
     def wrapper(*args, **kwargs):
         if args and isinstance(args[0], _typing.Pattern):
@@ -60,6 +61,7 @@ def _re_wrap(fn, flags_arg_position):
         return fn(*args, **kwargs)
 
     return wrapper
+
 
 # Since the flags arg is sometimes provided positionally, we'll specify the
 # argument's position to our wrapper so it can handle this.

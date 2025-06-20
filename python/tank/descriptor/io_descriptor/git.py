@@ -63,9 +63,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._path = descriptor_dict.get("path")
         # strip trailing slashes - this is so that when we build

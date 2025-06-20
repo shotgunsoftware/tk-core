@@ -123,9 +123,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict, required=["type", "name", "version"], optional=["label"]
@@ -492,7 +490,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # the sought-after label
             version_numbers = []
             log.debug("culling out versions not labelled '%s'..." % self._label)
-            for (version_str, path) in all_versions.items():
+            for version_str, path in all_versions.items():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
@@ -610,7 +608,10 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             limit=limit,
         )
 
-        log.debug("Downloaded data for %d versions from Flow Production Tracking." % len(sg_versions))
+        log.debug(
+            "Downloaded data for %d versions from Flow Production Tracking."
+            % len(sg_versions)
+        )
 
         # now filter out all labels that aren't matching
         matching_records = []
@@ -864,7 +865,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         post_data = {"session_token": session_token}
         response = urllib.request.urlopen(
             "%s/api3/sgtk_install_script" % sg.base_url,
-            urllib.parse.urlencode(post_data).encode('utf-8'),
+            urllib.parse.urlencode(post_data).encode("utf-8"),
         )
         html = response.read()
         data = json.loads(html)

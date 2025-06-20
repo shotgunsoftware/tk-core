@@ -368,7 +368,9 @@ class SoftwareLauncher(object):
             match_template = fixed_match_template
 
         # First start by globbing files.
-        glob_pattern = match_template.format(**{key: "*" for key in template_key_expressions})
+        glob_pattern = match_template.format(
+            **{key: "*" for key in template_key_expressions}
+        )
 
         self.logger.debug("Globbing for executable matching: %s ..." % (glob_pattern,))
         matching_paths = glob.glob(glob_pattern)

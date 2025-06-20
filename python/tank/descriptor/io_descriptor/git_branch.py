@@ -63,9 +63,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         )
 
         # call base class
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo

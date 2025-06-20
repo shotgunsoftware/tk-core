@@ -76,9 +76,7 @@ def translate_filter_tokens(filter_list, parent, yml_path):
         values = sg_filter["values"]
         new_values = []
         for filter_value in values:
-            if isinstance(filter_value, str) and filter_value.startswith(
-                "$"
-            ):
+            if isinstance(filter_value, str) and filter_value.startswith("$"):
                 # this is a filter expression!
                 try:
                     expr_token = FilterExpressionToken(filter_value, parent)

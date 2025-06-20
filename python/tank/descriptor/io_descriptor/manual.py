@@ -31,9 +31,7 @@ class IODescriptorManual(IODescriptorBase):
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict, required=["type", "name", "version"], optional=[]
