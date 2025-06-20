@@ -11,4 +11,7 @@
   <qresource prefix="google_authenticator">
     <file>google_authenticator.png</file>
   </qresource>
+  <qresource>
+    <file>spinning_wheel.gif</file>
+  </qresource>
 </RCC>
