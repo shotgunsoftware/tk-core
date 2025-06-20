@@ -62,7 +62,7 @@ def _get_current_os_user():
             return None
 
 
-def _get_ui_state():
+def _get_ui_state() -> bool:
     """
     Returns the state of UI: do we have a ui or not.
     :returns: True or False)
@@ -78,11 +78,7 @@ def _get_ui_state():
     except Exception:
         QtGui = None
 
-    if QtGui and QtGui.QApplication.instance() is not None:
-        return True
-    else:
-        return False
-
+    return bool(QtGui and QtGui.QApplication.instance())
 
 class SessionRenewal(object):
     """
