@@ -239,8 +239,6 @@ class TestPrepareEngine(ShotgunTestBase):
 
         mgr.progress_callback = progress_cb
         path, desc = mgr.prepare_engine("test_engine", self.project)
-        print("desc.get_dict()):", desc.get_dict())
-        print("mgr.base_configuration:", mgr.base_configuration)
         self.assertEqual(desc.get_dict(), mgr.base_configuration)
         self.assertEqual(
             path, os.path.join(self.tank_temp, "unit_test_mock_sg", "p1", "cfg")
