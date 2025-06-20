@@ -25,9 +25,7 @@ class TestTemplatePath(ShotgunTestBase):
     """
 
     def setUp(self):
-        super().setUp(
-            parameters={"primary_root_name": "primary_with_a_different_name"}
-        )
+        super().setUp(parameters={"primary_root_name": "primary_with_a_different_name"})
         # Make various types of keys(fields)
         self.keys = {
             "Sequence": StringKey("Sequence"),
