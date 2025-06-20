@@ -148,7 +148,7 @@ QPushButton.main:pressed
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
+  <layout class="QVBoxLayout" name="verticalLayout_asl" stretch="1,0">
    <property name="margin" stdset="0">
     <number>20</number>
    </property>

@@ -153,9 +153,9 @@ class Ui_LoginDialog(object):
 "}\n"
 "")
         LoginDialog.setModal(True)
-        self.verticalLayout_2 = QVBoxLayout(LoginDialog)
-        self.verticalLayout_2.setContentsMargins(20, 20, 20, 20)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_asl = QVBoxLayout(LoginDialog)
+        self.verticalLayout_asl.setContentsMargins(20, 20, 20, 20)
+        self.verticalLayout_asl.setObjectName(u"verticalLayout_asl")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -174,7 +174,7 @@ class Ui_LoginDialog(object):
 
         self.horizontalLayout.addWidget(self.logo)
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.verticalLayout_asl.addLayout(self.horizontalLayout)
 
         self.stackedWidget = QStackedWidget(LoginDialog)
         self.stackedWidget.setObjectName(u"stackedWidget")
@@ -429,9 +429,9 @@ class Ui_LoginDialog(object):
         self.stackedWidget.addWidget(self.backup_page)
         self.asl_page = QWidget()
         self.asl_page.setObjectName(u"asl_page")
-        self.verticalLayout_21 = QVBoxLayout(self.asl_page)
-        self.verticalLayout_21.setContentsMargins(20, 20, 20, 20)
-        self.verticalLayout_21.setObjectName(u"verticalLayout_21")
+        self.verticalLayout_2 = QVBoxLayout(self.asl_page)
+        self.verticalLayout_2.setContentsMargins(20, 20, 20, 20)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.asl_msg = QLabel(self.asl_page)
         self.asl_msg.setObjectName(u"asl_msg")
         sizePolicy1.setHeightForWidth(self.asl_msg.sizePolicy().hasHeightForWidth())
@@ -440,31 +440,31 @@ class Ui_LoginDialog(object):
         self.asl_msg.setAlignment(Qt.AlignCenter)
         self.asl_msg.setWordWrap(True)
 
-        self.verticalLayout_21.addWidget(self.asl_msg)
+        self.verticalLayout_2.addWidget(self.asl_msg)
 
         self.asl_msg_back = QLabel(self.asl_page)
         self.asl_msg_back.setObjectName(u"asl_msg_back")
         self.asl_msg_back.setAlignment(Qt.AlignCenter)
         self.asl_msg_back.setWordWrap(True)
 
-        self.verticalLayout_21.addWidget(self.asl_msg_back)
+        self.verticalLayout_2.addWidget(self.asl_msg_back)
 
         self.asl_spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout_21.addItem(self.asl_spacer)
+        self.verticalLayout_2.addItem(self.asl_spacer)
 
         self.asl_msg_help = QLabel(self.asl_page)
         self.asl_msg_help.setObjectName(u"asl_msg_help")
         self.asl_msg_help.setAlignment(Qt.AlignCenter)
         self.asl_msg_help.setWordWrap(True)
 
-        self.verticalLayout_21.addWidget(self.asl_msg_help)
+        self.verticalLayout_2.addWidget(self.asl_msg_help)
 
         self.stackedWidget.addWidget(self.asl_page)
 
-        self.verticalLayout_2.addWidget(self.stackedWidget)
+        self.verticalLayout_asl.addWidget(self.stackedWidget)
 
-        self.verticalLayout_2.setStretch(0, 1)
+        self.verticalLayout_asl.setStretch(0, 1)
 
         self.retranslateUi(LoginDialog)
 
