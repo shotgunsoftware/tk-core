@@ -146,7 +146,6 @@ class ConfigurationResolver(object):
                 cfg_descriptor,
             )
         else:
-            print("ELSE RESOLVE_CONFIGURATION")
             # now probe for a version token in the given descriptor.
             # if that exists, a fixed version workflow will be used where
             # that exact version of the config is used.
@@ -174,10 +173,6 @@ class ConfigurationResolver(object):
                 fallback_roots=self._bundle_cache_fallback_paths,
                 resolve_latest=resolve_latest,
             )
-            print("CFG DESCRIPTOR: %s" % cfg_descriptor)
-            print("resolve configuration: %s" % self._create_configuration_from_descriptor(
-                cfg_descriptor, sg_connection, pc_id=None
-            ))
 
             return self._create_configuration_from_descriptor(
                 cfg_descriptor, sg_connection, pc_id=None
