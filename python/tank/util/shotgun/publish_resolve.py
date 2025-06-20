@@ -204,7 +204,7 @@ def __resolve_local_file_link(tk, attachment_data):
                 "mac_path": "local_path_mac",
             }
 
-            for (storage_field, path_field) in storage_field_map.items():
+            for storage_field, path_field in storage_field_map.items():
                 this_os_storage_root = storage[storage_field]
                 this_os_full_path = attachment_data[path_field]
 
@@ -350,7 +350,7 @@ def __resolve_url_link(tk, attachment_data):
         if expr:
             platform = expr.group(1)
             storage_name = expr.group(2).upper()
-            log.debug(          
+            log.debug(
                 "Added %s environment override for %s: %s"
                 % (platform, storage_name, os.environ[env_var])
             )

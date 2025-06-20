@@ -109,7 +109,7 @@ def create_descriptor(
         constraint_pattern,
         local_fallback_when_disconnected,
     )
-    print("io_descriptor: ", io_descriptor)
+
     # now create a high level descriptor and bind that with the low level descriptor
     return Descriptor.create(
         sg_connection,

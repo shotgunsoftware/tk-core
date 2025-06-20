@@ -996,6 +996,7 @@ class ToolkitManager(object):
             )
 
         elif self._do_shotgun_config_lookup:
+            print("self._do_shotgun_config_lookup: ", self._do_shotgun_config_lookup)
             # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in Flow Production Tracking.")
             log.debug(
@@ -1009,12 +1010,15 @@ class ToolkitManager(object):
             )
 
         else:
+            print("else: ", self._do_shotgun_config_lookup)
             # fixed resolve based on the base config alone
             # do the full resolve where we connect to shotgun etc.
+            print("SELF._BASE_CONFIG_DESCRIPTOR: ", self._base_config_descriptor)
+            print("SELF._SG_CONNECTION: ", self._sg_connection)
             config = resolver.resolve_configuration(
                 self._base_config_descriptor, self._sg_connection
             )
-
+            print("CONFIG: ", config)
         log.debug("Bootstrapping into configuration %r" % config)
 
         return config
@@ -1031,12 +1035,14 @@ class ToolkitManager(object):
         :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
         config = self._get_configuration(entity, progress_callback)
+        print("CONFIG _get_updated_configurationssssssss: ", config)
 
         # verify that this configuration works with Shotgun
         config.verify_required_shotgun_fields()
 
         # see what we have locally
         status = config.status()
+        print("STATUS: ", status)
 
         self._report_progress(
             progress_callback,
