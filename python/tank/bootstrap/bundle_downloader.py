@@ -35,17 +35,13 @@ class BundleDownloader(object):
         base_class_path = os.path.normpath(
             os.path.join(
                 os.path.dirname(__file__),  # ./python/tank/bootstrap
-                "..",  # ./python/tank
-                "..",  # ./python
-                "..",  # ./
-                "hooks",  # ./hooks
-                "bootstrap.py",  # ./hooks/bootstrap.py
+                "bootstrap_hook.py",  # ./hooks/bootstrap_hook.py
             )
         )
         hook_inheritance_chain = [base_class_path]
         # Then, check if there is a config-level override.
         hook_path = os.path.join(
-            descriptor.get_config_folder(), "core", "hooks", "bootstrap.py"
+            descriptor.get_config_folder(), "core", "hooks", "bootstrap_hook.py"
         )
         if os.path.isfile(hook_path):
             hook_inheritance_chain.append(hook_path)
