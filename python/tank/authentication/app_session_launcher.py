@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import http.client
 import json
 import os
 import platform
@@ -15,17 +16,15 @@ import random
 import ssl
 import sys
 import time
-import http.client
 import urllib
 
 import tank
 from tank_vendor import shotgun_api3
 
-from . import errors
+from .. import LogManager
 from .. import platform as sgtk_platform
 from ..util.shotgun import connection
-
-from .. import LogManager
+from . import errors
 
 logger = LogManager.get_logger(__name__)
 
@@ -64,9 +63,10 @@ class AuthenticationError(errors.AuthenticationError):
 
 def process(
     sg_url,
-    browser_open_callback,
+    *,
     http_proxy=None,
     product=None,
+    browser_open_callback,
     keep_waiting_callback=lambda: True,
 ):
     sg_url = connection.sanitize_url(sg_url)
@@ -213,6 +213,10 @@ def process(
         "/internal_api/app_session_request/{session_id}".format(
             session_id=session_id,
         ),
+        method="PUT",
+        headers={
+            "User-Agent": user_agent,
+        },
     )
 
     approved = False
@@ -364,10 +368,6 @@ def get_product_name():
     return PRODUCT_DEFAULT
 
 
-def _get_content_type(headers):
-    return headers.get_content_type()
-
-
 def http_request(opener, req, max_attempts=4):
     attempt = 0
     backoff = 0.75  # Seconds to wait before retry, times the attempt number
@@ -427,7 +427,7 @@ def http_request(opener, req, max_attempts=4):
                 parent_exception=exc,
             )
 
-    if _get_content_type(response.headers) == "application/json":
+    if response.headers.get_content_type() == "application/json":
         try:
             response.json = json.load(response)
         except json.JSONDecodeError as exc:
