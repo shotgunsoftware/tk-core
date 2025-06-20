@@ -65,7 +65,7 @@ def _get_current_os_user():
 def _get_ui_state() -> bool:
     """
     Returns the state of UI: do we have a ui or not.
-    :returns: True or False)
+    :returns: True or False
     """
 
     # When importing qt_abstraction, a lot of code is executed to detects which
