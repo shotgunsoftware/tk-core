@@ -207,6 +207,18 @@ class Ui_LoginDialog(object):
 
         self.verticalLayout_7.addWidget(self.password)
 
+        self.refresh_site_info_spinner = QLabel(self.credentials)
+        self.refresh_site_info_spinner.setObjectName(u"refresh_site_info_spinner")
+        self.refresh_site_info_spinner.setAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
+
+        self.verticalLayout_7.addWidget(self.refresh_site_info_spinner)
+
+        self.refresh_site_info_label = QLabel(self.credentials)
+        self.refresh_site_info_label.setObjectName(u"refresh_site_info_label")
+        self.refresh_site_info_label.setAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
+
+        self.verticalLayout_7.addWidget(self.refresh_site_info_label)
+
         self.message = QLabel(self.credentials)
         self.message.setObjectName(u"message")
         sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
@@ -489,6 +501,8 @@ class Ui_LoginDialog(object):
         self.password.setAccessibleName(QCoreApplication.translate("LoginDialog", u"password", None))
 #endif // QT_CONFIG(accessibility)
         self.password.setPlaceholderText(QCoreApplication.translate("LoginDialog", u"password", None))
+        self.refresh_site_info_spinner.setText("")
+        self.refresh_site_info_label.setText(QCoreApplication.translate("LoginDialog", u"Retrieving the site information...", None))
         self.message.setText(QCoreApplication.translate("LoginDialog", u"Please enter your credentials.", None))
         self.button_options.setText(QCoreApplication.translate("LoginDialog", u"See other options", None))
         self.forgot_password_link.setText(QCoreApplication.translate("LoginDialog", u"<html><head/><body><p><a href=\"#\" style=\"color:#c0c1c3;\">Forgot your password?</a></p></body></html>", None))
