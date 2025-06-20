@@ -213,10 +213,6 @@ def process(
         "/internal_api/app_session_request/{session_id}".format(
             session_id=session_id,
         ),
-        method="PUT",
-        headers={
-            "User-Agent": user_agent,
-        },
     )
 
     approved = False
