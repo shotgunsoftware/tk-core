@@ -439,12 +439,12 @@ class LoginDialog(QtGui.QDialog):
             return
 
         self.host_selected = host_selected
+        self.site_info = sg_site_info.get(host_selected, cache_only=True)
 
-        self._populate_user_dropdown(self._get_current_site())
+        self._populate_user_dropdown(host_selected)
 
-        site_info = sg_site_info.get(host_selected, cache_only=True)
-        if site_info:
-            self._update_login_page_ui(site_info=site_info)
+        if self.site_info:
+            self._update_login_page_ui()
             return
 
         self.ui.login.setVisible(False)
@@ -462,6 +462,35 @@ class LoginDialog(QtGui.QDialog):
         self._query_task.next_url(self._get_current_site())
         self._query_task.start()
 
+    def _on_site_info_response(self, site_info: sg_site_info.SiteInfo):
+        logger.info(f"_on_site_info_response - site_url: {site_info.url}")
+
+        if self._get_current_site() != site_info.url:
+            logger.debug("_update_login_page_ui - site-info thread finished too late, we already selected another host")
+            return
+
+        self.site_info = site_info
+
+        self.ui.refresh_site_info_spinner.setVisible(False)
+        self.ui.refresh_site_info_label.setVisible(False)
+        self.ui.message.setVisible(True)
+        self.ui.sign_in.setVisible(True)
+
+        self._update_login_page_ui()
+
+    def _on_site_info_failure(self, site_url: str, exc: Exception):
+        logger.info(f"_on_site_info_failure - site_url: {site_url}; response: {exc}")
+
+        if self._get_current_site() != site_url:
+            logger.debug("_update_login_page_ui - site-info thread finished too late, we already selected another host")
+            return
+
+        self.ui.refresh_site_info_spinner.setVisible(False)
+        self.ui.refresh_site_info_label.setVisible(False)
+        self.ui.message.setVisible(True)
+        self._set_error_message(
+            self.ui.message, f"Unable to communicate ith FPTR site.<br>{exc}",
+        )
 
     def _populate_user_dropdown(self, site: str) -> None:
         """
@@ -506,11 +535,7 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _update_login_page_ui(
-            self,
-            auth_method: int|None=None,
-            site_info: sg_site_info.SiteInfo|None=None,
-        ):
+    def _update_login_page_ui(self, auth_method: int|None=None):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
@@ -518,9 +543,15 @@ class LoginDialog(QtGui.QDialog):
         logger.info(f"on _update_login_page_ui      auth_method: {auth_method}")
 
         site = self._get_current_site()
-        if site_info:
-            site = site_info.url
-            self.site_info = site_info
+        if self.site_info:
+            site = self.site_info.url
+
+        if not self.site_info:
+            # thread is working at getting the info but we try to provide a best
+            # guess here.
+            prev_selected_method = session_cache.get_preferred_method(site)
+        else:
+            prev_selected_method = None
 
 
         # what if url is empty or site_info is empty???
@@ -536,7 +567,7 @@ class LoginDialog(QtGui.QDialog):
 
         if can_use_web:
             # With a SSO site, we have no choice but to use the web to login.
-            can_use_web = self.site_info.sso_enabled
+            can_use_web = self.site_info.sso_enabled # TODO FIXME: in this situation, the legacy login/password method should not be available
 
             # The user may decide to force the use of the old dialog:
             # - due to graphical issues with Qt and its WebEngine
@@ -556,6 +587,8 @@ class LoginDialog(QtGui.QDialog):
         if method_selected:
             # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
             self.method_selected_user = method_selected
+            # WHY ???????? TODO FIXME
+            # should be pass instead
         elif os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
             # Selecting legacy auth by default
             method_selected = auth_constants.METHOD_BASIC
@@ -601,11 +634,6 @@ class LoginDialog(QtGui.QDialog):
 
         self.method_selected = method_selected
 
-        self.ui.refresh_site_info_spinner.setVisible(False)
-        self.ui.refresh_site_info_label.setVisible(False)
-        self.ui.message.setVisible(True)
-        self.ui.sign_in.setVisible(True)
-
         # if we are switching from one mode (using the web) to another (not using
         # the web), or vice-versa, we need to update the GUI.
         # In web-based authentication, the web form is in charge of obtaining
@@ -647,6 +675,7 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.forgot_password_link.setVisible(
             method_selected == auth_constants.METHOD_BASIC
+            and self.site_info
             and self.site_info.user_authentication_method in ["default", "ldap"]
         )
 
@@ -672,37 +701,6 @@ class LoginDialog(QtGui.QDialog):
 
     def _menu_activated_action_login_creds(self):
         self._update_login_page_ui(auth_method=auth_constants.METHOD_BASIC)
-
-
-    def _on_site_info_response(
-        self,
-        site_info: sg_site_info.SiteInfo,
-    ):
-        logger.info(f"_on_site_info_response - site_url: {site_info.url}")
-
-        if self._get_current_site() != site_info.url:
-            logger.debug("_update_login_page_ui - site-info thread finished too late, we already selected another host")
-            # the thread finished too late, We already selected another host
-            return
-            # Careful, this method is called from a lot different use cases.......!!!!!!
-
-        self._update_login_page_ui(site_info=site_info)
-
-    def _on_site_info_failure(self, site_url: str, exc: Exception):
-        logger.info(f"_on_site_info_failure - site_url: {site_url}; response: {exc}")
-
-        if self._get_current_site() != site_url:
-            logger.debug("_update_login_page_ui - site-info thread finished too late, we already selected another host")
-            # the thread finished too late, We already selected another host
-            return
-            # Careful, this method is called from a lot different use cases.......!!!!!!
-
-        self.ui.refresh_site_info_spinner.setVisible(False)
-        self.ui.refresh_site_info_label.setVisible(False)
-        self.ui.message.setVisible(True)
-        self._set_error_message(
-            self.ui.message, f"Unable to communicate ith FPTR site.<br>{exc}",
-        )
 
     def _current_page_changed(self, index):
         """
