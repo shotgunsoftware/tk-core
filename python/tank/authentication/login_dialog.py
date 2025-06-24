@@ -147,7 +147,7 @@ class LoginDialog(QtWidgets.QDialog):
         :param parent: The Qt parent for the dialog (defaults to None)
         :param session_metadata: Metadata used in the context of SSO. This is an obscure blob of data.
         """
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         qt_modules = {
             "QtCore": QtCore,

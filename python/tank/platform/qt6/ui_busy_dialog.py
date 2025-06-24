@@ -66,7 +66,7 @@ class Ui_BusyDialog(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.label = QLabel(self.frame)
         self.label.setObjectName(u"label")
-        self.label.setPixmap(QPixmap(u":/Tank.Platform.Qt6/sg_logo_80px.png"))
+        self.label.setPixmap(QPixmap(u":/Tank.Platform.Resources/sg_logo_80px.png"))
 
         self.horizontalLayout.addWidget(self.label)
 

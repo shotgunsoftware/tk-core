@@ -183,7 +183,6 @@ class Engine(TankBundle):
         for name, value in qt5_base.items():
             setattr(qt5, name, value)
         qt_widgets = qt5_base.get("QtWidgets")
-        qt5.TankDialogBase = qt_widgets.QDialog if qt_widgets else None
 
         qt6_base = self.__define_qt6_base()
         self.__has_qt6 = len(qt6_base) > 0
@@ -1689,7 +1688,6 @@ class Engine(TankBundle):
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         from .qt6 import tankqdialog
-        # from qt6 import tankqdialog
 
         # construct the widget object
         try:
