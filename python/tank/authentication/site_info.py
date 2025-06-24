@@ -41,6 +41,10 @@ def _get_site_infos(url, http_proxy=None):
     """
 
     time.sleep(3)
+
+    if url.endswith("2"):
+        raise NotImplementedError("URL not valid")
+
     return {
         "user_authentication_method": "oxygen",
         "unified_login_flow_enabled": True,
@@ -86,11 +90,7 @@ def _get_site_infos(url, http_proxy=None):
 
 
 class SiteInfo(object):
-    def __init__(self):
-        self._url = None
-        self._infos = {}
-
-    def reload(self, url, http_proxy=None):
+    def __init__(self, url: str, http_proxy:str | None = None):
         """
         Load the site information into the instance.
 
@@ -103,6 +103,10 @@ class SiteInfo(object):
         :param url:            Url of the site to query.
         :param http_proxy:     HTTP proxy to use, if any.
         """
+        logger.info("site_info start")
+
+        self._url = url
+
         # Check for valid URL
         url_items = utils.urlparse.urlparse(url)
         if (
@@ -111,16 +115,14 @@ class SiteInfo(object):
             or url_items.scheme not in ["http", "https"]
         ):
             logger.debug("Invalid Flow Production Tracking URL %s" % url)
-            return
+            raise Exception("Invalid URL")
 
-        infos = {}
-        try:
-            infos = _get_site_infos(url, http_proxy)
-        # pylint: disable=broad-except
-        except Exception as exc:
-            # Silently ignore exceptions
-            logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
-            return
+        self._infos = _get_site_infos(url, http_proxy)
+        # # pylint: disable=broad-except
+        # except Exception as exc:
+        #     # Silently ignore exceptions
+        #     logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+        #     return
 
 
         # TODO emit a signal with the infos dict instead of waiting for the comsumer to retrieve it.
@@ -130,25 +132,18 @@ class SiteInfo(object):
         # ALSO, the following logs should only run if needed
         # ALSO, why don't we consume the cache here ?!
 
-        self._url = url
-        self._infos = infos
+        logger.debug(f"Site info for {self._url}")
+        logger.debug(
+            f"  user_authentication_method: {self.user_authentication_method}"
+        )
+        logger.debug(
+            f"  unified_login_flow_enabled: {self.unified_login_flow_enabled}"
+        )
+        logger.debug(
+            f"  authentication_app_session_launcher_enabled: {self.app_session_launcher_enabled}"
+        )
 
-        logger.debug("Site info for {url}".format(url=self._url))
-        logger.debug(
-            "  user_authentication_method: {value}".format(
-                value=self.user_authentication_method,
-            )
-        )
-        logger.debug(
-            "  unified_login_flow_enabled: {value}".format(
-                value=self.unified_login_flow_enabled,
-            )
-        )
-        logger.debug(
-            "  authentication_app_session_launcher_enabled: {value}".format(
-                value=self.app_session_launcher_enabled,
-            )
-        )
+        logger.info("site_info end")
 
     @property
     def user_authentication_method(self):

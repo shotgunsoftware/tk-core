@@ -91,28 +91,41 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
     to avoid blocking the main GUI thread.
     """
 
-    def __init__(self, parent, site_info_instance, http_proxy=None):
-        """
-        Constructor.
-        """
-        QtCore.QThread.__init__(self, parent)
-        self._site_info = site_info_instance
+    _url_next = None
+
+    succeed = QtCore.Signal(str, site_info.SiteInfo)
+    failed = QtCore.Signal(str, Exception)
+
+    def __init__(self, parent=None, http_proxy=None):
+        super().__init__(parent=parent)
         self._http_proxy = http_proxy
 
-    @property
-    def url_to_test(self):
-        """String R/W property."""
-        return self._url_to_test
-
-    @url_to_test.setter
-    def url_to_test(self, value):
-        self._url_to_test = value
+    def next_url(self, url: str) -> None:
+        self._url_next = url
+        # TODO Maybe need thread acquire release there...
 
     def run(self):
         """
         Runs the thread.
         """
-        self._site_info.reload(self._url_to_test, self._http_proxy)
+
+        logger.info("QuerySiteAndUpdateUITask::run start")
+
+        while self._url_next:
+            url = self._url_next
+            self._url_next = None
+            # TODO Maybe need thread acquire release there...
+
+
+            logger.info(f"QuerySiteAndUpdateUITask::loop {url}")
+
+            try:
+                info = site_info.SiteInfo(url, http_proxy=self._http_proxy)
+            except Exception as exc:
+                self.failed.emit(url, exc)
+            else:
+                self.succeed.emit(url, info)
+
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -305,12 +318,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
-        self.site_info = site_info.SiteInfo()
-
-        self._query_task = QuerySiteAndUpdateUITask(self, self.site_info, http_proxy)
-        self._query_task.finished.connect(self._toggle_web)
-
-        self._on_site_changed()  # trigger the first site info request
+        self._query_task = QuerySiteAndUpdateUITask(self, http_proxy=http_proxy)
+        self._query_task.succeed.connect(self._on_site_info_response)
+        self._query_task.failed.connect(self._on_site_info_response) #  TODO
 
         # Initialize exit confirm message box
         self.confirm_box = QtGui.QMessageBox(
@@ -335,6 +345,8 @@ class LoginDialog(QtGui.QDialog):
             "will result in canceling your request."
         )
 
+        self.site_info = None
+
         self.confirm_box.setStyleSheet(self.styleSheet())
 
         # Init UI Spinner
@@ -348,6 +360,8 @@ class LoginDialog(QtGui.QDialog):
         # TODO: Init which widget are display by default
         # IF not host at all in the recent box: nothing but the site widget
         # IF host exists: spinner mode
+
+        self._on_site_changed()  # trigger the first site info request
 
 
     def __del__(self):
@@ -405,27 +419,6 @@ class LoginDialog(QtGui.QDialog):
         """
         return sgutils.ensure_str(self.ui.login.currentText().strip())
 
-    def _update_ui_according_to_site_support(self):
-        """
-        Updates the GUI according to the site's information, hiding or showing
-        the username/password fields.
-        TODO the name and description of this method are not accurate!!!!!
-        """
-
-        self.ui.login.setVisible(False)
-        self.ui.password.setVisible(False)
-        self.ui.message.setVisible(False)
-        self.ui.forgot_password_link.setVisible(False)
-        self.ui.button_options.setVisible(False)
-        self.ui.sign_in.setVisible(False) # maybe setEnable instead?
-
-        self.ui.refresh_site_info_spinner.setVisible(True)
-        self.ui.refresh_site_info_label.setVisible(True)
-
-        logger.debug("_update_ui_according_to_site_support")
-        self._query_task.url_to_test = self._get_current_site()
-        self._query_task.start()
-
     def _site_url_changing(self, text):
         """
         Starts a timer to wait until the user stops entering the URL .
@@ -447,9 +440,26 @@ class LoginDialog(QtGui.QDialog):
 
         self.host_selected = host_selected
 
+        # TODO: get site_info cached. If valid results, no need for spinner icon and thread
+
         self.ui.login.clear()  ## TODO do we really want to do that here?
         self._populate_user_dropdown(self._get_current_site())  # same TOTO
-        self._update_ui_according_to_site_support()
+
+        self.ui.login.setVisible(False)
+        self.ui.password.setVisible(False)
+        self.ui.message.setVisible(False)
+        self.ui.forgot_password_link.setVisible(False)
+        self.ui.button_options.setVisible(False)
+        self.ui.sign_in.setVisible(False) # maybe setEnable instead?
+
+        self.ui.refresh_site_info_spinner.setVisible(True)
+        self.ui.refresh_site_info_label.setVisible(True)
+
+        logger.debug("Call thread")
+
+        self._query_task.next_url(self._get_current_site())
+        self._query_task.start()
+
 
     def _populate_user_dropdown(self, site):
         """
@@ -494,18 +504,23 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_web(self, method_selected=None):
+    def _toggle_web( ## TODO rename this method
+            self,
+            auth_method: int|None=None,
+            site_url: str|None=None,
+            site_info: site_info.SiteInfo|None=None,
+        ):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
 
-        site = self._query_task.url_to_test
-        if self._get_current_site() != site:
-            logger.debug("_toggle_web - site-info thread finished too late, we already selected another host")
-            # the thread finished too late, We already selected another host
-            return
-            # Careful, this method is called from a lot different use cases.......!!!!!!
+        logger.info(f"on _toggle_web      auth_method: {auth_method}")
 
+        site = site_url or self._get_current_site()
+        if site_info:
+            self.site_info = site_info
+
+        method_selected = auth_method
         # self.method_selected_user = None ## WHY ?????
 
         # We only update the GUI if there was a change between to mode we
@@ -572,7 +587,7 @@ class LoginDialog(QtGui.QDialog):
             else:
                 method_selected = auth_constants.METHOD_BASIC
 
-        if method_selected == self.method_selected:
+        if auth_method and method_selected == self.method_selected:
             # We don't want to go further if the UI is already configured for
             # this site and this mode.
             # This prevents erasing any error message when various events would
@@ -645,13 +660,38 @@ class LoginDialog(QtGui.QDialog):
         )
 
     def _menu_activated_action_asl(self):
-        self._toggle_web(method_selected=auth_constants.METHOD_ASL)
+        self._toggle_web(auth_method=auth_constants.METHOD_ASL)
 
     def _menu_activated_action_web_legacy(self):
-        self._toggle_web(method_selected=auth_constants.METHOD_WEB_LOGIN)
+        self._toggle_web(auth_method=auth_constants.METHOD_WEB_LOGIN)
 
     def _menu_activated_action_login_creds(self):
-        self._toggle_web(method_selected=auth_constants.METHOD_BASIC)
+        self._toggle_web(auth_method=auth_constants.METHOD_BASIC)
+
+
+    def _on_site_info_response(
+        self,
+        site_url: str,
+        response: site_info.SiteInfo|Exception,
+    ):
+        logger.info(f"_on_site_info_response - site_url: {site_url}; response: {response}")
+
+        if self._get_current_site() != site_url:
+            logger.debug("_toggle_web - site-info thread finished too late, we already selected another host")
+            # the thread finished too late, We already selected another host
+            return
+            # Careful, this method is called from a lot different use cases.......!!!!!!
+
+        if isinstance(response, Exception):
+            self.ui.refresh_site_info_spinner.setVisible(False)
+            self.ui.refresh_site_info_label.setVisible(False)
+            self.ui.message.setVisible(True)
+            self._set_error_message(
+                self.ui.message, f"Unable to communicate ith FPTR site.<br>{response}",
+            )
+        else:
+            print("self.site_info._infos:", response._infos)
+            self._toggle_web(site_url=site_url, site_info=response)
 
     def _current_page_changed(self, index):
         """
