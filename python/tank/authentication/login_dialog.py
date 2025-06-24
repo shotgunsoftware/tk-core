@@ -69,19 +69,6 @@ USER_INPUT_DELAY_BEFORE_SITE_INFO_REQUEST = 300
 # request thread.
 THREAD_WAIT_TIMEOUT_MS = 5000
 
-
-def _is_running_in_desktop():
-    """
-    Indicate if we are in the context of the PTR desktop app.
-
-    When the PTR desktop app is used, we want to disregard the value returned
-    by the call to `get_shotgun_authenticator_support_web_login()` when the
-    target site is using Autodesk Identity.
-    """
-    executable_name = os.path.splitext(os.path.basename(sys.executable))[0].lower()
-    return executable_name in ["shotgun", "shotgrid"]
-
-
 class QuerySiteAndUpdateUITask(QtCore.QThread):
     """
     This class uses a different thread to query the site's information and find
@@ -493,8 +480,7 @@ class LoginDialog(QtGui.QDialog):
             if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
                 logger.info("Using the standard login dialog with the Flow Production Tracking")
             else:
-                if _is_running_in_desktop():
-                    can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
 
                 # If we have full support for Web-based login, or if we enable it in our
                 # environment, use the Unified Login Flow for all authentication modes.
