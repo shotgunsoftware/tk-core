@@ -19,118 +19,18 @@ from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
 
-
-# Cache the servers infos for 30 seconds.
-INFOS_CACHE_TIMEOUT = 30
-# This is a global state variable. It is used to cache information about the Shotgun servers we
-# are interacting with. This is purely to avoid making multiple calls to the servers which would
-# yield back the same information. (That info is relatively constant on a given server)
-# Should this variable be cleared when doing a Python Core swap, it is not an issue.
-# The side effect would be an additional call to the Shotgun site.
-INFOS_CACHE = {}
-
-
-def _get_site_infos(url, http_proxy=None):
-    """
-    Get and cache the desired site infos.
-
-    :param url:            Url of the site to query.
-    :param http_proxy:     HTTP proxy to use, if any.
-
-    :returns:   A dictionary with the site infos.
-    """
-
-    time.sleep(3)
-
-    if url.endswith("2"):
-        raise NotImplementedError("URL not valid")
-
-    return {
-        "user_authentication_method": "oxygen",
-        "unified_login_flow_enabled": True,
-        "authentication_app_session_launcher_enabled": True,
-    }
-
-    # logger.info("Sleep for 10s")
-    # time.sleep(30)
-    # logger.info("done sleeping")
-
-    # Checks if the information is in the cache, is missing or out of date.
-    if url not in INFOS_CACHE or (
-        (time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT
-    ):
-        # Temporary shotgun instance, used only for the purpose of checking
-        # the site infos.
-        #
-        # The constructor of Shotgun requires either a username/login or
-        # key/scriptname pair or a session_token. The token is only used in
-        # calls which need to be authenticated. The 'info' call does not
-        # require authentication.
-        http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
-        if http_proxy:
-            logger.debug("Using HTTP proxy to connect to the PTR server: %s", http_proxy)
-
-        logger.info("Infos for site '%s' not in cache or expired", url)
-        sg = shotgun_api3.Shotgun(
-            url, session_token="dummy", connect=False, http_proxy=http_proxy
-        )
-        # Remove delay between attempts at getting the site info.  Since
-        # this is called in situations where blocking during multiple
-        # attempts can make UIs less responsive, we'll avoid sleeping.
-        # This change was introduced after delayed retries were added in
-        # python-api v3.0.41
-        sg.config.rpc_attempt_interval = 0
-        infos = sg.info()
-
-        INFOS_CACHE[url] = (time.time(), infos)
-    else:
-        logger.info("Infos for site '%s' found in cache", url)
-
-    return INFOS_CACHE[url][1]
-
-
-class SiteInfo(object):
-    def __init__(self, url: str, http_proxy:str | None = None):
+class SiteInfo:
+    def __init__(self, url: str, info: dict):
         """
-        Load the site information into the instance.
-
-        We want this method to fail as quickly as possible if there are any
-        issues. Failure is not considered critical, thus known exceptions are
-        silently ignored. At the moment this method used by the GUI show/hide
-        some of the input fields and by the console authentication to select the
-        appropriate authentication method.
+        TODO
 
         :param url:            Url of the site to query.
-        :param http_proxy:     HTTP proxy to use, if any.
+        :param info:           site infor given by the API.
         """
         logger.info("site_info start")
 
         self._url = url
-
-        # Check for valid URL
-        url_items = utils.urlparse.urlparse(url)
-        if (
-            not url_items.netloc
-            or url_items.netloc in "https"
-            or url_items.scheme not in ["http", "https"]
-        ):
-            logger.debug("Invalid Flow Production Tracking URL %s" % url)
-            raise Exception("Invalid URL")
-
-        self._infos = _get_site_infos(url, http_proxy)
-        # # pylint: disable=broad-except
-        # except Exception as exc:
-        #     # Silently ignore exceptions
-        #     logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
-        #     return
-
-
-        # TODO emit a signal with the infos dict instead of waiting for the comsumer to retrieve it.
-        # Because the thread might already run with different URL at that point....
-
-
-        # ALSO, the following logs should only run if needed
-        # ALSO, why don't we consume the cache here ?!
+        self._infos = info
 
         logger.debug(f"Site info for {self._url}")
         logger.debug(
@@ -144,6 +44,10 @@ class SiteInfo(object):
         )
 
         logger.info("site_info end")
+
+    @property
+    def url(self):
+        return self._url
 
     @property
     def user_authentication_method(self):
@@ -202,3 +106,91 @@ class SiteInfo(object):
         """
 
         return self._infos.get("authentication_app_session_launcher_enabled", False)
+
+# Cache the servers infos for 30 seconds.
+INFOS_CACHE_TIMEOUT = 30
+# This is a global state variable. It is used to cache information about the Shotgun servers we
+# are interacting with. This is purely to avoid making multiple calls to the servers which would
+# yield back the same information. (That info is relatively constant on a given server)
+# Should this variable be cleared when doing a Python Core swap, it is not an issue.
+# The side effect would be an additional call to the Shotgun site.
+INFOS_CACHE = {}
+
+
+def get(url: str, http_proxy: str|None=None, cache_only=False) -> SiteInfo|None:
+    """
+    Get and cache the desired site infos.
+
+    :param url:            Url of the site to query.
+    :param http_proxy:     HTTP proxy to use, if any.
+    # TODO cache_only and better desc
+
+    :returns:   A SiteInfo instance or None
+    """
+
+    # Checks if the information is in the cache, is missing or out of date.
+    if url not in INFOS_CACHE or (
+        (time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT
+    ):
+        if cache_only:
+            return
+
+        si = _retrieve_site_info(url, http_proxy=http_proxy)
+        INFOS_CACHE[url] = (time.time(), si)
+    else:
+        logger.info(f'Infos for site "{url}" found in cache')
+
+    return INFOS_CACHE[url][1]
+
+def _retrieve_site_info(url, http_proxy=None):
+        """
+        Load the site information into the instance.
+
+        We want this method to fail as quickly as possible if there are any
+        issues. Failure is not considered critical, thus known exceptions are
+        silently ignored. At the moment this method used by the GUI show/hide
+        some of the input fields and by the console authentication to select the
+        appropriate authentication method.
+
+        """
+
+        # Check for valid URL
+        url_items = utils.urlparse.urlparse(url)
+        if (
+            not url_items.netloc
+            or url_items.netloc in "https"
+            or url_items.scheme not in ["http", "https"]
+        ):
+            logger.debug("Invalid Flow Production Tracking URL %s" % url)
+            raise Exception("Invalid URL")
+
+        # Temporary shotgun instance, used only for the purpose of checking
+        # the site infos.
+        #
+        # The constructor of Shotgun requires either a username/login or
+        # key/scriptname pair or a session_token. The token is only used in
+        # calls which need to be authenticated. The 'info' call does not
+        # require authentication.
+        http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
+        if http_proxy:
+            logger.debug("Using HTTP proxy to connect to the PTR server: %s", http_proxy)
+
+        logger.info("Infos for site '%s' not in cache or expired", url)
+        sg = shotgun_api3.Shotgun(
+            url, session_token="dummy", connect=False, http_proxy=http_proxy
+        )
+        # Remove delay between attempts at getting the site info.  Since
+        # this is called in situations where blocking during multiple
+        # attempts can make UIs less responsive, we'll avoid sleeping.
+        # This change was introduced after delayed retries were added in
+        # python-api v3.0.41
+        sg.config.rpc_attempt_interval = 0
+
+        try:
+            infos = sg.info()
+        except Exception as exc:
+            # Silently ignore exceptions
+            logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+            return
+
+        return SiteInfo(url, infos)

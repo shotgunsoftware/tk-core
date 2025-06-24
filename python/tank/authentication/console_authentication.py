@@ -75,7 +75,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
             hostname = sanitize_url(hostname)
 
-            site_i = site_info.SiteInfo(hostname, http_proxy)
+            site_i = site_info.get(hostname, http_proxy=http_proxy)
 
             if not site_i.app_session_launcher_enabled:
                 # Will raise an exception if using a username/password pair is
