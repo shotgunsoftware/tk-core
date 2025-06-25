@@ -62,7 +62,7 @@ def _decode_cookies(encoded_cookies):
             decoded_cookies = base64.b64decode(encoded_cookies)
             if not isinstance(decoded_cookies, str):
                 decoded_cookies = decoded_cookies.decode()
-        except (binascii.Error) as e:
+        except binascii.Error as e:
             get_logger().error("Unable to decode the cookies: %s", str(e))
     # Should the decoded cookies be used with SimpleCookie, we strip out the
     # 'Set-Cookie: ' prefix to maintain Python2 and Python3 compatibility.
@@ -81,7 +81,7 @@ def _encode_cookies(cookies):
     :returns: An encoded string representing the cookie jar.
     """
     if isinstance(cookies, str):
-        cookies = cookies.encode()
+        cookies = cookies.encode("utf-8")
     encoded_cookies = base64.b64encode(cookies).decode()
 
     return encoded_cookies

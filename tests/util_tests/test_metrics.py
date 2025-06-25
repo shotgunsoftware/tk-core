@@ -56,7 +56,8 @@ class TestEventMetric(ShotgunTestBase):
         self.assertTrue("event_properties" in metric)
 
     def test_init_with_invalid_parameters(self):
-        """Simply assert that the constructor is exception free and is
+        """
+        Simply assert that the constructor is exception free and is
         able to deal with invalid parameters and various type of extra
         properties.
 

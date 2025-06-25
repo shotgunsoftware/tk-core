@@ -301,6 +301,10 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
             can_connect = response_code == 200
+            # @todo Perhaps deal with redirects (which may occur in the case of a
+            # renamed repo) here. The HTTPRedirectHandler may be a good option
+            # for this.
+            # (https://docs.python.org/3.11/library/urllib.request.html#urllib.request.HTTPRedirectHandler)
             if can_connect:
                 log.debug("...connection established!")
             else:

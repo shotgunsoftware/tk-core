@@ -8,30 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import sys
-import time
-from queue import Empty
-from io import StringIO
-import shutil
 import contextlib
 import logging
+import os
+import shutil
+import sys
+import time
+from io import StringIO
+from queue import Empty
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-    temp_env_var,
-)
-
-from tank import path_cache
-from tank import folder
-from tank import constants
-from tank import LogManager
-from tank.util import is_windows
 import tank
-
-from tank.util import StorageRoots
+from tank import LogManager, constants, folder, path_cache
+from tank.util import StorageRoots, is_windows
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import TankTestBase, mock, temp_env_var
 
 log = LogManager.get_logger(__name__)
 

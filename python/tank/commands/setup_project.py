@@ -772,19 +772,19 @@ class SetupProjectAction(Action):
             # /studio/project      <--- project data location
             # /studio/project/tank <--- toolkit configuation location
 
-            if params.get_project_path(primary_storage_name, "darwin"):
+            if params.get_project_path(primary_local_path, "darwin"):
                 location["darwin"] = "%s/tank" % params.get_project_path(
-                    primary_storage_name, "darwin"
+                    primary_local_path, "darwin"
                 )
 
-            if params.get_project_path(primary_storage_name, "linux"):
+            if params.get_project_path(primary_local_path, "linux"):
                 location["linux"] = "%s/tank" % params.get_project_path(
-                    primary_storage_name, "linux"
+                    primary_local_path, "linux"
                 )
 
-            if params.get_project_path(primary_storage_name, "win32"):
+            if params.get_project_path(primary_local_path, "win32"):
                 location["win32"] = "%s\\tank" % params.get_project_path(
-                    primary_storage_name, "win32"
+                    primary_local_path, "win32"
                 )
 
         else:

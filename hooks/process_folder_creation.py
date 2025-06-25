@@ -176,7 +176,7 @@ class ProcessFolderCreation(Hook):
                     # create a new file based on content
                     path = i.get("path")
                     parent_folder = os.path.dirname(path)
-                    content = i.get("content")
+                    content = i.get("content", "")
                     if not os.path.exists(parent_folder) and not preview_mode:
                         os.makedirs(parent_folder, 0o777)
                     if not os.path.exists(path):

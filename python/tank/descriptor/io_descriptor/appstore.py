@@ -12,31 +12,25 @@
 Toolkit App Store Descriptor.
 """
 
+import fnmatch
+import http.client
 import json
 import os
 import urllib
-import fnmatch
-import http.client
-from tank_vendor.shotgun_api3.lib import httplib2
-
-from ...util import shotgun
-from ...util import pickle
-from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
-from ...util.user_settings import UserSettings
-
-from ..errors import TankAppStoreConnectionError
-from ..errors import TankAppStoreError
-from ..errors import TankDescriptorError
-from ..errors import InvalidAppStoreCredentialsError
-
-from ... import LogManager
-from .. import constants
-from .downloadable import IODescriptorDownloadable
-
-from ...constants import SUPPORT_URL
 
 from tank_vendor import shotgun_api3
+from tank_vendor.shotgun_api3.lib import httplib2
 
+from ... import LogManager
+from ...constants import SUPPORT_URL
+from ...util import (ShotgunAttachmentDownloadError,
+                     UnresolvableCoreConfigurationError, pickle, shotgun)
+from ...util.user_settings import UserSettings
+from .. import constants
+from ..errors import (InvalidAppStoreCredentialsError,
+                      TankAppStoreConnectionError, TankAppStoreError,
+                      TankDescriptorError)
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 

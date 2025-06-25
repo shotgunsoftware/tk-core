@@ -794,7 +794,7 @@ def _calc_path_cache(tk, path, project_names=None):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = str(norm_path.replace("\\", "/"))
+    norm_path = norm_path.replace("\\", "/")
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
