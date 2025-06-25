@@ -281,10 +281,20 @@ def sanitize_url(server_url):
 
     :returns: The cleaned up URL.
     """
+    first_pass = __sanitize_url(server_url.strip())
+    # We have to do two passes here. The reason is that if you use a slash in your URL but provide
+    # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the
+    # scheme is missing we're adding in https://. At that point the url is not ambiguous anymore for
+    # urlparse/urlparse and it can split the url correctly into
+    # - https (scheme)
+    # - test.shogunstudio.com (network location)
+    # - /... (path)
+    #
+    # We also lowercase the entire url. This will allow us to reliably compare site addresses
     # We lowercase the entire url. This will allow us to reliably compare site addresses
     # against each other elsewhere in the code and not have to worry about STUDIO.shotgunstudio.com
     # and studio.shotgunstudio.com not matching when they should be considered the same site.
-    return __sanitize_url(server_url.strip()).lower()
+    return __sanitize_url(first_pass).lower()
 
 
 def get_associated_sg_base_url():
