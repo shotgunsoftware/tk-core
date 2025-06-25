@@ -70,7 +70,6 @@ class BootstrapPipTests(SgtkIntegrationTest):
         for module_name in modules_to_remove:
             del sys.modules[module_name]
 
-
     def test_boostrap_engine(self):
         """Bootstrap the engine when the sgtk module has been installed using pip."""
 
