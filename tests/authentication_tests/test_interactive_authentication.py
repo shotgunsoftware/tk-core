@@ -917,6 +917,13 @@ class InteractiveTests(ShotgunTestBase):
             ), mock.patch(
                 "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
                 return_value=False,
+            ), mock.patch(
+                "tank.authentication.site_info._get_site_infos",
+                return_value={
+                    "user_authentication_method": "default",
+                    "unified_login_flow_enabled": True,
+                    "authentication_app_session_launcher_enabled": True,
+                },
             ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
@@ -950,7 +957,7 @@ class InteractiveTests(ShotgunTestBase):
         ), mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "user_authentication_method": "oxygen",
+                "user_authentication_method": "default",
                 "unified_login_flow_enabled": True,
                 "authentication_app_session_launcher_enabled": True,
             },
