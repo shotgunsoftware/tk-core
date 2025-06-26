@@ -1706,7 +1706,7 @@ class Engine(TankBundle):
             # ticket.
             class _exc_widget(QtGui.QWidget):
                 def __init__(self, msg, *args, **kwargs):
-                    super(_exc_widget, self).__init__(*args, **kwargs)
+                    super().__init__(*args, **kwargs)
 
                     self.setObjectName("SGTK_CORE_EXC_WIDGET")
 

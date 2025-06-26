@@ -317,7 +317,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :return: List of path strings
         """
         # get default cache paths from base class
-        paths = super(IODescriptorAppStore, self)._get_cache_paths()
+        paths = super()._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,

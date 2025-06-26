@@ -38,7 +38,7 @@ USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
 
 class TestContext(TankTestBase):
     def setUp(self):
-        super(TestContext, self).setUp()
+        super().setUp()
 
         self.keys = {
             "Sequence": StringKey("Sequence"),
@@ -107,7 +107,7 @@ class TestContext(TankTestBase):
 
 class TestEq(TestContext):
     def setUp(self):
-        super(TestEq, self).setUp()
+        super().setUp()
         # params used in creating contexts
         self.kws = {}
         self.kws["project"] = self.project
@@ -213,7 +213,7 @@ class TestEq(TestContext):
 
 class TestUser(TestContext):
     def setUp(self):
-        super(TestUser, self).setUp()
+        super().setUp()
         kws1 = {}
         kws1["tk"] = self.tk
         kws1["project"] = self.project

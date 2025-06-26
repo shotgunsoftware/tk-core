@@ -110,7 +110,7 @@ class ListField(Folder):
             return False
 
         # base class implementation
-        return super(ListField, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def get_entity_type(self):
         """
