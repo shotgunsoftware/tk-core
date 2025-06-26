@@ -52,7 +52,7 @@ class TestShotgunPath(ShotgunTestBase):
         self.assertEqual(sg.linux, None)
 
         sys_paths = ShotgunPath.from_system_dict(
-            {"win32": "C:\\temp", "darwin": "/tmp", "linux": "/tmp2", "foo": "bar"}
+            {"win32": "C:\\temp", "darwin": "/tmp", "linux2": "/tmp2", "foo": "bar"}
         )
 
         self.assertEqual(sys_paths.windows, "C:\\temp")
@@ -208,8 +208,8 @@ class TestShotgunPath(ShotgunTestBase):
         """
         gssk = ShotgunPath.get_shotgun_storage_key
         self.assertEqual(gssk("win32"), "windows_path")
-        self.assertEqual(gssk("linux"), "linux_path")
-        self.assertEqual(gssk("linux"), "linux_path")
+        self.assertEqual(gssk("linux2"), "linux_path")
+        self.assertEqual(gssk("linux2"), "linux_path")
         self.assertEqual(gssk("linux3"), "linux_path")
         self.assertEqual(gssk("darwin"), "mac_path")
         if is_windows():
@@ -248,7 +248,7 @@ class TestShotgunPath(ShotgunTestBase):
         )
 
         self.assertEqual(
-            ShotgunPath.get_file_name_from_template("/%s.yml", "linux"), "/Linux.yml"
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux2"), "/Linux.yml"
         )
 
         self.assertEqual(

@@ -42,8 +42,8 @@ def is_linux(platform=None):
     :rtype: bool
     """
     if platform:
-        return platform.startswith("linux")
-    return sys.platform.startswith("linux")
+        return platform.startswith("linux2")
+    return sys.platform.startswith("linux2")
 
 
 def is_macos(platform=None):

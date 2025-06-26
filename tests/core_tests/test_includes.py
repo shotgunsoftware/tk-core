@@ -117,7 +117,7 @@ class Includes(object):
             paths = {
                 "win32": "C:\\test.yml",
                 "darwin": "/test.yml",
-                "linux": "/test.yml",
+                "linux2": "/test.yml",
             }
             # Make sure that we are returning the include for the current platform.
             self.assertEqual(

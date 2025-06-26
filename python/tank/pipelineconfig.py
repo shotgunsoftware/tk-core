@@ -737,12 +737,12 @@ class PipelineConfiguration(object):
             {
                 "primary": {
                     "win32": "z:\studio\my_project",
-                    "linux": "/studio/my_project",
+                    "linux2": "/studio/my_project",
                     "darwin": "/studio/my_project"
                 },
                 "textures": {
                     "win32": "z:\textures\my_project",
-                    "linux": None,
+                    "linux2": None,
                     "darwin": "/textures/my_project"
                 },
             }

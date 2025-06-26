@@ -970,7 +970,7 @@ class Engine(TankBundle):
           menu item for (e.g. ``["Artist"]``)
 
         - ``deny_platforms`` - List of platforms for which not to show the menu
-          (e.g. ``["windows", "mac", "linux"]``). Please note that there are
+          (e.g. ``["windows", "mac", "linux2"]``). Please note that there are
           other ways to achieve this same result.
 
         - ``supports_multiple_selection`` - a special flag that allows multiple objects

@@ -168,14 +168,14 @@ class ProjectSetupParameters(object):
                         "defined_in_shotgun": True,
                         "darwin": "/mnt/foo",
                         "win32": "z:\mnt\foo",
-                        "linux": "/mnt/foo"},
+                        "linux2": "/mnt/foo"},
 
           "textures" : { "description": None,
                          "exists_on_disk": False,
                          "defined_in_shotgun": True,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
-                         "linux": "/mnt/foo"}
+                         "linux2": "/mnt/foo"}
          }
 
         :param config_uri: Configuration uri representing the location of a config
@@ -213,14 +213,14 @@ class ProjectSetupParameters(object):
         #                 "defined_in_shotgun": True,
         #                 "darwin": "/mnt/foo",
         #                 "win32": "z:\mnt\foo",
-        #                 "linux": "/mnt/foo"},
+        #                 "linux2": "/mnt/foo"},
         #
         #   "textures" : { "description": None,
         #                  "exists_on_disk": False,
         #                  "defined_in_shotgun": True,
         #                  "darwin": None,
         #                  "win32": "z:\mnt\foo",
-        #                  "linux": "/mnt/foo"}
+        #                  "linux2": "/mnt/foo"}
         #  }
 
         for storage_name in storage_data:
@@ -725,7 +725,7 @@ class ProjectSetupParameters(object):
         """
 
         config_path = {}
-        config_path["linux"] = linux_path
+        config_path["linux2"] = linux_path
         config_path["win32"] = windows_path
         config_path["darwin"] = macosx_path
 
@@ -829,7 +829,7 @@ class ProjectSetupParameters(object):
 
         # and set member variables
         self._config_path = {}
-        self._config_path["linux"] = linux_path
+        self._config_path["linux2"] = linux_path
         self._config_path["win32"] = windows_path
         self._config_path["darwin"] = macosx_path
 
@@ -861,7 +861,7 @@ class ProjectSetupParameters(object):
 
         # and set member variables
         self._core_path = {}
-        self._core_path["linux"] = linux_path
+        self._core_path["linux2"] = linux_path
         self._core_path["win32"] = windows_path
         self._core_path["darwin"] = macosx_path
 
@@ -1239,7 +1239,7 @@ class TemplateConfiguration(object):
                         "shotgun_id": 12,
                         "darwin": "/mnt/foo",
                         "win32": "z:\mnt\foo",
-                        "linux": "/mnt/foo"},
+                        "linux2": "/mnt/foo"},
 
           "textures" : { "description": None,
                          "exists_on_disk": False,
@@ -1247,7 +1247,7 @@ class TemplateConfiguration(object):
                          "shotgun_id": 14,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
-                         "linux": "/mnt/foo"}
+                         "linux2": "/mnt/foo"}
         }
 
         The main dictionary is keyed by storage name. It will contain one entry
@@ -1306,7 +1306,7 @@ class TemplateConfiguration(object):
 
                 # populate the platform path keys
                 storage_info[root_name]["darwin"] = local_storage["mac_path"]
-                storage_info[root_name]["linux"] = local_storage["linux_path"]
+                storage_info[root_name]["linux2"] = local_storage["linux_path"]
                 storage_info[root_name]["win32"] = local_storage["windows_path"]
 
                 sg_path = ShotgunPath.from_shotgun_dict(local_storage)

@@ -370,8 +370,8 @@ class ClientCapabilities(object):
 
         if system == "darwin":
             self.platform = "mac"
-        elif system.startswith("linux"):
-            self.platform = "linux"
+        elif system.startswith("linux2"):
+            self.platform = "linux2"
         elif system == "win32":
             self.platform = "windows"
         else:

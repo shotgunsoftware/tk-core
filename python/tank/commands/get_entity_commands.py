@@ -190,7 +190,7 @@ class GetEntityCommandsAction(Action):
         elif is_windows(platform):
             platform_name = "windows"
         elif is_linux(platform):
-            platform_name = "linux"
+            platform_name = "linux2"
 
         return ("shotgun_%s_%s.txt" % (platform_name, entity_type)).lower()
 

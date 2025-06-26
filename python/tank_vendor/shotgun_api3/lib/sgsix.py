@@ -78,8 +78,8 @@ def normalize_platform(platform, python2=True):
     :rtype: str
     """
     if python2:
-        return "linux2" if platform.startswith("linux") else platform
-    return "linux" if platform.startswith("linux") else platform
+        return "linux2" if platform.startswith("linux2") else platform
+    return "linux2" if platform.startswith("linux2") else platform
 
 
 # sgsix.platform will mimick the python2 sys.platform behavior to ensure

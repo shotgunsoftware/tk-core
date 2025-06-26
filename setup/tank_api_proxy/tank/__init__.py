@@ -17,7 +17,7 @@ import sys
 # first look for our parent file
 current_folder = os.path.abspath(os.path.dirname(__file__))
 file_name_lookup = {
-    "linux": "core_Linux.cfg",
+    "linux2": "core_Linux.cfg",
     "win32": "core_Windows.cfg",
     "darwin": "core_Darwin.cfg",
 }

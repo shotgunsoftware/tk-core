@@ -312,7 +312,7 @@ class TestConfigLocations(TankTestBase):
             with mock.patch(
                 "sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core",
                 return_value={
-                    "linux": core_root if is_linux() else None,
+                    "linux2": core_root if is_linux() else None,
                     "win32": core_root if is_windows() else None,
                     "darwin": core_root if is_macos() else None,
                 },

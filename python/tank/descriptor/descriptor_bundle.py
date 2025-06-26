@@ -213,7 +213,7 @@ class BundleDescriptor(Descriptor):
         Always returns a list, returns an empty list if there is
         no constraint in place.
 
-        example: ["windows", "linux"]
+        example: ["windows", "linux2"]
         example: []
         """
         manifest = self._get_manifest()

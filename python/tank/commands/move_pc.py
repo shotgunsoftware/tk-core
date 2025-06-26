@@ -151,13 +151,13 @@ class MovePCAction(Action):
         linux_path = args[0]
         windows_path = args[1]
         mac_path = args[2]
-        new_paths = {"darwin": mac_path, "win32": windows_path, "linux": linux_path}
+        new_paths = {"darwin": mac_path, "win32": windows_path, "linux2": linux_path}
 
         # check which paths are different
         modifications = {
             "darwin": (current_paths.macosx != mac_path),
             "win32": (current_paths.windows != windows_path),
-            "linux": (current_paths.linux != linux_path),
+            "linux2": (current_paths.linux != linux_path),
         }
 
         log.info("")
@@ -169,7 +169,7 @@ class MovePCAction(Action):
         log.info("")
         log.info("New Paths")
         log.info("--------------------------------------------------------------")
-        if modifications["linux"]:
+        if modifications["linux2"]:
             log.info("New Linux Path:   '%s'" % linux_path)
         else:
             log.info("New Linux Path:   No change")
@@ -289,7 +289,7 @@ class MovePCAction(Action):
             {
                 "mac_path": new_paths["darwin"],
                 "windows_path": new_paths["win32"],
-                "linux_path": new_paths["linux"],
+                "linux_path": new_paths["linux2"],
             },
         )
 

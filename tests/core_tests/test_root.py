@@ -103,7 +103,7 @@ class TestGetProjectRoots(TankTestBase):
         platform_lookup = {
             "win32": "windows_path",
             "darwin": "mac_path",
-            "linux": "linux_path",
+            "linux2": "linux_path",
         }
 
         project_name = os.path.basename(self.project_root)

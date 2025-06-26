@@ -223,7 +223,7 @@ class TestExecuteInMainThread(TestEngineBase):
     @unittest.skipIf(
         (
             (sys.version_info.major, sys.version_info.minor) == (3, 11)
-            and sys.platform.startswith("linux")
+            and sys.platform.startswith("linux2")
         ),
         "Problem - SG-38851",
     )

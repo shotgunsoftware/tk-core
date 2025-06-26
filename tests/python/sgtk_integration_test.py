@@ -323,7 +323,7 @@ class SgtkIntegrationTest(unittest.TestCase):
 
         # Check if this is a shared core and figure out the core location.
         core_cfg_map = {
-            "linux": "core_Linux.cfg",
+            "linux2": "core_Linux.cfg",
             "win32": "core_Windows.cfg",
             "darwin": "core_Darwin.cfg",
         }
