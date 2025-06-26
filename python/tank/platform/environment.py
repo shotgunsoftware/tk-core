@@ -151,7 +151,7 @@ class Environment(object):
         # now check if the current platform is disabled
         deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
-        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
+        nice_system_name = {"linux": "linux", "darwin": "mac", "win32": "windows"}[
             sgsix.platform
         ]
         if nice_system_name in deny_platforms:

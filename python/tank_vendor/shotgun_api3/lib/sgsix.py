@@ -78,7 +78,7 @@ def normalize_platform(platform, python2=True):
     :rtype: str
     """
     if python2:
-        return "linux2" if platform.startswith("linux") else platform
+        return "linux" if platform.startswith("linux") else platform
     return "linux" if platform.startswith("linux") else platform
 
 

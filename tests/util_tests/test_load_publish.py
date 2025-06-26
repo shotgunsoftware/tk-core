@@ -222,7 +222,7 @@ class TestLocalFileLink(TankTestBase):
         # get the current os platform
         local_path = {
             "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
+            "linux": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
         }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path
@@ -263,7 +263,7 @@ class TestLocalFileLink(TankTestBase):
         # get the current os platform
         local_path = {
             "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
+            "linux": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
         }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path
@@ -302,7 +302,7 @@ class TestLocalFileLinkRaises(TankTestBase):
 
         current_path_field = {
             "win32": "windows_path",
-            "linux2": "linux_path",
+            "linux": "linux_path",
             "darwin": "mac_path",
         }[sgsix.platform]
 
@@ -331,7 +331,7 @@ class TestLocalFileLinkRaises(TankTestBase):
 
         current_path_field = {
             "win32": "local_path_windows",
-            "linux2": "local_path_linux",
+            "linux": "local_path_linux",
             "darwin": "local_path_mac",
         }[sgsix.platform]
 
@@ -389,7 +389,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
 
         current_path_field = {
             "win32": "windows_path",
-            "linux2": "linux_path",
+            "linux": "linux_path",
             "darwin": "mac_path",
         }[sgsix.platform]
 
@@ -572,7 +572,7 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\storage_3\bar.baz",
-            "linux2": "/storage_3/bar.baz",
+            "linux": "/storage_3/bar.baz",
             "darwin": "/storage_3/bar.baz",
         }[sgsix.platform]
 
@@ -599,7 +599,7 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\\share\path\to\file",
-            "linux2": "/linux/path/to/file",
+            "linux": "/linux/path/to/file",
             "darwin": "/mac/path/to/file",
         }[sgsix.platform]
 
@@ -626,7 +626,7 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": os.environ["SHOTGUN_PATH_WINDOWS_2"] + r"path\to\file",
-            "linux2": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
+            "linux": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
             "darwin": os.environ["SHOTGUN_PATH_MAC_2"] + "/path/to/file",
         }[sgsix.platform]
 
@@ -653,7 +653,7 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": os.environ["SHOTGUN_PATH_WINDOWS_2"] + r"path\to\file",
-            "linux2": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
+            "linux": os.environ["SHOTGUN_PATH_LINUX_2"] + "/path/to/file",
             "darwin": os.environ["SHOTGUN_PATH_MAC_2"] + "/path/to/file",
         }[sgsix.platform]
 
@@ -712,7 +712,7 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\storage_3\bar.baz",
-            "linux2": "/storage_3/bar.baz",
+            "linux": "/storage_3/bar.baz",
             "darwin": "/storage_3/bar.baz",
         }[sgsix.platform]
 
@@ -739,7 +739,7 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\\storage2_win\path\to\file",
-            "linux2": "/storage2_linux/path/to/file",
+            "linux": "/storage2_linux/path/to/file",
             "darwin": "/storage2_mac/path/to/file",
         }[sgsix.platform]
 
@@ -766,7 +766,7 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"x:\storage1_win\path\to\file",
-            "linux2": "/storage1_linux/path/to/file",
+            "linux": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
         }[sgsix.platform]
 
@@ -793,7 +793,7 @@ class TestUrlWithStorages(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"x:\storage1_win\path\to\file",
-            "linux2": "/storage1_linux/path/to/file",
+            "linux": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
         }[sgsix.platform]
 
@@ -844,7 +844,7 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"\\storage_win\path\to\file",
-            "linux2": "/storage_linux/path/to/file",
+            "linux": "/storage_linux/path/to/file",
             "darwin": "/storage_mac/path/to/file",
         }[sgsix.platform]
 
@@ -906,7 +906,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"x:\storage_win\path\to\file",
-            "linux2": "/storage_linux/path/to/file",
+            "linux": "/storage_linux/path/to/file",
             "darwin": "/storage_mac/path/to/file",
         }[sgsix.platform]
 

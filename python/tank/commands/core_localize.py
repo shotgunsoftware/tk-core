@@ -334,7 +334,7 @@ class ShareCoreAction(Action):
             "description": (
                 "The path on disk where the core API should be " "installed on Linux."
             ),
-            "default": (None if sgsix.platform == "linux2" else ""),
+            "default": (None if sgsix.platform == "linux" else ""),
             "type": "str",
         }
 
@@ -509,7 +509,7 @@ class AttachToCoreAction(Action):
             log,
             core_locations["darwin"],
             core_locations["win32"],
-            core_locations["linux2"],
+            core_locations["linux"],
             self._interaction_interface,
             copy_core=False,
         )
@@ -554,7 +554,7 @@ def _run_unlocalize(
         )
 
     # we need to have at least a path for the current os, otherwise we cannot introspect the API
-    lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
+    lookup = {"win32": windows_path, "linux": linux_path, "darwin": mac_path}
     new_core_path_local = lookup[sgsix.platform]
 
     if not new_core_path_local:

@@ -179,7 +179,7 @@ class SetupProjectAction(Action):
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
         params.set_associated_core_path(
-            core_roots["linux2"], core_roots["win32"], core_roots["darwin"]
+            core_roots["linux"], core_roots["win32"], core_roots["darwin"]
         )
 
         # specify which config to use
@@ -279,7 +279,7 @@ class SetupProjectAction(Action):
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
         params.set_associated_core_path(
-            core_roots["linux2"], core_roots["win32"], core_roots["darwin"]
+            core_roots["linux"], core_roots["win32"], core_roots["darwin"]
         )
 
         # now ask which config to use. Download if necessary and examine
@@ -689,7 +689,7 @@ class SetupProjectAction(Action):
         default_config_locations = self._get_default_configuration_location(log, params)
 
         linux_path = self._ask_location(
-            log, default_config_locations["linux2"], "Linux"
+            log, default_config_locations["linux"], "Linux"
         )
         windows_path = self._ask_location(
             log, default_config_locations["win32"], "Windows"
@@ -706,7 +706,7 @@ class SetupProjectAction(Action):
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
 
         { "darwin": "/foo/bar/project_name",
-          "linux2": "/foo/bar/project_name",
+          "linux": "/foo/bar/project_name",
           "win32" : "c:\foo\bar\project_name"}
 
         :param log: python logger
@@ -721,7 +721,7 @@ class SetupProjectAction(Action):
         # - installing off a localized core api, meaning that there is no obvious
         #   relationship between the config location and the core location
 
-        location = {"darwin": None, "linux2": None, "win32": None}
+        location = {"darwin": None, "linux": None, "win32": None}
 
         # Get the path to the storage we want to use when calculating the default
         # location for the installed config.
@@ -779,9 +779,9 @@ class SetupProjectAction(Action):
                     primary_storage_name, "darwin"
                 )
 
-            if params.get_project_path(primary_storage_name, "linux2"):
-                location["linux2"] = "%s/tank" % params.get_project_path(
-                    primary_storage_name, "linux2"
+            if params.get_project_path(primary_storage_name, "linux"):
+                location["linux"] = "%s/tank" % params.get_project_path(
+                    primary_storage_name, "linux"
                 )
 
             if params.get_project_path(primary_storage_name, "win32"):
@@ -811,13 +811,13 @@ class SetupProjectAction(Action):
 
             # note: linux_install_root.startswith("/") handles the case where the config file says "undefined"
 
-            if core_locations["linux2"]:
-                chunks = core_locations["linux2"].split(
+            if core_locations["linux"]:
+                chunks = core_locations["linux"].split(
                     "/"
                 )  # e.g. /software/studio -> ['', 'software', 'studio']
                 chunks.pop()  # pop the studio bit (e.g ['', 'software'])
                 chunks.extend(project_name_chunks)  # append project name
-                location["linux2"] = "/".join(chunks)
+                location["linux"] = "/".join(chunks)
 
             if core_locations["darwin"]:
                 chunks = core_locations["darwin"].split(
@@ -886,12 +886,12 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("* A PTR Pipeline configuration will be created:")
         log.info("  - on Macosx:  '%s'" % params.get_configuration_location("darwin"))
-        log.info("  - on Linux:   '%s'" % params.get_configuration_location("linux2"))
+        log.info("  - on Linux:   '%s'" % params.get_configuration_location("linux"))
         log.info("  - on Windows: '%s'" % params.get_configuration_location("win32"))
         log.info("")
         log.info("* The Pipeline configuration will use the following Core API:")
         log.info("  - on Macosx:  '%s'" % params.get_associated_core_path("darwin"))
-        log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux2"))
+        log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux"))
         log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))
         log.info("")
         log.info("NOTE: If the installed configuration contains a ")

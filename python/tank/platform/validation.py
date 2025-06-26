@@ -90,7 +90,7 @@ def validate_platform(descriptor):
     if len(supported_platforms) > 0:
         # supported platforms defined in manifest
         # get a human friendly mapping of current platform: linux/mac/windows
-        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
+        nice_system_name = {"linux": "linux", "darwin": "mac", "win32": "windows"}[
             sgsix.platform
         ]
         if nice_system_name not in supported_platforms:

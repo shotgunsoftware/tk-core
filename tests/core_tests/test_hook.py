@@ -160,7 +160,7 @@ class TestHookGetPublishPath(TankTestBase):
         # get the current os platform
         local_path = {
             "win32": sg_dict["path"]["local_path_windows"],
-            "linux2": sg_dict["path"]["local_path_linux"],
+            "linux": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
         }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path

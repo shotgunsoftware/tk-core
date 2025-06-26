@@ -31,7 +31,7 @@ class ShotgunPath(object):
         # construction
         >>> p = ShotgunPath("C:\\temp", "/tmp", "/tmp")
         >>> p = ShotgunPath.from_shotgun_dict({ "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"})
-        >>> p = ShotgunPath.from_system_dict({ "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"})
+        >>> p = ShotgunPath.from_system_dict({ "win32": "C:\\temp", "darwin": None, "linux": "/tmp"})
         >>> p = ShotgunPath.from_current_os_path("/tmp")
 
         # access
@@ -54,7 +54,7 @@ class ShotgunPath(object):
         >>> p.as_shotgun_dict()
         { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
         >>> p.as_system_dict()
-        { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+        { "win32": "C:\\temp", "darwin": None, "linux": "/tmp"}
 
         # descriptor uri conversion
         >>> p.as_descriptor_uri()
@@ -156,7 +156,7 @@ class ShotgunPath(object):
         :return: :class:`ShotgunPath` instance
         """
         windows_path = system_dict.get("win32")
-        linux_path = system_dict.get("linux2")
+        linux_path = system_dict.get("linux")
         macosx_path = system_dict.get("darwin")
 
         return cls(windows_path, linux_path, macosx_path)
@@ -437,11 +437,11 @@ class ShotgunPath(object):
 
         With ``include_empty`` set to True::
 
-            { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+            { "win32": "C:\\temp", "darwin": None, "linux": "/tmp"}
 
         With ``include_empty`` set to False::
 
-            { "win32": "C:\\temp", "linux2": "/tmp"}
+            { "win32": "C:\\temp", "linux": "/tmp"}
 
         :param include_empty: Controls whether keys should be included for empty path values
         :return: dictionary of paths keyed by sys.platform.
@@ -452,7 +452,7 @@ class ShotgunPath(object):
         if self._macosx_path or include_empty:
             d["darwin"] = self._macosx_path
         if self._linux_path or include_empty:
-            d["linux2"] = self._linux_path
+            d["linux"] = self._linux_path
         return d
 
     def as_descriptor_uri(self, for_development=False):

@@ -151,7 +151,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     # get the location of the configuration
     config_location_curr_os = setup_params.get_configuration_location(sgsix.platform)
     config_location_mac = setup_params.get_configuration_location("darwin")
-    config_location_linux = setup_params.get_configuration_location("linux2")
+    config_location_linux = setup_params.get_configuration_location("linux")
     config_location_win = setup_params.get_configuration_location("win32")
 
     # first do disk structure setup, this is most likely to fail.
@@ -229,7 +229,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     core_path = os.path.join(
         config_location_curr_os, "install", "core", "core_Linux.cfg"
     )
-    core_location = setup_params.get_associated_core_path("linux2")
+    core_location = setup_params.get_associated_core_path("linux")
     fh = open(core_path, "wt")
     fh.write(core_location if core_location else "undefined")
     fh.close()
@@ -271,7 +271,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
 
         roots_data[storage_name] = {
             "windows_path": setup_params.get_storage_path(storage_name, "win32"),
-            "linux_path": setup_params.get_storage_path(storage_name, "linux2"),
+            "linux_path": setup_params.get_storage_path(storage_name, "linux"),
             "mac_path": setup_params.get_storage_path(storage_name, "darwin"),
         }
 

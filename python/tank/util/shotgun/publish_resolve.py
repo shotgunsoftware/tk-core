@@ -163,7 +163,7 @@ def __resolve_local_file_link(tk, attachment_data):
     # look for override env var for our local os
     storage_name = attachment_data["local_storage"]["name"].upper()
     storage_id = attachment_data["local_storage"]["id"]
-    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sgsix.platform]
+    os_name = {"win32": "WINDOWS", "linux": "LINUX", "darwin": "MAC"}[sgsix.platform]
     env_var_name = "SHOTGUN_PATH_%s_%s" % (os_name, storage_name)
     log.debug("Looking for override env var '%s'" % env_var_name)
 
