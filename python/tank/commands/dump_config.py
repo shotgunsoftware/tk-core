@@ -263,7 +263,7 @@ class DumpConfigAction(Action):
         """
 
         # do the base class default validation
-        parameters = super(DumpConfigAction, self)._validate_parameters(parameters)
+        parameters = super()._validate_parameters(parameters)
 
         # make sure we don't have too many dump types
         if parameters["full"] and parameters["sparse"]:

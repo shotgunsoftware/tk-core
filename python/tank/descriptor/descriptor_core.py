@@ -32,7 +32,7 @@ class CoreDescriptor(Descriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(CoreDescriptor, self).__init__(io_descriptor)
+        super().__init__(io_descriptor)
 
     @property
     def version_constraints(self):

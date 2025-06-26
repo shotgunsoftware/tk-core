@@ -32,7 +32,7 @@ class CoreDefaultsManager(DefaultsManager):
             returning the script user credentials if the are available.
         """
         self._mask_script_user = mask_script_user
-        super(CoreDefaultsManager, self).__init__()
+        super().__init__()
 
     def is_host_fixed(self):
         """
@@ -63,7 +63,7 @@ class CoreDefaultsManager(DefaultsManager):
         # If http_proxy is not set, fallback on the base class. Note that http_proxy
         # can be set to an empty value, which we want to use in that case.
         if "http_proxy" not in sg_config_data:
-            return super(CoreDefaultsManager, self).get_http_proxy()
+            return super().get_http_proxy()
         else:
             return sg_config_data["http_proxy"]
 
@@ -80,7 +80,7 @@ class CoreDefaultsManager(DefaultsManager):
             data = shotgun.get_associated_sg_config_data()
             if data.get("api_script") and data.get("api_key"):
                 return {"api_script": data["api_script"], "api_key": data["api_key"]}
-        return super(CoreDefaultsManager, self).get_user_credentials()
+        return super().get_user_credentials()
 
 
 # For backwards compatibility.
