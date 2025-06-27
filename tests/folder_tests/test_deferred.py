@@ -22,7 +22,7 @@ class TestDeferredFolderCreation(TankTestBase):
     """Test deferring of folder creation."""
 
     def setUp(self):
-        super(TestDeferredFolderCreation, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"core": "core.override/deferred_core"})
 
         self.shot = {

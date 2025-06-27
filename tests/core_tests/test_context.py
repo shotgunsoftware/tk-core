@@ -328,7 +328,7 @@ class TestFromPathWithPrevious(TestContext):
 
 class TestUrl(TestContext):
     def setUp(self):
-        super(TestUrl, self).setUp()
+        super().setUp()
 
         # Add task data to mocked shotgun
         self.task = {
@@ -376,7 +376,7 @@ class TestStringRepresentation(TestContext):
     """
 
     def setUp(self):
-        super(TestStringRepresentation, self).setUp()
+        super().setUp()
 
         # Add task data to mocked shotgun
         self.task = {
@@ -430,7 +430,7 @@ class TestStringRepresentation(TestContext):
 
 class TestFromEntity(TestContext):
     def setUp(self):
-        super(TestFromEntity, self).setUp()
+        super().setUp()
 
         # Add task data to mocked shotgun
         self.task = {
@@ -715,7 +715,7 @@ class TestFromEntity(TestContext):
 
 class TestAsTemplateFields(TestContext):
     def setUp(self):
-        super(TestAsTemplateFields, self).setUp()
+        super().setUp()
         # create a context obj using predefined data
         kws = {}
         kws["tk"] = self.tk
@@ -1183,7 +1183,7 @@ class TestAsTemplateFields(TestContext):
 
 class TestSerialize(TestContext):
     def setUp(self):
-        super(TestSerialize, self).setUp()
+        super().setUp()
         # params used in creating contexts
         # Add data to mocked shotgun
         self.task = self.mockgun.create(
@@ -1401,7 +1401,7 @@ class TestSerialize(TestContext):
 
 class TestMultiRoot(TestContext):
     def setUp(self):
-        super(TestMultiRoot, self).setUp()
+        super().setUp()
 
         self.setup_multi_root_fixtures()
 

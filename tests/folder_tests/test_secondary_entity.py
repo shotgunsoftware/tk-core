@@ -29,7 +29,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersSecondaryEntity, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/secondary_entity"})
 
@@ -119,7 +119,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
 
     def tearDown(self):
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersSecondaryEntity, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (

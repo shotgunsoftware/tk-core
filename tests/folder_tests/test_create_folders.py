@@ -33,7 +33,7 @@ class TestSchemaCreateFolders(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFolders, self).setUp(
+        super().setUp(
             parameters={"project_tank_name": project_tank_name}
         )
         self.setup_fixtures()
@@ -92,7 +92,7 @@ class TestSchemaCreateFolders(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFolders, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -339,7 +339,7 @@ class TestSchemaCreateFoldersMultiLevelProjectRoot(TestSchemaCreateFolders):
     """
 
     def setUp(self):
-        super(TestSchemaCreateFoldersMultiLevelProjectRoot, self).setUp(
+        super().setUp(
             project_tank_name="multi/root/project/name"
         )
 
@@ -352,7 +352,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersMultiRoot, self).setUp()
+        super().setUp()
 
         self.setup_multi_root_fixtures()
 
@@ -398,7 +398,7 @@ class TestSchemaCreateFoldersMultiRoot(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersMultiRoot, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -517,7 +517,7 @@ class TestCreateFilesystemStructure(TankTestBase):
     """Tests of the function schema.create_folders."""
 
     def setUp(self):
-        super(TestCreateFilesystemStructure, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.seq = {
@@ -642,7 +642,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersWorkspaces, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/multi_link_core"})
 
@@ -731,7 +731,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersWorkspaces, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -797,7 +797,7 @@ class TestFolderCreationPathCache(TankTestBase):
     """
 
     def setUp(self):
-        super(TestFolderCreationPathCache, self).setUp()
+        super().setUp()
 
         # Use a task based fixtures, as task folders generate two path cache entries with same path, one linked
         # to a task as a primary item, and one linked to a step as a secondary item.
@@ -854,7 +854,7 @@ class TestFolderCreationPathCache(TankTestBase):
         self.path_cache = None
 
         # important to call base class so it can clean up memory
-        super(TestFolderCreationPathCache, self).tearDown()
+        super().tearDown()
 
     def test_shotgun_path_cache_counts(self):
         """
@@ -924,7 +924,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
     """
 
     def setUp(self):
-        super(TestFolderCreationEdgeCases, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -972,7 +972,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         self.path_cache = None
 
         # important to call base class so it can clean up memory
-        super(TestFolderCreationEdgeCases, self).tearDown()
+        super().tearDown()
 
     def test_delete_shot_then_recreate(self):
 
