@@ -37,7 +37,9 @@ class BootstrapPipTests(SgtkIntegrationTest):
 
         # Figure out our location
         current_dir = os.path.abspath(os.path.dirname(__file__))
-        python_package_path = os.path.normpath(os.path.join(current_dir, "..", "..", "python"))
+        python_package_path = os.path.normpath(
+            os.path.join(current_dir, "..", "..", "python")
+        )
 
         # Install sgtk in a temporary location pip-liked by manually copying the packages to the temporary location
         cls._sgtk_install_location = tempfile.mkdtemp(prefix="sgtk_install_", dir=None)
@@ -46,7 +48,7 @@ class BootstrapPipTests(SgtkIntegrationTest):
                 shutil.copytree(
                     os.path.join(python_package_path, package),
                     os.path.join(cls._sgtk_install_location, package),
-                    ignore=shutil.ignore_patterns("*.pyc", "__pycache__")
+                    ignore=shutil.ignore_patterns("*.pyc", "__pycache__"),
                 )
         sys.path.insert(1, cls._sgtk_install_location)
 
@@ -80,11 +82,11 @@ class BootstrapPipTests(SgtkIntegrationTest):
 
         self.assertEqual(
             os.path.dirname(sgtk.__file__),
-            os.path.join(self._sgtk_install_location, "tank")
+            os.path.join(self._sgtk_install_location, "tank"),
         )
         self.assertEqual(
             os.path.dirname(sgtk.bootstrap.__file__),
-            os.path.join(self._sgtk_install_location, "tank", "bootstrap")
+            os.path.join(self._sgtk_install_location, "tank", "bootstrap"),
         )
 
         # Bootstrap the engine
