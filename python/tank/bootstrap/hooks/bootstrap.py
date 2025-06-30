@@ -14,6 +14,11 @@ This hook is used override some of the functionality of the :class:`~sgtk.bootst
 It will be instantiated only after a configuration has been selected by the :class:`~sgtk.bootstrap.ToolkitManager`.
 Therefore, this hook will not be invoked to download a configuration. However, the Toolkit Core,
 applications, frameworks and engines can be downloaded through the hook.
+
+.. warning::
+    In order to be able to bootstrap Toolkit whatever the installation method has been used, the bootstrap hook need
+    to be store within the package itself. That's why this core hook can be found in ``core/python/tank/bootstrap/hook``
+    and not in the usual core hooks location.
 """
 
 from sgtk import get_hook_baseclass
