@@ -34,9 +34,9 @@ class BundleDownloader(object):
         # First put our base hook implementation into the array.
         base_class_path = os.path.normpath(
             os.path.join(
-                os.path.dirname(__file__),  # ./python/tank/bootstrap
+                os.path.dirname(__file__),  # ...tk-core/python/tank/bootstrap
                 "hooks",
-                "bootstrap.py",  # ./hooks/bootstrap.py
+                "bootstrap.py",  # ...tk-core/python/bootstrap/hooks/bootstrap.py
             )
         )
         hook_inheritance_chain = [base_class_path]
