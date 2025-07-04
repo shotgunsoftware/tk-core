@@ -270,7 +270,12 @@ def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
             if os.path.isdir(srcname):
                 files.extend(copy_folder(srcname, dstname, folder_permissions))
             else:
+                if os.path.exists(dstname) and not os.access(dstname, os.W_OK):
+                    # if destination already exists but is readonly, change it to writable
+                    os.chmod(dstname, stat.S_IWUSR)
+
                 shutil.copy(srcname, dstname)
+
                 files.append(srcname)
                 # if the file extension is sh, set executable permissions
                 if (

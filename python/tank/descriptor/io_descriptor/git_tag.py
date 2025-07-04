@@ -11,7 +11,7 @@ import os
 import copy
 import re
 
-from .git import IODescriptorGit
+from .git import IODescriptorGit, TankGitError
 from ..errors import TankDescriptorError
 from ... import LogManager
 
@@ -20,7 +20,11 @@ try:
 except ImportError:
     from tank_vendor import six as sgutils
 
+from ...util.process import SubprocessCalledProcessError
+
 log = LogManager.get_logger(__name__)
+
+TAG_REGEX = re.compile(".*refs/tags/([^^/]+)$")
 
 
 class IODescriptorGitTag(IODescriptorGit):
@@ -62,9 +66,24 @@ class IODescriptorGitTag(IODescriptorGit):
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
-        self._version = descriptor_dict.get("version")
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
+
+        raw_version = descriptor_dict.get("version")
+        raw_version_is_latest = raw_version == "latest"
+
+        if "x" in raw_version or raw_version_is_latest:
+            if raw_version_is_latest:
+                self._version = self._get_latest_by_pattern(None)
+            else:
+                self._version = self._get_latest_by_pattern(raw_version)
+            log.info(
+                "{}-{} resolved as {}".format(
+                    self.get_system_name(), raw_version, self._version
+                )
+            )
+        else:
+            self._version = raw_version
 
     def __str__(self):
         """
@@ -72,6 +91,16 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git, tag v1.2.3
         return "%s, Tag %s" % (self._path, self._version)
+
+    @property
+    def _tags(self):
+        """Fetch tags if necessary."""
+        try:
+            return self.__tags
+        except AttributeError:
+            log.info("Fetch tags for {}".format(self.get_system_name()))
+            self.__tags = self._fetch_tags()
+        return self.__tags
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
@@ -122,33 +151,21 @@ class IODescriptorGitTag(IODescriptorGit):
         return paths
 
     def get_version(self):
-        """
-        Returns the version number string for this item, .e.g 'v1.2.3'
-        """
+        """Returns the tag name."""
         return self._version
 
-    def _download_local(self, destination_path):
+    def _download_local(self, target_path):
         """
-        Retrieves this version to local repo.
-        Will exit early if app already exists local.
-
-        This will connect to remote git repositories.
-        Depending on how git is configured, https repositories
-        requiring credentials may result in a shell opening up
-        requesting username and password.
-
-        The git repo will be cloned into the local cache and
-        will then be adjusted to point at the relevant tag.
-
-        :param destination_path: The destination path on disk to which
-        the git tag descriptor is to be downloaded to.
+        Downloads the data represented by the descriptor into the primary bundle
+        cache path.
         """
+        log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
         try:
             # clone the repo, checkout the given tag
             self._clone_then_execute_git_commands(
-                destination_path, [], depth=1, ref=self._version
+                target_path, [], depth=1, ref=self._version
             )
-        except Exception as e:
+        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
                 "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
             )
@@ -174,10 +191,7 @@ class IODescriptorGitTag(IODescriptorGit):
 
         :returns: IODescriptorGitTag object
         """
-        if constraint_pattern:
-            tag_name = self._get_latest_by_pattern(constraint_pattern)
-        else:
-            tag_name = self._get_latest_version()
+        tag_name = self._get_latest_by_pattern(constraint_pattern)
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = sgutils.ensure_str(tag_name)
@@ -199,57 +213,47 @@ class IODescriptorGitTag(IODescriptorGit):
             - v1.2.3.x (will always return a forked version, eg. v1.2.3.2)
         :returns: IODescriptorGitTag object
         """
-        git_tags = self._fetch_tags()
-        latest_tag = self._find_latest_tag_by_pattern(git_tags, pattern)
-        if latest_tag is None:
-            raise TankDescriptorError(
-                "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s"
-                % (self.get_system_name(), pattern, ", ".join(git_tags))
-            )
+        if not pattern:
+            latest_tag = self._get_latest_tag()
+        else:
+            latest_tag = self._find_latest_tag_by_pattern(self._tags, pattern)
+            if latest_tag is None:
+                raise TankDescriptorError(
+                    "'%s' does not have a version matching the pattern '%s'. "
+                    "Available versions are: %s"
+                    % (self.get_system_name(), pattern, ", ".join(self._tags))
+                )
 
         return latest_tag
 
     def _fetch_tags(self):
-        try:
-            # clone the repo, list all tags
-            # for the repository, across all branches
-            commands = ["ls-remote -q --tags %s" % self._path]
-            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split(
-                "\n"
-            )
-            regex = re.compile(".*refs/tags/([^^]*)$")
-            git_tags = []
-            for tag in tags:
-                m = regex.match(sgutils.ensure_str(tag))
-                if m:
-                    git_tags.append(m.group(1))
+        output = self._execute_git_commands(
+            ["git", "ls-remote", "-q", "--tags", self._path]
+        )
 
-        except Exception as e:
-            raise TankDescriptorError(
-                "Could not get list of tags for %s: %s" % (self._path, e)
-            )
-
-        if len(git_tags) == 0:
-            raise TankDescriptorError(
-                "Git repository %s doesn't have any tags!" % self._path
-            )
+        git_tags = []
+        for line in output.splitlines():
+            m = TAG_REGEX.match(sgutils.ensure_str(line))
+            if m:
+                git_tags.append(m.group(1))
 
         return git_tags
 
-    def _get_latest_version(self):
-        """
-        Returns a descriptor object that represents the latest version.
-        :returns: IODescriptorGitTag object
-        """
-        tags = self._fetch_tags()
-        latest_tag = self._find_latest_tag_by_pattern(tags, pattern=None)
-        if latest_tag is None:
+    def _get_latest_tag(self):
+        """Get latest tag name. Compare them as version numbers."""
+        if not self._tags:
             raise TankDescriptorError(
                 "Git repository %s doesn't have any tags!" % self._path
             )
 
-        return latest_tag
+        tupled_tags = []
+        for t in self._tags:
+            items = t.split(".")
+            tupled_tags.append(
+                tuple(int(item) if item.isdigit() else item for item in items)
+            )
+
+        return ".".join(map(str, sorted(tupled_tags)[-1]))
 
     def get_latest_cached_version(self, constraint_pattern=None):
         """
@@ -287,3 +291,12 @@ class IODescriptorGitTag(IODescriptorGit):
 
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
+
+    def _fetch_local_data(self, path):
+        version = self._execute_git_commands(
+            ["git", "-C", os.path.normpath(path), "describe", "--tags", "--abbrev=0"]
+        )
+
+        local_data = {"version": version}
+        log.debug("Get local repo data: {}".format(local_data))
+        return local_data
