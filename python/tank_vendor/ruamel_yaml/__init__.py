@@ -1,8 +1,5 @@
 # coding: utf-8
 
-from __future__ import print_function
-from __future__ import absolute_import
-
 # install_requires of ruamel.base is not really required but the old
 # ruamel.base installed __init__.py, and thus a new version should
 # be installed at some point

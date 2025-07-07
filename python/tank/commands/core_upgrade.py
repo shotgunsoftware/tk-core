@@ -11,9 +11,6 @@
 """
 Tank command allowing to do core updates.
 """
-
-from __future__ import with_statement
-
 from ..errors import TankError
 from .action_base import Action
 
