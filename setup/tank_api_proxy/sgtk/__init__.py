@@ -23,7 +23,7 @@ file_name_lookup = {
     "darwin": "core_Darwin.cfg",
 }
 # Ensure that we get the correct linux key, even if sys.platform returns just "linux"
-platform = "linux" if sys.platform.startswith("linux") else sys.platform
+platform = sys.platform
 parent_file_name = file_name_lookup[platform]
 parent_cfg_path = os.path.join(current_folder, "..", "..", parent_file_name)
 parent_cfg_path = os.path.abspath(parent_cfg_path)
