@@ -149,7 +149,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     :param setup_params: Parameters object which holds gathered project settings
     """
     # get the location of the configuration
-    config_location_curr_os = setup_params.get_configuration_location(sgsix.platform)
+    config_location_curr_os = setup_params.get_configuration_location(sys.platform)
     config_location_mac = setup_params.get_configuration_location("darwin")
     config_location_linux = setup_params.get_configuration_location("linux")
     config_location_win = setup_params.get_configuration_location("win32")
@@ -435,6 +435,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     # install apps
 
     # We now have a fully functional tank setup! Time to start it up...
+    print("CONFIG_LOCATION_CURR_OS:", config_location_curr_os)
     tk = sgtk_from_path(config_location_curr_os)
     log.debug("Instantiated tk instance: %s" % tk)
     pc = tk.pipeline_configuration

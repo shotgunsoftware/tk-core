@@ -11,6 +11,7 @@
 import os
 import tempfile
 import uuid
+import sys
 
 from . import constants
 
@@ -30,7 +31,6 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class ProjectSetupParameters(object):
@@ -232,7 +232,7 @@ class ProjectSetupParameters(object):
                     "and set up a new local file storage." % storage_name
                 )
 
-            elif storage_data[storage_name][sgsix.platform] is None:
+            elif storage_data[storage_name][sys.platform] is None:
                 raise TankError(
                     "The PTR Local File Storage '%s' does not have a path defined "
                     "for the current operating system!" % storage_name
@@ -241,7 +241,7 @@ class ProjectSetupParameters(object):
             elif (
                 check_storage_path and not storage_data[storage_name]["exists_on_disk"]
             ):
-                local_path = storage_data[storage_name][sgsix.platform]
+                local_path = storage_data[storage_name][sys.platform]
                 raise TankError(
                     "The path on disk '%s' defined in the PTR Local File Storage '%s' does "
                     "not exist!" % (local_path, storage_name)
@@ -388,9 +388,7 @@ class ProjectSetupParameters(object):
                 % storage_name
             )
 
-        return self._storage_data.get(storage_name).get(
-            sgsix.normalize_platform(platform)
-        )
+        return self._storage_data.get(storage_name).get(platform)
 
     def update_storage_root(self, config_uri, root_name, storage_data):
         """
@@ -581,7 +579,7 @@ class ProjectSetupParameters(object):
 
         :param storage_name: Name of storage for which to preview the project path
         :param project_name: Project disk name to preview
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
 
         :returns: full path
         """
@@ -763,7 +761,7 @@ class ProjectSetupParameters(object):
                 )
 
         # get the location of the configuration
-        config_path_current_os = config_path[sgsix.platform]
+        config_path_current_os = config_path[sys.platform]
 
         if config_path_current_os is None or config_path_current_os == "":
             raise TankError(
@@ -846,7 +844,7 @@ class ProjectSetupParameters(object):
         if self._config_path is None:
             raise TankError("No configuration location has been set!")
 
-        return self._config_path[sgsix.normalize_platform(platform)]
+        return self._config_path[platform]
 
     ################################################################################################################
     # Accessing which core API to use
@@ -876,7 +874,7 @@ class ProjectSetupParameters(object):
         :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        return self._core_path[sgsix.normalize_platform(platform)]
+        return self._core_path[platform]
 
     ################################################################################################################
     # Validation
@@ -891,7 +889,7 @@ class ProjectSetupParameters(object):
         if self._core_path is None:
             raise TankError("Need to define a core location!")
 
-        if self._core_path[sgsix.platform] is None:
+        if self._core_path[sys.platform] is None:
             raise TankError(
                 "The core API you are trying to use in conjunction with this project "
                 "has not been set up to operate on the current operating system. Please update "
@@ -928,13 +926,13 @@ class ProjectSetupParameters(object):
 
             # make sure that the storage location is not the same folder
             # as the pipeline config location. That will confuse tank.
-            config_path_current_os = self.get_configuration_location(sgsix.platform)
+            config_path_current_os = self.get_configuration_location(sys.platform)
             for storage_name in self.get_required_storages():
 
                 # get the project path for this storage
                 # note! at this point, the storage root has been checked and exists on disk.
                 project_path_local_os = self.get_project_path(
-                    storage_name, sgsix.platform
+                    storage_name, sys.platform
                 )
 
                 if config_path_current_os == project_path_local_os:
@@ -949,7 +947,7 @@ class ProjectSetupParameters(object):
 
             # get the project path for this storage
             # note! at this point, the storage root has been checked and exists on disk.
-            project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
+            project_path_local_os = self.get_project_path(storage_name, sys.platform)
 
             if not os.path.exists(project_path_local_os):
                 raise TankError(
@@ -964,7 +962,7 @@ class ProjectSetupParameters(object):
         if required_core_version:
 
             # now figure out the version of the desired API
-            api_location = self.get_associated_core_path(sgsix.platform)
+            api_location = self.get_associated_core_path(sys.platform)
             curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
 
             if is_version_newer(required_core_version, curr_core_version):

@@ -27,7 +27,6 @@ from .errors import TankMissingEnvironmentFile
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
 from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 
 logger = LogManager.get_logger(__name__)
 
@@ -152,7 +151,7 @@ class Environment(object):
         deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
         nice_system_name = {"linux": "linux", "darwin": "mac", "win32": "windows"}[
-            sgsix.platform
+            sys.platform
         ]
         if nice_system_name in deny_platforms:
             return True

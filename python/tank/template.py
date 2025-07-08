@@ -14,13 +14,13 @@ Management of file and directory templates.
 """
 
 import os
+import sys
 
 from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
 from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.six.moves import zip
 from tank.util import is_linux, is_macos, is_windows, sgre as re
 
@@ -613,7 +613,7 @@ class TemplatePath(Template):
             )
 
         else:
-            platform = sgsix.normalize_platform(platform)
+            platform = sys.platform
             # caller has requested a path for another OS
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
@@ -829,7 +829,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
                 "instead?" % (template_name, definition)
             )
 
-        root_path = all_per_platform_roots.get(root_name, {}).get(sgsix.platform)
+        root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
         if root_path is None:
             raise TankError(
                 "Undefined PTR storage! The local file storage '%s' is not defined for this "
