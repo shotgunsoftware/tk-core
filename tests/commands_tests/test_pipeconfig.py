@@ -136,8 +136,7 @@ class TestPipelineConfig(TankTestBase):
         # Test pushing with symlinks.
         #
         # When the method symlink is present, it means that the current platform
-        # supports symlinks. The method was missing in Python 2 on Windows,
-        # but was added in Python 3.
+        # supports symlinks.
         #
         # Note that if you are not in Developer mode on Windows, the method will
         # still be present in Python 3, but the symlink call will fail. There is

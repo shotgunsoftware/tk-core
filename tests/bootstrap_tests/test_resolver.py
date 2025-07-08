@@ -350,38 +350,6 @@ class TestAutoUpdate(TestResolverBase):
         super().setUp()
         self.resolver._plugin_id = 'basic.desktop'
 
-    @mock.patch("sys.version_info", return_value=mock.Mock())
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_autoupdate_config(self, find_mock, _):
-        """
-        Tests that the configuration resolved is the maximum tk-config-basic
-        version supporting Python 2 when the PTR desktop app is used to startup the
-        tk-desktop engine on a Site or Project context.
-        """
-
-        # Mock Python2 Version
-        sys.version_info = [2, 7, 16, 'final', 0]
-        self.assertEqual(sys.version_info[0], 2)
-
-        # test latest version of config by omitting version number
-        config_latest = {"type": "app_store", "name": "tk-config-test"}
-        # Maximum tk-config-basic version supporting Python 2.
-        version = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
-        # expected config
-        expected_config = {
-            'type': 'app_store',
-            'name': 'tk-config-test',
-            'version': version,
-        }
-
-        # Test the configuration resolved is the Maximum tk-config-basic
-        # version supporting Python 2 when auto-update is triggered.
-        config = self.resolver.resolve_not_found_sg_configuration(config_latest, self.mockgun)
-        self.assertEqual(config._descriptor.get_dict(), expected_config)
-
-        # make sure we didn't talk to shotgun
-        self.assertEqual(find_mock.called, False)
-
 class TestResolverPriority(TestResolverBase):
     """
     This test ensures that the following priority is respected when multiple pipeline configurations

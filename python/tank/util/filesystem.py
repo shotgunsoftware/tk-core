@@ -24,7 +24,6 @@ from contextlib import contextmanager
 
 from .. import LogManager
 from .platforms import is_linux, is_macos, is_windows
-from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -374,7 +373,7 @@ def create_valid_filename(value):
     # strip trailing whitespace
     value = value.strip()
 
-    if isinstance(value, six.text_type):
+    if isinstance(value, str):
         # src is unicode, so return unicode
         return exp.sub("_", value)
     else:

@@ -479,8 +479,6 @@ class TestDescriptorSupport(TankTestBase):
         """
         Ensures that app store connection errors don't bubble up to the surface.
         """
-        # Nested patches because Python 2.5 doesn't support multiple arguments to the `with`
-        # keyword.
         with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             "._IODescriptorAppStore__create_sg_app_store_connection",

@@ -12,16 +12,6 @@
 Unit tests for Unified Login Flow 2 authentication.
 """
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-)
-
-from tank.authentication import (
-    app_session_launcher,
-)
-
 import errno
 import http.client
 import http.server
@@ -33,25 +23,35 @@ import sys
 import threading
 import urllib.parse
 
+from tank.authentication import app_session_launcher
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase, mock
+
 
 class AppSessionLauncherTests(ShotgunTestBase):
     def test_process_parameters(self):
         with self.assertRaises(AssertionError):
             app_session_launcher.process(
                 "https://test.shotgunstudio.com",
-                None,  # browser_open_callback
+                browser_open_callback=None
             )
 
         with self.assertRaises(AssertionError):
             app_session_launcher.process(
                 "https://test.shotgunstudio.com",
-                "Test",  # browser_open_callback
+                browser_open_callback=None,
             )
 
         with self.assertRaises(AssertionError):
             app_session_launcher.process(
                 "https://test.shotgunstudio.com",
-                lambda: True,  # browser_open_callback
+                browser_open_callback="Test",
+            )
+
+        with self.assertRaises(AssertionError):
+            app_session_launcher.process(
+                "https://test.shotgunstudio.com",
+                browser_open_callback=lambda: True,
                 keep_waiting_callback=None,
             )
 
@@ -164,7 +164,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         self.assertEqual(
             app_session_launcher.process(
                 self.api_url,
-                url_opener,  # browser_open_callback
+                browser_open_callback=url_opener,
                 http_proxy="{fqdn}:{port}".format(  # For code coverage
                     fqdn=self.httpd.server_address[0],
                     port=self.httpd.server_address[1],
@@ -187,7 +187,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertIsInstance(
@@ -250,7 +250,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         self.assertEqual(
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             ),
             (self.api_url, "john", "to123", None),
         )
@@ -261,7 +261,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -275,7 +275,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -291,7 +291,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertIsInstance(
@@ -310,7 +310,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -324,7 +324,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -339,7 +339,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -355,7 +355,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -371,7 +371,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -387,7 +387,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -405,7 +405,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -425,7 +425,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
             )
 
         self.assertEqual(
@@ -444,7 +444,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: False,  # browser_open_callback
+                browser_open_callback=lambda url: False,
             )
 
         self.assertEqual(
@@ -469,7 +469,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
                 product="app_2a37c59",
                 keep_waiting_callback=lambda: False,
             )
@@ -505,7 +505,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                url_opener,  # browser_open_callback
+                browser_open_callback=url_opener,
             )
 
         self.assertIsInstance(
@@ -530,7 +530,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
 
@@ -543,7 +543,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,
-                lambda url: True,  # browser_open_callback
+                browser_open_callback=lambda url: True,
                 keep_waiting_callback=lambda: False,  # Avoid 5 minute timeout
             )
 

@@ -26,7 +26,6 @@ from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
-from tank_vendor import six
 
 logger = LogManager.get_logger(__name__)
 
@@ -690,7 +689,7 @@ class Environment(object):
             is determined by whether it is a string, and if so, it is an
             included value if it has an @ at its head.
             """
-            return isinstance(item, six.string_types) and item.startswith("@")
+            return isinstance(item, str) and item.startswith("@")
 
         if is_included(bundle_section):
             # The whole section is a reference! The token is just the include

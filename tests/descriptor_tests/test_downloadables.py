@@ -31,7 +31,6 @@ from tank_test.tank_test_base import (
 import sgtk
 import tank
 from tank.util import is_windows
-from tank_vendor.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -243,7 +242,7 @@ class Implementation(object):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write(b("\0"))
+            f.write(b"\0")
 
         zip_file_path = os.path.join(
             tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex

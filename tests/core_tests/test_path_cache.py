@@ -8,31 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import contextlib
+import logging
 import os
+import shutil
 import sys
 import time
 from io import StringIO
 from queue import Empty
-import shutil
-import contextlib
-import logging
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-    temp_env_var,
-)
-
-from tank import path_cache
-from tank import folder
-from tank import constants
-from tank import LogManager
-from tank.util import is_windows
 import tank
-
-from tank.util import StorageRoots
-from tank_vendor.six.moves import range
+from tank import LogManager, folder, path_cache
+from tank.util import StorageRoots, is_windows
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import TankTestBase, mock, temp_env_var
 
 log = LogManager.get_logger(__name__)
 
@@ -63,10 +52,7 @@ def sync_path_cache(tk, force_full_sync=False):
     pc.synchronize(force_full_sync)
     pc.close()
 
-    # Do not close StringIO here, as on Python 2.5 this will cause some garbage to be printed
-    # when the unit tests are complete. The SteamIO object will be gc'ed anyway, so it shouldn't
-    # be too bad.
-
+    # No need to close the StringIO; it will be garbage collected.
     log_contents = stream.getvalue()
     log.removeHandler(handler)
     return log_contents

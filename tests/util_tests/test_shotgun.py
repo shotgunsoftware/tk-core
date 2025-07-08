@@ -8,21 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import datetime
 import os
 import shutil
-import datetime
 import urllib.parse
 
 import tank
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-    ShotgunTestBase,
-)
-
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
 
 
 def get_file_list(folder, prefix):
@@ -309,7 +304,13 @@ class TestShotgunFindPublish(TankTestBase):
         # Create a new project and pipeline configuration, and set the new project
         # as the current project of the new pipeline configuraiton
         other_proj, other_proj_root = self.create_project({"name": "other project"})
-        (_, _, _, _, other_tk,) = self.create_pipeline_configuration(other_proj)
+        (
+            _,
+            _,
+            _,
+            _,
+            other_tk,
+        ) = self.create_pipeline_configuration(other_proj)
         other_proj_name = os.path.basename(other_proj_root)
         other_pub = {
             "type": "PublishedFile",
@@ -679,7 +680,9 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         """
         target_dir = os.path.join(self.download_destination, "url")
         try:
-            with mock.patch("tank.util.shotgun.download.download_url") as download_url_mock:
+            with mock.patch(
+                "tank.util.shotgun.download.download_url"
+            ) as download_url_mock:
                 # Fail forever, and ensure exception is raised.
                 download_url_mock.side_effect = Exception("Test Exception")
                 with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):

@@ -12,11 +12,11 @@ import os
 import urllib.error
 import urllib.request
 
-from .downloadable import IODescriptorDownloadable
-from ..errors import TankError, TankDescriptorError
 from ... import LogManager
 from ...util import sgre as re
 from ...util.shotgun import download
+from ..errors import TankDescriptorError, TankError
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
@@ -305,7 +305,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             # @todo Perhaps deal with redirects (which may occur in the case of a
             # renamed repo) here. The HTTPRedirectHandler may be a good option
             # for this.
-            # (https://docs.python.org/2/library/urllib2.html#urllib2.HTTPRedirectHandler)
+            # (https://docs.python.org/3.11/library/urllib.request.html#urllib.request.HTTPRedirectHandler)
             if can_connect:
                 log.debug("...connection established!")
             else:
