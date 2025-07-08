@@ -20,7 +20,7 @@ class ShotgunPath(object):
     and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
     When working with local storages in Shotgun, roots are keyed by the tokens
     ``windows_path``, ``linux_path`` and ``mac_path``. When using ``sys.platform`` in python,
-    you get back ``win32``, ``darwin`` and ``linux2`` depending on platform. This class makes
+    you get back ``win32``, ``darwin`` and ``linux`` depending on platform. This class makes
     it easy to perform operations and cast between representations and platforms.
 
     Usage example::
@@ -31,7 +31,7 @@ class ShotgunPath(object):
         # construction
         >>> p = ShotgunPath("C:\\temp", "/tmp", "/tmp")
         >>> p = ShotgunPath.from_shotgun_dict({ "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"})
-        >>> p = ShotgunPath.from_system_dict({ "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"})
+        >>> p = ShotgunPath.from_system_dict({ "win32": "C:\\temp", "darwin": None, "linux": "/tmp"})
         >>> p = ShotgunPath.from_current_os_path("/tmp")
 
         # access
@@ -54,7 +54,7 @@ class ShotgunPath(object):
         >>> p.as_shotgun_dict()
         { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
         >>> p.as_system_dict()
-        { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+        { "win32": "C:\\temp", "darwin": None, "linux": "/tmp"}
 
         # descriptor uri conversion
         >>> p.as_descriptor_uri()
@@ -115,7 +115,7 @@ class ShotgunPath(object):
             >>> p.get_shotgun_storage_key()
             'mac_path'
 
-        :param platform: sys.platform style string, e.g 'linux2',
+        :param platform: sys.platform style string, e.g 'linux',
                          'win32' or 'darwin'.
         :returns: Shotgun storage path as string.
         """
@@ -152,11 +152,11 @@ class ShotgunPath(object):
         sys.platform constants.
 
         :param system_dict: Dictionary with possible keys
-                        win32, darwin and linux2.
+                        win32, darwin and linux.
         :return: :class:`ShotgunPath` instance
         """
         windows_path = system_dict.get("win32")
-        linux_path = system_dict.get("linux2")
+        linux_path = system_dict.get("linux")
         macosx_path = system_dict.get("darwin")
 
         return cls(windows_path, linux_path, macosx_path)
@@ -437,11 +437,11 @@ class ShotgunPath(object):
 
         With ``include_empty`` set to True::
 
-            { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+            { "win32": "C:\\temp", "darwin": None, "linux": "/tmp"}
 
         With ``include_empty`` set to False::
 
-            { "win32": "C:\\temp", "linux2": "/tmp"}
+            { "win32": "C:\\temp", "linux": "/tmp"}
 
         :param include_empty: Controls whether keys should be included for empty path values
         :return: dictionary of paths keyed by sys.platform.
@@ -452,7 +452,7 @@ class ShotgunPath(object):
         if self._macosx_path or include_empty:
             d["darwin"] = self._macosx_path
         if self._linux_path or include_empty:
-            d["linux2"] = self._linux_path
+            d["linux"] = self._linux_path
         return d
 
     def as_descriptor_uri(self, for_development=False):

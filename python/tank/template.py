@@ -14,13 +14,13 @@ Management of file and directory templates.
 """
 
 import os
+import sys
 
 from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
 from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.six.moves import zip
 from tank.util import is_linux, is_macos, is_windows, sgre as re
 
@@ -252,7 +252,7 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to
+                         (e.g. ``win32``, ``linux`` or ``darwin``), paths will be generated to
                          match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
@@ -272,7 +272,7 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
+                         (e.g. 'win32', 'linux' or 'darwin'), paths will be generated to
                          match that platform.
         :param skip_defaults: Optional. If set to True, if a key has a default value and no
                               corresponding value in the fields argument, its default value
@@ -590,7 +590,7 @@ class TemplatePath(Template):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
+                         (e.g. 'win32', 'linux' or 'darwin'), paths will be generated to
                          match that platform.
         :param skip_defaults: Optional. If set to True, if a key has a default value and no
                               corresponding value in the fields argument, its default value
@@ -613,7 +613,6 @@ class TemplatePath(Template):
             )
 
         else:
-            platform = sgsix.normalize_platform(platform)
             # caller has requested a path for another OS
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
@@ -829,7 +828,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
                 "instead?" % (template_name, definition)
             )
 
-        root_path = all_per_platform_roots.get(root_name, {}).get(sgsix.platform)
+        root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
         if root_path is None:
             raise TankError(
                 "Undefined PTR storage! The local file storage '%s' is not defined for this "

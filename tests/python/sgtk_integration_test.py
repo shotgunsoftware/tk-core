@@ -26,7 +26,6 @@ import unittest
 import sgtk
 from sgtk.util import sgre as re
 from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
-from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor import yaml
 
 try:
@@ -329,12 +328,12 @@ class SgtkIntegrationTest(unittest.TestCase):
 
         # Check if this is a shared core and figure out the core location.
         core_cfg_map = {
-            "linux2": "core_Linux.cfg",
+            "linux": "core_Linux.cfg",
             "win32": "core_Windows.cfg",
             "darwin": "core_Darwin.cfg",
         }
         core_location_file = os.path.join(
-            location, "install", "core", core_cfg_map[sgsix.platform]
+            location, "install", "core", core_cfg_map[sys.platform]
         )
         if os.path.exists(core_location_file):
             with open(core_location_file, "rt") as fh:

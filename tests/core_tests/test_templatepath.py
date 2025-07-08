@@ -57,7 +57,7 @@ class TestTemplatePath(ShotgunTestBase):
             "linux_path",
             "mac_path",
             "win32",
-            "linux2",
+            "linux",
             "darwin",
         ]:
             self._project_roots[self.primary_root_name][os_name] = project_root
@@ -360,8 +360,8 @@ class TestApplyFields(TestTemplatePath):
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEqual(expected, result)
 
-        result = self.template_path.apply_fields(fields, "linux2")
-        root = self._project_roots[self.primary_root_name]["linux2"]
+        result = self.template_path.apply_fields(fields, "linux")
+        root = self._project_roots[self.primary_root_name]["linux"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEqual(expected, result)
 

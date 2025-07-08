@@ -38,7 +38,6 @@ from tank.authentication import IncompleteCredentials
 from tank.authentication import CoreDefaultsManager
 from tank.commands import constants as command_constants
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
@@ -502,8 +501,8 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # some apps provide a special deny_platforms entry
         if "deny_platforms" in cmd_params["properties"]:
             # setting can be Linux, Windows or Mac
-            curr_os = {"linux2": "Linux", "darwin": "Mac", "win32": "Windows"}[
-                normalize_platform(sys.platform)
+            curr_os = {"linux": "Linux", "darwin": "Mac", "win32": "Windows"}[
+                sys.platform
             ]
             if curr_os in cmd_params["properties"]["deny_platforms"]:
                 # deny this platform! :)
