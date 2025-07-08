@@ -613,7 +613,6 @@ class TemplatePath(Template):
             )
 
         else:
-            #### platform = sys.platform.  #### WHY ????
             # caller has requested a path for another OS
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
