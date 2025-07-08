@@ -18,7 +18,7 @@ class BootstrapPipTests(SgtkIntegrationTest):
     """
     Tests that it is possible to boostrap an engine when the package installation has been done using pip.
 
-    Note because we can't really use pip here, we're simulating the installation process.
+    Note that because we can't really use pip here, we're simulating the installation process.
     """
 
     PYTHON_PACKAGE_LIST = ["sgtk", "tank", "tank_vendor"]
@@ -61,7 +61,7 @@ class BootstrapPipTests(SgtkIntegrationTest):
             shutil.rmtree(cls._sgtk_install_location)
 
     def __clean_sgtk_modules(self):
-        """Helper method to clean previously installed sgtk modules."""
+        """Helper method to remove previously installed sgtk modules."""
 
         modules_to_remove = []
 

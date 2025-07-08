@@ -16,9 +16,9 @@ Therefore, this hook will not be invoked to download a configuration. However, t
 applications, frameworks and engines can be downloaded through the hook.
 
 .. warning::
-    In order to be able to bootstrap Toolkit whatever the installation method has been used, the bootstrap hook need
-    to be store within the package itself. That's why this core hook can be found in ``core/python/tank/bootstrap/hook``
-    and not in the usual core hooks location.
+    In order to be able to bootstrap Toolkit regardless of the installation method used, the bootstrap hook needs
+    to be stored within the package itself. That's why this core hook is located in ``core/python/tank/bootstrap/hook``
+    instead of the usual core hooks location.
 """
 
 from sgtk import get_hook_baseclass
