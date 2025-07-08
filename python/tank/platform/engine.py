@@ -340,7 +340,7 @@ class Engine(TankBundle):
         running_method = getattr(self, method_name)
         base_method = getattr(Engine, method_name)
 
-        # This should be a safe way to test, and is Python 3 compatible.
+        # This should be a safe way to test.
         return running_method.__module__ != base_method.__module__
 
     def __has_018_logging_support(self):
