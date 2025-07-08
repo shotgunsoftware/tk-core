@@ -434,7 +434,6 @@ def _run_centralized_project_setup(log, sg, setup_params):
     # install apps
 
     # We now have a fully functional tank setup! Time to start it up...
-    print("CONFIG_LOCATION_CURR_OS:", config_location_curr_os)
     tk = sgtk_from_path(config_location_curr_os)
     log.debug("Instantiated tk instance: %s" % tk)
     pc = tk.pipeline_configuration
