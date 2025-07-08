@@ -13,7 +13,6 @@ import os
 import sys
 import sgtk
 from sgtk.util import ShotgunPath
-from tank_vendor.shotgun_api3.lib import sgsix
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
@@ -816,7 +815,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             descriptor=None,
         )
 
-        base_paths[field_lookup[sgsix.platform]] = None
+        base_paths[field_lookup[sys.platform]] = None
 
         # Now remove every locators.
         self.mockgun.update("PipelineConfiguration", pc_id, base_paths)

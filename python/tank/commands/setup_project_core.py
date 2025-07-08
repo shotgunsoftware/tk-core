@@ -19,7 +19,6 @@ from ..util import filesystem
 from ..api import sgtk_from_path
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 @filesystem.with_cleared_umask

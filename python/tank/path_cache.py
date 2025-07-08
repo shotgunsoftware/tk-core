@@ -24,7 +24,6 @@ import itertools
 # todo - replace with proper external library
 from tank_vendor import shotgun_api3
 from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.six.moves import range
 
 json = shotgun_api3.shotgun.json
@@ -1016,7 +1015,7 @@ class PathCache(object):
             "win32": "local_path_windows",
             "darwin": "local_path_mac",
         }
-        local_os_path_field = sg_local_storage_os_map[sgsix.platform]
+        local_os_path_field = sg_local_storage_os_map[sys.platform]
         local_os_path = fsl_entity[SG_PATH_FIELD].get(local_os_path_field)
 
         # if the storage is not correctly configured for an OS, it is possible

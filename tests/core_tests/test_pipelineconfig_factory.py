@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 from tank_vendor import yaml
 import sgtk
 import tank
@@ -24,7 +25,6 @@ from tank_test.tank_test_base import (
 )
 
 import tank_vendor.six.moves.cPickle as pickle
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTankFromPath(TankTestBase):
@@ -833,7 +833,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sgsix.platform]
+        test_path = probe_path[sys.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):
@@ -863,7 +863,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sgsix.platform]
+        test_path = probe_path[sys.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):

@@ -8,8 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import sys
+
 from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
-from tank_vendor.shotgun_api3.lib import sgsix
 from tank.util import is_windows
 
 import sgtk
@@ -162,7 +163,7 @@ class TestHookGetPublishPath(TankTestBase):
             "win32": sg_dict["path"]["local_path_windows"],
             "linux": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
-        }[sgsix.platform]
+        }[sys.platform]
         sg_dict["path"]["local_path"] = local_path
 
         if is_windows():
