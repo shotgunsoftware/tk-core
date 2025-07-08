@@ -16,7 +16,6 @@ from .action_base import Action
 import os
 import shutil
 import sys
-from tank_vendor.six.moves import input
 
 
 class MovePCAction(Action):

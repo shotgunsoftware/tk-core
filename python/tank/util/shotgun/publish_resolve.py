@@ -15,7 +15,7 @@ Methods for resolving publish data into local representations
 import os
 import pprint
 import sys
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
 from .publish_util import get_cached_local_storages
 from ...log import LogManager

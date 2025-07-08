@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import http.client
 import json
 import os
 import platform
@@ -15,13 +16,15 @@ import random
 import ssl
 import sys
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import tank
 from tank_vendor import (
     shotgun_api3,
     six,
 )
-from tank_vendor.six.moves import http_client, urllib
 
 from . import errors
 from .. import platform as sgtk_platform
@@ -151,7 +154,7 @@ def process(
         )
 
     elif response_code_major == 4:
-        if response.code == http_client.FORBIDDEN and hasattr(response, "json"):
+        if response.code == http.client.FORBIDDEN and hasattr(response, "json"):
             logger.debug(
                 "HTTP response Forbidden: {data}".format(data=response.json),
                 exc_info=getattr(response, "exception", None),
@@ -168,7 +171,7 @@ def process(
             parent_exception=response.exception,
         )
 
-    elif response.code != http_client.OK:
+    elif response.code != http.client.OK:
         raise AuthenticationError(
             "Unexpected response from the Flow Production Tracking site",
             payload=getattr(response, "json", response),
@@ -281,7 +284,7 @@ def process(
                 exc_info=getattr(response, "exception", None),
             )
 
-            if response.code == http_client.NOT_FOUND and hasattr(response, "json"):
+            if response.code == http.client.NOT_FOUND and hasattr(response, "json"):
                 raise AuthenticationError(
                     "The request has been rejected or has expired."
                 )
@@ -291,7 +294,7 @@ def process(
                 parent_exception=getattr(response, "exception", None),
             )
 
-        elif response.code != http_client.OK:
+        elif response.code != http.client.OK:
             logger.debug("Request denied: http code is: {code}".format(
                 code=response.code,
             ))

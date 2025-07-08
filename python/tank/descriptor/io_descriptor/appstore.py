@@ -13,9 +13,11 @@ Toolkit App Store Descriptor.
 """
 
 import os
-from tank_vendor.six.moves import urllib
 import fnmatch
-from tank_vendor.six.moves import http_client
+import http.client
+import urllib.parse
+import urllib.request
+
 from tank_vendor.shotgun_api3.lib import httplib2
 
 from ...util import shotgun
@@ -787,7 +789,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             except (
                 httplib2.HttpLib2Error,
                 httplib2.socks.HTTPError,
-                http_client.HTTPException,
+                http.client.HTTPException,
             ) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes

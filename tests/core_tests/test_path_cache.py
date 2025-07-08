@@ -11,8 +11,8 @@
 import os
 import sys
 import time
-from tank_vendor.six.moves.queue import Empty
-from tank_vendor.six import StringIO
+from io import StringIO
+from queue import Empty
 import shutil
 import contextlib
 import logging

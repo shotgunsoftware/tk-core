@@ -10,8 +10,8 @@
 
 import os
 import sys
+import urllib.parse
 
-from tank_vendor.six.moves import urllib
 from . import filesystem
 from .platforms import is_linux, is_macos, is_windows
 from .. import LogManager

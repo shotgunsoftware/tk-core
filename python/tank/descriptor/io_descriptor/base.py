@@ -10,6 +10,7 @@
 
 import os
 import contextlib
+import urllib.parse
 
 from .. import constants
 from ... import LogManager
@@ -18,7 +19,6 @@ from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
-from tank_vendor.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
 

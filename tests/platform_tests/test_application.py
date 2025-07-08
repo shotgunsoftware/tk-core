@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import inspect
+from io import StringIO
 import logging
 import os
 import shutil
@@ -21,7 +22,6 @@ from tank.platform import application, validation
 from tank.template import Template
 from tank_test.tank_test_base import *
 from tank_vendor import six
-from tank_vendor.six import StringIO
 
 
 class TestApplication(TankTestBase):

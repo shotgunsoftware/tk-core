@@ -14,9 +14,9 @@ across storages, configurations etc.
 """
 import os
 import glob
+import pickle
 
 from tank_vendor import yaml
-import tank_vendor.six.moves.cPickle as pickle
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older

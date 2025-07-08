@@ -22,8 +22,6 @@ from tank.authentication import (
     app_session_launcher,
 )
 
-from tank_vendor.six.moves import urllib
-
 import errno
 import http.client
 import http.server
@@ -33,6 +31,7 @@ import os
 import random
 import sys
 import threading
+import urllib.parse
 
 
 class AppSessionLauncherTests(ShotgunTestBase):

@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import pickle
 import sys
 from tank_vendor import yaml
 import sgtk
@@ -23,8 +24,6 @@ from tank_test.tank_test_base import (
     ShotgunTestBase,
     TankTestBase,
 )
-
-import tank_vendor.six.moves.cPickle as pickle
 
 
 class TestTankFromPath(TankTestBase):

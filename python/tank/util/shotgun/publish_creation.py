@@ -13,8 +13,9 @@ Logic for publishing files to Shotgun.
 """
 
 import os
-from tank_vendor.six.moves import urllib
 import pprint
+import urllib.parse
+import urllib.request
 
 from .publish_util import (
     get_published_file_entity_type,

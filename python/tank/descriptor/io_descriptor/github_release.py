@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import json
 import os
-
-from tank_vendor.six.moves import urllib
+import urllib.error
+import urllib.request
 
 from .downloadable import IODescriptorDownloadable
 from ..errors import TankError, TankDescriptorError
