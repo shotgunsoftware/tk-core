@@ -431,9 +431,9 @@ to determine if a bundle is available in Flow Production Tracking or not.
 Once the bundles have been uploaded, you can implement the ``core/bootstrap.py`` hook.
 
 .. warning::
-    In order to be able to bootstrap Toolkit whatever the installation method has been used, the bootstrap hook need
-    to be store within the package itself. That's why this core hook can be found in ``core/python/tank/bootstrap/hook``
-    and not in the usual core hooks location.
+    In order to be able to bootstrap Toolkit regardless of the installation method used, the bootstrap hook needs
+    to be stored within the package itself. That's why this core hook is located in ``core/python/tank/bootstrap/hook``
+    instead of the usual core hooks location.
 
 .. literalinclude:: examples/bootstrap_hook.py
    :language: python
