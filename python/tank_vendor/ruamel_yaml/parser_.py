@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 # The following YAML grammar is LL(1) and is parsed by a recursive descent
 # parser.
 #

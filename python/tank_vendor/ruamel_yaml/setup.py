@@ -1,6 +1,8 @@
 # # header
 # coding: utf-8
 
+from __future__ import print_function
+
 if __name__ != '__main__':
     raise NotImplementedError('should never include setup.py')
 

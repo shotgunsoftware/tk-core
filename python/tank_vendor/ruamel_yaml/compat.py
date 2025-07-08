@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 # partially from package six by Benjamin Peterson
 
 import sys

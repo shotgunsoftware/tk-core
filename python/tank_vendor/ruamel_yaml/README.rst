@@ -59,6 +59,8 @@ Starting with version 0.8, you can add/replace comments on block style
 collections (mappings/sequences resuting in Python dict/list). The basic
 for for this is::
 
+  from __future__ import print_function
+
   import ruamel.yaml
 
   inp = """\
@@ -178,6 +180,8 @@ Examples
 
 Basic round trip of parsing YAML to Python objects, modifying
 and generating YAML::
+
+  from __future__ import print_function
 
   import ruamel.yaml
 
