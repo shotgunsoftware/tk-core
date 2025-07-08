@@ -19,7 +19,6 @@ from . import constants
 from .errors import TankError
 from .util import sgre as re
 
-
 try:
     from tank_vendor import sgutils
 except ImportError:

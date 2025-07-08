@@ -17,7 +17,7 @@ import sys
 import base64
 import binascii
 import logging
-
+import urllib
 from urllib.parse import unquote_plus
 from http.cookies import SimpleCookie
 

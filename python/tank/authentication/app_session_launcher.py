@@ -21,7 +21,10 @@ import urllib.parse
 import urllib.request
 
 import tank
-from tank_vendor import shotgun_api3
+from tank_vendor import (
+    shotgun_api3,
+    six,
+)
 
 from . import errors
 from .. import platform as sgtk_platform

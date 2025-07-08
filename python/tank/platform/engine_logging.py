@@ -10,6 +10,7 @@
 
 import logging
 import queue
+import sys
 
 
 class ToolkitEngineHandler(logging.Handler):
