@@ -19,10 +19,10 @@ at any point.
 --------------------------------------------------------------------------------
 """
 import json
+import http.client
 
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
-from tank_vendor.six.moves import http_client
 
 from . import session_cache
 from .errors import IncompleteCredentials, UnresolvableHumanUser, UnresolvableScriptUser
@@ -343,7 +343,7 @@ class SessionUser(ShotgunUserImpl):
             # But if we get there, it means our session_token is still valid
             # as far as Shotgun is concerned.
             if (
-                e.errcode == http_client.FOUND
+                e.errcode == http.client.FOUND
                 and "location" in e.headers
                 and e.headers["location"].endswith("/saml/saml_login_request")
             ):

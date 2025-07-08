@@ -20,10 +20,11 @@ are not part of the public Sgtk API.
 # imports
 
 from collections import deque
+from copy import deepcopy
 from threading import Event, Thread, Lock
 import platform
-from tank_vendor.six.moves import urllib
-from copy import deepcopy
+import urllib.error
+import urllib.request
 
 from . import constants, sgre as re
 
