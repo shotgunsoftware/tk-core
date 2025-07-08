@@ -36,8 +36,8 @@ import json
 import time
 import threading
 import unittest
+import urllib.request
 from tank_vendor import six
-from tank_vendor.six.moves import urllib
 
 
 if six.PY2:
