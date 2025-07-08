@@ -360,7 +360,7 @@ class TestApplyFields(TestTemplatePath):
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEqual(expected, result)
 
-        result = self.template_path.apply_fields(fields, "linux")
+        result = self.template_path.apply_fields(fields, "linux2")
         root = self._project_roots[self.primary_root_name]["linux"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEqual(expected, result)

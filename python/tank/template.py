@@ -252,7 +252,7 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to
+                         (e.g. ``win32``, ``linux`` or ``darwin``), paths will be generated to
                          match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
@@ -272,7 +272,7 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
+                         (e.g. 'win32', 'linux' or 'darwin'), paths will be generated to
                          match that platform.
         :param skip_defaults: Optional. If set to True, if a key has a default value and no
                               corresponding value in the fields argument, its default value
@@ -590,7 +590,7 @@ class TemplatePath(Template):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
+                         (e.g. 'win32', 'linux' or 'darwin'), paths will be generated to
                          match that platform.
         :param skip_defaults: Optional. If set to True, if a key has a default value and no
                               corresponding value in the fields argument, its default value

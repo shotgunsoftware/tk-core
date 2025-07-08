@@ -703,7 +703,7 @@ class SetupProjectAction(Action):
     def _get_default_configuration_location(self, log, params):
         r"""
         Returns default suggested location for configurations.
-        Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
+        Returns a dictionary with sys.platform style keys linux/win32/darwin, e.g.
 
         { "darwin": "/foo/bar/project_name",
           "linux": "/foo/bar/project_name",

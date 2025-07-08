@@ -20,7 +20,7 @@ class ShotgunPath(object):
     and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
     When working with local storages in Shotgun, roots are keyed by the tokens
     ``windows_path``, ``linux_path`` and ``mac_path``. When using ``sys.platform`` in python,
-    you get back ``win32``, ``darwin`` and ``linux2`` depending on platform. This class makes
+    you get back ``win32``, ``darwin`` and ``linux`` depending on platform. This class makes
     it easy to perform operations and cast between representations and platforms.
 
     Usage example::
@@ -115,7 +115,7 @@ class ShotgunPath(object):
             >>> p.get_shotgun_storage_key()
             'mac_path'
 
-        :param platform: sys.platform style string, e.g 'linux2',
+        :param platform: sys.platform style string, e.g 'linux',
                          'win32' or 'darwin'.
         :returns: Shotgun storage path as string.
         """
@@ -152,7 +152,7 @@ class ShotgunPath(object):
         sys.platform constants.
 
         :param system_dict: Dictionary with possible keys
-                        win32, darwin and linux2.
+                        win32, darwin and linux.
         :return: :class:`ShotgunPath` instance
         """
         windows_path = system_dict.get("win32")
