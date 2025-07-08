@@ -12,8 +12,6 @@
 Engine-related unit tests.
 """
 
-from __future__ import print_function, with_statement
-
 import contextlib
 import os
 import random

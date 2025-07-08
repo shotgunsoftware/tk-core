@@ -13,8 +13,6 @@ Implements a caching mechanism to avoid loading the same yaml file multiple time
 unless it's changed on disk.
 """
 
-from __future__ import with_statement
-
 import os
 import copy
 import threading

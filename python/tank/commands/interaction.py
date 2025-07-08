@@ -12,7 +12,6 @@
 Interfaces for prompting the user for input during tank command execution.
 """
 
-from __future__ import print_function
 from .. import LogManager
 from tank_vendor.six.moves import input
 

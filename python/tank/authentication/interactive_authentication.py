@@ -24,8 +24,6 @@ at any point.
 
 # Using "with" with the lock to make sure it is always released.
 
-from __future__ import with_statement
-
 from .errors import AuthenticationCancelled
 from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
 from .ui_authentication import UiAuthenticationHandler

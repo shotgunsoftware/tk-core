@@ -12,8 +12,6 @@
 This test makes sure that various tank command operations do not fail.
 """
 
-from __future__ import print_function
-
 import sys
 import os
 

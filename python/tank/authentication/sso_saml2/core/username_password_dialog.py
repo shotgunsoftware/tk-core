@@ -11,8 +11,6 @@
 Module to support Web login via a web browser and automated session renewal.
 """
 
-from __future__ import print_function
-
 # pylint: disable=import-error
 from ...ui.qt_abstraction import QtCore, QtGui
 

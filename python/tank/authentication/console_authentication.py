@@ -18,7 +18,6 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-from __future__ import print_function
 
 from . import constants
 from . import session_cache

@@ -13,8 +13,6 @@ Ensures the bootstrap hook can be used to download bundles in lieu of the
 default implementation.
 """
 
-from __future__ import print_function
-
 import os
 import tempfile
 

@@ -12,8 +12,6 @@
 Defines the base class for all Tank Engines.
 """
 
-from __future__ import with_statement
-
 import os
 import sys
 import logging
