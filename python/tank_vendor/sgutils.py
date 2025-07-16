@@ -27,6 +27,49 @@
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import warnings
 
 
-from tank_vendor.shotgun_api3.lib.sgutils import *
+def ensure_binary(s, encoding='utf-8', errors='strict'):
+    """
+    Coerce **s** to bytes.
+
+      - `str` -> encoded to `bytes`
+      - `bytes` -> `bytes`
+    """
+    warnings.warn(
+        "The function 'ensure_binary' is deprecated and will be removed in a future version. "
+        "Use the built-in str.encode() method instead or ensure your data is already in bytes.",
+        DeprecationWarning,
+    )
+
+    if isinstance(s, str):
+        return s.encode(encoding, errors)
+    elif isinstance(s, bytes):
+        return s
+    else:
+        raise TypeError(f"not expecting type '{type(s)}'")
+
+
+def ensure_str(s, encoding='utf-8', errors='strict'):
+    """Coerce *s* to `str`.
+
+      - `str` -> `str`
+      - `bytes` -> decoded to `str`
+    """
+    warnings.warn(
+        "The function 'ensure_str' is deprecated and will be removed in a future version. "
+        "Use the built-in bytes.decode() method instead or ensure your data is already a string.",
+        DeprecationWarning,
+    )
+
+    if isinstance(s, str):
+        return s
+
+    elif isinstance(s, bytes):
+        return s.decode(encoding, errors)
+
+    raise TypeError(f"not expecting type '{type(s)}'")
+
+
+ensure_text = ensure_str
