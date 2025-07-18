@@ -33,7 +33,6 @@ class AppSessionLauncherTests(ShotgunTestBase):
         with self.assertRaises(AssertionError):
             app_session_launcher.process(
                 "https://test.shotgunstudio.com",
-                browser_open_callback=None
             )
 
         with self.assertRaises(AssertionError):
