@@ -20,6 +20,7 @@ import logging
 import pprint
 import traceback
 import inspect
+import warnings
 import weakref
 import threading
 
@@ -295,6 +296,16 @@ class Engine(TankBundle):
             self.name,
             self.__env.name,
         )
+
+    def __getattribute__(self, attr):
+        if attr == "init_engine":
+            warnings.warn(
+                f"The method Engine.init_engine is deprecated and will be removed in future versions. "
+                f"Please use pre_app_init instead.",
+                DeprecationWarning,
+            )
+
+        return super().__getattribute__(attr)
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
