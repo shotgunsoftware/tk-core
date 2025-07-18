@@ -887,10 +887,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         test multiple processes doing a full sync of the path cache at the same time
         """
 
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2, 6):
-            return
-
         import multiprocessing
 
         folder.process_filesystem_structure(
@@ -936,10 +932,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
         Test multi process incremental sync as records are being inserted.
         """
-
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         import multiprocessing
 

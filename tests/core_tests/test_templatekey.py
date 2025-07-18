@@ -367,17 +367,6 @@ class TestStringKey(ShotgunTestBase):
         Test subset_format parameter
         """
 
-        if sys.version_info < (2, 6):
-            # subset format not supported in py25
-            self.assertRaises(
-                TankError,
-                StringKey,
-                "field_name",
-                subset="(.{3}).*",
-                subset_format="{0} FOO",
-            )
-            return
-
         # test properties
         template_field = StringKey(
             "field_name", subset="(.)().*", subset_format="{0} FOO"

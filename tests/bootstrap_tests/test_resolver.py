@@ -568,9 +568,6 @@ class TestResolverPriority(TestResolverBase):
         Ensure that the sorting algorithm for primaries is valid for any
         permutation of primaries.
         """
-        # itertools.permutations only in 2.6+
-        if sys.version_info < (2, 6):
-            return
 
         primaries = [
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 1},
@@ -593,9 +590,6 @@ class TestResolverPriority(TestResolverBase):
         Ensure that the sorting algorithm for pipeline configurations is valid for any
         permutation of pipeline configurations.
         """
-        # itertools.permutations only in 2.6+
-        if sys.version_info < (2, 6):
-            return
 
         pcs = [
             {

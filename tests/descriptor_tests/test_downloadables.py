@@ -382,10 +382,6 @@ class Implementation(object):
         :param expected_path: The expected path of the descriptor once it is downloaded locally.
         :param shared_dir: Optional shared directory to which the descriptor has to be downloaded to.
         """
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        # TODO: Test with subprocess instead of multiprocessing.
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         processes = []
         errors = []
