@@ -43,6 +43,7 @@ elif sys.version_info < (3, 9):
         "and compatibility will be removed at any time after 2026-01. "
         "Please update to Python 3.9 or a newer supported version.",
         DeprecationWarning,
+        stacklevel=2
     )
 
 

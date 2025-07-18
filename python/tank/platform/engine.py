@@ -1320,9 +1320,10 @@ class Engine(TankBundle):
         """
 
         warnings.warn(
-            "The log_debug method is deprecated and will be removed in further "
-            "version of tk-core. Use pre_app_init instead",
+            "The `Engine.log_debug` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
             DeprecationWarning,
+            stacklevel=2
         )
 
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
@@ -1351,9 +1352,10 @@ class Engine(TankBundle):
         """
 
         warnings.warn(
-            "The log_info method is deprecated and will be removed in further "
-            "version of tk-core. Use pre_app_init instead",
+            "The `Engine.log_info` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
             DeprecationWarning,
+            stacklevel=2
         )
 
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
@@ -1382,9 +1384,10 @@ class Engine(TankBundle):
         """
 
         warnings.warn(
-            "The log_warning method is deprecated and will be removed in further "
-            "version of tk-core. Use pre_app_init instead",
+            "The `Engine.log_warning` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
             DeprecationWarning,
+            stacklevel=2
         )
 
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
@@ -1413,9 +1416,10 @@ class Engine(TankBundle):
         """
 
         warnings.warn(
-            "The log_error method is deprecated and will be removed in further "
-            "version of tk-core. Use pre_app_init instead",
+            "The `Engine.log_error` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
             DeprecationWarning,
+            stacklevel=2
         )
 
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
@@ -1444,9 +1448,10 @@ class Engine(TankBundle):
         """
 
         warnings.warn(
-            "The log_exception method is deprecated and will be removed in further "
-            "version of tk-core. Use pre_app_init instead",
+            "The `Engine.log_exception` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
             DeprecationWarning,
+            stacklevel=2
         )
 
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
