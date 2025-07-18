@@ -26,7 +26,6 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
-from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -542,7 +541,7 @@ class Sgtk(object):
         :rtype: List of strings.
         """
         skip_keys = skip_keys or []
-        if isinstance(skip_keys, six.string_types):
+        if isinstance(skip_keys, str):
             skip_keys = [skip_keys]
 
         # construct local fields dictionary that doesn't include any skip keys:

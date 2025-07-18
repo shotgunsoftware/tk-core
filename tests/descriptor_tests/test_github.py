@@ -9,17 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from sgtk.util import sgre as re
 import urllib.error
 import urllib.request
 
 import sgtk
 from sgtk.descriptor import Descriptor
+from sgtk.util import sgre as re
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-)
+from tank_test.tank_test_base import ShotgunTestBase, mock
 
 _TESTED_MODULE = "tank.descriptor.io_descriptor.github_release"
 _TESTED_CLASS = _TESTED_MODULE + ".IODescriptorGithubRelease"

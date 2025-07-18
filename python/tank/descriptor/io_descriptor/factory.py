@@ -15,11 +15,6 @@ from .base import IODescriptorBase
 
 from ... import LogManager
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 log = LogManager.get_logger(__name__)
 
 
@@ -92,10 +87,9 @@ def create_io_descriptor(
 
     # Ensure that the descrptor version is a str.  For some descriptors a
     # verson is not expected, so if the key doesn't exist we'll do nothing.
-    if isinstance(descriptor_dict.get("version"), str):
-        # On Python 2 this will have no effect, but on Python 3, we will decode
-        # bytes to a str.
-        descriptor_dict["version"] = sgutils.ensure_str(descriptor_dict["version"])
+    version = descriptor_dict.get("version")
+    if isinstance(version, bytes):
+        descriptor_dict["version"] = version.decode("utf-8")
 
     # instantiate the Descriptor
     descriptor = IODescriptorBase.create(descriptor_type, descriptor_dict, sg)

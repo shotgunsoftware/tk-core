@@ -12,35 +12,33 @@
 Toolkit App Store Descriptor.
 """
 
-import os
 import fnmatch
 import http.client
+import json
+import os
 import urllib.parse
 import urllib.request
 
+from tank_vendor import shotgun_api3
 from tank_vendor.shotgun_api3.lib import httplib2
 
-from ...util import shotgun
-from ...util import pickle
-from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
-from ...util.user_settings import UserSettings
-
-from ..errors import TankAppStoreConnectionError
-from ..errors import TankAppStoreError
-from ..errors import TankDescriptorError
-from ..errors import InvalidAppStoreCredentialsError
-
 from ... import LogManager
-from .. import constants
-from .downloadable import IODescriptorDownloadable
-
 from ...constants import SUPPORT_URL
-
-# use api json to cover py 2.5
-from tank_vendor import shotgun_api3
-from tank_vendor import six
-
-json = shotgun_api3.shotgun.json
+from ...util import (
+    ShotgunAttachmentDownloadError,
+    UnresolvableCoreConfigurationError,
+    pickle,
+    shotgun,
+)
+from ...util.user_settings import UserSettings
+from .. import constants
+from ..errors import (
+    InvalidAppStoreCredentialsError,
+    TankAppStoreConnectionError,
+    TankAppStoreError,
+    TankDescriptorError,
+)
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
@@ -496,7 +494,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # the sought-after label
             version_numbers = []
             log.debug("culling out versions not labelled '%s'..." % self._label)
-            for (version_str, path) in all_versions.items():
+            for version_str, path in all_versions.items():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
@@ -614,7 +612,10 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             limit=limit,
         )
 
-        log.debug("Downloaded data for %d versions from Flow Production Tracking." % len(sg_versions))
+        log.debug(
+            "Downloaded data for %d versions from Flow Production Tracking."
+            % len(sg_versions)
+        )
 
         # now filter out all labels that aren't matching
         matching_records = []
@@ -868,7 +869,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         post_data = {"session_token": session_token}
         response = urllib.request.urlopen(
             "%s/api3/sgtk_install_script" % sg.base_url,
-            six.ensure_binary(urllib.parse.urlencode(post_data)),
+            urllib.parse.urlencode(post_data).encode("utf-8"),
         )
         html = response.read()
         data = json.loads(html)

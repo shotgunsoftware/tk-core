@@ -107,7 +107,6 @@ class TestConfiguration(TestConfigurationBase):
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=default_user,
         ):
-            # Python 2.6 doesn't support multi-expression with statement, so nest the calls instead.
             with mock.patch(
                 "tank_vendor.shotgun_authentication.deserialize_user",
                 wraps=tank_vendor.shotgun_authentication.deserialize_user,

@@ -14,19 +14,11 @@ import pickle
 from .. import LogManager
 from .unicode import ensure_contains_str
 
-from tank_vendor import six
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
-
 log = LogManager.get_logger(__name__)
 
 
 # kwargs for pickle.load* and pickle.dump* calls.
-LOAD_KWARGS = {"encoding": "bytes"} if six.PY3 else {}
+LOAD_KWARGS = {"encoding": "bytes"}
 # Protocol 0 ensures ASCII encoding, which is required when writing
 # a pickle to an environment variable.
 DUMP_KWARGS = {"protocol": 0}
@@ -39,33 +31,25 @@ FALLBACK_ENCODING_KEY = "_payload_encoding"
 
 def dumps(data):
     """
-    Return the pickled representation of ``data`` as a ``str``.
-
-    This methods wraps the functionality from the :func:`pickle.dumps` method so
-    pickles can be shared between Python 2 and Python 3.
-
-    As opposed to the Python 3 implementation, it will return a ``str`` object
-    and not ``bytes`` object.
+    Return the pickled representation of ``data`` as a ``binary``.
 
     :param data: The object to pickle and store.
-    :returns: A pickled str of the input object.
-    :rtype: str
+    :returns: A pickled binary of the input object.
+    :rtype: binary
     """
-    # Force pickle protocol 0, since this is a non-binary pickle protocol.
-    # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
-    # Decode the result to a str before returning.
-    serialized = pickle.dumps(data, **DUMP_KWARGS)
     try:
-        return sgutils.ensure_str(serialized)
+        return pickle.dumps(data, **DUMP_KWARGS)
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
-        if e.encoding == "utf-8" and e.reason in ("invalid continuation byte", "invalid start byte"):
+        if e.encoding == "utf-8" and e.reason in (
+            "invalid continuation byte",
+            "invalid start byte",
+        ):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
-                serialized = pickle.dumps(data, **DUMP_KWARGS)
-            return sgutils.ensure_str(serialized, encoding=encoding)
+                return pickle.dumps(data, **DUMP_KWARGS)
 
         raise
 
@@ -74,8 +58,7 @@ def dump(data, fh):
     """
     Write the pickled representation of ``data`` to a file object.
 
-    This methods wraps the functionality from the :func:`pickle.dump` method so
-    pickles can be shared between Python 2 and Python 3.
+    This methods wraps the functionality from the :func:`pickle.dump` method.
 
     :param data: The object to pickle and store.
     :param fh: A file object
@@ -85,24 +68,20 @@ def dump(data, fh):
 
 def loads(data):
     """
-    Read the pickled representation of an object from a string
-    and return the reconstituted object hierarchy specified therein.
+    Deserialize a pickled representation of an object from a string or bytes.
 
-    This method wraps the functionality from the :func:`pickle.loads` method so
-    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``
-    objects in Python 2.
-
-    :param object data: A pickled representation of an object.
-    :returns: The unpickled object.
-    :rtype: object
+    :param data: A pickled representation of an object (str or bytes).
+    :return: The unpickled object.
     """
-    binary = sgutils.ensure_binary(data)
-    loads_data = ensure_contains_str(pickle.loads(binary, **LOAD_KWARGS))
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+    loads_data = ensure_contains_str(pickle.loads(data))
 
     if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
         encoding = loads_data[FALLBACK_ENCODING_KEY]
-        binary = sgutils.ensure_binary(data, encoding=encoding)
-        loads_data = ensure_contains_str(pickle.loads(binary, **LOAD_KWARGS))
+        if isinstance(data, str):
+            data = data.encode(encoding)
+        loads_data = ensure_contains_str(pickle.loads(data, **LOAD_KWARGS))
 
     return loads_data
 
@@ -113,8 +92,7 @@ def load(fh):
     and return the reconstituted object hierarchy specified therein.
 
     This method wraps the functionality from the :func:`pickle.load` method so
-    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``
-    objects in Python 2.
+    unicode strings are always returned as utf8-encode.
 
     :param fh: A file object
     :returns: The unpickled object.
@@ -137,11 +115,10 @@ def store_env_var_pickled(key, data):
     :param key: The name of the environment variable to store the data in.
     :param data: The object to pickle and store.
     """
-    # Force pickle protocol 0, since this is a non-binary pickle protocol.
-    # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     pickled_data = dumps(data)
-    encoded_data = sgutils.ensure_str(pickled_data)
-    os.environ[key] = encoded_data
+    if isinstance(pickled_data, bytes):
+        pickled_data = pickled_data.decode("utf-8")
+    os.environ[key] = pickled_data
 
 
 def retrieve_env_var_pickled(key):
@@ -159,5 +136,7 @@ def retrieve_env_var_pickled(key):
     :param key: The name of the environment variable to retrieve data from.
     :returns: The original object that was stored.
     """
-    envvar_contents = sgutils.ensure_binary(os.environ[key])
+    if isinstance(key, str):
+        envvar_contents = key.encode("utf-8")
+
     return loads(envvar_contents)

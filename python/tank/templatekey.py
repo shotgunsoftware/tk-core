@@ -19,11 +19,6 @@ from . import constants
 from .errors import TankError
 from .util import sgre as re
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 
 class TemplateKey(object):
     """
@@ -123,7 +118,8 @@ class TemplateKey(object):
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
 
-    def _get_default(self):
+    @property
+    def default(self):
         """
         The default value for this key. If the default argument was specified
         as a callable in the constructor, it is invoked and assumed to take no parameters.
@@ -135,16 +131,14 @@ class TemplateKey(object):
         else:
             return self._default
 
-    def _set_default(self, value):
+    @default.setter
+    def default(self, value):
         """
         Sets the default value for this key.
 
         :param value: New default value for the key. Can be None.
         """
         self._default = value
-
-    # Python 2.5 doesn't support @default.setter so use old style property.
-    default = property(_get_default, _set_default)
 
     @property
     def name(self):
@@ -361,8 +355,6 @@ class StringKey(TemplateKey):
 
         self._subset_str = subset
         self._subset_format = subset_format
-        if self._subset_format and sys.version_info < (2, 6):
-            raise TankError("Subset formatting in template keys require python 2.6+!")
 
         self._subset_str = subset
 
@@ -457,9 +449,6 @@ class StringKey(TemplateKey):
         The formatting used for the string is standard python custom string formatting, where you can reference
         each regex group with an integer index. Read more about standard python string formatting here:
         https://docs.python.org/2/library/string.html#custom-string-formatting
-
-        .. note:: Subset format is using python string formatting and is only compatible with
-                  with Python 2.6+.
         """
         return self._subset_format
 
@@ -528,11 +517,8 @@ class StringKey(TemplateKey):
                 resolved_value = u""
 
             elif self._subset_format:
-                # we have an explicit format string we want to apply to the
-                # match. Do the formatting as unicode.
-                resolved_value = sgutils.ensure_text(self._subset_format).format(
-                    *match.groups()
-                )
+                # we have an explicit format string we want to apply to the match.
+                resolved_value = self._subset_format.format(*match.groups())
 
             else:
                 # we have a match object. concatenate the groups
@@ -596,8 +582,7 @@ class StringKey(TemplateKey):
             # validate that the formatting can be applied to the input value
             if self._subset_format:
                 try:
-                    # perform the formatting in unicode space to cover all cases
-                    sgutils.ensure_text(self._subset_format).format(*regex_match.groups())
+                    self._subset_format.format(*regex_match.groups())
                 except Exception as e:
                     self._last_error = (
                         "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s"

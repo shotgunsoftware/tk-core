@@ -218,9 +218,6 @@ def _compare_versions(a, b):
                     b
                 )  # If they are different numeric versions
     except TypeError:
-        # To mimick the behavior in Python 2.7 as closely as possible, we will
-        # If LooseVersion comparison didn't work, try to extract a numeric
-        # version from both versions for comparison
         version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
         match_a = version_expr.match(a)
         match_b = version_expr.match(b)

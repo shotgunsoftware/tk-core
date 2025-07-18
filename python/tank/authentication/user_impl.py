@@ -28,12 +28,6 @@ from . import session_cache
 from .errors import IncompleteCredentials, UnresolvableHumanUser, UnresolvableScriptUser
 from .. import LogManager
 from ..util import pickle
-from ..util import json as sgjson
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -56,16 +50,10 @@ class ShotgunUserImpl(object):
         if not host:
             raise IncompleteCredentials("missing host")
 
-        # We need to ensure that we are always storing utf-8 so that
-        # we don't end up infecting API instances with unicode strings
-        # that would then cause some string data to be unicoded during
-        # concatenation operations.
         if http_proxy is not None:
-            http_proxy = sgutils.ensure_str(http_proxy)
+            http_proxy = str(http_proxy)
 
-        host = sgutils.ensure_str(host)
-
-        self._host = host
+        self._host = str(host)
         self._http_proxy = http_proxy
 
         # This is the cached result of resolve_entity.
@@ -374,7 +362,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A string.
         """
-        return sgutils.ensure_str(self._login)
+        return str(self._login)
 
     @staticmethod
     def from_dict(payload):
@@ -612,7 +600,7 @@ def deserialize_user(payload):
     """
     # If the serialized payload starts with a {, we have a JSON-encoded string.
     if payload[0] in ("{", b"{"):
-        user_dict = sgjson.loads(sgutils.ensure_binary(payload))
+        user_dict = json.loads(payload)
     else:
         # Unpickle the dictionary
         user_dict = pickle.loads(payload)

@@ -24,7 +24,7 @@ from .util import login
 from .util import shotgun_entity
 from .util import shotgun
 from .util import get_sg_entity_name_field
-from .util import pickle, json as sgjson
+from .util import pickle
 from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
@@ -780,7 +780,7 @@ class Context(object):
             # If the serialized payload starts with a {, we have a
             # JSON-encoded string.
             if context_str[0] in ("{", b"{"):
-                data = sgjson.loads(context_str)
+                data = json.loads(context_str)
             else:
                 data = pickle.loads(context_str)
         except Exception as e:
@@ -1041,26 +1041,8 @@ class Context(object):
                 else:
                     cur_path = os.path.dirname(cur_path)
 
-                    # There's odd behavior on Windows in Python 2.7.14 that causes
-                    # os.path.dirname to leave the last folder on a UNC path
-                    # unchanged, including the trailing delimiter:
-                    #
-                    # Example (on Windows using Python 2.7.14):
-                    #
-                    # >>> os.path.dirname(r"\\foo\bar\")
-                    # '\\foo\bar\'
-                    #
-                    # The problem is really that the trailing slash isn't removed, when
-                    # it seems to have been in older versions of Python. The trailing slash
-                    # trips up the logic behind validate_and_get_fields, so we end up in an
-                    # infinite loop. The fix is to just remove the trailing path separator
-                    # if it's there.
-                    #
-                    # The fact that it does not consider "\\foo" to be the dirname for
-                    # "\\foo\bar\" is actually correct, as explained here:
-                    #
-                    # https://bugs.python.org/issue27403
-                    #
+                    # On some platforms, os.path.dirname might preserve a trailing slash on UNC paths,
+                    # which could interfere with field extraction logic. This ensures the path is normalized.
                     if cur_path.endswith(os.path.sep):
                         cur_path = cur_path[:-1]
 

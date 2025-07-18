@@ -230,7 +230,6 @@ import weakref
 import uuid
 from functools import wraps
 from . import constants
-from tank_vendor import six
 
 
 class LogManager(object):
@@ -332,11 +331,6 @@ class LogManager(object):
                 # failing.
                 self._handle_rename_failure("w")
                 return
-
-            # Python 2.6 expects the file to be opened during rollover.
-            if not self.stream and sys.version_info[:2] < (2, 7):
-                self.mode = "a"
-                self.stream = self._open()
 
             # Now, that we are back in the original state we were in,
             # were pretty confident that the rollover will work. However, due to
@@ -794,11 +788,7 @@ class LogManager(object):
             maxBytes=1024 * 1024 * 5,
             # Need at least one backup in order to rotate
             backupCount=1,
-            # Python 3 is pickier about the encoding type of a file.
-            # Python 2 treats str as bytes, so it writes them
-            # directly to disk. Putting utf8 encoding actually
-            # causes problems.
-            encoding="utf8" if six.PY3 else None,
+            encoding="utf8",
         )
 
         # set the level based on global debug flag

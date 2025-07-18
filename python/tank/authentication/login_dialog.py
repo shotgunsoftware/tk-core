@@ -49,11 +49,6 @@ from .sso_saml2 import (
 
 from .. import LogManager
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 logger = LogManager.get_logger(__name__)
 
 # Name used to identify the client application when connecting via SSO to Shotugn.
@@ -390,9 +385,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return sgutils.ensure_str(
-            connection.sanitize_url(self.ui.site.currentText().strip())
-        )
+        return str(connection.sanitize_url(self.ui.site.currentText().strip()))
 
     def _get_current_user(self):
         """
@@ -400,7 +393,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The login to use for authentication.
         """
-        return sgutils.ensure_str(self.ui.login.currentText().strip())
+        return self.ui.login.currentText().strip()
 
     def _update_ui_according_to_site_support(self):
         """
@@ -976,7 +969,7 @@ class ASL_AuthTask(QtCore.QThread):
         try:
             self.session_info = app_session_launcher.process(
                 self._sg_url,
-                lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
+                browser_open_callback=lambda u: QtGui.QDesktopServices.openUrl(u),
                 http_proxy=self._http_proxy,
                 product=self._product,
                 keep_waiting_callback=self.should_continue,

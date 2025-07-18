@@ -224,7 +224,6 @@ class ProjectSetupParameters(object):
         #  }
 
         for storage_name in storage_data:
-
             if not storage_data[storage_name]["defined_in_shotgun"]:
                 raise TankError(
                     "The storage '%s' required by the configuration has not been defined in Flow Production Tracking. "

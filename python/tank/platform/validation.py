@@ -232,7 +232,7 @@ def validate_and_return_frameworks(descriptor, environment):
         #     location: {name: tk-framework-qtwidgets, type: app_store, version: v1.3.34}
         #
         # note: this old form does not handle the 1.x.x syntax, only exact version numbers
-        for (fw_instance_name, fw_instance) in fw_descriptors.items():
+        for fw_instance_name, fw_instance in fw_descriptors.items():
             if (
                 fw_instance.version == version
                 and fw_instance.system_name == required_fw_name
@@ -602,7 +602,7 @@ class _SettingsValidator:
 
     def __validate_settings_dict(self, settings_key, schema, value):
         items = schema.get("items", {})
-        for (key, value_schema) in items.items():
+        for key, value_schema in items.items():
             # Check for required keys
             if not key in value:
                 params = (key, settings_key, self._display_name)

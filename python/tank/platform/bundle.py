@@ -26,7 +26,6 @@ from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
-from tank_vendor import six
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -1090,7 +1089,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     # first check for procedural overrides where instead of getting a value,
     # directly from the config, we call a hook to evaluate a config value
     # at runtime:
-    if isinstance(value, six.string_types) and value.startswith("hook:"):
+    if isinstance(value, str) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
         # if the template parameter is on the form

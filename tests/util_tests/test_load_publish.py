@@ -15,7 +15,6 @@ import sgtk
 from tank import context, errors
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase, setUpModule
-from tank_vendor import six
 
 
 class TestCoreHook(TankTestBase):
@@ -525,20 +524,9 @@ class TestUrlWithEnvVars(TankTestBase):
         os.environ["SHOTGUN_PATH_MAC"] = "/mac"
         os.environ["SHOTGUN_PATH_LINUX"] = "/linux"
 
-        if six.PY3:
-            # Because of dictionary order differences between Python2 and 3, a
-            # bug in storage resolution is being hit by tests in Python 3 now
-            # that hadn't previously been discovered.  A ticket has been logged
-            # (SG-14149), but in the meantime we will continue to test the rest
-            # of the functionality in Python 3 by altering the test data to
-            # avoid hitting the bug.
-            os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
-            os.environ["SHOTGUN_PATH_MAC_2"] = "/altmac"
-            os.environ["SHOTGUN_PATH_LINUX_2"] = "/altlinux"
-        else:
-            os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
-            os.environ["SHOTGUN_PATH_MAC_2"] = "/mac2"
-            os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux2"
+        os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
+        os.environ["SHOTGUN_PATH_MAC_2"] = "/altmac"
+        os.environ["SHOTGUN_PATH_LINUX_2"] = "/altlinux"
 
     def tearDown(self):
 

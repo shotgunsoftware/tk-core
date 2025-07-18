@@ -23,9 +23,6 @@ def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
     """
     Unzips the given file into the given folder.
 
-    Does the following command, but in a way which works with
-    Python 2.5 and Python2.6.2::
-
         z = zipfile.ZipFile(zip_file, "r")
         z.extractall(target_folder)
 

@@ -20,7 +20,6 @@ import base64
 import os
 import sys
 import time
-import urllib
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (

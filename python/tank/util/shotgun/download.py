@@ -14,18 +14,18 @@ Methods for downloading things from Shotgun
 
 import os
 import sys
-import uuid
-import time
 import tempfile
+import time
 import urllib.parse
 import urllib.request
+import uuid
 import zipfile
 
-from ..errors import ShotgunAttachmentDownloadError
 from ...errors import TankError
 from ...log import LogManager
-from ..zip import unzip_file
 from .. import filesystem
+from ..errors import ShotgunAttachmentDownloadError
+from ..zip import unzip_file
 
 log = LogManager.get_logger(__name__)
 
@@ -84,8 +84,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
     # download the given url
     try:
         request = urllib.request.Request(url, headers=headers or {})
-        if timeout and sys.version_info >= (2, 6):
-            # timeout parameter only available in python 2.6+
+        if timeout:
             response = urllib.request.urlopen(request, timeout=timeout)
         else:
             # use system default

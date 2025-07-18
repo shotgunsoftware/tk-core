@@ -14,11 +14,6 @@ import pprint
 from .platforms import is_windows
 from ..log import LogManager
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 logger = LogManager.get_logger(__name__)
 
 
@@ -42,12 +37,6 @@ class SubprocessCalledProcessError(Exception):
 def subprocess_check_output(*popenargs, **kwargs):
     """
     Run command with arguments and return its output as a byte string.
-
-    A somewhat-python 2.6 compatible subprocess.check_output call.
-    Subprocess.check_output was added to Python 2.7. For docs, see
-    https://docs.python.org/2/library/subprocess.html#subprocess.check_output
-
-    Adopted from from http://stackoverflow.com/questions/2924310
 
     This version however doesn't allow to override stderr, stdout and stdin. stdin
     is always closed right after launch and stderr is always redirected to stdout. This
@@ -79,7 +68,9 @@ def subprocess_check_output(*popenargs, **kwargs):
     # to retrieve text from the console to parse it and not binary, so for our
     # use case converting to a str will always make case and simplifies
     # the caller's logic.
-    output = sgutils.ensure_str(output)
+    if isinstance(output, bytes):
+        output = output.decode("utf-8")
+    output = str(output)
     retcode = process.poll()
 
     if retcode:

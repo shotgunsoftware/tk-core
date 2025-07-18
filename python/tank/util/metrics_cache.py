@@ -26,9 +26,9 @@ Instead, we store the records in the environment as JSON text
 """
 
 import hashlib
+import json
 import os
 
-from . import json
 from . import metrics
 
 from .. import LogManager
@@ -59,7 +59,7 @@ def log(group, name, properties=None, log_once=False, bundle=None):
         return metrics.EventMetric.log(*args, **kwargs)
 
     try:
-        cached_data = json.json.dumps([args, kwargs])
+        cached_data = json.dumps([args, kwargs])
     except TypeError:
         logger.debug("Unable to cache metric. Can not be JSON encoded")
         return
@@ -89,7 +89,7 @@ def consume():
 
         try:
             data = json.loads(cached_data)
-        except json.json.JSONDecodeError:
+        except json.JSONDecodeError:
             logger.debug("Unable to decode cached metric")
             continue
 

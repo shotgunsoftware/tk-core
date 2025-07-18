@@ -20,7 +20,6 @@ from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
-from tank_vendor import six
 from tank.util import is_linux, is_macos, is_windows, sgre as re
 
 
@@ -884,7 +883,7 @@ def _conform_template_data(template_data, template_name):
     """
     Takes data for single template and conforms it expected data structure.
     """
-    if isinstance(template_data, six.string_types):
+    if isinstance(template_data, str):
         template_data = {"definition": template_data}
     elif not isinstance(template_data, dict):
         raise TankError(

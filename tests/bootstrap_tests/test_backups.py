@@ -24,7 +24,6 @@ from tank_test.tank_test_base import (
 )
 
 
-# Copied from Python 2.7's source code.
 def ignore_patterns(*patterns):
     """Function that can be used as copytree() ignore parameter.
 

@@ -24,7 +24,6 @@ from tank_test.tank_test_base import (
 )
 
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
-from tank_vendor import six
 
 
 class TestTemplateKey(ShotgunTestBase):
@@ -367,17 +366,6 @@ class TestStringKey(ShotgunTestBase):
         """
         Test subset_format parameter
         """
-
-        if sys.version_info < (2, 6):
-            # subset format not supported in py25
-            self.assertRaises(
-                TankError,
-                StringKey,
-                "field_name",
-                subset="(.{3}).*",
-                subset_format="{0} FOO",
-            )
-            return
 
         # test properties
         template_field = StringKey(
@@ -1221,7 +1209,7 @@ class TestTimestampKey(ShotgunTestBase):
         key = TimestampKey("test")
         self.assertEqual(key.value_from_str(self._datetime_string), self._datetime)
         self.assertEqual(
-            key.value_from_str(six.text_type(self._datetime_string)), self._datetime
+            key.value_from_str(str(self._datetime_string)), self._datetime
         )
 
     def test_bad_str(self):

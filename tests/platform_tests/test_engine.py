@@ -387,14 +387,11 @@ class TestContextChange(TestEngineBase):
         :param new_context: Context to compare with the new context parameter in
             the hooks.
         """
-        # Multi item "with"s are not supported in Python 2.5, so do one after
-        # the other.
-        with self._pre_patch as pre_mock:
-            with self._post_patch as post_mock:
-                # Invokes the code within the caller's 'with' statement. (that's really cool!)
-                yield
-                pre_mock.assert_called_once_with(self.tk, old_context, new_context)
-                post_mock.assert_called_once_with(self.tk, old_context, new_context)
+        with self._pre_patch as pre_mock, self._post_patch as post_mock:
+            # Invokes the code within the caller's 'with' statement. (that's really cool!)
+            yield
+            pre_mock.assert_called_once_with(self.tk, old_context, new_context)
+            post_mock.assert_called_once_with(self.tk, old_context, new_context)
 
     def test_on_engine_start(self):
         """
