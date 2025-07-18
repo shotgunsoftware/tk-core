@@ -30,7 +30,7 @@ from tank_test.tank_test_base import ShotgunTestBase, mock
 
 class AppSessionLauncherTests(ShotgunTestBase):
     def test_process_parameters(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(TypeError):
             app_session_launcher.process(
                 "https://test.shotgunstudio.com",
             )
