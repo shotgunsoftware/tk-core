@@ -29,9 +29,9 @@ logger = LogManager.get_logger(__name__)
 # in the context of a DCC, but occur too early for the Toolkit logging to be
 # fully in place to record it.
 try:
-    from .ui.qt_abstraction import QtCore, QtGui
+    from .ui.qt_abstraction import QtCore, QtWidgets
 except Exception:
-    QtCore, QtGui = None, None
+    QtCore, QtWidgets = None, None
 
 
 def create():
@@ -44,7 +44,7 @@ def create():
         def show_ui():
             # show QT dialog
             dlg = MyQtDialog()
-            result = dlg.exec_()
+            result = dlg.exec()
             return result
 
         # create invoker object
@@ -59,7 +59,7 @@ def create():
               thread will be produced.
     """
     # If we are already in the main thread, no need for an invoker, invoke directly in this thread.
-    if QtCore.QThread.currentThread() == QtGui.QApplication.instance().thread():
+    if QtCore.QThread.currentThread() == QtWidgets.QApplication.instance().thread():
         return lambda fn, *args, **kwargs: fn(*args, **kwargs)
 
     class MainThreadInvoker(QtCore.QObject):
@@ -80,7 +80,7 @@ def create():
             self._res = None
             self._exception = None
             # Make sure that the invoker is bound to the main thread
-            self.moveToThread(QtGui.QApplication.instance().thread())
+            self.moveToThread(QtWidgets.QApplication.instance().thread())
 
         def __call__(self, fn, *args, **kwargs):
             """

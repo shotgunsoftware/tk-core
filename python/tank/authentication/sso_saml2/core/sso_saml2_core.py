@@ -157,6 +157,7 @@ class SsoSaml2Core(object):
                              For Qt5/PySide2, we require modules QtCore, QtGui,
                              QtNetwork and QtWebEngineWidgets
 
+
         :returns: The SsoSaml2Core oject.
         """
         qt_modules = qt_modules or {}
@@ -171,8 +172,12 @@ class SsoSaml2Core(object):
         QtCore = self._QtCore = qt_modules.get("QtCore")  # noqa
         QtGui = self._QtGui = qt_modules.get("QtGui")  # noqa
         QtNetwork = self._QtNetwork = qt_modules.get("QtNetwork")  # noqa
+        QtWidgets = self._QtWidgets = qt_modules.get("QtWidgets")  # noqa
         QtWebEngineWidgets = self._QtWebEngineWidgets = qt_modules.get(
             "QtWebEngineWidgets"
+        )  # noqa
+        QtWebEngineCore = self._QtWebEngineCore = qt_modules.get(
+            "QtWebEngineCore"
         )  # noqa
 
         if QtCore is None:
@@ -203,15 +208,15 @@ class SsoSaml2Core(object):
         # - Maya 2017
         #     missing the 'QSslConfiguration' class. Likely compiled without SSL
         #     support.
-        if QtWebEngineWidgets and not hasattr(
-            QtWebEngineWidgets.QWebEngineProfile, "cookieStore"
+        if QtWebEngineCore and not hasattr(
+            QtWebEngineCore.QWebEngineProfile, "cookieStore"
         ):
             raise SsoSaml2IncompletePySide2(
                 "Missing method QtWebEngineWidgets.QWebEngineProfile.cookieStore()"
             )
         if QtNetwork and not hasattr(QtNetwork, "QSslConfiguration"):
             raise SsoSaml2IncompletePySide2("Missing class QtNetwork.QSslConfiguration")
-        class TKWebPageQtWebEngine(QtWebEngineWidgets.QWebEnginePage):
+        class TKWebPageQtWebEngine(QtWebEngineCore.QWebEnginePage):
             """
             Wrapper class to better control the behaviour when clicking on links
             in the Qt5 web browser. If we are asked to open a new tab/window, then
@@ -251,7 +256,7 @@ class SsoSaml2Core(object):
                 if self._profile is None:
                     QtGui.QDesktopServices.openUrl(url)
                     return False
-                return QtWebEngineWidgets.QWebEnginePage.acceptNavigationRequest(
+                return QtWebEngineCore.QWebEnginePage.acceptNavigationRequest(
                     self, url, n_type, is_mainframe
                 )
 
@@ -279,17 +284,17 @@ class SsoSaml2Core(object):
         self._sessions_stack = []
         self._session_renewal_active = False
 
-        self._dialog = QtGui.QDialog()
+        self._dialog = QtWidgets.QDialog()
         self._dialog.setWindowTitle(window_title)
         self._dialog.finished.connect(self.on_dialog_closed)
 
         # This is to ensure that we can resize the window nicely, and that the
         # WebView will follow.
-        self._layout = QtGui.QVBoxLayout(self._dialog)
+        self._layout = QtWidgets.QVBoxLayout(self._dialog)
         self._layout.setSpacing(0)
         self._layout.setContentsMargins(0, 0, 0, 0)
 
-        self._profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
+        self._profile = QtWebEngineCore.QWebEngineProfile.defaultProfile()
         self._logger.debug(
             "Initial WebEngineProfile storage location: %s",
             self._profile.persistentStoragePath(),
@@ -313,7 +318,7 @@ class SsoSaml2Core(object):
         # The cookies will be cleared if there are no prior session in
         # method 'update_browser_from_session' if needed.
         self._profile.setPersistentCookiesPolicy(
-            QtWebEngineWidgets.QWebEngineProfile.ForcePersistentCookies
+            QtWebEngineCore.QWebEngineProfile.ForcePersistentCookies
         )
         self._cookie_jar = QtNetwork.QNetworkCookieJar()
         self._profile.cookieStore().cookieAdded.connect(self._on_cookie_added)
@@ -857,14 +862,14 @@ class SsoSaml2Core(object):
         This can be the result of a callback, a timeout or user interaction.
 
         :param result: Qt result following the closing of the dialog.
-                       QtGui.QDialog.Accepted or QtGui.QDialog.Rejected
+                       QtWidgets.QDialog.Accepted or QtGui.QDialog.Rejected
         """
         self._logger.debug("SSO dialog closed")
         # pylint: disable=invalid-name
-        QtGui = self._QtGui  # noqa
+        QtWidgets = self._QtWidgets  # noqa
 
         if self.is_handling_event():
-            if result == QtGui.QDialog.Rejected and self._session.cookies != "":
+            if result == QtWidgets.QDialog.Rejected and self._session.cookies != "":
                 # We got here because of a timeout attempting a GUI-less login.
                 # Let's clear the cookies, and force the use of the GUI.
                 self._session.cookies = ""
@@ -879,7 +884,7 @@ class SsoSaml2Core(object):
                 self.resolve_event()
         else:
             # Should we get a rejected dialog, then we have had a timeout.
-            if result == QtGui.QDialog.Rejected:
+            if result == QtWidgets.QDialog.Rejected:
                 # @FIXME: Figure out exactly what to do when we have a timeout.
                 self._logger.warn(
                     "Our QDialog got canceled outside of an event handling"

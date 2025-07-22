@@ -37,6 +37,8 @@ from .ui.qt_abstraction import (
     QtCore,
     QtNetwork,
     QtWebEngineWidgets,
+    QtWidgets,
+    QtWebEngineCore,
     qt_version_tuple,
 )
 from . import app_session_launcher
@@ -114,7 +116,8 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         self._site_info.reload(self._url_to_test, self._http_proxy)
 
-class LoginDialog(QtGui.QDialog):
+
+class LoginDialog(QtWidgets.QDialog):
     """
     Dialog for getting user credentials.
     """
@@ -144,13 +147,15 @@ class LoginDialog(QtGui.QDialog):
         :param parent: The Qt parent for the dialog (defaults to None)
         :param session_metadata: Metadata used in the context of SSO. This is an obscure blob of data.
         """
-        QtGui.QDialog.__init__(self, parent)
+        super().__init__(parent)
 
         qt_modules = {
             "QtCore": QtCore,
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
+            "QtWidgets": QtWidgets,
             "QtWebEngineWidgets": QtWebEngineWidgets,
+            "QtWebEngineCore": QtWebEngineCore,
         }
         try:
             self._sso_saml2 = SsoSaml2Toolkit(
@@ -245,7 +250,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
         # Initialize Options menu
-        menu = QtGui.QMenu(self.ui.button_options)
+        menu = QtWidgets.QMenu(self.ui.button_options)
         self.ui.button_options.setMenu(menu)
         self.ui.button_options.setVisible(False)
 
@@ -321,11 +326,11 @@ class LoginDialog(QtGui.QDialog):
             )
 
         # Initialize exit confirm message box
-        self.confirm_box = QtGui.QMessageBox(
-            QtGui.QMessageBox.Question,
+        self.confirm_box = QtWidgets.QMessageBox(
+            QtWidgets.QMessageBox.Question,
             "Flow Production Tracking Login",  # title
             "Would you like to cancel your request?",  # text
-            buttons=QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            buttons=QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
             # parent=self,
             # Passing the parent parameter here, in the constructor, makes
             # Nuke versions<=13 crash.
@@ -353,7 +358,7 @@ class LoginDialog(QtGui.QDialog):
         self._query_task.wait()
 
     def _confirm_exit(self):
-        return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
+        return self.confirm_box.exec_() == QtWidgets.QMessageBox.StandardButton.Yes
         # PySide uses "exec_" instead of "exec" because "exec" is a reserved
         # keyword in Python 2.
 
@@ -491,15 +496,21 @@ class LoginDialog(QtGui.QDialog):
             # - they need to use the legacy login / passphrase to use a PAT with
             #   Autodesk Identity authentication
             if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-                logger.info("Using the standard login dialog with the Flow Production Tracking")
+                logger.info(
+                    "Using the standard login dialog with the Flow Production Tracking"
+                )
             else:
                 if _is_running_in_desktop():
-                    can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+                    can_use_web = (
+                        can_use_web or self.site_info.autodesk_identity_enabled
+                    )
 
                 # If we have full support for Web-based login, or if we enable it in our
                 # environment, use the Unified Login Flow for all authentication modes.
                 if get_shotgun_authenticator_support_web_login():
-                    can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
+                    can_use_web = (
+                        can_use_web or self.site_info.unified_login_flow_enabled
+                    )
 
         if method_selected:
             # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
@@ -511,9 +522,7 @@ class LoginDialog(QtGui.QDialog):
             method_selected = session_cache.get_preferred_method(site)
 
         # Make sure that the method_selected is currently supported
-        if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
-        ) or (
+        if (method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
@@ -525,9 +534,7 @@ class LoginDialog(QtGui.QDialog):
             )
 
         # Make sure that the method_selected is currently supported
-        if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
-        ) or (
+        if (method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
@@ -667,7 +674,7 @@ class LoginDialog(QtGui.QDialog):
         # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
         # other flags.
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        return QtGui.QDialog.exec_(self)
+        return QtWidgets.QDialog.exec_(self)
 
     def result(self):
         """
@@ -688,13 +695,13 @@ class LoginDialog(QtGui.QDialog):
                 profile_location=profile_location,
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
-            if res != QtGui.QDialog.Accepted:
+            if res != QtWidgets.QDialog.Accepted:
                 return
 
             return self._sso_saml2.get_session_data()
 
         res = self.exec_()
-        if res != QtGui.QDialog.Accepted:
+        if res != QtWidgets.QDialog.Accepted:
             return
 
         metrics_cache.log(
@@ -702,7 +709,9 @@ class LoginDialog(QtGui.QDialog):
             "Logged In",
             properties={
                 "authentication_method": self.site_info.user_authentication_method,
-                "authentication_experience": auth_constants.method_resolve.get(self.method_selected),
+                "authentication_experience": auth_constants.method_resolve.get(
+                    self.method_selected
+                ),
                 "authentication_interface": "qt_dialog",
                 "authentication_renewal": self._is_session_renewal,
             },
@@ -747,7 +756,7 @@ class LoginDialog(QtGui.QDialog):
         Validate the values, accepting if login is successful and display an error message if not.
         """
         # Wait for any ongoing Site Configuration check thread.
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
                 logger.warning(
@@ -755,7 +764,7 @@ class LoginDialog(QtGui.QDialog):
                     % self._get_current_site()
                 )
         finally:
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
         # pull values from the gui
         site = self._get_current_site()
@@ -771,7 +780,10 @@ class LoginDialog(QtGui.QDialog):
 
         # Cleanup the URL and update the GUI.
         if self.method_selected != auth_constants.METHOD_BASIC:
-            if site.startswith("http://") and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ:
+            if (
+                site.startswith("http://")
+                and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ
+            ):
                 site = "https" + site[4:]
             self.ui.site.setEditText(site)
 
@@ -827,7 +839,7 @@ class LoginDialog(QtGui.QDialog):
                     product=PRODUCT_IDENTIFIER,
                     profile_location=profile_location,
                 )
-                if res == QtGui.QDialog.Accepted:
+                if res == QtWidgets.QDialog.Accepted:
                     self._new_session_token = self._sso_saml2.session_id
                     self._session_metadata = self._sso_saml2.cookies
                 else:
@@ -837,8 +849,8 @@ class LoginDialog(QtGui.QDialog):
                     return
             else:
                 # set the wait cursor
-                QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+                QtWidgets.QApplication.processEvents()
 
                 # try and authenticate
                 self._new_session_token = session_cache.generate_session_token(
@@ -851,9 +863,9 @@ class LoginDialog(QtGui.QDialog):
             success = True
         finally:
             # restore the cursor
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
             # dialog is done
-            QtGui.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
 
         # Do not accept while the cursor is overriden, if freezes the dialog.
         if success:

@@ -14,10 +14,12 @@ Imports Qt without having to worry which version of Qt we are using.
 
 from ...util.qt_importer import QtImporter
 
-_importer = QtImporter()
+_importer = QtImporter(interface_version_requested=QtImporter.QT6)
 QtCore = _importer.QtCore
 QtGui = _importer.QtGui
 QtNetwork = _importer.QtNetwork
+QtWidgets = _importer.QtWidgets
 QtWebEngineWidgets = _importer.QtWebEngineWidgets
+QtWebEngineCore = _importer.QtWebEngineCore
 qt_version_tuple = _importer.qt_version_tuple
 del _importer

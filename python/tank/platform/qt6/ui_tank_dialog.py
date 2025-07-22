@@ -65,7 +65,7 @@ class Ui_TankDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tank_logo.sizePolicy().hasHeightForWidth())
         self.tank_logo.setSizePolicy(sizePolicy)
-        self.tank_logo.setPixmap(QPixmap(u":/Tank.Platform.Qt/tank_logo.png"))
+        self.tank_logo.setPixmap(QPixmap(u":/Tank.Platform.Resources/tank_logo.png"))
 
         self.horizontalLayout.addWidget(self.tank_logo)
 
@@ -106,17 +106,17 @@ class Ui_TankDialog(object):
         self.details_show.setStyleSheet(u"QToolButton{\n"
 "width: 12px;\n"
 "height: 20px;\n"
-"background-image: url(:/Tank.Platform.Qt/arrow.png);\n"
+"background-image: url(:/Tank.Platform.Resources/arrow.png);\n"
 "border: none;\n"
 "background-color: none;\n"
 "}\n"
 "\n"
 "QToolButton:hover{\n"
-"background-image: url(:/Tank.Platform.Qt/arrow_hover.png);\n"
+"background-image: url(:/Tank.Platform.Resources/arrow_hover.png);\n"
 "}\n"
 "\n"
 "QToolButton:pressed{\n"
-"background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);\n"
+"background-image: url(:/Tank.Platform.Resources/arrow_pressed.png);\n"
 "}\n"
 "")
         self.details_show.setAutoRaise(True)
@@ -131,17 +131,17 @@ class Ui_TankDialog(object):
         self.details_hide.setStyleSheet(u"QToolButton{\n"
 " width: 12px;\n"
 " height: 20px;\n"
-" background-image: url(:/Tank.Platform.Qt/arrow_flipped.png);\n"
+" background-image: url(:/Tank.Platform.Resources/arrow_flipped.png);\n"
 " border: none;\n"
 " background-color: none;\n"
 " }\n"
 "\n"
 " QToolButton:hover{\n"
-" background-image: url(:/Tank.Platform.Qt/arrow_flipped_hover.png);\n"
+" background-image: url(:/Tank.Platform.Resources/arrow_flipped_hover.png);\n"
 " }\n"
 "\n"
 " QToolButton:pressed{\n"
-" background-image: url(:/Tank.Platform.Qt/arrow_flipped_pressed.png);\n"
+" background-image: url(:/Tank.Platform.Resources/arrow_flipped_pressed.png);\n"
 " }\n"
 " ")
         self.details_hide.setAutoRaise(True)
@@ -192,7 +192,7 @@ class Ui_TankDialog(object):
         self.gradient.setMinimumSize(QSize(11, 0))
         self.gradient.setMaximumSize(QSize(11, 16777215))
         self.gradient.setStyleSheet(u"#gradient {\n"
-"background-image: url(:/Tank.Platform.Qt/gradient.png);\n"
+"background-image: url(:/Tank.Platform.Resources/gradient.png);\n"
 "border: none;\n"
 "}")
 
@@ -224,7 +224,7 @@ class Ui_TankDialog(object):
         self.app_icon.setObjectName(u"app_icon")
         self.app_icon.setMinimumSize(QSize(64, 64))
         self.app_icon.setMaximumSize(QSize(64, 64))
-        self.app_icon.setPixmap(QPixmap(u":/Tank.Platform.Qt/default_app_icon_256.png"))
+        self.app_icon.setPixmap(QPixmap(u":/Tank.Platform.Resources/default_app_icon_256.png"))
         self.app_icon.setScaledContents(True)
         self.app_icon.setAlignment(Qt.AlignCenter)
 
