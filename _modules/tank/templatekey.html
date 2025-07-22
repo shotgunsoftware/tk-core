@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.templatekey &mdash; tk-core v0.22.2 documentation</title>
+  <title>tank.templatekey &mdash; tk-core v0.22.5 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.2.<br>
+    <b>tk-core</b> v0.22.5.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -821,13 +821,13 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the current utc time as a datetime.datetime instance.</span>
 
-<span class="sd">        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.utcnow method,</span>
-<span class="sd">        we can&#39;t mock datatime.datetime.utcnow since it&#39;s builtin and will make unit tests more complicated to</span>
+<span class="sd">        Do not streamline the code so the __init__ method simply passesd the datetime.now(timezone.utc) method,</span>
+<span class="sd">        we can&#39;t mock datetime.now(timezone.utc) since it&#39;s builtin and will make unit tests more complicated to</span>
 <span class="sd">        write.</span>
 
 <span class="sd">        :returns: A datetime object representing time current time in the UTC timezone.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TimestampKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; tk-core v0.22.2 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.22.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -70,6 +70,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#general">General</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#shotgun-api-cacerts"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_API_CACERTS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgun-home"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-skip-qtwebenginewidgets-import"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-preferences-location"><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-bootstrap-config-override"><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-debug"><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code></a></li>
@@ -122,7 +123,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.2.<br>
+    <b>tk-core</b> v0.22.5.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -182,6 +183,12 @@ article.</p>
 <section id="shotgun-home">
 <h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code><a class="headerlink" href="#shotgun-home" title="Permalink to this heading"></a></h3>
 <p>Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.</p>
+</section>
+<section id="shotgun-skip-qtwebenginewidgets-import">
+<h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT</span></code><a class="headerlink" href="#shotgun-skip-qtwebenginewidgets-import" title="Permalink to this heading"></a></h3>
+<p>Use this variable to prevent Toolkit from importing the QtWebEngine modules when
+importing the PySide2/PySide6 modules.
+This variable is useful when a DCC deadlocks while importing the module.</p>
 </section>
 <section id="sgtk-preferences-location">
 <h3><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code><a class="headerlink" href="#sgtk-preferences-location" title="Permalink to this heading"></a></h3>

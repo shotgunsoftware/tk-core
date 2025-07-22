@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Initialization and startup &mdash; tk-core v0.22.2 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.22.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -150,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.2.<br>
+    <b>tk-core</b> v0.22.5.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -554,6 +554,12 @@ items locally based on the version number inside the descriptor URI. For every c
 a bundle, always create a new version number.</p>
 </div>
 <p>Once the bundles have been uploaded, you can implement the <code class="docutils literal notranslate"><span class="pre">core/bootstrap.py</span></code> hook.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In order to be able to bootstrap Toolkit regardless of the installation method used, the bootstrap hook needs
+to be stored within the package itself. That’s why this core hook is located in <code class="docutils literal notranslate"><span class="pre">core/python/tank/bootstrap/hook</span></code>
+instead of the usual core hooks location.</p>
+</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_hook_baseclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.util.shotgun</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_and_unpack_attachment</span>
 
