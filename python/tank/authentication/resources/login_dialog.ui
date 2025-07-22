@@ -148,7 +148,7 @@ QPushButton.main:pressed
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
+  <layout class="QVBoxLayout" name="verticalLayout_asl" stretch="1,0">
    <property name="margin" stdset="0">
     <number>20</number>
    </property>
@@ -251,6 +251,31 @@ QPushButton.main:pressed
             </property>
            </widget>
           </item>
+          <!-- <layout class="QVBoxLayout" name="refresh_site_info_verticalLayout">
+           <property name="margin" stdset="0">
+            <number>0</number>
+           </property> -->
+           <item>
+            <widget class="QLabel" name="refresh_site_info_spinner">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignHCenter|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="refresh_site_info_label">
+             <property name="text">
+              <string>Retrieving the site information...</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignHCenter|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+          <!-- </layout> -->
           <item>
            <widget class="QLabel" name="message">
             <property name="sizePolicy">

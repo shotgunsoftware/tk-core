@@ -425,6 +425,14 @@ class LogManager(object):
 
         return cls.__instance
 
+    @classmethod
+    def reset_logger(cls):
+        if not cls.__instance:
+            return
+
+        del cls.__instance
+        cls.__instance = None
+
     @staticmethod
     def get_logger(log_name):
         """
@@ -677,7 +685,7 @@ class LogManager(object):
             handler = logging.StreamHandler()
 
             # example: [DEBUG tank.log] message message
-            formatter = logging.Formatter("[%(levelname)s %(name)s] %(message)s")
+            formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
 
             handler.setFormatter(formatter)
 

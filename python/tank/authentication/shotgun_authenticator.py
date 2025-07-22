@@ -232,6 +232,8 @@ class ShotgunAuthenticator(object):
     def get_default_user(self):
         """
         Returns the default user from the defaults manager.
+        TODO this method's name and description is not accurate. This method tries to return the current user with credentials. ...
+        This is misleading......
 
         :returns: A :class:`ShotgunUser` derived instance if available, None otherwise.
         """
@@ -240,8 +242,8 @@ class ShotgunAuthenticator(object):
 
         # There is no default user.
         if not credentials:
-            logger.debug("No default user found.")
-            return None
+            logger.debug("No default user found")
+            return
 
         # If this looks like an api user, delegate to create_script_user.
         # If some of the arguments are missing, don't worry, create_script_user
