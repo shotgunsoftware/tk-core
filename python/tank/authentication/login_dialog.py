@@ -43,7 +43,7 @@ from . import app_session_launcher
 from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
-    SsoSaml2Toolkit,
+    SsoSaml2,
     SsoSaml2MissingQtModuleError,
 )
 
@@ -153,7 +153,7 @@ class LoginDialog(QtGui.QDialog):
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
-            self._sso_saml2 = SsoSaml2Toolkit(
+            self._sso_saml2 = SsoSaml2(
                 "Flow Production Tracking Web Login", qt_modules=qt_modules
             )
         except SsoSaml2MissingQtModuleError as e:

@@ -135,3 +135,16 @@ class SsoSaml2(object):
         :returns: The session error string or ""
         """
         return self._core._session.error
+
+    def get_session_data(self):
+        """
+        Get a minimal subset of session data, for the Shotgun Toolkit.
+
+        :returns: A tuple of the hostname, user_id, session_id and cookies.
+        """
+        return (
+            self._core._session.host,
+            self._core._session.user_id,
+            self._core._session.session_id,
+            self._core._session.cookies,
+        )
