@@ -45,7 +45,7 @@ class ShotgunWrapper(Shotgun):
         """
         self._user = kwargs["sg_auth_user"]
         del kwargs["sg_auth_user"]
-        super(ShotgunWrapper, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _call_rpc(self, *args, **kwargs):
         """
@@ -60,7 +60,7 @@ class ShotgunWrapper(Shotgun):
                 logger.debug("Global session token has changed. Using that instead.")
                 self.config.session_token = self._user.get_session_token()
 
-            return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
+            return super()._call_rpc(*args, **kwargs)
         except AuthenticationFault:
             logger.debug("Authentication failure.")
             pass
@@ -100,7 +100,7 @@ class ShotgunWrapper(Shotgun):
             self.config.session_token = session_info["session_token"]
             # Try again. If it fails with an authentication fault, that's ok
             try:
-                result = super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
+                result = super()._call_rpc(*args, **kwargs)
                 # It didn't fail, so we can update the session token for the user. The value is
                 # coming from the cache, so we should avoid an unnecessary write to disk.
                 logger.debug("Cached token was not expired. Saving to memory.")
@@ -118,4 +118,4 @@ class ShotgunWrapper(Shotgun):
         self.config.session_token = self._user.get_session_token()
         #  If there is once again an authentication fault, then it means
         # something else is going wrong and we will then simply rethrow
-        return super(ShotgunWrapper, self)._call_rpc(*args, **kwargs)
+        return super()._call_rpc(*args, **kwargs)

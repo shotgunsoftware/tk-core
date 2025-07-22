@@ -402,7 +402,7 @@ class MetricsDispatchWorkerThread(Thread):
         :params engine: Engine instance
         """
 
-        super(MetricsDispatchWorkerThread, self).__init__()
+        super().__init__()
 
         self._engine = engine
         self._endpoint_available = False

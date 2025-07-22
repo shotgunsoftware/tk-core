@@ -157,7 +157,7 @@ class TestConfigLocations(TankTestBase):
     """
 
     def setUp(self):
-        super(TestConfigLocations, self).setUp({"primary_root_name": "primary"})
+        super().setUp({"primary_root_name": "primary"})
         self._project = self.mockgun.create(
             "Project", {"name": "config_locations_test"}
         )

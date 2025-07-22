@@ -25,7 +25,7 @@ class TestShotgunPublishCreation(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunPublishCreation, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_translate_abstract_fields_optional_key_not_in_path(self):

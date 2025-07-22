@@ -759,7 +759,7 @@ class InstalledEnvironment(Environment):
                         context-based include file resolve will be
                         skipped.
         """
-        super(InstalledEnvironment, self).__init__(env_path, context)
+        super().__init__(env_path, context)
         self.__pipeline_config = pipeline_config
 
     def get_framework_descriptor(self, framework_name):
@@ -833,7 +833,7 @@ class WritableEnvironment(InstalledEnvironment):
                         skipped.
         """
         self.set_yaml_preserve_mode(True)
-        super(WritableEnvironment, self).__init__(env_path, pipeline_config, context)
+        super().__init__(env_path, pipeline_config, context)
 
     def __load_writable_yaml(self, path):
         """

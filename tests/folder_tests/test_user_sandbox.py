@@ -24,7 +24,7 @@ from tank_test.tank_test_base import (
 
 class TestHumanUser(TankTestBase):
     def setUp(self):
-        super(TestHumanUser, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/humanuser_core"})
 

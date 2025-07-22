@@ -34,7 +34,7 @@ class TestTemplate(unittest.TestCase):
     Do no add tests to this class directly."""
 
     def setUp(self):
-        super(TestTemplate, self).setUp()
+        super().setUp()
 
         # Make various types of keys(fields)
         self.keys = {
@@ -295,7 +295,7 @@ class TestSplitPath(unittest.TestCase):
 
 class TestMakeTemplatePaths(ShotgunTestBase):
     def setUp(self):
-        super(TestMakeTemplatePaths, self).setUp()
+        super().setUp()
         self.keys = {"Shot": StringKey("Shot")}
         self.multi_os_data_roots = {
             "unit_tests": {
@@ -397,7 +397,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
 
 class TestMakeTemplateStrings(ShotgunTestBase):
     def setUp(self):
-        super(TestMakeTemplateStrings, self).setUp()
+        super().setUp()
         self.keys = {"Shot": StringKey("Shot")}
         self.template_path = TemplatePath(
             "something/{Shot}", self.keys, self.project_root
@@ -451,7 +451,7 @@ class TestReadTemplates(TankTestBase):
     """Test reading templates file."""
 
     def setUp(self):
-        super(TestReadTemplates, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_choices(self):

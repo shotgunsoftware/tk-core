@@ -26,7 +26,7 @@ class TestFolderConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestFolderConfiguration, self).setUp()
+        super().setUp()
         self.schema_location = os.path.join(
             self.pipeline_config_root, "config", "core", "schema"
         )

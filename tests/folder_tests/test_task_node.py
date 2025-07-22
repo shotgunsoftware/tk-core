@@ -30,7 +30,7 @@ class TestSchemaCreateFoldersSingleTask(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersSingleTask, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(
             parameters={"core": "core.override/shotgun_single_task_core"}
@@ -116,7 +116,7 @@ class TestSchemaCreateFoldersSingleTask(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersSingleTask, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -210,7 +210,7 @@ class TestSchemaCreateFoldersMultiTask(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersMultiTask, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(
             parameters={"core": "core.override/shotgun_multi_task_core"}
@@ -296,7 +296,7 @@ class TestSchemaCreateFoldersMultiTask(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersMultiTask, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (

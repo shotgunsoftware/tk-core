@@ -211,7 +211,7 @@ class ShotgunTask(Entity):
                             the configuration + the ones specified by :meth:`_get_additional_sg_fields`.
         """
         # call base class implementation
-        super(ShotgunTask, self)._register_secondary_entities(io_receiver, path, entity)
+        super()._register_secondary_entities(io_receiver, path, entity)
 
         # for tasks, the associated step is always registered as a secondary entity
         if entity.get("step"):

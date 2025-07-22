@@ -45,7 +45,7 @@ class ConfigDescriptor(Descriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(ConfigDescriptor, self).__init__(io_descriptor)
+        super().__init__(io_descriptor)
         self._cached_core_descriptor = None
         self._sg_connection = sg_connection
         self._bundle_cache_root_override = bundle_cache_root_override

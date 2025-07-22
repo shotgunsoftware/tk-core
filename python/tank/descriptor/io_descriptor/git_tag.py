@@ -56,7 +56,7 @@ class IODescriptorGitTag(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(
+        super().__init__(
             descriptor_dict, sg_connection, bundle_type
         )
 
@@ -97,7 +97,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :return: List of path strings
         """
         # get default cache paths from base class
-        paths = super(IODescriptorGitTag, self)._get_cache_paths()
+        paths = super()._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,

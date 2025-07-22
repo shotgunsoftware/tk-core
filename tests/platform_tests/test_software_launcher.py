@@ -30,7 +30,7 @@ from tank_vendor import six
 
 class TestEngineLauncher(TankTestBase):
     def setUp(self):
-        super(TestEngineLauncher, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -368,7 +368,7 @@ class TestEngineLauncher(TankTestBase):
 
 class TestSoftwareVersion(TankTestBase):
     def setUp(self):
-        super(TestSoftwareVersion, self).setUp()
+        super().setUp()
 
         self._version = "v293.49.2.dev"
         self._product = "My Custom App"
@@ -393,7 +393,7 @@ class TestSoftwareVersion(TankTestBase):
 
 class TestLaunchInformation(TankTestBase):
     def setUp(self):
-        super(TestLaunchInformation, self).setUp()
+        super().setUp()
 
         self._path = "/my/path/to/app/{version}/my_custom_app"
         self._args = "-t 1-30 --show_all -v --select ship"

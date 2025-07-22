@@ -10,7 +10,7 @@ import tank
 
 class TestValidateSchema(ShotgunTestBase):
     def setUp(self):
-        super(TestValidateSchema, self).setUp()
+        super().setUp()
 
         # The validation code needs a name for error reporting
         self.app_name = "test_app"
@@ -223,7 +223,7 @@ class TestValidateSchema(ShotgunTestBase):
 
 class TestValidateSettings(TankTestBase):
     def setUp(self):
-        super(TestValidateSettings, self).setUp()
+        super().setUp()
         # set up data so as to supply a valid context
         seq = {"type": "Sequence", "name": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequence/Seq")
@@ -582,7 +582,7 @@ class TestValidateContext(TankTestBase):
     """
 
     def setUp(self):
-        super(TestValidateContext, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.app_name = "test_app"
@@ -767,7 +767,7 @@ class TestValidateFixtures(TankTestBase):
     """Integration test running validation on test fixtures."""
 
     def setUp(self):
-        super(TestValidateFixtures, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot

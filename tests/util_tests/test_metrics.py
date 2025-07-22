@@ -238,7 +238,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
-        super(TestMetricsDispatchWorkerThread, self).setUp()
+        super().setUp()
 
         # Storing the value as it might have be changed in tests
         self._saved_dispatch_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
@@ -260,7 +260,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         MetricsDispatchWorkerThread.DISPATCH_INTERVAL = self._saved_dispatch_interval
 
         # important to call base class so it can clean up memory
-        super(TestMetricsDispatchWorkerThread, self).tearDown()
+        super().tearDown()
 
     def _get_urllib_request_calls(self, return_only_calls_after_reset=False):
         """
@@ -920,7 +920,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestMetricsDeprecatedFunctions, self).setUp()
+        super().setUp()
 
         # Setting up the mocked method
         self._metrics_queue_singleton_log_mock = mock.patch(
@@ -935,7 +935,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
             self._mocked_method.reset_mock()
             self._mocked_method = None
 
-        super(TestMetricsDeprecatedFunctions, self).tearDown()
+        super().tearDown()
 
     def test_legacy_util_import_statement(self):
         """
@@ -1040,7 +1040,7 @@ class TestBundleMetrics(TankTestBase):
     """
 
     def setUp(self):
-        super(TestBundleMetrics, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -1089,7 +1089,7 @@ class TestBundleMetrics(TankTestBase):
         os.remove(self.test_resource)
         self._de_authenticate()
         # important to call base class so it can clean up memory
-        super(TestBundleMetrics, self).tearDown()
+        super().tearDown()
 
     def _authenticate(self):
         # Need to set authenticated user prior to MetricDispatcher.start below
@@ -1254,7 +1254,7 @@ from tank.util.metrics import PlatformInfo
 
 class TestPlatformInfo(unittest.TestCase):
     def setUp(self):
-        super(TestPlatformInfo, self).setUp()
+        super().setUp()
         # reset un-cache PlatformInfo cached value
         PlatformInfo._PlatformInfo__cached_platform_info = None
 

@@ -21,7 +21,7 @@ class TestHookProperties(TankTestBase):
     """
 
     def setUp(self):
-        super(TestHookProperties, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_core_hook_properties(self):

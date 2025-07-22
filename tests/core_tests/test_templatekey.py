@@ -46,7 +46,7 @@ class TestTemplateKey(ShotgunTestBase):
 
 class TestStringKey(ShotgunTestBase):
     def setUp(self):
-        super(TestStringKey, self).setUp()
+        super().setUp()
         self.str_field = StringKey("field_name")
         self.alphanum_field = StringKey("field_name", filter_by="alphanumeric")
         self.alpha_field = StringKey("field_name", filter_by="alpha")
@@ -445,7 +445,7 @@ class TestStringKey(ShotgunTestBase):
 
 class TestIntegerKey(ShotgunTestBase):
     def setUp(self):
-        super(TestIntegerKey, self).setUp()
+        super().setUp()
         self.int_field = IntegerKey("field_name")
 
     def test_bad_default(self):
@@ -737,7 +737,7 @@ class TestIntegerKey(ShotgunTestBase):
 
 class TestSequenceKey(ShotgunTestBase):
     def setUp(self):
-        super(TestSequenceKey, self).setUp()
+        super().setUp()
         self.seq_field = SequenceKey("field_name")
 
     def test_framespec_no_format(self):
@@ -1129,7 +1129,7 @@ class TestEyeKey(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestEyeKey, self).setUp()
+        super().setUp()
         self.eye_key = StringKey("eye", default="%V", choices=["%V", "L", "R"])
         self.default_value = "%V"
 
@@ -1157,7 +1157,7 @@ class TestTimestampKey(ShotgunTestBase):
         """
         Creates a bunch of dates and strings for testing.
         """
-        super(TestTimestampKey, self).setUp()
+        super().setUp()
         self._datetime = datetime.datetime(2015, 6, 24, 21, 20, 30)
         self._datetime_string = "2015-06-24-21-20-30"
 

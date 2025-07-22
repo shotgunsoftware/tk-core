@@ -68,10 +68,10 @@ class InteractiveTests(ShotgunTestBase):
         # value even if no QApplication has been constructed on PySide2.
         if not QtGui.QApplication.instance():
             self._app = QtGui.QApplication(sys.argv)
-        super(InteractiveTests, self).setUp()
+        super().setUp()
 
     def tearDown(self):
-        super(InteractiveTests, self).tearDown()
+        super().tearDown()
         from tank.authentication.ui.qt_abstraction import QtGui
 
         QtGui.QApplication.processEvents()
@@ -108,7 +108,7 @@ class InteractiveTests(ShotgunTestBase):
 
             def done(self, r):
                 self.my_result = r
-                return super(MyLoginDialog, self).done(r)
+                return super().done(r)
 
         # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
         # issues with tests.
@@ -1535,7 +1535,7 @@ class SsoSaml2CoreTests(ShotgunTestBase):
             "QtWebEngineWidgets": mock.Mock(),
         }
         self.sso_saml2 = SsoSaml2Core(qt_modules=qt_modules_mock)
-        super(SsoSaml2CoreTests, self).setUp()
+        super().setUp()
 
     def test_on_renew_sso_session(self):
         """Mainly for coverage"""

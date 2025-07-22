@@ -25,7 +25,7 @@ class TestStorageRoots(ShotgunTestBase):
 
     def setUp(self):
 
-        super(TestStorageRoots, self).setUp()
+        super().setUp()
 
         # ---- mock some local storages
 

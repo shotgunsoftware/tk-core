@@ -238,7 +238,7 @@ class TestConfiguration(TestConfigurationBase):
 
 class TestSSOClaims(TestConfigurationBase):
     def setUp(self):
-        super(TestSSOClaims, self).setUp()
+        super().setUp()
 
         config_folder = sgtk.util.ShotgunPath.from_current_os_path(
             os.path.join(self.tank_temp, str(uuid.uuid4()))
@@ -360,7 +360,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestInvalidInstalledConfiguration, self).setUp()
+        super().setUp()
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
@@ -408,7 +408,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
 
 class TestBakedConfiguration(TestConfigurationBase):
     def setUp(self):
-        super(TestBakedConfiguration, self).setUp()
+        super().setUp()
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._build_plugin_path = os.path.abspath(
             os.path.join(
@@ -418,7 +418,7 @@ class TestBakedConfiguration(TestConfigurationBase):
         sys.path.append(os.path.dirname(self._build_plugin_path))
 
     def tearDown(self):
-        super(TestBakedConfiguration, self).tearDown()
+        super().tearDown()
         if os.path.dirname(self._build_plugin_path) in sys.path:
             sys.path.remove(os.path.dirname(self._build_plugin_path))
         # Tear down the running engine, if any
@@ -465,7 +465,7 @@ class TestBakedConfiguration(TestConfigurationBase):
 
 class TestCachedConfiguration(ShotgunTestBase):
     def setUp(self):
-        super(TestCachedConfiguration, self).setUp()
+        super().setUp()
 
         # Reset the tank_name and create a storage named after the one in the config.
         self.mockgun.update("Project", self.project["id"], {"tank_name": None})

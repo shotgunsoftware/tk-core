@@ -26,7 +26,7 @@ from tank_vendor import yaml
 
 class SessionCacheTests(ShotgunTestBase):
     def setUp(self):
-        super(SessionCacheTests, self).setUp()
+        super().setUp()
         # Wipe the global session file that has been edited by previous tests.
         self._write_global_yml({})
 

@@ -64,7 +64,7 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         :param parent: The parent object that will be used for for the bootstrapper.
         """
 
-        super(AsyncBootstrapWrapper, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self._toolkit_manager = toolkit_manager
         self._engine_name = engine_name
@@ -198,7 +198,7 @@ class _BootstrapToolkitWorker(QtCore.QObject):
         :param parent: The parent object that will be used for the worker.
         """
 
-        super(_BootstrapToolkitWorker, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self._toolkit_manager = toolkit_manager
         self._engine_name = engine_name

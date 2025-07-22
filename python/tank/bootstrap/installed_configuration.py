@@ -29,7 +29,7 @@ class InstalledConfiguration(Configuration):
         :param str path: ShotgunPath object describing the path to this configuration
         :param descriptor: ConfigDescriptor for the associated config
         """
-        super(InstalledConfiguration, self).__init__(path, descriptor)
+        super().__init__(path, descriptor)
 
     def __str__(self):
         """

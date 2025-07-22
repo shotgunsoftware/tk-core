@@ -532,7 +532,7 @@ class TemplatePath(Template):
         :param per_platform_roots: Root paths for all supported operating systems.
                                    This is a dictionary with sys.platform-style keys
         """
-        super(TemplatePath, self).__init__(definition, keys, name=name)
+        super().__init__(definition, keys, name=name)
         self._prefix = root_path
         self._per_platform_roots = per_platform_roots
 
@@ -600,7 +600,7 @@ class TemplatePath(Template):
 
         :returns: Full path, matching the template with the given fields inserted.
         """
-        relative_path = super(TemplatePath, self)._apply_fields(
+        relative_path = super()._apply_fields(
             fields, ignore_types, platform, skip_defaults=skip_defaults
         )
 
@@ -681,7 +681,7 @@ class TemplateString(Template):
         :param name: Optional name for this template.
         :param validate_with: Optional :class:`Template` to use for validation
         """
-        super(TemplateString, self).__init__(definition, keys, name=name)
+        super().__init__(definition, keys, name=name)
         self.validate_with = validate_with
         self._prefix = "@"
 
@@ -717,7 +717,7 @@ class TemplateString(Template):
         """
         # add path prefix as original design was to require project root
         adj_path = os.path.join(self._prefix, input_path)
-        return super(TemplateString, self).get_fields(adj_path, skip_keys=skip_keys)
+        return super().get_fields(adj_path, skip_keys=skip_keys)
 
 
 def split_path(input_path):

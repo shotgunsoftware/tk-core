@@ -22,7 +22,7 @@ class FileOpenEvent(EngineEvent):
 
         :param str file_path: The path to the file opened.
         """
-        super(FileOpenEvent, self).__init__()
+        super().__init__()
         self._file_path = file_path
 
     @property

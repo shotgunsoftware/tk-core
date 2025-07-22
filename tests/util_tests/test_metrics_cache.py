@@ -29,7 +29,7 @@ class MetricsCacheTests(unittest.TestCase):
             if k.startswith("sgtk_metric_cache_"):
                 del os.environ[k]
 
-        super(MetricsCacheTests, self).tearDown()
+        super().tearDown()
 
     def test_log(self, *mocks):
         # not json_serializable

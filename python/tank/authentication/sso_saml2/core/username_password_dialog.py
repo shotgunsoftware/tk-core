@@ -25,7 +25,7 @@ class UsernamePasswordDialog(QtGui.QDialog):
     """Simple dialog to request a username and password from the user."""
 
     def __init__(self, window_title=None, message=None):
-        super(UsernamePasswordDialog, self).__init__()
+        super().__init__()
 
         if window_title is None:
             window_title = "Please enter your credentials"

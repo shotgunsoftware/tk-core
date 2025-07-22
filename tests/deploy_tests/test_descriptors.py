@@ -18,7 +18,7 @@ from tank.errors import TankError
 class TestLegacyDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
-        super(TestLegacyDescriptorSupport, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"

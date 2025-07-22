@@ -26,7 +26,7 @@ class TestCoreHook(TankTestBase):
     """
 
     def setUp(self):
-        super(TestCoreHook, self).setUp()
+        super().setUp()
         self.setup_fixtures(name="publish_resolve")
 
     def test_unsupported_url(self):
@@ -100,7 +100,7 @@ class TestUnsupported(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUnsupported, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_no_path(self):
@@ -170,7 +170,7 @@ class TestLocalFileLink(TankTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileLink, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.storage = {
@@ -195,7 +195,7 @@ class TestLocalFileLink(TankTestBase):
         if "SHOTGUN_PATH_LINUX_HOME" in os.environ:
             del os.environ["SHOTGUN_PATH_LINUX_HOME"]
 
-        super(TestLocalFileLink, self).tearDown()
+        super().tearDown()
 
     def test_basic_case(self):
         """
@@ -282,7 +282,7 @@ class TestLocalFileLinkRaises(TankTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileLinkRaises, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_raises(self):
@@ -356,7 +356,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileLinkEnvVarOverride, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def tearDown(self):
@@ -370,7 +370,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
         if "SHOTGUN_PATH_LINUX_HOME" in os.environ:
             del os.environ["SHOTGUN_PATH_LINUX_HOME"]
 
-        super(TestLocalFileLinkEnvVarOverride, self).tearDown()
+        super().tearDown()
 
     def test_env_var(self):
         """
@@ -440,7 +440,7 @@ class TestUrlNoStorages(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlNoStorages, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_nix_path(self):
@@ -519,7 +519,7 @@ class TestUrlWithEnvVars(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithEnvVars, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # set override
@@ -551,7 +551,7 @@ class TestUrlWithEnvVars(TankTestBase):
         del os.environ["SHOTGUN_PATH_MAC_2"]
         del os.environ["SHOTGUN_PATH_LINUX_2"]
 
-        super(TestUrlWithEnvVars, self).tearDown()
+        super().tearDown()
 
     def test_no_storages(self):
         """
@@ -668,7 +668,7 @@ class TestUrlWithStorages(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithStorages, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -808,7 +808,7 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithStoragesAndOverrides, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -860,7 +860,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUrlWithStoragesAndOverrides2, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -885,7 +885,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
         del os.environ["SHOTGUN_PATH_LINUX_STORAGE_1"]
         del os.environ["SHOTGUN_PATH_WINDOWS_STORAGE_1"]
 
-        super(TestUrlWithStoragesAndOverrides2, self).tearDown()
+        super().tearDown()
 
     def test_augument_local_storage(self):
         """

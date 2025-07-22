@@ -154,7 +154,7 @@ class ShotgunWebUser(ShotgunUser):
         """
         :param impl: Internal user implementation class this class proxies.
         """
-        super(ShotgunWebUser, self).__init__(impl)
+        super().__init__(impl)
 
 
 class ShotgunSamlUser(ShotgunWebUser):
@@ -182,7 +182,7 @@ class ShotgunSamlUser(ShotgunWebUser):
         """
         :param impl: Internal user implementation class this class proxies.
         """
-        super(ShotgunSamlUser, self).__init__(impl)
+        super().__init__(impl)
         self._timer = None
         self._claims_renewal_cancelled = False
 

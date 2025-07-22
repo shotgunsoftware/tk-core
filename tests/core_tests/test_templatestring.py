@@ -25,7 +25,7 @@ class TestTemplateString(ShotgunTestBase):
     """Base class for TemplateString tests."""
 
     def setUp(self):
-        super(TestTemplateString, self).setUp()
+        super().setUp()
         self.keys = {
             "Sequence": StringKey("Sequence"),
             "Shot": StringKey("Shot"),

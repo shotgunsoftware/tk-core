@@ -52,7 +52,7 @@ class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
     Filters rows based on fuzzy matching and sorts them based on their score.
     """
     def __init__(self, parent):
-        super(CompletionFilterProxy, self).__init__(parent)
+        super().__init__(parent)
         self.set_filter("")
 
     def set_filter(self, text):

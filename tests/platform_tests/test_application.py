@@ -32,7 +32,7 @@ class TestApplication(TankTestBase):
     """
 
     def setUp(self):
-        super(TestApplication, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -64,7 +64,7 @@ class TestApplication(TankTestBase):
             cur_engine.destroy()
 
         # important to call base class so it can clean up memory
-        super(TestApplication, self).tearDown()
+        super().tearDown()
 
 
 class TestAppFrameworks(TestApplication):
@@ -179,7 +179,7 @@ class TestGetSetting(TestApplication):
     """
 
     def setUp(self):
-        super(TestGetSetting, self).setUp()
+        super().setUp()
         self.app = self.engine.apps["test_app"]
 
     def test_get_setting(self):

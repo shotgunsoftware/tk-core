@@ -44,7 +44,7 @@ def ignore_patterns(*patterns):
 
 class TestBackups(ShotgunTestBase):
     def setUp(self):
-        super(TestBackups, self).setUp()
+        super().setUp()
 
         pathHead, pathTail = os.path.split(__file__)
         self._core_repo_path = os.path.join(pathHead, "..", "..")

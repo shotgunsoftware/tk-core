@@ -26,7 +26,7 @@ class TestInit(TankTestBase):
     """Tests basic initialization of the sgtk API"""
 
     def setUp(self):
-        super(TestInit, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_project_from_param(self):
@@ -38,7 +38,7 @@ class TestTemplateFromPath(TankTestBase):
     """Cases testing Tank.template_from_path method"""
 
     def setUp(self):
-        super(TestTemplateFromPath, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_defined_path(self):
@@ -71,7 +71,7 @@ class TestTemplatesLoaded(TankTestBase):
     """Test case for the loading of templates from project level config."""
 
     def setUp(self):
-        super(TestTemplatesLoaded, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
         # some template names we know exist in the standard template
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
@@ -100,7 +100,7 @@ class TestPathsFromTemplate(TankTestBase):
     """Tests for tank.paths_from_template using test data based on sg_standard setup."""
 
     def setUp(self):
-        super(TestPathsFromTemplate, self).setUp()
+        super().setUp()
         self.setup_fixtures()
         # create project data
         # two sequences
@@ -231,7 +231,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
     """Tests Tank.abstract_paths_from_template method."""
 
     def setUp(self):
-        super(TestAbstractPathsFromTemplate, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         keys = {
@@ -371,7 +371,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
 
     def setUp(self):
-        super(TestPathsFromTemplateGlob, self).setUp()
+        super().setUp()
         keys = {
             "Shot": StringKey("Shot"),
             "version": IntegerKey("version", format_spec="03"),
@@ -444,7 +444,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
 
 class TestApiProperties(TankTestBase):
     def setUp(self):
-        super(TestApiProperties, self).setUp()
+        super().setUp()
 
     def test_version_property(self):
         """
@@ -512,7 +512,7 @@ class TestApiCache(TankTestBase):
     """
 
     def setUp(self):
-        super(TestApiCache, self).setUp()
+        super().setUp()
 
     def test_get_set(self):
         """

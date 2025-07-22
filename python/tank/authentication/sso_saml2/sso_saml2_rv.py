@@ -32,7 +32,7 @@ class SsoSaml2Rv(SsoSaml2):
 
         :returns: The SsoSaml2 oject.
         """
-        super(SsoSaml2Rv, self).__init__(window_title, qt_modules)
+        super().__init__(window_title, qt_modules)
 
     def on_sso_login_cancel(self, event):
         """
