@@ -518,10 +518,6 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.site_info._get_site_infos",
         return_value={},
     )
-    @mock.patch(
-        "tank.authentication.login_dialog._is_running_in_desktop",
-        return_value=True,
-    )
     def test_ui_error_management(self, *unused_mocks):
         # Empty of invalid site
         with self._login_dialog() as ld:
@@ -635,10 +631,6 @@ class InteractiveTests(ShotgunTestBase):
             self.assertEqual(ld.isVisible(), False)
 
     @suppress_generated_code_qt_warnings
-    @mock.patch(
-        "tank.authentication.login_dialog._is_running_in_desktop",
-        return_value=True,
-    )
     @mock.patch(
         "tank.authentication.web_login_support.get_shotgun_authenticator_support_web_login",
         return_value=True,
@@ -779,10 +771,6 @@ class InteractiveTests(ShotgunTestBase):
 
     @suppress_generated_code_qt_warnings
     @mock.patch(
-        "tank.authentication.login_dialog._is_running_in_desktop",
-        return_value=True,
-    )
-    @mock.patch(
         "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
         return_value=True,
     )
@@ -835,9 +823,6 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.login_dialog.ASL_AuthTask.start"
         ), mock.patch(
-            "tank.authentication.login_dialog._is_running_in_desktop",
-            return_value=True,
-        ), mock.patch(
             "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
             return_value=False,
         ), mock.patch(
@@ -858,9 +843,6 @@ class InteractiveTests(ShotgunTestBase):
     def test_login_dialog_method_selected_default(self):
         with mock.patch(
             "tank.authentication.login_dialog.ASL_AuthTask.start"
-        ), mock.patch(
-            "tank.authentication.login_dialog._is_running_in_desktop",
-            return_value=True,
         ), mock.patch(
             "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
             return_value=True,
@@ -933,11 +915,15 @@ class InteractiveTests(ShotgunTestBase):
                     "SGTK_DEFAULT_AUTH_METHOD": "qt_web_login",
                 },
             ), mock.patch(
-                "tank.authentication.login_dialog._is_running_in_desktop",
-                return_value=False,
-            ), mock.patch(
                 "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
                 return_value=False,
+            ), mock.patch(
+                "tank.authentication.site_info._get_site_infos",
+                return_value={
+                    "user_authentication_method": "default",
+                    "unified_login_flow_enabled": True,
+                    "authentication_app_session_launcher_enabled": True,
+                },
             ), self._login_dialog(
                 hostname="https://host.shotgunstudio.com",
             ) as ld:
@@ -966,15 +952,12 @@ class InteractiveTests(ShotgunTestBase):
         with mock.patch(
             "tank.authentication.login_dialog.ASL_AuthTask.start"
         ), mock.patch(
-            "tank.authentication.login_dialog._is_running_in_desktop",
-            return_value=True,
-        ), mock.patch(
             "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
             return_value=True,
         ), mock.patch(
             "tank.authentication.site_info._get_site_infos",
             return_value={
-                "user_authentication_method": "oxygen",
+                "user_authentication_method": "default",
                 "unified_login_flow_enabled": True,
                 "authentication_app_session_launcher_enabled": True,
             },
@@ -995,9 +978,6 @@ class InteractiveTests(ShotgunTestBase):
 
             # qt_web_login but method is not available
             with mock.patch(
-                "tank.authentication.login_dialog._is_running_in_desktop",
-                return_value=False,
-            ), mock.patch(
                 "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
                 return_value=False,
             ), mock.patch(
@@ -1015,10 +995,6 @@ class InteractiveTests(ShotgunTestBase):
 
     @suppress_generated_code_qt_warnings
     @mock.patch("tank.authentication.login_dialog.ASL_AuthTask.start")
-    @mock.patch(
-        "tank.authentication.login_dialog._is_running_in_desktop",
-        return_value=True,
-    )
     @mock.patch(
         "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
         return_value=True,
