@@ -9,7 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from distutils.version import StrictVersion
+
+from packaging import version
 
 from .action_base import Action
 from . import core_localize
@@ -715,7 +716,7 @@ class SetupProjectWizard(object):
         sg_minor_ver = connection.server_info["version"][1]
         sg_patch_ver = connection.server_info["version"][2]
 
-        return StrictVersion("%d.%d.%d" % (sg_major_ver, sg_minor_ver, sg_patch_ver))
+        return version.parse(f"{sg_major_ver}.{sg_minor_ver}.{sg_patch_ver}")
 
     def _is_session_based_authentication_supported(self):
         """
@@ -727,7 +728,7 @@ class SetupProjectWizard(object):
         """
         # First version to support human based authentication for all operations was
         # 6.0.2.
-        if self._get_server_version(self._sg) >= StrictVersion("6.0.2"):
+        if self._get_server_version(self._sg) >= version.parse("6.0.2"):
             return True
         else:
             return False

@@ -25,7 +25,8 @@ import sys
 import stat
 import datetime
 import shutil
-from distutils.version import LooseVersion
+
+from packaging import version
 
 SG_LOCAL_STORAGE_OS_MAP = {
     "linux2": "linux_path",
@@ -105,7 +106,7 @@ def __current_version_less_than(log, sgtk_install_root, ver):
     if ver.startswith("v"):
         ver = ver[1:]
 
-    return LooseVersion(current_api_version) < LooseVersion(ver)
+    return version.parse(current_api_version) < version.parse(ver)
 
 
 ###################################################################################################
