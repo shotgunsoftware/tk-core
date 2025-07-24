@@ -18,6 +18,7 @@ else:
         from setuptools._distutils.version import LooseVersion
     except ModuleNotFoundError:
         # Known issue with VRED 16. Unable to load the setuptools module
+        # TODO: when DCCs bumps to Python 3.12, distutils will be removed. What to do then?
         from distutils.version import LooseVersion
 
 from . import sgre as re
