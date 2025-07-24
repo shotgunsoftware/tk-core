@@ -28,7 +28,6 @@ from sgtk.descriptor import create_descriptor
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
-from distutils.version import LooseVersion
 
 
 class TestAppStoreLabels(ShotgunTestBase):
