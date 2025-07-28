@@ -18,7 +18,7 @@ else:
     try:
         # Try importing packaging.
         LooseVersion = None
-        from packaging import version
+        import packaging.version
     except ModuleNotFoundError:
         # Try importing from setuptools.
         # If it fails, then we can't do much at the moment
@@ -247,8 +247,8 @@ def _compare_versions(a, b):
     else:
         # We're using packaging.version
         try:
-            version_a = version.parse(a)
-            version_b = version.parse(b)
+            version_a = packaging.version.parse(a)
+            version_b = packaging.version.parse(b)
             return version_a > version_b
         except version.InvalidVersion:
             pass
