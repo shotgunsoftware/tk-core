@@ -219,7 +219,8 @@ Http protocol syntax:
 
 .. note:: The latest version for a descriptor is determined by retrieving the list of tags for
     the repository and comparing the version numbers in order to determine the highest one.
-    For this comparison, :py:class:`~distutils.version.LooseVersion` is used and we recommend
+    For this comparison, :py:class:`~distutils.version.LooseVersion` or
+    :py:class:`~packaging.version` are used and we recommend
     that version numbers follow the semantic versioning standard that can be found at http://semver.org.
 
 
