@@ -11,7 +11,6 @@
 """
 Logic for publishing files to Shotgun.
 """
-from __future__ import with_statement
 
 import os
 from tank_vendor.six.moves import urllib

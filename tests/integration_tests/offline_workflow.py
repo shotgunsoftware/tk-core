@@ -13,8 +13,6 @@ This test ensures that the offline workflow using local bundle cached inside an 
 zipped config can be bootstrap into without requiring to download anything from Shotgun.
 """
 
-from __future__ import print_function
-
 import unittest
 import os
 import sys

@@ -12,8 +12,6 @@
 Unit tests tank pipeline configs.
 """
 
-from __future__ import with_statement
-
 import os
 import tempfile
 import shutil
