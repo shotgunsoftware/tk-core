@@ -13,11 +13,11 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import sys
+import collections.abc
 import datetime
 from . import constants
 from .errors import TankError
 from .util import sgre as re
-from tank_vendor.six.moves import zip, collections_abc
 
 try:
     from tank_vendor import sgutils
@@ -130,7 +130,7 @@ class TemplateKey(object):
 
         :returns: The default value.
         """
-        if isinstance(self._default, collections_abc.Callable):
+        if isinstance(self._default, collections.abc.Callable):
             return self._default()
         else:
             return self._default
