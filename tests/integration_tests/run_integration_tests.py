@@ -13,7 +13,6 @@
 This script will run all the integration tests from this folder.
 """
 
-import argparse
 import copy
 import glob
 import os
