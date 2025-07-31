@@ -28,7 +28,6 @@ from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
 from tank_vendor import yaml
-from tank_vendor import six
 from tank.authentication import ShotgunAuthenticator
 
 USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
@@ -853,9 +852,6 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
 
-    # It seems like Python 2.7.16+ is a bit less comfortable with paths with the wrong orientation
-    # for the slashes, so we'll generate test data that is more conforming to the current platform.
-    # This isn't an issue in the real world, as we always sanitize our inputs.
     @mock.patch(
         "tank.context.Context._get_project_roots",
         return_value=["{0}{0}foo{0}bar".format(os.path.sep)],
@@ -1286,7 +1282,7 @@ class TestSerialize(TestContext):
         context_1 = context.Context(**self.kws)
         serialized = context_1.serialize()
         # Ensure the serialized context is a string
-        self.assertIsInstance(serialized, six.string_types)
+        self.assertIsInstance(serialized, str)
         context_2 = tank.Context.deserialize(serialized)
         self._assert_equal_contexts(context_1, context_2)
 
@@ -1310,7 +1306,7 @@ class TestSerialize(TestContext):
         pickle.loads(unserialized_pickle["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1333,7 +1329,7 @@ class TestSerialize(TestContext):
         json.loads(unserialized_json["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1350,7 +1346,7 @@ class TestSerialize(TestContext):
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Change the current user to make sure that the deserialize operation doesn't
         # change it back to the original user.
@@ -1380,12 +1376,9 @@ class TestSerialize(TestContext):
         property we'll add the value there.
         """
         self.assertEqual(ctx_1, ctx_2)
-        # Only compare type and id, serialized contexts are lossy due the fields
-        # being dropped in order to ensure there are no unrealizable characters
-        # sent from Python 3 to Python 2 when pickling.
-        # Interestingly, as you can see from the comparison above, the __eq__
-        # operator on context already compares only the type and id,
-        # which is why we don't have to compare all the fields manually.
+        # Context equality (__eq__) only considers the entity type and id.
+        # However, source_entity is not included in that check,
+        # so we explicitly compare it to ensure full fidelity after serialization.
         self.assertEqual(ctx_1.source_entity["type"], ctx_2.source_entity["type"])
         self.assertEqual(ctx_1.source_entity["id"], ctx_2.source_entity["id"])
 

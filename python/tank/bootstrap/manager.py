@@ -211,9 +211,6 @@ class ToolkitManager(object):
             )
             toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
 
-            # Python' sets do not preserve insertion order and Python 2.5 doesn't support
-            # OrderedDicts, which would have been perfect for this, so we will...
-
             # First build the complete list of paths with possible duplicates.
             concatenated_lists = (
                 self._user_bundle_cache_fallback_paths

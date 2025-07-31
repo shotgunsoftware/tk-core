@@ -19,13 +19,7 @@ import sqlite3
 import sys
 import os
 import itertools
-
-# use api json to cover py 2.5
-# todo - replace with proper external library
-from tank_vendor import shotgun_api3
-from tank_vendor import six
-
-json = shotgun_api3.shotgun.json
+import json
 
 from .platform.engine import show_global_busy, clear_global_busy
 from . import constants
@@ -1857,7 +1851,7 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
+        for (et, sg_records_for_et) in ids_to_look_for.items():
 
             log.info(" - Checking %s %ss in Flow Production Tracking..." % (len(sg_records_for_et), et))
 

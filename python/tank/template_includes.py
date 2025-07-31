@@ -34,7 +34,6 @@ from .errors import TankError
 from . import constants
 from .util import yaml_cache
 from .util.includes import resolve_include
-from tank_vendor import six
 
 
 def _get_includes(file_name, data):
@@ -162,7 +161,7 @@ def process_includes(file_name, data):
             if isinstance(template_definition, dict):
                 template_str = template_definition.get("definition")
                 complex_syntax = True
-            elif isinstance(template_definition, six.string_types):
+            elif isinstance(template_definition, str):
                 template_str = template_definition
             if not template_str:
                 raise TankError(
@@ -255,7 +254,7 @@ def _resolve_template_r(
     if isinstance(template_definition, dict):
         template_str = template_definition.get("definition")
         complex_syntax = True
-    elif isinstance(template_definition, six.string_types):
+    elif isinstance(template_definition, str):
         template_str = template_definition
     if not template_str:
         raise TankError(
