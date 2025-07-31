@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -19,21 +20,25 @@ class PackageUpgrade(object):
         self.url = "https://github.com/yaml/pyyaml.git"
         self.base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         self.pyyaml_dir = os.path.join(self.base_dir, "python", "tank_vendor", "yaml")
-        self.pyyaml_old_dir = os.path.join(
-            self.base_dir, "python", "tank_vendor", "yaml.old"
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "-t", "--tag", help="Tag to checkout. If not specify, detect the latest one"
         )
+        self.args = parser.parse_args()
 
     def upgrade(self):
-        print("Updating pyyaml package")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            self._upgrade(temp_dir)
 
-        temp_dir = tempfile.mkdtemp()
+    def _upgrade(self, temp_dir):
+        print("Updating pyyaml package")
 
         # clone the repo and change current directory
         clone_dir = self.clone_repo(temp_dir)
         os.chdir(clone_dir)
 
-        # get latest tag
-        tag = self.get_latest_tag()
+        tag = self.args.tag or self.get_latest_tag()
 
         # checkout tag
         self.checkout_tag(tag)
@@ -41,19 +46,11 @@ class PackageUpgrade(object):
         # print last commit
         self.print_last_commit()
 
-        # rename the pyyaml folder
-        self.rename_pyyaml_folder()
+        # delete the pyyaml folder
+        self.remove_pyyaml_folder()
 
         # copy new files
         self.copy_new_pyyaml_files()
-
-        # copy old required files
-        self.copy_old_required_files()
-
-        # delete old folder
-        self.remove_old_folder()
-
-        shutil.rmtree(temp_dir, ignore_errors=True)
 
     def clone_repo(self, temp_dir):
         clone_dir = os.path.join(temp_dir, "pyyaml")
@@ -82,43 +79,21 @@ class PackageUpgrade(object):
         print(cmd)
         os.system(cmd)
 
-    def rename_pyyaml_folder(self):
-        print("Renaming current yaml folder")
-        if os.path.isdir(self.pyyaml_old_dir):
-            print("Deleting a previous backup of yaml folder")
-            shutil.rmtree(self.pyyaml_old_dir)
-        shutil.move(self.pyyaml_dir, self.pyyaml_old_dir)
+    def remove_pyyaml_folder(self):
+        print("Remove yaml folder")
+        shutil.rmtree(self.pyyaml_dir)
 
     def copy_new_pyyaml_files(self):
         print("Copy new pyyaml package files")
-        os.makedirs(self.pyyaml_dir)
-        source = os.path.join("lib", "yaml")
-        target = os.path.join(self.pyyaml_dir, "python2")
-        shutil.copytree(source, target)
-
         source = os.path.join("lib3", "yaml")
-        target = os.path.join(self.pyyaml_dir, "python3")
+        target = os.path.join(self.pyyaml_dir)
         shutil.copytree(source, target)
 
         for source in ["README", "LICENSE", "CHANGES"]:
             target = os.path.join(self.pyyaml_dir, source)
             shutil.copy(source, target)
 
-    def copy_old_required_files(self):
-        print("Copy old pyyaml package files")
-        source = os.path.join(self.pyyaml_old_dir, "__init__.py")
-        target = os.path.join(self.pyyaml_dir, "__init__.py")
-        shutil.copy(source, target)
-
-    def remove_old_folder(self):
-        print("Remove old pyyaml package folder")
-        shutil.rmtree(self.pyyaml_old_dir)
-
-
-def main():
-    package = PackageUpgrade()
-    package.upgrade()
-
 
 if __name__ == "__main__":
-    main()
+    package = PackageUpgrade()
+    package.upgrade()
