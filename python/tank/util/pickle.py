@@ -73,6 +73,7 @@ def loads(data):
     :param data: A pickled representation of an object (str or bytes).
     :return: The unpickled object.
     """
+    binary = data
     if isinstance(data, str):
         binary = data.encode("utf-8")
     loads_data = ensure_contains_str(pickle.loads(binary))
