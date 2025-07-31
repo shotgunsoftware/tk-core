@@ -90,9 +90,6 @@ class TestSimpleUpdates(TankTestBase):
         command.set_logger(logging.getLogger("/dev/null"))
         results = command.execute({"environment_filter": "simple"})
 
-        # The expected results in this situation are the same between python 2 and 3,
-        # but if the environment is changed with future updates, then this may not be the
-        # case. See `test_update_include` for more details.
         expected_results = [
             {
                 "environment": "simple",
@@ -214,91 +211,45 @@ class TestIncludeUpdates(TankTestBase):
         # will be updated and then all further instances will be marked as not updated
         # since they were updated when the first on was found.
 
-        # The expected results are actually different between Python versions.
-        # This is because of the order in which the items are read during the update process
-        # being different. Ultimately all items should be updated just the same, but the
-        # reported results will be different since it only reports the first instance
-        # it comes across as being updated, which can be different between Python versions.
-        if sys.version_info.major == 2:
-            expected_results = [
-                {
-                    "environment": "updating_included_app",
-                    "app_instance": None,
-                    "updated": False,
-                    "engine_instance": "tk-engine",
-                    "framework_name": None,
-                },
-                {
-                    "app_instance": "tk-multi-app2",
-                    "updated": True,
-                    "engine_instance": "tk-engine",
-                    "new_version": "v2.0.0",
-                    "framework_name": None,
-                    "environment": "updating_included_app",
-                },
-                {
-                    "environment": "updating_included_app",
-                    "app_instance": "tk-multi-app",
-                    "updated": False,
-                    "engine_instance": "tk-engine",
-                    "framework_name": None,
-                },
-                {
-                    "app_instance": "tk-multi-app3",
-                    "updated": True,
-                    "engine_instance": "tk-engine",
-                    "new_version": "v2.0.0",
-                    "framework_name": None,
-                    "environment": "updating_included_app",
-                },
-                {
-                    "environment": "updating_included_app",
-                    "app_instance": None,
-                    "updated": False,
-                    "engine_instance": None,
-                    "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
-                },
-            ]
-        elif sys.version_info.major == 3:
-            expected_results = [
-                {
-                    "engine_instance": "tk-engine",
-                    "app_instance": None,
-                    "framework_name": None,
-                    "environment": "updating_included_app",
-                    "updated": False,
-                },
-                {
-                    "engine_instance": "tk-engine",
-                    "app_instance": "tk-multi-app",
-                    "framework_name": None,
-                    "environment": "updating_included_app",
-                    "updated": True,
-                    "new_version": "v2.0.0",
-                },
-                {
-                    "engine_instance": "tk-engine",
-                    "app_instance": "tk-multi-app2",
-                    "framework_name": None,
-                    "environment": "updating_included_app",
-                    "updated": False,
-                },
-                {
-                    "engine_instance": "tk-engine",
-                    "app_instance": "tk-multi-app3",
-                    "framework_name": None,
-                    "environment": "updating_included_app",
-                    "updated": True,
-                    "new_version": "v2.0.0",
-                },
-                {
-                    "engine_instance": None,
-                    "app_instance": None,
-                    "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
-                    "environment": "updating_included_app",
-                    "updated": False,
-                },
-            ]
+        expected_results = [
+            {
+                "engine_instance": "tk-engine",
+                "app_instance": None,
+                "framework_name": None,
+                "environment": "updating_included_app",
+                "updated": False,
+            },
+            {
+                "engine_instance": "tk-engine",
+                "app_instance": "tk-multi-app",
+                "framework_name": None,
+                "environment": "updating_included_app",
+                "updated": True,
+                "new_version": "v2.0.0",
+            },
+            {
+                "engine_instance": "tk-engine",
+                "app_instance": "tk-multi-app2",
+                "framework_name": None,
+                "environment": "updating_included_app",
+                "updated": False,
+            },
+            {
+                "engine_instance": "tk-engine",
+                "app_instance": "tk-multi-app3",
+                "framework_name": None,
+                "environment": "updating_included_app",
+                "updated": True,
+                "new_version": "v2.0.0",
+            },
+            {
+                "engine_instance": None,
+                "app_instance": None,
+                "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
+                "environment": "updating_included_app",
+                "updated": False,
+            },
+        ]
 
         self.assertListEqual(results, expected_results)
 

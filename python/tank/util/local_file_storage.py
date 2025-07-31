@@ -12,10 +12,10 @@ import os
 import sys
 import urllib.parse
 
-from . import filesystem
-from .platforms import is_linux, is_macos, is_windows
 from .. import LogManager
 from ..errors import TankError
+from . import filesystem
+from .platforms import is_linux, is_macos, is_windows
 
 log = LogManager.get_logger(__name__)
 

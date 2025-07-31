@@ -161,8 +161,6 @@ class Includes(object):
             # always return in the same order. This is important as values found
             # in later includes override earlier ones.
 
-            # We do permutations here because Python 2 and Python 3 handle
-            # set ordering differently.
             for includes in itertools.permutations(["a.yml", "b.yml", "c.yml"]):
                 self.assertEqual(
                     self._resolve_includes(includes),

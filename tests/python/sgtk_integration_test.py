@@ -28,11 +28,6 @@ from sgtk.util import sgre as re
 from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
 from tank_vendor import yaml
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
-
 
 class SgtkIntegrationTest(unittest.TestCase):
     """
@@ -417,9 +412,14 @@ class SgtkIntegrationTest(unittest.TestCase):
         """
         before = time.time()
         try:
-            self._stdout, _ = proc.communicate(sgutils.ensure_binary(user_input))
+            if isinstance(user_input, str):
+                input_bytes = user_input.encode("utf-8")
+            else:
+                input_bytes = user_input
+
+            self._stdout, _ = proc.communicate(input_bytes)
             if self._stdout:
-                self._stdout = sgutils.ensure_str(self._stdout)
+                self._stdout = self._stdout.decode("utf-8")
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)

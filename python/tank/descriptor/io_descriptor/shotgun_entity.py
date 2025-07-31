@@ -11,12 +11,12 @@
 import os
 import urllib.parse
 
-from .downloadable import IODescriptorDownloadable
-from ...util import filesystem, shotgun
-from ...util.shotgun_entity import get_sg_entity_name_field
-from ...util.errors import ShotgunAttachmentDownloadError
-from ..errors import TankDescriptorError
 from ... import LogManager
+from ...util import filesystem, shotgun
+from ...util.errors import ShotgunAttachmentDownloadError
+from ...util.shotgun_entity import get_sg_entity_name_field
+from ..errors import TankDescriptorError
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 

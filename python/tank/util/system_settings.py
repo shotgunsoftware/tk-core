@@ -12,7 +12,6 @@
 System settings management.
 """
 
-
 import urllib.request
 
 
