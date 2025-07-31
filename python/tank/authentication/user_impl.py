@@ -600,10 +600,8 @@ def deserialize_user(payload):
     """
     # If the serialized payload starts with a {, we have a JSON-encoded string.
     if payload[0] in ("{", b"{"):
-        print("HERE")
         user_dict = json.loads(payload)
     else:
-        print("HERE2")
         # Unpickle the dictionary
         user_dict = pickle.loads(payload)
 
