@@ -173,6 +173,7 @@ class Engine(TankBundle):
         base_def = self._define_qt_base()
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
+        qt.QtWebEngineWidgets = base_def.get("qt_web_engine_widgets")
         qt.TankDialogBase = base_def.get("dialog_base")
         qt.shiboken = base_def.get("shiboken")
 
@@ -192,6 +193,7 @@ class Engine(TankBundle):
 
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
+        qt_abstraction.QtWebEngineWidgets = qt.QtWebEngineWidgets
 
         # load the fonts. this will work if there is a QApplication instance
         # available.
@@ -2141,11 +2143,12 @@ class Engine(TankBundle):
 
         :returns: dict
         """
-        base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
+        base = {"qt_core": None, "qt_gui": None, "qt_web_engine_widgets": None, "dialog_base": None}
         try:
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
+            base["qt_web_engine_widgets"] = importer.QtWebEngineWidgets
             if importer.QtGui:
                 base["dialog_base"] = importer.QtGui.QDialog
             else:
