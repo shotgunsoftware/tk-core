@@ -12,8 +12,6 @@
 Methods for connecting to Shotgun
 """
 
-from __future__ import with_statement
-
 import os
 import threading
 from tank_vendor.six.moves import urllib

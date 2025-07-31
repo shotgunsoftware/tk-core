@@ -12,8 +12,6 @@
 Unit tests for interactive authentication.
 """
 
-from __future__ import with_statement, print_function
-
 import contextlib
 
 import sys

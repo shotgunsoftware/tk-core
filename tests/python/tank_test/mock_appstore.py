@@ -12,8 +12,6 @@
 Unit tests tank updates.
 """
 
-from __future__ import with_statement
-
 import functools
 import sys
 from unittest import mock
