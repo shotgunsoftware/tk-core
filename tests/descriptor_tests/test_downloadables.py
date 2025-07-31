@@ -31,7 +31,6 @@ from tank_test.tank_test_base import (
 import sgtk
 import tank
 from tank.util import is_windows
-from tank_vendor.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -243,7 +242,7 @@ class Implementation(object):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write(b("\0"))
+            f.write(b"\0")
 
         zip_file_path = os.path.join(
             tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex
@@ -383,10 +382,6 @@ class Implementation(object):
         :param expected_path: The expected path of the descriptor once it is downloaded locally.
         :param shared_dir: Optional shared directory to which the descriptor has to be downloaded to.
         """
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        # TODO: Test with subprocess instead of multiprocessing.
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         processes = []
         errors = []

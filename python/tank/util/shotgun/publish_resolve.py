@@ -17,11 +17,12 @@ import pprint
 import sys
 import urllib.parse
 
-from .publish_util import get_cached_local_storages
-from ...log import LogManager
-from ..shotgun_path import ShotgunPath
-from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
 from tank.util import sgre as re
+
+from ...log import LogManager
+from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
+from ..shotgun_path import ShotgunPath
+from .publish_util import get_cached_local_storages
 
 log = LogManager.get_logger(__name__)
 
@@ -80,7 +81,6 @@ def resolve_publish_path(tk, sg_publish_data):
     if custom_path:
         log.debug("Publish resolve core hook returned path '%s'" % custom_path)
         return custom_path
-
     # core hook did not pick it up - apply default logic
     if path_field is None:
         # no path defined for publish
@@ -206,7 +206,7 @@ def __resolve_local_file_link(tk, attachment_data):
                 "mac_path": "local_path_mac",
             }
 
-            for (storage_field, path_field) in storage_field_map.items():
+            for storage_field, path_field in storage_field_map.items():
                 this_os_storage_root = storage[storage_field]
                 this_os_full_path = attachment_data[path_field]
 
@@ -399,7 +399,6 @@ def __resolve_url_link(tk, attachment_data):
 
     # now see if the given url starts with any storage def in our setup
     for storage, sg_path in storage_lookup.items():
-
         # go through each storage, see if any of the os
         # path defs for the storage matches the beginning of the
         # url path. Compare lower case (most file systems are case preserving).

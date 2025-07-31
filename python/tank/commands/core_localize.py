@@ -19,7 +19,6 @@ from ..util.version import is_version_older
 from .action_base import Action
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
-from tank_vendor import six
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
@@ -214,7 +213,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
                     descriptor = env_obj.get_framework_descriptor(framework)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            for idx, descriptor in enumerate(six.itervalues(descriptors)):
+            for idx, descriptor in enumerate(descriptors.values()):
                 # print one based indices for more human friendly output
                 log.info(
                     "%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor)

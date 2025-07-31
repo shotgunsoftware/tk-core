@@ -18,7 +18,6 @@ dynamic tokens such as $something.
 import os
 
 from ...errors import TankError
-from tank_vendor import six
 
 
 class SymlinkToken(object):
@@ -67,7 +66,7 @@ class SymlinkToken(object):
                         # entity data is contained in a computed_name key (see above)
                         name_value = field_value.get("computed_name")
                         break
-                    elif isinstance(field_value, six.string_types):
+                    elif isinstance(field_value, str):
                         # listfields contain their values as a string
                         name_value = field_value
                         break

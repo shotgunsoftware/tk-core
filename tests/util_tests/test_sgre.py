@@ -16,9 +16,9 @@ from tank.util import sgre
 
 class TestSgre(TestCase):
     def test_wrap(self):
-        r"""
+        """
         Ensure that sgre injects the re.ASCII flag appropriately, and that
-        unicode characters do not match `\w` in Python 2 or 3.
+        unicode characters do not match.
         """
         char = u"漢字"
         expr = r"\w+"
@@ -32,10 +32,9 @@ class TestSgre(TestCase):
         self.assertEqual(sgre.sub(expr, "@", char), char)
 
     def test_wrap_positional(self):
-        r"""
-        Ensure that sgre injects the re.ASCII flag appropriately when flags are
-        also passed positonally, and that unicode characters do not match `\w`
-        in Python 2 or 3.
+        """
+        Ensure that `sgre` injects the `re.ASCII` flag appropriately when flags
+        are passed positionally, and that Unicode characters do not match.
         """
         char = u"a漢字"
         expr = r"a\w+"
@@ -49,10 +48,10 @@ class TestSgre(TestCase):
         self.assertEqual(sgre.sub(expr, "@", char, 0, re.I), char)
 
     def test_wrap_kwarg(self):
-        r"""
+        """
         Ensure that sgre injects the re.ASCII flag appropriately when flags are
         also passed as keyword arguments, and that unicode characters do not
-        match `\w` in Python 2 or 3.
+        match.
         """
         char = u"a漢字"
         expr = r"a\w+"

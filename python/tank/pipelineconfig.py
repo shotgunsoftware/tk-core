@@ -32,7 +32,6 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -965,7 +964,7 @@ class PipelineConfiguration(object):
         # methods do not require a connection.
         sg_connection = shotgun.get_deferred_sg_connection()
 
-        if isinstance(dict_or_uri, six.string_types):
+        if isinstance(dict_or_uri, str):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
         else:
             descriptor_dict = dict_or_uri
