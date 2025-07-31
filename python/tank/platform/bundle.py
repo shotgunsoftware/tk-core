@@ -19,8 +19,6 @@ import os
 import sys
 import uuid
 
-from tank_vendor import six
-
 from .. import hook
 from ..errors import TankError, TankNoDefaultValueError
 from ..log import LogManager
