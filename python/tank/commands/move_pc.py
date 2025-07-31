@@ -15,7 +15,7 @@ from .action_base import Action
 
 import os
 import shutil
-from tank_vendor.shotgun_api3.lib import sgsix
+import sys
 from tank_vendor.six.moves import input
 
 
@@ -152,13 +152,13 @@ class MovePCAction(Action):
         linux_path = args[0]
         windows_path = args[1]
         mac_path = args[2]
-        new_paths = {"darwin": mac_path, "win32": windows_path, "linux2": linux_path}
+        new_paths = {"darwin": mac_path, "win32": windows_path, "linux": linux_path}
 
         # check which paths are different
         modifications = {
             "darwin": (current_paths.macosx != mac_path),
             "win32": (current_paths.windows != windows_path),
-            "linux2": (current_paths.linux != linux_path),
+            "linux": (current_paths.linux != linux_path),
         }
 
         log.info("")
@@ -170,7 +170,7 @@ class MovePCAction(Action):
         log.info("")
         log.info("New Paths")
         log.info("--------------------------------------------------------------")
-        if modifications["linux2"]:
+        if modifications["linux"]:
             log.info("New Linux Path:   '%s'" % linux_path)
         else:
             log.info("New Linux Path:   No change")
@@ -188,7 +188,7 @@ class MovePCAction(Action):
         log.info("")
         log.info("")
 
-        if modifications[sgsix.platform]:
+        if modifications[sys.platform]:
             copy_files = True
             log.info(
                 "The configuration will be moved to reflect the specified path changes."
@@ -215,7 +215,7 @@ class MovePCAction(Action):
 
         # ok let's do it!
         local_source_path = self.tk.pipeline_configuration.get_path()
-        local_target_path = new_paths[sgsix.platform]
+        local_target_path = new_paths[sys.platform]
 
         if copy_files:
 
@@ -290,7 +290,7 @@ class MovePCAction(Action):
             {
                 "mac_path": new_paths["darwin"],
                 "windows_path": new_paths["win32"],
-                "linux_path": new_paths["linux2"],
+                "linux_path": new_paths["linux"],
             },
         )
 
