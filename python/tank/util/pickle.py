@@ -74,10 +74,12 @@ def loads(data):
     :return: The unpickled object.
     """
     if isinstance(data, str):
+        print("STR")
         data = data.encode("utf-8")
     loads_data = ensure_contains_str(pickle.loads(data))
-
+    print("loads_data: ", loads_data)
     if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
+        print("dict")
         encoding = loads_data[FALLBACK_ENCODING_KEY]
         if isinstance(data, str):
             data = data.encode(encoding)
