@@ -12,8 +12,6 @@
 Tests for templatefield module.
 """
 
-from __future__ import with_statement, print_function
-
 from tank import TankError
 import copy
 import sys

@@ -11,7 +11,6 @@
 """
 Methods for downloading things from Shotgun
 """
-from __future__ import with_statement
 
 import os
 import sys

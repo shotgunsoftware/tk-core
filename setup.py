@@ -10,7 +10,6 @@
 
 # Basic setup.py so tk-core could be installed as
 # a standard Python package
-from __future__ import absolute_import
 from setuptools import setup, find_packages
 import subprocess
 
