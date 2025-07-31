@@ -31,14 +31,14 @@ FALLBACK_ENCODING_KEY = "_payload_encoding"
 
 def dumps(data):
     """
-    Return the pickled representation of ``data`` as a ``binary``.
+    Return the pickled representation of ``data`` as a ``str``.
 
     :param data: The object to pickle and store.
     :returns: A pickled binary of the input object.
-    :rtype: binary
+    :rtype: str
     """
     try:
-        return pickle.dumps(data, **DUMP_KWARGS)
+        return pickle.dumps(data, **DUMP_KWARGS).decode("utf-8")
     except UnicodeError as e:
         # Fix unicode issue when ensuring string values
         # https://jira.autodesk.com/browse/SG-6588
@@ -49,7 +49,7 @@ def dumps(data):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
-                return pickle.dumps(data, **DUMP_KWARGS)
+                return pickle.dumps(data, **DUMP_KWARGS).decode(encoding)
 
         raise
 
