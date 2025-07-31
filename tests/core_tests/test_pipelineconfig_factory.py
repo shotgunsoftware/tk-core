@@ -11,7 +11,6 @@
 import os
 import pickle
 import sys
-
 from tank_vendor import yaml
 import sgtk
 import tank
