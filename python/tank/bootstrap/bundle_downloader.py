@@ -29,7 +29,7 @@ class BundleDownloader(object):
         :param pipeline_config_id: Id of the pipeline configuration that was selected.
         :param descriptor: Descriptor of the configuration that we're running.
         """
-        super(BundleDownloader, self).__init__()
+        super().__init__()
 
         # First put our base hook implementation into the array.
         base_class_path = os.path.normpath(

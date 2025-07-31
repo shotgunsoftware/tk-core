@@ -32,7 +32,7 @@ class UserSettingsTests(ShotgunTestBase):
         """
         Make sure the singleton is reset at the beginning of this test.
         """
-        super(UserSettingsTests, self).setUp()
+        super().setUp()
         UserSettings.clear_singleton()
         self.addCleanup(UserSettings.clear_singleton)
 

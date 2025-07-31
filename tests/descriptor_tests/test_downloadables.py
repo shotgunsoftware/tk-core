@@ -67,7 +67,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Instantiate the actual test class that is are pickle-able by multiprocessing
         and pass any information required for the test to function.
         """
-        super(TestDownloadableIODescriptors, self).setUp()
+        super().setUp()
         self.imp = Implementation(
             self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
         )

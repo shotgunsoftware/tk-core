@@ -32,7 +32,7 @@ class BundleDescriptor(Descriptor):
         :param sg_descriptor: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
         """
-        super(BundleDescriptor, self).__init__(io_descriptor)
+        super().__init__(io_descriptor)
         self._sg_connection = sg_connection
 
     @property
@@ -434,7 +434,7 @@ class EngineDescriptor(BundleDescriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(EngineDescriptor, self).__init__(sg_connection, io_descriptor)
+        super().__init__(sg_connection, io_descriptor)
 
 
 class AppDescriptor(BundleDescriptor):
@@ -456,7 +456,7 @@ class AppDescriptor(BundleDescriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(AppDescriptor, self).__init__(sg_connection, io_descriptor)
+        super().__init__(sg_connection, io_descriptor)
 
 
 class FrameworkDescriptor(BundleDescriptor):
@@ -478,7 +478,7 @@ class FrameworkDescriptor(BundleDescriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(FrameworkDescriptor, self).__init__(sg_connection, io_descriptor)
+        super().__init__(sg_connection, io_descriptor)
 
     def is_shared_framework(self):
         """

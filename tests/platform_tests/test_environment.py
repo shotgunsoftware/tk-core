@@ -26,7 +26,7 @@ class TestEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        super(TestEnvironment, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.test_env = "test"
@@ -181,7 +181,7 @@ class TestEnvironment(TankTestBase):
 
 class TestDumpEnvironment(TankTestBase):
     def setUp(self):
-        super(TestDumpEnvironment, self).setUp()
+        super().setUp()
         # This test will write to the configuration folder, so copy it.
         self.setup_fixtures(parameters={"installed_config": True})
 
@@ -283,7 +283,7 @@ class TestUpdateEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUpdateEnvironment, self).setUp()
+        super().setUp()
         # The following tests are going to update the configuration.
         self.setup_fixtures(parameters={"installed_config": True})
 
@@ -489,7 +489,7 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
     """
 
     def setUp(self):
-        super(TestUpdateEnvironmentRuamelYaml, self).setUp()
+        super().setUp()
         self.env.set_yaml_preserve_mode(True)
 
 
@@ -499,7 +499,7 @@ class TestRuamelParser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestRuamelParser, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
@@ -549,7 +549,7 @@ class TestPyYamlParser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPyYamlParser, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):

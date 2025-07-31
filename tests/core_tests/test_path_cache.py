@@ -78,14 +78,14 @@ class TestPathCache(TankTestBase):
     """Base class for path cache tests."""
 
     def setUp(self):
-        super(TestPathCache, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
         self.path_cache = path_cache.PathCache(self.tk)
         self.path_cache_location = self.path_cache._get_path_cache_location()
 
     def tearDown(self):
         self.path_cache.close()
-        super(TestPathCache, self).tearDown()
+        super().tearDown()
 
 
 class TestInit(TestPathCache):
@@ -154,7 +154,7 @@ class TestInit(TestPathCache):
 
 class TestAddMapping(TestPathCache):
     def setUp(self):
-        super(TestAddMapping, self).setUp()
+        super().setUp()
 
         # entity for testing
         self.entity = {"type": "EntityType", "id": 1, "name": "EntityName"}
@@ -402,7 +402,7 @@ class TestGetEntity(TestPathCache):
     """
 
     def setUp(self):
-        super(TestGetEntity, self).setUp()
+        super().setUp()
         self.non_project = {
             "type": "NonProjectEntity",
             "id": 999,
@@ -523,7 +523,7 @@ class TestShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunSync, self).setUp(
+        super().setUp(
             parameters={"project_tank_name": project_tank_name}
         )
         self.setup_fixtures()
@@ -849,7 +849,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestConcurrentShotgunSync, self).setUp(project_tank_name)
+        super().setUp(project_tank_name)
         self.setup_fixtures()
 
         self.seq = {
@@ -1049,7 +1049,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPathCacheGetLocationsFullSync, self).setUp()
+        super().setUp()
 
         # Create a new project, we will assign a new Filesystemlocation entity to this
         self._project_entity_b = self.mockgun.create("Project", {"name": "Project_B"})
@@ -1072,7 +1072,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
 
     def tearDown(self):
         self._pc.close()
-        super(TestPathCacheGetLocationsFullSync, self).tearDown()
+        super().tearDown()
 
     def test_get_entities(self):
         """
@@ -1106,7 +1106,7 @@ class TestPathCacheDelete(TankTestBase):
         """
         Creates a bunch of entities in Mockgun and adds an entry to the FilesystemLocation.
         """
-        super(TestPathCacheDelete, self).setUp()
+        super().setUp()
 
         # Create a bunch of entities for unit testing.
         self._project_link = self.mockgun.create("Project", {"name": "MyProject"})
@@ -1153,7 +1153,7 @@ class TestPathCacheDelete(TankTestBase):
             self.assertEqual(self._pc._do_full_sync.called, False)
         finally:
             self._pc.close()
-            super(TestPathCacheDelete, self).tearDown()
+            super().tearDown()
 
     @contextlib.contextmanager
     def mock_remote_path_cache(self):
@@ -1349,7 +1349,7 @@ class TestPathCacheBatchOperation(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPathCacheBatchOperation, self).setUp()
+        super().setUp()
         self._pc = path_cache.PathCache(self.tk)
 
         # dial down batch sizes for these tests
@@ -1359,7 +1359,7 @@ class TestPathCacheBatchOperation(TankTestBase):
     def tearDown(self):
         self._pc.close()
         self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = self._prev_batch_size
-        super(TestPathCacheBatchOperation, self).tearDown()
+        super().tearDown()
 
     def test_high_volume_batch_deletion(self):
         """

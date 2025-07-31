@@ -22,7 +22,7 @@ class TestShotgunPath(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestShotgunPath, self).setUp()
+        super().setUp()
 
     def test_construction(self):
         """

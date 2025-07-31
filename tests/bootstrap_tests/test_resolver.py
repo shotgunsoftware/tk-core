@@ -31,7 +31,7 @@ class TestResolverBase(TankTestBase):
     """
 
     def setUp(self):
-        super(TestResolverBase, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"
@@ -112,7 +112,7 @@ class TestUserRestriction(TestResolverBase):
     """
 
     def setUp(self):
-        super(TestUserRestriction, self).setUp()
+        super().setUp()
 
         self._john_doe = self.mockgun.create(
             "HumanUser", {"login": "john.doe", "name": "John Doe"}
@@ -306,7 +306,7 @@ class TestFallbackHandling(TestResolverBase):
     """
 
     def setUp(self):
-        super(TestFallbackHandling, self).setUp()
+        super().setUp()
 
         path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.4")
         self._create_info_yaml(path)
@@ -350,7 +350,7 @@ class TestAutoUpdate(TestResolverBase):
     engine on a site or Project context.
     """
     def setUp(self):
-        super(TestAutoUpdate, self).setUp()
+        super().setUp()
         self.resolver._plugin_id = 'basic.desktop'
 
     @mock.patch("sys.version_info", return_value=mock.Mock())
@@ -869,7 +869,7 @@ class TestResolverSiteConfig(TestResolverBase):
     """
 
     def setUp(self):
-        super(TestResolverSiteConfig, self).setUp()
+        super().setUp()
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
@@ -917,7 +917,7 @@ class TestResolvedConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestResolvedConfiguration, self).setUp()
+        super().setUp()
 
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
@@ -974,7 +974,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestResolvedLatestConfiguration, self).setUp()
+        super().setUp()
 
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(

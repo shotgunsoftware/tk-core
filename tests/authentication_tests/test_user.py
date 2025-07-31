@@ -112,7 +112,7 @@ class UserTests(ShotgunTestBase):
 
         class CustomUser(user_impl.ShotgunUserImpl):
             def __init__(self, login):
-                super(CustomUser, self).__init__("https://test.shotgunstudio.com", None)
+                super().__init__("https://test.shotgunstudio.com", None)
                 self.login = login
 
             def get_login(self):

@@ -27,9 +27,7 @@ class TestTemplatePath(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestTemplatePath, self).setUp(
-            parameters={"primary_root_name": "primary_with_a_different_name"}
-        )
+        super().setUp(parameters={"primary_root_name": "primary_with_a_different_name"})
         # Make various types of keys(fields)
         self.keys = {
             "Sequence": StringKey("Sequence"),
@@ -107,7 +105,7 @@ class TestValidate(TestTemplatePath):
     """Test Case for validating a path"""
 
     def setUp(self):
-        super(TestValidate, self).setUp()
+        super().setUp()
         relative_path = os.path.join(
             "shots", "seq_1", "shot_1", "Anm", "work", "shot_1.mmm.v001.002.ma"
         )
@@ -1015,7 +1013,7 @@ class TestGetKeysSepInValue(TestTemplatePath):
     """Tests for cases where seperator used between keys is used in value for keys."""
 
     def setUp(self):
-        super(TestGetKeysSepInValue, self).setUp()
+        super().setUp()
         self.keys["Asset"] = StringKey("Asset")
 
     def assert_path_matches(self, definition, input_path, expected):

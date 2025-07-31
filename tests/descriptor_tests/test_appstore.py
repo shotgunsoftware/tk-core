@@ -41,7 +41,7 @@ class TestAppStoreLabels(ShotgunTestBase):
         """
         Clear cached appstore connection
         """
-        super(TestAppStoreLabels, self).setUp()
+        super().setUp()
 
         # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
         self._get_app_store_key_from_shotgun_mock = mock.patch(
