@@ -24,7 +24,6 @@ import itertools
 # todo - replace with proper external library
 from tank_vendor import shotgun_api3
 from tank_vendor import six
-from tank_vendor.six.moves import range
 
 json = shotgun_api3.shotgun.json
 

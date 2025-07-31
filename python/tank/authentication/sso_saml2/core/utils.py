@@ -18,18 +18,8 @@ import base64
 import binascii
 import logging
 import urllib
-
-# For Python 2/3 compatibility without a dependency on six, we'll just try
-# to import as in Python 2, and fall back to Python 3 locations if the imports
-# fail.
-try:
-    from urllib import unquote_plus
-except ImportError:
-    from urllib.parse import unquote_plus
-try:
-    from http.cookies import SimpleCookie
-except ImportError:
-    from Cookie import SimpleCookie
+from urllib.parse import unquote_plus
+from http.cookies import SimpleCookie
 
 
 from .errors import SsoSaml2MultiSessionNotSupportedError
