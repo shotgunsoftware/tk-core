@@ -28,12 +28,12 @@ import shutil
 from packaging import version
 
 SG_LOCAL_STORAGE_OS_MAP = {
-    "linux2": "linux_path",
+    "linux": "linux_path",
     "win32": "windows_path",
     "darwin": "mac_path",
 }
 CORE_CFG_OS_MAP = {
-    "linux2": "core_Linux.cfg",
+    "linux": "core_Linux.cfg",
     "win32": "core_Windows.cfg",
     "darwin": "core_Darwin.cfg",
 }

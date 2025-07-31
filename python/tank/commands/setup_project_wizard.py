@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 
 from packaging import version
 
@@ -23,7 +24,6 @@ from .. import pipelineconfig_utils
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class SetupProjectFactoryAction(Action):
@@ -198,7 +198,7 @@ class SetupProjectWizard(object):
                         "shotgun_id": 12,
                         "darwin": "/mnt/data",
                         "win32": "z:\mnt\data",
-                        "linux2": "/mnt/data"},
+                        "linux": "/mnt/data"},
 
           "textures" : { "description": "All texture are located on this storage",
                          "exists_on_disk": False,
@@ -206,14 +206,14 @@ class SetupProjectWizard(object):
                          "shotgun_id": None,
                          "darwin": None,
                          "win32": None,
-                         "linux2": None}
+                         "linux": None}
 
           "renders" : { "description": None,
                         "exists_on_disk": False,
                         "defined_in_shotgun": True,
                         "darwin": None,
                         "win32": "z:\mnt\renders",
-                        "linux2": "/mnt/renders"}
+                        "linux": "/mnt/renders"}
         }
 
         The main dictionary is keyed by storage name. It will contain one entry
@@ -322,10 +322,10 @@ class SetupProjectWizard(object):
         Return preview project paths given a project name.
 
         { "primary": { "darwin": "/foo/bar/project_name",
-                       "linux2": "/foo/bar/project_name",
+                       "linux": "/foo/bar/project_name",
                        "win32" : "c:\foo\bar\project_name"},
           "textures": { "darwin": "/textures/project_name",
-                        "linux2": "/textures/project_name",
+                        "linux": "/textures/project_name",
                         "win32" : "c:\textures\project_name"}}
 
         The operating systems are enumerated using sys.platform jargon.
@@ -349,8 +349,8 @@ class SetupProjectWizard(object):
             return_data[s]["win32"] = self._params.preview_project_path(
                 s, project_disk_name, "win32"
             )
-            return_data[s]["linux2"] = self._params.preview_project_path(
-                s, project_disk_name, "linux2"
+            return_data[s]["linux"] = self._params.preview_project_path(
+                s, project_disk_name, "linux"
             )
 
         return return_data
@@ -381,7 +381,7 @@ class SetupProjectWizard(object):
 
                 # get the full path
                 proj_path = self._params.preview_project_path(
-                    s, project_disk_name, sgsix.platform
+                    s, project_disk_name, sys.platform
                 )
 
                 if not os.path.exists(proj_path):
@@ -405,10 +405,10 @@ class SetupProjectWizard(object):
     def get_default_configuration_location(self):
         r"""
         Returns default suggested install location for configurations.
-        Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
+        Returns a dictionary with sys.platform style keys linux/win32/darwin, e.g.
 
         { "darwin": "/foo/bar/project_name",
-          "linux2": None,
+          "linux": None,
           "win32" : "c:\foo\bar\project_name"}
 
         :returns: dictionary with paths or None
@@ -452,11 +452,11 @@ class SetupProjectWizard(object):
             self._log.debug(
                 "No configs available to generate preview config values. Returning None."
             )
-            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            suggested_defaults = {"darwin": None, "linux": None, "win32": None}
 
         elif data["project.Project.tank_name"] is None:
             # the project we are basing this setup on did not use storages
-            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            suggested_defaults = {"darwin": None, "linux": None, "win32": None}
 
         else:
             # now take the pipeline config paths, and try to replace the current project name
@@ -474,7 +474,7 @@ class SetupProjectWizard(object):
             )  # e.g. 'foo\bar_baz'
 
             # now replace the project path in the pipeline configuration
-            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            suggested_defaults = {"darwin": None, "linux": None, "win32": None}
 
             # go through each pipeline config path, try to find the project disk name as part of this
             # path. if that exists, replace with the new project disk name
@@ -495,7 +495,7 @@ class SetupProjectWizard(object):
                 )
 
             if data["linux_path"] and old_project_disk_name in data["linux_path"]:
-                suggested_defaults["linux2"] = data["linux_path"].replace(
+                suggested_defaults["linux"] = data["linux_path"].replace(
                     old_project_disk_name, new_proj_disk_name
                 )
 
@@ -540,7 +540,7 @@ class SetupProjectWizard(object):
 
         { "localize": True,
           "using_runtime": False,
-          "core_path: { "linux2": "/path/to/core",
+          "core_path: { "linux": "/path/to/core",
                         "darwin": "/path/to/core",
                         "win32": None }
           "pipeline_config": { "type": "PipelineConfiguration",
@@ -610,7 +610,7 @@ class SetupProjectWizard(object):
             elif is_windows():
                 path_args = [os.path.expandvars(curr_core_path), None, None]
             else:
-                msg = "Unsupported OS detected: %s" % sgsix.platform
+                msg = "Unsupported OS detected: %s" % sys.platform
                 raise TankError(msg)
 
             core_path_object = ShotgunPath(*path_args).as_system_dict()
@@ -699,7 +699,7 @@ class SetupProjectWizard(object):
 
         # ok - we are good to go! Set the core to use
         self._params.set_associated_core_path(
-            core_settings["core_path"]["linux2"],
+            core_settings["core_path"]["linux"],
             core_settings["core_path"]["win32"],
             core_settings["core_path"]["darwin"],
         )
@@ -765,7 +765,7 @@ class SetupProjectWizard(object):
             # the PTR desktop app's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
-            config_path = self._params.get_configuration_location(sgsix.platform)
+            config_path = self._params.get_configuration_location(sys.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current
