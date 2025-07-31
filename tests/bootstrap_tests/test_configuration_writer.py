@@ -158,7 +158,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def setUp(self):
         # Makes sure every unit test run in its own sandbox.
-        super(TestInterpreterFilesWriter, self).setUp()
+        super().setUp()
         self._root = os.path.join(self.tank_temp, self.short_test_name)
         os.makedirs(self._root)
         self._cw = ConfigurationWriter(

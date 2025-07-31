@@ -368,7 +368,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).closeEvent(event)
+        return super().closeEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
@@ -382,7 +382,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).keyPressEvent(event)
+        return super().keyPressEvent(event)
 
     def _get_current_site(self):
         """
@@ -954,7 +954,7 @@ class ASL_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
     def __init__(self, parent, sg_url, http_proxy=None):
-        super(ASL_AuthTask, self).__init__(parent)
+        super().__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url

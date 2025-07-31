@@ -357,7 +357,7 @@ class TankTestBase(unittest.TestCase):
 
     def __init__(self, *args, **kws):
 
-        super(TankTestBase, self).__init__(*args, **kws)
+        super().__init__(*args, **kws)
 
         # Below are attributes which will be set during setUp
 
@@ -1295,7 +1295,7 @@ class SealedMock(mock.Mock):
         :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
             argument from the base class to seal the gettable and settable properties.
         """
-        super(SealedMock, self).__init__(spec_set=list(kwargs.keys()), **kwargs)
+        super().__init__(spec_set=list(kwargs.keys()), **kwargs)
 
 
 def _move_data(path):

@@ -140,7 +140,7 @@ class Static(Folder):
             return False
 
         # base class implementation
-        return super(Static, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """

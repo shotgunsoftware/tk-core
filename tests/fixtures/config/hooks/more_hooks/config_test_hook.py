@@ -18,7 +18,7 @@ class AnotherTestHook(HookBaseClass):
     def test_inheritance_disk_location(self):
 
         # get test data from base class using disk_location
-        disk_location_base = super(AnotherTestHook, self).test_disk_location()
+        disk_location_base = super().test_disk_location()
         # test our disk_location
         our_disk_location = os.path.join(self.disk_location, "toolkitty.png")
 

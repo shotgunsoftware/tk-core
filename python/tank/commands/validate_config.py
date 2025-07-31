@@ -160,7 +160,7 @@ class ValidateConfigAction(Action):
         """
 
         # do the base class default validation
-        parameters = super(ValidateConfigAction, self)._validate_parameters(parameters)
+        parameters = super()._validate_parameters(parameters)
 
         # get a list of valid env names
         valid_env_names = self.tk.pipeline_configuration.get_environments()

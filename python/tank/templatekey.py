@@ -377,7 +377,7 @@ class StringKey(TemplateKey):
         else:
             self._subset_regex = None
 
-        super(StringKey, self).__init__(
+        super().__init__(
             name,
             default=default,
             choices=choices,
@@ -605,7 +605,7 @@ class StringKey(TemplateKey):
                     )
                     return False
 
-        return super(StringKey, self).validate(value)
+        return super().validate(value)
 
 
 class TimestampKey(TemplateKey):
@@ -663,7 +663,7 @@ class TimestampKey(TemplateKey):
                 % (name, default.__class__.__name__)
             )
 
-        super(TimestampKey, self).__init__(name, default=default)
+        super().__init__(name, default=default)
 
     @property
     def format_spec(self):
@@ -796,7 +796,7 @@ class IntegerKey(TemplateKey):
         self._init_format_spec(name, format_spec)
         # Validate and set up strict matching defailts
         self._init_strict_matching(name, strict_matching)
-        super(IntegerKey, self).__init__(
+        super().__init__(
             name,
             default=default,
             choices=choices,
@@ -916,7 +916,7 @@ class IntegerKey(TemplateKey):
                     value,
                 )
                 return False
-            return super(IntegerKey, self).validate(value)
+            return super().validate(value)
         return True
 
     def _loosely_matches(self, value):
@@ -1088,7 +1088,7 @@ class SequenceKey(IntegerKey):
             # default value is %d form
             default = self._resolve_frame_spec("%d", format_spec)
 
-        super(SequenceKey, self).__init__(
+        super().__init__(
             name,
             default=default,
             choices=choices,
@@ -1142,7 +1142,7 @@ class SequenceKey(IntegerKey):
                 return False
 
         else:
-            return super(SequenceKey, self).validate(value)
+            return super().validate(value)
 
     def _as_string(self, value):
 
@@ -1164,7 +1164,7 @@ class SequenceKey(IntegerKey):
             return value
 
         # resolve it via the integerKey base class
-        return super(SequenceKey, self)._as_string(value)
+        return super()._as_string(value)
 
     def _as_value(self, str_value):
 
@@ -1176,7 +1176,7 @@ class SequenceKey(IntegerKey):
             return str_value
 
         # resolve it via the integerKey base class
-        return super(SequenceKey, self)._as_value(str_value)
+        return super()._as_value(str_value)
 
     def _extract_format_string(self, value):
         """

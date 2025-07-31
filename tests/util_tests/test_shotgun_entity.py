@@ -98,7 +98,7 @@ class TestShotgunEntity(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunEntity, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_entity_name_field(self):
