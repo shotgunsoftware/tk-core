@@ -13,6 +13,7 @@ App configuration and schema validation.
 
 """
 import os
+import sys
 
 from . import constants
 from ..errors import TankError, TankNoDefaultValueError
@@ -20,7 +21,6 @@ from ..template import TemplateString
 from .bundle import resolve_default_value
 from ..util.version import is_version_older, is_version_number
 from ..log import LogManager
-from tank_vendor.shotgun_api3.lib import sgsix
 
 # We're potentially running here in an environment with
 # no engine available via current_engine(), so we'll have
@@ -90,8 +90,8 @@ def validate_platform(descriptor):
     if len(supported_platforms) > 0:
         # supported platforms defined in manifest
         # get a human friendly mapping of current platform: linux/mac/windows
-        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
-            sgsix.platform
+        nice_system_name = {"linux": "linux", "darwin": "mac", "win32": "windows"}[
+            sys.platform
         ]
         if nice_system_name not in supported_platforms:
             raise TankError(
