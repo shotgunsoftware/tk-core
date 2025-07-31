@@ -30,7 +30,7 @@ class RecentBox(QtGui.QComboBox):
     """
 
     def __init__(self, parent):
-        super(RecentBox, self).__init__(parent)
+        super().__init__(parent)
 
         self.setEditable(True)
 

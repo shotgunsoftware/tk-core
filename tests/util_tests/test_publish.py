@@ -29,7 +29,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunRegisterPublish, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -406,7 +406,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
 class TestMultiRoot(TankTestBase):
     def setUp(self):
-        super(TestMultiRoot, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
 
         self.shot = {
@@ -653,7 +653,7 @@ class TestCalcPathCacheProjectWithSlash(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestCalcPathCacheProjectWithSlash, self).setUp(
+        super().setUp(
             {"project_tank_name": "foo/bar"}
         )
 

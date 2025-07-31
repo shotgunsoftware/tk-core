@@ -321,7 +321,7 @@ class TestConfigDescriptor(TankTestBase):
 class TestDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
-        super(TestDescriptorSupport, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"
@@ -709,7 +709,7 @@ class TestConstraintValidation(unittest.TestCase):
         """
         Ensures the Shotgun version cache is cleared between tests.
         """
-        super(TestConstraintValidation, self).setUp()
+        super().setUp()
         # Set the server info on the Mockgun object.
         self._up_to_date_sg = Mockgun("https://foo.shotgunstudio.com")
         self._up_to_date_sg.server_info = {"version": (6, 6, 6)}

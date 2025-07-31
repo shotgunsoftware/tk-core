@@ -193,7 +193,7 @@ class SessionUser(ShotgunUserImpl):
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
         """
-        super(SessionUser, self).__init__(host, http_proxy)
+        super().__init__(host, http_proxy)
 
         if not login:
             raise IncompleteCredentials("missing login.")
@@ -399,7 +399,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A dictionary with all the attributes of the user.
         """
-        data = super(SessionUser, self).to_dict()
+        data = super().to_dict()
         data["login"] = self.get_login()
         data["session_token"] = self.get_session_token()
         # To preserve backward compatibility with older cores, we avoid
@@ -441,7 +441,7 @@ class ScriptUser(ShotgunUserImpl):
         :param api_key: API script key.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
         """
-        super(ScriptUser, self).__init__(host, http_proxy)
+        super().__init__(host, http_proxy)
 
         if not api_script or not api_key:
             raise IncompleteCredentials("missing api_script and/or api_key")
@@ -537,7 +537,7 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A dictionary with all the attributes of the user.
         """
-        data = super(ScriptUser, self).to_dict()
+        data = super().to_dict()
         data["api_script"] = self.get_script()
         data["api_key"] = self.get_key()
         return data

@@ -216,7 +216,7 @@ class _MockedShotgunUser(object):
 
 class TestPrepareEngine(ShotgunTestBase):
     def setUp(self):
-        super(TestPrepareEngine, self).setUp({"primary_root_name": "primary"})
+        super().setUp({"primary_root_name": "primary"})
 
     def test_prepare_engine(self):
         """
@@ -249,7 +249,7 @@ class TestPrepareEngine(ShotgunTestBase):
 
 class TestGetPipelineConfigs(TankTestBase):
     def setUp(self):
-        super(TestGetPipelineConfigs, self).setUp()
+        super().setUp()
 
         self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
         self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})

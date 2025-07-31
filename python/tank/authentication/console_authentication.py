@@ -353,7 +353,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         """
         Constructor.
         """
-        super(ConsoleLoginHandler, self).__init__()
+        super().__init__()
         self._fixed_host = fixed_host
 
     def _get_sg_url(self, hostname, http_proxy):
