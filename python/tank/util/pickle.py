@@ -9,11 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import pickle
 
 from .. import LogManager
 from .unicode import ensure_contains_str
 
-from tank_vendor.six.moves import cPickle
 from tank_vendor import six
 
 try:
@@ -54,7 +54,7 @@ def dumps(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    serialized = cPickle.dumps(data, **DUMP_KWARGS)
+    serialized = pickle.dumps(data, **DUMP_KWARGS)
     try:
         return sgutils.ensure_str(serialized)
     except UnicodeError as e:
@@ -64,7 +64,7 @@ def dumps(data):
             encoding = FALLBACK_ENCODING
             if isinstance(data, dict):
                 data[FALLBACK_ENCODING_KEY] = encoding
-                serialized = cPickle.dumps(data, **DUMP_KWARGS)
+                serialized = pickle.dumps(data, **DUMP_KWARGS)
             return sgutils.ensure_str(serialized, encoding=encoding)
 
         raise
@@ -80,7 +80,7 @@ def dump(data, fh):
     :param data: The object to pickle and store.
     :param fh: A file object
     """
-    cPickle.dump(data, fh, **DUMP_KWARGS)
+    pickle.dump(data, fh, **DUMP_KWARGS)
 
 
 def loads(data):
@@ -97,12 +97,12 @@ def loads(data):
     :rtype: object
     """
     binary = sgutils.ensure_binary(data)
-    loads_data = ensure_contains_str(cPickle.loads(binary, **LOAD_KWARGS))
+    loads_data = ensure_contains_str(pickle.loads(binary, **LOAD_KWARGS))
 
     if isinstance(loads_data, dict) and FALLBACK_ENCODING_KEY in loads_data:
         encoding = loads_data[FALLBACK_ENCODING_KEY]
         binary = sgutils.ensure_binary(data, encoding=encoding)
-        loads_data = ensure_contains_str(cPickle.loads(binary, **LOAD_KWARGS))
+        loads_data = ensure_contains_str(pickle.loads(binary, **LOAD_KWARGS))
 
     return loads_data
 
@@ -120,7 +120,7 @@ def load(fh):
     :returns: The unpickled object.
     :rtype: object
     """
-    return ensure_contains_str(cPickle.load(fh, **LOAD_KWARGS))
+    return ensure_contains_str(pickle.load(fh, **LOAD_KWARGS))
 
 
 def store_env_var_pickled(key, data):

@@ -11,7 +11,7 @@
 import os
 import shutil
 import datetime
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
 import tank
 from tank_test.tank_test_base import setUpModule  # noqa

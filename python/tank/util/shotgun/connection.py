@@ -14,7 +14,7 @@ Methods for connecting to Shotgun
 
 import os
 import threading
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
