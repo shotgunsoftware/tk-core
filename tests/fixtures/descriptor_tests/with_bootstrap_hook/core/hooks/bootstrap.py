@@ -9,16 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import importlib.util
+import imp
 
-plugin_path = os.path.join(
-    os.environ["TK_CORE_REPO_ROOT"], "docs", "examples", "bootstrap_hook.py"
-)
-
-spec = importlib.util.spec_from_file_location("bootstrap_unit_test", plugin_path)
-BootstrapModule = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(BootstrapModule)
-Bootstrap = BootstrapModule.Bootstrap
+Bootstrap = imp.load_source(
+    "bootstrap_unit_test",
+    os.path.join(
+        os.environ["TK_CORE_REPO_ROOT"], "docs", "examples", "bootstrap_hook.py"
+    ),
+).Bootstrap
 
 
 class Foo(object):

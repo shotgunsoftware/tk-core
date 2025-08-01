@@ -9,11 +9,9 @@
 # the prior written consent of Autodesk, Inc.
 # *****************************************************************************
 
-import importlib
 import os
-import sys
+import imp
 import time
-
 import sgtk
 
 ENGINE_NAME = "test_engine"
@@ -44,9 +42,22 @@ def bootstrap_plugin():
 
     # Instead of adding an extra path in the PYTHONPATH to be able to load the
     # manifest module and clean up the PYTHONPATH up after the import, we use
-    # `importlib` utilities to load the manifest module.
-    sys.path.insert(0, plugin_python_path)
-    sgtk_plugin_test_plugin = importlib.import_module("sgtk_plugin_test_plugin")
+    # `imp` utilities to load the manifest module.
+    try:
+        mfile, pathname, description = imp.find_module(
+            "sgtk_plugin_test_plugin", [plugin_python_path]
+        )
+    except ImportError:
+        logger.error("Unable to find 'sgtk_plugin_test_plugin', was the plugin baked?")
+        raise
+
+    try:
+        sgtk_plugin_test_plugin = imp.load_module(
+            "sgtk_plugin_test_plugin", mfile, pathname, description
+        )
+    finally:
+        if mfile:
+            mfile.close()
 
     # This module is built with the plugin and contains the manifest.py.
     manifest = sgtk_plugin_test_plugin.manifest
