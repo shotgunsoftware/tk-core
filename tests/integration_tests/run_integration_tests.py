@@ -13,13 +13,14 @@
 This script will run all the integration tests from this folder.
 """
 
-import argparse
-import copy
-import glob
-import os
-import subprocess
-import sys
 import time
+import sys
+import os
+import glob
+import copy
+
+
+import subprocess
 
 
 def main():
@@ -42,18 +43,9 @@ def main():
 
     current_folder, current_file = os.path.split(__file__)
 
-    # Get test filenames from command line
-    parser = argparse.ArgumentParser()
-    parser.add_argument("filenames", nargs="*")
-    args = parser.parse_args()
-    filenames = args.filenames
-
     before = time.time()
     try:
-        if not filenames:
-            # Run all tests
-            filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
-
+        filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
             # Skip the launcher. :)

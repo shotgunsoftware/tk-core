@@ -8,10 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import types
-
 from .pyside2_patcher import PySide2Patcher
 
+import imp
 
 class PySide6Patcher(PySide2Patcher):
     """
@@ -473,13 +472,13 @@ class PySide6Patcher(PySide2Patcher):
         )
 
         # First create new modules to act as the PySide modules
-        qt_core_shim = types.ModuleType("PySide.QtCore")
-        qt_gui_shim = types.ModuleType("PySide.QtGui")
+        qt_core_shim = imp.new_module("PySide.QtCore")
+        qt_gui_shim = imp.new_module("PySide.QtGui")
 
         qt_web_engine_widgets_shim = None
         if QtWebEngineWidgets:
-            qt_web_engine_widgets_shim = types.ModuleType(
-                "PySide.QtWebEngineWidgets",
+            qt_web_engine_widgets_shim = imp.new_module(
+                "PySide.QtWebEnginWidgets",
             )
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
