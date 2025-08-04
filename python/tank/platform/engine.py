@@ -495,13 +495,24 @@ class Engine(TankBundle):
 
         :returns: A dictionary with metrics properties as per above.
         """
+
         # Always create a new dictionary so the caller can safely modify it.
-        return {
+        properties = {
             EventMetric.KEY_ENGINE: self.name,
             EventMetric.KEY_ENGINE_VERSION: self.version,
             EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),
             EventMetric.KEY_HOST_APP_VERSION: self.host_info.get("version", "unknown"),
         }
+
+        event_data = {
+            k: v for k,v in self.host_info.items()
+            if k not in ["name", "version"]
+        }
+
+        if event_data:
+            properties["Event Data"] = event_data
+
+        return properties
 
     def get_child_logger(self, name):
         """
