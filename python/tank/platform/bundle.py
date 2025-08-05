@@ -458,11 +458,18 @@ class TankBundle(object):
                 self.log_debug("Importing python modules in %s..." % python_folder)
                 # alias the python folder with a UID to ensure it is unique every time it is imported
                 self.__module_uid = "tkimp%s" % uuid.uuid4().hex
+                sys.path.insert(0, python_folder)
+                module_init_file = os.path.join(python_folder, "__init__.py")
                 spec = importlib.util.spec_from_loader(
-                    self.__module_uid, importlib.machinery.SourceFileLoader(self.__module_uid, python_folder)
+                    self.__module_uid,
+                    importlib.machinery.SourceFileLoader(
+                        self.__module_uid, os.path.join(python_folder, module_init_file)
+                    ),
                 )
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+                package = importlib.util.module_from_spec(spec)
+                sys.modules[self.__module_uid] = package
+                spec.loader.exec_module(package)
+                sys.path.pop(0)
 
             # we can now find our actual module in sys.modules as GUID.module_name
             mod_name = "%s.%s" % (self.__module_uid, module_name)
