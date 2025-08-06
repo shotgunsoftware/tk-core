@@ -12,12 +12,14 @@ import importlib.machinery
 import importlib.util
 import os
 import sys
+import threading
 import uuid
 import warnings
 
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+lock = threading.Lock()
 
 
 class CoreImportHandler(object):
@@ -62,40 +64,41 @@ class CoreImportHandler(object):
         # logging to file is now disabled and will be renamed after the
         # main tank import of the new code.
 
-        handler._swap_core(core_path)
+        with lock:
+            handler._swap_core(core_path)
 
-        # because we are swapping out the code that we are currently running, Python is
-        # generating a runtime warning:
-        #
-        # RuntimeWarning: Parent module 'tank.bootstrap' not found while handling absolute import
-        #
-        # We are fixing this issue by re-importing tank, so it's essentially a chicken and egg
-        # scenario. So it's ok to mute the warning. Interestingly, by muting the warning, the
-        # execution of the reload/import becomes more complete and it seems some parts of the
-        # code that weren't previously reloaded are now covered. So turning off the warnings
-        # display seems to have executionary side effects.
+            # because we are swapping out the code that we are currently running, Python is
+            # generating a runtime warning:
+            #
+            # RuntimeWarning: Parent module 'tank.bootstrap' not found while handling absolute import
+            #
+            # We are fixing this issue by re-importing tank, so it's essentially a chicken and egg
+            # scenario. So it's ok to mute the warning. Interestingly, by muting the warning, the
+            # execution of the reload/import becomes more complete and it seems some parts of the
+            # code that weren't previously reloaded are now covered. So turning off the warnings
+            # display seems to have executionary side effects.
 
-        # Save the existing list of warning filters before we modify it using simplefilter().
-        # Note: the '[:]' causes a copy of the list to be created. Without it, original_filter
-        # would alias the one and only 'real' list and then we'd have nothing to restore.
-        original_filters = warnings.filters[:]
+            # Save the existing list of warning filters before we modify it using simplefilter().
+            # Note: the '[:]' causes a copy of the list to be created. Without it, original_filter
+            # would alias the one and only 'real' list and then we'd have nothing to restore.
+            original_filters = warnings.filters[:]
 
-        # Ignore all warnings
-        warnings.simplefilter("ignore")
+            # Ignore all warnings
+            warnings.simplefilter("ignore")
 
-        log.debug("...core swap complete.")
+            log.debug("...core swap complete.")
 
-        log.debug("running explicit 'import tank' to re-initialize new core...")
+            log.debug("running explicit 'import tank' to re-initialize new core...")
 
-        try:
-            # Kick toolkit to re-import
-            import tank
+            try:
+                # Kick toolkit to re-import
+                import tank
 
-        finally:
-            # Restore the list of warning filters.
-            warnings.filters = original_filters
+            finally:
+                # Restore the list of warning filters.
+                warnings.filters = original_filters
 
-        log.debug("...import complete")
+            log.debug("...import complete")
 
         # and re-init our disk logging based on the new code
         # access it from the new tank instance to ensure we get the new code
@@ -163,55 +166,56 @@ class CoreImportHandler(object):
                 "The supplied core path '%s' is not a valid directory." % core_path
             )
 
-        # sort by package depth, deeper modules first
-        module_names = sorted(
-            sys.modules.keys(),
-            key=lambda module_name: module_name.count("."),
-            reverse=True,
-        )
+        with lock:
+            # sort by package depth, deeper modules first
+            module_names = sorted(
+                sys.modules.keys(),
+                key=lambda module_name: module_name.count("."),
+                reverse=True,
+            )
 
-        # unique prefix for stashing this session
-        stash_prefix = "core_swap_%s" % uuid.uuid4().hex
+            # unique prefix for stashing this session
+            stash_prefix = "core_swap_%s" % uuid.uuid4().hex
 
-        for module_name in module_names:
-            # just to be safe, don't re-import this module.
-            # we always use the first one added to `sys.meta_path` anyway.
-            if module_name == __name__:
-                continue
+            for module_name in module_names:
+                # just to be safe, don't re-import this module.
+                # we always use the first one added to `sys.meta_path` anyway.
+                if module_name == __name__:
+                    continue
 
-            # extract just the package name
-            pkg_name = module_name.split(".")[0]
+                # extract just the package name
+                pkg_name = module_name.split(".")[0]
 
-            if pkg_name in self.NAMESPACES_TO_TRACK:
-                # the package name is in one of the new core namespaces. we
-                # delete it from sys.modules so that the custom import can run.
-                module = sys.modules[module_name]
-                # note: module entries that are None can safely be left in sys.modules -
-                # these are optimizations used by the importer. Read more here:
-                # http://stackoverflow.com/questions/1958417/why-are-there-dummy-modules-in-sys-modules
-                if module:
-                    # make sure we don't lose any references to it - for example
-                    # via instances that have been inherited from base classes
-                    # to make sure a reference is kept, keep the module object
-                    # but move it out of the way in sys.modules to allow for
-                    # a new version of the module to be imported alongside.
-                    stashed_module_name = "%s_%s" % (stash_prefix, module_name)
+                if pkg_name in self.NAMESPACES_TO_TRACK:
+                    # the package name is in one of the new core namespaces. we
+                    # delete it from sys.modules so that the custom import can run.
+                    module = sys.modules[module_name]
+                    # note: module entries that are None can safely be left in sys.modules -
+                    # these are optimizations used by the importer. Read more here:
+                    # http://stackoverflow.com/questions/1958417/why-are-there-dummy-modules-in-sys-modules
+                    if module:
+                        # make sure we don't lose any references to it - for example
+                        # via instances that have been inherited from base classes
+                        # to make sure a reference is kept, keep the module object
+                        # but move it out of the way in sys.modules to allow for
+                        # a new version of the module to be imported alongside.
+                        stashed_module_name = "%s_%s" % (stash_prefix, module_name)
 
-                    # uncomment for copious amounts of debug
-                    # log.debug(
-                    #     "Relocating module %s from sys.modules[%s] "
-                    #     "to sys.modules[%s]" % (module, module_name, stashed_module_name)
-                    # )
+                        # uncomment for copious amounts of debug
+                        # log.debug(
+                        #     "Relocating module %s from sys.modules[%s] "
+                        #     "to sys.modules[%s]" % (module, module_name, stashed_module_name)
+                        # )
 
-                    sys.modules[stashed_module_name] = module
+                        sys.modules[stashed_module_name] = module
 
-                    # and remove the official entry
-                    # log.debug("Removing sys.modules[%s]" % module_name)
-                    del sys.modules[module_name]
+                        # and remove the official entry
+                        # log.debug("Removing sys.modules[%s]" % module_name)
+                        del sys.modules[module_name]
 
-        # reset importer to point at new core for future imports
-        self._module_info = {}
-        self._core_path = core_path
+            # reset importer to point at new core for future imports
+            self._module_info = {}
+            self._core_path = core_path
 
     def find_spec(self, module_fullname, package_path=None, target=None):
         """Locates the given module in the current core.
