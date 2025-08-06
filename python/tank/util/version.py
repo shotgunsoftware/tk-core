@@ -11,25 +11,25 @@ import warnings
 import contextlib
 import sys
 
-if sys.version_info[0:2] < (3, 12):
-    # DCCs with older versions of Python 3.12
-    from distutils.version import LooseVersion
-else:
+LooseVersion = None
+try:
+    import packaging.version
+except ModuleNotFoundError:
     try:
-        # Try importing packaging.
-        LooseVersion = None
-        import packaging.version
-    except ModuleNotFoundError:
         # Try importing from setuptools.
         # If it fails, then we can't do much at the moment
         # The DCC should have either setuptools or packaging installed.
         from setuptools._distutils.version import LooseVersion
-
+    except ModuleNotFoundError:
+        # DCCs with older versions of Python 3.12
+        from distutils.version import LooseVersion
 
 from . import sgre as re
+from .. import LogManager
 from ..errors import TankError
 
 
+logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 
 
@@ -183,6 +183,14 @@ def _compare_versions(a, b):
     if b.startswith("v"):
         b = b[1:]
 
+    if "packaging" in sys.modules:
+        try:
+            version_a = packaging.version.parse(a)
+            version_b = packaging.version.parse(b)
+            return version_a > version_b
+        except version.InvalidVersion:
+            logger.warning(f"Cannot parse version '{a}' or '{b}' using packaging.version.")
+
     if LooseVersion:
         # In Python 3, LooseVersion comparisons between versions where a non-numeric
         # version component is compared to a numeric one fail.  We'll work around this
@@ -225,9 +233,6 @@ def _compare_versions(a, b):
                         b
                     )  # If they are different numeric versions
         except TypeError:
-            # To mimick the behavior in Python 2.7 as closely as possible, we will
-            # If LooseVersion comparison didn't work, try to extract a numeric
-            # version from both versions for comparison
             version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
             match_a = version_expr.match(a)
             match_b = version_expr.match(b)
@@ -246,15 +251,6 @@ def _compare_versions(a, b):
             elif match_a or match_b:
                 # If only one had a numeric version, treat that as the newer version.
                 return bool(match_a)
-
-    else:
-        # We're using packaging.version
-        try:
-            version_a = packaging.version.parse(a)
-            version_b = packaging.version.parse(b)
-            return version_a > version_b
-        except version.InvalidVersion:
-            pass
 
     # In the case that both versions are non-numeric, do a string comparison.
     return a > b
