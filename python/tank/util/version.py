@@ -21,8 +21,11 @@ except ModuleNotFoundError:
         # The DCC should have either setuptools or packaging installed.
         from setuptools._distutils.version import LooseVersion
     except ModuleNotFoundError:
-        # DCCs with older versions of Python 3.12
-        from distutils.version import LooseVersion
+        try:
+            # DCCs with older versions of Python 3.12
+            from distutils.version import LooseVersion
+        except ModuleNotFoundError:
+            pass
 
 from . import sgre as re
 from .. import LogManager
@@ -147,6 +150,29 @@ def suppress_known_deprecation():
         yield ctx
 
 
+def version_parse(version_string):
+    """
+    Parse a version string into a Version object. We also support LooseVersion
+    for compatibility with older versions of Python.
+
+    :param str version_string: The version string to parse.
+
+    :rtype: packaging.version.Version, LooseVersion or str as fallback.
+    """
+    if "packaging" in sys.modules:
+        try:
+            return packaging.version.parse(version_string)
+        except packaging.version.InvalidVersion:
+            logger.warning(f"Cannot parse version '{version_string}' using packaging.version.")
+
+    if LooseVersion:
+        with suppress_known_deprecation():
+            return LooseVersion(version_string)
+
+    logger.warning("Either packaging or distutils module is not available.")
+    return version_string
+
+
 def _compare_versions(a, b):
     """
     Tests if version a is newer than version b.
@@ -184,14 +210,9 @@ def _compare_versions(a, b):
         b = b[1:]
 
     if "packaging" in sys.modules:
-        try:
-            version_a = packaging.version.parse(a)
-            version_b = packaging.version.parse(b)
-            return version_a > version_b
-        except packaging.version.InvalidVersion:
-            logger.warning(
-                f"Cannot parse version '{a}' or '{b}' using packaging.version."
-            )
+        version_a = version_parse(a)
+        version_b = version_parse(b)
+        return version_a > version_b
 
     if LooseVersion:
         # In Python 3, LooseVersion comparisons between versions where a non-numeric
