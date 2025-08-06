@@ -188,8 +188,10 @@ def _compare_versions(a, b):
             version_a = packaging.version.parse(a)
             version_b = packaging.version.parse(b)
             return version_a > version_b
-        except version.InvalidVersion:
-            logger.warning(f"Cannot parse version '{a}' or '{b}' using packaging.version.")
+        except packaging.version.InvalidVersion:
+            logger.warning(
+                f"Cannot parse version '{a}' or '{b}' using packaging.version."
+            )
 
     if LooseVersion:
         # In Python 3, LooseVersion comparisons between versions where a non-numeric
