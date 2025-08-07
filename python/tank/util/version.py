@@ -163,7 +163,9 @@ def version_parse(version_string):
         try:
             return packaging.version.parse(version_string)
         except packaging.version.InvalidVersion:
-            logger.warning(f"Cannot parse version '{version_string}' using packaging.version.")
+            logger.warning(
+                f"Cannot parse version '{version_string}' using packaging.version."
+            )
 
     if LooseVersion:
         with suppress_known_deprecation():
