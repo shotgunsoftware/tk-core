@@ -30,6 +30,7 @@ import json
 import os
 
 from .. import LogManager
+
 # TODO: legacy json import, to be removed at a later date, it is necessary for
 # integration with the web side of shotgun.
 from . import json as json_legacy
