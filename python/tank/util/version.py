@@ -212,6 +212,9 @@ def _compare_versions(a, b):
     if "packaging" in sys.modules:
         version_a = version_parse(a)
         version_b = version_parse(b)
+        if isinstance(version_a, str) or isinstance(version_b, str):
+            return a > b
+
         return version_a > version_b
 
     if LooseVersion:
