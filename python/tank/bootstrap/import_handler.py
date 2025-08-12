@@ -171,7 +171,7 @@ class CoreImportHandler(object):
         )
 
         # unique prefix for stashing this session
-        stash_prefix = "core_swap_%s" % uuid.uuid4().hex
+        stash_prefix = "core_swap_{}".format(uuid.uuid4().hex)
 
         for module_name in module_names:
             # just to be safe, don't re-import this module.
@@ -195,7 +195,7 @@ class CoreImportHandler(object):
                     # to make sure a reference is kept, keep the module object
                     # but move it out of the way in sys.modules to allow for
                     # a new version of the module to be imported alongside.
-                    stashed_module_name = "%s_%s" % (stash_prefix, module_name)
+                    stashed_module_name = f"{stash_prefix}_{module_name}"
 
                     # uncomment for copious amounts of debug
                     # log.debug(
