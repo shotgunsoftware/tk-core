@@ -932,12 +932,14 @@ class WritableEnvironment(InstalledEnvironment):
                 # by default.
                 from tank_vendor import ruamel_yaml
 
-                ruamel_yaml.dump(
-                    data,
-                    fh,
-                    default_flow_style=False,
-                    Dumper=ruamel_yaml.RoundTripDumper,
-                )
+                # ruamel_yaml.dump(
+                #     data,
+                #     fh,
+                #     default_flow_style=False,
+                #     Dumper=ruamel_yaml.RoundTripDumper,
+                # )
+                yaml_obj = ruamel_yaml.YAML(typ="rt")
+                yaml_obj.dump(data, fh)
             else:
                 # use pyyaml parser
                 #
