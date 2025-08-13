@@ -23,6 +23,7 @@ class SGTKImportTests(SgtkIntegrationTest):
     """
 
     def test(self):
+        print("test")
         self.assertIn("sgtk", sys.modules)
         self.assertNotIn("sgtk.authentication.ui.qt_abstraction", sys.modules)
         self.assertEqual(
