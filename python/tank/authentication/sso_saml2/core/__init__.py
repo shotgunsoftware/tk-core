@@ -11,4 +11,4 @@
 This module contains files which are shared between RV and Toolkit.
 """
 
-# from .sso_saml2_core import SsoSaml2Core # noqa
+from .sso_saml2_core import SsoSaml2Core # noqa
