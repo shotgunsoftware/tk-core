@@ -202,4 +202,4 @@ class BootstrapHookTests(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    unittest.main(failfast=True, verbosity=2)
+    ret_val = unittest.main(failfast=True, verbosity=2)
