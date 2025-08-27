@@ -14,6 +14,16 @@ Integration with Shotgun Toolkit API.
 # pylint: disable=line-too-long
 # pylint: disable=protected-access
 
+# Deprecation notice: prefer importing from the package root to avoid
+# inadvertently loading Qt on core import and to keep APIs consistent.
+import warnings as _warnings
+_warnings.warn(
+    "Importing SsoSaml2Toolkit from 'tank.authentication.sso_saml2.sso_saml2_toolkit'"
+    " is deprecated; import 'SsoSaml2Toolkit' from 'tank.authentication.sso_saml2' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 from .sso_saml2 import SsoSaml2  # noqa
 
 

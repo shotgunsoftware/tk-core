@@ -16,6 +16,16 @@ Module to support Web login via a web browser and automated session renewal.
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-statements
 
+# Deprecation notice: prefer importing from the package root to avoid
+# surprises and align with lazy exports.
+import warnings as _warnings
+_warnings.warn(
+    "Importing SsoSaml2Core from 'tank.authentication.sso_saml2.core.sso_saml2_core' is deprecated;"
+    " import 'SsoSaml2Core' from 'tank.authentication.sso_saml2.core' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 import base64
 import os
 import sys

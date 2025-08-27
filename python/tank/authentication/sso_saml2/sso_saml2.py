@@ -16,6 +16,16 @@ Integration with Shotgun API.
 # pylint: disable=too-many-arguments
 # pylint: disable=unused-import
 
+# Deprecation notice: prefer importing from the package root to avoid
+# inadvertently loading Qt on core import and to keep APIs consistent.
+import warnings as _warnings
+_warnings.warn(
+    "Importing SsoSaml2 from 'tank.authentication.sso_saml2.sso_saml2' is deprecated;"
+    " import 'SsoSaml2' from 'tank.authentication.sso_saml2' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 from .core.sso_saml2_core import SsoSaml2Core  # noqa
 
 from .core.utils import (  # noqa
