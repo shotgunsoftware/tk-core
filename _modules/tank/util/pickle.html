@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.pickle &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.util.pickle &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -141,24 +141,16 @@
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.unicode</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_contains_str</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">cPickle</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgutils</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span> <span class="k">as</span> <span class="n">sgutils</span>
-
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="c1"># kwargs for pickle.load* and pickle.dump* calls.</span>
-<span class="n">LOAD_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;encoding&quot;</span><span class="p">:</span> <span class="s2">&quot;bytes&quot;</span><span class="p">}</span> <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span> <span class="k">else</span> <span class="p">{}</span>
+<span class="n">LOAD_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;encoding&quot;</span><span class="p">:</span> <span class="s2">&quot;bytes&quot;</span><span class="p">}</span>
 <span class="c1"># Protocol 0 ensures ASCII encoding, which is required when writing</span>
 <span class="c1"># a pickle to an environment variable.</span>
 <span class="n">DUMP_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
@@ -173,31 +165,23 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return the pickled representation of ``data`` as a ``str``.</span>
 
-<span class="sd">    This methods wraps the functionality from the :func:`pickle.dumps` method so</span>
-<span class="sd">    pickles can be shared between Python 2 and Python 3.</span>
-
-<span class="sd">    As opposed to the Python 3 implementation, it will return a ``str`` object</span>
-<span class="sd">    and not ``bytes`` object.</span>
-
 <span class="sd">    :param data: The object to pickle and store.</span>
-<span class="sd">    :returns: A pickled str of the input object.</span>
+<span class="sd">    :returns: A pickled binary of the input object.</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Force pickle protocol 0, since this is a non-binary pickle protocol.</span>
-    <span class="c1"># See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL</span>
-    <span class="c1"># Decode the result to a str before returning.</span>
-    <span class="n">serialized</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">serialized</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">UnicodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Fix unicode issue when ensuring string values</span>
         <span class="c1"># https://jira.autodesk.com/browse/SG-6588</span>
-        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">encoding</span> <span class="o">==</span> <span class="s2">&quot;utf-8&quot;</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">reason</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;invalid continuation byte&quot;</span><span class="p">,</span> <span class="s2">&quot;invalid start byte&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">encoding</span> <span class="o">==</span> <span class="s2">&quot;utf-8&quot;</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">reason</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;invalid continuation byte&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;invalid start byte&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
             <span class="n">encoding</span> <span class="o">=</span> <span class="n">FALLBACK_ENCODING</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">data</span><span class="p">[</span><span class="n">FALLBACK_ENCODING_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoding</span>
-                <span class="n">serialized</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
 
         <span class="k">raise</span></div>
 
@@ -206,35 +190,30 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write the pickled representation of ``data`` to a file object.</span>
 
-<span class="sd">    This methods wraps the functionality from the :func:`pickle.dump` method so</span>
-<span class="sd">    pickles can be shared between Python 2 and Python 3.</span>
+<span class="sd">    This methods wraps the functionality from the :func:`pickle.dump` method.</span>
 
 <span class="sd">    :param data: The object to pickle and store.</span>
 <span class="sd">    :param fh: A file object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span></div>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="loads"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.loads">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">loads</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read the pickled representation of an object from a string</span>
-<span class="sd">    and return the reconstituted object hierarchy specified therein.</span>
+<span class="sd">    Deserialize a pickled representation of an object from a string or bytes.</span>
 
-<span class="sd">    This method wraps the functionality from the :func:`pickle.loads` method so</span>
-<span class="sd">    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``</span>
-<span class="sd">    objects in Python 2.</span>
-
-<span class="sd">    :param object data: A pickled representation of an object.</span>
-<span class="sd">    :returns: The unpickled object.</span>
-<span class="sd">    :rtype: object</span>
+<span class="sd">    :param data: A pickled representation of an object (str or bytes).</span>
+<span class="sd">    :return: The unpickled object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">binary</span> <span class="o">=</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">loads_data</span> <span class="o">=</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span>
-
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">binary</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="n">loads_data</span> <span class="o">=</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">binary</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loads_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">FALLBACK_ENCODING_KEY</span> <span class="ow">in</span> <span class="n">loads_data</span><span class="p">:</span>
         <span class="n">encoding</span> <span class="o">=</span> <span class="n">loads_data</span><span class="p">[</span><span class="n">FALLBACK_ENCODING_KEY</span><span class="p">]</span>
-        <span class="n">binary</span> <span class="o">=</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
-        <span class="n">loads_data</span> <span class="o">=</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">binary</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="n">loads_data</span> <span class="o">=</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">loads_data</span></div>
 
@@ -245,14 +224,13 @@
 <span class="sd">    and return the reconstituted object hierarchy specified therein.</span>
 
 <span class="sd">    This method wraps the functionality from the :func:`pickle.load` method so</span>
-<span class="sd">    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``</span>
-<span class="sd">    objects in Python 2.</span>
+<span class="sd">    unicode strings are always returned as utf8-encode.</span>
 
 <span class="sd">    :param fh: A file object</span>
 <span class="sd">    :returns: The unpickled object.</span>
 <span class="sd">    :rtype: object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">store_env_var_pickled</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
@@ -269,11 +247,10 @@
 <span class="sd">    :param key: The name of the environment variable to store the data in.</span>
 <span class="sd">    :param data: The object to pickle and store.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Force pickle protocol 0, since this is a non-binary pickle protocol.</span>
-    <span class="c1"># See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL</span>
     <span class="n">pickled_data</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">encoded_data</span> <span class="o">=</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">pickled_data</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoded_data</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pickled_data</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">pickled_data</span> <span class="o">=</span> <span class="n">pickled_data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pickled_data</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">retrieve_env_var_pickled</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
@@ -291,7 +268,9 @@
 <span class="sd">    :param key: The name of the environment variable to retrieve data from.</span>
 <span class="sd">    :returns: The original object that was stored.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">envvar_contents</span> <span class="o">=</span> <span class="n">sgutils</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">envvar_contents</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">loads</span><span class="p">(</span><span class="n">envvar_contents</span><span class="p">)</span>
 </pre></div>
 

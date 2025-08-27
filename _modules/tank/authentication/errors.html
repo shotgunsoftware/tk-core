@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.errors &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.authentication.errors &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -188,7 +188,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nice_user_type</span><span class="p">,</span> <span class="n">user_type</span><span class="p">,</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key_value</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">UnresolvableUser</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="s2">&quot;The </span><span class="si">{0}</span><span class="s2"> named &#39;</span><span class="si">{3}</span><span class="s2">&#39; could not be resolved. Check if the &quot;</span>
             <span class="s2">&quot;permissions for the current user are hiding the field &#39;</span><span class="si">{1}</span><span class="s2">.</span><span class="si">{2}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">nice_user_type</span><span class="p">,</span> <span class="n">user_type</span><span class="p">,</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key_value</span>
@@ -205,7 +205,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str login: ``login`` field value of the ``HumanUser`` that could not be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">UnresolvableHumanUser</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="s2">&quot;person&quot;</span><span class="p">,</span> <span class="s2">&quot;HumanUser&quot;</span><span class="p">,</span> <span class="s2">&quot;login&quot;</span><span class="p">,</span> <span class="n">login</span>
         <span class="p">)</span></div>
 
@@ -219,7 +219,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str script_name: ``firstname`` field value of the ``ApiUser`` that could not be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">UnresolvableScriptUser</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="s2">&quot;script&quot;</span><span class="p">,</span> <span class="s2">&quot;ApiUser&quot;</span><span class="p">,</span> <span class="s2">&quot;firstname&quot;</span><span class="p">,</span> <span class="n">script_name</span>
         <span class="p">)</span></div>
 
@@ -236,7 +236,7 @@
 <span class="sd">        :param str site_auth_type: type of authentication, e.g. SSO, Identity.</span>
 <span class="sd">                                   The default value is for backward compatibility.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ConsoleLoginNotSupportedError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="s2">&quot;Authentication using username/password is not supported on &quot;</span>
             <span class="s2">&quot;the console </span><span class="si">%s</span><span class="s2"> for sites using </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">site_auth_type</span><span class="p">)</span>
         <span class="p">)</span></div>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.software_launcher &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.platform.software_launcher &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -449,19 +449,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Limited implementation of Python 2.6-like str.format.</span>
-
-<span class="sd">        :param str template: String using {&lt;name&gt;} tokens for substitution.</span>
-<span class="sd">        :param dict tokens: Dictionary of &lt;name&gt; to substitute for &lt;value&gt;.</span>
-
-<span class="sd">        :returns: The substituted string, when &quot;&lt;name&gt;&quot; will yield &quot;&lt;value&gt;&quot;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">template</span>
-
 <div class="viewcode-block" id="SoftwareLauncher._glob_and_match"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._glob_and_match">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_glob_and_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match_template</span><span class="p">,</span> <span class="n">template_key_expressions</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is a helper method that can be invoked in an implementation of :meth:`scan_software`.</span>
@@ -513,9 +500,10 @@
             <span class="n">match_template</span> <span class="o">=</span> <span class="n">fixed_match_template</span>
 
         <span class="c1"># First start by globbing files.</span>
-        <span class="n">glob_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">(</span>
-            <span class="n">match_template</span><span class="p">,</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="p">)</span>
+        <span class="n">glob_pattern</span> <span class="o">=</span> <span class="n">match_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="p">}</span>
         <span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Globbing for executable matching: </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">glob_pattern</span><span class="p">,))</span>
         <span class="n">matching_paths</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">glob_pattern</span><span class="p">)</span>
 
@@ -535,12 +523,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">regex_pattern</span> <span class="o">=</span> <span class="n">match_template</span>
         <span class="c1"># Then swap the tokens into the regular template key expressions.</span>
-        <span class="n">regex_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">(</span>
-            <span class="n">regex_pattern</span><span class="p">,</span>
-            <span class="c1"># Put () around the provided expressions so that they become capture groups.</span>
-            <span class="nb">dict</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="p">),</span>
+        <span class="n">regex_pattern</span> <span class="o">=</span> <span class="n">regex_pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="p">)</span>
 
         <span class="c1"># accumulate the software version objects to return. this will include</span>

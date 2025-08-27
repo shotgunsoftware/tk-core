@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core &mdash; tk-core v0.22.5 documentation</title>
+  <title>Core &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -275,7 +275,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -3004,7 +3004,7 @@ definition.</p></li>
 <li><p><strong>platform</strong> – Optional operating system platform. If you leave it at the
 default value of None, paths will be created to match the
 current operating system. If you pass in a sys.platform-style string
-(e.g. <code class="docutils literal notranslate"><span class="pre">win32</span></code>, <code class="docutils literal notranslate"><span class="pre">linux2</span></code> or <code class="docutils literal notranslate"><span class="pre">darwin</span></code>), paths will be generated to
+(e.g. <code class="docutils literal notranslate"><span class="pre">win32</span></code>, <code class="docutils literal notranslate"><span class="pre">linux</span></code> or <code class="docutils literal notranslate"><span class="pre">darwin</span></code>), paths will be generated to
 match that platform.</p></li>
 </ul>
 </dd>
@@ -3461,11 +3461,6 @@ over this, see <a class="reference internal" href="#sgtk.StringKey.subset_format
 <p>The formatting used for the string is standard python custom string formatting, where you can reference
 each regex group with an integer index. Read more about standard python string formatting here:
 <a class="reference external" href="https://docs.python.org/2/library/string.html#custom-string-formatting">https://docs.python.org/2/library/string.html#custom-string-formatting</a></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Subset format is using python string formatting and is only compatible with
-with Python 2.6+.</p>
-</div>
 </dd></dl>
 
 <dl class="py method">

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.download &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -143,21 +143,21 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Methods for downloading things from Shotgun</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">urllib</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunAttachmentDownloadError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..zip</span><span class="w"> </span><span class="kn">import</span> <span class="n">unzip_file</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunAttachmentDownloadError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..zip</span><span class="w"> </span><span class="kn">import</span> <span class="n">unzip_file</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -216,8 +216,7 @@
     <span class="c1"># download the given url</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
-        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
-            <span class="c1"># timeout parameter only available in python 2.6+</span>
+        <span class="k">if</span> <span class="n">timeout</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># use system default</span>
@@ -248,21 +247,21 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on</span>
+<span class="sd">    Borrowed from the Shotgun Python API, setup urllib with a cookie for authentication on</span>
 <span class="sd">    Shotgun instance.</span>
 
-<span class="sd">    Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is</span>
+<span class="sd">    Looks up session token and sets that in a cookie in the :mod:`urllib` handler. This is</span>
 <span class="sd">    used internally for downloading attachments from the Shotgun server.</span>
 
 <span class="sd">    :param sg: Shotgun API instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Importing this module locally to reduce clutter and facilitate clean up when/if this</span>
     <span class="c1"># functionality gets ported back into the Shotgun API.</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">http_cookiejar</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">http.cookiejar</span>
 
     <span class="n">sid</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_session_token</span><span class="p">()</span>
-    <span class="n">cj</span> <span class="o">=</span> <span class="n">http_cookiejar</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="n">http_cookiejar</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span>
+    <span class="n">cj</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">cookiejar</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">cookiejar</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span>
         <span class="s2">&quot;0&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_session_id&quot;</span><span class="p">,</span>
         <span class="n">sid</span><span class="p">,</span>

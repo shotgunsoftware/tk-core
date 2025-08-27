@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.template &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.template &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -146,14 +146,12 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">templatekey</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.template_path_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplatePathParser</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">six</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.shotgun_api3.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgsix</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tank.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span><span class="p">,</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 
 
@@ -384,7 +382,7 @@
 <span class="sd">        :param platform: Optional operating system platform. If you leave it at the</span>
 <span class="sd">                         default value of None, paths will be created to match the</span>
 <span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
-<span class="sd">                         (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to</span>
+<span class="sd">                         (e.g. ``win32``, ``linux`` or ``darwin``), paths will be generated to</span>
 <span class="sd">                         match that platform.</span>
 
 <span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
@@ -404,7 +402,7 @@
 <span class="sd">        :param platform: Optional operating system platform. If you leave it at the</span>
 <span class="sd">                         default value of None, paths will be created to match the</span>
 <span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
-<span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux2&#39; or &#39;darwin&#39;), paths will be generated to</span>
+<span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux&#39; or &#39;darwin&#39;), paths will be generated to</span>
 <span class="sd">                         match that platform.</span>
 <span class="sd">        :param skip_defaults: Optional. If set to True, if a key has a default value and no</span>
 <span class="sd">                              corresponding value in the fields argument, its default value</span>
@@ -664,7 +662,7 @@
 <span class="sd">        :param per_platform_roots: Root paths for all supported operating systems.</span>
 <span class="sd">                                   This is a dictionary with sys.platform-style keys</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="n">root_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="o">=</span> <span class="n">per_platform_roots</span>
 
@@ -722,7 +720,7 @@
 <span class="sd">        :param platform: Optional operating system platform. If you leave it at the</span>
 <span class="sd">                         default value of None, paths will be created to match the</span>
 <span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
-<span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux2&#39; or &#39;darwin&#39;), paths will be generated to</span>
+<span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux&#39; or &#39;darwin&#39;), paths will be generated to</span>
 <span class="sd">                         match that platform.</span>
 <span class="sd">        :param skip_defaults: Optional. If set to True, if a key has a default value and no</span>
 <span class="sd">                              corresponding value in the fields argument, its default value</span>
@@ -732,7 +730,7 @@
 
 <span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">relative_path</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span>
+        <span class="n">relative_path</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span>
             <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="p">,</span> <span class="n">platform</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="n">skip_defaults</span>
         <span class="p">)</span>
 
@@ -745,7 +743,6 @@
             <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">platform</span> <span class="o">=</span> <span class="n">sgsix</span><span class="o">.</span><span class="n">normalize_platform</span><span class="p">(</span><span class="n">platform</span><span class="p">)</span>
             <span class="c1"># caller has requested a path for another OS</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># it&#39;s possible that the additional os paths are not set for a template</span>
@@ -813,7 +810,7 @@
 <span class="sd">        :param name: Optional name for this template.</span>
 <span class="sd">        :param validate_with: Optional :class:`Template` to use for validation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">TemplateString</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_with</span> <span class="o">=</span> <span class="n">validate_with</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
 
@@ -849,7 +846,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># add path prefix as original design was to require project root</span>
         <span class="n">adj_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="n">input_path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">TemplateString</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">adj_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="n">skip_keys</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">adj_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="n">skip_keys</span><span class="p">)</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">split_path</span><span class="p">(</span><span class="n">input_path</span><span class="p">):</span>
@@ -961,7 +958,7 @@
                 <span class="s2">&quot;instead?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
             <span class="p">)</span>
 
-        <span class="n">root_path</span> <span class="o">=</span> <span class="n">all_per_platform_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sgsix</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+        <span class="n">root_path</span> <span class="o">=</span> <span class="n">all_per_platform_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;Undefined PTR storage! The local file storage &#39;</span><span class="si">%s</span><span class="s2">&#39; is not defined for this &quot;</span>
@@ -1018,7 +1015,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes data for single template and conforms it expected data structure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">template_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;definition&quot;</span><span class="p">:</span> <span class="n">template_data</span><span class="p">}</span>
     <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>

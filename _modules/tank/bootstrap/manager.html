@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.bootstrap.manager &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -342,9 +342,6 @@
                 <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR</span><span class="p">,</span> <span class="n">fallback_str</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">toolkit_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="n">fallback_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">)</span>
-
-            <span class="c1"># Python&#39; sets do not preserve insertion order and Python 2.5 doesn&#39;t support</span>
-            <span class="c1"># OrderedDicts, which would have been perfect for this, so we will...</span>
 
             <span class="c1"># First build the complete list of paths with possible duplicates.</span>
             <span class="n">concatenated_lists</span> <span class="o">=</span> <span class="p">(</span>

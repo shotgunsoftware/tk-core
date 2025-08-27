@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -164,7 +164,7 @@
 <span class="sd">        :param sg_descriptor: Connection to the current site.</span>
 <span class="sd">        :param io_descriptor: Associated IO descriptor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="n">sg_connection</span>
 
     <span class="nd">@property</span>
@@ -566,7 +566,7 @@
 <span class="sd">        :param fallback_roots: List of immutable fallback cache locations where</span>
 <span class="sd">            apps will be searched for.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">EngineDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AppDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.AppDescriptor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">AppDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
@@ -588,7 +588,7 @@
 <span class="sd">        :param fallback_roots: List of immutable fallback cache locations where</span>
 <span class="sd">            apps will be searched for.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AppDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FrameworkDescriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">FrameworkDescriptor</span><span class="p">(</span><span class="n">BundleDescriptor</span><span class="p">):</span>
@@ -610,7 +610,7 @@
 <span class="sd">        :param fallback_roots: List of immutable fallback cache locations where</span>
 <span class="sd">            apps will be searched for.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">FrameworkDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FrameworkDescriptor.is_shared_framework"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.FrameworkDescriptor.is_shared_framework">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_shared_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

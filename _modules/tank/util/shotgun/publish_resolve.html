@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,18 +144,17 @@
 <span class="sd">Methods for resolving publish data into local representations</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">with_statement</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.shotgun_api3.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgsix</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor.six.moves</span><span class="w"> </span><span class="kn">import</span> <span class="n">urllib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.publish_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cached_local_storages</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">...log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..shotgun_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">PublishPathNotDefinedError</span><span class="p">,</span> <span class="n">PublishPathNotSupported</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tank.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">...log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">PublishPathNotDefinedError</span><span class="p">,</span> <span class="n">PublishPathNotSupported</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..shotgun_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.publish_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cached_local_storages</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -214,7 +213,6 @@
     <span class="k">if</span> <span class="n">custom_path</span><span class="p">:</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish resolve core hook returned path &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">custom_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">custom_path</span>
-
     <span class="c1"># core hook did not pick it up - apply default logic</span>
     <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># no path defined for publish</span>
@@ -297,7 +295,7 @@
     <span class="c1"># look for override env var for our local os</span>
     <span class="n">storage_name</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;local_storage&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
     <span class="n">storage_id</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;local_storage&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
-    <span class="n">os_name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;WINDOWS&quot;</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;LINUX&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="s2">&quot;MAC&quot;</span><span class="p">}[</span><span class="n">sgsix</span><span class="o">.</span><span class="n">platform</span><span class="p">]</span>
+    <span class="n">os_name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;WINDOWS&quot;</span><span class="p">,</span> <span class="s2">&quot;linux&quot;</span><span class="p">:</span> <span class="s2">&quot;LINUX&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="s2">&quot;MAC&quot;</span><span class="p">}[</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">]</span>
     <span class="n">env_var_name</span> <span class="o">=</span> <span class="s2">&quot;SHOTGUN_PATH_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os_name</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Looking for override env var &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">env_var_name</span><span class="p">)</span>
 
@@ -340,7 +338,7 @@
                 <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="s2">&quot;local_path_mac&quot;</span><span class="p">,</span>
             <span class="p">}</span>
 
-            <span class="k">for</span> <span class="p">(</span><span class="n">storage_field</span><span class="p">,</span> <span class="n">path_field</span><span class="p">)</span> <span class="ow">in</span> <span class="n">storage_field_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">storage_field</span><span class="p">,</span> <span class="n">path_field</span> <span class="ow">in</span> <span class="n">storage_field_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">this_os_storage_root</span> <span class="o">=</span> <span class="n">storage</span><span class="p">[</span><span class="n">storage_field</span><span class="p">]</span>
                 <span class="n">this_os_full_path</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="n">path_field</span><span class="p">]</span>
 
@@ -533,7 +531,6 @@
 
     <span class="c1"># now see if the given url starts with any storage def in our setup</span>
     <span class="k">for</span> <span class="n">storage</span><span class="p">,</span> <span class="n">sg_path</span> <span class="ow">in</span> <span class="n">storage_lookup</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
         <span class="c1"># go through each storage, see if any of the os</span>
         <span class="c1"># path defs for the storage matches the beginning of the</span>
         <span class="c1"># url path. Compare lower case (most file systems are case preserving).</span>

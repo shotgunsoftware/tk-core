@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Utilities &mdash; tk-core v0.22.5 documentation</title>
+  <title>Utilities &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -116,11 +116,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.filesystem.get_unused_path"><code class="docutils literal notranslate"><span class="pre">get_unused_path()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#sgtk-util-json">sgtk.util.json</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.json.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.json.loads"><code class="docutils literal notranslate"><span class="pre">loads()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-util-pickle">sgtk.util.pickle</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.pickle.dump"><code class="docutils literal notranslate"><span class="pre">dump()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.pickle.dumps"><code class="docutils literal notranslate"><span class="pre">dumps()</span></code></a></li>
@@ -222,7 +217,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -1173,29 +1168,6 @@ could create the returned path before it is used by the caller.</p>
 </dd></dl>
 
 </section>
-<section id="sgtk-util-json">
-<h3>sgtk.util.json<a class="headerlink" href="#sgtk-util-json" title="Permalink to this heading"></a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="sgtk.util.json.load">
-<span class="sig-prename descclassname"><span class="pre">sgtk.util.json.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_float</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/json.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.json.load" title="Permalink to this definition"></a></dt>
-<dd><p>Deserialize <code class="docutils literal notranslate"><span class="pre">fp</span></code> (a <code class="docutils literal notranslate"><span class="pre">.read()</span></code>-supporting file-like object containing
-a JSON document) to a Python object.</p>
-<p>This method is a simple thin wrapper around <a class="reference external" href="https://docs.python.org/3.9/library/json.html#json.load" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">json.load()</span></code></a> that
-ensures unserialized strings are utf-8 encoded <a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> objects.</p>
-<p>See the documentation for <a class="reference external" href="https://docs.python.org/3.9/library/json.html#json.load" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">json.load()</span></code></a> to learn more about this method.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="sgtk.util.json.loads">
-<span class="sig-prename descclassname"><span class="pre">sgtk.util.json.</span></span><span class="sig-name descname"><span class="pre">loads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_float</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/json.html#loads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.json.loads" title="Permalink to this definition"></a></dt>
-<dd><p>Deserialize <code class="docutils literal notranslate"><span class="pre">s</span></code> (a <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">unicode</span></code> instance containing a JSON
-document) to a Python object.</p>
-<p>This method is a simple thin wrapper around <a class="reference external" href="https://docs.python.org/3.9/library/json.html#json.loads" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">json.loads()</span></code></a> that
-ensures unserialized strings are utf-8 encoded <a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> objects.</p>
-<p>See the documentation for <a class="reference external" href="https://docs.python.org/3.9/library/json.html#json.loads" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">json.loads()</span></code></a> to learn more about this method.</p>
-</dd></dl>
-
-</section>
 <section id="sgtk-util-pickle">
 <h3>sgtk.util.pickle<a class="headerlink" href="#sgtk-util-pickle" title="Permalink to this heading"></a></h3>
 <p>Toolkit’s <code class="docutils literal notranslate"><span class="pre">pickle</span></code> module isn’t a drop-in replacement for Python’s, but a wrapper around Python’s <a class="reference external" href="https://docs.python.org/3.9/library/pickle.html#module-pickle" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a> module so collections and scalar types can be exchanged freely between Python 2 and Python 3 processes without having to worry about the subtle pickle serialization differences between the two.</p>
@@ -1208,8 +1180,7 @@ ensures unserialized strings are utf-8 encoded <a class="reference external" hre
 <dt class="sig sig-object py" id="sgtk.util.pickle.dump">
 <span class="sig-prename descclassname"><span class="pre">sgtk.util.pickle.</span></span><span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.pickle.dump" title="Permalink to this definition"></a></dt>
 <dd><p>Write the pickled representation of <code class="docutils literal notranslate"><span class="pre">data</span></code> to a file object.</p>
-<p>This methods wraps the functionality from the <a class="reference external" href="https://docs.python.org/3.9/library/pickle.html#pickle.dump" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.dump()</span></code></a> method so
-pickles can be shared between Python 2 and Python 3.</p>
+<p>This methods wraps the functionality from the <a class="reference external" href="https://docs.python.org/3.9/library/pickle.html#pickle.dump" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.dump()</span></code></a> method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1224,16 +1195,12 @@ pickles can be shared between Python 2 and Python 3.</p>
 <dt class="sig sig-object py" id="sgtk.util.pickle.dumps">
 <span class="sig-prename descclassname"><span class="pre">sgtk.util.pickle.</span></span><span class="sig-name descname"><span class="pre">dumps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#dumps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.pickle.dumps" title="Permalink to this definition"></a></dt>
 <dd><p>Return the pickled representation of <code class="docutils literal notranslate"><span class="pre">data</span></code> as a <code class="docutils literal notranslate"><span class="pre">str</span></code>.</p>
-<p>This methods wraps the functionality from the <a class="reference external" href="https://docs.python.org/3.9/library/pickle.html#pickle.dumps" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.dumps()</span></code></a> method so
-pickles can be shared between Python 2 and Python 3.</p>
-<p>As opposed to the Python 3 implementation, it will return a <code class="docutils literal notranslate"><span class="pre">str</span></code> object
-and not <code class="docutils literal notranslate"><span class="pre">bytes</span></code> object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>data</strong> – The object to pickle and store.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pickled str of the input object.</p>
+<dd class="field-even"><p>A pickled binary of the input object.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
@@ -1247,8 +1214,7 @@ and not <code class="docutils literal notranslate"><span class="pre">bytes</span
 <dd><p>Read the pickled representation of an object from the open file object
 and return the reconstituted object hierarchy specified therein.</p>
 <p>This method wraps the functionality from the <a class="reference external" href="https://docs.python.org/3.9/library/pickle.html#pickle.load" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.load()</span></code></a> method so
-unicode strings are always returned as utf8-encoded <code class="docutils literal notranslate"><span class="pre">str</span></code> instead of <code class="docutils literal notranslate"><span class="pre">unicode</span></code>
-objects in Python 2.</p>
+unicode strings are always returned as utf8-encode.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>fh</strong> – A file object</p>
@@ -1265,20 +1231,13 @@ objects in Python 2.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="sgtk.util.pickle.loads">
 <span class="sig-prename descclassname"><span class="pre">sgtk.util.pickle.</span></span><span class="sig-name descname"><span class="pre">loads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#loads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.pickle.loads" title="Permalink to this definition"></a></dt>
-<dd><p>Read the pickled representation of an object from a string
-and return the reconstituted object hierarchy specified therein.</p>
-<p>This method wraps the functionality from the <a class="reference external" href="https://docs.python.org/3.9/library/pickle.html#pickle.loads" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.loads()</span></code></a> method so
-unicode strings are always returned as utf8-encoded <code class="docutils literal notranslate"><span class="pre">str</span></code> instead of <code class="docutils literal notranslate"><span class="pre">unicode</span></code>
-objects in Python 2.</p>
+<dd><p>Deserialize a pickled representation of an object from a string or bytes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3.9/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – A pickled representation of an object.</p>
+<dd class="field-odd"><p><strong>data</strong> – A pickled representation of an object (str or bytes).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The unpickled object.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.9/library/functions.html#object" title="(in Python v3.9)">object</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1294,7 +1253,7 @@ objects in Python 2.</p>
 and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
 When working with local storages in Shotgun, roots are keyed by the tokens
 <code class="docutils literal notranslate"><span class="pre">windows_path</span></code>, <code class="docutils literal notranslate"><span class="pre">linux_path</span></code> and <code class="docutils literal notranslate"><span class="pre">mac_path</span></code>. When using <code class="docutils literal notranslate"><span class="pre">sys.platform</span></code> in python,
-you get back <code class="docutils literal notranslate"><span class="pre">win32</span></code>, <code class="docutils literal notranslate"><span class="pre">darwin</span></code> and <code class="docutils literal notranslate"><span class="pre">linux2</span></code> depending on platform. This class makes
+you get back <code class="docutils literal notranslate"><span class="pre">win32</span></code>, <code class="docutils literal notranslate"><span class="pre">darwin</span></code> and <code class="docutils literal notranslate"><span class="pre">linux</span></code> depending on platform. This class makes
 it easy to perform operations and cast between representations and platforms.</p>
 <p>Usage example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ShotgunPath</span><span class="o">.</span><span class="n">SHOTGUN_PATH_FIELDS</span>
@@ -1303,7 +1262,7 @@ it easy to perform operations and cast between representations and platforms.</p
 <span class="go"># construction</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="p">(</span><span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">,</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">({</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_system_dict</span><span class="p">({</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_system_dict</span><span class="p">({</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_current_os_path</span><span class="p">(</span><span class="s2">&quot;/tmp&quot;</span><span class="p">)</span>
 
 <span class="go"># access</span>
@@ -1326,7 +1285,7 @@ it easy to perform operations and cast between representations and platforms.</p
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_shotgun_dict</span><span class="p">()</span>
 <span class="go">{ &quot;windows_path&quot;: &quot;C:\temp&quot;, &quot;mac_path&quot;: None, &quot;linux_path&quot;: &quot;/tmp&quot;}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_system_dict</span><span class="p">()</span>
-<span class="go">{ &quot;win32&quot;: &quot;C:\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+<span class="go">{ &quot;win32&quot;: &quot;C:\temp&quot;, &quot;darwin&quot;: None, &quot;linux&quot;: &quot;/tmp&quot;}</span>
 
 <span class="go"># descriptor uri conversion</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_descriptor_uri</span><span class="p">()</span>
@@ -1388,7 +1347,7 @@ sys.platform:</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux2’,
+<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux’,
 ‘win32’ or ‘darwin’.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1421,7 +1380,7 @@ sys.platform constants.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>system_dict</strong> – Dictionary with possible keys
-win32, darwin and linux2.</p>
+win32, darwin and linux.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#sgtk.util.ShotgunPath" title="sgtk.util.ShotgunPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPath</span></code></a> instance</p>
@@ -1515,11 +1474,11 @@ to just perform the normalization quickly on a local path.</p>
 <span class="sig-name descname"><span class="pre">as_system_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_empty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.as_system_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.as_system_dict" title="Permalink to this definition"></a></dt>
 <dd><p>The path as a dictionary keyed by sys.platform.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">include_empty</span></code> set to True:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>With <code class="docutils literal notranslate"><span class="pre">include_empty</span></code> set to False:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1750,7 +1709,7 @@ which is the current generation of paths.</p></li>
 <dd><p>Determine if the current platform is Linux.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux2’, ‘win32’ or
+<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux’, ‘win32’ or
 ‘darwin’.  If not provided, sys.platform will be used.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1768,7 +1727,7 @@ which is the current generation of paths.</p></li>
 <dd><p>Determine if the current platform is Windows.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux2’, ‘win32’ or
+<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux’, ‘win32’ or
 ‘darwin’.  If not provided, sys.platform will be used.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1786,7 +1745,7 @@ which is the current generation of paths.</p></li>
 <dd><p>Determine if the current platform is MacOS.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux2’, ‘win32’ or
+<dd class="field-odd"><p><strong>platform</strong> – sys.platform style string, e.g ‘linux’, ‘win32’ or
 ‘darwin’.  If not provided, sys.platform will be used.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

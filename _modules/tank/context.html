@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.context &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.context &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -156,7 +156,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">shotgun_entity</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">shotgun</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sg_entity_name_field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">json</span> <span class="k">as</span> <span class="n">sgjson</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">pickle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankContextDeserializationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.path_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathCache</span>
@@ -912,7 +912,7 @@
             <span class="c1"># If the serialized payload starts with a {, we have a</span>
             <span class="c1"># JSON-encoded string.</span>
             <span class="k">if</span> <span class="n">context_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;{&quot;</span><span class="p">):</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">sgjson</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1173,26 +1173,8 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">cur_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">cur_path</span><span class="p">)</span>
 
-                    <span class="c1"># There&#39;s odd behavior on Windows in Python 2.7.14 that causes</span>
-                    <span class="c1"># os.path.dirname to leave the last folder on a UNC path</span>
-                    <span class="c1"># unchanged, including the trailing delimiter:</span>
-                    <span class="c1">#</span>
-                    <span class="c1"># Example (on Windows using Python 2.7.14):</span>
-                    <span class="c1">#</span>
-                    <span class="c1"># &gt;&gt;&gt; os.path.dirname(r&quot;\\foo\bar\&quot;)</span>
-                    <span class="c1"># &#39;\\foo\bar\&#39;</span>
-                    <span class="c1">#</span>
-                    <span class="c1"># The problem is really that the trailing slash isn&#39;t removed, when</span>
-                    <span class="c1"># it seems to have been in older versions of Python. The trailing slash</span>
-                    <span class="c1"># trips up the logic behind validate_and_get_fields, so we end up in an</span>
-                    <span class="c1"># infinite loop. The fix is to just remove the trailing path separator</span>
-                    <span class="c1"># if it&#39;s there.</span>
-                    <span class="c1">#</span>
-                    <span class="c1"># The fact that it does not consider &quot;\\foo&quot; to be the dirname for</span>
-                    <span class="c1"># &quot;\\foo\bar\&quot; is actually correct, as explained here:</span>
-                    <span class="c1">#</span>
-                    <span class="c1"># https://bugs.python.org/issue27403</span>
-                    <span class="c1">#</span>
+                    <span class="c1"># On some platforms, os.path.dirname might preserve a trailing slash on UNC paths,</span>
+                    <span class="c1"># which could interfere with field extraction logic. This ensures the path is normalized.</span>
                     <span class="k">if</span> <span class="n">cur_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">):</span>
                         <span class="n">cur_path</span> <span class="o">=</span> <span class="n">cur_path</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 

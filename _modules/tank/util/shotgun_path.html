@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun_path &mdash; tk-core v0.22.5 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.22.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.22.5.<br>
+    <b>tk-core</b> v0.22.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -152,7 +152,7 @@
 <span class="sd">    and mappings. The ShotgunPath object automatically sanitizes any path that it is given.</span>
 <span class="sd">    When working with local storages in Shotgun, roots are keyed by the tokens</span>
 <span class="sd">    ``windows_path``, ``linux_path`` and ``mac_path``. When using ``sys.platform`` in python,</span>
-<span class="sd">    you get back ``win32``, ``darwin`` and ``linux2`` depending on platform. This class makes</span>
+<span class="sd">    you get back ``win32``, ``darwin`` and ``linux`` depending on platform. This class makes</span>
 <span class="sd">    it easy to perform operations and cast between representations and platforms.</span>
 
 <span class="sd">    Usage example::</span>
@@ -163,7 +163,7 @@
 <span class="sd">        # construction</span>
 <span class="sd">        &gt;&gt;&gt; p = ShotgunPath(&quot;C:\\temp&quot;, &quot;/tmp&quot;, &quot;/tmp&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; p = ShotgunPath.from_shotgun_dict({ &quot;windows_path&quot;: &quot;C:\\temp&quot;, &quot;mac_path&quot;: None, &quot;linux_path&quot;: &quot;/tmp&quot;})</span>
-<span class="sd">        &gt;&gt;&gt; p = ShotgunPath.from_system_dict({ &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;})</span>
+<span class="sd">        &gt;&gt;&gt; p = ShotgunPath.from_system_dict({ &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux&quot;: &quot;/tmp&quot;})</span>
 <span class="sd">        &gt;&gt;&gt; p = ShotgunPath.from_current_os_path(&quot;/tmp&quot;)</span>
 
 <span class="sd">        # access</span>
@@ -186,7 +186,7 @@
 <span class="sd">        &gt;&gt;&gt; p.as_shotgun_dict()</span>
 <span class="sd">        { &quot;windows_path&quot;: &quot;C:\\temp&quot;, &quot;mac_path&quot;: None, &quot;linux_path&quot;: &quot;/tmp&quot;}</span>
 <span class="sd">        &gt;&gt;&gt; p.as_system_dict()</span>
-<span class="sd">        { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+<span class="sd">        { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux&quot;: &quot;/tmp&quot;}</span>
 
 <span class="sd">        # descriptor uri conversion</span>
 <span class="sd">        &gt;&gt;&gt; p.as_descriptor_uri()</span>
@@ -247,7 +247,7 @@
 <span class="sd">            &gt;&gt;&gt; p.get_shotgun_storage_key()</span>
 <span class="sd">            &#39;mac_path&#39;</span>
 
-<span class="sd">        :param platform: sys.platform style string, e.g &#39;linux2&#39;,</span>
+<span class="sd">        :param platform: sys.platform style string, e.g &#39;linux&#39;,</span>
 <span class="sd">                         &#39;win32&#39; or &#39;darwin&#39;.</span>
 <span class="sd">        :returns: Shotgun storage path as string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -284,11 +284,11 @@
 <span class="sd">        sys.platform constants.</span>
 
 <span class="sd">        :param system_dict: Dictionary with possible keys</span>
-<span class="sd">                        win32, darwin and linux2.</span>
+<span class="sd">                        win32, darwin and linux.</span>
 <span class="sd">        :return: :class:`ShotgunPath` instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">windows_path</span> <span class="o">=</span> <span class="n">system_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;win32&quot;</span><span class="p">)</span>
-        <span class="n">linux_path</span> <span class="o">=</span> <span class="n">system_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;linux2&quot;</span><span class="p">)</span>
+        <span class="n">linux_path</span> <span class="o">=</span> <span class="n">system_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">)</span>
         <span class="n">macosx_path</span> <span class="o">=</span> <span class="n">system_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;darwin&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">windows_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span></div>
@@ -569,11 +569,11 @@
 
 <span class="sd">        With ``include_empty`` set to True::</span>
 
-<span class="sd">            { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+<span class="sd">            { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux&quot;: &quot;/tmp&quot;}</span>
 
 <span class="sd">        With ``include_empty`` set to False::</span>
 
-<span class="sd">            { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+<span class="sd">            { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;linux&quot;: &quot;/tmp&quot;}</span>
 
 <span class="sd">        :param include_empty: Controls whether keys should be included for empty path values</span>
 <span class="sd">        :return: dictionary of paths keyed by sys.platform.</span>
@@ -584,7 +584,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span> <span class="ow">or</span> <span class="n">include_empty</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;darwin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_macosx_path</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span> <span class="ow">or</span> <span class="n">include_empty</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;linux2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;linux&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
 <div class="viewcode-block" id="ShotgunPath.as_descriptor_uri"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_descriptor_uri">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">as_descriptor_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">for_development</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
