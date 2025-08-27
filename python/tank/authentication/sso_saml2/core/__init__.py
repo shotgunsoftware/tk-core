@@ -11,5 +11,23 @@
 This module contains files which are shared between RV and Toolkit.
 """
 
-# Classes
-from .sso_saml2_core import SsoSaml2Core  # noqa
+from typing import TYPE_CHECKING
+
+__all__ = [
+	"SsoSaml2Core",
+]
+
+if TYPE_CHECKING:  # pragma: no cover
+	from .sso_saml2_core import SsoSaml2Core as SsoSaml2Core  # noqa: F401
+
+
+def __getattr__(name):  # pragma: no cover
+	if name == "SsoSaml2Core":
+		from .sso_saml2_core import SsoSaml2Core as _SsoSaml2Core
+
+		return _SsoSaml2Core
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():  # pragma: no cover
+	return sorted(globals().keys() | set(__all__))
