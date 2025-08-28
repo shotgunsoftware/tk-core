@@ -69,7 +69,7 @@ SRC_REPO=git@github.com:shotgunsoftware/python-api.git
 # Where we'll clone the repo
 DEST_REPO=$ROOT/repo
 # Destination relative to this script for the files
-DEST=`pwd`/../python/tank_vendor/shotgun_api3
+DEST=`pwd`/python/tank_vendor/shotgun_api3
 
 # Recreate the folder structure
 mkdir $ROOT
@@ -94,12 +94,12 @@ pushd $DEST_REPO
 git rev-parse HEAD > $DEST/commit_id
 popd
 
-cp $DEST/lib/six.py $DEST/../six.py
+# cp $DEST/lib/six.py $DEST/../six.py
 
 # Put files in the staging area.
 echo "adding new files to git..."
 git add -A $DEST
-git add -A $DEST/../six.py
+# git add -A $DEST/../six.py
 
 # Cleanup!
 echo "cleaning up..."
