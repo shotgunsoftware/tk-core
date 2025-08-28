@@ -46,10 +46,4 @@ try:
 except (ImportError, ValueError):  # for Jython
     __with_libyaml__ = False
 
-import os
-import sys
-
-# SGTK patch: Add tank_vendor
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
 from ruamel.yaml.main import *  # NOQA

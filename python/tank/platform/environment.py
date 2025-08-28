@@ -857,6 +857,8 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
+                sys.path.append(os.path.join(os.path.dirname(__file__), "../..", "tank_vendor"))
+
                 from tank_vendor.ruamel import yaml as ruamel_yaml
 
                 yaml_data = ruamel_yaml.YAML(typ="rt").load(fh)
@@ -930,6 +932,8 @@ class WritableEnvironment(InstalledEnvironment):
                 # note that safe_dump is not needed when using the
                 # roundtrip dumper, it will adopt a 'safe' behaviour
                 # by default.
+                sys.path.append(os.path.join(os.path.dirname(__file__), "../..", "tank_vendor"))
+
                 from tank_vendor.ruamel import yaml as ruamel_yaml
 
                 ruamel_yaml.YAML(typ="rt").dump(data, fh)
