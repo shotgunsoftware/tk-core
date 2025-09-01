@@ -30,8 +30,11 @@ def get_version():
     # (e.g. pip install ./tk-core), the version number
     # will be picked up from the most recently added tag.
     try:
+        # need to use the command line as a string and not a list, as the quotes/double quotes use in the match pattern
+        # is raising an error otherwise
+        cmd = ["git", "describe", "--tags", '--match="v[0-9]*.[0-9]*.[0-9]*"']
         version_git = subprocess.check_output(
-            ["git", "describe", "--abbrev=0"], universal_newlines=True
+            " ".join(cmd), universal_newlines=True, shell=True
         ).rstrip()
         return version_git
     except:
