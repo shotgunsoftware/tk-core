@@ -10,6 +10,7 @@
 
 # Basic setup.py so tk-core could be installed as
 # a standard Python package
+import re
 from setuptools import setup, find_packages
 import subprocess
 
@@ -31,9 +32,11 @@ def get_version():
     # will be picked up from the most recently added tag.
     try:
         version_git = subprocess.check_output(
-            ["git", "describe", "--abbrev=0"], universal_newlines=True
+            ["git", "describe", "--tags", "--abbrev=0"], universal_newlines=True
         ).rstrip()
-        return version_git
+        if re.match(r"v[0-9]*.[0-9]*.[0-9]*", version_git):
+            return version_git
+        return "dev"
     except:
         # Blindly ignore problems, git might be not available, or the user could
         # be installing from zip archive, etc...
