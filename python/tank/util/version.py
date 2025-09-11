@@ -11,19 +11,28 @@ import warnings
 import contextlib
 import sys
 
-if sys.version_info[0:2] < (3, 10):
-    from distutils.version import LooseVersion
-else:
+LooseVersion = None
+try:
+    import packaging.version
+except ModuleNotFoundError:
     try:
+        # Try importing from setuptools.
+        # If it fails, then we can't do much at the moment
+        # The DCC should have either setuptools or packaging installed.
         from setuptools._distutils.version import LooseVersion
     except ModuleNotFoundError:
-        # Known issue with VRED 16. Unable to load the setuptools module
-        from distutils.version import LooseVersion
+        try:
+            # DCCs with older versions of Python 3.12
+            from distutils.version import LooseVersion
+        except ModuleNotFoundError:
+            pass
 
 from . import sgre as re
+from .. import LogManager
 from ..errors import TankError
 
 
+logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 
 
@@ -141,6 +150,31 @@ def suppress_known_deprecation():
         yield ctx
 
 
+def version_parse(version_string):
+    """
+    Parse a version string into a Version object. We also support LooseVersion
+    for compatibility with older versions of Python.
+
+    :param str version_string: The version string to parse.
+
+    :rtype: packaging.version.Version, LooseVersion or str as fallback.
+    """
+    if "packaging" in sys.modules:
+        try:
+            return packaging.version.parse(version_string)
+        except packaging.version.InvalidVersion:
+            logger.warning(
+                f"Cannot parse version '{version_string}' using packaging.version."
+            )
+
+    if LooseVersion:
+        with suppress_known_deprecation():
+            return LooseVersion(version_string)
+
+    logger.warning("Either packaging or distutils module is not available.")
+    return version_string
+
+
 def _compare_versions(a, b):
     """
     Tests if version a is newer than version b.
@@ -177,65 +211,74 @@ def _compare_versions(a, b):
     if b.startswith("v"):
         b = b[1:]
 
-    # In Python 3, LooseVersion comparisons between versions where a non-numeric
-    # version component is compared to a numeric one fail.  We'll work around this
-    # as follows:
-    # First, try to use LooseVersion for comparison.  This should work in
-    # most cases.
-    try:
-        with suppress_known_deprecation():
-            # Supress `distutils Version classes are deprecated.` for Python 3.10
-            version_a = LooseVersion(a).version
-            version_b = LooseVersion(b).version
+    if "packaging" in sys.modules:
+        version_a = version_parse(a)
+        version_b = version_parse(b)
+        if isinstance(version_a, str) or isinstance(version_b, str):
+            return a > b
 
-            version_num_a = []
-            version_num_b = []
-            # taking only the integers of the version to make comparison
-            for version in version_a:
-                if isinstance(version, (int)):
-                    version_num_a.append(version)
-                elif version == "-":
-                    break
-            for version in version_b:
-                if isinstance(version, (int)):
-                    version_num_b.append(version)
-                elif version == "-":
-                    break
+        return version_a > version_b
 
-            # Comparing equal number versions with with one of them with '-' appended, if a version
-            # has '-' appended it's older than the same version with '-' at the end
-            if version_num_a == version_num_b:
-                if "-" in a and "-" not in b:
-                    return False  # False, version a is older than b
-                elif "-" in b and "-" not in a:
-                    return True  # True, version a is older than b
+    if LooseVersion:
+        # In Python 3, LooseVersion comparisons between versions where a non-numeric
+        # version component is compared to a numeric one fail.  We'll work around this
+        # as follows:
+        # First, try to use LooseVersion for comparison.  This should work in
+        # most cases.
+        try:
+            with suppress_known_deprecation():
+                # Supress `distutils Version classes are deprecated.` for Python 3.10
+                version_a = LooseVersion(a).version
+                version_b = LooseVersion(b).version
+
+                version_num_a = []
+                version_num_b = []
+                # taking only the integers of the version to make comparison
+                for version in version_a:
+                    if isinstance(version, (int)):
+                        version_num_a.append(version)
+                    elif version == "-":
+                        break
+                for version in version_b:
+                    if isinstance(version, (int)):
+                        version_num_b.append(version)
+                    elif version == "-":
+                        break
+
+                # Comparing equal number versions with with one of them with '-' appended, if a version
+                # has '-' appended it's older than the same version with '-' at the end
+                if version_num_a == version_num_b:
+                    if "-" in a and "-" not in b:
+                        return False  # False, version a is older than b
+                    elif "-" in b and "-" not in a:
+                        return True  # True, version a is older than b
+                    else:
+                        return LooseVersion(a) > LooseVersion(
+                            b
+                        )  # If both has '-' compare '-rcx' versions
                 else:
                     return LooseVersion(a) > LooseVersion(
                         b
-                    )  # If both has '-' compare '-rcx' versions
-            else:
-                return LooseVersion(a) > LooseVersion(
-                    b
-                )  # If they are different numeric versions
-    except TypeError:
-        version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
-        match_a = version_expr.match(a)
-        match_b = version_expr.match(b)
-        if match_a and match_b:
-            # If we could get two numeric versions, generate LooseVersions for
-            # them.
-            ver_a = LooseVersion(match_a.group(1))
-            ver_b = LooseVersion(match_b.group(1))
-            if ver_a != ver_b:
-                # If they're not identical, return based on this comparison
-                return ver_a > ver_b
-            else:
-                # If the numeric versions do match, do a string comparsion for
-                # the rest.
-                return match_a.group(2) > match_b.group(2)
-        elif match_a or match_b:
-            # If only one had a numeric version, treat that as the newer version.
-            return bool(match_a)
+                    )  # If they are different numeric versions
+        except TypeError:
+            version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
+            match_a = version_expr.match(a)
+            match_b = version_expr.match(b)
+            if match_a and match_b:
+                # If we could get two numeric versions, generate LooseVersions for
+                # them.
+                ver_a = LooseVersion(match_a.group(1))
+                ver_b = LooseVersion(match_b.group(1))
+                if ver_a != ver_b:
+                    # If they're not identical, return based on this comparison
+                    return ver_a > ver_b
+                else:
+                    # If the numeric versions do match, do a string comparsion for
+                    # the rest.
+                    return match_a.group(2) > match_b.group(2)
+            elif match_a or match_b:
+                # If only one had a numeric version, treat that as the newer version.
+                return bool(match_a)
 
     # In the case that both versions are non-numeric, do a string comparison.
     return a > b
