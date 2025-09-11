@@ -15,6 +15,19 @@ cd tk-core/developer
 python upgrade_pyyaml.py
 ```
 
+## How to upgrade ruamel.yaml
+
+Until version `0.10.10`, the contents of the library was located at `tank_vendor/ruamel_yaml`.
+However, starting from `0.18.14`, we had to change it to `tank_vendor/ruamel/yaml`.
+
+Just to confirm, the contents of the PIP package should be placed in `tank_vendor`.
+
+```bash
+pip install ruamel.yaml -t path/to/tank_vendor
+```
+
+Then, let's remove all undesired directories and files, just leave the `ruamel` directory.
+We can automate this task later.
 
 ## The requirements.txt file
 

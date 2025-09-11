@@ -833,6 +833,16 @@ class WritableEnvironment(InstalledEnvironment):
         self.set_yaml_preserve_mode(True)
         super().__init__(env_path, pipeline_config, context)
 
+    def _get_ruamel_yaml(self):
+        vendor_path  = os.path.join(os.path.dirname(__file__), "../..", "tank_vendor")
+
+        if vendor_path not in sys.path:
+            sys.path.append(vendor_path)
+
+        from tank_vendor.ruamel import yaml as ruamel_yaml
+
+        return ruamel_yaml
+
     def __load_writable_yaml(self, path):
         """
         Loads yaml data from disk.
@@ -857,9 +867,9 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
-                from tank_vendor import ruamel_yaml
+                ruamel_yaml = self._get_ruamel_yaml()
 
-                yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
+                yaml_data = ruamel_yaml.YAML(typ="rt").load(fh)
             else:
                 # use pyyaml parser
                 yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
@@ -930,14 +940,9 @@ class WritableEnvironment(InstalledEnvironment):
                 # note that safe_dump is not needed when using the
                 # roundtrip dumper, it will adopt a 'safe' behaviour
                 # by default.
-                from tank_vendor import ruamel_yaml
+                ruamel_yaml = self._get_ruamel_yaml()
 
-                ruamel_yaml.dump(
-                    data,
-                    fh,
-                    default_flow_style=False,
-                    Dumper=ruamel_yaml.RoundTripDumper,
-                )
+                ruamel_yaml.YAML(typ="rt").dump(data, fh)
             else:
                 # use pyyaml parser
                 #
