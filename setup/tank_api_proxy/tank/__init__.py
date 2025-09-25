@@ -59,6 +59,15 @@ pipeline_config = os.path.join(current_folder, "..", "..", "..", "..")
 pipeline_config = os.path.abspath(pipeline_config)
 os.environ["TANK_CURRENT_PC"] = pipeline_config
 
+# From: https://stackoverflow.com/a/40119302
+try:
+    reload  # Python 2.7
+except NameError:
+    try:
+        from importlib import reload  # Python 3.4+
+    except ImportError:
+        from imp import reload  # Python 3.0 - 3.3
+
 # ok we got the parent location
 # prepend this to the python path and reload the module
 # this way we will load the 'real' tank!
