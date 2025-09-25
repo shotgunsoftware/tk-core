@@ -100,6 +100,20 @@ def _is_git_missing():
         pass
     return git_missing
 
+def _is_p4_missing():
+    """
+    Tests is p4 is available in PATH
+    :returns: True is p4 is available, False otherwise.
+    """
+    p4_missing = True
+    try:
+        sgtk.util.process.subprocess_check_output(["p4", "info"])
+        p4_missing = False
+    except Exception:
+        # no p4!
+        pass
+    return p4_missing
+
 
 def skip_if_on_travis_ci(reason):
     """
@@ -120,6 +134,14 @@ def skip_if_git_missing(func):
     :returns: The decorated function.
     """
     return unittest.skipIf(_is_git_missing(), "git is missing from PATH")(func)
+
+def skip_if_p4_missing(func):
+    """
+    Decorated that allows to skips a test if P4 is missing.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    return unittest.skipIf(_is_p4_missing(), "p4 is missing from PATH")(func)
 
 
 def _is_pyside_missing():
