@@ -1036,7 +1036,7 @@ class SequenceKey(IntegerKey):
     # special keywork used when format is specified directly in value
     FRAMESPEC_FORMAT_INDICATOR = "FORMAT:"
     # valid format strings that can be used with this Key type
-    VALID_FORMAT_STRINGS = ["%d", "#", "@", "$F", "<UDIM>", "$UDIM"]
+    VALID_FORMAT_STRINGS = ["%d", "#", "@", "$F", "<UDIM>", "$UDIM", "_MAPID_"]
     # flame sequence pattern regex ('[1234-5434]')
     FLAME_PATTERN_REGEX = r"^\[[0-9]+-[0-9]+\]$"
 
@@ -1203,7 +1203,7 @@ class SequenceKey(IntegerKey):
                 frame_spec = "@" * places
             elif format_string == "$F":
                 frame_spec = "$F%d" % places
-            elif format_string in ("<UDIM>", "$UDIM"):
+            elif format_string in ("<UDIM>", "$UDIM", "_MAPID_"):
                 # UDIM's aren't padded!
                 frame_spec = format_string
             else:
@@ -1218,7 +1218,7 @@ class SequenceKey(IntegerKey):
                 frame_spec = "@"
             elif format_string == "$F":
                 frame_spec = "$F"
-            elif format_string in ("<UDIM>", "$UDIM"):
+            elif format_string in ("<UDIM>", "$UDIM", "_MAPID_"):
                 # UDIM's aren't padded!
                 frame_spec = format_string
             else:
