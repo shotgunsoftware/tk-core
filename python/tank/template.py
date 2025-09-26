@@ -624,7 +624,7 @@ class TemplatePath(Template):
 
             platform_root_path = self._per_platform_roots.get(platform)
 
-            if platform == "linux2" and not platform in self._per_platform_roots:
+            if platform == "linux2" and platform not in self._per_platform_roots:
                 # Compat with tk-nuke prior to TODO
                 platform = "linux"
 

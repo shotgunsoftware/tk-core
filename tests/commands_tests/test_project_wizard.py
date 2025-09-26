@@ -157,6 +157,7 @@ class TestSetupProjectWizard(TankTestBase):
             {
                 "darwin": "/Volumes/configs/{0}".format(self.short_test_name),
                 "linux": "/mnt/configs/{0}".format(self.short_test_name),
+                "linux2": "/mnt/configs/{0}".format(self.short_test_name), # TODO remove that when drop retro-compat with TODO
                 "win32": "Z:\\configs\\{0}".format(self.short_test_name),
             },
         )
