@@ -103,12 +103,18 @@ class TestSetupProjectWizard(TankTestBase):
         """
         Ensure all project paths get returned properly.
         """
+
+        expected_paths = self._storage_locations.join(
+            self.short_test_name
+        ).as_system_dict()
+
+        # TODO remove ....
+        expected_paths["linux2"] = expected_paths["linux"]
+
         self.assertEqual(
             self._wizard.preview_project_paths(self.short_test_name),
             {
-                "primary": self._storage_locations.join(
-                    self.short_test_name
-                ).as_system_dict()
+                "primary": expected_paths,
             },
         )
 
@@ -157,6 +163,7 @@ class TestSetupProjectWizard(TankTestBase):
             {
                 "darwin": "/Volumes/configs/{0}".format(self.short_test_name),
                 "linux": "/mnt/configs/{0}".format(self.short_test_name),
+                "linux2": "/mnt/configs/{0}".format(self.short_test_name), # TODO remove that when drop retro-compat with TODO
                 "win32": "Z:\\configs\\{0}".format(self.short_test_name),
             },
         )
