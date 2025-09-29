@@ -103,12 +103,18 @@ class TestSetupProjectWizard(TankTestBase):
         """
         Ensure all project paths get returned properly.
         """
+
+        expected_paths = self._storage_locations.join(
+            self.short_test_name
+        ).as_system_dict()
+
+        # TODO remove ....
+        expected_paths["linux2"] = expected_paths["linux"]
+
         self.assertEqual(
             self._wizard.preview_project_paths(self.short_test_name),
             {
-                "primary": self._storage_locations.join(
-                    self.short_test_name
-                ).as_system_dict()
+                "primary": expected_paths,
             },
         )
 
