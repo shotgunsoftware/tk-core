@@ -163,15 +163,14 @@ def version_parse(version_string):
         try:
             return packaging.version.parse(version_string)
         except packaging.version.InvalidVersion:
-            logger.warning(
-                f"Cannot parse version '{version_string}' using packaging.version."
-            )
+            # Version cannot be parsed with packaging.version (SG-40480)
+            pass
 
     if LooseVersion:
         with suppress_known_deprecation():
             return LooseVersion(version_string)
 
-    logger.warning("Either packaging or distutils module is not available.")
+    # Fallback to string comparison
     return version_string
 
 
