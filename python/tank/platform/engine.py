@@ -18,6 +18,7 @@ import logging
 import pprint
 import traceback
 import inspect
+import warnings
 import weakref
 import threading
 
@@ -1302,6 +1303,14 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+
+        warnings.warn(
+            "The `Engine.log_debug` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
             # special case: We are in legacy mode and all log messages are
             # dispatched to the log_xxx methods because this engine does not have an
@@ -1326,6 +1335,14 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+
+        warnings.warn(
+            "The `Engine.log_info` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
             # special case: We are in legacy mode and all log messages are
             # dispatched to the log_xxx methods because this engine does not have an
@@ -1350,6 +1367,14 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+
+        warnings.warn(
+            "The `Engine.log_warning` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
             # special case: We are in legacy mode and all log messages are
             # dispatched to the log_xxx methods because this engine does not have an
@@ -1374,6 +1399,14 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+
+        warnings.warn(
+            "The `Engine.log_error` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
             # special case: We are in legacy mode and all log messages are
             # dispatched to the log_xxx methods because this engine does not have an
@@ -1398,6 +1431,14 @@ class Engine(TankBundle):
 
         :param msg: Message to log.
         """
+
+        warnings.warn(
+            "The `Engine.log_exception` method is deprecated and will be removed "
+            "at any time after 2026-01. Use `Engine.logger` instead",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         if not self.__has_018_logging_support() and self.__log_handler.inside_dispatch:
             # special case: We are in legacy mode and all log messages are
             # dispatched to the log_xxx methods because this engine does not have an
