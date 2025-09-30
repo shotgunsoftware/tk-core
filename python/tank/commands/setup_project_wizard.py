@@ -347,7 +347,7 @@ class SetupProjectWizard(object):
             return_data[s]["linux"] = self._params.preview_project_path(
                 s, project_disk_name, "linux"
             )
-            # Compat with tk-framework-adminui prior to TODO
+            # Compat with tk-framework-adminui prior to v0.8.1
             return_data[s]["linux2"] = return_data[s]["linux"]
 
         return return_data
@@ -504,7 +504,7 @@ class SetupProjectWizard(object):
                     old_project_disk_name_win, new_proj_disk_name_win
                 )
 
-        # Compat with tk-framework-adminui prior to TODO
+        # Compat with tk-framework-adminui prior to v0.8.1
         suggested_defaults["linux2"] = suggested_defaults["linux"]
 
         return suggested_defaults
