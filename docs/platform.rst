@@ -878,7 +878,7 @@ through :meth:`Engine.has_qt5`. The equivalent is available for PySide6.
 
 .. warning:: The PySide 1 emulation layer for PySide 2/6 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/contact-support
+             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/support
              so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit
