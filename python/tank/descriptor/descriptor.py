@@ -17,6 +17,7 @@ from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from . import constants
+from .. import constants as constants2
 
 
 logger = LogManager.get_logger(__name__)
@@ -358,7 +359,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://www.autodesk.com/support"
+            support_url = constants2.SUPPORT_URL
         return support_url
 
     @property
