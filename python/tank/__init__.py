@@ -29,7 +29,6 @@ __version__ = "HEAD"
 # configuration has its python sgtk/tank module imported directly, it will associate
 # itself with the primary config rather than with the config where the code is located.
 
-import inspect
 import os
 import sys
 import uuid
