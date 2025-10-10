@@ -33,8 +33,8 @@ __author__ = "Benjamin Peterson <benjamin@python.org>"
 __version__ = "1.13.0"
 
 warnings.warn(
-    "The 'six' module is deprecated in FPTR and will be removed by the end "
-    "of March 2026. Please update your code to use standard Python 3 "
+    "The 'six' module is deprecated in FPTR and will be removed at any time "
+    "after March 2026. Please update your code to use standard Python 3 "
     "features directly, as Python 2 compatibility is no longer required.",
     DeprecationWarning,
     stacklevel=2,

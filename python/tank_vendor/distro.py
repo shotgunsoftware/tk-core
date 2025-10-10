@@ -40,7 +40,7 @@ import warnings
 
 warnings.warn(
     "The 'distro' module is deprecated in FPTR and will be removed "
-    "by the end of March 2026. Use the standard library's 'platform' "
+    "at any time after March 2026. Use the standard library's 'platform' "
     "module or other maintained alternatives instead.",
     DeprecationWarning,
     stacklevel=2,
