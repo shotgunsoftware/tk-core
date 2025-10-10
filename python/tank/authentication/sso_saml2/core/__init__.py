@@ -25,19 +25,20 @@ def __getattr__(name):
         if name != "sso_saml2_core":
             raise
 
-        import importlib
         import inspect
-        import warnings
-
         frame = inspect.currentframe().f_back
         caller_mod = frame.f_globals.get("__name__", "")
         is_import = caller_mod.startswith("importlib.") or caller_mod == "builtins"
+        if is_import:
+            raise
 
-        if not is_import:
-            warnings.warn(
-                f"Accessing '{__name__}.{name}' directly is deprecated. Please import '{__name__}.{name}' explicitly.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        import importlib
+        import warnings
+
+        warnings.warn(
+            f"Accessing '{__name__}.{name}' directly is deprecated. Please import '{__name__}.{name}' explicitly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         return importlib.import_module(f"{__name__}.{name}")
