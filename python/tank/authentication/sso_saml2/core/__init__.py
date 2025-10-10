@@ -32,13 +32,12 @@ def __getattr__(name):
         if is_import:
             raise
 
-        import importlib
         import warnings
-
         warnings.warn(
             f"Accessing '{__name__}.{name}' directly is deprecated. Please import '{__name__}.{name}' explicitly.",
             DeprecationWarning,
             stacklevel=2,
         )
 
+        import importlib
         return importlib.import_module(f"{__name__}.{name}")
