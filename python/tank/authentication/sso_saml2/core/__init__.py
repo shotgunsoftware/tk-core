@@ -13,10 +13,16 @@ This module contains files which are shared between RV and Toolkit.
 
 def __getattr__(name):
     """
-    TODO retro compat with tk-nuke .... TODO
-    SG-40049
+    Retro compatibility - SG-40049 - Temporary workaround for compatibility for
+    scripts accessing `sgtk.authentication.sso_saml2.core.sso_saml2_core` when
+    only importing `sgtk` and not explicitly importing
+    `sgtk.authentication.sso_saml2.core.sso_saml2_core`.
 
-    To remove when we drop support for tk-nuke vX.Y.Z TODO FIXME
+    For instance, in tk-nuke <=v0.16.0
+    https://github.com/shotgunsoftware/tk-nuke/blob/v0.16.0/engine.py#L396
+    This was removed in https://github.com/shotgunsoftware/tk-nuke/pull/125.
+
+	TODO: Remove this after 2026-07.
     """
 
     try:
@@ -25,24 +31,23 @@ def __getattr__(name):
         if name != "sso_saml2_core":
             raise
 
-        import inspect
         try:
-            frame = inspect.currentframe()
-            if frame is not None and frame.f_back is not None:
-                caller_mod = frame.f_back.f_globals.get("__name__", "")
-                is_import = caller_mod.startswith("importlib.") or caller_mod == "builtins"
-            else:
-                # Could not inspect frame, assume not import context
-                is_import = False
+            import inspect
+            frame = inspect.currentframe().f_back
+            caller_mod = frame.f_globals.get("__name__", "")
+            is_import = caller_mod.startswith("importlib.") or caller_mod == "builtins"
         except Exception:
             # Any error in frame inspection, assume not import context
             is_import = False
+
         if is_import:
             raise
 
         import warnings
         warnings.warn(
-            f"Accessing '{__name__}.{name}' directly is deprecated. Please import '{__name__}.{name}' explicitly.",
+            f"Accessing '{__name__}.{name}' directly without explicit import "
+            "is deprecated and will be removed at any time after 2026-07. "
+            f"Explicitly import '{__name__}.{name}' instead.",
             DeprecationWarning,
             stacklevel=2,
         )
