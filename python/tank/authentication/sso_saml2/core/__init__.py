@@ -26,9 +26,17 @@ def __getattr__(name):
             raise
 
         import inspect
-        frame = inspect.currentframe().f_back
-        caller_mod = frame.f_globals.get("__name__", "")
-        is_import = caller_mod.startswith("importlib.") or caller_mod == "builtins"
+        try:
+            frame = inspect.currentframe()
+            if frame is not None and frame.f_back is not None:
+                caller_mod = frame.f_back.f_globals.get("__name__", "")
+                is_import = caller_mod.startswith("importlib.") or caller_mod == "builtins"
+            else:
+                # Could not inspect frame, assume not import context
+                is_import = False
+        except Exception:
+            # Any error in frame inspection, assume not import context
+            is_import = False
         if is_import:
             raise
 
