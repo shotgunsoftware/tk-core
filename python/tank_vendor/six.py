@@ -27,10 +27,18 @@ import itertools
 import operator
 import sys
 import types
+import warnings
 
 __author__ = "Benjamin Peterson <benjamin@python.org>"
 __version__ = "1.13.0"
 
+warnings.warn(
+    "The 'six' module is deprecated in FPTR and will be removed at any time "
+    "after March 2026. Please update your code to use standard Python 3 "
+    "features directly, as Python 2 compatibility is no longer required.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 # Useful for very coarse version differentiation.
 PY2 = sys.version_info[0] == 2
