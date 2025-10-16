@@ -22,7 +22,7 @@ class SGTKImportTests(SgtkIntegrationTest):
     Run here because integration tests runs in standalone process
     """
 
-    def test(self):
+    def test_sgtk_import_without_pyside(self):
         self.assertIn("sgtk", sys.modules)
         self.assertNotIn("sgtk.authentication.ui.qt_abstraction", sys.modules)
         self.assertEqual(
