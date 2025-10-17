@@ -52,5 +52,16 @@ def __getattr__(name):
             stacklevel=2,
         )
 
+        try:
+            import tank
+            logger = tank.LogManager.get_logger(__name__)
+            logger.warning(
+               f"Accessing '{__name__}.{name}' directly without explicit import "
+                "is deprecated and will be removed at any time after 2026-07. "
+                f"Explicitly import '{__name__}.{name}' instead.",
+            )
+        except:
+            pass # nosec
+
         import importlib
         return importlib.import_module(f"{__name__}.{name}")
