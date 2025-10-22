@@ -89,15 +89,19 @@ class PlatformInfo(object):
 
         try:
             # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
-            distribution = str(distro.linux_distribution()[0].title())
-            raw_version_str = str(distro.linux_distribution()[1])
+            os_info = platform.freedesktop_os_release()
+            distribution = os_info.get('NAME', 'Linux').title()
+            raw_version_str = os_info.get('VERSION_ID', '0')
 
             # For Linux we really just want the 'major' version component
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
             os_version = "%s %s" % (distribution, major_version_str)
-
-        except:
-            pass
+        except (AttributeError, KeyError, IndexError):
+            # Fallback to platform if everything else fails
+            try:
+                os_version = f"{platform.system()} {platform.release().split('.')[0]}"
+            except:
+                pass
 
         return os_version
 
