@@ -1293,17 +1293,15 @@ class TestPlatformInfo(unittest.TestCase):
         self.assertTrue(mocked_linux_distribution.called)
 
     @mock.patch("platform.system", return_value="BSD")
-    def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
+    def test_as_unsupported_system(self, mocked_system):
         """
         Tests a fake unsupported system
         """
-        mocked_linux_distribution.reset_mock()
         platform_info = PlatformInfo.get_platform_info()
         self.assertIsNotNone(platform_info)
         self.assertEqual("Unsupported system: (BSD)", platform_info["OS"])
         self.assertEqual("Unknown", platform_info["OS Version"])
         self.assertTrue(mocked_system.called)
-        self.assertFalse(mocked_linux_distribution.called)
 
     @mock.patch("platform.system", return_value="Linux")
     @mock.patch("platform.freedesktop_os_release", side_effect=Exception, create=True)
