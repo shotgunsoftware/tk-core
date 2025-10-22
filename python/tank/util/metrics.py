@@ -100,7 +100,7 @@ class PlatformInfo(object):
             # Fallback to platform if everything else fails
             try:
                 os_version = f"{platform.system()} {platform.release().split('.')[0]}"
-            except:
+            except Exception:
                 pass
 
         return os_version
