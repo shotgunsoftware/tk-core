@@ -27,12 +27,6 @@ from collections import deque
 from copy import deepcopy
 from threading import Event, Lock, Thread
 
-# From Python 3.8 and later, platform.linux_distribution has been removed,
-# so we need something else. Fortunately, the functionality was preserved
-# as the distro package on pypi.org. Given that the functionality is
-# equivalent between the two, we'll use distro for every version of Python 3.
-from tank_vendor import distro
-
 from . import constants
 from . import sgre as re
 
