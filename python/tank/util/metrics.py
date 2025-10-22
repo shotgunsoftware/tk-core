@@ -96,7 +96,7 @@ class PlatformInfo(object):
             # For Linux we really just want the 'major' version component
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
             os_version = "%s %s" % (distribution, major_version_str)
-        except (AttributeError, KeyError, IndexError):
+        except (AttributeError, KeyError, IndexError, OSError):
             # Fallback to platform if everything else fails
             try:
                 os_version = f"{platform.system()} {platform.release().split('.')[0]}"
