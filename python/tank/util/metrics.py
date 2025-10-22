@@ -90,8 +90,8 @@ class PlatformInfo(object):
         try:
             # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
             os_info = platform.freedesktop_os_release()
-            distribution = os_info.get('NAME', 'Linux').title()
-            raw_version_str = os_info.get('VERSION_ID', '0')
+            distribution = os_info.get("NAME", "Linux").title()
+            raw_version_str = os_info.get("VERSION_ID", "0")
 
             # For Linux we really just want the 'major' version component
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
