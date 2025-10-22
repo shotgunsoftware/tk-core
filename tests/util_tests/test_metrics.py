@@ -13,6 +13,7 @@
 
 import json
 import os
+import sys
 import threading
 import time
 import unittest
@@ -21,14 +22,16 @@ import urllib.request
 import tank
 from tank.authentication import ShotgunAuthenticator
 from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
-from tank.util.metrics import (EventMetric, MetricsDispatchWorkerThread,
-                               MetricsQueueSingleton, log_metric,
-                               log_user_activity_metric,
-                               log_user_attribute_metric)
+from tank.util.metrics import (
+    EventMetric,
+    MetricsDispatchWorkerThread,
+    MetricsQueueSingleton,
+    log_metric,
+    log_user_activity_metric,
+    log_user_attribute_metric,
+)
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
-
-LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -929,8 +932,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
         in util.__init__ to preserve retro compatibility and prevent
         exception in legacy engine code.
         """
-        from tank.util import (log_user_activity_metric,
-                               log_user_attribute_metric)
+        from tank.util import log_user_activity_metric, log_user_attribute_metric
 
         # Bogus test call to the two legacy metric methods
         log_user_activity_metric("Test Module", "Test Action")
@@ -1270,8 +1272,15 @@ class TestPlatformInfo(unittest.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_mac_ver.called)
 
+    @unittest.skipIf(
+        sys.version_info < (3, 10),
+        "freedesktop_os_release only available in Python 3.10+",
+    )
     @mock.patch("platform.system", return_value="Linux")
-    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
+    @mock.patch(
+        "platform.freedesktop_os_release",
+        return_value={"NAME": "Debian", "VERSION_ID": "7.7"},
+    )
     def test_as_linux(self, mocked_system, mocked_linux_distribution):
         """
         Tests as a Linux Debian system
@@ -1284,7 +1293,7 @@ class TestPlatformInfo(unittest.TestCase):
         self.assertTrue(mocked_linux_distribution.called)
 
     @mock.patch("platform.system", return_value="BSD")
-    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    @mock.patch("platform.freedesktop_os_release", side_effect=Exception)
     def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
         """
         Tests a fake unsupported system
@@ -1298,7 +1307,7 @@ class TestPlatformInfo(unittest.TestCase):
         self.assertFalse(mocked_linux_distribution.called)
 
     @mock.patch("platform.system", return_value="Linux")
-    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    @mock.patch("platform.freedesktop_os_release", side_effect=Exception)
     def test_as_linux_without_distribution(
         self, mocked_linux_distribution, mocked_system
     ):
