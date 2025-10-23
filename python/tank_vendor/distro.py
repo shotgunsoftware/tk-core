@@ -36,15 +36,6 @@ import shlex
 import logging
 import argparse
 import subprocess
-import warnings
-
-warnings.warn(
-    "The 'distro' module is deprecated in FPTR and will be removed "
-    "at any time after March 2026. Use the standard library's 'platform' "
-    "module or other maintained alternatives instead.",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 _UNIXCONFDIR = os.environ.get('UNIXCONFDIR', '/etc')
 _OS_RELEASE_BASENAME = 'os-release'
