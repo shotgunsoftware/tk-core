@@ -7,9 +7,10 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import warnings
 import contextlib
+import re
 import sys
+import warnings
 
 LooseVersion = None
 try:
@@ -27,10 +28,9 @@ except ModuleNotFoundError:
         except ModuleNotFoundError:
             pass
 
-from . import sgre as re
 from .. import LogManager
 from ..errors import TankError
-
+from . import sgre as re
 
 logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
@@ -150,6 +150,34 @@ def suppress_known_deprecation():
         yield ctx
 
 
+def _normalize_version_format(version_string):
+    """
+    Normalize various version formats to standard semantic versioning (X.Y.Z).
+
+    Handles common patterns like:
+    - X.YvZ (Nuke format: "6.3v6" -> "6.3.6")
+    - X.Y-Z (dash format: "1.2-3" -> "1.2.3")
+    - X.Y (two-part: "2.1" -> "2.1.0")
+    - X (single: "5" -> "5.0.0")
+    - vX.Y.Z (removes v prefix: "v1.2.3" -> "1.2.3")
+
+    :param str version_string: Version string in various formats
+    :return str: Normalized version in X.Y.Z format
+    """
+    # Clean input: strip whitespace, lowercase, remove leading 'v'
+    v = version_string.strip().lower().lstrip("v")
+
+    return (
+        re.sub(r"^(\d+)\.(\d+)v(\d+)$", r"\1.\2.\3", v)  # Nuke format: 6.3v6 -> 6.3.6
+        or re.sub(
+            r"^(\d+)\.(\d+)-(\d+)$", r"\1.\2.\3", v
+        )  # Dash format: 1.2-3 -> 1.2.3
+        or re.sub(r"^(\d+)\.(\d+)$", r"\1.\2.0", v)  # Two-part: 2.1 -> 2.1.0
+        or re.sub(r"^(\d+)$", r"\1.0.0", v)  # Single: 5 -> 5.0.0
+        or version_string  # No match: return original
+    )
+
+
 def version_parse(version_string):
     """
     Parse a version string into a Version object. We also support LooseVersion
@@ -161,7 +189,8 @@ def version_parse(version_string):
     """
     if "packaging" in sys.modules:
         try:
-            return packaging.version.parse(version_string)
+            normalized_version = _normalize_version_format(version_string)
+            return packaging.version.parse(normalized_version)
         except packaging.version.InvalidVersion:
             # Version cannot be parsed with packaging.version (SG-40480)
             pass
