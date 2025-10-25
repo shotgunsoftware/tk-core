@@ -33,6 +33,13 @@ from . import sgre as re
 
 logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
+# Compile regex patterns once at module level for better performance
+_VERSION_PATTERNS = [
+    (re.compile(r"^(\d+)\.(\d+)v(\d+)$"), r"\1.\2.\3"),  # Nuke format: 6.3v6 -> 6.3.6
+    (re.compile(r"^(\d+)\.(\d+)-(\d+)$"), r"\1.\2.\3"),  # Dash format: 1.2-3 -> 1.2.3
+    (re.compile(r"^(\d+)\.(\d+)$"), r"\1.\2.0"),  # Two-part: 2.1 -> 2.1.0
+    (re.compile(r"^(\d+)$"), r"\1.0.0"),  # Single: 5 -> 5.0.0
+]
 
 
 def is_version_head(version):
@@ -166,16 +173,8 @@ def _normalize_version_format(version_string):
     # Clean input: strip whitespace, lowercase, remove leading 'v'
     v = version_string.strip().lower().lstrip("v")
 
-    # Check patterns and apply transformations (single regex operation per pattern)
-    patterns = [
-        (r"^(\d+)\.(\d+)v(\d+)$", r"\1.\2.\3"),  # Nuke format: 6.3v6 -> 6.3.6
-        (r"^(\d+)\.(\d+)-(\d+)$", r"\1.\2.\3"),  # Dash format: 1.2-3 -> 1.2.3
-        (r"^(\d+)\.(\d+)$", r"\1.\2.0"),  # Two-part: 2.1 -> 2.1.0
-        (r"^(\d+)$", r"\1.0.0"),  # Single: 5 -> 5.0.0
-    ]
-
-    for pattern, replacement in patterns:
-        result = re.sub(pattern, replacement, v)
+    for compiled_pattern, replacement in _VERSION_PATTERNS:
+        result = compiled_pattern.sub(replacement, v)
         if result != v:
             return result
 
