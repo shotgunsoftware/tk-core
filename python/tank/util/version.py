@@ -166,15 +166,20 @@ def _normalize_version_format(version_string):
     # Clean input: strip whitespace, lowercase, remove leading 'v'
     v = version_string.strip().lower().lstrip("v")
 
-    return (
-        re.sub(r"^(\d+)\.(\d+)v(\d+)$", r"\1.\2.\3", v)  # Nuke format: 6.3v6 -> 6.3.6
-        or re.sub(
-            r"^(\d+)\.(\d+)-(\d+)$", r"\1.\2.\3", v
-        )  # Dash format: 1.2-3 -> 1.2.3
-        or re.sub(r"^(\d+)\.(\d+)$", r"\1.\2.0", v)  # Two-part: 2.1 -> 2.1.0
-        or re.sub(r"^(\d+)$", r"\1.0.0", v)  # Single: 5 -> 5.0.0
-        or version_string  # No match: return original
-    )
+    # Check patterns and apply transformations (single regex operation per pattern)
+    patterns = [
+        (r"^(\d+)\.(\d+)v(\d+)$", r"\1.\2.\3"),  # Nuke format: 6.3v6 -> 6.3.6
+        (r"^(\d+)\.(\d+)-(\d+)$", r"\1.\2.\3"),  # Dash format: 1.2-3 -> 1.2.3
+        (r"^(\d+)\.(\d+)$", r"\1.\2.0"),  # Two-part: 2.1 -> 2.1.0
+        (r"^(\d+)$", r"\1.0.0"),  # Single: 5 -> 5.0.0
+    ]
+
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, v)
+        if result != v:
+            return result
+
+    return v
 
 
 def version_parse(version_string):
