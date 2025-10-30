@@ -14,6 +14,7 @@ import warnings
 version_parse = None
 try:
     import packaging.version
+
     version_parse = packaging.version.parse
 except ModuleNotFoundError:
     try:
@@ -21,11 +22,12 @@ except ModuleNotFoundError:
         # If it fails, then we can't do much at the moment
         # The DCC should have either setuptools or packaging installed.
         from setuptools._distutils.version import LooseVersion
+
         version_parse = LooseVersion
     except ModuleNotFoundError:
         try:
-            # DCCs with older versions of Python 3.12
             from distutils.version import LooseVersion
+
             version_parse = LooseVersion
         except ModuleNotFoundError:
             version_parse = str
@@ -43,7 +45,10 @@ GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 # Reference: https://peps.python.org/pep-0440/
 _VERSION_PATTERNS = [
     (re.compile(r"^v(\d+)\.(\d+)\.(\d+)$"), r"\1.\2.\3"),  # v prefix: v1.2.3 -> 1.2.3
-    (re.compile(r"^(\d+)\.(\d+)v(\d+)$"), r"\1.\2.\3"),  # v middle format: 6.3v6 -> 6.3.6
+    (
+        re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
+        r"\1.\2.\3",
+    ),  # v middle format: 6.3v6 -> 6.3.6
     (re.compile(r"^(\d+)\.(\d+)-(\d+)$"), r"\1.\2.\3"),  # Dash format: 1.2-3 -> 1.2.3
 ]
 
@@ -165,7 +170,7 @@ def suppress_known_deprecation():
 def _normalize_version_format(version_string):
     """
     Normalize version strings by applying common format transformations.
-    
+
     This function exists because packaging.version.parse() follows PEP 440
     and cannot handle non-standard version formats like "v1.2.3" or "6.3v6",
     which are commonly found in various software tools and DCCs but don't
@@ -173,7 +178,7 @@ def _normalize_version_format(version_string):
 
     Transformations applied:
     - Strip whitespace and convert to lowercase
-    - Remove leading 'v' prefix 
+    - Remove leading 'v' prefix
     - Convert "v1.2.3" format to "1.2.3"
     - Convert "6.3v6" format to "6.3.6" (middleware version format)
     - Convert "1.2-3" format to "1.2.3" (dash-separated format)
