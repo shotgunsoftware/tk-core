@@ -11,21 +11,24 @@ import contextlib
 import sys
 import warnings
 
-LooseVersion = None
+version_parse = None
 try:
     import packaging.version
+    version_parse = packaging.version.parse
 except ModuleNotFoundError:
     try:
         # Try importing from setuptools.
         # If it fails, then we can't do much at the moment
         # The DCC should have either setuptools or packaging installed.
         from setuptools._distutils.version import LooseVersion
+        version_parse = LooseVersion
     except ModuleNotFoundError:
         try:
             # DCCs with older versions of Python 3.12
             from distutils.version import LooseVersion
+            version_parse = LooseVersion
         except ModuleNotFoundError:
-            pass
+            version_parse = str
 
 from .. import LogManager
 from ..errors import TankError
@@ -33,12 +36,15 @@ from . import sgre as re
 
 logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
-# Compile regex patterns once at module level for better performance
+
+# Normalize non-standard version formats (e.g., "v1.2.3", "6.3v6", "1.2-3")
+# into PEP 440–compliant forms ("1.2.3") to ensure compatibility with
+# Python’s version parsing utilities (e.g., packaging.version.parse).
+# Reference: https://peps.python.org/pep-0440/
 _VERSION_PATTERNS = [
-    (re.compile(r"^(\d+)\.(\d+)v(\d+)$"), r"\1.\2.\3"),  # Nuke format: 6.3v6 -> 6.3.6
+    (re.compile(r"^v(\d+)\.(\d+)\.(\d+)$"), r"\1.\2.\3"),  # v prefix: v1.2.3 -> 1.2.3
+    (re.compile(r"^(\d+)\.(\d+)v(\d+)$"), r"\1.\2.\3"),  # v middle format: 6.3v6 -> 6.3.6
     (re.compile(r"^(\d+)\.(\d+)-(\d+)$"), r"\1.\2.\3"),  # Dash format: 1.2-3 -> 1.2.3
-    (re.compile(r"^(\d+)\.(\d+)$"), r"\1.\2.0"),  # Two-part: 2.1 -> 2.1.0
-    (re.compile(r"^(\d+)$"), r"\1.0.0"),  # Single: 5 -> 5.0.0
 ]
 
 
@@ -158,17 +164,22 @@ def suppress_known_deprecation():
 
 def _normalize_version_format(version_string):
     """
-    Normalize various version formats to standard semantic versioning (X.Y.Z).
+    Normalize version strings by applying common format transformations.
+    
+    This function exists because packaging.version.parse() follows PEP 440
+    and cannot handle non-standard version formats like "v1.2.3" or "6.3v6",
+    which are commonly found in various software tools and DCCs but don't
+    conform to the PEP 440 specification.
 
-    Handles common patterns like:
-    - X.YvZ (Nuke format: "6.3v6" -> "6.3.6")
-    - X.Y-Z (dash format: "1.2-3" -> "1.2.3")
-    - X.Y (two-part: "2.1" -> "2.1.0")
-    - X (single: "5" -> "5.0.0")
-    - vX.Y.Z (removes v prefix: "v1.2.3" -> "1.2.3")
+    Transformations applied:
+    - Strip whitespace and convert to lowercase
+    - Remove leading 'v' prefix 
+    - Convert "v1.2.3" format to "1.2.3"
+    - Convert "6.3v6" format to "6.3.6" (middleware version format)
+    - Convert "1.2-3" format to "1.2.3" (dash-separated format)
 
-    :param str version_string: Version string in various formats
-    :return str: Normalized version in X.Y.Z format
+    :param str version_string: Version string to normalize
+    :return str: Normalized version string
     """
     # Clean input: strip whitespace, lowercase, remove leading 'v'
     v = version_string.strip().lower().lstrip("v")
@@ -179,31 +190,6 @@ def _normalize_version_format(version_string):
             return result
 
     return v
-
-
-def version_parse(version_string):
-    """
-    Parse a version string into a Version object. We also support LooseVersion
-    for compatibility with older versions of Python.
-
-    :param str version_string: The version string to parse.
-
-    :rtype: packaging.version.Version, LooseVersion or str as fallback.
-    """
-    if "packaging" in sys.modules:
-        try:
-            normalized_version = _normalize_version_format(version_string)
-            return packaging.version.parse(normalized_version)
-        except packaging.version.InvalidVersion:
-            # Version cannot be parsed with packaging.version (SG-40480)
-            pass
-
-    if LooseVersion:
-        with suppress_known_deprecation():
-            return LooseVersion(version_string)
-
-    # Fallback to string comparison
-    return version_string
 
 
 def _compare_versions(a, b):
@@ -237,20 +223,16 @@ def _compare_versions(a, b):
         # comparing against HEAD - our version is always old
         return False
 
-    if a.startswith("v"):
-        a = a[1:]
-    if b.startswith("v"):
-        b = b[1:]
+    a = _normalize_version_format(a)
+    b = _normalize_version_format(b)
 
     if "packaging" in sys.modules:
         version_a = version_parse(a)
         version_b = version_parse(b)
-        if isinstance(version_a, str) or isinstance(version_b, str):
-            return a > b
 
         return version_a > version_b
-
-    if LooseVersion:
+    elif version_parse is LooseVersion:
+        # Es LooseVersion
         # In Python 3, LooseVersion comparisons between versions where a non-numeric
         # version component is compared to a numeric one fail.  We'll work around this
         # as follows:
@@ -310,6 +292,6 @@ def _compare_versions(a, b):
             elif match_a or match_b:
                 # If only one had a numeric version, treat that as the newer version.
                 return bool(match_a)
-
-    # In the case that both versions are non-numeric, do a string comparison.
-    return a > b
+    else:
+        # Fallback a comparación de strings
+        return a > b
