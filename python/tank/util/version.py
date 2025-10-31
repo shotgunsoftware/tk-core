@@ -33,7 +33,7 @@ except ModuleNotFoundError:
             warnings.warn(
                 "No version parsing library available (packaging, setuptools, or distutils). "
                 "Falling back to string comparison which may produce incorrect version ordering.",
-                UserWarning
+                UserWarning,
             )
             version_parse = str
 
@@ -49,11 +49,26 @@ GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 # Python’s version parsing utilities (e.g., packaging.version.parse).
 # Reference: https://peps.python.org/pep-0440/
 _VERSION_PATTERNS = [
-    (re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*)(?:\s|$)"), r"\1"),  # Extract version from software names: "Software Name 21.0" -> "21.0"
-    (re.compile(r"^(\d+)\.(\d+)v(\d+)$"), r"\1.\2.\3"),  # Dot-v format: "6.3v6" -> "6.3.6"
-    (re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"), r"\1.\2"),  # Simple v format: "2019v0.1" -> "2019.0.1"
-    (re.compile(r"^(\d+(?:\.\d+)*)(sp|hotfix|hf)(\d+)$"), r"\1.post\3"),  # Service pack without dot: "2017.2sp1" -> "2017.2.post1"
-    (re.compile(r"^(\d+(?:\.\d+)*)\.(sp|hotfix|hf)(\d+)$"), r"\1.post\3"),  # Service pack with dot: "2017.2.sp1" -> "2017.2.post1"
+    (
+        re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*)(?:\s|$)"),
+        r"\1",
+    ),  # Extract version from software names: "Software Name 21.0" -> "21.0"
+    (
+        re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
+        r"\1.\2.\3",
+    ),  # Dot-v format: "6.3v6" -> "6.3.6"
+    (
+        re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"),
+        r"\1.\2",
+    ),  # Simple v format: "2019v0.1" -> "2019.0.1"
+    (
+        re.compile(r"^(\d+(?:\.\d+)*)(sp|hotfix|hf)(\d+)$"),
+        r"\1.post\3",
+    ),  # Service pack without dot: "2017.2sp1" -> "2017.2.post1"
+    (
+        re.compile(r"^(\d+(?:\.\d+)*)\.(sp|hotfix|hf)(\d+)$"),
+        r"\1.post\3",
+    ),  # Service pack with dot: "2017.2.sp1" -> "2017.2.post1"
 ]
 
 
