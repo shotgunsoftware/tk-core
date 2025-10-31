@@ -239,7 +239,7 @@ class InstallAppAction(Action):
                 % (env_name, engine_instance_name)
             )
 
-        if app_name.endswith(".git"):
+        if util.is_git_repo_uri(app_name):
             # this is a git location!
             # run descriptor factory method
             log.info("Connecting to git...")
@@ -534,7 +534,7 @@ class InstallEngineAction(Action):
                 % (env_name, e)
             )
 
-        if engine_name.endswith(".git"):
+        if util.is_git_repo_uri(engine_name):
             # this is a git location!
             # run descriptor factory method
             log.info("Connecting to git...")
