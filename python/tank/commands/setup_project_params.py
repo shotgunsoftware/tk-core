@@ -33,6 +33,7 @@ from tank_vendor import yaml
 
 from ..util import ShotgunPath
 
+
 class ProjectSetupParameters(object):
     """
     Class that holds all the various parameters needed to run a project setup.
