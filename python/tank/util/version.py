@@ -30,6 +30,11 @@ except ModuleNotFoundError:
 
             version_parse = LooseVersion
         except ModuleNotFoundError:
+            warnings.warn(
+                "No version parsing library available (packaging, setuptools, or distutils). "
+                "Falling back to string comparison which may produce incorrect version ordering.",
+                UserWarning
+            )
             version_parse = str
 
 from .. import LogManager
