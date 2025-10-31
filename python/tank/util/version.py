@@ -39,17 +39,16 @@ from . import sgre as re
 logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 
-# Normalize non-standard version formats (e.g., "v1.2.3", "6.3v6", "1.2-3")
+# Normalize non-standard version formats
 # into PEP 440–compliant forms ("1.2.3") to ensure compatibility with
 # Python’s version parsing utilities (e.g., packaging.version.parse).
 # Reference: https://peps.python.org/pep-0440/
 _VERSION_PATTERNS = [
-    (re.compile(r"^v(\d+)\.(\d+)\.(\d+)$"), r"\1.\2.\3"),  # v prefix: v1.2.3 -> 1.2.3
-    (
-        re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
-        r"\1.\2.\3",
-    ),  # v middle format: 6.3v6 -> 6.3.6
-    (re.compile(r"^(\d+)\.(\d+)-(\d+)$"), r"\1.\2.\3"),  # Dash format: 1.2-3 -> 1.2.3
+    (re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*)(?:\s|$)"), r"\1"),  # Extract version from software names: "Software Name 21.0" -> "21.0"
+    (re.compile(r"^(\d+)\.(\d+)v(\d+)$"), r"\1.\2.\3"),  # Dot-v format: "6.3v6" -> "6.3.6"
+    (re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"), r"\1.\2"),  # Simple v format: "2019v0.1" -> "2019.0.1"
+    (re.compile(r"^(\d+(?:\.\d+)*)(sp|hotfix|hf)(\d+)$"), r"\1.post\3"),  # Service pack without dot: "2017.2sp1" -> "2017.2.post1"
+    (re.compile(r"^(\d+(?:\.\d+)*)\.(sp|hotfix|hf)(\d+)$"), r"\1.post\3"),  # Service pack with dot: "2017.2.sp1" -> "2017.2.post1"
 ]
 
 
@@ -167,7 +166,7 @@ def suppress_known_deprecation():
         yield ctx
 
 
-def _normalize_version_format(version_string):
+def normalize_version_format(version_string):
     """
     Normalize version strings by applying common format transformations.
 
@@ -179,20 +178,19 @@ def _normalize_version_format(version_string):
     Transformations applied:
     - Strip whitespace and convert to lowercase
     - Remove leading 'v' prefix
-    - Convert "v1.2.3" format to "1.2.3"
-    - Convert "6.3v6" format to "6.3.6" (middleware version format)
-    - Convert "1.2-3" format to "1.2.3" (dash-separated format)
+    - Extract version numbers from software names: "Software Name 21.0" -> "21.0"
+    - Convert dot-v format: "6.3v6" -> "6.3.6"
+    - Convert simple v format: "2019v0.1" -> "2019.0.1"
+    - Convert service pack formats: "2017.2sp1" -> "2017.2.post1", "2017.2.sp1" -> "2017.2.post1"
 
     :param str version_string: Version string to normalize
-    :return str: Normalized version string
+    :return str: Normalized version string compatible with PEP 440
     """
     # Clean input: strip whitespace, lowercase, remove leading 'v'
     v = version_string.strip().lower().lstrip("v")
 
     for compiled_pattern, replacement in _VERSION_PATTERNS:
-        result = compiled_pattern.sub(replacement, v)
-        if result != v:
-            return result
+        v = compiled_pattern.sub(replacement, v)
 
     return v
 
@@ -228,8 +226,8 @@ def _compare_versions(a, b):
         # comparing against HEAD - our version is always old
         return False
 
-    a = _normalize_version_format(a)
-    b = _normalize_version_format(b)
+    a = normalize_version_format(a)
+    b = normalize_version_format(b)
 
     if "packaging" in sys.modules:
         version_a = version_parse(a)
@@ -237,7 +235,6 @@ def _compare_versions(a, b):
 
         return version_a > version_b
     elif version_parse is LooseVersion:
-        # Es LooseVersion
         # In Python 3, LooseVersion comparisons between versions where a non-numeric
         # version component is compared to a numeric one fail.  We'll work around this
         # as follows:
@@ -298,5 +295,5 @@ def _compare_versions(a, b):
                 # If only one had a numeric version, treat that as the newer version.
                 return bool(match_a)
     else:
-        # Fallback a comparación de strings
+        # Fallback to string comparison
         return a > b
