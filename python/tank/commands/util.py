@@ -41,11 +41,11 @@ def is_git_repo_uri(uri: str) -> bool:
     """
     return any(
         (
-            # GitHub repo URLs ends with .git
+            # GitHub repo URLs end with .git
             uri.endswith(".git"),
             # Git SSH URLs start with git@
             uri.startswith("git@"),
-            # Azure DevOps repo URL contain `_git` in the HTTPS URL
+            # Azure DevOps repo URLs contain `_git` in the HTTPS URLs
             uri.startswith("https://") and "_git" in uri,
         )
     )
