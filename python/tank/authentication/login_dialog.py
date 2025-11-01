@@ -91,39 +91,29 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
     to avoid blocking the main GUI thread.
     """
 
-    _url_next = None
-
     succeed = QtCore.Signal(str, sg_site_info.SiteInfo)
     failed = QtCore.Signal(str, Exception)
 
-    def __init__(self, parent=None, http_proxy=None):
+    def __init__(self, url, http_proxy=None, parent=None):
         super().__init__(parent=parent)
+        self._url = url
         self._http_proxy = http_proxy
-
-    def next_url(self, url: str) -> None:
-        self._url_next = url
-        # TODO Maybe need thread acquire release there...
-
+        
     def run(self):
         """
         Runs the thread.
         """
 
-        logger.info("QuerySiteAndUpdateUITask::run start")
+        logger.info(f"QuerySiteAndUpdateUITask::run start for {self._url}")
 
-        while self._url_next:
-            url = self._url_next
-            self._url_next = None
-            # TODO Maybe need thread acquire release there...
-
-            logger.info(f"QuerySiteAndUpdateUITask::loop {url}")
-
-            try:
-                info = sg_site_info.SiteInfo(url, http_proxy=self._http_proxy)
-            except Exception as exc:
-                self.failed.emit(url, exc)
-            else:
-                self.succeed.emit(url, info)
+        try:
+            info = sg_site_info.get(self._url, http_proxy=self._http_proxy)
+        except Exception as exc:
+            logger.error(f"Failed to get site info for {self._url}: {exc}")
+            self.failed.emit(self._url, exc)
+        else:
+            logger.info(f"Successfully got site info for {self._url}")
+            self.succeed.emit(self._url, info)
 
 
 class LoginDialog(QtGui.QDialog):
@@ -318,9 +308,8 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
-        self._query_task = QuerySiteAndUpdateUITask(self, http_proxy=http_proxy)
-        self._query_task.succeed.connect(self._on_site_info_response)
-        self._query_task.failed.connect(self._on_site_info_failure)
+        self._query_task = None  # Will be created when needed
+        self._http_proxy = http_proxy
 
         # Initialize exit confirm message box
         self.confirm_box = QtGui.QMessageBox(
@@ -369,7 +358,8 @@ class LoginDialog(QtGui.QDialog):
         Destructor.
         """
         # We want to clean up any running qthread.
-        self._query_task.wait()
+        if self._query_task:
+            self._query_task.wait()
 
     def _confirm_exit(self):
         return self.confirm_box.exec_() == QtGui.QMessageBox.StandardButton.Yes
@@ -380,6 +370,10 @@ class LoginDialog(QtGui.QDialog):
         if not self._confirm_exit():
             event.ignore()
             return
+
+        # Stop the query thread if running
+        if self._query_task and self._query_task.isRunning():
+            self._query_task.wait()
 
         if self._asl_task:
             self._asl_task.finished.disconnect(self._asl_task_finished)
@@ -394,6 +388,10 @@ class LoginDialog(QtGui.QDialog):
             if not self._confirm_exit():
                 event.ignore()
                 return
+
+        # Stop the query thread if running
+        if self._query_task and self._query_task.isRunning():
+            self._query_task.wait()
 
         if self._asl_task:
             self._asl_task.finished.disconnect(self._asl_task_finished)
@@ -457,39 +455,63 @@ class LoginDialog(QtGui.QDialog):
         self.ui.refresh_site_info_spinner.setVisible(True)
         self.ui.refresh_site_info_label.setVisible(True)
 
-        logger.debug("Call thread")
+        logger.debug("Creating new thread for site info request")
 
-        self._query_task.next_url(self._get_current_site())
+        # Stop any existing thread first
+        if self._query_task and self._query_task.isRunning():
+            self._query_task.wait()
+
+        # Create a new thread for this request
+        self._query_task = QuerySiteAndUpdateUITask(
+            url=self._get_current_site(),
+            http_proxy=self._http_proxy,
+            parent=self
+        )
+        
+        # Connect signals for this new thread
+        self._query_task.succeed.connect(self._on_site_info_response)
+        self._query_task.failed.connect(self._on_site_info_failure)
+        
+        # Make sure signals are delivered to main thread
+        self._query_task.finished.connect(lambda: logger.debug("Thread finished"))
+        
         self._query_task.start()
+        
+        logger.debug(f"Thread started for URL: {self._get_current_site()}")
 
-    def _on_site_info_response(self, site_info: sg_site_info.SiteInfo):
-        logger.info(f"_on_site_info_response - site_url: {site_info.url}")
+    def _on_site_info_response(self, site_url: str, site_info):
+        logger.info(f"_on_site_info_response - site_url: {site_url}")
+        logger.debug(f"_on_site_info_response - current site: {self._get_current_site()}")
 
-        if self._get_current_site() != site_info.url:
-            logger.debug("_update_login_page_ui - site-info thread finished too late, we already selected another host")
+        if self._get_current_site() != site_url:
+            logger.debug("_on_site_info_response - site-info thread finished too late, we already selected another host")
             return
 
         self.site_info = site_info
 
+        logger.debug("_on_site_info_response - hiding spinner and showing UI elements")
         self.ui.refresh_site_info_spinner.setVisible(False)
         self.ui.refresh_site_info_label.setVisible(False)
         self.ui.message.setVisible(True)
         self.ui.sign_in.setVisible(True)
 
+        logger.debug("_on_site_info_response - calling _update_login_page_ui")
         self._update_login_page_ui()
 
     def _on_site_info_failure(self, site_url: str, exc: Exception):
         logger.info(f"_on_site_info_failure - site_url: {site_url}; response: {exc}")
+        logger.debug(f"_on_site_info_failure - current site: {self._get_current_site()}")
 
         if self._get_current_site() != site_url:
-            logger.debug("_update_login_page_ui - site-info thread finished too late, we already selected another host")
+            logger.debug("_on_site_info_failure - site-info thread finished too late, we already selected another host")
             return
 
+        logger.debug("_on_site_info_failure - hiding spinner and showing error")
         self.ui.refresh_site_info_spinner.setVisible(False)
         self.ui.refresh_site_info_label.setVisible(False)
         self.ui.message.setVisible(True)
         self._set_error_message(
-            self.ui.message, f"Unable to communicate ith FPTR site.<br>{exc}",
+            self.ui.message, f"Unable to communicate with FPTR site.<br>{exc}",
         )
 
     def _populate_user_dropdown(self, site: str) -> None:
@@ -847,7 +869,7 @@ class LoginDialog(QtGui.QDialog):
         # Wait for any ongoing Site Configuration check thread.
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
-            if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
+            if self._query_task and not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
                 logger.warning(
                     "Timed out awaiting configuration information on the site: %s"
                     % self._get_current_site()

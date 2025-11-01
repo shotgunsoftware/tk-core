@@ -143,54 +143,54 @@ def get(url: str, http_proxy: str|None=None, cache_only=False) -> SiteInfo|None:
     return INFOS_CACHE[url][1]
 
 def _retrieve_site_info(url, http_proxy=None):
-        """
-        Load the site information into the instance.
+    """
+    Load the site information into the instance.
 
-        We want this method to fail as quickly as possible if there are any
-        issues. Failure is not considered critical, thus known exceptions are
-        silently ignored. At the moment this method used by the GUI show/hide
-        some of the input fields and by the console authentication to select the
-        appropriate authentication method.
+    We want this method to fail as quickly as possible if there are any
+    issues. Failure is not considered critical, thus known exceptions are
+    silently ignored. At the moment this method used by the GUI show/hide
+    some of the input fields and by the console authentication to select the
+    appropriate authentication method.
 
-        """
+    """
 
-        # Check for valid URL
-        url_items = utils.urlparse.urlparse(url)
-        if (
-            not url_items.netloc
-            or url_items.netloc in "https"
-            or url_items.scheme not in ["http", "https"]
-        ):
-            logger.debug("Invalid Flow Production Tracking URL %s" % url)
-            raise Exception("Invalid URL")
+    # Check for valid URL
+    url_items = utils.urlparse.urlparse(url)
+    if (
+        not url_items.netloc
+        or url_items.netloc in "https"
+        or url_items.scheme not in ["http", "https"]
+    ):
+        logger.debug("Invalid Flow Production Tracking URL %s" % url)
+        raise Exception("Invalid URL")
 
-        # Temporary shotgun instance, used only for the purpose of checking
-        # the site infos.
-        #
-        # The constructor of Shotgun requires either a username/login or
-        # key/scriptname pair or a session_token. The token is only used in
-        # calls which need to be authenticated. The 'info' call does not
-        # require authentication.
-        http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
-        if http_proxy:
-            logger.debug("Using HTTP proxy to connect to the PTR server: %s", http_proxy)
+    # Temporary shotgun instance, used only for the purpose of checking
+    # the site infos.
+    #
+    # The constructor of Shotgun requires either a username/login or
+    # key/scriptname pair or a session_token. The token is only used in
+    # calls which need to be authenticated. The 'info' call does not
+    # require authentication.
+    http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
+    if http_proxy:
+        logger.debug("Using HTTP proxy to connect to the PTR server: %s", http_proxy)
 
-        logger.info("Infos for site '%s' not in cache or expired", url)
-        sg = shotgun_api3.Shotgun(
-            url, session_token="dummy", connect=False, http_proxy=http_proxy
-        )
-        # Remove delay between attempts at getting the site info.  Since
-        # this is called in situations where blocking during multiple
-        # attempts can make UIs less responsive, we'll avoid sleeping.
-        # This change was introduced after delayed retries were added in
-        # python-api v3.0.41
-        sg.config.rpc_attempt_interval = 0
+    logger.info("Infos for site '%s' not in cache or expired", url)
+    sg = shotgun_api3.Shotgun(
+        url, session_token="dummy", connect=False, http_proxy=http_proxy
+    )
+    # Remove delay between attempts at getting the site info.  Since
+    # this is called in situations where blocking during multiple
+    # attempts can make UIs less responsive, we'll avoid sleeping.
+    # This change was introduced after delayed retries were added in
+    # python-api v3.0.41
+    sg.config.rpc_attempt_interval = 0
 
-        try:
-            infos = sg.info()
-        except Exception as exc:
-            # Silently ignore exceptions
-            logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
-            return
+    try:
+        infos = sg.info()
+    except Exception as exc:
+        # Silently ignore exceptions
+        logger.debug("Unable to connect with %s, got exception '%s'", url, exc)
+        return
 
-        return SiteInfo(url, infos)
+    return SiteInfo(url, infos)
