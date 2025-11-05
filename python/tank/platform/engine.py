@@ -287,6 +287,46 @@ class Engine(TankBundle):
 
         self.log_debug("Init complete: %s" % self)
 
+        pc = tk.pipeline_configuration
+        print("Current Config:")
+        print("  Descriptor:", pc.get_configuration_descriptor())
+        print("  Descriptor obj:", pc.get_configuration_descriptor().get_dict())
+        print("  Location:", pc)
+        print()
+
+        import sgtk
+        print("Core:")
+        print("  Version:", sgtk.__version__)
+        print("  Location:", sgtk.__file__)
+        print()
+
+        print("Listing QT5 module:")
+        for item in dir(qt5):
+            print(" ",item, "\ttype:", type(getattr(qt5, item)))
+        print()
+
+        print("Try importing QtPrintSupport from qt5:")
+        try:
+            from qt5 import QtPrintSupport
+        except FileNotFoundError:
+            print("  FAILED - FileNotFoundError")
+        except ImportError:
+            print("  FAILED - ImportError")
+        else:
+            print("  SUCCESS!")
+        print()
+
+        print("Try importing QtPrintSupport from tank.platform.qt5:")
+        try:
+            from tank.platform.qt5 import QtPrintSupport
+        except FileNotFoundError:
+            print("  FAILED - FileNotFoundError")
+        except ImportError:
+            print("  FAILED - ImportError")
+        else:
+            print("  SUCCESS!")
+        print()
+
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (
             id(self),
