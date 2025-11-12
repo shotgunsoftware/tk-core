@@ -14,6 +14,7 @@ import uuid
 import sys
 
 from . import constants
+from . import util
 
 from ..util import StorageRoots
 from ..util import sgre as re
@@ -1171,7 +1172,7 @@ class TemplateConfiguration(object):
         # tk-config-xyz
         # /path/to/file.zip
         # /path/to/folder
-        if config_uri.endswith(".git"):
+        if util.is_git_repo_uri(config_uri):
             # this is a git repository!
             self._log.info("Hang on, loading configuration from git...")
             descriptor = self._create_git_descriptor(config_uri)

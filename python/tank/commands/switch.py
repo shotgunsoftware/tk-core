@@ -130,7 +130,7 @@ class SwitchAppAction(Action):
 
         if fourth_param == "app_store":
             mode = "app_store"
-        elif fourth_param.endswith(".git"):
+        elif util.is_git_repo_uri(fourth_param):
             mode = "git"
             path = fourth_param
         else:
