@@ -176,7 +176,9 @@ class TestEngineLauncher(TankTestBase):
         min_version_method = (
             "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
         )
-        with mock.patch(min_version_method, new_callable=mock.PropertyMock) as min_version_mock:
+        with mock.patch(
+            min_version_method, new_callable=mock.PropertyMock
+        ) as min_version_mock:
 
             min_version_mock.return_value = "2017.2"
 
@@ -223,7 +225,9 @@ class TestEngineLauncher(TankTestBase):
         min_version_method = (
             "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
         )
-        with mock.patch(min_version_method, new_callable=mock.PropertyMock) as min_version_mock:
+        with mock.patch(
+            min_version_method, new_callable=mock.PropertyMock
+        ) as min_version_mock:
 
             min_version_mock.return_value = "2019"
 
@@ -367,15 +371,17 @@ class TestEngineLauncher(TankTestBase):
         nuke_pattern_template = os.path.join(
             self.fixtures_root, "misc", "glob_and_match", "nuke{version}"
         )
-        
+
         # Test with Nuke version pattern matching (Nuke uses complex version formats like "10.0v5")
         for template in [
             nuke_pattern_template.replace("/", "\\"),
             nuke_pattern_template.replace("\\", "/"),
         ]:
             matches = launcher._glob_and_match(
-                template, 
-                {"version": r"[\d.v]+"}  # Matches patterns like "10.0v5", "13.0v9", "15.1v2"
+                template,
+                {
+                    "version": r"[\d.v]+"
+                },  # Matches patterns like "10.0v5", "13.0v9", "15.1v2"
             )
             # Sort alphabetically so we can more easily validate the result.
             matches = sorted(matches, key=lambda x: x[0])
@@ -405,7 +411,7 @@ class TestEngineLauncher(TankTestBase):
         nuke_product_pattern_template = os.path.join(
             self.fixtures_root, "misc", "glob_and_match", "{product}{version}"
         )
-        
+
         for template in [
             nuke_product_pattern_template.replace("/", "\\"),
             nuke_product_pattern_template.replace("\\", "/"),
@@ -413,9 +419,9 @@ class TestEngineLauncher(TankTestBase):
             matches = launcher._glob_and_match(
                 template,
                 {
-                    "product": r"nuke[a-z]*",      # Matches "nuke", "nukex", "nukestudio", etc.
-                    "version": r"[\d.v]+"          # Matches version patterns like "12.2v8", "14.0v1"
-                }
+                    "product": r"nuke[a-z]*",  # Matches "nuke", "nukex", "nukestudio", etc.
+                    "version": r"[\d.v]+",  # Matches version patterns like "12.2v8", "14.0v1"
+                },
             )
             # Sort alphabetically so we can more easily validate the result.
             matches = sorted(matches, key=lambda x: x[0])
