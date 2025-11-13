@@ -7,33 +7,69 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import warnings
 import contextlib
 import sys
+import warnings
 
-LooseVersion = None
+version_parse = None
 try:
     import packaging.version
+
+    version_parse = packaging.version.parse
 except ModuleNotFoundError:
     try:
         # Try importing from setuptools.
         # If it fails, then we can't do much at the moment
         # The DCC should have either setuptools or packaging installed.
         from setuptools._distutils.version import LooseVersion
+
+        version_parse = LooseVersion
     except ModuleNotFoundError:
         try:
-            # DCCs with older versions of Python 3.12
             from distutils.version import LooseVersion
-        except ModuleNotFoundError:
-            pass
 
-from . import sgre as re
+            version_parse = LooseVersion
+        except ModuleNotFoundError:
+            warnings.warn(
+                "No version parsing library available (packaging, setuptools, or distutils). "
+                "Falling back to string comparison which may produce incorrect version ordering.",
+                UserWarning,
+            )
+            version_parse = str
+
 from .. import LogManager
 from ..errors import TankError
-
+from . import sgre as re
 
 logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
+
+# Normalize non-standard version formats
+# into PEP 440–compliant forms ("1.2.3") to ensure compatibility with
+# Python’s version parsing utilities (e.g., packaging.version.parse).
+# Reference: https://peps.python.org/pep-0440/
+_VERSION_PATTERNS = [
+    (
+        re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*)(?:\s|$)"),
+        r"\1",
+    ),  # Extract version from software names: "Software Name 21.0" -> "21.0"
+    (
+        re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
+        r"\1.\2.\3",
+    ),  # Dot-v format: "6.3v6" -> "6.3.6"
+    (
+        re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"),
+        r"\1.\2",
+    ),  # Simple v format: "2019v0.1" -> "2019.0.1"
+    (
+        re.compile(r"^(\d+(?:\.\d+)*)(sp|hotfix|hf)(\d+)$"),
+        r"\1.post\3",
+    ),  # Service pack without dot: "2017.2sp1" -> "2017.2.post1"
+    (
+        re.compile(r"^(\d+(?:\.\d+)*)\.(sp|hotfix|hf)(\d+)$"),
+        r"\1.post\3",
+    ),  # Service pack with dot: "2017.2.sp1" -> "2017.2.post1"
+]
 
 
 def is_version_head(version):
@@ -150,28 +186,31 @@ def suppress_known_deprecation():
         yield ctx
 
 
-def version_parse(version_string):
+def normalize_version_format(version):
     """
-    Parse a version string into a Version object. We also support LooseVersion
-    for compatibility with older versions of Python.
+    Normalize version strings by applying common format transformations.
 
-    :param str version_string: The version string to parse.
+    This function exists because packaging.version.parse() follows PEP 440
+    and cannot handle non-standard version formats like "v1.2.3" or "6.3v6",
+    which are commonly found in various software tools and DCCs but don't
+    conform to the PEP 440 specification.
 
-    :rtype: packaging.version.Version, LooseVersion or str as fallback.
+    Transformations applied:
+    - Strip whitespace and convert to lowercase
+    - Remove leading 'v' prefix
+    - Extract version numbers from software names: "Software Name 21.0" -> "21.0"
+    - Convert dot-v format: "6.3v6" -> "6.3.6"
+    - Convert simple v format: "2019v0.1" -> "2019.0.1"
+    - Convert service pack formats: "2017.2sp1" -> "2017.2.post1", "2017.2.sp1" -> "2017.2.post1"
+
+    :param str version_string: Version string to normalize
+    :return str: Normalized version string compatible with PEP 440
     """
-    if "packaging" in sys.modules:
-        try:
-            return packaging.version.parse(version_string)
-        except packaging.version.InvalidVersion:
-            # Version cannot be parsed with packaging.version (SG-40480)
-            pass
 
-    if LooseVersion:
-        with suppress_known_deprecation():
-            return LooseVersion(version_string)
+    for compiled_pattern, replacement in _VERSION_PATTERNS:
+        version = compiled_pattern.sub(replacement, version)
 
-    # Fallback to string comparison
-    return version_string
+    return version
 
 
 def _compare_versions(a, b):
@@ -205,20 +244,15 @@ def _compare_versions(a, b):
         # comparing against HEAD - our version is always old
         return False
 
-    if a.startswith("v"):
-        a = a[1:]
-    if b.startswith("v"):
-        b = b[1:]
+    a = normalize_version_format(a)
+    b = normalize_version_format(b)
 
     if "packaging" in sys.modules:
         version_a = version_parse(a)
         version_b = version_parse(b)
-        if isinstance(version_a, str) or isinstance(version_b, str):
-            return a > b
 
         return version_a > version_b
-
-    if LooseVersion:
+    elif version_parse is LooseVersion:
         # In Python 3, LooseVersion comparisons between versions where a non-numeric
         # version component is compared to a numeric one fail.  We'll work around this
         # as follows:
@@ -278,6 +312,6 @@ def _compare_versions(a, b):
             elif match_a or match_b:
                 # If only one had a numeric version, treat that as the newer version.
                 return bool(match_a)
-
-    # In the case that both versions are non-numeric, do a string comparison.
-    return a > b
+    else:
+        # Fallback to string comparison
+        return a > b

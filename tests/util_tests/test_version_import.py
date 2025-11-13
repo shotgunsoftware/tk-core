@@ -31,7 +31,6 @@ class TestVersionImport(ShotgunTestBase):
         # Reload the module in case it was already imported
         importlib.reload(version)
         # Sanity check the setuptools was imported successfully
-        assert version.LooseVersion is None
         assert version.packaging.version
 
     @unittest.skipIf(
