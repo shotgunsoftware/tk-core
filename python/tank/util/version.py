@@ -186,7 +186,7 @@ def suppress_known_deprecation():
         yield ctx
 
 
-def normalize_version_format(version_string):
+def normalize_version_format(v):
     """
     Normalize version strings by applying common format transformations.
 
@@ -207,7 +207,7 @@ def normalize_version_format(version_string):
     :return str: Normalized version string compatible with PEP 440
     """
     # Clean input: strip whitespace, lowercase, remove leading 'v'
-    v = version_string.strip().lower().lstrip("v")
+    # v = version_string.strip().lower().lstrip("v")
 
     for compiled_pattern, replacement in _VERSION_PATTERNS:
         v = compiled_pattern.sub(replacement, v)

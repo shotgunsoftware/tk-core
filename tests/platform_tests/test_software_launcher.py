@@ -362,6 +362,97 @@ class TestEngineLauncher(TankTestBase):
                 ],
             )
 
+        # Test Nuke-specific patterns based on tk-nuke implementation
+        # Test simple pattern: nuke{version} (cross-platform, following Maya pattern)
+        nuke_pattern_template = os.path.join(
+            self.fixtures_root, "misc", "glob_and_match", "nuke{version}"
+        )
+        
+        # Test with Nuke version pattern matching (Nuke uses complex version formats like "10.0v5")
+        for template in [
+            nuke_pattern_template.replace("/", "\\"),
+            nuke_pattern_template.replace("\\", "/"),
+        ]:
+            matches = launcher._glob_and_match(
+                template, 
+                {"version": r"[\d.v]+"}  # Matches patterns like "10.0v5", "13.0v9", "15.1v2"
+            )
+            # Sort alphabetically so we can more easily validate the result.
+            matches = sorted(matches, key=lambda x: x[0])
+            expected_matches = [
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke10.0v5"
+                    ),
+                    {"version": "10.0v5"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke13.0v9"
+                    ),
+                    {"version": "13.0v9"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke15.1v2"
+                    ),
+                    {"version": "15.1v2"},
+                ),
+            ]
+            self.assertEqual(matches, expected_matches)
+
+        # Test Nuke products pattern: {product}{version} to test different Nuke variants
+        nuke_product_pattern_template = os.path.join(
+            self.fixtures_root, "misc", "glob_and_match", "{product}{version}"
+        )
+        
+        for template in [
+            nuke_product_pattern_template.replace("/", "\\"),
+            nuke_product_pattern_template.replace("\\", "/"),
+        ]:
+            matches = launcher._glob_and_match(
+                template,
+                {
+                    "product": r"nuke[a-z]*",      # Matches "nuke", "nukex", "nukestudio", etc.
+                    "version": r"[\d.v]+"          # Matches version patterns like "12.2v8", "14.0v1"
+                }
+            )
+            # Sort alphabetically so we can more easily validate the result.
+            matches = sorted(matches, key=lambda x: x[0])
+            expected_product_matches = [
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke10.0v5"
+                    ),
+                    {"product": "nuke", "version": "10.0v5"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke13.0v9"
+                    ),
+                    {"product": "nuke", "version": "13.0v9"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke15.1v2"
+                    ),
+                    {"product": "nuke", "version": "15.1v2"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nukestudio14.0v1"
+                    ),
+                    {"product": "nukestudio", "version": "14.0v1"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nukex12.2v8"
+                    ),
+                    {"product": "nukex", "version": "12.2v8"},
+                ),
+            ]
+            self.assertEqual(matches, expected_product_matches)
+
 
 class TestSoftwareVersion(TankTestBase):
     def setUp(self):
