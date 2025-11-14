@@ -231,6 +231,8 @@ import uuid
 from functools import wraps
 from . import constants
 
+from tank_vendor.shotgun_api3 import shotgun
+
 
 class LogManager(object):
     """
@@ -844,3 +846,6 @@ class NullHandler(logging.Handler):
 
 # and add it to the logger
 sgtk_root_logger.addHandler(NullHandler())
+
+# Initialize the shotgun_api3 logger to use the sgtk logging system
+shotgun.LOG = LogManager.get_logger("shotgun_api3")
