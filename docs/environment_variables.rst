@@ -52,11 +52,11 @@ When set to ``1``, Toolkit will allow being imported from Python versions that a
 Otherwise, when unset (or set to any other value), attempting to import Toolkit from old unsupported Python version will
 raise an exception.
 
+This is not recommended and should only be used for testing purposes.
+
 .. important::
     The ability to import the module does not guarantee that Toolkit will work properly on the unsupported Python
     version. In fact, it is very likely that it will not work properly.
-
-This is not recommended and should only be used for testing purposes.
 
 
 Authentication
