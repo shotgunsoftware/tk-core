@@ -54,7 +54,7 @@ raise an exception.
 
 .. important::
     The ability to import the module does not guarantee that Toolkit will work properly on the unsupported Python
-    version. Quite the opposite, it is very likely that it will not work properly.
+    version. In fact, it is very likely that it will not work properly.
 
 This is not recommended and should only be used for testing purposes.
 
