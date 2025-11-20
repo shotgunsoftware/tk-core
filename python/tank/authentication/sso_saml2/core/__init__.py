@@ -43,11 +43,15 @@ def __getattr__(name):
         if is_import:
             raise
 
+        deprecation_message = (
+            f"Accessing '{__name__}.{name}' directly without explicit import "
+            "is deprecated and compatibility will be discontinued after "
+            f"September 2026. Explicitly import '{__name__}.{name}' instead."
+        )
+
         import warnings
         warnings.warn(
-            f"Accessing '{__name__}.{name}' directly without explicit import "
-            "is deprecated and will be removed at any time after 2026-07. "
-            f"Explicitly import '{__name__}.{name}' instead.",
+            deprecation_message,
             DeprecationWarning,
             stacklevel=2,
         )
@@ -55,11 +59,7 @@ def __getattr__(name):
         try:
             import tank
             logger = tank.LogManager.get_logger(__name__)
-            logger.warning(
-               f"Accessing '{__name__}.{name}' directly without explicit import "
-                "is deprecated and will be removed at any time after 2026-07. "
-                f"Explicitly import '{__name__}.{name}' instead.",
-            )
+            logger.warning(deprecation_message)
         except:
             pass # nosec
 

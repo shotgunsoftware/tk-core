@@ -31,13 +31,14 @@
 import warnings
 warnings.warn(
     "The 'sgutils' module, including the 'ensure_binary', 'ensure_str', "
-    "and 'ensure_text' methods, is deprecated in FPTR and will be removed "
-    "at any time after March 2026. "
+    "and 'ensure_text' methods, is deprecated in FPT and will be removed "
+    "after September 2026. "
     "Use the built-in str.encode() and/or bytes.decode() methods instead "
     "according to the expected data type.",
     DeprecationWarning,
     stacklevel=2,
 )
+
 
 def ensure_binary(s, encoding="utf-8", errors="strict"):
     """
@@ -48,7 +49,7 @@ def ensure_binary(s, encoding="utf-8", errors="strict"):
     """
     warnings.warn(
         "The 'sgutils.ensure_binary' method is deprecated and will be "
-        "removed at any time after March 2026.",
+        "removed after September 2026.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -69,7 +70,7 @@ def ensure_str(s, encoding="utf-8", errors="strict"):
     """
     warnings.warn(
         "The 'sgutils.ensure_str' method is deprecated and will be "
-        "removed at any time after March 2026.",
+        "removed after September 2026.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -91,7 +92,7 @@ def ensure_text(*args, **kwargs):
     """
     warnings.warn(
         "The 'sgutils.ensure_text' method is deprecated and will be "
-        "removed at any time after March 2026.",
+        "removed after September 2026.",
         DeprecationWarning,
         stacklevel=2,
     )
