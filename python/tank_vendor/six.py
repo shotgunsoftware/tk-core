@@ -35,7 +35,7 @@ __version__ = "1.13.0"
 warnings.warn(
     "The 'six' module is deprecated in FPT and will be removed after September "
     "2026. Please update your code to use standard Python 3 "
-    "features directly, as Python 2 compatibility no longer exists.",
+    "features directly, as Python 2 compatibility is no longer required.",
     DeprecationWarning,
     stacklevel=2,
 )
