@@ -45,8 +45,8 @@ Controls debug logging.
 
 .. _environment_variables_authentication:
 
-``SGTK_ALLOW_OLD_PYTHON``
--------------------------
+``SHOTGUN_ALLOW_OLD_PYTHON``
+----------------------------
 
 When set to ``1``, Toolkit will allow being imported from Python versions that are no longer supported.
 Otherwise, when unset (or set to any other value), attempting to import Toolkit from old unsupported Python version will
