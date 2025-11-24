@@ -8,34 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import contextlib
-import sys
 import warnings
 
-version_parse = None
-try:
-    import packaging.version
-
-    version_parse = packaging.version.parse
-except ModuleNotFoundError:
-    try:
-        # Try importing from setuptools.
-        # If it fails, then we can't do much at the moment
-        # The DCC should have either setuptools or packaging installed.
-        from setuptools._distutils.version import LooseVersion
-
-        version_parse = LooseVersion
-    except ModuleNotFoundError:
-        try:
-            from distutils.version import LooseVersion
-
-            version_parse = LooseVersion
-        except ModuleNotFoundError:
-            warnings.warn(
-                "No version parsing library available (packaging, setuptools, or distutils). "
-                "Falling back to string comparison which may produce incorrect version ordering.",
-                UserWarning,
-            )
-            version_parse = str
+from tank_vendor.packaging.version import parse as version_parse
 
 from .. import LogManager
 from ..errors import TankError
@@ -49,26 +24,22 @@ GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 # Python’s version parsing utilities (e.g., packaging.version.parse).
 # Reference: https://peps.python.org/pep-0440/
 _VERSION_PATTERNS = [
-    (
+    (  # Extract version from software names: "Software Name 21.0" -> "21.0"
         re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*)(?:\s|$)"),
         r"\1",
-    ),  # Extract version from software names: "Software Name 21.0" -> "21.0"
-    (
+    ),
+    (  # Dot-v format: "6.3v6" -> "6.3.6"
         re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
         r"\1.\2.\3",
-    ),  # Dot-v format: "6.3v6" -> "6.3.6"
-    (
+    ),
+    (  # Simple v format: "2019v0.1" -> "2019.0.1"
         re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"),
         r"\1.\2",
-    ),  # Simple v format: "2019v0.1" -> "2019.0.1"
-    (
-        re.compile(r"^(\d+(?:\.\d+)*)(sp|hotfix|hf)(\d+)$"),
+    ),
+    (  # Service pack with/without dot: "2017.2sp1" or "2017.2.sp1" -> "2017.2.post1"
+        re.compile(r"^(\d+(?:\.\d+)*)\.?(sp|hotfix|hf)(\d+)$"),
         r"\1.post\3",
-    ),  # Service pack without dot: "2017.2sp1" -> "2017.2.post1"
-    (
-        re.compile(r"^(\d+(?:\.\d+)*)\.(sp|hotfix|hf)(\d+)$"),
-        r"\1.post\3",
-    ),  # Service pack with dot: "2017.2.sp1" -> "2017.2.post1"
+    ),
 ]
 
 
@@ -186,7 +157,7 @@ def suppress_known_deprecation():
         yield ctx
 
 
-def normalize_version_format(version):
+def normalize_version_format(version: str) -> str:
     """
     Normalize version strings by applying common format transformations.
 
@@ -196,14 +167,12 @@ def normalize_version_format(version):
     conform to the PEP 440 specification.
 
     Transformations applied:
-    - Strip whitespace and convert to lowercase
-    - Remove leading 'v' prefix
     - Extract version numbers from software names: "Software Name 21.0" -> "21.0"
     - Convert dot-v format: "6.3v6" -> "6.3.6"
     - Convert simple v format: "2019v0.1" -> "2019.0.1"
     - Convert service pack formats: "2017.2sp1" -> "2017.2.post1", "2017.2.sp1" -> "2017.2.post1"
 
-    :param str version_string: Version string to normalize
+    :param str version: Version string to normalize
     :return str: Normalized version string compatible with PEP 440
     """
 
@@ -247,71 +216,9 @@ def _compare_versions(a, b):
     a = normalize_version_format(a)
     b = normalize_version_format(b)
 
-    if "packaging" in sys.modules:
-        version_a = version_parse(a)
-        version_b = version_parse(b)
+    # Use packaging.version (either system or vendored)
+    # This is now guaranteed to be available
+    version_a = version_parse(a)
+    version_b = version_parse(b)
 
-        return version_a > version_b
-    elif version_parse is LooseVersion:
-        # In Python 3, LooseVersion comparisons between versions where a non-numeric
-        # version component is compared to a numeric one fail.  We'll work around this
-        # as follows:
-        # First, try to use LooseVersion for comparison.  This should work in
-        # most cases.
-        try:
-            with suppress_known_deprecation():
-                # Supress `distutils Version classes are deprecated.` for Python 3.10
-                version_a = LooseVersion(a).version
-                version_b = LooseVersion(b).version
-
-                version_num_a = []
-                version_num_b = []
-                # taking only the integers of the version to make comparison
-                for version in version_a:
-                    if isinstance(version, (int)):
-                        version_num_a.append(version)
-                    elif version == "-":
-                        break
-                for version in version_b:
-                    if isinstance(version, (int)):
-                        version_num_b.append(version)
-                    elif version == "-":
-                        break
-
-                # Comparing equal number versions with with one of them with '-' appended, if a version
-                # has '-' appended it's older than the same version with '-' at the end
-                if version_num_a == version_num_b:
-                    if "-" in a and "-" not in b:
-                        return False  # False, version a is older than b
-                    elif "-" in b and "-" not in a:
-                        return True  # True, version a is older than b
-                    else:
-                        return LooseVersion(a) > LooseVersion(
-                            b
-                        )  # If both has '-' compare '-rcx' versions
-                else:
-                    return LooseVersion(a) > LooseVersion(
-                        b
-                    )  # If they are different numeric versions
-        except TypeError:
-            version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
-            match_a = version_expr.match(a)
-            match_b = version_expr.match(b)
-            if match_a and match_b:
-                # If we could get two numeric versions, generate LooseVersions for
-                # them.
-                ver_a = LooseVersion(match_a.group(1))
-                ver_b = LooseVersion(match_b.group(1))
-                if ver_a != ver_b:
-                    # If they're not identical, return based on this comparison
-                    return ver_a > ver_b
-                else:
-                    # If the numeric versions do match, do a string comparsion for
-                    # the rest.
-                    return match_a.group(2) > match_b.group(2)
-            elif match_a or match_b:
-                # If only one had a numeric version, treat that as the newer version.
-                return bool(match_a)
-    else:
-        # Fallback to string comparison
-        return a > b
+    return version_a > version_b

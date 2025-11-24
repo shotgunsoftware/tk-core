@@ -9,47 +9,35 @@
 # not expressly granted therein are reserved by Autodesk.
 
 import importlib
-import sys
 import unittest
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-)
+from tank_test.tank_test_base import ShotgunTestBase
 
 
 class TestVersionImport(ShotgunTestBase):
-    """Test importing the tank.util.version module."""
+    """Test importing the tank.util.version module with vendored packaging."""
 
-    def test_import_version(self):
-        """Test importing the tank.util.version module."""
+    def test_import_version_module(self):
+        """Test that tank.util.version can be imported successfully."""
 
-        # Import the version module
+        # This should not raise any ImportError
         from tank.util import version
 
-        # Reload the module in case it was already imported
+        # Reload to ensure clean import
         importlib.reload(version)
-        # Sanity check the setuptools was imported successfully
-        assert version.packaging.version
 
-    @unittest.skipIf(
-        sys.version_info >= (3, 12),
-        "Python 3.12+ does not include distutils by default.",
-    )
-    def test_import_version_missing_setuptools_distutils(self):
-        """Test importing the tank.util.version module when setuptools is missing _distutils."""
+        # Verify core functions are available
+        self.assertTrue(hasattr(version, "is_version_newer"))
+        self.assertTrue(hasattr(version, "is_version_older"))
+        self.assertTrue(hasattr(version, "normalize_version_format"))
 
-        # Mock the sys.modules so that the import for setuptools._distutils.vesrion raises a
-        # ModuleNotFound exception (to mock python environments where this module may not be
-        # available)
-        with mock.patch.dict(
-            "sys.modules", {"setuptools._distutils.version": None}
-        ) and mock.patch.dict("sys.modules", {"packaging.version": None}):
-            # Import the version module
-            from tank.util import version
+    def test_vendored_packaging_available(self):
+        """Test that vendored packaging is available and functional."""
 
-            # Reload the module in case it was already imported
-            importlib.reload(version)
-            # Sanity check the setuptools was imported successfully
-            assert version.LooseVersion
+        # Should be able to import vendored packaging
+        from tank_vendor.packaging.version import parse
+
+        # Basic smoke test - should not raise any exception
+        version_obj = parse("1.0.0")
+        self.assertEqual(str(version_obj), "1.0.0")
