@@ -279,5 +279,14 @@ def _compare_versions(a, b):
                 # If only one had a numeric version, treat that as the newer version.
                 return bool(match_a)
 
+    # In the case that both versions are numeric, compare each component separated by a dot
+    if re.match(r"^[\d.]+$", a) and re.match(r"^[\d.]+$", b):
+        a_parts = [int(p) for p in a.split(".")]
+        b_parts = [int(p) for p in b.split(".")]
+        max_len = max(len(a_parts), len(b_parts))
+        a_parts.extend([0] * (max_len - len(a_parts)))
+        b_parts.extend([0] * (max_len - len(b_parts)))
+        return a_parts > b_parts
+
     # In the case that both versions are non-numeric, do a string comparison.
     return a > b
