@@ -25,7 +25,7 @@ GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 # Reference: https://peps.python.org/pep-0440/
 _VERSION_PATTERNS = [
     (  # Extract version from software names: "Software Name 21.0" -> "21.0"
-        re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*)(?:\s|$)"),
+        re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*(?:v\d+(?:\.\d+)*)?)$"),
         r"\1",
     ),
     (  # Dot-v format: "6.3v6" -> "6.3.6"
