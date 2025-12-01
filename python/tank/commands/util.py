@@ -12,10 +12,12 @@
 Utility methods that are specific to tank commands
 """
 
+from typing import List, Tuple
+
 from . import constants
 
 
-def should_use_legacy_yaml_parser(args: list[str]) -> tuple[bool, list[str]]:
+def should_use_legacy_yaml_parser(args: List[str]) -> Tuple[bool, List[str]]:
     """
     Given a set of command line args, determine if the
     legacy yaml parser should be used.
