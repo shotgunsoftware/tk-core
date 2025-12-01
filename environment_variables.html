@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; tk-core v0.23.2 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.23.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -74,6 +74,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-preferences-location"><code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-bootstrap-config-override"><code class="docutils literal notranslate"><span class="pre">TK_BOOTSTRAP_CONFIG_OVERRIDE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tk-debug"><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shotgun-allow-old-python"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_ALLOW_OLD_PYTHON</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#authentication">Authentication</a><ul>
@@ -123,7 +124,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.2.<br>
+    <b>tk-core</b> v0.23.3.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -202,9 +203,21 @@ This variable is useful when a DCC deadlocks while importing the module.</p>
 <h3><code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code><a class="headerlink" href="#tk-debug" title="Permalink to this heading"></a></h3>
 <p>Controls debug logging.</p>
 </section>
+<section id="shotgun-allow-old-python">
+<span id="environment-variables-authentication"></span><h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_ALLOW_OLD_PYTHON</span></code><a class="headerlink" href="#shotgun-allow-old-python" title="Permalink to this heading"></a></h3>
+<p>When set to <code class="docutils literal notranslate"><span class="pre">1</span></code>, Toolkit will allow being imported from Python versions that are no longer supported.
+Otherwise, when unset (or set to any other value), attempting to import Toolkit from old unsupported Python version will
+raise an exception.</p>
+<p>This is not recommended and should only be used for testing purposes.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The ability to import the module does not guarantee that Toolkit will work properly on the unsupported Python
+version. In fact, it is very likely that it will not work properly.</p>
+</div>
+</section>
 </section>
 <section id="authentication">
-<span id="environment-variables-authentication"></span><h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this heading"></a></h2>
+<h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this heading"></a></h2>
 <section id="sgtk-default-auth-method">
 <h3><code class="docutils literal notranslate"><span class="pre">SGTK_DEFAULT_AUTH_METHOD</span></code><a class="headerlink" href="#sgtk-default-auth-method" title="Permalink to this heading"></a></h3>
 <p>Specifies which authentication method should be selected if none are selected yet.
