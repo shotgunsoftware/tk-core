@@ -324,6 +324,8 @@ class PySide6Patcher(PySide2Patcher):
     def _patch_QRegularExpression(cls, QtCore):
         """Patch QRegularExpression."""
 
+        from enum import Enum
+
         original_QRegularExpression = QtCore.QRegularExpression
 
         class QRegularExpression(original_QRegularExpression):
@@ -333,23 +335,31 @@ class PySide6Patcher(PySide2Patcher):
                 else:
                     nargs = len(args)
 
+                    search_pattern = args[0]
+
                     case_sensitivity = kwargs.get("cs")
                     if not case_sensitivity and nargs > 1:
                         case_sensitivity = args[1]
 
-                    # FIXME can we port pattern syntax?
+                    # FIXME can we port pattern syntaxes other than FixedString/Wildcard?
                     pattern_syntax = kwargs.get("syntax")
                     if not pattern_syntax and nargs > 2:
                         pattern_syntax = args[2]
 
+                    if pattern_syntax:
+                        if pattern_syntax == QRegularExpression.FixedString:
+                            search_pattern = original_QRegularExpression.escape(search_pattern)
+                        elif pattern_syntax == QRegularExpression.Wildcard:
+                            search_pattern = original_QRegularExpression.wildcardToRegularExpression(search_pattern, original_QRegularExpression.WildcardConversionOption.NonPathWildcardConversion)
+
                     if case_sensitivity is None:
-                        original_QRegularExpression.__init__(self, args[0])
+                        original_QRegularExpression.__init__(self, search_pattern)
                     else:
-                        if case_sensitivity == original_QRegularExpression.CaseInsensitiveOption:
+                        if case_sensitivity in [original_QRegularExpression.CaseInsensitiveOption, QtCore.Qt.CaseInsensitive]:
                             opts = original_QRegularExpression.CaseInsensitiveOption
                         else:
                             opts = original_QRegularExpression.NoPatternOption
-                        original_QRegularExpression.__init__(self, args[0], options=opts)
+                        original_QRegularExpression.__init__(self, search_pattern, options=opts)
 
                 self.isEmpty = lambda *args, **kwargs: QRegularExpression.isEmpty(self, *args, **kwargs)
                 self.indexIn = lambda *args, **kwargs: QRegularExpression.indexIn(self, *args, **kwargs)
@@ -380,7 +390,7 @@ class PySide6Patcher(PySide2Patcher):
                 """Patch QRegExp setCaseSensitivity method."""
 
                 options = re.patternOptions()
-                if value == original_QRegularExpression.CaseInsensitiveOption:
+                if value in [original_QRegularExpression.CaseInsensitiveOption, QtCore.Qt.CaseInsensitive]:
                     options |= original_QRegularExpression.CaseInsensitiveOption
                 else:
                     options &= ~original_QRegularExpression.CaseInsensitiveOption
@@ -415,6 +425,14 @@ class PySide6Patcher(PySide2Patcher):
                 now return QRegularExpressionMatch objects.
                 """
                 return ""
+            
+            class PatternSyntax(Enum):
+                # RegExp = 0
+                # RegExp2 = 1
+                Wildcard = 2
+                # WildcardUnix = 3
+                FixedString = 4
+                # W3CXmlSchema11 = 5
 
         QtCore.QRegularExpression.isEmpty = QRegularExpression.isEmpty
         QtCore.QRegularExpression.indexIn = QRegularExpression.indexIn
@@ -422,8 +440,9 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QRegularExpression.setCaseSensitivity = QRegularExpression.setCaseSensitivity
         QtCore.QRegularExpression.pos = QRegularExpression.pos
 
-        # This pattern matching flag is obsolete now.
-        QtCore.QRegularExpression.FixedString = None
+        # These pattern matching flags are obsolete now, but we port to the expected QRegExp equivalent in the patched __init__.
+        QtCore.QRegularExpression.Wildcard = QRegularExpression.PatternSyntax.Wildcard
+        QtCore.QRegularExpression.FixedString = QRegularExpression.PatternSyntax.FixedString
 
         # Class must be set last
         QtCore.QRegularExpression = QRegularExpression
