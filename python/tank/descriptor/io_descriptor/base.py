@@ -218,6 +218,50 @@ class IODescriptorBase(object):
             install_cache_root, legacy_dir, descriptor_name, bundle_name, bundle_version
         )
 
+    def _check_minimum_python_version(self, manifest_data):
+        """
+        Check if the bundle's minimum_python_version requirement is compatible with
+        the current Python version.
+
+        :param manifest_data: Dictionary with the bundle's info.yml contents
+        :returns: True if compatible or no requirement specified, False otherwise
+        """
+        import sys
+        log.warning(
+            f"MANIFEST_DATA = {manifest_data}"
+        )
+        
+        minimum_python_version = manifest_data.get("minimum_python_version")
+        if not minimum_python_version:
+            # No requirement specified, assume compatible
+            return True
+        
+        # Parse the required version (e.g., "3.8" or "3.7.9")
+        try:
+            required_parts = [int(x) for x in str(minimum_python_version).split(".")]
+        except (ValueError, AttributeError):
+            log.warning(
+                "Invalid minimum_python_version format: %s. Assuming compatible.",
+                minimum_python_version
+            )
+            return True
+        
+        # Get current Python version (e.g., (3, 7, 9))
+        current_version = sys.version_info[:len(required_parts)]
+        
+        # Compare tuples: (3, 7) >= (3, 8) = False
+        is_compatible = current_version >= tuple(required_parts)
+        
+        if not is_compatible:
+            current_version_str = ".".join(str(x) for x in sys.version_info[:3])
+            log.debug(
+                "Python version %s does not meet minimum requirement %s",
+                current_version_str,
+                minimum_python_version
+            )
+        
+        return is_compatible
+
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
         Given a list of version strings (e.g. 'v1.2.3'), find the one

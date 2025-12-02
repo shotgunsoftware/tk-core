@@ -656,9 +656,80 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             ][0]
 
         else:
-            # no constraints applied. Pick first (latest) match
-            sg_data_for_version = matching_records[0]
-            version_to_use = sg_data_for_version["code"]
+            # no constraints applied. Pick first (latest) match, but check Python compatibility
+            sg_data_for_version = None
+            version_to_use = None
+
+            log.debug(
+                f"MATCHING_RECORDS, {matching_records} records remain."
+            )
+            
+            # Try each version in order (newest first) until we find one compatible with Python
+            for candidate in matching_records:
+                candidate_version = candidate["code"]
+                
+                # Create a temporary descriptor to check its manifest
+                temp_descriptor_dict = {
+                    "type": "app_store",
+                    "name": self._name,
+                    "version": candidate_version,
+                }
+                if self._label:
+                    temp_descriptor_dict["label"] = self._label
+                
+                temp_desc = IODescriptorAppStore(
+                    temp_descriptor_dict, self._sg_connection, self._bundle_type
+                )
+                temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+                
+                # Check if this version is compatible with current Python
+                try:
+                    # Download if needed to read manifest
+                    if not temp_desc.exists_local():
+                        log.debug("Downloading %s to check Python compatibility" % candidate_version)
+                        temp_desc.download_local()
+                    
+                    manifest = temp_desc.get_manifest(constants.BUNDLE_METADATA_FILE)
+                    manifest["minimum_python_version"] = "3.10"
+                    log.debug(
+                        f"MANIFEST_DATA APPSTORE= {manifest}"
+                    )
+                    if self._check_minimum_python_version(manifest):
+                        # This version is compatible!
+                        sg_data_for_version = candidate
+                        version_to_use = candidate_version
+                        log.debug(
+                            "Selected version %s (compatible with current Python version)" 
+                            % version_to_use
+                        )
+                        break
+                    else:
+                        import sys
+                        current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
+                        min_py_ver = manifest.get("minimum_python_version", "not specified")
+                        log.info(
+                            "Skipping version %s: requires Python %s, current is %s" 
+                            % (candidate_version, min_py_ver, current_py_ver)
+                        )
+                except Exception as e:
+                    log.warning(
+                        "Could not check Python compatibility for %s: %s. Skipping." 
+                        % (candidate_version, e)
+                    )
+                    continue
+            
+            # If no compatible version found, return current version to prevent upgrade
+            if sg_data_for_version is None:
+                log.info(
+                    "No newer Python-compatible version found for %s (requires Python %s or lower). "
+                    "Current version %s will be retained." 
+                    % (self._name, 
+                       ".".join(str(x) for x in __import__('sys').version_info[:3]),
+                       self._version)
+                )
+                # Return a descriptor for the current version - this prevents unwanted upgrades
+                sg_data_for_version = None  # We'll create descriptor without refreshing metadata
+                version_to_use = self._version
 
         # make a descriptor dict
         descriptor_dict = {
