@@ -425,7 +425,7 @@ class PySide6Patcher(PySide2Patcher):
                 now return QRegularExpressionMatch objects.
                 """
                 return ""
-            
+
             class PatternSyntax(Enum):
                 # RegExp = 0
                 # RegExp2 = 1
