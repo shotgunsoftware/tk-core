@@ -7,33 +7,40 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import warnings
 import contextlib
-import sys
+import warnings
 
-LooseVersion = None
-try:
-    import packaging.version
-except ModuleNotFoundError:
-    try:
-        # Try importing from setuptools.
-        # If it fails, then we can't do much at the moment
-        # The DCC should have either setuptools or packaging installed.
-        from setuptools._distutils.version import LooseVersion
-    except ModuleNotFoundError:
-        try:
-            # DCCs with older versions of Python 3.12
-            from distutils.version import LooseVersion
-        except ModuleNotFoundError:
-            pass
+from tank_vendor.packaging.version import parse as version_parse
 
-from . import sgre as re
 from .. import LogManager
 from ..errors import TankError
-
+from . import sgre as re
 
 logger = LogManager.get_logger(__name__)
 GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
+
+# Normalize non-standard version formats
+# into PEP 440–compliant forms ("1.2.3") to ensure compatibility with
+# Python’s version parsing utilities (e.g., packaging.version.parse).
+# Reference: https://peps.python.org/pep-0440/
+_VERSION_PATTERNS = [
+    (  # Extract version from software names: "Software Name 21.0" -> "21.0"
+        re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*(?:v\d+(?:\.\d+)*)?)$"),
+        r"\1",
+    ),
+    (  # Dot-v format: "6.3v6" -> "6.3.6"
+        re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
+        r"\1.\2.\3",
+    ),
+    (  # Simple v format: "2019v0.1" -> "2019.0.1"
+        re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"),
+        r"\1.\2",
+    ),
+    (  # Service pack with/without dot: "2017.2sp1" or "2017.2.sp1" -> "2017.2.post1"
+        re.compile(r"^(\d+(?:\.\d+)*)\.?(sp|hotfix|hf)(\d+)$"),
+        r"\1.post\3",
+    ),
+]
 
 
 def is_version_head(version):
@@ -150,28 +157,29 @@ def suppress_known_deprecation():
         yield ctx
 
 
-def version_parse(version_string):
+def normalize_version_format(version: str) -> str:
     """
-    Parse a version string into a Version object. We also support LooseVersion
-    for compatibility with older versions of Python.
+    Normalize version strings by applying common format transformations.
 
-    :param str version_string: The version string to parse.
+    This function exists because packaging.version.parse() follows PEP 440
+    and cannot handle non-standard version formats like "v1.2.3" or "6.3v6",
+    which are commonly found in various software tools and DCCs but don't
+    conform to the PEP 440 specification.
 
-    :rtype: packaging.version.Version, LooseVersion or str as fallback.
+    Transformations applied:
+    - Extract version numbers from software names: "Software Name 21.0" -> "21.0"
+    - Convert dot-v format: "6.3v6" -> "6.3.6"
+    - Convert simple v format: "2019v0.1" -> "2019.0.1"
+    - Convert service pack formats: "2017.2sp1" -> "2017.2.post1", "2017.2.sp1" -> "2017.2.post1"
+
+    :param str version: Version string to normalize
+    :return str: Normalized version string compatible with PEP 440
     """
-    if "packaging" in sys.modules:
-        try:
-            return packaging.version.parse(version_string)
-        except packaging.version.InvalidVersion:
-            # Version cannot be parsed with packaging.version (SG-40480)
-            pass
 
-    if LooseVersion:
-        with suppress_known_deprecation():
-            return LooseVersion(version_string)
+    for compiled_pattern, replacement in _VERSION_PATTERNS:
+        version = compiled_pattern.sub(replacement, version)
 
-    # Fallback to string comparison
-    return version_string
+    return version
 
 
 def _compare_versions(a, b):
@@ -205,79 +213,12 @@ def _compare_versions(a, b):
         # comparing against HEAD - our version is always old
         return False
 
-    if a.startswith("v"):
-        a = a[1:]
-    if b.startswith("v"):
-        b = b[1:]
+    a = normalize_version_format(a)
+    b = normalize_version_format(b)
 
-    if "packaging" in sys.modules:
-        version_a = version_parse(a)
-        version_b = version_parse(b)
-        if isinstance(version_a, str) or isinstance(version_b, str):
-            return a > b
+    # Use packaging.version (either system or vendored)
+    # This is now guaranteed to be available
+    version_a = version_parse(a)
+    version_b = version_parse(b)
 
-        return version_a > version_b
-
-    if LooseVersion:
-        # In Python 3, LooseVersion comparisons between versions where a non-numeric
-        # version component is compared to a numeric one fail.  We'll work around this
-        # as follows:
-        # First, try to use LooseVersion for comparison.  This should work in
-        # most cases.
-        try:
-            with suppress_known_deprecation():
-                # Supress `distutils Version classes are deprecated.` for Python 3.10
-                version_a = LooseVersion(a).version
-                version_b = LooseVersion(b).version
-
-                version_num_a = []
-                version_num_b = []
-                # taking only the integers of the version to make comparison
-                for version in version_a:
-                    if isinstance(version, (int)):
-                        version_num_a.append(version)
-                    elif version == "-":
-                        break
-                for version in version_b:
-                    if isinstance(version, (int)):
-                        version_num_b.append(version)
-                    elif version == "-":
-                        break
-
-                # Comparing equal number versions with with one of them with '-' appended, if a version
-                # has '-' appended it's older than the same version with '-' at the end
-                if version_num_a == version_num_b:
-                    if "-" in a and "-" not in b:
-                        return False  # False, version a is older than b
-                    elif "-" in b and "-" not in a:
-                        return True  # True, version a is older than b
-                    else:
-                        return LooseVersion(a) > LooseVersion(
-                            b
-                        )  # If both has '-' compare '-rcx' versions
-                else:
-                    return LooseVersion(a) > LooseVersion(
-                        b
-                    )  # If they are different numeric versions
-        except TypeError:
-            version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
-            match_a = version_expr.match(a)
-            match_b = version_expr.match(b)
-            if match_a and match_b:
-                # If we could get two numeric versions, generate LooseVersions for
-                # them.
-                ver_a = LooseVersion(match_a.group(1))
-                ver_b = LooseVersion(match_b.group(1))
-                if ver_a != ver_b:
-                    # If they're not identical, return based on this comparison
-                    return ver_a > ver_b
-                else:
-                    # If the numeric versions do match, do a string comparsion for
-                    # the rest.
-                    return match_a.group(2) > match_b.group(2)
-            elif match_a or match_b:
-                # If only one had a numeric version, treat that as the newer version.
-                return bool(match_a)
-
-    # In the case that both versions are non-numeric, do a string comparison.
-    return a > b
+    return version_a > version_b
