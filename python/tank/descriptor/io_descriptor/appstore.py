@@ -16,6 +16,7 @@ import fnmatch
 import http.client
 import json
 import os
+import sys
 import urllib.parse
 import urllib.request
 
@@ -656,9 +657,60 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             ][0]
 
         else:
-            # no constraints applied. Pick first (latest) match
+            # no constraints applied. Check if latest version is Python compatible
             sg_data_for_version = matching_records[0]
             version_to_use = sg_data_for_version["code"]
+
+            # Create a temporary descriptor to check its manifest
+            temp_descriptor_dict = {
+                "type": "app_store",
+                "name": self._name,
+                "version": version_to_use,
+            }
+            if self._label:
+                temp_descriptor_dict["label"] = self._label
+
+            temp_desc = IODescriptorAppStore(
+                temp_descriptor_dict, self._sg_connection, self._bundle_type
+            )
+            temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+            # Check if latest version is compatible with current Python
+            try:
+                # Download if needed to read manifest
+                if not temp_desc.exists_local():
+                    log.debug(
+                        "Downloading %s to check Python compatibility"
+                        % version_to_use
+                    )
+                    temp_desc.download_local()
+
+                manifest = temp_desc.get_manifest(constants.BUNDLE_METADATA_FILE)
+                
+                if not self._check_minimum_python_version(manifest):
+                    # Latest version is NOT compatible - block auto-update
+                    current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
+                    min_py_ver = manifest.get(
+                        "minimum_python_version", "not specified"
+                    )
+                    log.warning(
+                        "Auto-update blocked: Latest version %s requires Python %s, current is %s. "
+                        "Keeping current version %s."
+                        % (version_to_use, min_py_ver, current_py_ver, self._version)
+                    )
+                    # Return current version to prevent upgrade
+                    sg_data_for_version = None
+                    version_to_use = self._version
+                else:
+                    log.debug(
+                        "Latest version %s is compatible with current Python version"
+                        % version_to_use
+                    )
+            except Exception as e:
+                log.warning(
+                    "Could not check Python compatibility for %s: %s. Proceeding with auto-update."
+                    % (version_to_use, e)
+                )
 
         # make a descriptor dict
         descriptor_dict = {
