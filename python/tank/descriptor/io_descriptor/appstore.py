@@ -16,9 +16,11 @@ import fnmatch
 import http.client
 import json
 import os
+import sys
 import urllib.parse
 import urllib.request
 
+from tank.util.version import is_version_newer
 from tank_vendor import shotgun_api3
 from tank_vendor.shotgun_api3.lib import httplib2
 
@@ -125,9 +127,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict, required=["type", "name", "version"], optional=["label"]
@@ -538,6 +538,170 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
 
+    def _filter_versions_by_label(self, all_versions):
+        """
+        Filter cached versions by label if one is specified.
+
+        :param all_versions: Dictionary of {version_string: path}
+        :returns: List of version strings that match the label criteria
+        """
+        if not self._label:
+            return list(all_versions.keys())
+
+        version_numbers = []
+        log.debug("Filtering cached versions by label '%s'..." % self._label)
+        for version_str, path in all_versions.items():
+            metadata = self.__load_cached_app_store_metadata(path)
+            try:
+                tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
+                if self.__match_label(tags):
+                    version_numbers.append(version_str)
+            except Exception as e:
+                log.debug(
+                    "Could not determine label metadata for %s. Ignoring. Details: %s"
+                    % (path, e)
+                )
+        return version_numbers
+
+    def _filter_versions_by_app_store(self, version_numbers, sg_matching_records):
+        """
+        Filter versions to only those available in the App Store.
+
+        :param version_numbers: List of version strings
+        :param sg_matching_records: List of Shotgun version records from App Store
+        :returns: List of version strings that exist in App Store, or original list if no records provided
+        """
+        if not sg_matching_records:
+            return version_numbers
+
+        app_store_versions = {rec["code"] for rec in sg_matching_records}
+        return [v for v in version_numbers if v in app_store_versions]
+
+    def _sort_versions_descending(self, version_numbers):
+        """
+        Sort version numbers in descending order (newest first).
+
+        :param version_numbers: List of version strings
+        :returns: Sorted list with newest versions first
+        """
+        try:
+            sorted_versions = []
+            for v in version_numbers:
+                inserted = False
+                for i, existing in enumerate(sorted_versions):
+                    if is_version_newer(v, existing):
+                        sorted_versions.insert(i, v)
+                        inserted = True
+                        break
+                if not inserted:
+                    sorted_versions.append(v)
+            return sorted_versions
+        except Exception:
+            # Fallback to simple reverse sort if version comparison fails
+            return sorted(version_numbers, reverse=True)
+
+    def _is_version_python_compatible(self, version_str):
+        """
+        Check if a specific version is compatible with current Python.
+
+        :param version_str: Version string to check
+        :returns: Tuple of (is_compatible, descriptor) where descriptor is the
+                  IODescriptorAppStore instance if compatible, None otherwise
+        """
+        try:
+            # Create descriptor for this cached version
+            temp_descriptor_dict = {
+                "type": "app_store",
+                "name": self._name,
+                "version": version_str,
+            }
+            if self._label:
+                temp_descriptor_dict["label"] = self._label
+
+            temp_desc = IODescriptorAppStore(
+                temp_descriptor_dict, self._sg_connection, self._bundle_type
+            )
+            temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+            # Check if this version exists locally
+            if not temp_desc.exists_local():
+                log.debug(
+                    "Version %s not found in cache (expected at %s)"
+                    % (version_str, temp_desc.get_path())
+                )
+                return (False, None)
+
+            # Check Python compatibility
+            manifest = temp_desc.get_manifest(constants.BUNDLE_METADATA_FILE)
+            if self._check_minimum_python_version(manifest):
+                log.debug("Found compatible cached version: %s" % version_str)
+                return (True, temp_desc)
+
+            # Not compatible - log and return
+            min_py_ver = manifest.get("minimum_python_version", "not specified")
+            log.debug(
+                "Cached version %s requires Python %s - not compatible"
+                % (version_str, min_py_ver)
+            )
+            return (False, None)
+
+        except Exception as e:
+            log.debug(
+                "Could not check compatibility for cached version %s: %s"
+                % (version_str, e)
+            )
+            return (False, None)
+
+    def _find_compatible_cached_version(self, sg_matching_records):
+        """
+        Searches locally cached versions for the highest version compatible
+        with the current Python version.
+
+        :param sg_matching_records: List of Shotgun version records from App Store
+        :returns: IODescriptorAppStore instance or None if no compatible version found
+        """
+        log.debug(
+            "Searching for compatible cached version of %r in bundle cache..." % self
+        )
+
+        # Get all locally cached versions
+        all_versions = self._get_locally_cached_versions()
+        if not all_versions:
+            log.debug("No cached versions found in bundle cache")
+            return None
+
+        log.debug("Found %d cached versions to check" % len(all_versions))
+
+        # Apply filters: label and App Store availability
+        version_numbers = self._filter_versions_by_label(all_versions)
+        if not version_numbers:
+            log.debug("No cached versions match label criteria")
+            return None
+
+        version_numbers = self._filter_versions_by_app_store(
+            version_numbers, sg_matching_records
+        )
+        if not version_numbers:
+            log.debug("No cached versions are available in App Store")
+            return None
+
+        # Sort versions (newest first)
+        sorted_versions = self._sort_versions_descending(version_numbers)
+
+        log.debug(
+            "Checking %d cached versions for Python compatibility (newest first)"
+            % len(sorted_versions)
+        )
+
+        # Find first compatible version
+        for version_str in sorted_versions:
+            is_compatible, descriptor = self._is_version_python_compatible(version_str)
+            if is_compatible:
+                return descriptor
+
+        log.debug("No compatible cached version found")
+        return None
+
     @LogManager.log_timing
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -656,9 +820,70 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             ][0]
 
         else:
-            # no constraints applied. Pick first (latest) match
+            # no constraints applied. Check if latest version is Python compatible
             sg_data_for_version = matching_records[0]
             version_to_use = sg_data_for_version["code"]
+
+            # Create a temporary descriptor to check its manifest
+            temp_descriptor_dict = {
+                "type": "app_store",
+                "name": self._name,
+                "version": version_to_use,
+            }
+            if self._label:
+                temp_descriptor_dict["label"] = self._label
+
+            temp_desc = IODescriptorAppStore(
+                temp_descriptor_dict, self._sg_connection, self._bundle_type
+            )
+            temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+            # Check if latest version is compatible with current Python
+            try:
+                # Download if needed to read manifest
+                if not temp_desc.exists_local():
+                    log.debug(
+                        "Downloading %s to check Python compatibility" % version_to_use
+                    )
+                    temp_desc.download_local()
+
+                manifest = temp_desc.get_manifest(constants.BUNDLE_METADATA_FILE)
+                if not self._check_minimum_python_version(manifest):
+                    # Latest version is NOT compatible - search for compatible version
+                    current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
+                    min_py_ver = manifest.get("minimum_python_version", "not specified")
+                    log.warning(
+                        "Auto-update blocked: Latest version %s requires Python %s, current is %s."
+                        % (version_to_use, min_py_ver, current_py_ver)
+                    )
+
+                    # Try to find highest compatible version in cache
+                    compatible_desc = self._find_compatible_cached_version(
+                        matching_records
+                    )
+                    if compatible_desc:
+                        log.info(
+                            "Using cached compatible version %s instead of latest %s"
+                            % (compatible_desc.get_version(), version_to_use)
+                        )
+                        return compatible_desc
+                    else:
+                        log.warning(
+                            "No compatible cached version found. Proceeding with latest version %s "
+                            "(may cause compatibility issues)." % version_to_use
+                        )
+                        # Reset to use latest - user will need to upgrade Python
+                        # This maintains current behavior when no alternative exists
+                else:
+                    log.debug(
+                        "Latest version %s is compatible with current Python version"
+                        % version_to_use
+                    )
+            except Exception as e:
+                log.warning(
+                    "Could not check Python compatibility for %s: %s. Proceeding with auto-update."
+                    % (version_to_use, e)
+                )
 
         # make a descriptor dict
         descriptor_dict = {
