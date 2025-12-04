@@ -9,8 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import copy
 import os
+import sys
 
 from ... import LogManager
+from .. import constants as descriptor_constants
 from ..errors import TankDescriptorError
 from .git import IODescriptorGit, TankGitError, _check_output
 
@@ -224,7 +226,44 @@ class IODescriptorGitBranch(IODescriptorGit):
             new_loc_dict, self._sg_connection, self._bundle_type
         )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-        return desc
+
+        # Check if latest commit is compatible with current Python
+        try:
+            # Download if needed to read manifest
+            if not desc.exists_local():
+                log.debug(
+                    "Downloading latest commit %s to check Python compatibility"
+                    % git_hash
+                )
+                desc.download_local()
+
+            # Read manifest and check Python compatibility
+            manifest = desc.get_manifest(descriptor_constants.BUNDLE_METADATA_FILE)
+
+            if not self._check_minimum_python_version(manifest):
+                # Latest commit is NOT compatible with current Python
+                current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
+                min_py_ver = manifest.get("minimum_python_version", "not specified")
+                log.warning(
+                    "Latest commit %s of branch %s requires Python %s, current is %s. "
+                    "Skipping auto-update to this commit."
+                    % (git_hash, self._branch, min_py_ver, current_py_ver)
+                )
+                # Return descriptor for current version (don't auto-update)
+                return self
+            else:
+                log.debug(
+                    "Latest commit %s is compatible with current Python version"
+                    % git_hash
+                )
+                return desc
+
+        except Exception as e:
+            log.warning(
+                "Could not check Python compatibility for commit %s: %s. Proceeding with auto-update."
+                % (git_hash, e)
+            )
+            return desc
 
     def get_latest_cached_version(self, constraint_pattern=None):
         """

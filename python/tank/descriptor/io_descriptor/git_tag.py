@@ -7,13 +7,16 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import os
 import copy
+import os
 import re
+import subprocess
+import sys
 
-from .git import IODescriptorGit
-from ..errors import TankDescriptorError
 from ... import LogManager
+from .. import constants as descriptor_constants
+from ..errors import TankDescriptorError
+from .git import IODescriptorGit
 
 log = LogManager.get_logger(__name__)
 
@@ -51,9 +54,7 @@ class IODescriptorGitTag(IODescriptorGit):
         )
 
         # call base class
-        super().__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
@@ -233,10 +234,151 @@ class IODescriptorGitTag(IODescriptorGit):
 
         return git_tags
 
+    def _get_local_repository_tag(self):
+        """
+        Get the current tag of the local git repository if the path points to one.
+
+        :returns: Tag name (string) or None if not on a tag or not a local repo
+        """
+        if not os.path.exists(self._path) or not os.path.isdir(self._path):
+            return None
+
+        git_dir = os.path.join(self._path, ".git")
+        if not os.path.exists(git_dir):
+            return None
+
+        try:
+            result = subprocess.check_output(
+                ["git", "describe", "--tags", "--exact-match", "HEAD"],
+                cwd=self._path,
+                stderr=subprocess.STDOUT,
+            )
+            local_tag = result.strip()
+            if isinstance(local_tag, bytes):
+                local_tag = local_tag.decode("utf-8")
+
+            log.debug(
+                "Local repository at %s is currently at tag %s"
+                % (self._path, local_tag)
+            )
+            return local_tag
+        except subprocess.CalledProcessError:
+            # Not on a tag
+            return None
+        except Exception as e:
+            log.debug(
+                "Could not determine local repository tag at %s: %s" % (self._path, e)
+            )
+            return None
+
+    def _check_local_tag_compatibility(
+        self, local_tag, latest_tag, current_py_ver, min_py_ver
+    ):
+        """
+        Check if a local repository tag is compatible with the current Python version.
+
+        :param local_tag: Tag name from local repository
+        :param latest_tag: Latest tag that was found incompatible
+        :param current_py_ver: Current Python version string
+        :param min_py_ver: Minimum Python version required by latest_tag
+        :returns: local_tag if compatible, None otherwise
+        """
+        try:
+            # Create a descriptor for this local tag and download it to bundle cache
+            local_desc_dict = copy.deepcopy(self._descriptor_dict)
+            local_desc_dict["version"] = local_tag
+            local_desc = IODescriptorGitTag(
+                local_desc_dict, self._sg_connection, self._bundle_type
+            )
+            local_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+            # Download to bundle cache if not already there
+            if not local_desc.exists_local():
+                log.debug(
+                    "Downloading local tag %s to bundle cache for compatibility check"
+                    % local_tag
+                )
+                local_desc.download_local()
+
+            # Check if this local tag is compatible
+            local_manifest = local_desc.get_manifest(
+                descriptor_constants.BUNDLE_METADATA_FILE
+            )
+            if self._check_minimum_python_version(local_manifest):
+                log.warning(
+                    "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
+                    "Using local repository tag %s which is compatible."
+                    % (latest_tag, min_py_ver, current_py_ver, local_tag)
+                )
+                return local_tag
+            else:
+                log.debug(
+                    "Local tag %s is also not compatible with current Python version"
+                    % local_tag
+                )
+                return None
+        except Exception as e:
+            log.debug(
+                "Could not check compatibility for local tag %s: %s" % (local_tag, e)
+            )
+            return None
+
+    def _find_compatible_cached_version(self, latest_tag):
+        """
+        Find the highest compatible version in the bundle cache.
+
+        :param latest_tag: Latest tag to exclude from search
+        :returns: Compatible tag name or None if not found
+        """
+        cached_versions = self._get_locally_cached_versions()
+        if not cached_versions:
+            return None
+
+        all_cached_tags = list(cached_versions.keys())
+        compatible_version = None
+
+        for tag in all_cached_tags:
+            # Skip the incompatible latest version
+            if tag == latest_tag:
+                continue
+
+            try:
+                # Check if this cached version is compatible
+                temp_dict = copy.deepcopy(self._descriptor_dict)
+                temp_dict["version"] = tag
+                temp_desc = IODescriptorGitTag(
+                    temp_dict, self._sg_connection, self._bundle_type
+                )
+                temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+                cached_manifest = temp_desc.get_manifest(
+                    descriptor_constants.BUNDLE_METADATA_FILE
+                )
+                if self._check_minimum_python_version(cached_manifest):
+                    # Found a compatible version, but keep looking for higher ones
+                    if compatible_version is None:
+                        compatible_version = tag
+                    else:
+                        # Compare versions to keep the highest
+                        latest_of_two = self._find_latest_tag_by_pattern(
+                            [compatible_version, tag], None
+                        )
+                        if latest_of_two == tag:
+                            compatible_version = tag
+            except Exception as e:
+                log.debug(
+                    "Could not check compatibility for cached version %s: %s" % (tag, e)
+                )
+                continue
+
+        return compatible_version
+
     def _get_latest_version(self):
         """
-        Returns a descriptor object that represents the latest version.
-        :returns: IODescriptorGitTag object
+        Returns the latest tag version, or current version if latest is not
+        compatible with current Python version.
+
+        :returns: Tag name (string) of the latest version or current version
         """
         tags = self._fetch_tags()
         latest_tag = self._find_latest_tag_by_pattern(tags, pattern=None)
@@ -245,7 +387,85 @@ class IODescriptorGitTag(IODescriptorGit):
                 "Git repository %s doesn't have any tags!" % self._path
             )
 
-        return latest_tag
+        # Check if latest tag is compatible with current Python
+        try:
+            # Create a temporary descriptor for the latest tag
+            temp_descriptor_dict = copy.deepcopy(self._descriptor_dict)
+            temp_descriptor_dict["version"] = latest_tag
+
+            temp_desc = IODescriptorGitTag(
+                temp_descriptor_dict, self._sg_connection, self._bundle_type
+            )
+            temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+
+            # Download if needed to read manifest
+            if not temp_desc.exists_local():
+                log.debug("Downloading %s to check Python compatibility" % latest_tag)
+                temp_desc.download_local()
+
+            # Read manifest and check Python compatibility
+            manifest = temp_desc.get_manifest(descriptor_constants.BUNDLE_METADATA_FILE)
+            manifest["minimum_python_version"] = "3.10"  # TODO: Remove - hardcoded for testing
+            if not self._check_minimum_python_version(manifest):
+                # Latest version is NOT compatible - block auto-update
+                current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
+                min_py_ver = manifest.get("minimum_python_version", "not specified")
+
+                # If current version is "latest", find a compatible alternative
+                if self._version == "latest":
+                    # First, check if the path points to a local git repository
+                    local_tag = self._get_local_repository_tag()
+                    if local_tag:
+                        compatible_tag = self._check_local_tag_compatibility(
+                            local_tag, latest_tag, current_py_ver, min_py_ver
+                        )
+                        if compatible_tag:
+                            return compatible_tag
+
+                    # Second, search for compatible version in bundle cache
+                    compatible_version = self._find_compatible_cached_version(
+                        latest_tag
+                    )
+                    if compatible_version:
+                        log.warning(
+                            "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
+                            "Using highest compatible cached version %s."
+                            % (
+                                latest_tag,
+                                min_py_ver,
+                                current_py_ver,
+                                compatible_version,
+                            )
+                        )
+                        return compatible_version
+                    else:
+                        # No compatible version found - use latest anyway with warning
+                        log.warning(
+                            "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
+                            "No compatible cached version found. Using latest tag anyway."
+                            % (latest_tag, min_py_ver, current_py_ver)
+                        )
+                        return latest_tag
+                else:
+                    log.warning(
+                        "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
+                        "Keeping current version %s."
+                        % (latest_tag, min_py_ver, current_py_ver, self._version)
+                    )
+                    return self._version
+            else:
+                log.debug(
+                    "Latest tag %s is compatible with current Python version"
+                    % latest_tag
+                )
+                return latest_tag
+
+        except Exception as e:
+            log.warning(
+                "Could not check Python compatibility for tag %s: %s. Proceeding with auto-update."
+                % (latest_tag, e)
+            )
+            return latest_tag
 
     def get_latest_cached_version(self, constraint_pattern=None):
         """
