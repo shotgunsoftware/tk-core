@@ -9,10 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import copy
 import os
-import sys
 
 from ... import LogManager
-from .. import constants as descriptor_constants
 from ..errors import TankDescriptorError
 from .git import IODescriptorGit, TankGitError, _check_output
 
