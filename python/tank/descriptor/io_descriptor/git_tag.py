@@ -13,6 +13,8 @@ import re
 import subprocess
 import sys
 
+from tank_vendor import yaml
+
 from ... import LogManager
 from .. import constants as descriptor_constants
 from ..errors import TankDescriptorError
@@ -398,14 +400,32 @@ class IODescriptorGitTag(IODescriptorGit):
             )
             temp_desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
-            # Download if needed to read manifest
-            if not temp_desc.exists_local():
-                log.debug("Downloading %s to check Python compatibility" % latest_tag)
-                temp_desc.download_local()
-
-            # Read manifest and check Python compatibility
-            manifest = temp_desc.get_manifest(descriptor_constants.BUNDLE_METADATA_FILE)
-            if not self._check_minimum_python_version(manifest):
+            manifest = None
+            if temp_desc.exists_local():
+                # Latest tag is cached - check it directly
+                manifest = temp_desc.get_manifest(
+                    descriptor_constants.BUNDLE_METADATA_FILE
+                )
+            elif self._version == "latest":
+                # For "latest" descriptors, try to find compatible version without downloading
+                # This searches local repo and bundle cache
+                local_tag = self._get_local_repository_tag()
+                log.debug("local_tag: %s" % local_tag)
+                if local_tag and local_tag == latest_tag:
+                    # Local repo is already at latest tag, we can check it
+                    try:
+                        # Try to get manifest from local git checkout (not bundle cache)
+                        local_repo_path = os.path.dirname(self._path)
+                        manifest_path = os.path.join(
+                            local_repo_path, descriptor_constants.BUNDLE_METADATA_FILE
+                        )
+                        if os.path.exists(manifest_path):
+                            with open(manifest_path) as f:
+                                manifest = yaml.load(f, Loader=yaml.FullLoader)
+                    except Exception as e:
+                        log.debug("Could not read manifest from local git repo: %s" % e)
+                    manifest["minimum_python_version"] = "3.10"
+            if manifest and not self._check_minimum_python_version(manifest):
                 # Latest version is NOT compatible - block auto-update
                 current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
                 min_py_ver = manifest.get("minimum_python_version", "not specified")
