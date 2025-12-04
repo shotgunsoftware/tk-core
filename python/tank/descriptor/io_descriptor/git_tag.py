@@ -405,7 +405,6 @@ class IODescriptorGitTag(IODescriptorGit):
 
             # Read manifest and check Python compatibility
             manifest = temp_desc.get_manifest(descriptor_constants.BUNDLE_METADATA_FILE)
-            manifest["minimum_python_version"] = "3.10"  # TODO: Remove - hardcoded for testing
             if not self._check_minimum_python_version(manifest):
                 # Latest version is NOT compatible - block auto-update
                 current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
