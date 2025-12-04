@@ -220,46 +220,6 @@ class IODescriptorBase(object):
             install_cache_root, legacy_dir, descriptor_name, bundle_name, bundle_version
         )
 
-    def _check_minimum_python_version(self, manifest_data):
-        """
-        Check if the bundle's minimum_python_version requirement is compatible with
-        the current Python version.
-
-        :param manifest_data: Dictionary with the bundle's info.yml contents
-        :returns: True if compatible or no requirement specified, False otherwise
-        """
-        minimum_python_version = manifest_data.get("minimum_python_version")
-        if not minimum_python_version:
-            # No requirement specified, assume compatible
-            return True
-
-        # Get current Python version as string (e.g., "3.9.13")
-        current_version_str = ".".join(str(x) for x in sys.version_info[:3])
-
-        # Use tank.util.version for robust version comparison
-        # Current version must be >= minimum required version
-        try:
-            is_compatible = is_version_newer_or_equal(
-                current_version_str, str(minimum_python_version)
-            )
-        except Exception as e:
-            log.warning(
-                "Could not compare Python versions (current: %s, required: %s): %s. Assuming compatible.",
-                current_version_str,
-                minimum_python_version,
-                e,
-            )
-            return True
-
-        if not is_compatible:
-            log.debug(
-                "Python version %s does not meet minimum requirement %s",
-                current_version_str,
-                minimum_python_version,
-            )
-
-        return is_compatible
-
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
         Given a list of version strings (e.g. 'v1.2.3'), find the one
@@ -427,9 +387,6 @@ class IODescriptorBase(object):
         :param manifest_data: Dictionary containing bundle manifest/info.yml data
         :returns: True if current Python version is compatible, False otherwise
         """
-        import sys
-        from ...util.version import is_version_newer_or_equal
-
         # Get current Python version as string (e.g., "3.9.13")
         current_version_str = ".".join(str(i) for i in sys.version_info[:3])
 
