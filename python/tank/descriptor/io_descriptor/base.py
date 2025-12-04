@@ -8,17 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import contextlib
+import os
+import sys
 import urllib.parse
 
-from .. import constants
-from ... import LogManager
-from ...util import filesystem, sgre as re
-from ...util.version import is_version_newer
-from ..errors import TankDescriptorError, TankMissingManifestError
-
 from tank_vendor import yaml
+
+from ... import LogManager
+from ...util import filesystem
+from ...util import sgre as re
+from ...util.version import is_version_newer, is_version_newer_or_equal
+from .. import constants
+from ..errors import TankDescriptorError, TankMissingManifestError
 
 log = LogManager.get_logger(__name__)
 
@@ -247,8 +249,16 @@ class IODescriptorBase(object):
             # iterate over versions in list and find latest
             latest_version = None
             for version_number in version_numbers:
-                if is_version_newer(version_number, latest_version):
-                    latest_version = version_number
+                try:
+                    if is_version_newer(version_number, latest_version):
+                        latest_version = version_number
+                except Exception as e:
+                    # Handle malformed version tags gracefully
+                    log.debug(
+                        "Skipping version '%s' due to parsing error: %s"
+                        % (version_number, e)
+                    )
+                    continue
             return latest_version
 
         # now put all version number strings which match the form
@@ -368,6 +378,31 @@ class IODescriptorBase(object):
                         all_versions[version_folder] = version_full_path
 
         return all_versions
+
+    def _check_minimum_python_version(self, manifest_data):
+        """
+        Checks if the current Python version meets the minimum required version
+        specified in the manifest data.
+
+        :param manifest_data: Dictionary containing bundle manifest/info.yml data
+        :returns: True if current Python version is compatible, False otherwise
+        """
+        # Get current Python version as string (e.g., "3.9.13")
+        current_version_str = ".".join(str(i) for i in sys.version_info[:3])
+
+        # Get minimum required Python version from manifest
+        min_python_version = manifest_data.get("minimum_python_version")
+
+        # If no minimum version specified, assume compatible (backward compatibility)
+        if not min_python_version:
+            return True
+
+        # Compare versions using robust version comparison
+        is_compatible = is_version_newer_or_equal(
+            current_version_str, str(min_python_version)
+        )
+
+        return is_compatible
 
     def set_is_copiable(self, copiable):
         """
@@ -517,7 +552,7 @@ class IODescriptorBase(object):
         descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
-        for (param, value) in urllib.parse.parse_qs(query).items():
+        for param, value in urllib.parse.parse_qs(query).items():
             if len(value) > 1:
                 raise TankDescriptorError(
                     "Invalid uri '%s' - duplicate parameters" % uri
