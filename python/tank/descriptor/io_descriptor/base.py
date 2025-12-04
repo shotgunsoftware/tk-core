@@ -8,17 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import contextlib
+import os
+import sys
 import urllib.parse
 
-from .. import constants
-from ... import LogManager
-from ...util import filesystem, sgre as re
-from ...util.version import is_version_newer
-from ..errors import TankDescriptorError, TankMissingManifestError
-
 from tank_vendor import yaml
+
+from ... import LogManager
+from ...util import filesystem
+from ...util import sgre as re
+from ...util.version import is_version_newer, is_version_newer_or_equal
+from .. import constants
+from ..errors import TankDescriptorError, TankMissingManifestError
 
 log = LogManager.get_logger(__name__)
 
@@ -217,6 +219,46 @@ class IODescriptorBase(object):
         return os.path.join(
             install_cache_root, legacy_dir, descriptor_name, bundle_name, bundle_version
         )
+
+    def _check_minimum_python_version(self, manifest_data):
+        """
+        Check if the bundle's minimum_python_version requirement is compatible with
+        the current Python version.
+
+        :param manifest_data: Dictionary with the bundle's info.yml contents
+        :returns: True if compatible or no requirement specified, False otherwise
+        """
+        minimum_python_version = manifest_data.get("minimum_python_version")
+        if not minimum_python_version:
+            # No requirement specified, assume compatible
+            return True
+
+        # Get current Python version as string (e.g., "3.9.13")
+        current_version_str = ".".join(str(x) for x in sys.version_info[:3])
+
+        # Use tank.util.version for robust version comparison
+        # Current version must be >= minimum required version
+        try:
+            is_compatible = is_version_newer_or_equal(
+                current_version_str, str(minimum_python_version)
+            )
+        except Exception as e:
+            log.warning(
+                "Could not compare Python versions (current: %s, required: %s): %s. Assuming compatible.",
+                current_version_str,
+                minimum_python_version,
+                e,
+            )
+            return True
+
+        if not is_compatible:
+            log.debug(
+                "Python version %s does not meet minimum requirement %s",
+                current_version_str,
+                minimum_python_version,
+            )
+
+        return is_compatible
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
