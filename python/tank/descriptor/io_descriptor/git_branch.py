@@ -224,7 +224,6 @@ class IODescriptorGitBranch(IODescriptorGit):
             new_loc_dict, self._sg_connection, self._bundle_type
         )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-
         return desc
 
     def get_latest_cached_version(self, constraint_pattern=None):
