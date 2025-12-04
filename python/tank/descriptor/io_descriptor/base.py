@@ -18,7 +18,7 @@ from tank_vendor import yaml
 from ... import LogManager
 from ...util import filesystem
 from ...util import sgre as re
-from ...util.version import is_version_newer
+from ...util.version import is_version_newer, is_version_newer_or_equal
 from .. import constants
 from ..errors import TankDescriptorError, TankMissingManifestError
 
@@ -228,31 +228,30 @@ class IODescriptorBase(object):
         :param manifest_data: Dictionary with the bundle's info.yml contents
         :returns: True if compatible or no requirement specified, False otherwise
         """
-        log.warning(f"MANIFEST_DATA = {manifest_data}")
-
         minimum_python_version = manifest_data.get("minimum_python_version")
         if not minimum_python_version:
             # No requirement specified, assume compatible
             return True
 
-        # Parse the required version (e.g., "3.8" or "3.7.9")
+        # Get current Python version as string (e.g., "3.9.13")
+        current_version_str = ".".join(str(x) for x in sys.version_info[:3])
+
+        # Use tank.util.version for robust version comparison
+        # Current version must be >= minimum required version
         try:
-            required_parts = [int(x) for x in str(minimum_python_version).split(".")]
-        except (ValueError, AttributeError):
+            is_compatible = is_version_newer_or_equal(
+                current_version_str, str(minimum_python_version)
+            )
+        except Exception as e:
             log.warning(
-                "Invalid minimum_python_version format: %s. Assuming compatible.",
+                "Could not compare Python versions (current: %s, required: %s): %s. Assuming compatible.",
+                current_version_str,
                 minimum_python_version,
+                e,
             )
             return True
 
-        # Get current Python version (e.g., (3, 7, 9))
-        current_version = sys.version_info[: len(required_parts)]
-
-        # Compare tuples: (3, 7) >= (3, 8) = False
-        is_compatible = current_version >= tuple(required_parts)
-
         if not is_compatible:
-            current_version_str = ".".join(str(x) for x in sys.version_info[:3])
             log.debug(
                 "Python version %s does not meet minimum requirement %s",
                 current_version_str,
