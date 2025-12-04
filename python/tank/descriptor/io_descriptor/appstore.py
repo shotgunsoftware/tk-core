@@ -605,7 +605,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         Check if a specific version is compatible with current Python.
 
         :param version_str: Version string to check
-        :returns: Tuple of (is_compatible, descriptor) where descriptor is the 
+        :returns: Tuple of (is_compatible, descriptor) where descriptor is the
                   IODescriptorAppStore instance if compatible, None otherwise
         """
         try:
