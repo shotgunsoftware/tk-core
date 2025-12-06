@@ -20,31 +20,31 @@ pkgs_zip_path = (
     / "pkgs.zip"
 )
 
-# Validate that the pkgs.zip exists for the current Python version.
-if not pkgs_zip_path.exists():
-    raise RuntimeError(f"{pkgs_zip_path} does not exists")
+# Only load from pkgs.zip if it exists. This provides backward compatibility
+# for installations that may still use vendored copies or are in temporary
+# locations without the requirements directory structure.
+if pkgs_zip_path.exists():
+    # Add pkgs.zip to sys.path to enable importing packages from the archive.
+    sys.path.insert(0, str(pkgs_zip_path))
+    try:
+        # Import third-party packages from pkgs.zip.
+        # These simple imports create module attributes (e.g., tank_vendor.yaml)
+        # that work for basic imports like "from tank_vendor import yaml".
+        import distro
+        import packaging
+        import ruamel
+        import yaml
 
-# Add pkgs.zip to sys.path to enable importing packages from the archive.
-sys.path.insert(0, str(pkgs_zip_path))
-try:
-    # Import third-party packages from pkgs.zip.
-    # These simple imports create module attributes (e.g., tank_vendor.yaml)
-    # that work for basic imports like "from tank_vendor import yaml".
-    import distro
-    import packaging
-    import ruamel
-    import yaml
+        # Register modules in sys.modules to support nested imports.
+        # This is required for imports like:
+        #   - from tank_vendor.packaging.version import parse
+        #   - from tank_vendor.ruamel.yaml import YAML
+        # Without this, Python cannot resolve the dotted path when looking up
+        # submodules (e.g., .version, .yaml) because it searches sys.modules
+        # for 'tank_vendor.packaging', not just the attribute tank_vendor.packaging.
+        sys.modules["tank_vendor.packaging"] = sys.modules["packaging"]
+        sys.modules["tank_vendor.ruamel"] = sys.modules["ruamel"]
 
-    # Register modules in sys.modules to support nested imports.
-    # This is required for imports like:
-    #   - from tank_vendor.packaging.version import parse
-    #   - from tank_vendor.ruamel.yaml import YAML
-    # Without this, Python cannot resolve the dotted path when looking up
-    # submodules (e.g., .version, .yaml) because it searches sys.modules
-    # for 'tank_vendor.packaging', not just the attribute tank_vendor.packaging.
-    sys.modules["tank_vendor.packaging"] = sys.modules["packaging"]
-    sys.modules["tank_vendor.ruamel"] = sys.modules["ruamel"]
-
-except Exception as e:
-    sys.path.remove(str(pkgs_zip_path))
-    raise RuntimeError(f"Failed to import required modules: {e}") from e
+    except Exception as e:
+        sys.path.remove(str(pkgs_zip_path))
+        raise RuntimeError(f"Failed to import required modules from {pkgs_zip_path}: {e}") from e
