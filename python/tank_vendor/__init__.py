@@ -31,13 +31,16 @@ def _patch_shotgun_api3_certs(zip_path):
         # Save original method
         _original_get_certs_file = shotgun_api3.Shotgun._get_certs_file
         
-        # Create patched version
-        def _patched_get_certs_file(self):
-            # Return extracted certificate path instead of ZIP path
+        # Create patched version - static method, only receives ca_certs parameter
+        def _patched_get_certs_file(ca_certs=None):
+            # If ca_certs explicitly provided, use original behavior
+            if ca_certs is not None:
+                return _original_get_certs_file(ca_certs)
+            # Otherwise return extracted certificate path instead of ZIP path
             return str(cert_file)
         
         # Apply patch
-        shotgun_api3.Shotgun._get_certs_file = _patched_get_certs_file
+        shotgun_api3.Shotgun._get_certs_file = staticmethod(_patched_get_certs_file)
 
 
 # Construct path to the Python version-specific pkgs.zip containing third-party dependencies.
