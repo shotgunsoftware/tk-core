@@ -1,2 +1,5 @@
 distro==1.4.0
+packaging==25.0
 PyYAML==6.0.1
+ruamel.yaml==0.18.14
+ruamel.yaml.clib==0.2.15
