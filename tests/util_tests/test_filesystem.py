@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -27,7 +25,7 @@ import stat
 
 class TestFileSystem(TankTestBase):
     def setUp(self):
-        super(TestFileSystem, self).setUp()
+        super().setUp()
         self.util_filesystem_test_folder_location = os.path.join(
             self.fixtures_root, "util", "filesystem"
         )
@@ -235,7 +233,7 @@ class TestOpenInFileBrowser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestOpenInFileBrowser, self).setUp()
+        super().setUp()
         self.test_folder = os.path.join(self.tank_temp, "foo")
         self.test_file = os.path.join(self.test_folder, "bar.txt")
         self.test_sequence = os.path.join(self.test_folder, "render.%04d.exr")

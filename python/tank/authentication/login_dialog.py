@@ -36,7 +36,6 @@ from .ui.qt_abstraction import (
     QtGui,
     QtCore,
     QtNetwork,
-    QtWebKit,
     QtWebEngineWidgets,
     qt_version_tuple,
 )
@@ -44,16 +43,11 @@ from . import app_session_launcher
 from . import site_info
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
-    SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
 )
+from .sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
 
 from .. import LogManager
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
 
 logger = LogManager.get_logger(__name__)
 
@@ -151,7 +145,6 @@ class LoginDialog(QtGui.QDialog):
             "QtCore": QtCore,
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
-            "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
@@ -370,7 +363,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).closeEvent(event)
+        return super().closeEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
@@ -384,7 +377,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).keyPressEvent(event)
+        return super().keyPressEvent(event)
 
     def _get_current_site(self):
         """
@@ -392,9 +385,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return sgutils.ensure_str(
-            connection.sanitize_url(self.ui.site.currentText().strip())
-        )
+        return str(connection.sanitize_url(self.ui.site.currentText().strip()))
 
     def _get_current_user(self):
         """
@@ -402,7 +393,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The login to use for authentication.
         """
-        return sgutils.ensure_str(self.ui.login.currentText().strip())
+        return self.ui.login.currentText().strip()
 
     def _update_ui_according_to_site_support(self):
         """
@@ -481,24 +472,27 @@ class LoginDialog(QtGui.QDialog):
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
 
-        # With a SSO site, we have no choice but to use the web to login.
-        can_use_web = self.site_info.sso_enabled
+        can_use_web = self._sso_saml2 is not None
         can_use_asl = self.site_info.app_session_launcher_enabled
 
-        # The user may decide to force the use of the old dialog:
-        # - due to graphical issues with Qt and its WebEngine
-        # - they need to use the legacy login / passphrase to use a PAT with
-        #   Autodesk Identity authentication
-        if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-            logger.info("Using the standard login dialog with the Flow Production Tracking")
-        else:
-            if _is_running_in_desktop():
-                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+        if can_use_web:
+            # With a SSO site, we have no choice but to use the web to login.
+            can_use_web = self.site_info.sso_enabled
 
-            # If we have full support for Web-based login, or if we enable it in our
-            # environment, use the Unified Login Flow for all authentication modes.
-            if get_shotgun_authenticator_support_web_login():
-                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
+            # The user may decide to force the use of the old dialog:
+            # - due to graphical issues with Qt and its WebEngine
+            # - they need to use the legacy login / passphrase to use a PAT with
+            #   Autodesk Identity authentication
+            if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+                logger.info("Using the standard login dialog with the Flow Production Tracking")
+            else:
+                if _is_running_in_desktop():
+                    can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+
+                # If we have full support for Web-based login, or if we enable it in our
+                # environment, use the Unified Login Flow for all authentication modes.
+                if get_shotgun_authenticator_support_web_login():
+                    can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
 
         if method_selected:
             # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
@@ -953,7 +947,7 @@ class ASL_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
     def __init__(self, parent, sg_url, http_proxy=None):
-        super(ASL_AuthTask, self).__init__(parent)
+        super().__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url
@@ -975,7 +969,7 @@ class ASL_AuthTask(QtCore.QThread):
         try:
             self.session_info = app_session_launcher.process(
                 self._sg_url,
-                lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
+                browser_open_callback=lambda u: QtGui.QDesktopServices.openUrl(u),
                 http_proxy=self._http_proxy,
                 product=self._product,
                 keep_waiting_callback=self.should_continue,

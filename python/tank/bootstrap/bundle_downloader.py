@@ -29,17 +29,14 @@ class BundleDownloader(object):
         :param pipeline_config_id: Id of the pipeline configuration that was selected.
         :param descriptor: Descriptor of the configuration that we're running.
         """
-        super(BundleDownloader, self).__init__()
+        super().__init__()
 
         # First put our base hook implementation into the array.
         base_class_path = os.path.normpath(
             os.path.join(
-                os.path.dirname(__file__),  # ./python/tank/bootstrap
-                "..",  # ./python/tank
-                "..",  # ./python
-                "..",  # ./
-                "hooks",  # ./hooks
-                "bootstrap.py",  # ./hooks/bootstrap.py
+                os.path.dirname(__file__),  # ...tk-core/python/tank/bootstrap
+                "hooks",
+                "bootstrap.py",  # ...tk-core/python/bootstrap/hooks/bootstrap.py
             )
         )
         hook_inheritance_chain = [base_class_path]

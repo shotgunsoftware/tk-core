@@ -11,7 +11,6 @@
 """
 Unit tests tank setup_project.
 """
-from __future__ import with_statement
 
 import os
 import logging
@@ -82,7 +81,7 @@ class TestSetupProject(TankTestBase):
         """
 
         def mocked_resolve_core_path(core_path):
-            return {"linux2": core_path, "darwin": core_path, "win32": core_path}
+            return {"linux": core_path, "darwin": core_path, "win32": core_path}
 
         mocked.side_effect = mocked_resolve_core_path
 
@@ -135,7 +134,7 @@ class TestSetupProject(TankTestBase):
         """
 
         def mocked_resolve_core_path(core_path):
-            return {"linux2": core_path, "darwin": core_path, "win32": core_path}
+            return {"linux": core_path, "darwin": core_path, "win32": core_path}
 
         self.upload_associated_pipeline_config_id = None
 
@@ -201,7 +200,7 @@ class TestSetupProject(TankTestBase):
         """
 
         def mocked_resolve_core_path(core_path):
-            return {"linux2": core_path, "darwin": core_path, "win32": core_path}
+            return {"linux": core_path, "darwin": core_path, "win32": core_path}
 
         resolve_all_os_paths_to_core_mock.side_effect = mocked_resolve_core_path
 

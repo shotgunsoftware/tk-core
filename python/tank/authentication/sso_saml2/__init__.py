@@ -19,14 +19,8 @@ from .core.errors import (  # noqa
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtModuleError,
     SsoSaml2MissingQtNetwork,
-    SsoSaml2MissingQtWebKit,
     SsoSaml2MultiSessionNotSupportedError,
 )
-
-# Classes
-from .sso_saml2 import SsoSaml2  # noqa
-
-from .sso_saml2_toolkit import SsoSaml2Toolkit  # noqa
 
 # Functions
 from .utils import (  # noqa

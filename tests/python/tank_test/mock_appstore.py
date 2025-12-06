@@ -12,25 +12,17 @@
 Unit tests tank updates.
 """
 
-from __future__ import with_statement
-
 import functools
 import sys
+from unittest import mock
 
-import mock
-
-from sgtk.descriptor import Descriptor
+from sgtk.descriptor import Descriptor, create_descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
-from sgtk.descriptor import create_descriptor
 from sgtk.util import sgre as re
-
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
-from tank.util import suppress_known_deprecation
-if sys.version_info[0:2] >= (3, 10):
-    from setuptools._distutils.version import LooseVersion
-else:
-    from distutils.version import LooseVersion
+
+from packaging import version
 
 
 class MockStore(object):
@@ -288,11 +280,9 @@ class TankMockStoreDescriptor(IODescriptorBase):
             self._type, self.get_system_name()
         )
         latest = "v0.0.0"
-        with suppress_known_deprecation():
-            # Supress `distutils Version classes are deprecated.` for Python 3.10
-            for version in versions:
-                if LooseVersion(version) > LooseVersion(latest):
-                    latest = version
+        for v in versions:
+            if version.parse(v) > version.parse(latest):
+                latest = v
 
         return self.create(latest)
 

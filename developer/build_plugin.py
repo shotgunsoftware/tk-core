@@ -17,7 +17,6 @@ a primed bundle cache.
 """
 
 # system imports
-from __future__ import with_statement
 import os
 import sys
 import shutil
@@ -348,7 +347,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             fh.write('base_configuration="%s"\n' % config_uri)
 
-            for (parameter, value) in manifest_data.items():
+            for parameter, value in manifest_data.items():
 
                 if parameter == "base_configuration":
                     continue

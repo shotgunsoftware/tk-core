@@ -19,15 +19,7 @@ import sqlite3
 import sys
 import os
 import itertools
-
-# use api json to cover py 2.5
-# todo - replace with proper external library
-from tank_vendor import shotgun_api3
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import range
-
-json = shotgun_api3.shotgun.json
+import json
 
 from .platform.engine import show_global_busy, clear_global_busy
 from . import constants
@@ -1012,11 +1004,11 @@ class PathCache(object):
 
         # get the local path from our attachment entity dict
         sg_local_storage_os_map = {
-            "linux2": "local_path_linux",
+            "linux": "local_path_linux",
             "win32": "local_path_windows",
             "darwin": "local_path_mac",
         }
-        local_os_path_field = sg_local_storage_os_map[sgsix.platform]
+        local_os_path_field = sg_local_storage_os_map[sys.platform]
         local_os_path = fsl_entity[SG_PATH_FIELD].get(local_os_path_field)
 
         # if the storage is not correctly configured for an OS, it is possible
@@ -1859,7 +1851,7 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
+        for (et, sg_records_for_et) in ids_to_look_for.items():
 
             log.info(" - Checking %s %ss in Flow Production Tracking..." % (len(sg_records_for_et), et))
 

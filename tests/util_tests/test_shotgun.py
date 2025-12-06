@@ -8,22 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
+import datetime
 import os
 import shutil
-import datetime
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
 import tank
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-    ShotgunTestBase,
-)
-
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
 
 
 def get_file_list(folder, prefix):
@@ -53,7 +47,7 @@ class TestShotgunFindPublish(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
 
-        super(TestShotgunFindPublish, self).setUp()
+        super().setUp()
 
         project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
@@ -310,7 +304,13 @@ class TestShotgunFindPublish(TankTestBase):
         # Create a new project and pipeline configuration, and set the new project
         # as the current project of the new pipeline configuraiton
         other_proj, other_proj_root = self.create_project({"name": "other project"})
-        (_, _, _, _, other_tk,) = self.create_pipeline_configuration(other_proj)
+        (
+            _,
+            _,
+            _,
+            _,
+            other_tk,
+        ) = self.create_pipeline_configuration(other_proj)
         other_proj_name = os.path.basename(other_proj_root)
         other_pub = {
             "type": "PublishedFile",
@@ -401,7 +401,7 @@ class TestShotgunFindPublish(TankTestBase):
 
 class TestMultiRoot(TankTestBase):
     def setUp(self):
-        super(TestMultiRoot, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
 
     def test_multi_root(self):
@@ -522,7 +522,7 @@ class TestMultiRoot(TankTestBase):
 
 class TestShotgunDownloadUrl(ShotgunTestBase):
     def setUp(self):
-        super(TestShotgunDownloadUrl, self).setUp()
+        super().setUp()
 
         # Identify the source file to "download"
         self.download_source = os.path.join(
@@ -557,7 +557,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
             os.remove(self.download_destination)
 
         # important to call base class so it can clean up memory
-        super(TestShotgunDownloadUrl, self).tearDown()
+        super().tearDown()
 
     def test_download(self):
         """
@@ -606,7 +606,7 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestShotgunDownloadAndUnpack, self).setUp()
+        super().setUp()
 
         zip_file_location = os.path.join(self.fixtures_root, "misc", "zip")
         # Identify the source file to "download"
@@ -680,7 +680,9 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         """
         target_dir = os.path.join(self.download_destination, "url")
         try:
-            with mock.patch("tank.util.shotgun.download.download_url") as download_url_mock:
+            with mock.patch(
+                "tank.util.shotgun.download.download_url"
+            ) as download_url_mock:
                 # Fail forever, and ensure exception is raised.
                 download_url_mock.side_effect = Exception("Test Exception")
                 with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):

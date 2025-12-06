@@ -24,11 +24,8 @@ at any point.
 
 # Using "with" with the lock to make sure it is always released.
 
-from __future__ import with_statement
-
 from .errors import AuthenticationCancelled
 from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
-from .ui_authentication import UiAuthenticationHandler
 
 from .. import LogManager
 
@@ -36,15 +33,6 @@ import threading
 import os
 from tank.util import is_windows
 
-# When importing qt_abstraction, a lot of code is executed to detects which
-# version of Qt is being used. Running business logic at import time is not
-# something usually done by the Toolkit. The worry is that the import may fail
-# in the context of a DCC, but occur too early for the Toolkit logging to be
-# fully in place to record it.
-try:
-    from .ui.qt_abstraction import QtGui
-except Exception:
-    QtGui = None
 
 logger = LogManager.get_logger(__name__)
 
@@ -72,16 +60,23 @@ def _get_current_os_user():
             return None
 
 
-def _get_ui_state():
+def _get_ui_state() -> bool:
     """
     Returns the state of UI: do we have a ui or not.
-    :returns: True or False)
+    :returns: True or False
     """
-    if QtGui and QtGui.QApplication.instance() is not None:
-        return True
-    else:
-        return False
 
+    # When importing qt_abstraction, a lot of code is executed to detects which
+    # version of Qt is being used. Running business logic at import time is not
+    # something usually done by the Toolkit. The worry is that the import may fail
+    # in the context of a DCC, but occur too early for the Toolkit logging to be
+    # fully in place to record it.
+    try:
+        from .ui.qt_abstraction import QtGui
+    except Exception:
+        QtGui = None
+
+    return bool(QtGui and QtGui.QApplication.instance())
 
 class SessionRenewal(object):
     """
@@ -224,6 +219,7 @@ def renew_session(user):
     has_ui = _get_ui_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
+        from .ui_authentication import UiAuthenticationHandler
         authenticator = UiAuthenticationHandler(
             is_session_renewal=True, session_metadata=user.get_session_metadata()
         )
@@ -259,6 +255,8 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
     #        object instead of 5 element tuple.
     # If we have a gui, we need gui based authentication
     if has_ui:
+        from .ui_authentication import UiAuthenticationHandler
+
         # If we are renewing for a background thread, use the invoker
         authenticator = UiAuthenticationHandler(
             is_session_renewal=False, fixed_host=fixed_host

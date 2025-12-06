@@ -11,7 +11,8 @@
 import pathlib
 import sys
 
-# Dynamically determine the name of the current module (e.g., "tank_vendor").
+# Construct path to the Python version-specific pkgs.zip containing third-party dependencies.
+# Path structure: <tk-core>/requirements/<major>.<minor>/pkgs.zip
 pkgs_zip_path = (
     pathlib.Path(__file__).resolve().parent.parent.parent /
     "requirements" /
@@ -19,25 +20,30 @@ pkgs_zip_path = (
     "pkgs.zip"
 )
 
-# Add pkgs.zip to sys.path if it exists and isn't already present.
+# Validate that the pkgs.zip exists for the current Python version.
 if not pkgs_zip_path.exists():
     raise RuntimeError(f"{pkgs_zip_path} does not exists")
 
+# Add pkgs.zip to sys.path to enable importing packages from the archive.
 sys.path.insert(0, str(pkgs_zip_path))
 try:
-    # If other modules use from tank_vendor import distro, Python expects
-    # tank_vendor.distro to exist in sys.modules, which doesn’t happen
-    # automatically by just adding pkgs.zip to sys.path. Importing distro and
-    # yaml globally in __init__.py ensures they are properly registered and
-    # accessible.
-    import yaml
+    # Import third-party packages from pkgs.zip.
+    # These simple imports create module attributes (e.g., tank_vendor.yaml)
+    # that work for basic imports like "from tank_vendor import yaml".
     import distro
-
-    # Explicitly import six and ruamel_yaml from the tank_vendor folder instead
-    # of loading from pkgs.zip.
-    # This ensures that these packages are always used from the tank_vendor
-    # namespace, avoiding potential conflicts with versions inside pkgs.zip.
-    from . import ruamel_yaml, six
+    import packaging
+    import ruamel
+    import yaml
+    
+    # Register modules in sys.modules to support nested imports.
+    # This is required for imports like:
+    #   - from tank_vendor.packaging.version import parse
+    #   - from tank_vendor.ruamel.yaml import YAML
+    # Without this, Python cannot resolve the dotted path when looking up
+    # submodules (e.g., .version, .yaml) because it searches sys.modules
+    # for 'tank_vendor.packaging', not just the attribute tank_vendor.packaging.
+    sys.modules['tank_vendor.packaging'] = sys.modules['packaging']
+    sys.modules['tank_vendor.ruamel'] = sys.modules['ruamel']
 
 except Exception as e:
     sys.path.remove(str(pkgs_zip_path))

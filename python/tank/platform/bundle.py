@@ -13,20 +13,20 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 
 """
 
+import importlib.machinery
+import importlib.util
 import os
 import sys
-import imp
 import uuid
 
 from .. import hook
+from ..errors import TankError, TankNoDefaultValueError
+from ..log import LogManager
 from ..util import sgre as re
 from ..util.metrics import EventMetric
-from ..log import LogManager
-from ..errors import TankError, TankNoDefaultValueError
-from .errors import TankContextChangeNotSupportedError
 from . import constants
+from .errors import TankContextChangeNotSupportedError
 from .import_stack import ImportStack
-from tank_vendor import six
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -458,9 +458,18 @@ class TankBundle(object):
                 self.log_debug("Importing python modules in %s..." % python_folder)
                 # alias the python folder with a UID to ensure it is unique every time it is imported
                 self.__module_uid = "tkimp%s" % uuid.uuid4().hex
-                imp.load_module(
-                    self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY)
+                sys.path.insert(0, python_folder)
+                module_init_file = os.path.join(python_folder, "__init__.py")
+                spec = importlib.util.spec_from_loader(
+                    self.__module_uid,
+                    importlib.machinery.SourceFileLoader(
+                        self.__module_uid, os.path.join(python_folder, module_init_file)
+                    ),
                 )
+                package = importlib.util.module_from_spec(spec)
+                sys.modules[self.__module_uid] = package
+                spec.loader.exec_module(package)
+                sys.path.pop(0)
 
             # we can now find our actual module in sys.modules as GUID.module_name
             mod_name = "%s.%s" % (self.__module_uid, module_name)
@@ -1090,7 +1099,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     # first check for procedural overrides where instead of getting a value,
     # directly from the config, we call a hook to evaluate a config value
     # at runtime:
-    if isinstance(value, six.string_types) and value.startswith("hook:"):
+    if isinstance(value, str) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
         # if the template parameter is on the form

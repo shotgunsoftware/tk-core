@@ -7,17 +7,12 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import os
 import copy
+import os
 
-from .git import IODescriptorGit, TankGitError, _check_output
-from ..errors import TankDescriptorError
 from ... import LogManager
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
+from ..errors import TankDescriptorError
+from .git import IODescriptorGit, TankGitError, _check_output
 
 log = LogManager.get_logger(__name__)
 
@@ -68,16 +63,14 @@ class IODescriptorGitBranch(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitBranch, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
         self._version = descriptor_dict.get("version")
-        self._branch = sgutils.ensure_str(descriptor_dict.get("branch"))
+        self._branch = str(descriptor_dict.get("branch"))
 
     def __str__(self):
         """
@@ -226,7 +219,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = sgutils.ensure_str(git_hash)
+        new_loc_dict["version"] = str(git_hash)
         desc = IODescriptorGitBranch(
             new_loc_dict, self._sg_connection, self._bundle_type
         )

@@ -12,21 +12,17 @@
 Methods for connecting to Shotgun
 """
 
-from __future__ import with_statement
-
 import os
 import threading
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
-# use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 
-from ..errors import UnresolvableCoreConfigurationError
+from ... import hook
 from ...errors import TankError
 from ...log import LogManager
-from ... import hook
-from .. import constants
-from .. import yaml_cache
+from .. import constants, yaml_cache
+from ..errors import UnresolvableCoreConfigurationError
 
 log = LogManager.get_logger(__name__)
 
@@ -284,10 +280,6 @@ def sanitize_url(server_url):
 
     :returns: The cleaned up URL.
     """
-
-    # FIXME: Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there
-    # is already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since it
-    # is very unlikely Shotgun will be running off a custom port.
     first_pass = __sanitize_url(server_url.strip())
     # We have to do two passes here. The reason is that if you use a slash in your URL but provide
     # no scheme, the urlparse/unparse calls will recreate the URL as is. Fortunately, when the
@@ -298,6 +290,7 @@ def sanitize_url(server_url):
     # - /... (path)
     #
     # We also lowercase the entire url. This will allow us to reliably compare site addresses
+    # We lowercase the entire url. This will allow us to reliably compare site addresses
     # against each other elsewhere in the code and not have to worry about STUDIO.shotgunstudio.com
     # and studio.shotgunstudio.com not matching when they should be considered the same site.
     return __sanitize_url(first_pass).lower()

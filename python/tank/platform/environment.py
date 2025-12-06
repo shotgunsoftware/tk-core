@@ -26,8 +26,6 @@ from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 
 logger = LogManager.get_logger(__name__)
 
@@ -151,8 +149,8 @@ class Environment(object):
         # now check if the current platform is disabled
         deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
-        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
-            sgsix.platform
+        nice_system_name = {"linux": "linux", "darwin": "mac", "win32": "windows"}[
+            sys.platform
         ]
         if nice_system_name in deny_platforms:
             return True
@@ -691,7 +689,7 @@ class Environment(object):
             is determined by whether it is a string, and if so, it is an
             included value if it has an @ at its head.
             """
-            return isinstance(item, six.string_types) and item.startswith("@")
+            return isinstance(item, str) and item.startswith("@")
 
         if is_included(bundle_section):
             # The whole section is a reference! The token is just the include
@@ -759,7 +757,7 @@ class InstalledEnvironment(Environment):
                         context-based include file resolve will be
                         skipped.
         """
-        super(InstalledEnvironment, self).__init__(env_path, context)
+        super().__init__(env_path, context)
         self.__pipeline_config = pipeline_config
 
     def get_framework_descriptor(self, framework_name):
@@ -833,7 +831,17 @@ class WritableEnvironment(InstalledEnvironment):
                         skipped.
         """
         self.set_yaml_preserve_mode(True)
-        super(WritableEnvironment, self).__init__(env_path, pipeline_config, context)
+        super().__init__(env_path, pipeline_config, context)
+
+    def _get_ruamel_yaml(self):
+        vendor_path  = os.path.join(os.path.dirname(__file__), "../..", "tank_vendor")
+
+        if vendor_path not in sys.path:
+            sys.path.append(vendor_path)
+
+        from tank_vendor.ruamel import yaml as ruamel_yaml
+
+        return ruamel_yaml
 
     def __load_writable_yaml(self, path):
         """
@@ -850,9 +858,10 @@ class WritableEnvironment(InstalledEnvironment):
             )
 
         try:
-            # the ruamel parser doesn't have 2.5 support so
-            # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
+            logger.debug(
+                f"self._use_ruamel_yaml_parser={self._use_ruamel_yaml_parser}"
+            )
+            if self._use_ruamel_yaml_parser:
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is
                 # written back to disk.
@@ -861,9 +870,9 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
-                from tank_vendor import ruamel_yaml
+                ruamel_yaml = self._get_ruamel_yaml()
 
-                yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
+                yaml_data = ruamel_yaml.YAML(typ="rt").load(fh)
             else:
                 # use pyyaml parser
                 yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
@@ -916,9 +925,7 @@ class WritableEnvironment(InstalledEnvironment):
         """
 
         try:
-            # the ruamel parser doesn't have 2.5 support so
-            # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
+            if self._use_ruamel_yaml_parser:
                 # note that we are using the RoundTripDumper in order to
                 # preserve the structure when writing the file to disk.
                 #
@@ -936,14 +943,9 @@ class WritableEnvironment(InstalledEnvironment):
                 # note that safe_dump is not needed when using the
                 # roundtrip dumper, it will adopt a 'safe' behaviour
                 # by default.
-                from tank_vendor import ruamel_yaml
+                ruamel_yaml = self._get_ruamel_yaml()
 
-                ruamel_yaml.dump(
-                    data,
-                    fh,
-                    default_flow_style=False,
-                    Dumper=ruamel_yaml.RoundTripDumper,
-                )
+                ruamel_yaml.YAML(typ="rt").dump(data, fh)
             else:
                 # use pyyaml parser
                 #

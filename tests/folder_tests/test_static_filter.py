@@ -23,7 +23,7 @@ class TestStaticFolderFilters(TankTestBase):
 
     def setUp(self):
 
-        super(TestStaticFolderFilters, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"core": "core.override/static_filters_core"})
 
         self.shot_aaa = {

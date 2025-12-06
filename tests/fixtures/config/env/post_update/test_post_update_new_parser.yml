@@ -70,7 +70,7 @@ engines:
 
         test_simple_dictionary:
           test_str: a
-          test_int: 1         
+          test_int: 1
 
         test_complex_dictionary:
           test_str: a
@@ -78,7 +78,7 @@ engines:
           - test_str: a
             test_int: 1
           - test_str: b
-            test_int: 2               
+            test_int: 2
 
         test_simple_list: [a, b, c, d]
         test_complex_list:
@@ -88,7 +88,7 @@ engines:
           test_bool: true
           test_template: maya_shot_work
           test_hook: config_test_hook
-          test_extra: extra         
+          test_extra: extra
 
         - test_str: b
           test_int: 2
@@ -96,18 +96,18 @@ engines:
           test_bool: false
           test_template: maya_shot_publish
           test_hook: config_test_hook
-          test_extra: extra         
+          test_extra: extra
 
         test_very_complex_list:
         - test_str: a
           test_list:
           - test_str: aa
-          - test_str: ab                  
+          - test_str: ab
 
         - test_str: b
           test_list:
           - test_str: ba
-          - test_str: bb                  
+          - test_str: bb
 
         test_str_evaluator: hook:test_evaluator
         test_int_evaluator: hook:test_evaluator

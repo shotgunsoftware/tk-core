@@ -29,13 +29,41 @@ __version__ = "HEAD"
 # configuration has its python sgtk/tank module imported directly, it will associate
 # itself with the primary config rather than with the config where the code is located.
 
+import inspect
 import os
 import sys
 import uuid
-import inspect
+import warnings
 
 if sys.version_info < (3, 7):
-    raise Exception("This module requires Python version 3.7 or higher.")
+    if os.environ.get("SHOTGUN_ALLOW_OLD_PYTHON", "0") != "1":
+        # This is our preferred default behavior when using an old
+        # unsupported Python version.
+        # This way, we can control where the exception is raised, and it provides a
+        # comprehensive error message rather than having users facing a random
+        # Python traceback and trying to understand this is due to using an
+        # unsupported Python version.
+
+        raise RuntimeError("This module requires Python version 3.7 or higher.")
+
+    warnings.warn(
+        "Python versions older than 3.7 are no longer supported as of January "
+        "2023. Since the SHOTGUN_ALLOW_OLD_PYTHON variable is enabled, this "
+        "module is raising a warning instead of an exception. "
+        "However, it is very likely that this module will not be able to work "
+        "on this Python version.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+elif sys.version_info < (3, 9):
+    warnings.warn(
+        "Python versions older than 3.9 are no longer supported as of March "
+        "2025 and compatibility will be discontinued after March 2026. "
+        "Please update to Python 3.11 or any other supported version.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+
 
 def __fix_tank_vendor():
     # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,

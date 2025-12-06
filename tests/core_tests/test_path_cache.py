@@ -8,33 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement, print_function
-
-import os
-import sys
-import time
-from tank_vendor.six.moves.queue import Empty
-from tank_vendor.six import StringIO
-import shutil
 import contextlib
 import logging
+import os
+import shutil
+import sys
+import time
+from io import StringIO
+from queue import Empty
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-    temp_env_var,
-)
-
-from tank import path_cache
-from tank import folder
-from tank import constants
-from tank import LogManager
-from tank.util import is_windows
 import tank
-
-from tank.util import StorageRoots
-from tank_vendor.six.moves import range
+from tank import LogManager, folder, path_cache
+from tank.util import StorageRoots, is_windows
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import TankTestBase, mock, temp_env_var
 
 log = LogManager.get_logger(__name__)
 
@@ -65,10 +52,7 @@ def sync_path_cache(tk, force_full_sync=False):
     pc.synchronize(force_full_sync)
     pc.close()
 
-    # Do not close StringIO here, as on Python 2.5 this will cause some garbage to be printed
-    # when the unit tests are complete. The SteamIO object will be gc'ed anyway, so it shouldn't
-    # be too bad.
-
+    # No need to close the StringIO; it will be garbage collected.
     log_contents = stream.getvalue()
     log.removeHandler(handler)
     return log_contents
@@ -78,14 +62,14 @@ class TestPathCache(TankTestBase):
     """Base class for path cache tests."""
 
     def setUp(self):
-        super(TestPathCache, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
         self.path_cache = path_cache.PathCache(self.tk)
         self.path_cache_location = self.path_cache._get_path_cache_location()
 
     def tearDown(self):
         self.path_cache.close()
-        super(TestPathCache, self).tearDown()
+        super().tearDown()
 
 
 class TestInit(TestPathCache):
@@ -154,7 +138,7 @@ class TestInit(TestPathCache):
 
 class TestAddMapping(TestPathCache):
     def setUp(self):
-        super(TestAddMapping, self).setUp()
+        super().setUp()
 
         # entity for testing
         self.entity = {"type": "EntityType", "id": 1, "name": "EntityName"}
@@ -402,7 +386,7 @@ class TestGetEntity(TestPathCache):
     """
 
     def setUp(self):
-        super(TestGetEntity, self).setUp()
+        super().setUp()
         self.non_project = {
             "type": "NonProjectEntity",
             "id": 999,
@@ -523,7 +507,7 @@ class TestShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunSync, self).setUp(
+        super().setUp(
             parameters={"project_tank_name": project_tank_name}
         )
         self.setup_fixtures()
@@ -849,7 +833,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestConcurrentShotgunSync, self).setUp(project_tank_name)
+        super().setUp(project_tank_name)
         self.setup_fixtures()
 
         self.seq = {
@@ -903,10 +887,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         test multiple processes doing a full sync of the path cache at the same time
         """
 
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2, 6):
-            return
-
         import multiprocessing
 
         folder.process_filesystem_structure(
@@ -952,10 +932,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
         Test multi process incremental sync as records are being inserted.
         """
-
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         import multiprocessing
 
@@ -1049,7 +1025,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPathCacheGetLocationsFullSync, self).setUp()
+        super().setUp()
 
         # Create a new project, we will assign a new Filesystemlocation entity to this
         self._project_entity_b = self.mockgun.create("Project", {"name": "Project_B"})
@@ -1072,7 +1048,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
 
     def tearDown(self):
         self._pc.close()
-        super(TestPathCacheGetLocationsFullSync, self).tearDown()
+        super().tearDown()
 
     def test_get_entities(self):
         """
@@ -1106,7 +1082,7 @@ class TestPathCacheDelete(TankTestBase):
         """
         Creates a bunch of entities in Mockgun and adds an entry to the FilesystemLocation.
         """
-        super(TestPathCacheDelete, self).setUp()
+        super().setUp()
 
         # Create a bunch of entities for unit testing.
         self._project_link = self.mockgun.create("Project", {"name": "MyProject"})
@@ -1153,7 +1129,7 @@ class TestPathCacheDelete(TankTestBase):
             self.assertEqual(self._pc._do_full_sync.called, False)
         finally:
             self._pc.close()
-            super(TestPathCacheDelete, self).tearDown()
+            super().tearDown()
 
     @contextlib.contextmanager
     def mock_remote_path_cache(self):
@@ -1349,7 +1325,7 @@ class TestPathCacheBatchOperation(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPathCacheBatchOperation, self).setUp()
+        super().setUp()
         self._pc = path_cache.PathCache(self.tk)
 
         # dial down batch sizes for these tests
@@ -1359,7 +1335,7 @@ class TestPathCacheBatchOperation(TankTestBase):
     def tearDown(self):
         self._pc.close()
         self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = self._prev_batch_size
-        super(TestPathCacheBatchOperation, self).tearDown()
+        super().tearDown()
 
     def test_high_volume_batch_deletion(self):
         """

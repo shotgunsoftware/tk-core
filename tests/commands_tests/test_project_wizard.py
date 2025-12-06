@@ -12,8 +12,6 @@
 Unit tests tank updates.
 """
 
-from __future__ import with_statement
-
 import datetime
 import os
 import sgtk
@@ -37,9 +35,7 @@ class TestSetupProjectWizard(TankTestBase):
         """
         Prepare unit test.
         """
-        super(TestSetupProjectWizard, self).setUp(
-            parameters={"primary_root_name": "primary"}
-        )
+        super().setUp(parameters={"primary_root_name": "primary"})
         self._wizard = sgtk.get_command("setup_project_factory").execute({})
 
         self._storage_locations = ShotgunPath(
@@ -107,12 +103,18 @@ class TestSetupProjectWizard(TankTestBase):
         """
         Ensure all project paths get returned properly.
         """
+
+        expected_paths = self._storage_locations.join(
+            self.short_test_name
+        ).as_system_dict()
+
+        # Compat with tk-framework-adminui prior to v0.8.1
+        expected_paths["linux2"] = expected_paths["linux"]
+
         self.assertEqual(
             self._wizard.preview_project_paths(self.short_test_name),
             {
-                "primary": self._storage_locations.join(
-                    self.short_test_name
-                ).as_system_dict()
+                "primary": expected_paths,
             },
         )
 
@@ -123,7 +125,9 @@ class TestSetupProjectWizard(TankTestBase):
         """
         self._wizard.set_project_disk_name(self.short_test_name)
         locations = self._wizard.get_default_configuration_location()
-        self.assertEqual(locations, {"win32": None, "darwin": None, "linux2": None})
+        self.assertTrue(self.short_test_name in locations["win32"])
+        self.assertTrue(self.short_test_name in locations["darwin"])
+        self.assertTrue(self.short_test_name in locations["linux"])
 
     def test_default_configuration_location_with_existing_pipeline_configuration(self):
         """
@@ -158,7 +162,11 @@ class TestSetupProjectWizard(TankTestBase):
             locations,
             {
                 "darwin": "/Volumes/configs/{0}".format(self.short_test_name),
+                "linux": "/mnt/configs/{0}".format(self.short_test_name),
+
+                # Compat with tk-framework-adminui prior to v0.8.1
                 "linux2": "/mnt/configs/{0}".format(self.short_test_name),
+
                 "win32": "Z:\\configs\\{0}".format(self.short_test_name),
             },
         )

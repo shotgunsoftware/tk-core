@@ -8,9 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# make sure that py25 has access to with statement
-from __future__ import with_statement
-
 import os
 import sys
 import shutil
@@ -22,8 +19,6 @@ from ..util.version import is_version_older
 from .action_base import Action
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
@@ -218,7 +213,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
                     descriptor = env_obj.get_framework_descriptor(framework)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            for idx, descriptor in enumerate(six.itervalues(descriptors)):
+            for idx, descriptor in enumerate(descriptors.values()):
                 # print one based indices for more human friendly output
                 log.info(
                     "%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor)
@@ -321,7 +316,7 @@ class ShareCoreAction(Action):
             "description": (
                 "The path on disk where the core API should be " "installed on Macosx."
             ),
-            "default": (None if sgsix.platform == "darwin" else ""),
+            "default": (None if sys.platform == "darwin" else ""),
             "type": "str",
         }
 
@@ -329,7 +324,7 @@ class ShareCoreAction(Action):
             "description": (
                 "The path on disk where the core API should be " "installed on Windows."
             ),
-            "default": (None if sgsix.platform == "win32" else ""),
+            "default": (None if sys.platform == "win32" else ""),
             "type": "str",
         }
 
@@ -337,7 +332,7 @@ class ShareCoreAction(Action):
             "description": (
                 "The path on disk where the core API should be " "installed on Linux."
             ),
-            "default": (None if sgsix.platform == "linux2" else ""),
+            "default": (None if sys.platform == "linux" else ""),
             "type": "str",
         }
 
@@ -512,7 +507,7 @@ class AttachToCoreAction(Action):
             log,
             core_locations["darwin"],
             core_locations["win32"],
-            core_locations["linux2"],
+            core_locations["linux"],
             self._interaction_interface,
             copy_core=False,
         )
@@ -557,8 +552,8 @@ def _run_unlocalize(
         )
 
     # we need to have at least a path for the current os, otherwise we cannot introspect the API
-    lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
-    new_core_path_local = lookup[sgsix.platform]
+    lookup = {"win32": windows_path, "linux": linux_path, "darwin": mac_path}
+    new_core_path_local = lookup[sys.platform]
 
     if not new_core_path_local:
         raise TankError(

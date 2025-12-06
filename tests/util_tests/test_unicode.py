@@ -10,25 +10,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from unittest import TestCase, skipIf
+from unittest import TestCase
 import sgtk
-from tank_vendor import six
-
-if six.PY2:
-    char = "漢字"
-    unichar = unicode(char, encoding="utf8")
 
 
 class TestUnicode(TestCase):
-    @skipIf(six.PY3, "Unicode data type does not exist on Python 3.")
-    def test_convert_to_str(self):
-        """
-        Ensure all values are property converted to str with utf-8 strings
-        in Python.
-        """
-        value = {unichar: [unichar, {unichar: unichar}], "char": unichar}
-        expected = {char: [char, {char: char}], "char": char}
-        self.assertEqual(sgtk.util.unicode.ensure_contains_str(value), expected)
 
     def test_dict_back_reference_do_not_loop_forever(self):
         """
@@ -86,8 +72,7 @@ class TestUnicode(TestCase):
 
     def test_convert_to_str_with_different_languages(self):
         """
-        Ensure all values encoded with ISO-8859-1 are properly converted to str
-        in Python 2 and 3.
+        Ensure all values encoded with ISO-8859-1 are properly converted to str.
         """
         logins = [
             'AñoVolvió',

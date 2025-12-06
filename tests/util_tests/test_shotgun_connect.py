@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import threading
 import unittest
 
@@ -184,31 +183,6 @@ class TestGetSgConfigData(ShotgunTestBase):
         self.assertEqual(
             "https://test.shotgunstudio.com", sanitize_url("test.shotgunstudio.com/a")
         )
-
-        # WARNING!!!!!!
-
-        # Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there is
-        # already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since
-        # it is very unlikely Shotgun will be running off a custom port.
-
-        # Ensure that port number is also kept.
-
-        # self.assertEqual(
-        #     "https://no.scheme.com:8080",
-        #     sanitize_url("no.scheme.com:8080")
-        # )
-
-        # self.assertEqual(
-        #     "https://localhost:8000",
-        #     sanitize_url("localhost:8000")
-        # )
-
-        # self.assertEqual(
-        #     "https://127.0.0.1:8000",
-        #     sanitize_url("127.0.0.1:8000")
-        # )
-
-        # END OF WARNING!!!!!!
 
 
 class ConnectionSettingsTestCases:

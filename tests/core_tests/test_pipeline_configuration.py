@@ -157,7 +157,7 @@ class TestConfigLocations(TankTestBase):
     """
 
     def setUp(self):
-        super(TestConfigLocations, self).setUp({"primary_root_name": "primary"})
+        super().setUp({"primary_root_name": "primary"})
         self._project = self.mockgun.create(
             "Project", {"name": "config_locations_test"}
         )
@@ -312,7 +312,7 @@ class TestConfigLocations(TankTestBase):
             with mock.patch(
                 "sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core",
                 return_value={
-                    "linux2": core_root if is_linux() else None,
+                    "linux": core_root if is_linux() else None,
                     "win32": core_root if is_windows() else None,
                     "darwin": core_root if is_macos() else None,
                 },

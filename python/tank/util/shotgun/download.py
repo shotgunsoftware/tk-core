@@ -11,21 +11,21 @@
 """
 Methods for downloading things from Shotgun
 """
-from __future__ import with_statement
 
 import os
 import sys
-import uuid
-from tank_vendor.six.moves import urllib
-import time
 import tempfile
+import time
+import urllib.parse
+import urllib.request
+import uuid
 import zipfile
 
-from ..errors import ShotgunAttachmentDownloadError
 from ...errors import TankError
 from ...log import LogManager
-from ..zip import unzip_file
 from .. import filesystem
+from ..errors import ShotgunAttachmentDownloadError
+from ..zip import unzip_file
 
 log = LogManager.get_logger(__name__)
 
@@ -84,8 +84,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
     # download the given url
     try:
         request = urllib.request.Request(url, headers=headers or {})
-        if timeout and sys.version_info >= (2, 6):
-            # timeout parameter only available in python 2.6+
+        if timeout:
             response = urllib.request.urlopen(request, timeout=timeout)
         else:
             # use system default
@@ -116,21 +115,21 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
 
 def __setup_sg_auth_and_proxy(sg):
     """
-    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on
+    Borrowed from the Shotgun Python API, setup urllib with a cookie for authentication on
     Shotgun instance.
 
-    Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is
+    Looks up session token and sets that in a cookie in the :mod:`urllib` handler. This is
     used internally for downloading attachments from the Shotgun server.
 
     :param sg: Shotgun API instance
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
     # functionality gets ported back into the Shotgun API.
-    from tank_vendor.six.moves import http_cookiejar
+    import http.cookiejar
 
     sid = sg.get_session_token()
-    cj = http_cookiejar.LWPCookieJar()
-    c = http_cookiejar.Cookie(
+    cj = http.cookiejar.LWPCookieJar()
+    c = http.cookiejar.Cookie(
         "0",
         "_session_id",
         sid,

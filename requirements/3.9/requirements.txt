@@ -1,2 +1,4 @@
 distro==1.4.0
 pyyaml==5.4.1
+ruamel.yaml==0.18.14
+packaging==25.0

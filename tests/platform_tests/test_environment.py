@@ -26,7 +26,7 @@ class TestEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        super(TestEnvironment, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.test_env = "test"
@@ -181,7 +181,7 @@ class TestEnvironment(TankTestBase):
 
 class TestDumpEnvironment(TankTestBase):
     def setUp(self):
-        super(TestDumpEnvironment, self).setUp()
+        super().setUp()
         # This test will write to the configuration folder, so copy it.
         self.setup_fixtures(parameters={"installed_config": True})
 
@@ -283,7 +283,7 @@ class TestUpdateEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUpdateEnvironment, self).setUp()
+        super().setUp()
         # The following tests are going to update the configuration.
         self.setup_fixtures(parameters={"installed_config": True})
 
@@ -489,7 +489,7 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
     """
 
     def setUp(self):
-        super(TestUpdateEnvironmentRuamelYaml, self).setUp()
+        super().setUp()
         self.env.set_yaml_preserve_mode(True)
 
 
@@ -499,7 +499,7 @@ class TestRuamelParser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestRuamelParser, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
@@ -515,21 +515,13 @@ class TestRuamelParser(TankTestBase):
             updated_env = fh.readlines()
 
         # get raw environment after
-        # ruamel parser only used in py2.6+
-        if sys.version_info < (2, 6):
-            env_file = os.path.join(
-                self.project_config,
-                "env",
-                "post_update",
-                "test_post_update_old_parser.yml",
-            )
-        else:
-            env_file = os.path.join(
-                self.project_config,
-                "env",
-                "post_update",
-                "test_post_update_new_parser.yml",
-            )
+        # ruamel parser
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "post_update",
+            "test_post_update_new_parser.yml",
+        )
 
         with open(env_file) as fh:
             expected_env = fh.readlines()
@@ -549,7 +541,7 @@ class TestPyYamlParser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPyYamlParser, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):

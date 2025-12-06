@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 
 from tank_test.tank_test_base import (
@@ -26,7 +24,7 @@ from tank_vendor import yaml
 
 class SessionCacheTests(ShotgunTestBase):
     def setUp(self):
-        super(SessionCacheTests, self).setUp()
+        super().setUp()
         # Wipe the global session file that has been edited by previous tests.
         self._write_global_yml({})
 

@@ -8,11 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import imp
-import uuid
+import importlib.machinery
+import importlib.util
 import os
 import sys
+import uuid
 import warnings
+
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -60,48 +62,40 @@ class CoreImportHandler(object):
         # logging to file is now disabled and will be renamed after the
         # main tank import of the new code.
 
-        # make sure that this entire operation runs inside the import thread lock
-        # in order to not cause any type of cross-thread confusion during the swap
-        imp.acquire_lock()
+        handler._swap_core(core_path)
+
+        # because we are swapping out the code that we are currently running, Python is
+        # generating a runtime warning:
+        #
+        # RuntimeWarning: Parent module 'tank.bootstrap' not found while handling absolute import
+        #
+        # We are fixing this issue by re-importing tank, so it's essentially a chicken and egg
+        # scenario. So it's ok to mute the warning. Interestingly, by muting the warning, the
+        # execution of the reload/import becomes more complete and it seems some parts of the
+        # code that weren't previously reloaded are now covered. So turning off the warnings
+        # display seems to have executionary side effects.
+
+        # Save the existing list of warning filters before we modify it using simplefilter().
+        # Note: the '[:]' causes a copy of the list to be created. Without it, original_filter
+        # would alias the one and only 'real' list and then we'd have nothing to restore.
+        original_filters = warnings.filters[:]
+
+        # Ignore all warnings
+        warnings.simplefilter("ignore")
+
+        log.debug("...core swap complete.")
+
+        log.debug("running explicit 'import tank' to re-initialize new core...")
 
         try:
-            handler._swap_core(core_path)
-
-            # because we are swapping out the code that we are currently running, Python is
-            # generating a runtime warning:
-            #
-            # RuntimeWarning: Parent module 'tank.bootstrap' not found while handling absolute import
-            #
-            # We are fixing this issue by re-importing tank, so it's essentially a chicken and egg
-            # scenario. So it's ok to mute the warning. Interestingly, by muting the warning, the
-            # execution of the reload/import becomes more complete and it seems some parts of the
-            # code that weren't previously reloaded are now covered. So turning off the warnings
-            # display seems to have executionary side effects.
-
-            # Save the existing list of warning filters before we modify it using simplefilter().
-            # Note: the '[:]' causes a copy of the list to be created. Without it, original_filter
-            # would alias the one and only 'real' list and then we'd have nothing to restore.
-            original_filters = warnings.filters[:]
-
-            # Ignore all warnings
-            warnings.simplefilter("ignore")
-
-            log.debug("...core swap complete.")
-
-            log.debug("running explicit 'import tank' to re-initialize new core...")
-
-            try:
-                # Kick toolkit to re-import
-                import tank
-
-            finally:
-                # Restore the list of warning filters.
-                warnings.filters = original_filters
-
-            log.debug("...import complete")
+            # Kick toolkit to re-import
+            import tank
 
         finally:
-            imp.release_lock()
+            # Restore the list of warning filters.
+            warnings.filters = original_filters
+
+        log.debug("...import complete")
 
         # and re-init our disk logging based on the new code
         # access it from the new tank instance to ensure we get the new code
@@ -130,12 +124,9 @@ class CoreImportHandler(object):
         # no import handler found, so create one.
         current_folder = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         handler = cls(current_folder)
-        # Insert our handler at the front of the list. In Python 2, the position of the
-        # handler is not important because meta path is scanned first and then sys.path
-        # In Python 3 however, the sys.path importer IS a meta_path importer as well.
-        # If we simply append our handler, it means we'll run after the path importer,
-        # which means the old copy of core will be imported instead of the
-        # new one.
+        # Insert our handler at the beginning of sys.meta_path to ensure it is called
+        # before the default PathFinder, which would otherwise resolve imports
+        # using sys.path before our custom logic has a chance to run.
         sys.meta_path.insert(0, handler)
         log.debug("Added import handler to sys.meta_path to support core swapping.")
         return handler
@@ -172,69 +163,57 @@ class CoreImportHandler(object):
                 "The supplied core path '%s' is not a valid directory." % core_path
             )
 
-        # acquire a lock to prevent issues with other
-        # threads importing at the same time.
-        imp.acquire_lock()
+        # sort by package depth, deeper modules first
+        module_names = sorted(
+            sys.modules.keys(),
+            key=lambda module_name: module_name.count("."),
+            reverse=True,
+        )
 
-        try:
+        # unique prefix for stashing this session
+        stash_prefix = "core_swap_{}".format(uuid.uuid4().hex)
 
-            # sort by package depth, deeper modules first
-            module_names = sorted(
-                sys.modules.keys(),
-                key=lambda module_name: module_name.count("."),
-                reverse=True,
-            )
+        for module_name in module_names:
+            # just to be safe, don't re-import this module.
+            # we always use the first one added to `sys.meta_path` anyway.
+            if module_name == __name__:
+                continue
 
-            # unique prefix for stashing this session
-            stash_prefix = "core_swap_%s" % uuid.uuid4().hex
+            # extract just the package name
+            pkg_name = module_name.split(".")[0]
 
-            for module_name in module_names:
+            if pkg_name in self.NAMESPACES_TO_TRACK:
+                # the package name is in one of the new core namespaces. we
+                # delete it from sys.modules so that the custom import can run.
+                module = sys.modules[module_name]
+                # note: module entries that are None can safely be left in sys.modules -
+                # these are optimizations used by the importer. Read more here:
+                # http://stackoverflow.com/questions/1958417/why-are-there-dummy-modules-in-sys-modules
+                if module:
+                    # make sure we don't lose any references to it - for example
+                    # via instances that have been inherited from base classes
+                    # to make sure a reference is kept, keep the module object
+                    # but move it out of the way in sys.modules to allow for
+                    # a new version of the module to be imported alongside.
+                    stashed_module_name = f"{stash_prefix}_{module_name}"
 
-                # just to be safe, don't re-import this module.
-                # we always use the first one added to `sys.meta_path` anyway.
-                if module_name == __name__:
-                    continue
+                    # uncomment for copious amounts of debug
+                    # log.debug(
+                    #     "Relocating module %s from sys.modules[%s] "
+                    #     "to sys.modules[%s]" % (module, module_name, stashed_module_name)
+                    # )
 
-                # extract just the package name
-                pkg_name = module_name.split(".")[0]
+                    sys.modules[stashed_module_name] = module
 
-                if pkg_name in self.NAMESPACES_TO_TRACK:
-                    # the package name is in one of the new core namespaces. we
-                    # delete it from sys.modules so that the custom import can run.
-                    module = sys.modules[module_name]
-                    # note: module entries that are None can safely be left in sys.modules -
-                    # these are optimizations used by the importer. Read more here:
-                    # http://stackoverflow.com/questions/1958417/why-are-there-dummy-modules-in-sys-modules
-                    if module:
-                        # make sure we don't lose any references to it - for example
-                        # via instances that have been inherited from base classes
-                        # to make sure a reference is kept, keep the module object
-                        # but move it out of the way in sys.modules to allow for
-                        # a new version of the module to be imported alongside.
-                        stashed_module_name = "%s_%s" % (stash_prefix, module_name)
+                    # and remove the official entry
+                    # log.debug("Removing sys.modules[%s]" % module_name)
+                    del sys.modules[module_name]
 
-                        # uncomment for copious amounts of debug
-                        # log.debug(
-                        #     "Relocating module %s from sys.modules[%s] "
-                        #     "to sys.modules[%s]" % (module, module_name, stashed_module_name)
-                        # )
+        # reset importer to point at new core for future imports
+        self._module_info = {}
+        self._core_path = core_path
 
-                        sys.modules[stashed_module_name] = module
-
-                        # and remove the official entry
-                        # log.debug("Removing sys.modules[%s]" % module_name)
-                        del sys.modules[module_name]
-
-            # reset importer to point at new core for future imports
-            self._module_info = {}
-            self._core_path = core_path
-
-        finally:
-            # release the lock so that other threads can continue importing from
-            # the new core location.
-            imp.release_lock()
-
-    def find_module(self, module_fullname, package_path=None):
+    def find_spec(self, module_fullname, package_path=None, target=None):
         """Locates the given module in the current core.
 
         This method is part of the custom import handler interface contract.
@@ -242,14 +221,13 @@ class CoreImportHandler(object):
         :param module_fullname: The fullname of the module to import
         :param package_path: None for a top-level module, or
             package.__path__ for submodules or subpackages
+        :param target: A module object that the finder may use to make a more
+            educated guess about what spec to return
 
         The package_path is currently ignored by this method as it ensures we're
         importing the module from the current core path.
 
-        For further info, see the docs on find_module here:
-            https://docs.python.org/2/library/imp.html#imp.find_module
-
-        :returns: this object (also a loader) if module found, None otherwise.
+        :returns: ``ModuleSpec`` if module found, ``None`` otherwise.
         """
         # get the package name (first part of the module fullname)
         module_path_parts = module_fullname.split(".")
@@ -266,10 +244,6 @@ class CoreImportHandler(object):
             # this is a dotted path. we need to recursively import the parents
             # with this logic. once we've found the immediate parent we
             # can use it's `__path__` attribute to locate this module.
-            # this matches the suggested logic for finding nested modules in
-            # the `imp.find_module` docs found here:
-            #     https://docs.python.org/2/library/imp.html
-
             parent_module_parts = module_path_parts[:-1]
 
             # this is the parent module's full package spec.
@@ -282,7 +256,7 @@ class CoreImportHandler(object):
             else:
                 # parent hasn't been loaded. do a recursive find/load in order
                 # to get the parent's path
-                if self.find_module(parent_path):
+                if self.find_spec(parent_path):
                     parent_module = self.load_module(parent_path)
                     package_path = parent_module.__path__
                 else:
@@ -296,61 +270,46 @@ class CoreImportHandler(object):
             # current core's root path.
             package_path = [self._core_path]
 
-        # module path without the target module name
+        if not package_path:
+            return
+
         module_name = module_path_parts.pop()
 
         try:
-            # find the module and store its info in a lookup based on the
-            # full module name. The module info is a tuple of the form:
-            #
-            #   (file_obj, filename, description)
-            #
-            # If this find is successful, we'll need the info in order
-            # to load it later.
-            module_info = imp.find_module(module_name, package_path)
-            self._module_info[module_fullname] = module_info
+            # find the module spec
+            if os.path.isdir(os.path.join(package_path[0], module_name)):
+                # If it's a package (like `tank`), we need to load the __init__.py file
+                loader = importlib.machinery.SourceFileLoader(
+                    module_fullname,
+                    os.path.join(package_path[0], module_name, "__init__.py"),
+                )
+            else:
+                loader = importlib.machinery.SourceFileLoader(
+                    module_fullname, os.path.join(package_path[0], module_name + ".py")
+                )
+            spec = importlib.util.spec_from_loader(loader.name, loader)
+            self._module_info[module_fullname] = spec
         except ImportError:
             # no module found, fall back to regular import
             return None
 
-        # since this object is also the "loader" return itself
-        return self
+        return spec
 
     def load_module(self, module_fullname):
         """Custom loader.
 
-        Called by python if the find_module was successful.
+        Called by python if the ``find_spec`` was successful.
 
         This method is part of the custom import handler interface contract.
-
-        For further info, see the docs on `load_module` here:
-            https://docs.python.org/2/library/imp.html#imp.load_module
 
         :param module_fullname: The fullname of the module to import
 
         :returns: The loaded module object.
 
         """
-        file_obj = None
-        try:
-            # retrieve the found module info
-            (file_obj, filename, desc) = self._module_info[module_fullname]
-
-            # uncomment for lots of import related debug :)
-            # log.debug("Custom load module! %s [%s]" % (module_fullname, filename))
-
-            # attempt to load the module. if this fails, allow it to raise
-            # the usual `ImportError`
-            module = imp.load_module(module_fullname, file_obj, filename, desc)
-        finally:
-            # as noted in the imp.load_module docs, must close the file handle.
-            if file_obj:
-                file_obj.close()
-
-            # no need to carry around the module info now that we've loaded it.
-            # once the module is in `sys.modules`, the custom importer will
-            # no longer run.
-            del self._module_info[module_fullname]
+        spec = self._module_info[module_fullname]
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
 
         # the module needs to know the loader so that reload() works
         module.__loader__ = self

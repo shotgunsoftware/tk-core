@@ -8,6 +8,8 @@
 # agreement to the ShotGrid Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk.
 
+import types
+import unittest.mock
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
@@ -37,8 +39,11 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-        # We need one or the other
-        assert qt.QtWebKit or qt.QtWebEngineWidgets
+
+        assert (
+            qt.QtWebEngineWidgets is None
+            or isinstance(qt.QtWebEngineWidgets, types.ModuleType)
+        )
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
@@ -62,16 +67,7 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
-        try:
-            qt_web_kit = qt.QtWebKit
-        except KeyError:
-            qt_web_kit = None
-        try:
-            qt_web_engine_widgets = qt.QtWebEngineWidgets
-        except KeyError:
-            qt_web_engine_widgets = None
-        # We need one or the other
-        assert qt_web_kit or qt_web_engine_widgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide2"
@@ -96,8 +92,7 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken6"
-        # We need one or the other
-        assert qt.QtWebKit or qt.QtWebEngineWidgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide6"
@@ -122,19 +117,76 @@ class QtImporterTests(TankTestBase):
         assert qt.QtNetwork
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken6"
-        try:
-            qt_web_kit = qt.QtWebKit
-        except KeyError:
-            qt_web_kit = None
-        try:
-            qt_web_engine_widgets = qt.QtWebEngineWidgets
-        except KeyError:
-            qt_web_engine_widgets = None
-        # We need one or the other
-        assert qt_web_kit or qt_web_engine_widgets
+        assert qt.QtWebEngineWidgets
 
         # Expect PySide2 as the binding
         assert qt.binding_name == "PySide6"
         assert qt.base
         assert qt.base["__name__"] is qt.binding_name
         assert qt.base["__version__"] is qt.binding_version
+
+    @skip_if_pyside2(found=False)
+    @skip_if_pyside6(found=True)
+    @unittest.mock.patch(
+        # Ensure the QtWebEngineWidgets module is present
+        "PySide2.QtWebEngineWidgets"
+    )
+    @unittest.mock.patch.dict(
+        # Set the SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT variable
+        "os.environ",
+        {"SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT": "1"}
+    )
+    def test_skip_webengine_qt5(self, *mocks):
+        # Test default Qt interface (Qt4)
+        qt = qt_importer.QtImporter()
+
+        # Check that the qt modules were initialized
+        assert qt.QtCore
+
+        # Ensure the QtWebEngineWidgets module is NOT imported
+        assert qt.QtWebEngineWidgets is None
+
+        # Repeat the test with Qt5 interface
+        qt = qt_importer.QtImporter(
+            interface_version_requested=qt_importer.QtImporter.QT5,
+        )
+
+        # Check that the qt modules were initialized
+        assert qt.QtCore
+
+        # Ensure the QtWebEngineWidgets module is NOT imported
+        with self.assertRaises(KeyError):
+            qt.QtWebEngineWidgets
+
+    @skip_if_pyside6(found=False)
+    @skip_if_pyside2(found=True)
+    @unittest.mock.patch(
+        # Ensure the QtWebEngineWidgets module is present
+        "PySide6.QtWebEngineWidgets"
+    )
+    @unittest.mock.patch.dict(
+        # Set the SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT variable
+        "os.environ",
+        {"SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT": "1"}
+    )
+    def test_skip_webengine_qt6(self, *mocks):
+        # Test default Qt interface (Qt4)
+        qt = qt_importer.QtImporter()
+
+        # Check that the qt modules were initialized
+        assert qt.QtCore
+
+        # Ensure the QtWebEngineWidgets module is NOT imported
+        assert qt.QtWebEngineWidgets is None
+
+        # Repeat the test with Qt6 interface
+        qt = qt_importer.QtImporter(
+            interface_version_requested=qt_importer.QtImporter.QT6,
+        )
+
+        # Check that the qt modules were initialized
+        assert qt.QtCore
+
+        # Ensure the QtWebEngineWidgets module is NOT imported
+        with self.assertRaises(KeyError):
+            qt.QtWebEngineWidgets

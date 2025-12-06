@@ -13,8 +13,6 @@ Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
 
-from __future__ import with_statement
-
 import os
 
 from tank_vendor import yaml
@@ -337,7 +335,7 @@ def resolve_all_os_paths_to_core(core_path):
     return paths for all platforms,
     as cached in the install_locations system file
 
-    :returns: dictionary with keys linux2, darwin and win32
+    :returns: dictionary with keys linux, darwin and win32
     """
     # @todo - refactor this to return a ShotgunPath
     return _get_install_locations(core_path).as_system_dict()

@@ -12,8 +12,6 @@
 Defines the base class for all Tank Engines.
 """
 
-from __future__ import with_statement
-
 import os
 import sys
 import logging
@@ -22,8 +20,6 @@ import traceback
 import inspect
 import weakref
 import threading
-
-from tank_vendor import six
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -175,6 +171,7 @@ class Engine(TankBundle):
         base_def = self._define_qt_base()
         qt.QtCore = base_def.get("qt_core")
         qt.QtGui = base_def.get("qt_gui")
+        qt.QtWebEngineWidgets = base_def.get("qt_web_engine_widgets")
         qt.TankDialogBase = base_def.get("dialog_base")
         qt.shiboken = base_def.get("shiboken")
 
@@ -194,6 +191,7 @@ class Engine(TankBundle):
 
         qt_abstraction.QtCore = qt.QtCore
         qt_abstraction.QtGui = qt.QtGui
+        qt_abstraction.QtWebEngineWidgets = qt.QtWebEngineWidgets
 
         # load the fonts. this will work if there is a QApplication instance
         # available.
@@ -344,10 +342,7 @@ class Engine(TankBundle):
         running_method = getattr(self, method_name)
         base_method = getattr(Engine, method_name)
 
-        # This should be a safe way to test, and is both Python 2 and 3 compatible.
-        # the __func__ attribute of callables that was previously used was removed
-        # in Python 3.4, and rather than continue to use that only in python 2, we
-        # will use the universally available __module__ attribute.
+        # This should be a safe way to test.
         return running_method.__module__ != base_method.__module__
 
     def __has_018_logging_support(self):
@@ -1062,16 +1057,7 @@ class Engine(TankBundle):
         # to highlight this state. This is used by the tank_command
         # execution logic to correctly dispatch the callback during
         # runtime.
-        # getargspec has been deprecated in Python 3 and generates a copious
-        # amount of warnings, so use getfullargspec which is backwards
-        # compatible in Python 3. Unfortunately, it doesn't exist in Python
-        # 2 and six doesn't offer a wrapper for it.
-        if six.PY2:
-            arg_spec = inspect.getargspec(callback)
-        else:
-            arg_spec = inspect.getfullargspec(callback)
-        # note - cannot use named tuple form because it is py2.6+
-        arg_list = arg_spec[0]
+        arg_list = inspect.getfullargspec(callback)[0]
 
         if "entity_type" in arg_list and "entity_ids" in arg_list:
             # add property flag
@@ -1079,7 +1065,6 @@ class Engine(TankBundle):
 
         # define a generic callback wrapper for metrics logging
         def callback_wrapper(*args, **kwargs):
-
             if properties.get("app"):
                 # Track which app command is being launched
                 command_name = properties.get("short_name") or name
@@ -1706,7 +1691,7 @@ class Engine(TankBundle):
             # ticket.
             class _exc_widget(QtGui.QWidget):
                 def __init__(self, msg, *args, **kwargs):
-                    super(_exc_widget, self).__init__(*args, **kwargs)
+                    super().__init__(*args, **kwargs)
 
                     self.setObjectName("SGTK_CORE_EXC_WIDGET")
 
@@ -2143,11 +2128,12 @@ class Engine(TankBundle):
 
         :returns: dict
         """
-        base = {"qt_core": None, "qt_gui": None, "dialog_base": None}
+        base = {"qt_core": None, "qt_gui": None, "qt_web_engine_widgets": None, "dialog_base": None}
         try:
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
             base["qt_gui"] = importer.QtGui
+            base["qt_web_engine_widgets"] = importer.QtWebEngineWidgets
             if importer.QtGui:
                 base["dialog_base"] = importer.QtGui.QDialog
             else:

@@ -8,9 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import types
+
 from .pyside2_patcher import PySide2Patcher
 
-import imp
 
 class PySide6Patcher(PySide2Patcher):
     """
@@ -47,6 +48,22 @@ class PySide6Patcher(PySide2Patcher):
             "QOpenGLWindow",
         ]
     )
+
+    @classmethod
+    def _patch_QApplication(cls, QtGui):
+        """Patch QApplication."""
+
+        def desktop(*args):
+            """
+            QDesktopWidget removed along with QApplication.desktop, in favor or QScreen.
+            """
+            return QtGui.QApplication.primaryScreen()
+
+        # First apply the patch from PySide2 patcher
+        super()._patch_QApplication(QtGui)
+
+        # Now apply any PySide6 specific patches
+        QtGui.QApplication.desktop = desktop
 
     @classmethod
     def _patch_QAbstractItemView(cls, QtGui):
@@ -210,29 +227,35 @@ class PySide6Patcher(PySide2Patcher):
 
 
         original_QScreen_availableGeometry = QtGui.QScreen.availableGeometry
-        def availableGeometry(self, widget=None):
-            """Patch QScreen to also act as QDesktopWidget."""
-            if widget is None:
+        def availableGeometry(self, arg__1=None):
+            """
+            Patch QScreen to also act as QDesktopWidget.
+
+            :param arg__1 Union(int, QtGui.QWidget, QtCore.QPoint): A widget, screen index or point.
+            """
+            if arg__1 is None:
                 return original_QScreen_availableGeometry(self)
 
-            if isinstance(widget, int):
+            if isinstance(arg__1, int):
                 screens = QtGui.QGuiApplication.screens()
                 try:
-                    screen = screens[widget]
+                    screen = screens[arg__1]
                 except IndexError:
                     return QtCore.QRect()
+            elif isinstance(arg__1, QtCore.QPoint):
+                return original_QScreen_availableGeometry(self)
             else:
-                screen = widget.screen()
+                screen = arg__1.screen()
 
             return screen.availableGeometry()
 
         def screenNumber(self, widget):
             """Provide QDesktopWidget method through QScreen."""
 
-            screen = widget.screen()
             try:
+                screen = widget.screen()
                 return QtGui.QGuiApplication.screens().index(screen)
-            except IndexError:
+            except (IndexError, AttributeError):
                 return -1
 
         def screenCount(self):
@@ -421,7 +444,11 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QCoreApplication.flush = flush
 
     @classmethod
-    def patch(cls):
+    def patch(
+            cls,
+            QtWebEngineWidgets,
+            QtWebEngineCore,
+    ):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
 
@@ -443,14 +470,17 @@ class PySide6Patcher(PySide2Patcher):
             QtGui,
             QtWidgets,
             QtOpenGL,
-            QtWebEngineWidgets,
-            QtWebEngineCore,
         )
 
         # First create new modules to act as the PySide modules
-        qt_core_shim = imp.new_module("PySide.QtCore")
-        qt_gui_shim = imp.new_module("PySide.QtGui")
-        qt_web_engine_widgets_shim = imp.new_module("PySide.QtWebEnginWidgets")
+        qt_core_shim = types.ModuleType("PySide.QtCore")
+        qt_gui_shim = types.ModuleType("PySide.QtGui")
+
+        qt_web_engine_widgets_shim = None
+        if QtWebEngineWidgets:
+            qt_web_engine_widgets_shim = types.ModuleType(
+                "PySide.QtWebEngineWidgets",
+            )
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
         # in PySide.
@@ -469,8 +499,13 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
         cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
 
-        # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
-        cls._move_attributes(qt_web_engine_widgets_shim, QtWebEngineWidgets, dir(QtWebEngineWidgets))
+        if qt_web_engine_widgets_shim:
+            # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
+            cls._move_attributes(
+                qt_web_engine_widgets_shim,
+                QtWebEngineWidgets,
+                dir(QtWebEngineWidgets),
+            )
 
         # Patch classes from PySide6 to PySide, as done for PySide2 (these will call the
         # PySide2 patcher methods.)
@@ -534,12 +569,10 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#the-qabstractitemview-class
         cls._patch_QAbstractItemView(qt_gui_shim)
 
-        # QDesktopWidget removed along with QApplication.desktop, in favor or QScreen. Patch
-        # QScreen such that it can be used as if it were a QDesktopWidget instance
+        # Patch QScreen such that it can be used as if it were a QDesktopWidget instance
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#qdesktopwidget-and-qapplication-desktop
         cls._patch_QScreen(qt_core_shim, qt_gui_shim)
         qt_gui_shim.QDesktopWidget = qt_gui_shim.QScreen
-        qt_gui_shim.QApplication.desktop = lambda: qt_gui_shim.QApplication.primaryScreen()
 
         # The default timeout parameter removed. This param, if given, will be ignored. It will
         # always timeout after 100 ms
@@ -562,9 +595,9 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-5/qpalette.html#ColorRole-enum
         qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
 
-        # QtWwebEngineWidgets
-        # ----------------------------------------------------------------------
-        qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
-        qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+        if qt_web_engine_widgets_shim:
+            # QtWwebEngineWidgets
+            qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
+            qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
         return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim

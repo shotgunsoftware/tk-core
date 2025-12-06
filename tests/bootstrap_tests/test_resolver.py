@@ -8,14 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import itertools
 import os
 import sys
 import sgtk
 from sgtk.util import ShotgunPath
-from tank_vendor.shotgun_api3.lib import sgsix
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
@@ -31,7 +28,7 @@ class TestResolverBase(TankTestBase):
     """
 
     def setUp(self):
-        super(TestResolverBase, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"
@@ -112,7 +109,7 @@ class TestUserRestriction(TestResolverBase):
     """
 
     def setUp(self):
-        super(TestUserRestriction, self).setUp()
+        super().setUp()
 
         self._john_doe = self.mockgun.create(
             "HumanUser", {"login": "john.doe", "name": "John Doe"}
@@ -306,7 +303,7 @@ class TestFallbackHandling(TestResolverBase):
     """
 
     def setUp(self):
-        super(TestFallbackHandling, self).setUp()
+        super().setUp()
 
         path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.4")
         self._create_info_yaml(path)
@@ -350,40 +347,8 @@ class TestAutoUpdate(TestResolverBase):
     engine on a site or Project context.
     """
     def setUp(self):
-        super(TestAutoUpdate, self).setUp()
+        super().setUp()
         self.resolver._plugin_id = 'basic.desktop'
-
-    @mock.patch("sys.version_info", return_value=mock.Mock())
-    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
-    def test_autoupdate_config(self, find_mock, _):
-        """
-        Tests that the configuration resolved is the maximum tk-config-basic
-        version supporting Python 2 when the PTR desktop app is used to startup the
-        tk-desktop engine on a Site or Project context.
-        """
-
-        # Mock Python2 Version
-        sys.version_info = [2, 7, 16, 'final', 0]
-        self.assertEqual(sys.version_info[0], 2)
-
-        # test latest version of config by omitting version number
-        config_latest = {"type": "app_store", "name": "tk-config-test"}
-        # Maximum tk-config-basic version supporting Python 2.
-        version = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
-        # expected config
-        expected_config = {
-            'type': 'app_store',
-            'name': 'tk-config-test',
-            'version': version,
-        }
-
-        # Test the configuration resolved is the Maximum tk-config-basic
-        # version supporting Python 2 when auto-update is triggered.
-        config = self.resolver.resolve_not_found_sg_configuration(config_latest, self.mockgun)
-        self.assertEqual(config._descriptor.get_dict(), expected_config)
-
-        # make sure we didn't talk to shotgun
-        self.assertEqual(find_mock.called, False)
 
 class TestResolverPriority(TestResolverBase):
     """
@@ -603,9 +568,6 @@ class TestResolverPriority(TestResolverBase):
         Ensure that the sorting algorithm for primaries is valid for any
         permutation of primaries.
         """
-        # itertools.permutations only in 2.6+
-        if sys.version_info < (2, 6):
-            return
 
         primaries = [
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 1},
@@ -628,9 +590,6 @@ class TestResolverPriority(TestResolverBase):
         Ensure that the sorting algorithm for pipeline configurations is valid for any
         permutation of pipeline configurations.
         """
-        # itertools.permutations only in 2.6+
-        if sys.version_info < (2, 6):
-            return
 
         pcs = [
             {
@@ -807,7 +766,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertIsNotNone(pcs[0]["config_descriptor"])
 
         field_lookup = dict(
-            linux2="linux_path", darwin="mac_path", win32="windows_path"
+            linux="linux_path", darwin="mac_path", win32="windows_path"
         )
 
         base_path = "sg_path"
@@ -817,8 +776,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             mac_path=base_path,
             descriptor=None,
         )
-
-        base_paths[field_lookup[sgsix.platform]] = None
+        base_paths[field_lookup[sys.platform]] = None
 
         # Now remove every locators.
         self.mockgun.update("PipelineConfiguration", pc_id, base_paths)
@@ -869,7 +827,7 @@ class TestResolverSiteConfig(TestResolverBase):
     """
 
     def setUp(self):
-        super(TestResolverSiteConfig, self).setUp()
+        super().setUp()
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
@@ -917,7 +875,7 @@ class TestResolvedConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestResolvedConfiguration, self).setUp()
+        super().setUp()
 
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
@@ -974,7 +932,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestResolvedLatestConfiguration, self).setUp()
+        super().setUp()
 
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(

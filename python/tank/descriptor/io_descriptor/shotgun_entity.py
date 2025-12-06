@@ -9,14 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
-from .downloadable import IODescriptorDownloadable
-from ...util import filesystem, shotgun
-from ...util.shotgun_entity import get_sg_entity_name_field
-from ...util.errors import ShotgunAttachmentDownloadError
-from ..errors import TankDescriptorError
 from ... import LogManager
+from ...util import filesystem, shotgun
+from ...util.errors import ShotgunAttachmentDownloadError
+from ...util.shotgun_entity import get_sg_entity_name_field
+from ..errors import TankDescriptorError
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
@@ -75,9 +75,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # ensure project id is an int if specified
         self._project_link = None

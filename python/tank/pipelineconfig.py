@@ -14,9 +14,9 @@ across storages, configurations etc.
 """
 import os
 import glob
+import pickle
 
 from tank_vendor import yaml
-import tank_vendor.six.moves.cPickle as pickle
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
@@ -32,7 +32,6 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -738,12 +737,12 @@ class PipelineConfiguration(object):
             {
                 "primary": {
                     "win32": "z:\studio\my_project",
-                    "linux2": "/studio/my_project",
+                    "linux": "/studio/my_project",
                     "darwin": "/studio/my_project"
                 },
                 "textures": {
                     "win32": "z:\textures\my_project",
-                    "linux2": None,
+                    "linux": None,
                     "darwin": "/textures/my_project"
                 },
             }
@@ -965,7 +964,7 @@ class PipelineConfiguration(object):
         # methods do not require a connection.
         sg_connection = shotgun.get_deferred_sg_connection()
 
-        if isinstance(dict_or_uri, six.string_types):
+        if isinstance(dict_or_uri, str):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
         else:
             descriptor_dict = dict_or_uri

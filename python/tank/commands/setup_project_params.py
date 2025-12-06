@@ -11,8 +11,10 @@
 import os
 import tempfile
 import uuid
+import sys
 
 from . import constants
+from . import util
 
 from ..util import StorageRoots
 from ..util import sgre as re
@@ -30,7 +32,6 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class ProjectSetupParameters(object):
@@ -168,14 +169,14 @@ class ProjectSetupParameters(object):
                         "defined_in_shotgun": True,
                         "darwin": "/mnt/foo",
                         "win32": "z:\mnt\foo",
-                        "linux2": "/mnt/foo"},
+                        "linux": "/mnt/foo"},
 
           "textures" : { "description": None,
                          "exists_on_disk": False,
                          "defined_in_shotgun": True,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
-                         "linux2": "/mnt/foo"}
+                         "linux": "/mnt/foo"}
          }
 
         :param config_uri: Configuration uri representing the location of a config
@@ -213,18 +214,17 @@ class ProjectSetupParameters(object):
         #                 "defined_in_shotgun": True,
         #                 "darwin": "/mnt/foo",
         #                 "win32": "z:\mnt\foo",
-        #                 "linux2": "/mnt/foo"},
+        #                 "linux": "/mnt/foo"},
         #
         #   "textures" : { "description": None,
         #                  "exists_on_disk": False,
         #                  "defined_in_shotgun": True,
         #                  "darwin": None,
         #                  "win32": "z:\mnt\foo",
-        #                  "linux2": "/mnt/foo"}
+        #                  "linux": "/mnt/foo"}
         #  }
 
         for storage_name in storage_data:
-
             if not storage_data[storage_name]["defined_in_shotgun"]:
                 raise TankError(
                     "The storage '%s' required by the configuration has not been defined in Flow Production Tracking. "
@@ -232,7 +232,7 @@ class ProjectSetupParameters(object):
                     "and set up a new local file storage." % storage_name
                 )
 
-            elif storage_data[storage_name][sgsix.platform] is None:
+            elif storage_data[storage_name][sys.platform] is None:
                 raise TankError(
                     "The PTR Local File Storage '%s' does not have a path defined "
                     "for the current operating system!" % storage_name
@@ -241,7 +241,7 @@ class ProjectSetupParameters(object):
             elif (
                 check_storage_path and not storage_data[storage_name]["exists_on_disk"]
             ):
-                local_path = storage_data[storage_name][sgsix.platform]
+                local_path = storage_data[storage_name][sys.platform]
                 raise TankError(
                     "The path on disk '%s' defined in the PTR Local File Storage '%s' does "
                     "not exist!" % (local_path, storage_name)
@@ -388,9 +388,7 @@ class ProjectSetupParameters(object):
                 % storage_name
             )
 
-        return self._storage_data.get(storage_name).get(
-            sgsix.normalize_platform(platform)
-        )
+        return self._storage_data.get(storage_name).get(platform)
 
     def update_storage_root(self, config_uri, root_name, storage_data):
         """
@@ -581,7 +579,7 @@ class ProjectSetupParameters(object):
 
         :param storage_name: Name of storage for which to preview the project path
         :param project_name: Project disk name to preview
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
 
         :returns: full path
         """
@@ -662,7 +660,7 @@ class ProjectSetupParameters(object):
         The path returned may not exist on disk but never ends with a path separator.
 
         :param storage_name: Name of storage for which to preview the project path
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
 
         :returns: full path
         """
@@ -727,7 +725,7 @@ class ProjectSetupParameters(object):
         """
 
         config_path = {}
-        config_path["linux2"] = linux_path
+        config_path["linux"] = linux_path
         config_path["win32"] = windows_path
         config_path["darwin"] = macosx_path
 
@@ -763,7 +761,7 @@ class ProjectSetupParameters(object):
                 )
 
         # get the location of the configuration
-        config_path_current_os = config_path[sgsix.platform]
+        config_path_current_os = config_path[sys.platform]
 
         if config_path_current_os is None or config_path_current_os == "":
             raise TankError(
@@ -831,7 +829,7 @@ class ProjectSetupParameters(object):
 
         # and set member variables
         self._config_path = {}
-        self._config_path["linux2"] = linux_path
+        self._config_path["linux"] = linux_path
         self._config_path["win32"] = windows_path
         self._config_path["darwin"] = macosx_path
 
@@ -840,13 +838,13 @@ class ProjectSetupParameters(object):
         Returns the path to the configuration for a given platform.
         The path returned has not been validated and may not be correct nor exist.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
         :returns: path to pipeline configuration.
         """
         if self._config_path is None:
             raise TankError("No configuration location has been set!")
 
-        return self._config_path[sgsix.normalize_platform(platform)]
+        return self._config_path[platform]
 
     ################################################################################################################
     # Accessing which core API to use
@@ -863,7 +861,7 @@ class ProjectSetupParameters(object):
 
         # and set member variables
         self._core_path = {}
-        self._core_path["linux2"] = linux_path
+        self._core_path["linux"] = linux_path
         self._core_path["win32"] = windows_path
         self._core_path["darwin"] = macosx_path
 
@@ -876,7 +874,7 @@ class ProjectSetupParameters(object):
         :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        return self._core_path[sgsix.normalize_platform(platform)]
+        return self._core_path[platform]
 
     ################################################################################################################
     # Validation
@@ -891,7 +889,7 @@ class ProjectSetupParameters(object):
         if self._core_path is None:
             raise TankError("Need to define a core location!")
 
-        if self._core_path[sgsix.platform] is None:
+        if self._core_path[sys.platform] is None:
             raise TankError(
                 "The core API you are trying to use in conjunction with this project "
                 "has not been set up to operate on the current operating system. Please update "
@@ -928,13 +926,13 @@ class ProjectSetupParameters(object):
 
             # make sure that the storage location is not the same folder
             # as the pipeline config location. That will confuse tank.
-            config_path_current_os = self.get_configuration_location(sgsix.platform)
+            config_path_current_os = self.get_configuration_location(sys.platform)
             for storage_name in self.get_required_storages():
 
                 # get the project path for this storage
                 # note! at this point, the storage root has been checked and exists on disk.
                 project_path_local_os = self.get_project_path(
-                    storage_name, sgsix.platform
+                    storage_name, sys.platform
                 )
 
                 if config_path_current_os == project_path_local_os:
@@ -949,7 +947,7 @@ class ProjectSetupParameters(object):
 
             # get the project path for this storage
             # note! at this point, the storage root has been checked and exists on disk.
-            project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
+            project_path_local_os = self.get_project_path(storage_name, sys.platform)
 
             if not os.path.exists(project_path_local_os):
                 raise TankError(
@@ -964,7 +962,7 @@ class ProjectSetupParameters(object):
         if required_core_version:
 
             # now figure out the version of the desired API
-            api_location = self.get_associated_core_path(sgsix.platform)
+            api_location = self.get_associated_core_path(sys.platform)
             curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
 
             if is_version_newer(required_core_version, curr_core_version):
@@ -1174,7 +1172,7 @@ class TemplateConfiguration(object):
         # tk-config-xyz
         # /path/to/file.zip
         # /path/to/folder
-        if config_uri.endswith(".git"):
+        if util.is_git_repo_uri(config_uri):
             # this is a git repository!
             self._log.info("Hang on, loading configuration from git...")
             descriptor = self._create_git_descriptor(config_uri)
@@ -1241,7 +1239,7 @@ class TemplateConfiguration(object):
                         "shotgun_id": 12,
                         "darwin": "/mnt/foo",
                         "win32": "z:\mnt\foo",
-                        "linux2": "/mnt/foo"},
+                        "linux": "/mnt/foo"},
 
           "textures" : { "description": None,
                          "exists_on_disk": False,
@@ -1249,7 +1247,7 @@ class TemplateConfiguration(object):
                          "shotgun_id": 14,
                          "darwin": None,
                          "win32": "z:\mnt\foo",
-                         "linux2": "/mnt/foo"}
+                         "linux": "/mnt/foo"}
         }
 
         The main dictionary is keyed by storage name. It will contain one entry
@@ -1308,7 +1306,7 @@ class TemplateConfiguration(object):
 
                 # populate the platform path keys
                 storage_info[root_name]["darwin"] = local_storage["mac_path"]
-                storage_info[root_name]["linux2"] = local_storage["linux_path"]
+                storage_info[root_name]["linux"] = local_storage["linux_path"]
                 storage_info[root_name]["win32"] = local_storage["windows_path"]
 
                 sg_path = ShotgunPath.from_shotgun_dict(local_storage)

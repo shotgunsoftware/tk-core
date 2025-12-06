@@ -27,11 +27,12 @@ class SsoSaml2Rv(SsoSaml2):
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
-                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
+                             For Qt5/PySide2, we require modules QtCore, QtGui,
+                             QtNetwork and QtWebEngineWidgets
 
         :returns: The SsoSaml2 oject.
         """
-        super(SsoSaml2Rv, self).__init__(window_title, qt_modules)
+        super().__init__(window_title, qt_modules)
 
     def on_sso_login_cancel(self, event):
         """

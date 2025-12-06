@@ -12,8 +12,6 @@
 Unit tests tank updates.
 """
 
-from __future__ import with_statement
-
 import os
 import json
 
@@ -30,7 +28,6 @@ from sgtk.descriptor import create_descriptor
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
-from distutils.version import LooseVersion
 
 
 class TestAppStoreLabels(ShotgunTestBase):
@@ -42,7 +39,7 @@ class TestAppStoreLabels(ShotgunTestBase):
         """
         Clear cached appstore connection
         """
-        super(TestAppStoreLabels, self).setUp()
+        super().setUp()
 
         # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
         self._get_app_store_key_from_shotgun_mock = mock.patch(
@@ -326,7 +323,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         self.assertEqual(mock.call_count, 0)
 
     @mock.patch("tank_vendor.shotgun_api3.Shotgun")
-    @mock.patch("tank_vendor.six.moves.urllib.request.urlopen")
+    @mock.patch("urllib.request.urlopen")
     def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
         """
         Tests that we can prevent connection to the app store based on usage

@@ -13,16 +13,11 @@ Classes for fields on TemplatePaths and TemplateStrings
 """
 
 import sys
+import collections.abc
 import datetime
 from . import constants
 from .errors import TankError
 from .util import sgre as re
-from tank_vendor.six.moves import zip, collections_abc
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
 
 
 class TemplateKey(object):
@@ -123,28 +118,27 @@ class TemplateKey(object):
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
 
-    def _get_default(self):
+    @property
+    def default(self):
         """
         The default value for this key. If the default argument was specified
         as a callable in the constructor, it is invoked and assumed to take no parameters.
 
         :returns: The default value.
         """
-        if isinstance(self._default, collections_abc.Callable):
+        if isinstance(self._default, collections.abc.Callable):
             return self._default()
         else:
             return self._default
 
-    def _set_default(self, value):
+    @default.setter
+    def default(self, value):
         """
         Sets the default value for this key.
 
         :param value: New default value for the key. Can be None.
         """
         self._default = value
-
-    # Python 2.5 doesn't support @default.setter so use old style property.
-    default = property(_get_default, _set_default)
 
     @property
     def name(self):
@@ -361,8 +355,6 @@ class StringKey(TemplateKey):
 
         self._subset_str = subset
         self._subset_format = subset_format
-        if self._subset_format and sys.version_info < (2, 6):
-            raise TankError("Subset formatting in template keys require python 2.6+!")
 
         self._subset_str = subset
 
@@ -377,7 +369,7 @@ class StringKey(TemplateKey):
         else:
             self._subset_regex = None
 
-        super(StringKey, self).__init__(
+        super().__init__(
             name,
             default=default,
             choices=choices,
@@ -457,9 +449,6 @@ class StringKey(TemplateKey):
         The formatting used for the string is standard python custom string formatting, where you can reference
         each regex group with an integer index. Read more about standard python string formatting here:
         https://docs.python.org/2/library/string.html#custom-string-formatting
-
-        .. note:: Subset format is using python string formatting and is only compatible with
-                  with Python 2.6+.
         """
         return self._subset_format
 
@@ -528,11 +517,8 @@ class StringKey(TemplateKey):
                 resolved_value = u""
 
             elif self._subset_format:
-                # we have an explicit format string we want to apply to the
-                # match. Do the formatting as unicode.
-                resolved_value = sgutils.ensure_text(self._subset_format).format(
-                    *match.groups()
-                )
+                # we have an explicit format string we want to apply to the match.
+                resolved_value = self._subset_format.format(*match.groups())
 
             else:
                 # we have a match object. concatenate the groups
@@ -596,8 +582,7 @@ class StringKey(TemplateKey):
             # validate that the formatting can be applied to the input value
             if self._subset_format:
                 try:
-                    # perform the formatting in unicode space to cover all cases
-                    sgutils.ensure_text(self._subset_format).format(*regex_match.groups())
+                    self._subset_format.format(*regex_match.groups())
                 except Exception as e:
                     self._last_error = (
                         "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s"
@@ -605,7 +590,7 @@ class StringKey(TemplateKey):
                     )
                     return False
 
-        return super(StringKey, self).validate(value)
+        return super().validate(value)
 
 
 class TimestampKey(TemplateKey):
@@ -663,7 +648,7 @@ class TimestampKey(TemplateKey):
                 % (name, default.__class__.__name__)
             )
 
-        super(TimestampKey, self).__init__(name, default=default)
+        super().__init__(name, default=default)
 
     @property
     def format_spec(self):
@@ -689,13 +674,13 @@ class TimestampKey(TemplateKey):
         """
         Returns the current utc time as a datetime.datetime instance.
 
-        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.utcnow method,
-        we can't mock datatime.datetime.utcnow since it's builtin and will make unit tests more complicated to
+        Do not streamline the code so the __init__ method simply passesd the datetime.now(timezone.utc) method,
+        we can't mock datetime.now(timezone.utc) since it's builtin and will make unit tests more complicated to
         write.
 
         :returns: A datetime object representing time current time in the UTC timezone.
         """
-        return datetime.datetime.utcnow()
+        return datetime.datetime.now(datetime.timezone.utc)
 
     def validate(self, value):
         """
@@ -796,7 +781,7 @@ class IntegerKey(TemplateKey):
         self._init_format_spec(name, format_spec)
         # Validate and set up strict matching defailts
         self._init_strict_matching(name, strict_matching)
-        super(IntegerKey, self).__init__(
+        super().__init__(
             name,
             default=default,
             choices=choices,
@@ -916,7 +901,7 @@ class IntegerKey(TemplateKey):
                     value,
                 )
                 return False
-            return super(IntegerKey, self).validate(value)
+            return super().validate(value)
         return True
 
     def _loosely_matches(self, value):
@@ -1088,7 +1073,7 @@ class SequenceKey(IntegerKey):
             # default value is %d form
             default = self._resolve_frame_spec("%d", format_spec)
 
-        super(SequenceKey, self).__init__(
+        super().__init__(
             name,
             default=default,
             choices=choices,
@@ -1142,7 +1127,7 @@ class SequenceKey(IntegerKey):
                 return False
 
         else:
-            return super(SequenceKey, self).validate(value)
+            return super().validate(value)
 
     def _as_string(self, value):
 
@@ -1164,7 +1149,7 @@ class SequenceKey(IntegerKey):
             return value
 
         # resolve it via the integerKey base class
-        return super(SequenceKey, self)._as_string(value)
+        return super()._as_string(value)
 
     def _as_value(self, str_value):
 
@@ -1176,7 +1161,7 @@ class SequenceKey(IntegerKey):
             return str_value
 
         # resolve it via the integerKey base class
-        return super(SequenceKey, self)._as_value(str_value)
+        return super()._as_value(str_value)
 
     def _extract_format_string(self, value):
         """

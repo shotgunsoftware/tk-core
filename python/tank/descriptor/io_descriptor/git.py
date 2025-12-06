@@ -24,25 +24,11 @@ from ...util import is_windows
 log = LogManager.get_logger(__name__)
 
 
-def _can_hide_terminal():
-    """
-    Ensures this version of Python can hide the terminal of a subprocess
-    launched with the subprocess module.
-    """
-    try:
-        # These values are not defined between Python 2.6.6 and 2.7.1 inclusively.
-        subprocess.STARTF_USESHOWWINDOW
-        subprocess.SW_HIDE
-        return True
-    except Exception:
-        return False
-
-
 def _check_output(*args, **kwargs):
     """
     Wraps the call to subprocess_check_output so it can run headless on Windows.
     """
-    if is_windows() and _can_hide_terminal():
+    if is_windows():
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startupinfo.wShowWindow = subprocess.SW_HIDE
@@ -77,9 +63,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGit, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._path = descriptor_dict.get("path")
         # strip trailing slashes - this is so that when we build
@@ -162,7 +146,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # Note: We only try this workflow if we can actually hide the terminal on Windows.
         # If we can't there's no point doing all of this and we should just use
         # os.system.
-        if is_windows() and _can_hide_terminal():
+        if is_windows():
             log.debug("Executing command '%s' using subprocess module." % cmd)
             try:
                 # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
@@ -200,46 +184,26 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         output = None
 
-        # note: for windows, we use git -C to point git to the right current
-        # working directory. This requires git 1.9+. This is to ensure that
-        # the solution handles UNC paths, which do not support os.getcwd() operations.
-        #
-        # for other platforms, we omit -C to ensure compatibility with older versions
-        # of git. Centos 7 still ships with 1.8.
+        for command in commands:
+            # we use git -C to specify the working directory where to execute the command
+            # this option was added in as part of git 1.9
+            # and solves an issue with UNC paths on windows.
+            full_command = 'git -C "%s" %s' % (target_path, command)
+            log.debug("Executing '%s'" % full_command)
 
-        cwd = os.getcwd()
-        try:
-            if not is_windows():
-                log.debug("Setting cwd to '%s'" % target_path)
-                os.chdir(target_path)
+            try:
+                output = _check_output(full_command, shell=True)
 
-            for command in commands:
+                # note: it seems on windows, the result is sometimes wrapped in single quotes.
+                output = output.strip().strip("'")
 
-                if is_windows():
-                    # we use git -C to specify the working directory where to execute the command
-                    # this option was added in as part of git 1.9
-                    # and solves an issue with UNC paths on windows.
-                    full_command = 'git -C "%s" %s' % (target_path, command)
-                else:
-                    full_command = "git %s" % command
-
-                log.debug("Executing '%s'" % full_command)
-                try:
-                    output = _check_output(full_command, shell=True)
-
-                    # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                    output = output.strip().strip("'")
-
-                except SubprocessCalledProcessError as e:
-                    raise TankGitError(
-                        "Error executing git operation '%s': %s (Return code %s)"
-                        % (full_command, e.output, e.returncode)
-                    )
-                log.debug("Execution successful. stderr/stdout: '%s'" % output)
-        finally:
-            if not is_windows():
-                log.debug("Restoring cwd (to '%s')" % cwd)
-                os.chdir(cwd)
+            except SubprocessCalledProcessError as e:
+                raise TankGitError(
+                    f"Error executing GIT operation '{full_command}': {e.output}"
+                    f" (Return code {e.returncode}). "
+                    " Supported GIT version: 1.9+."
+                )
+            log.debug("Execution successful. stderr/stdout: '%s'" % output)
 
         # return the last returned stdout/stderr
         return output

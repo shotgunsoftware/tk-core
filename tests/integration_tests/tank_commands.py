@@ -12,8 +12,6 @@
 This test makes sure that various tank command operations do not fail.
 """
 
-from __future__ import print_function
-
 import os
 import re
 import sys
@@ -531,4 +529,4 @@ class TankCommands(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest.main(failfast=True, verbosity=2)
+    unittest.main(failfast=True, verbosity=2)

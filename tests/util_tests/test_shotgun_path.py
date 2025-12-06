@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
@@ -22,7 +20,7 @@ class TestShotgunPath(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestShotgunPath, self).setUp()
+        super().setUp()
 
     def test_construction(self):
         """
@@ -54,7 +52,7 @@ class TestShotgunPath(ShotgunTestBase):
         self.assertEqual(sg.linux, None)
 
         sys_paths = ShotgunPath.from_system_dict(
-            {"win32": "C:\\temp", "darwin": "/tmp", "linux2": "/tmp2", "foo": "bar"}
+            {"win32": "C:\\temp", "darwin": "/tmp", "linux": "/tmp2", "foo": "bar"}
         )
 
         self.assertEqual(sys_paths.windows, "C:\\temp")
@@ -210,7 +208,7 @@ class TestShotgunPath(ShotgunTestBase):
         """
         gssk = ShotgunPath.get_shotgun_storage_key
         self.assertEqual(gssk("win32"), "windows_path")
-        self.assertEqual(gssk("linux2"), "linux_path")
+        self.assertEqual(gssk("linux"), "linux_path")
         self.assertEqual(gssk("linux"), "linux_path")
         self.assertEqual(gssk("linux3"), "linux_path")
         self.assertEqual(gssk("darwin"), "mac_path")
@@ -250,7 +248,7 @@ class TestShotgunPath(ShotgunTestBase):
         )
 
         self.assertEqual(
-            ShotgunPath.get_file_name_from_template("/%s.yml", "linux2"), "/Linux.yml"
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux"), "/Linux.yml"
         )
 
         self.assertEqual(

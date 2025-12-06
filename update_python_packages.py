@@ -86,6 +86,44 @@ def main():
             print(f"Zipping {package_name}...")
             zip_recursively(pkgs_zip, temp_dir_path, package_name)
 
+        # Fix for namespace packages (like ruamel.yaml) that don't have __init__.py
+        # in their parent directory. Python 3.7-3.9 inside ZIP files require explicit __init__.py
+        fix_namespace_packages(pkgs_zip, temp_dir_path)
+
+        pkgs_zip.close()
+
+
+def fix_namespace_packages(zip_file, root_dir):
+    """
+    Add missing __init__.py files for namespace packages.
+    Some packages like ruamel.yaml are PEP 420 namespace packages that don't
+    include __init__.py in parent directories, which causes import issues from ZIP files.
+    """
+    from io import BytesIO
+
+    # Get list of all files in the zip
+    zip_contents = zip_file.namelist()
+
+    # Find directories that need __init__.py
+    directories_needing_init = set()
+
+    for file_path in zip_contents:
+        parts = pathlib.Path(file_path).parts
+        # Check intermediate directories (not the file itself or root)
+        for i in range(1, len(parts)):
+            dir_path = "/".join(parts[:i])
+            init_path = f"{dir_path}/__init__.py"
+
+            # If this directory doesn't have an __init__.py, mark it
+            if init_path not in zip_contents:
+                directories_needing_init.add(dir_path)
+
+    # Add empty __init__.py files for namespace packages
+    for dir_path in sorted(directories_needing_init):
+        init_path = f"{dir_path}/__init__.py"
+        print(f"  Adding namespace package marker: {init_path}")
+        zip_file.writestr(init_path, b"# Namespace package\n")
+
 
 def zip_recursively(zip_file, root_dir, folder_name):
     """

@@ -11,8 +11,6 @@
 Module to support Web login via a web browser and automated session renewal.
 """
 
-from __future__ import print_function
-
 # pylint: disable=import-error
 from ...ui.qt_abstraction import QtCore, QtGui
 
@@ -25,7 +23,7 @@ class UsernamePasswordDialog(QtGui.QDialog):
     """Simple dialog to request a username and password from the user."""
 
     def __init__(self, window_title=None, message=None):
-        super(UsernamePasswordDialog, self).__init__()
+        super().__init__()
 
         if window_title is None:
             window_title = "Please enter your credentials"
