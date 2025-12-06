@@ -3,3 +3,4 @@ packaging==25.0
 PyYAML==6.0.2
 ruamel.yaml==0.18.14
 ruamel.yaml.clib==0.2.15
+shotgun_api3==3.9.1
