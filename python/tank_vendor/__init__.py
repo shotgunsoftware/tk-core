@@ -21,8 +21,6 @@ def _patch_shotgun_api3_certs(zip_path):
     the ZIP. Since SSL cannot read from ZIP files, we extract the certificate during
     build to requirements/<version>/certs/ and patch the method to return that path.
     """
-    import shotgun_api3
-    
     # Path to extracted certificates directory
     certs_dir = zip_path.parent / "certs"
     cert_file = certs_dir / "shotgun_api3" / "lib" / "certifi" / "cacert.pem"
@@ -94,6 +92,14 @@ if _pkgs_zip_valid:
         sys.modules["tank_vendor.packaging"] = sys.modules["packaging"]
         sys.modules["tank_vendor.ruamel"] = sys.modules["ruamel"]
         sys.modules["tank_vendor.shotgun_api3"] = sys.modules["shotgun_api3"]
+
+        # Register shotgun_api3 submodules to support imports like:
+        #   from tank_vendor.shotgun_api3.lib import httplib2
+        # Import the submodules so they're registered in sys.modules
+        import shotgun_api3.lib
+        import shotgun_api3.lib.httplib2
+        sys.modules["tank_vendor.shotgun_api3.lib"] = sys.modules["shotgun_api3.lib"]
+        sys.modules["tank_vendor.shotgun_api3.lib.httplib2"] = sys.modules["shotgun_api3.lib.httplib2"]
 
         # Patch shotgun_api3._get_certs_file to return extracted certificate path
         # SSL cannot read files from ZIP, so we extract certificates during build
