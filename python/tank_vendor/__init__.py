@@ -20,10 +20,10 @@ pkgs_zip_path = (
     / "pkgs.zip"
 )
 
-# Only load from pkgs.zip if it exists. This provides backward compatibility
-# for installations that may still use vendored copies or are in temporary
-# locations without the requirements directory structure.
-if pkgs_zip_path.exists():
+# Only load from pkgs.zip if it exists as a valid file. This provides backward
+# compatibility for installations that may still use vendored copies or are in
+# temporary locations without the requirements directory structure.
+if pkgs_zip_path.is_file():
     # Add pkgs.zip to sys.path to enable importing packages from the archive.
     sys.path.insert(0, str(pkgs_zip_path))
     try:
