@@ -12,6 +12,34 @@ import pathlib
 import sys
 import zipfile
 
+
+def _patch_shotgun_api3_certs(zip_path):
+    """
+    Patch shotgun_api3.Shotgun._get_certs_file to return extracted certificate path.
+    
+    When shotgun_api3 is loaded from pkgs.zip, its certificate file is also inside
+    the ZIP. Since SSL cannot read from ZIP files, we extract the certificate during
+    build to requirements/<version>/certs/ and patch the method to return that path.
+    """
+    import shotgun_api3
+    
+    # Path to extracted certificates directory
+    certs_dir = zip_path.parent / "certs"
+    cert_file = certs_dir / "shotgun_api3" / "lib" / "certifi" / "cacert.pem"
+    
+    if cert_file.exists():
+        # Save original method
+        _original_get_certs_file = shotgun_api3.Shotgun._get_certs_file
+        
+        # Create patched version
+        def _patched_get_certs_file(self):
+            # Return extracted certificate path instead of ZIP path
+            return str(cert_file)
+        
+        # Apply patch
+        shotgun_api3.Shotgun._get_certs_file = _patched_get_certs_file
+
+
 # Construct path to the Python version-specific pkgs.zip containing third-party dependencies.
 # Path structure: <tk-core>/requirements/<major>.<minor>/pkgs.zip
 pkgs_zip_path = (
@@ -63,6 +91,10 @@ if _pkgs_zip_valid:
         sys.modules["tank_vendor.packaging"] = sys.modules["packaging"]
         sys.modules["tank_vendor.ruamel"] = sys.modules["ruamel"]
         sys.modules["tank_vendor.shotgun_api3"] = sys.modules["shotgun_api3"]
+
+        # Patch shotgun_api3._get_certs_file to return extracted certificate path
+        # SSL cannot read files from ZIP, so we extract certificates during build
+        _patch_shotgun_api3_certs(pkgs_zip_path)
 
     except Exception as e:
         sys.path.remove(str(pkgs_zip_path))
