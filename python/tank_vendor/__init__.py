@@ -14,10 +14,10 @@ import sys
 # Construct path to the Python version-specific pkgs.zip containing third-party dependencies.
 # Path structure: <tk-core>/requirements/<major>.<minor>/pkgs.zip
 pkgs_zip_path = (
-    pathlib.Path(__file__).resolve().parent.parent.parent /
-    "requirements" /
-    f"{sys.version_info.major}.{sys.version_info.minor}" /
-    "pkgs.zip"
+    pathlib.Path(__file__).resolve().parent.parent.parent
+    / "requirements"
+    / f"{sys.version_info.major}.{sys.version_info.minor}"
+    / "pkgs.zip"
 )
 
 # Validate that the pkgs.zip exists for the current Python version.
@@ -34,7 +34,7 @@ try:
     import packaging
     import ruamel
     import yaml
-    
+
     # Register modules in sys.modules to support nested imports.
     # This is required for imports like:
     #   - from tank_vendor.packaging.version import parse
@@ -42,8 +42,8 @@ try:
     # Without this, Python cannot resolve the dotted path when looking up
     # submodules (e.g., .version, .yaml) because it searches sys.modules
     # for 'tank_vendor.packaging', not just the attribute tank_vendor.packaging.
-    sys.modules['tank_vendor.packaging'] = sys.modules['packaging']
-    sys.modules['tank_vendor.ruamel'] = sys.modules['ruamel']
+    sys.modules["tank_vendor.packaging"] = sys.modules["packaging"]
+    sys.modules["tank_vendor.ruamel"] = sys.modules["ruamel"]
 
 except Exception as e:
     sys.path.remove(str(pkgs_zip_path))
