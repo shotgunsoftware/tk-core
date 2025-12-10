@@ -3,5 +3,4 @@ packaging==25.0
 PyYAML==6.0.1
 ruamel.yaml==0.18.14
 ruamel.yaml.clib==0.2.15
-# Editable install with no version control (shotgun_api3==3.9.1)
--e c:\users\chaucae\appdata\local\temp\tmpggy7ud0b
+shotgun_api3==3.9.1

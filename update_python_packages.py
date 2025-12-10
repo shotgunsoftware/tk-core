@@ -54,12 +54,24 @@ def main():
                 "--target",
                 temp_dir,
                 "--upgrade",
-            ]
+            ],
+            check=True,
         )
-        subprocess.run(  # nosec B603, B607
-            ["python", "-m", "pip", "freeze", "--path", temp_dir],
-            stdout=open(frozen_requirements_txt, "w"),
-        )
+        # Use pip freeze with --exclude-editable to avoid capturing editable installs
+        with open(frozen_requirements_txt, "w") as f:
+            subprocess.run(  # nosec B603, B607
+                [
+                    "python",
+                    "-m",
+                    "pip",
+                    "freeze",
+                    "--path",
+                    temp_dir,
+                    "--exclude-editable",
+                ],
+                stdout=f,
+                check=True,
+            )
 
         # Quickly compute the number of requirements we have.
         nb_dependencies = len([_ for _ in open(frozen_requirements_txt, "rt")])

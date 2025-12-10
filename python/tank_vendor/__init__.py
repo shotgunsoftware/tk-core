@@ -140,24 +140,32 @@ def _install_import_hook():
                     # Check if the real module exists or can be imported
                     if real_name in sys.modules:
                         # Create a spec that redirects to the existing module
+                        real_module = sys.modules[real_name]
+                        is_package = hasattr(real_module, "__path__")
                         spec = ModuleSpec(
                             fullname,
                             self,
-                            is_package=hasattr(sys.modules[real_name], "__path__"),
+                            is_package=is_package,
                         )
-                        spec.submodule_search_locations = None
+                        # For packages, copy the __path__ so Python knows where to find submodules
+                        if is_package:
+                            spec.submodule_search_locations = list(real_module.__path__)
                         return spec
 
                     # Try to import the real module to see if it exists
                     try:
                         __import__(real_name)
                         # Success - create spec for this module
+                        real_module = sys.modules[real_name]
+                        is_package = hasattr(real_module, "__path__")
                         spec = ModuleSpec(
                             fullname,
                             self,
-                            is_package=hasattr(sys.modules[real_name], "__path__"),
+                            is_package=is_package,
                         )
-                        spec.submodule_search_locations = None
+                        # For packages, copy the __path__ so Python knows where to find submodules
+                        if is_package:
+                            spec.submodule_search_locations = list(real_module.__path__)
                         return spec
                     except ImportError:
                         # Module doesn't exist, let normal import handle it
