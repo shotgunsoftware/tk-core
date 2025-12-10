@@ -250,6 +250,16 @@ if pkgs_zip_path.exists():
             # Not a valid ZIP file or can't be read - skip loading from pkgs.zip
             pass
 
+# Ensure pkgs.zip was found and is valid
+if not _pkgs_zip_valid:
+    raise RuntimeError(
+        f"Required third-party dependencies not found. "
+        f"Expected valid pkgs.zip at: {pkgs_zip_path}\n"
+        f"This file should contain all third-party packages for Python "
+        f"{sys.version_info.major}.{sys.version_info.minor}. "
+        f"Please ensure the tk-core requirements are properly installed."
+    )
+
 if _pkgs_zip_valid:
     # Add pkgs.zip to sys.path so Python can import packages directly from the ZIP.
     # Insert at position 0 to prioritize over other installed packages.

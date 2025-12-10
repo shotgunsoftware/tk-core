@@ -102,8 +102,6 @@ def fix_namespace_packages(zip_file, root_dir):
     Some packages like ruamel.yaml are PEP 420 namespace packages that don't
     include __init__.py in parent directories, which causes import issues from ZIP files.
     """
-    from io import BytesIO
-
     # Get list of all files in the zip
     zip_contents = zip_file.namelist()
 
@@ -131,38 +129,38 @@ def fix_namespace_packages(zip_file, root_dir):
 def extract_ssl_certificates(zip_path, output_dir):
     """
     Extract SSL certificate files from the ZIP to the filesystem.
-    
+
     The Python ssl module cannot read certificate files from inside ZIP archives,
     so we need to extract them. This function finds and extracts certificate files
     (like shotgun_api3's cacert.pem) to a certs/ directory alongside the ZIP.
-    
+
     :param str zip_path: Path to the pkgs.zip file
     :param str output_dir: Directory where certificates should be extracted
     """
     cert_patterns = [
-        'shotgun_api3/lib/certifi/cacert.pem',
+        "shotgun_api3/lib/certifi/cacert.pem",
         # Add other certificate patterns if needed
     ]
-    
+
     certs_dir = os.path.join(output_dir, "certs")
-    
-    with zipfile.ZipFile(zip_path, 'r') as zf:
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
         zip_contents = zf.namelist()
-        
+
         for pattern in cert_patterns:
             # Find matching files in ZIP
             matching_files = [f for f in zip_contents if pattern in f]
-            
+
             for cert_file in matching_files:
                 # Extract to certs/ directory with same structure
                 target_path = os.path.join(certs_dir, cert_file)
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
-                
+
                 # Extract the certificate
                 with zf.open(cert_file) as src:
-                    with open(target_path, 'wb') as dst:
+                    with open(target_path, "wb") as dst:
                         dst.write(src.read())
-                
+
                 print(f"  Extracted certificate: {cert_file} -> {target_path}")
 
 
