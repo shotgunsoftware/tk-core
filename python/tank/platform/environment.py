@@ -858,9 +858,6 @@ class WritableEnvironment(InstalledEnvironment):
             )
 
         try:
-            logger.debug(
-                f"self._use_ruamel_yaml_parser={self._use_ruamel_yaml_parser}"
-            )
             if self._use_ruamel_yaml_parser:
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is

@@ -50,7 +50,6 @@ tests/python/third_party
 
 # venv
 venv
-.venv
 
 # VSCode
 .vscode
