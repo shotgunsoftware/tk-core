@@ -14,6 +14,7 @@ import sys
 import urllib.parse
 
 from tank_vendor import yaml
+from tank_vendor.packaging.version import InvalidVersion
 
 from ... import LogManager
 from ...util import filesystem
@@ -229,8 +230,9 @@ class IODescriptorBase(object):
         :returns: True if compatible or no requirement specified, False otherwise
         """
         minimum_python_version = manifest_data.get("minimum_python_version")
-        if not minimum_python_version:
-            # No requirement specified, assume compatible
+        
+        if not isinstance(minimum_python_version, str) or not minimum_python_version:
+            # No requirement specified or invalid type, assume compatible
             return True
 
         # Get current Python version as string (e.g., "3.9.13")
@@ -238,11 +240,14 @@ class IODescriptorBase(object):
 
         # Use tank.util.version for robust version comparison
         # Current version must be >= minimum required version
+        is_compatible = False
         try:
             is_compatible = is_version_newer_or_equal(
                 current_version_str, str(minimum_python_version)
             )
-        except Exception as e:
+        except (TankDescriptorError, InvalidVersion) as e:
+            # TankDescriptorError: Can't compare git commits
+            # InvalidVersion: Invalid version format
             log.warning(
                 "Could not compare Python versions (current: %s, required: %s): %s. Assuming compatible.",
                 current_version_str,

@@ -549,7 +549,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             return list(all_versions.keys())
 
         version_numbers = []
-        log.debug("Filtering cached versions by label '%s'..." % self._label)
+        log.debug(f"Filtering cached versions by label '{self._label}'...")
         for version_str, path in all_versions.items():
             metadata = self.__load_cached_app_store_metadata(path)
             try:
