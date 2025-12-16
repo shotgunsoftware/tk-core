@@ -558,8 +558,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                     version_numbers.append(version_str)
             except Exception as e:
                 log.debug(
-                    "Could not determine label metadata for %s. Ignoring. Details: %s"
-                    % (path, e)
+                    f"Could not determine label metadata for {path}. Ignoring. Details: {e}"
                 )
         return version_numbers
 
@@ -626,29 +625,26 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # Check if this version exists locally
             if not temp_desc.exists_local():
                 log.debug(
-                    "Version %s not found in cache (expected at %s)"
-                    % (version_str, temp_desc.get_path())
+                    f"Version {version_str} not found in cache (expected at {temp_desc.get_path()})"
                 )
                 return (False, None)
 
             # Check Python compatibility
             manifest = temp_desc.get_manifest(constants.BUNDLE_METADATA_FILE)
             if self._check_minimum_python_version(manifest):
-                log.debug("Found compatible cached version: %s" % version_str)
+                log.debug(f"Found compatible cached version: {version_str}")
                 return (True, temp_desc)
 
             # Not compatible - log and return
             min_py_ver = manifest.get("minimum_python_version", "not specified")
             log.debug(
-                "Cached version %s requires Python %s - not compatible"
-                % (version_str, min_py_ver)
+                f"Cached version {version_str} requires Python {min_py_ver} - not compatible"
             )
             return (False, None)
 
         except Exception as e:
             log.debug(
-                "Could not check compatibility for cached version %s: %s"
-                % (version_str, e)
+                f"Could not check compatibility for cached version {version_str}: {e}"
             )
             return (False, None)
 
@@ -689,8 +685,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         sorted_versions = self._sort_versions_descending(version_numbers)
 
         log.debug(
-            "Checking %d cached versions for Python compatibility (newest first)"
-            % len(sorted_versions)
+            f"Checking {len(sorted_versions)} cached versions for Python compatibility (newest first)"
         )
 
         # Find first compatible version
@@ -720,8 +715,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :returns: IODescriptorAppStore object
         """
         log.debug(
-            "Determining latest version for %r given constraint pattern %s"
-            % (self, constraint_pattern)
+            f"Determining latest version for {self} given constraint pattern {constraint_pattern}"
         )
 
         # connect to the app store
@@ -746,7 +740,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
             if sg_bundle_data is None:
                 raise TankDescriptorError(
-                    "App store does not contain an item named '%s'!" % self._name
+                    f"App store does not contain an item named '{self._name}'!"
                 )
 
             # now get all versions
@@ -777,8 +771,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         )
 
         log.debug(
-            "Downloaded data for %d versions from Flow Production Tracking."
-            % len(sg_versions)
+            f"Downloaded data for {len(sg_versions)} versions from Flow Production Tracking."
         )
 
         # now filter out all labels that aren't matching
@@ -789,12 +782,12 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 matching_records.append(sg_version_entry)
 
         log.debug(
-            "After applying label filters, %d records remain." % len(matching_records)
+            f"After applying label filters, {len(matching_records)} records remain."
         )
 
         if len(matching_records) == 0:
             raise TankDescriptorError(
-                "Cannot find any versions for %s in the App store!" % self
+                f"Cannot find any versions for {self} in the App store!"
             )
 
         # and filter out based on version constraint
@@ -806,13 +799,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             )
             if version_to_use is None:
                 raise TankDescriptorError(
-                    "'%s' does not have a version matching the pattern '%s'. "
-                    "Available versions are: %s"
-                    % (
-                        self.get_system_name(),
-                        constraint_pattern,
-                        ", ".join(version_numbers),
-                    )
+                    f"'{self.get_system_name()}' does not have a version matching the pattern '{constraint_pattern}'. "
+                    f"Available versions are: {', '.join(version_numbers)}"
                 )
             # get the sg data for the given version
             sg_data_for_version = [
@@ -843,7 +831,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 # Download if needed to read manifest
                 if not temp_desc.exists_local():
                     log.debug(
-                        "Downloading %s to check Python compatibility" % version_to_use
+                        f"Downloading {version_to_use} to check Python compatibility"
                     )
                     temp_desc.download_local()
 
@@ -853,8 +841,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                     current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
                     min_py_ver = manifest.get("minimum_python_version", "not specified")
                     log.warning(
-                        "Auto-update blocked: Latest version %s requires Python %s, current is %s."
-                        % (version_to_use, min_py_ver, current_py_ver)
+                        f"Auto-update blocked: Latest version {version_to_use} requires Python {min_py_ver}, current is {current_py_ver}."
                     )
 
                     # Try to find highest compatible version in cache
@@ -863,26 +850,23 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                     )
                     if compatible_desc:
                         log.info(
-                            "Using cached compatible version %s instead of latest %s"
-                            % (compatible_desc.get_version(), version_to_use)
+                            f"Using cached compatible version {compatible_desc.get_version()} instead of latest {version_to_use}"
                         )
                         return compatible_desc
                     else:
                         log.warning(
-                            "No compatible cached version found. Proceeding with latest version %s "
-                            "(may cause compatibility issues)." % version_to_use
+                            f"No compatible cached version found. Proceeding with latest version {version_to_use} "
+                            "(may cause compatibility issues)."
                         )
                         # Reset to use latest - user will need to upgrade Python
                         # This maintains current behavior when no alternative exists
                 else:
                     log.debug(
-                        "Latest version %s is compatible with current Python version"
-                        % version_to_use
+                        f"Latest version {version_to_use} is compatible with current Python version"
                     )
             except Exception as e:
                 log.warning(
-                    "Could not check Python compatibility for %s: %s. Proceeding with auto-update."
-                    % (version_to_use, e)
+                    f"Could not check Python compatibility for {version_to_use}: {e}. Proceeding with auto-update."
                 )
 
         # make a descriptor dict

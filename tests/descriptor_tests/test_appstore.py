@@ -515,7 +515,7 @@ class TestAppStorePythonVersionCompatibility(ShotgunTestBase):
         find_one_mock,
     ):
         """
-        End-to-end test: Python 3.9 uses compatible cached version (v1.0.0) instead of
+        End-to-end test: Python 3.7 uses compatible cached version (v1.0.0) instead of
         incompatible latest (v2.0.0) when calling find_latest_version().
 
         This test demonstrates that when the latest version is incompatible, the system searches

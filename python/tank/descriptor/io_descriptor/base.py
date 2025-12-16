@@ -236,7 +236,9 @@ class IODescriptorBase(object):
             return True
 
         # Get current Python version as string (e.g., "3.9.13")
-        current_version_str = ".".join(str(x) for x in sys.version_info[:3])
+        current_version_str = (
+            f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+        )
 
         # Use tank.util.version for robust version comparison
         # Current version must be >= minimum required version
@@ -249,18 +251,13 @@ class IODescriptorBase(object):
             # TankDescriptorError: Can't compare git commits
             # InvalidVersion: Invalid version format
             log.warning(
-                "Could not compare Python versions (current: %s, required: %s): %s. Assuming compatible.",
-                current_version_str,
-                minimum_python_version,
-                e,
+                f"Could not compare Python versions (current: {current_version_str}, required: {minimum_python_version}): {e}. Assuming compatible."
             )
             return True
 
         if not is_compatible:
             log.debug(
-                "Python version %s does not meet minimum requirement %s",
-                current_version_str,
-                minimum_python_version,
+                f"Python version {current_version_str} does not meet minimum requirement {minimum_python_version}"
             )
 
         return is_compatible
