@@ -230,7 +230,7 @@ class IODescriptorBase(object):
         :returns: True if compatible or no requirement specified, False otherwise
         """
         minimum_python_version = manifest_data.get("minimum_python_version")
-        
+
         if not isinstance(minimum_python_version, str) or not minimum_python_version:
             # No requirement specified or invalid type, assume compatible
             return True
