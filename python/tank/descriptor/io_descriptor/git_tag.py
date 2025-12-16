@@ -260,17 +260,14 @@ class IODescriptorGitTag(IODescriptorGit):
                 local_tag = local_tag.decode("utf-8")
 
             log.debug(
-                "Local repository at %s is currently at tag %s"
-                % (self._path, local_tag)
+                f"Local repository at {self._path} is currently at tag {local_tag}"
             )
             return local_tag
         except subprocess.CalledProcessError:
             # Not on a tag
             return None
         except Exception as e:
-            log.debug(
-                "Could not determine local repository tag at %s: %s" % (self._path, e)
-            )
+            log.debug(f"Could not determine local repository tag at {self._path}: {e}")
             return None
 
     def _check_local_tag_compatibility(
@@ -279,11 +276,12 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         Check if a local repository tag is compatible with the current Python version.
 
-        :param local_tag: Tag name from local repository
-        :param latest_tag: Latest tag that was found incompatible
-        :param current_py_ver: Current Python version string
-        :param min_py_ver: Minimum Python version required by latest_tag
+        :param str local_tag: Tag name from local repository
+        :param str latest_tag: Latest tag that was found incompatible
+        :param str current_py_ver: Current Python version string (e.g., "3.7.0")
+        :param str min_py_ver: Minimum Python version required by latest_tag
         :returns: local_tag if compatible, None otherwise
+        :rtype: str or None
         """
         try:
             # Create a descriptor for this local tag and download it to bundle cache
@@ -297,8 +295,7 @@ class IODescriptorGitTag(IODescriptorGit):
             # Download to bundle cache if not already there
             if not local_desc.exists_local():
                 log.debug(
-                    "Downloading local tag %s to bundle cache for compatibility check"
-                    % local_tag
+                    f"Downloading local tag {local_tag} to bundle cache for compatibility check"
                 )
                 local_desc.download_local()
 
@@ -308,21 +305,17 @@ class IODescriptorGitTag(IODescriptorGit):
             )
             if self._check_minimum_python_version(local_manifest):
                 log.warning(
-                    "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
-                    "Using local repository tag %s which is compatible."
-                    % (latest_tag, min_py_ver, current_py_ver, local_tag)
+                    f"Auto-update blocked: Latest tag {latest_tag} requires Python {min_py_ver}, current is {current_py_ver}. "
+                    f"Using local repository tag {local_tag} which is compatible."
                 )
                 return local_tag
             else:
                 log.debug(
-                    "Local tag %s is also not compatible with current Python version"
-                    % local_tag
+                    f"Local tag {local_tag} is also not compatible with current Python version"
                 )
                 return None
         except Exception as e:
-            log.debug(
-                "Could not check compatibility for local tag %s: %s" % (local_tag, e)
-            )
+            log.debug(f"Could not check compatibility for local tag {local_tag}: {e}")
             return None
 
     def _find_compatible_cached_version(self, latest_tag):
@@ -369,7 +362,7 @@ class IODescriptorGitTag(IODescriptorGit):
                             compatible_version = tag
             except Exception as e:
                 log.debug(
-                    "Could not check compatibility for cached version %s: %s" % (tag, e)
+                    f"Could not check compatibility for cached version {tag}: {e}"
                 )
                 continue
 
@@ -386,7 +379,7 @@ class IODescriptorGitTag(IODescriptorGit):
         latest_tag = self._find_latest_tag_by_pattern(tags, pattern=None)
         if latest_tag is None:
             raise TankDescriptorError(
-                "Git repository %s doesn't have any tags!" % self._path
+                f"Git repository {self._path} doesn't have any tags!"
             )
 
         # Check if latest tag is compatible with current Python
@@ -423,11 +416,13 @@ class IODescriptorGitTag(IODescriptorGit):
                             with open(manifest_path) as f:
                                 manifest = yaml.load(f, Loader=yaml.FullLoader)
                     except Exception as e:
-                        log.debug("Could not read manifest from local git repo: %s" % e)
+                        log.debug(f"Could not read manifest from local git repo: {e}")
                     manifest["minimum_python_version"] = "3.10"
             if manifest and not self._check_minimum_python_version(manifest):
                 # Latest version is NOT compatible - block auto-update
-                current_py_ver = ".".join(str(x) for x in sys.version_info[:3])
+                current_py_ver = (
+                    f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+                )
                 min_py_ver = manifest.get("minimum_python_version", "not specified")
 
                 # If current version is "latest", find a compatible alternative
@@ -447,42 +442,32 @@ class IODescriptorGitTag(IODescriptorGit):
                     )
                     if compatible_version:
                         log.warning(
-                            "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
-                            "Using highest compatible cached version %s."
-                            % (
-                                latest_tag,
-                                min_py_ver,
-                                current_py_ver,
-                                compatible_version,
-                            )
+                            f"Auto-update blocked: Latest tag {latest_tag} requires Python {min_py_ver}, current is {current_py_ver}. "
+                            f"Using highest compatible cached version {compatible_version}."
                         )
                         return compatible_version
                     else:
                         # No compatible version found - use latest anyway with warning
                         log.warning(
-                            "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
+                            f"Auto-update blocked: Latest tag {latest_tag} requires Python {min_py_ver}, current is {current_py_ver}. "
                             "No compatible cached version found. Using latest tag anyway."
-                            % (latest_tag, min_py_ver, current_py_ver)
                         )
                         return latest_tag
                 else:
                     log.warning(
-                        "Auto-update blocked: Latest tag %s requires Python %s, current is %s. "
-                        "Keeping current version %s."
-                        % (latest_tag, min_py_ver, current_py_ver, self._version)
+                        f"Auto-update blocked: Latest tag {latest_tag} requires Python {min_py_ver}, current is {current_py_ver}. "
+                        f"Keeping current version {self._version}."
                     )
                     return self._version
             else:
                 log.debug(
-                    "Latest tag %s is compatible with current Python version"
-                    % latest_tag
+                    f"Latest tag {latest_tag} is compatible with current Python version"
                 )
                 return latest_tag
 
         except Exception as e:
             log.warning(
-                "Could not check Python compatibility for tag %s: %s. Proceeding with auto-update."
-                % (latest_tag, e)
+                f"Could not check Python compatibility for tag {latest_tag}: {e}. Proceeding with auto-update."
             )
             return latest_tag
 
@@ -500,9 +485,9 @@ class IODescriptorGitTag(IODescriptorGit):
 
         :returns: instance deriving from IODescriptorBase or None if not found
         """
-        log.debug("Looking for cached versions of %r..." % self)
+        log.debug(f"Looking for cached versions of {self}...")
         all_versions = list(self._get_locally_cached_versions().keys())
-        log.debug("Found %d versions" % len(all_versions))
+        log.debug(f"Found {len(all_versions)} versions")
 
         if len(all_versions) == 0:
             return None
@@ -520,5 +505,5 @@ class IODescriptorGitTag(IODescriptorGit):
         desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
-        log.debug("Latest cached version resolved to %r" % desc)
+        log.debug(f"Latest cached version resolved to {desc}")
         return desc

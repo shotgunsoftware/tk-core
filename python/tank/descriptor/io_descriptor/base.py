@@ -255,8 +255,7 @@ class IODescriptorBase(object):
                 except Exception as e:
                     # Handle malformed version tags gracefully
                     log.debug(
-                        "Skipping version '%s' due to parsing error: %s"
-                        % (version_number, e)
+                        f"Skipping version '{version_number}' due to parsing error: {e}"
                     )
                     continue
             return latest_version
@@ -388,7 +387,9 @@ class IODescriptorBase(object):
         :returns: True if current Python version is compatible, False otherwise
         """
         # Get current Python version as string (e.g., "3.9.13")
-        current_version_str = ".".join(str(i) for i in sys.version_info[:3])
+        current_version_str = (
+            f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+        )
 
         # Get minimum required Python version from manifest
         min_python_version = manifest_data.get("minimum_python_version")
