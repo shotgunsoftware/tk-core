@@ -17,6 +17,7 @@ a local path.
 import os
 import sys
 import shutil
+import re
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -47,18 +48,72 @@ logger = LogManager.get_logger("bake_config")
 
 # The folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
+HOSTED_GIT_URL_REGEX = re.compile(
+    r"((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?"
+)
 
 
-def _should_skip(types, desc):
+def _get_hosted_git_org_repo(desc):
+    """
+    Extract the hosted git org and repo from a path.
+
+    :param dict desc: Descriptor dictionary to extract repo from.
+    :returns: str with the "org/repo".
+    """
+    if desc["type"] == "github_release":
+        return "%s/%s" % (desc["organization"], desc["repository"])
+    elif desc["type"] in ["git", "git_branch"]:
+        path = desc["path"].lower()
+        logger.debug(f"Extracting org/repo from {path}")
+        m = HOSTED_GIT_URL_REGEX.match(path)
+        if not m:
+            raise ValueError("Invalid hosted git descriptor path: %s" % path)
+        # ssh-style urls will return: OrgName/reponame
+        # https:// and git:// urls return: domain.com/OrgName/reponame.git
+        org_repo = m.group(7).split("/")
+        return "%s/%s" % (org_repo[-2], org_repo[-1])
+    else:
+        # just in cases
+        raise ValueError("Not a hosted git descriptor: %s" % desc["type"])
+
+
+def _is_hosted_git_repo(desc):
+    """
+    Check if a descriptor is a hosted git repository.
+
+    :param dict desc: Descriptor dictionary to check.
+    :returns: ``True`` if it is a hosted git repository, ``False`` otherwise.
+    """
+    if desc["type"] == "github_release":
+        return True
+    elif desc["type"] in ["git", "git_branch"]:
+        path = desc["path"].lower()
+        return bool(HOSTED_GIT_URL_REGEX.match(path))
+    else:
+        return False
+
+
+def _should_skip(types, skip_git_repos, desc):
     """
     Check if a descriptor should be skipped.
 
     :param list types: List of descriptor type names that should be skipped.
+    :param list skip_git_repos: List of hosted git repository substrings to skip.
     :param dict desc: Descriptor dictionary to check.
 
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
-    return desc["type"] in types
+    if not desc["type"] in types:
+        if _is_hosted_git_repo(desc):
+            org_repo = _get_hosted_git_org_repo(desc)
+            for skip_repo in skip_git_repos:
+                logger.debug("checking {org_repo} against %s" % skip_repo)
+                if org_repo.lower().startswith(skip_repo.lower()):
+                    logger.debug("skipping github repo %s" % org_repo)
+                    return True
+        return False
+    else:
+        return True
 
 
 def _process_configuration(sg_connection, config_uri_str):
@@ -95,7 +150,9 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types):
+def bake_config(
+    sg_connection, config_uri, target_path, do_zip, skip_bundles_types, skip_git_repos
+):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -108,11 +165,14 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked.
     :param skip_bundles_types: Bundle types to skip.
+    :param skip_git_repos: Github repository substrings to skip.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
 
-    should_skip_functor = functools.partial(_should_skip, skip_bundles_types)
+    should_skip_functor = functools.partial(
+        _should_skip, skip_bundles_types, skip_git_repos
+    )
 
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
@@ -211,6 +271,10 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
 of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
 
+If you want to skip certain git repositories, provide a comma separated list of repository substrings to skip,
+e.g. --skip-git-repos=SomeOrg/tk-multi-someapp,SomeOrg/tk-multi-someotherapp. Or to skip all repositories
+from a specific organization, provide the organization name followed by a slash, e.g. --skip-git-repos=SomeOrg
+
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
@@ -241,6 +305,15 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
         default="none",
         help="Comma separated list of bundle types to skip. Possible values are 'app_store', "
         "'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
+    )
+
+    parser.add_option(
+        "--skip-git-repos",
+        default="none",
+        help="Comma separated list of hosted repository substrings to skip. Values are matched from the "
+        "beginning of the string. For example: foobar/myapp will skip bundles hosted in the git "
+        "org 'foobar' that start with 'myapp'. Specifying 'foobar/' will skip all bundles in the "
+        "'foobar' org. Empty by default.",
     )
 
     add_authentication_options(parser)
@@ -311,6 +384,9 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
             logger.error("Unknown bundle type: %s" % bundle_type)
             return 4
 
+    skip_git_repos = options.skip_git_repos.split(",")
+    skip_git_repos = [git_repo.strip() for git_repo in skip_git_repos]
+
     # we are all set.
     bake_config(
         sg_connection,
@@ -318,6 +394,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
         target_path,
         options.zip,
         skip_bundle_types,
+        skip_git_repos,
     )
 
     # all good!
