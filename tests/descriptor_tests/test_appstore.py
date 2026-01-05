@@ -440,16 +440,17 @@ class TestAppStorePythonVersionCompatibility(ShotgunTestBase):
         io_desc = desc._io_descriptor
 
         # Manifest requiring Python 3.10 should be incompatible with Python 3.9
-        manifest_requiring_310 = {"minimum_python_version": "3.10"}
-        self.assertFalse(io_desc._check_minimum_python_version(manifest_requiring_310))
+        self.assertFalse(
+            io_desc._check_minimum_python_version({"minimum_python_version": "3.10"})
+        )
 
         # Manifest requiring Python 3.7 should be compatible with Python 3.9
-        manifest_requiring_37 = {"minimum_python_version": "3.7"}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_requiring_37))
+        self.assertTrue(
+            io_desc._check_minimum_python_version({"minimum_python_version": "3.7"})
+        )
 
         # Manifest without requirement should be compatible
-        manifest_no_requirement = {}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_no_requirement))
+        self.assertTrue(io_desc._check_minimum_python_version({}))
 
     @mock.patch("sys.version_info", new=(3, 11, 0))
     def test_check_minimum_python_version_allows_compatible(self):
@@ -460,16 +461,19 @@ class TestAppStorePythonVersionCompatibility(ShotgunTestBase):
         io_desc = desc._io_descriptor
 
         # Manifest requiring Python 3.10 should be compatible with Python 3.11
-        manifest_requiring_310 = {"minimum_python_version": "3.10"}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_requiring_310))
+        self.assertTrue(
+            io_desc._check_minimum_python_version({"minimum_python_version": "3.10"})
+        )
 
         # Manifest requiring Python 3.11 should be compatible with Python 3.11
-        manifest_requiring_311 = {"minimum_python_version": "3.11"}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_requiring_311))
+        self.assertTrue(
+            io_desc._check_minimum_python_version({"minimum_python_version": "3.11"})
+        )
 
         # Manifest requiring Python 3.12 should NOT be compatible with Python 3.11
-        manifest_requiring_312 = {"minimum_python_version": "3.12"}
-        self.assertFalse(io_desc._check_minimum_python_version(manifest_requiring_312))
+        self.assertFalse(
+            io_desc._check_minimum_python_version({"minimum_python_version": "3.12"})
+        )
 
     def test_check_minimum_python_version_handles_invalid_types(self):
         """
@@ -479,16 +483,19 @@ class TestAppStorePythonVersionCompatibility(ShotgunTestBase):
         io_desc = desc._io_descriptor
 
         # Non-string types should be treated as compatible (defensive)
-        manifest_numeric = {"minimum_python_version": 3.10}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_numeric))
+        self.assertTrue(
+            io_desc._check_minimum_python_version({"minimum_python_version": 3.10})
+        )
 
         # None should be compatible
-        manifest_none = {"minimum_python_version": None}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_none))
+        self.assertTrue(
+            io_desc._check_minimum_python_version({"minimum_python_version": None})
+        )
 
         # Empty string should be compatible
-        manifest_empty = {"minimum_python_version": ""}
-        self.assertTrue(io_desc._check_minimum_python_version(manifest_empty))
+        self.assertTrue(
+            io_desc._check_minimum_python_version({"minimum_python_version": ""})
+        )
 
     @mock.patch("sys.version_info", new=(3, 7, 0))
     @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
