@@ -14,7 +14,7 @@ resources:
     - repository: templates
       type: github
       name: shotgunsoftware/tk-ci-tools
-      ref: refs/heads/ticket/SG-39031-outdated-references-pyside-qt
+      ref: ticket/SG-39031-outdated-references-pyside-qt
       endpoint: shotgunsoftware
 
 # We want builds to trigger for 3 reasons:
