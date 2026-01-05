@@ -62,36 +62,15 @@ class PySide2Patcher(object):
             if not hasattr(dst, name):
                 setattr(dst, name, getattr(src, name))
 
-    @classmethod
-    def _patch_QTextCodec(cls, QtCore):
-        """
-        Patches in QTextCodec.
 
-        :param QTextCodec: The QTextCodec class.
-        """
-        original_QTextCodec = QtCore.QTextCodec
-
-        class QTextCodec(original_QTextCodec):
-            @staticmethod
-            def setCodecForCStrings(codec):
-                # Empty stub, doesn't exist in Qt5.
-                pass
-
-        QtCore.QTextCodec = QTextCodec
 
     @classmethod
     def _fix_QCoreApplication_api(cls, wrapper_class, original_class):
 
-        # Enum values for QCoreApplication.translate's encode parameter.
-        wrapper_class.CodecForTr = 0
-        wrapper_class.UnicodeUTF8 = 1
-        wrapper_class.DefaultCodec = wrapper_class.CodecForTr
-
         @staticmethod
-        def translate(context, source_text, disambiguation=None, encoding=None, n=None):
-            # In PySide2, the encoding argument has been deprecated, so we don't
-            # pass it down. n is still supported however, but has always been optional
-            # in PySide. So if n has been set to something, let's pass it down,
+        def translate(context, source_text, disambiguation=None, n=None):
+            # n is still supported and has always been optional in PySide.
+            # If n has been set to something, let's pass it down,
             # otherwise Qt5 has a default value for it, so we'll use that instead.
             if n is not None:
                 return original_class.translate(context, source_text, disambiguation, n)
@@ -376,7 +355,6 @@ class PySide2Patcher(object):
             qt_core_shim, QtCore, set(dir(QtCore)) - cls._core_to_qtgui
         )
 
-        cls._patch_QTextCodec(qt_core_shim)
         cls._patch_QCoreApplication(qt_core_shim)
         cls._patch_QApplication(qt_gui_shim)
         cls._patch_QAbstractItemView(qt_gui_shim)
