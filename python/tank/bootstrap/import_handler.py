@@ -280,7 +280,7 @@ class CoreImportHandler(object):
         # ZIP import handler (like zipimport or TankVendorMetaFinder) handle it.
         # This is common for tank_vendor packages that come from pkgs.zip.
         if package_path[0] and ".zip" in package_path[0]:
-            return None
+            return
 
         try:
             # find the module spec

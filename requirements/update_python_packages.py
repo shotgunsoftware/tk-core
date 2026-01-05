@@ -21,7 +21,9 @@ def main():
     Install common Python packages.
     """
 
-    python_dist_dir = f"requirements/{sys.version_info.major}.{sys.version_info.minor}"
+    # Get the directory where this script is located (requirements/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    python_dist_dir = os.path.join(script_dir, f"{sys.version_info.major}.{sys.version_info.minor}")
     if not os.path.exists(python_dist_dir):
         raise Exception(f"Cannot find Python distribution folder {python_dist_dir}")
 
