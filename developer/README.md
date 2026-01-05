@@ -16,12 +16,12 @@ This approach centralizes the management of dependencies, ensuring that packages
 
 ### Updating and creating bundled packages
 
-The `update_python_packages.py` script automates the creation and maintenance of the `pkgs.zip` file.
+The `requirements/update_python_packages.py` script automates the creation and maintenance of the `pkgs.zip` file.
 
 #### Workflow:
 
 1. Update the `requirements.txt` file for the desired Python version.
-2. Run the `update_python_packages.py` script to:
+2. Run the `requirements/update_python_packages.py` script to:
    - Install the specified dependencies in a temporary directory.
    - Create or update the `pkgs.zip` file with the required packages.
    - Generate the `frozen_requirements.txt` file for consistency.
@@ -45,7 +45,7 @@ We can automate this task later.
 
 When adding new dependencies or updating existing ones:
 1. Update the `requirements.txt` file for the corresponding Python version.
-2. Regenerate the `pkgs.zip` and `frozen_requirements.txt` files using `update_python_packages.py`.
+2. Regenerate the `pkgs.zip` and `frozen_requirements.txt` files using `requirements/update_python_packages.py`.
 3. Ensure the `pkgs.zip` file includes all necessary packages and modules.
 
 ### Automated CVE checks
