@@ -28,13 +28,21 @@ from tank_vendor.shotgun_api3.lib import httplib2
 
 from ... import LogManager
 from ...constants import SUPPORT_URL
-from ...util import (ShotgunAttachmentDownloadError,
-                     UnresolvableCoreConfigurationError, pickle, shotgun)
+from ...util import (
+    ShotgunAttachmentDownloadError,
+    UnresolvableCoreConfigurationError,
+    pickle,
+    shotgun,
+)
 from ...util.user_settings import UserSettings
 from .. import constants
-from ..errors import (InvalidAppStoreCredentialsError,
-                      TankAppStoreConnectionError, TankAppStoreError,
-                      TankDescriptorError, TankMissingManifestError)
+from ..errors import (
+    InvalidAppStoreCredentialsError,
+    TankAppStoreConnectionError,
+    TankAppStoreError,
+    TankDescriptorError,
+    TankMissingManifestError,
+)
 from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
