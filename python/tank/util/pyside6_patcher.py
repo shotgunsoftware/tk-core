@@ -82,7 +82,24 @@ class PySide6Patcher(PySide2Patcher):
         # Now apply any PySide6 specific patches
         QtGui.QAbstractItemView.viewOptions = viewOptions
 
+    @classmethod
+    def _patch_QTextCodec(cls, QtCore):
+        """
+        Patch QTextCodec.
 
+        QTextCodec has been removed in Qt6. Using this class will do nothing.
+        """
+
+        class QTextCodec():
+            @staticmethod
+            def codecForName(name):
+                return None
+
+            @staticmethod
+            def setCodecForCStrings(codec):
+                pass
+
+        QtCore.QTextCodec = QTextCodec
 
     @classmethod
     def _patch_QPixmap(cls, QtGui):
@@ -508,6 +525,9 @@ class PySide6Patcher(PySide2Patcher):
 
         # Attribute renamed
         qt_core_shim.Qt.MidButton = qt_core_shim.Qt.MiddleButton
+
+        # QTextCodec class removed
+        cls._patch_QTextCodec(qt_core_shim)
 
         # QModelIndex.child method removed
         # https://doc.qt.io/qt-5/qmodelindex-obsolete.html
