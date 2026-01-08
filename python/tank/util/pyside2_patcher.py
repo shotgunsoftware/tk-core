@@ -88,14 +88,13 @@ class PySide2Patcher(object):
         wrapper_class.DefaultCodec = wrapper_class.CodecForTr
 
         @staticmethod
-        def translate(context, source_text, disambiguation=None, encoding=None, n=None):
-            # n is still supported and has always been optional in PySide.
-            # If n has been set to something, let's pass it down,
-            # otherwise Qt5 has a default value for it, so we'll use that instead.
-            if n is not None:
-                return original_class.translate(context, source_text, disambiguation, n)
-            else:
-                return original_class.translate(context, source_text, disambiguation)
+        def translate(*args, **kwargs):
+            if "encoding" in kwargs:
+                # The encoding argument has been deprecated and no longer exist in
+                # PySide2 so we don't pass it down.
+                del kwargs["encoding"]
+
+            return original_class.translate(*args, **kwargs)
 
         wrapper_class.translate = translate
 
