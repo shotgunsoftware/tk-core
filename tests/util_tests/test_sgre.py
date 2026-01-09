@@ -11,6 +11,8 @@
 
 from unittest import TestCase
 import re
+import sys
+
 from tank.util import sgre
 
 
