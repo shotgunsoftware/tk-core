@@ -11,6 +11,7 @@
 import datetime
 import os
 import shutil
+import sys
 import urllib.parse
 
 import tank
