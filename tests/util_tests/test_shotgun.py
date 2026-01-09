@@ -532,9 +532,14 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # Construct a URL from the source file name
         # "file" will be used for the protocol, so this URL will look like
         # `file:///fixtures_root/config/hooks/toolkitty.png`
-        self.download_url = urllib.parse.urlunparse(
-            ("file", None, self.download_source, None, None, None)
-        )
+        if sys.platform == "win32":
+            self.download_url = "file:///{p}".format(
+                p = self.download_source.replace("\\", "/")
+            )
+        else:
+            self.download_url = urllib.parse.urlunparse(
+                ("file", None, uuu, None, None, None)
+            )
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
