@@ -590,7 +590,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # resolved URL to the input destination location and capture
         # the full path return value.
         full_path = tank.util.download_url(
-            self.mockgun, self.download_url, path_base, True
+            self.mockgun, self.download_url, path_base, use_url_extension=True
         )
 
         # Verify the return value is different than the input value
