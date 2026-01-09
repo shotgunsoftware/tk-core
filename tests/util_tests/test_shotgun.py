@@ -539,7 +539,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
             )
         else:
             self.download_url = urllib.parse.urlunparse(
-                ("file", None, uuu, None, None, None)
+                ("file", None, self.download_source, None, None, None)
             )
 
         # Temporary destination to "download" source file to.
