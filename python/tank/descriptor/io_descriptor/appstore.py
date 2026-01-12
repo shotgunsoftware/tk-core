@@ -18,9 +18,9 @@ import http.client
 import json
 import os
 import sys
+import typing
 import urllib.parse
 import urllib.request
-from typing import Dict, Iterator, List, Optional, Set, Tuple
 
 from tank.util.version import is_version_newer
 from tank_vendor import shotgun_api3
@@ -541,7 +541,9 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         log.debug("Latest cached version resolved to %r" % desc)
         return desc
 
-    def _filter_versions_by_label(self, all_versions: Dict[str, str]) -> Iterator[str]:
+    def _filter_versions_by_label(
+        self, all_versions: typing.Dict[str, str]
+    ) -> typing.Iterator[str]:
         """
         Filter cached versions by label if one is specified.
 
@@ -565,8 +567,10 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 )
 
     def _filter_versions_by_app_store(
-        self, version_numbers: Iterator[str], sg_matching_records: Optional[List[Dict]]
-    ) -> Iterator[str]:
+        self,
+        version_numbers: typing.Iterator[str],
+        sg_matching_records: typing.Optional[typing.List[typing.Dict]],
+    ) -> typing.Iterator[str]:
         """
         Filter versions to only those available in the App Store.
 
@@ -578,12 +582,16 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             yield from version_numbers
             return
 
-        app_store_versions: Set[str] = {rec["code"] for rec in sg_matching_records}
+        app_store_versions: typing.Set[str] = {
+            rec["code"] for rec in sg_matching_records
+        }
         for v in version_numbers:
             if v in app_store_versions:
                 yield v
 
-    def _sort_versions_descending(self, version_numbers: Iterator[str]) -> List[str]:
+    def _sort_versions_descending(
+        self, version_numbers: typing.Iterator[str]
+    ) -> typing.List[str]:
         """
         Sort version numbers in descending order (newest first).
 
@@ -620,7 +628,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
     def _is_version_python_compatible(
         self, version_str: str
-    ) -> Optional["IODescriptorAppStore"]:
+    ) -> typing.Optional["IODescriptorAppStore"]:
         """
         Check if a specific version is compatible with current Python.
 
@@ -669,8 +677,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             return
 
     def _find_compatible_cached_version(
-        self, sg_matching_records: Optional[List[Dict]]
-    ) -> Optional["IODescriptorAppStore"]:
+        self, sg_matching_records: typing.Optional[typing.List[typing.Dict]]
+    ) -> typing.Optional["IODescriptorAppStore"]:
         """
         Searches locally cached versions for the highest version compatible
         with the current Python version.
