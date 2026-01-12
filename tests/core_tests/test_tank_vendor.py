@@ -16,7 +16,6 @@ from unittest import mock
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
-
 # Configuration: Add or remove packages here to test different third-party libraries
 # Only include packages that are directly bundled in requirements/<version>/pkgs.zip
 PACKAGES_TO_TEST = [
@@ -92,19 +91,19 @@ class TestTankVendorImports(ShotgunTestBase):
     def test_submodule_import(self):
         """
         Test lazy import of submodules through tank_vendor namespace.
-        
+
         This test verifies that the _TankVendorMetaFinder correctly handles
         nested/deep imports, not just top-level packages. For example:
-        
+
         - Top-level: from tank_vendor import shotgun_api3  (handled by Step 2)
         - Nested: from tank_vendor.shotgun_api3.lib import httplib2  (handled by MetaFinder)
-        
+
         The MetaFinder intercepts imports starting with "tank_vendor." and:
         1. Strips the "tank_vendor." prefix to get the real module name
         2. Imports the real module (e.g., "shotgun_api3.lib.httplib2")
-        3. Creates an alias so both "shotgun_api3.lib.httplib2" and 
+        3. Creates an alias so both "shotgun_api3.lib.httplib2" and
            "tank_vendor.shotgun_api3.lib.httplib2" work
-        
+
         This is called "lazy loading" because submodules aren't imported until
         they're actually needed, avoiding issues with incompatible code in
         packages that might not be used.
@@ -114,7 +113,7 @@ class TestTankVendorImports(ShotgunTestBase):
 
         # Should be importable and not None
         self.assertIsNotNone(httplib2)
-        
+
         # Verify the module is actually usable (has expected functionality)
         self.assertTrue(hasattr(httplib2, "Http") or hasattr(httplib2, "__name__"))
 
@@ -172,10 +171,9 @@ class TestTankVendorMetaFinder(ShotgunTestBase):
     def test_meta_finder_redirects_imports(self):
         """Test that the meta finder correctly redirects tank_vendor.* imports."""
         # Import a package through tank_vendor namespace
-        from tank_vendor.shotgun_api3 import Shotgun as VendorShotgun
-
         # Import the same package directly
         from shotgun_api3 import Shotgun as DirectShotgun
+        from tank_vendor.shotgun_api3 import Shotgun as VendorShotgun
 
         # They should be the exact same class
         self.assertIs(VendorShotgun, DirectShotgun)
