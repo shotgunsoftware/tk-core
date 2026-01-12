@@ -34,7 +34,127 @@ Supported Python versions: 3.7+
 
 import pathlib
 import sys
+import warnings
 import zipfile
+
+
+class _TankVendorMetaFinder:
+    """
+    Meta path finder that redirects tank_vendor.* imports to real packages.
+
+    Implements the modern importlib.abc.MetaPathFinder protocol (PEP 451)
+    using find_spec, create_module, and exec_module methods for Python 3.4+.
+
+    This finder is installed at the beginning of sys.meta_path, so it's
+    consulted before Python's default import mechanisms.
+    """
+
+    def find_spec(self, fullname, path, target=None):
+        """
+        Locate a module spec for tank_vendor.* imports.
+
+        Called by Python's import system to determine if this finder can
+        handle the requested module import.
+
+        Args:
+            fullname: Full module name (e.g., "tank_vendor.shotgun_api3.lib")
+            path: Parent package's __path__ attribute (or None for top-level)
+            target: Module object being reloaded (optional, rarely used)
+
+        Returns:
+            ModuleSpec: If we can handle this import (starts with "tank_vendor.")
+            None: If this import should be handled by another finder
+        """
+        # Only handle tank_vendor.* imports
+        if fullname.startswith("tank_vendor."):
+            # Extract the real module name
+            real_name = fullname[len("tank_vendor.") :]
+
+            # Check if the real module exists or can be imported
+            if real_name in sys.modules:
+                # Create a spec that redirects to the existing module
+                real_module = sys.modules[real_name]
+                is_package = hasattr(real_module, "__path__")
+                from importlib.machinery import ModuleSpec
+
+                spec = ModuleSpec(
+                    fullname,
+                    self,
+                    is_package=is_package,
+                )
+                # For packages, copy the __path__ so Python knows where to find submodules
+                if is_package:
+                    spec.submodule_search_locations = list(real_module.__path__)
+                return spec
+
+            # Try to import the real module to see if it exists
+            try:
+                __import__(real_name)
+                # Success - create spec for this module
+                real_module = sys.modules[real_name]
+                is_package = hasattr(real_module, "__path__")
+                from importlib.machinery import ModuleSpec
+
+                spec = ModuleSpec(
+                    fullname,
+                    self,
+                    is_package=is_package,
+                )
+                # For packages, copy the __path__ so Python knows where to find submodules
+                if is_package:
+                    spec.submodule_search_locations = list(real_module.__path__)
+                return spec
+            except ImportError:
+                # Module doesn't exist, let normal import handle it
+                return None
+
+        return None
+
+    def exec_module(self, module):
+        """
+        Execute module initialization code.
+
+        Called after create_module to run the module's code. In our case,
+        the module is already fully initialized (it's an alias), so we
+        don't need to do anything here.
+
+        Args:
+            module: The module object returned by create_module
+        """
+        # Module is already aliased and initialized in create_module
+        pass
+
+    def create_module(self, spec):
+        """
+        Create and return the module object for the given spec.
+
+        Instead of creating a new module, we return the existing real module
+        and register it under both names (real and tank_vendor alias) in
+        sys.modules. This ensures both import paths work identically.
+
+        Args:
+            spec: ModuleSpec from find_spec containing module metadata
+
+        Returns:
+            module: The real module object (aliased)
+            None: To use Python's default module creation (shouldn't happen)
+        """
+        # Extract real module name from the spec name
+        fullname = spec.name
+        if fullname.startswith("tank_vendor."):
+            real_name = fullname[len("tank_vendor.") :]
+
+            # Import the real module if not already imported
+            if real_name not in sys.modules:
+                __import__(real_name)
+
+            # Return the real module (alias it)
+            # sys.modules will be updated by the import machinery
+            sys.modules[fullname] = sys.modules[real_name]
+            return sys.modules[real_name]
+
+        # Shouldn't get here, but return None to use default creation
+        return None
 
 
 def _patch_shotgun_api3_certs(zip_path):
@@ -102,125 +222,8 @@ def _install_import_hook():
     """
     # Only install once
     if not hasattr(sys, "_tank_vendor_meta_finder"):
-        # Use importlib.machinery for modern Python 3.4+ compatibility
-        from importlib.machinery import ModuleSpec
-
-        class TankVendorMetaFinder:
-            """
-            Meta path finder that redirects tank_vendor.* imports to real packages.
-
-            Implements the modern importlib.abc.MetaPathFinder protocol (PEP 451)
-            using find_spec, create_module, and exec_module methods for Python 3.4+.
-
-            This finder is installed at the beginning of sys.meta_path, so it's
-            consulted before Python's default import mechanisms.
-            """
-
-            def find_spec(self, fullname, path, target=None):
-                """
-                Locate a module spec for tank_vendor.* imports.
-
-                Called by Python's import system to determine if this finder can
-                handle the requested module import.
-
-                Args:
-                    fullname: Full module name (e.g., "tank_vendor.shotgun_api3.lib")
-                    path: Parent package's __path__ attribute (or None for top-level)
-                    target: Module object being reloaded (optional, rarely used)
-
-                Returns:
-                    ModuleSpec: If we can handle this import (starts with "tank_vendor.")
-                    None: If this import should be handled by another finder
-                """
-                # Only handle tank_vendor.* imports
-                if fullname.startswith("tank_vendor."):
-                    # Extract the real module name
-                    real_name = fullname[len("tank_vendor.") :]
-
-                    # Check if the real module exists or can be imported
-                    if real_name in sys.modules:
-                        # Create a spec that redirects to the existing module
-                        real_module = sys.modules[real_name]
-                        is_package = hasattr(real_module, "__path__")
-                        spec = ModuleSpec(
-                            fullname,
-                            self,
-                            is_package=is_package,
-                        )
-                        # For packages, copy the __path__ so Python knows where to find submodules
-                        if is_package:
-                            spec.submodule_search_locations = list(real_module.__path__)
-                        return spec
-
-                    # Try to import the real module to see if it exists
-                    try:
-                        __import__(real_name)
-                        # Success - create spec for this module
-                        real_module = sys.modules[real_name]
-                        is_package = hasattr(real_module, "__path__")
-                        spec = ModuleSpec(
-                            fullname,
-                            self,
-                            is_package=is_package,
-                        )
-                        # For packages, copy the __path__ so Python knows where to find submodules
-                        if is_package:
-                            spec.submodule_search_locations = list(real_module.__path__)
-                        return spec
-                    except ImportError:
-                        # Module doesn't exist, let normal import handle it
-                        return None
-
-                return None
-
-            def exec_module(self, module):
-                """
-                Execute module initialization code.
-
-                Called after create_module to run the module's code. In our case,
-                the module is already fully initialized (it's an alias), so we
-                don't need to do anything here.
-
-                Args:
-                    module: The module object returned by create_module
-                """
-                # Module is already aliased and initialized in create_module
-                pass
-
-            def create_module(self, spec):
-                """
-                Create and return the module object for the given spec.
-
-                Instead of creating a new module, we return the existing real module
-                and register it under both names (real and tank_vendor alias) in
-                sys.modules. This ensures both import paths work identically.
-
-                Args:
-                    spec: ModuleSpec from find_spec containing module metadata
-
-                Returns:
-                    module: The real module object (aliased)
-                    None: To use Python's default module creation (shouldn't happen)
-                """
-                # Extract real module name from the spec name
-                fullname = spec.name
-                if fullname.startswith("tank_vendor."):
-                    real_name = fullname[len("tank_vendor.") :]
-
-                    # Import the real module if not already imported
-                    if real_name not in sys.modules:
-                        __import__(real_name)
-
-                    # Return the real module (alias it)
-                    # sys.modules will be updated by the import machinery
-                    sys.modules[fullname] = sys.modules[real_name]
-                    return sys.modules[real_name]
-
-                # Shouldn't get here, but return None to use default creation
-                return None
-
         # Install the meta finder
-        sys._tank_vendor_meta_finder = TankVendorMetaFinder()
+        sys._tank_vendor_meta_finder = _TankVendorMetaFinder()
         sys.meta_path.insert(0, sys._tank_vendor_meta_finder)
 
 
@@ -254,9 +257,14 @@ if pkgs_zip_path.exists():
                 # Quick validation - just check that we can read the ZIP directory
                 zf.namelist()
                 _pkgs_zip_valid = True
-        except (zipfile.BadZipFile, OSError, IOError):
+        except (zipfile.BadZipFile, OSError, IOError) as e:
             # Not a valid ZIP file or can't be read - skip loading from pkgs.zip
-            pass
+            warnings.warn(
+                f"Failed to load packages from {pkgs_zip_path}: {e}. "
+                "Third-party dependencies will be loaded from the Python environment instead.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
 # If pkgs.zip is not found, assume pip-style installation where dependencies
 # are installed directly in the Python environment. In this case, we still
@@ -318,8 +326,6 @@ else:
             except ImportError as e:
                 # Some packages might not import cleanly on all platforms
                 # Log but don't fail - they might not be needed
-                import warnings
-
                 warnings.warn(f"Could not import {package_name} from pkgs.zip: {e}")
 
         # Step 3: Install import hook for lazy submodule loading
@@ -333,6 +339,8 @@ else:
             _patch_shotgun_api3_certs(pkgs_zip_path)
 
     except Exception as e:
+        # Clean up sys.path on failure to avoid leaving it in an inconsistent state
+        # with a non-functional ZIP path that could interfere with subsequent imports
         sys.path.remove(str(pkgs_zip_path))
         raise RuntimeError(
             f"Failed to import required modules from {pkgs_zip_path}: {e}"
