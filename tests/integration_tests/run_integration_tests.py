@@ -20,6 +20,7 @@ import os
 import subprocess
 import sys
 import time
+import uuid
 
 
 def main():
@@ -60,21 +61,30 @@ def main():
             if filename.endswith(current_file):
                 continue
 
+            uid = uuid.uuid4()
+
             print("=" * 79)
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
+            args = [
+                sys.executable,
+                "-m",
+            ]
+
             if "SHOTGUN_TEST_COVERAGE" in os.environ:
-                args = [
-                    sys.executable,
-                    "-m",
+                args.extend([
                     "coverage",
                     "run",
-                    "--parallel-mode",
-                    filename,
-                ]
-            else:
-                args = [sys.executable, filename]
+                    f"--data-file=.coverage.{uid}",
+                ])
+
+            args.extend([
+                "pytest",
+                filename,
+                f"--nunit-xml=test-results-{uid}.xml",
+                "--verbose",
+            ])
 
             subprocess.check_call(args, env=environ)
 
