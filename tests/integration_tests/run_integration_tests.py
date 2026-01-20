@@ -77,6 +77,7 @@ def main():
                     "coverage",
                     "run",
                     f"--data-file=.coverage.{uid}",
+                    "-m",
                 ])
 
             args.extend([
