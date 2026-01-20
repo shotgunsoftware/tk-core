@@ -217,9 +217,7 @@ For information about the various descriptors that can be used, see
 http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
-""".format(
-        automated_setup_documentation=automated_setup_documentation
-    ).format(
+""".format(automated_setup_documentation=automated_setup_documentation).format(
         script_name="bake_config.py"
     )
     parser = OptionParserLineBreakingEpilog(
@@ -246,7 +244,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     add_authentication_options(parser)
 
     # parse cmd line
-    (options, remaining_args) = parser.parse_args()
+    options, remaining_args = parser.parse_args()
 
     logger.info("Welcome to the Toolkit config baker.")
     logger.info("")
