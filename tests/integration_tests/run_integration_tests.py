@@ -37,9 +37,9 @@ def main():
             os.path.join(current_folder, "..", "..", "python"),
         ]
     )
-    environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")
-    environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
-    environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
+    # environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")  ### USELESS........
+    # environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
+    # environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
 
     current_folder, current_file = os.path.split(__file__)
 
@@ -70,22 +70,15 @@ def main():
             args = [
                 sys.executable,
                 "-m",
-            ]
-
-            if "SHOTGUN_TEST_COVERAGE" in os.environ:
-                args.extend([
-                    "coverage",
-                    "run",
-                    f"--data-file=.coverage.{uid}",
-                    "-m",
-                ])
-
-            args.extend([
                 "pytest",
                 filename,
                 f"--nunit-xml=test-results-{uid}.xml",
                 "--verbose",
-            ])
+            ]
+
+            if "SHOTGUN_TEST_COVERAGE" in os.environ:
+                args.append("--cov")
+                environ["COVERAGE_FILE"] = f".coverage.{uid}"
 
             subprocess.check_call(args, env=environ)
 
