@@ -914,6 +914,10 @@ What happens in the above calls is that your app widget is parented inside of a 
 Sgtk will add additional potential window constructs, menus etc. Whenever the app widget is closed (for example
 using the close() method), the parent window that is used to wrap the widget will automatically close too.
 
+
+
+.. _qdialog-exit-codes:
+
 Modal dialogs and exit codes
 ========================================
 
@@ -933,6 +937,10 @@ property called ``exit_code``. Typically, your code for a modal dialog would loo
             self.close()
 
 The call to self.engine.show_modal() will return the appropriate status code depending on which button was clicked.
+
+
+
+.. _hiding-toolkit-title-bar:
 
 Hiding the default Toolkit title bar
 ========================================
