@@ -87,7 +87,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "id", "version", "field"],
-                optional=[],
+                optional=["system_name"],
             )
 
             # convert to int
@@ -130,6 +130,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         self._bundle_type = bundle_type
         self._entity_type = descriptor_dict.get("entity_type")
         self._field = descriptor_dict.get("field")
+        self._system_name = descriptor_dict.get("system_name")
 
         # ensure version is an int if specified
         try:
@@ -182,8 +183,11 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 name = self._name
 
         elif self._mode == self._MODE_ID_BASED:
-            # e.g. 'PipelineConfiguration_1234'
-            name = "%s_%s" % (self._entity_type, self._entity_id)
+            if self._system_name:
+                name = self._system_name
+            else:
+                # e.g. 'PipelineConfiguration_1234'
+                name = "%s_%s" % (self._entity_type, self._entity_id)
 
         return filesystem.create_valid_filename(name)
 
