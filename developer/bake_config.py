@@ -191,7 +191,7 @@ def main():
 
     desc = "Bake a self contained Toolkit config from a descriptor"
 
-    epilog = """
+    epilog = f"""
 
 Details and Examples
 --------------------
@@ -211,15 +211,14 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
 of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
 
-{automated_setup_documentation}
+f{automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
 http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
-""".format(automated_setup_documentation=automated_setup_documentation).format(
-        script_name="bake_config.py"
-    )
+"""
+
     parser = OptionParserLineBreakingEpilog(
         usage=usage, description=desc, epilog=epilog
     )

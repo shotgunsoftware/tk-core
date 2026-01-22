@@ -37,9 +37,6 @@ def main():
             os.path.join(current_folder, "..", "..", "python"),
         ]
     )
-    # environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")  ### USELESS........
-    # environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
-    # environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
 
     current_folder, current_file = os.path.split(__file__)
 
@@ -62,6 +59,7 @@ def main():
                 continue
 
             uid = uuid.uuid4()
+            # Defines a unique id to be used for test results and coverage files
 
             print("=" * 79)
             print("Running %s" % os.path.basename(filename))
