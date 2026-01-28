@@ -24,7 +24,7 @@ exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|test_post_update_
 # List of super useful formatters.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
     # Ensures the code is syntaxically correct
     - id: check-ast
@@ -54,7 +54,7 @@ repos:
       exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
   # Leave black at the bottom so all touchups are done before it is run.
   - repo: https://github.com/psf/black
-    rev: 25.1.0
+    rev: 26.1.0
     hooks:
     - id: black
       exclude: "tests|python\/tank"

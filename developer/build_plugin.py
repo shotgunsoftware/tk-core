@@ -559,7 +559,7 @@ def build_plugin(
     # uri to use at runtime - in the case of baked descriptors, the config_uri_str
     # contains a manual descriptor uri and install_path is set with the baked
     # folder.
-    (cfg_descriptor, config_uri_str, install_path) = _process_configuration(
+    cfg_descriptor, config_uri_str, install_path = _process_configuration(
         sg_connection,
         source_path,
         target_path,
@@ -728,9 +728,7 @@ For information about the various descriptors that can be used, see
 http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
-""".format(
-        automated_setup_documentation=automated_setup_documentation
-    ).format(
+""".format(automated_setup_documentation=automated_setup_documentation).format(
         script_name="build_plugin.py"
     )
     parser = OptionParserLineBreakingEpilog(
@@ -769,7 +767,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     add_authentication_options(parser)
 
     # parse cmd line
-    (options, remaining_args) = parser.parse_args()
+    options, remaining_args = parser.parse_args()
 
     logger.info("Welcome to the Toolkit plugin builder.")
     logger.info("")
