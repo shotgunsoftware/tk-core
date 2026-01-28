@@ -17,6 +17,7 @@ import sys
 import functools
 import subprocess
 import types
+import warnings
 import webbrowser
 
 from .. import constants
@@ -74,8 +75,13 @@ class PySide2Patcher(object):
         class QTextCodec(original_QTextCodec):
             @staticmethod
             def setCodecForCStrings(codec):
-                # Empty stub, doesn't exist in Qt5.
-                pass
+                warnings.warn(
+                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists in Qt5/PySide2 "
+                    "and will be removed after September 2026. "
+                    "Please remove calls to this method from your code.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
         QtCore.QTextCodec = QTextCodec
 
