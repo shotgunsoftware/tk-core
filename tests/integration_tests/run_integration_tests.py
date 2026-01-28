@@ -20,6 +20,7 @@ import os
 import subprocess
 import sys
 import time
+import uuid
 
 
 def main():
@@ -36,9 +37,6 @@ def main():
             os.path.join(current_folder, "..", "..", "python"),
         ]
     )
-    environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")
-    environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
-    environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
 
     current_folder, current_file = os.path.split(__file__)
 
@@ -60,21 +58,25 @@ def main():
             if filename.endswith(current_file):
                 continue
 
+            uid = uuid.uuid4()
+            # Defines a unique id to be used for test results and coverage files
+
             print("=" * 79)
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
+            args = [
+                sys.executable,
+                "-m",
+                "pytest",
+                filename,
+                f"--nunit-xml=test-results-{uid}.xml",
+                "--verbose",
+            ]
+
             if "SHOTGUN_TEST_COVERAGE" in os.environ:
-                args = [
-                    sys.executable,
-                    "-m",
-                    "coverage",
-                    "run",
-                    "--parallel-mode",
-                    filename,
-                ]
-            else:
-                args = [sys.executable, filename]
+                args.append("--cov")
+                environ["COVERAGE_FILE"] = f".coverage.{uid}"
 
             subprocess.check_call(args, env=environ)
 
