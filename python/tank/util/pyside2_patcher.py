@@ -76,8 +76,8 @@ class PySide2Patcher(object):
             @staticmethod
             def setCodecForCStrings(codec):
                 warnings.warn(
-                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists in Qt5/PySide2 "
-                    "and will be removed after September 2026. "
+                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists since Qt5/PySide2. "
+                    "This method will be removed from Toolkit after December 2026. "
                     "Please remove calls to this method from your code.",
                     DeprecationWarning,
                     stacklevel=2,
