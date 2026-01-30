@@ -11,6 +11,8 @@
 
 from unittest import TestCase
 import re
+import sys
+
 from tank.util import sgre
 
 
@@ -44,8 +46,14 @@ class TestSgre(TestCase):
         self.assertEqual(len(sgre.findall(expr, char, re.I)), 0)
         self.assertFalse(bool(sgre.match(expr, char, re.I)))
         self.assertFalse(bool(sgre.search(expr, char, re.I)))
-        self.assertEqual(len(sgre.split(expr, "$ %s @" % char, 0, re.I)), 1)
-        self.assertEqual(sgre.sub(expr, "@", char, 0, re.I), char)
+        if sys.version_info < (3, 13):
+            # Deprecated since version 3.13: Passing max_split, count and flags as
+            # positional arguments is deprecated.
+            # In future Python versions they will be
+            # [keyword-only parameters](https://docs.python.org/3/glossary.html#keyword-only-parameter).
+
+            self.assertEqual(len(sgre.split(expr, "$ %s @" % char, 0, re.I)), 1)
+            self.assertEqual(sgre.sub(expr, "@", char, 0, re.I), char)
 
     def test_wrap_kwarg(self):
         """
