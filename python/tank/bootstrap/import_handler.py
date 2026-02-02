@@ -275,6 +275,13 @@ class CoreImportHandler(object):
 
         module_name = module_path_parts.pop()
 
+        # Check if the package path is inside a ZIP file.
+        # If so, SourceFileLoader cannot handle it - we need to let the
+        # ZIP import handler (like zipimport or TankVendorMetaFinder) handle it.
+        # This is common for tank_vendor packages that come from pkgs.zip.
+        if package_path[0] and ".zip" in package_path[0]:
+            return
+
         try:
             # find the module spec
             if os.path.isdir(os.path.join(package_path[0], module_name)):
