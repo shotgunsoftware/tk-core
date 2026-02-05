@@ -557,6 +557,10 @@ class PySide6Patcher(PySide2Patcher):
         # QtGui
         # ------------------------------------------------------------------------------------
 
+        # Prevent warnings log with exec_ - TODO FUTURE remove this once done with PySide2
+        qt_gui_shim.QApplication.exec_ = qt_gui_shim.QApplication.exec
+        qt_gui_shim.QDialog.exec_ = qt_gui_shim.QDialog.exec
+
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
         cls._patch_QLabel(qt_gui_shim)

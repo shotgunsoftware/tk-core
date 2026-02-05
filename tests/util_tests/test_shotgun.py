@@ -11,6 +11,7 @@
 import datetime
 import os
 import shutil
+import sys
 import urllib.parse
 
 import tank
@@ -532,9 +533,14 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # Construct a URL from the source file name
         # "file" will be used for the protocol, so this URL will look like
         # `file:///fixtures_root/config/hooks/toolkitty.png`
-        self.download_url = urllib.parse.urlunparse(
-            ("file", None, self.download_source, None, None, None)
-        )
+        if sys.platform == "win32":
+            self.download_url = "file:///{p}".format(
+                p = self.download_source.replace("\\", "/")
+            )
+        else:
+            self.download_url = urllib.parse.urlunparse(
+                ("file", None, self.download_source, None, None, None)
+            )
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
@@ -590,7 +596,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # resolved URL to the input destination location and capture
         # the full path return value.
         full_path = tank.util.download_url(
-            self.mockgun, self.download_url, path_base, True
+            self.mockgun, self.download_url, path_base, use_url_extension=True
         )
 
         # Verify the return value is different than the input value
