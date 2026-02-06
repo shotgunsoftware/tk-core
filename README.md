@@ -23,5 +23,8 @@ https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_INTEGRATIONS_TOOLKIT_OVER
 For our *latest released API Documentation*, head over to the Toolkit App Store:
 https://help.autodesk.com/view/SGDEV/ENU/?contextId=SA_INTEGRATIONS_USER_GUIDE
 
-Release Notes for the Core API are also maintained as a wiki document
-and can be found here: https://github.com/shotgunsoftware/tk-core/wiki/Release-Notes
+For legacy/historical information about older releases, see:
+https://github.com/shotgunsoftware/tk-core/wiki/Release-Notes
+
+Release Notes for the Core API can be found here:
+https://github.com/shotgunsoftware/tk-core/releases
