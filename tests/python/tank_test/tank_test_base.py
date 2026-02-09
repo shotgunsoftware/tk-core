@@ -653,30 +653,38 @@ class TankTestBase(unittest.TestCase):
         # Process Qt events to allow deleteLater() to complete before cleanup
         # This prevents random segfaults in Qt object destruction
 
+        logger = sgtk.platform.get_logger(__name__)
+
+        logger.info("cleanup_qtapp 01")
         # Import Qt for event processing in tearDown
         try:
             from tank.platform.qt import QtCore
         except ImportError:
-            print("Qt not found, skipping event processing in tearDown.")
+            logger.warning("Qt not found, skipping event processing in tearDown.")
             return
+
+        logger.info("cleanup_qtapp 02")
 
         if QtCore.QCoreApplication is None:
-            print("No QCoreApplication instance found, skipping event processing in tearDown.")
+            logger.warning("No QCoreApplication instance found, skipping event processing in tearDown.")
             return
 
-        print("Processing Qt events in tearDown to allow deleteLater() to complete.")
+        logger.info("cleanup_qtapp 03")
+
         app = QtCore.QCoreApplication.instance()
         if app is None:
-            print("No QCoreApplication instance found, skipping event processing in tearDown.")
+            logger.warning("No QCoreApplication instance found, skipping event processing in tearDown.")
             return
 
-        print("QCoreApplication instance: %s" % app)
-        print("Call processEvents() to allow deleteLater() to complete.")
+        logger.info("cleanup_qtapp 04")
+
         app.processEvents()
-        print("Wait a bit to ensure all events are processed.")
+        logger.info("cleanup_qtapp 05")
+
         time.sleep(2)
-        print("Call again process events() to ensure all events are processed.")
+        logger.info("cleanup_qtapp 06")
         app.processEvents()
+        logger.info("cleanup_qtapp 07")
 
 
     @timer.clock_func("TankTestBase.setup_fixtures")
