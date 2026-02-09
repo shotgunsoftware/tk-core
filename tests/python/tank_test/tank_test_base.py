@@ -617,6 +617,8 @@ class TankTestBase(unittest.TestCase):
                 # important to delete this to free memory
                 self.tk = None
 
+            self.cleanup_qtapp()
+
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
         finally:
@@ -624,6 +626,37 @@ class TankTestBase(unittest.TestCase):
                 os.environ[self.SHOTGUN_HOME] = self._old_shotgun_home
             else:
                 del os.environ[self.SHOTGUN_HOME]
+
+    @classmethod
+    def cleanup_qtapp(cls):
+        # Process Qt events to allow deleteLater() to complete before cleanup
+        # This prevents random segfaults in Qt object destruction
+
+        # Import Qt for event processing in tearDown
+        try:
+            from tank.platform.qt import QtCore
+        except ImportError:
+            print("Qt not found, skipping event processing in tearDown.")
+            return
+
+        if QtCore.QCoreApplication is None:
+            print("No QCoreApplication instance found, skipping event processing in tearDown.")
+            return
+
+        print("Processing Qt events in tearDown to allow deleteLater() to complete.")
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            print("No QCoreApplication instance found, skipping event processing in tearDown.")
+            return
+
+        print("QCoreApplication instance: %s" % app)
+        print("Call processEvents() to allow deleteLater() to complete.")
+        app.processEvents()
+        print("Wait a bit to ensure all events are processed.")
+        time.sleep(2)
+        print("Call again process events() to ensure all events are processed.")
+        app.processEvents()
+
 
     @timer.clock_func("TankTestBase.setup_fixtures")
     def setup_fixtures(self, name="config", parameters=None):
