@@ -29,7 +29,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from __future__ import annotations  # Requried for 3.7
+from __future__ import annotations  # Required for compatibility with Python 3.7
 
 import base64
 import copy
@@ -71,7 +71,6 @@ from xmlrpc.client import Error, ProtocolError, ResponseError  # noqa
 from .lib.httplib2 import Http, ProxyInfo, socks
 from .lib.sgtimezone import SgTimezone
 
-
 LOG = logging.getLogger("shotgun_api3")
 """
 Logging instance for shotgun_api3
@@ -94,7 +93,7 @@ SHOTGUN_API_DISABLE_ENTITY_OPTIMIZATION = False
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.9.2"
+__version__ = "3.10.0"
 
 
 # ----------------------------------------------------------------------------
@@ -1885,15 +1884,20 @@ class Shotgun(object):
     def export_page(self, page_id, format, layout_name=None):
         """
         Export the specified page to the given format.
+
         This method allows you to export a page to CSV.
+
         Respective layout or page should be marked as API Exportable in the Flow Production Tracking UI.
-        For more information, see documentation_.
-        .. _documentation: https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Tutorials_tu_export_csv_html#enable-api-export-for-a-page
+
         If ``layout_name`` is not passed in, the default layout name will be used.
+
+        For more information, see `documentation <https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Tutorials_tu_export_csv_html#enable-api-export-for-a-page>`_ .
+
             >>> sg.export_page(12345, "csv", layout_name="My Layout")
             "ID,Name,Status\\n1,Shot 001,ip\\n2,    Shot 002,rev\\n"
             >>> sg.export_page(12345, "csv")
             "ID,Name,Status\\n1,Shot 001,ip\\n2,Shot 002,rev\\n"
+
         :param int page_id: The ID of the page to export.
         :param str format: The format to export the page to. Supported format is ``"csv"``.
         :param str layout_name: Optional layout name. This should be the name of the layout seen in the Flow Production Tracking UI.
@@ -3157,29 +3161,17 @@ class Shotgun(object):
         self.config.auth_token = auth_token
 
         try:
-            data = self.find_one(
+            return self.find_one(
                 "HumanUser",
                 [["sg_status_list", "is", "act"], ["login", "is", user_login]],
                 ["id", "login"],
                 "",
                 "all",
             )
-            # Set back to default - There finally and except cannot be used together in python2.4
+        finally:
             self.config.user_login = original_login
             self.config.user_password = original_password
             self.config.auth_token = original_auth_token
-            return data
-        except Fault:
-            # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = original_login
-            self.config.user_password = original_password
-            self.config.auth_token = original_auth_token
-        except Exception:
-            # Set back to default - There finally and except cannot be used together in python2.4
-            self.config.user_login = original_login
-            self.config.user_password = original_password
-            self.config.auth_token = original_auth_token
-            raise
 
     def update_project_last_accessed(
         self, project: Dict[str, Any], user: Optional[Dict[str, Any]] = None
@@ -4186,10 +4178,7 @@ class Shotgun(object):
             if isinstance(value, str):
                 if len(value) == 20 and self._DATE_TIME_PATTERN.match(value):
                     try:
-                        # strptime was not on datetime in python2.4
-                        value = datetime.datetime(
-                            *time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")[:6]
-                        )
+                        value = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
                     except ValueError:
                         return value
                     if _change_tz:

@@ -646,10 +646,6 @@ class LoginDialog(QtGui.QDialog):
         # application. (Require a `pkill -9 applicationName`). The fix in our case
         # is pretty simple, we just have to not call show() before the call to
         # exec_() since it implicitly call exec_().
-        #
-        # This bug is described here: https://bugreports.qt.io/browse/QTBUG-48248
-        if QtCore.__version__.startswith("4."):
-            self.show()
 
         self.raise_()
         self.activateWindow()
