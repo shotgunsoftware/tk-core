@@ -596,34 +596,96 @@ class TankTestBase(unittest.TestCase):
         """
         Cleans up after tests.
         """
+
+        logger = sgtk.platform.get_logger(__name__)
+        logger.info("Tearing down test: %s" % self.short_test_name)
+
         self._tear_down_called = True
         try:
             sgtk.set_authenticated_user(self._authenticated_user)
+
+            logger.info("status 2")
 
             if self._do_io:
                 # get rid of path cache from local ~/.shotgun storage
                 pc = path_cache.PathCache(self.tk)
                 path_cache_file = pc._get_path_cache_location()
                 pc.close()
+
+                logger.info("status 3")
+
                 if os.path.exists(path_cache_file):
                     os.remove(path_cache_file)
+
+                logger.info("status 4")
 
                 # get rid of init cache
                 if os.path.exists(pipelineconfig_factory._get_cache_location()):
                     os.remove(pipelineconfig_factory._get_cache_location())
+
+                logger.info("status 5")
 
                 # move project scaffold out of the way
                 self._move_project_data()
                 # important to delete this to free memory
                 self.tk = None
 
+            logger.info("status 6")
+
+            self.cleanup_qtapp()
+
+            logger.info("status 7")
+
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
+
+            logger.info("status 8")
         finally:
+            logger.info("status finally 1")
             if self._old_shotgun_home is not None:
                 os.environ[self.SHOTGUN_HOME] = self._old_shotgun_home
             else:
                 del os.environ[self.SHOTGUN_HOME]
+            logger.info("status finally 2")
+
+    @classmethod
+    def cleanup_qtapp(cls):
+        # Process Qt events to allow deleteLater() to complete before cleanup
+        # This prevents random segfaults in Qt object destruction
+
+        logger = sgtk.platform.get_logger(__name__)
+
+        logger.info("cleanup_qtapp 01")
+        # Import Qt for event processing in tearDown
+        try:
+            from tank.platform.qt import QtCore
+        except ImportError:
+            logger.warning("Qt not found, skipping event processing in tearDown.")
+            return
+
+        logger.info("cleanup_qtapp 02")
+
+        if QtCore.QCoreApplication is None:
+            logger.warning("No QCoreApplication instance found, skipping event processing in tearDown.")
+            return
+
+        logger.info("cleanup_qtapp 03")
+
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            logger.warning("No QCoreApplication instance found, skipping event processing in tearDown.")
+            return
+
+        logger.info("cleanup_qtapp 04")
+
+        app.processEvents()
+        logger.info("cleanup_qtapp 05")
+
+        time.sleep(2)
+        logger.info("cleanup_qtapp 06")
+        app.processEvents()
+        logger.info("cleanup_qtapp 07")
+
 
     @timer.clock_func("TankTestBase.setup_fixtures")
     def setup_fixtures(self, name="config", parameters=None):
