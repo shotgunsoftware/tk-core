@@ -51,6 +51,9 @@ class TestVersionCompare(ShotgunTestBase):
         (git_sha, "1.0.0"): NEWER,
         ("1.0.0", git_sha): OLDER,
         (git_sha, git_sha): EQUAL,
+        ("1.0.0", "unknown"): NEWER,
+        ("unknown", "1.0.0"): OLDER,
+        ("unknown", "unknown"): EQUAL,
     }
 
     def test_is_git_commit(self):

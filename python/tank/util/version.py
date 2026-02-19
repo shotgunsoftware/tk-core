@@ -10,6 +10,7 @@
 import contextlib
 import warnings
 
+from tank_vendor.packaging.version import InvalidVersion
 from tank_vendor.packaging.version import parse as version_parse
 
 from .. import LogManager
@@ -218,7 +219,11 @@ def _compare_versions(a, b):
 
     # Use packaging.version (either system or vendored)
     # This is now guaranteed to be available
-    version_a = version_parse(a)
-    version_b = version_parse(b)
+    try:
+        version_a = version_parse(a)
+        version_b = version_parse(b)
+    except InvalidVersion:
+        # If the version is invalid by `packaging.version.parse`, compare lexicographically
+        return a > b
 
     return version_a > version_b
