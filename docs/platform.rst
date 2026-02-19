@@ -393,6 +393,33 @@ and (for apps only) ``requires_engine_version``::
     requires_core_version: "v0.14.37"
     requires_engine_version: "v0.2.3"
 
+.. _python_version_requirements:
+
+Python Version Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your app, engine, framework, or configuration requires a minimum version of Python,
+you can specify this using the ``minimum_python_version`` parameter. This field accepts
+a version string in the format ``major.minor`` (e.g. ``"3.8"``) or ``major.minor.patch``
+(e.g. ``"3.8.0"``)::
+
+    # Minimum Python version required for this item to run
+    minimum_python_version: "3.8"
+
+When this field is set, Toolkit's auto-update system will prevent users running older
+Python versions from automatically updating to versions that are incompatible with their
+Python environment. This ensures backward compatibility and prevents breaking changes
+for users who haven't yet upgraded their Python version.
+
+.. note::
+    The ``minimum_python_version`` field is compared using only the major and minor
+    version numbers (e.g., 3.8). The patch version (if provided) is ignored during
+    compatibility checks.
+
+.. note::
+    This field is optional. If omitted, the bundle is assumed to be compatible with
+    all Python versions currently supported by Toolkit.
+
 Supported Engines and operating systems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
