@@ -85,11 +85,11 @@ class PackageUpgrade(object):
 
     def copy_new_pyyaml_files(self):
         print("Copy new pyyaml package files")
-        source = os.path.join("lib3", "yaml")
+        source = os.path.join("lib", "yaml")
         target = os.path.join(self.pyyaml_dir)
         shutil.copytree(source, target)
 
-        for source in ["README", "LICENSE", "CHANGES"]:
+        for source in ["README.md", "LICENSE", "CHANGES"]:
             target = os.path.join(self.pyyaml_dir, source)
             shutil.copy(source, target)
 
