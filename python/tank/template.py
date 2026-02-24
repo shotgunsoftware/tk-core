@@ -555,6 +555,17 @@ class TemplatePath(Template):
         """
         return self._prefix
 
+    def _dirname(self):
+        """
+        Returns the directory part of the template.
+
+        :returns: String
+        """
+        dirname, basename = os.path.split(self._repr_def)
+        if "[" in basename and "]" not in basename:
+            return dirname.split("[")[0]
+        return dirname
+
     @property
     def parent(self):
         """
@@ -564,8 +575,8 @@ class TemplatePath(Template):
 
         :returns: :class:`Template`
         """
-        parent_definition = os.path.dirname(self.definition)
-        if parent_definition:
+        parent_definition = self._dirname()
+        if parent_definition and parent_definition != "/":
             return TemplatePath(
                 parent_definition,
                 self.keys,

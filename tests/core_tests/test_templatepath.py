@@ -1180,3 +1180,43 @@ class TestParent(TestTemplatePath):
         template = TemplatePath(definition, keys, root_path=self.project_root)
         result = template.parent
         self.assertEqual("{new_name}", result.definition)
+
+    def test_parent_with_optional(self):
+        definition = "shots/{Sequence}[-{seq_num}]/{Shot}/{Step}/work"
+        parent_expected_definitions = [
+            "shots/{Sequence}-{seq_num}/{Shot}/{Step}",
+            "shots/{Sequence}/{Shot}/{Step}",
+        ]
+        parent_expected__repr_def = os.path.dirname(definition)
+
+        template = TemplatePath(definition, self.keys, root_path=self.project_root)
+        parent = template.parent
+        self.assertEqual(parent_expected_definitions, parent._definitions)
+        self.assertEqual(parent_expected__repr_def, parent._repr_def)
+
+
+class TestDirname(TestTemplatePath):
+    def test_dirname_with_word(self):
+        definition = "shots/{Sequence}/{Shot}/{Step}/work"
+        template = TemplatePath(definition, self.keys, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}/{Shot}/{Step}", template.dirname)
+
+    def test_dirname_with_key(self):
+        definition = "shots/{Sequence}/{Shot}/{Step}"
+        template = TemplatePath(definition, self.keys, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}/{Shot}", template.dirname)
+
+    def test_dirname_with_optional(self):
+        definition = "shots/{Sequence}/{Shot}[/{Step}]"
+        template = TemplatePath(definition, {}, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}/{Shot}", template.dirname)
+
+    def test_dirname_with_optional_word_and_key(self):
+        definition = "shots/{Sequence}/{Shot}/[abc_{Step}]"
+        template = TemplatePath(definition, {}, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}/{Shot}", template.dirname)
+
+    def test_dirname_with_optional_key_and_key(self):
+        definition = "shots/{Sequence}/[{Shot}]-{Step}"
+        template = TemplatePath(definition, {}, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}", template.dirname)
