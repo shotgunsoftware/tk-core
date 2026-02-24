@@ -151,6 +151,20 @@ v2017 of a DCC, the plugin can be set up to track against the latest released ve
 ``sgtk:descriptor:app_store?name=tk-config-dcc&label=v2017``. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.
 
+.. note:: **Python Version Compatibility**
+
+    Toolkit's auto-update system respects Python version requirements. If a bundle (app, engine,
+    framework, or config) specifies a ``minimum_python_version`` in its ``info.yml`` manifest,
+    Toolkit will automatically prevent users running older Python versions from updating to
+    incompatible versions.
+
+    For example, if the latest version of a config requires Python 3.8 or higher, users running
+    Python 3.7 will continue to use the most recent version compatible with Python 3.7 instead
+    of automatically updating to the incompatible version.
+
+    See :ref:`python_version_requirements` for more details on specifying Python requirements
+    in your bundles.
+
 .. _git_descriptors:
 
 Tracking against tags in git

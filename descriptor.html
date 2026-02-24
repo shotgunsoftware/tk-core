@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.23.4 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.23.6 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.4.<br>
+    <b>tk-core</b> v0.23.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -317,6 +317,19 @@ targeting that particular DCC version. If you for example are running a plugin b
 v2017 of a DCC, the plugin can be set up to track against the latest released version of
 <code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-dcc&amp;label=v2017</span></code>. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Python Version Compatibility</strong></p>
+<p>Toolkit’s auto-update system respects Python version requirements. If a bundle (app, engine,
+framework, or config) specifies a <code class="docutils literal notranslate"><span class="pre">minimum_python_version</span></code> in its <code class="docutils literal notranslate"><span class="pre">info.yml</span></code> manifest,
+Toolkit will automatically prevent users running older Python versions from updating to
+incompatible versions.</p>
+<p>For example, if the latest version of a config requires Python 3.8 or higher, users running
+Python 3.7 will continue to use the most recent version compatible with Python 3.7 instead
+of automatically updating to the incompatible version.</p>
+<p>See <a class="reference internal" href="platform.html#python-version-requirements"><span class="std std-ref">Python Version Requirements</span></a> for more details on specifying Python requirements
+in your bundles.</p>
+</div>
 </section>
 <section id="tracking-against-tags-in-git">
 <span id="git-descriptors"></span><h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this heading"></a></h3>
@@ -3088,7 +3101,7 @@ set self.__traceback__ to tb and return self.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Autodesk.</p>
+    <p>&#169; Copyright 2026, Autodesk.</p>
   </div>
 
    

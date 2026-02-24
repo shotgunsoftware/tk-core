@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.23.4 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.23.6 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -122,6 +122,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#display-name-and-description">Display name and Description</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id3">Frameworks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#version-constraints">Version constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#python-version-requirements">Python Version Requirements</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#supported-engines-and-operating-systems">Supported Engines and operating systems</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#documentation-and-support">Documentation and Support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#required-context-fields">Required Context Fields</a></li>
@@ -179,7 +180,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.4.<br>
+    <b>tk-core</b> v0.23.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -3835,6 +3836,32 @@ and (for apps only) <code class="docutils literal notranslate"><span class="pre"
 </pre></div>
 </div>
 </section>
+<section id="python-version-requirements">
+<span id="id4"></span><h4>Python Version Requirements<a class="headerlink" href="#python-version-requirements" title="Permalink to this heading"></a></h4>
+<p>If your app, engine, framework, or configuration requires a minimum version of Python,
+you can specify this using the <code class="docutils literal notranslate"><span class="pre">minimum_python_version</span></code> parameter. This field accepts
+a version string in the format <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;3.8&quot;</span></code>) or <code class="docutils literal notranslate"><span class="pre">major.minor.patch</span></code>
+(e.g. <code class="docutils literal notranslate"><span class="pre">&quot;3.8.0&quot;</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Minimum Python version required for this item to run</span>
+<span class="n">minimum_python_version</span><span class="p">:</span> <span class="s2">&quot;3.8&quot;</span>
+</pre></div>
+</div>
+<p>When this field is set, Toolkit’s auto-update system will prevent users running older
+Python versions from automatically updating to versions that are incompatible with their
+Python environment. This ensures backward compatibility and prevents breaking changes
+for users who haven’t yet upgraded their Python version.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">minimum_python_version</span></code> field is compared using only the major and minor
+version numbers (e.g., 3.8). The patch version (if provided) is ignored during
+compatibility checks.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This field is optional. If omitted, the bundle is assumed to be compatible with
+all Python versions currently supported by Toolkit.</p>
+</div>
+</section>
 <section id="supported-engines-and-operating-systems">
 <h4>Supported Engines and operating systems<a class="headerlink" href="#supported-engines-and-operating-systems" title="Permalink to this heading"></a></h4>
 <p>If your app is not a multi-app that has been designed to run in <em>any</em> engine, use
@@ -4372,7 +4399,7 @@ especially when the contained widget is quite small. To hide the title bar, just
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Autodesk.</p>
+    <p>&#169; Copyright 2026, Autodesk.</p>
   </div>
 
    
