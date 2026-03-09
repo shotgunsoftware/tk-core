@@ -1326,7 +1326,16 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         # make sure this was actually found in the cache
         # fall back on a shotgun lookup if not found
-        if entity_context["project"] is None:
+        # Note: We also need to check if the entity name was resolved. The project
+        # might be found in the cache (from the primary data root), but the specific
+        # entity might not have folders created yet, leaving entity["name"] as None.
+        # This commonly happens when launching a DCC from the web for a newly created
+        # Asset/Shot/Task that hasn't had its filesystem structure created yet.
+        entity_name_missing = (
+            entity_type != "Project"
+            and entity_context.get("entity", {}).get("name") is None
+        )
+        if entity_context["project"] is None or entity_name_missing:
             entity_context = _entity_from_sg(tk, entity_type, entity_id)
 
         context.update(entity_context)
