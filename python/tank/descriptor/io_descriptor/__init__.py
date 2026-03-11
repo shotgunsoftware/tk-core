@@ -30,6 +30,8 @@ def _initialize_descriptor_factory():
     from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
     from .github_release import IODescriptorGithubRelease
+    from .perforce_change import IODescriptorPerforceChange
+    from .perforce_label import IODescriptorPerforceLabel
     from .manual import IODescriptorManual
 
     IODescriptorBase.register_descriptor_factory("app_store", IODescriptorAppStore)
@@ -40,6 +42,12 @@ def _initialize_descriptor_factory():
     IODescriptorBase.register_descriptor_factory("git_branch", IODescriptorGitBranch)
     IODescriptorBase.register_descriptor_factory(
         "github_release", IODescriptorGithubRelease
+    )
+    IODescriptorBase.register_descriptor_factory(
+        "perforce_change", IODescriptorPerforceChange
+    )
+    IODescriptorBase.register_descriptor_factory(
+        "perforce_label", IODescriptorPerforceLabel
     )
     IODescriptorBase.register_descriptor_factory("manual", IODescriptorManual)
 
