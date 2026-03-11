@@ -840,7 +840,7 @@ def _shotgun_run_action(
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
-            (summary, url) = installer.get_release_notes()
+            summary, url = installer.get_release_notes()
 
             logger.info(
                 "<b>A new version of the Toolkit API (%s) is available!</b>" % lv
@@ -941,7 +941,7 @@ def _list_commands(tk, ctx):
     Outputs a list of commands to the logger given the current context.
     """
     # get all the action objets (commands) suitable for the current context
-    (aa, engine) = get_actions(logger, tk, ctx)
+    aa, engine = get_actions(logger, tk, ctx)
 
     logger.info("")
     logger.info("The following commands are available:")
@@ -1398,7 +1398,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
 
                 # now try to resolve this project
-                (project_id, project_name) = _resolve_shotgun_pattern(
+                project_id, project_name = _resolve_shotgun_pattern(
                     "Project", proj_token
                 )
                 logger.info("- Searching in project '%s' only" % project_name)

@@ -566,22 +566,19 @@ class TestFromEntity(TestContext):
     @mock.patch("tank.util.login.get_current_user")
     def test_data_missing_non_task(self, get_current_user):
         """
-        Case that entity does not exist on local cache or in shotgun
+        Case that entity does not exist on local cache or in shotgun.
+
+        When an entity is not found in the path cache, we now fall back
+        to querying Flow Production Tracking. If the entity doesn't exist
+        there either, a TankError should be raised.
         """
         get_current_user.return_value = self.current_user
 
         # Use entity we have not setup in path cache not in mocked sg
         shot = {"type": "Shot", "id": 13, "name": "never_seen_me_before"}
-        result = context.from_entity(self.tk, shot["type"], shot["id"])
-
-        self.assertEqual(shot["id"], result.entity["id"])
-        self.assertEqual(shot["type"], result.entity["type"])
-        self.check_entity(self.project, result.project)
-        self.assertEqual(self.current_user["id"], result.user["id"])
-        self.assertEqual(self.current_user["type"], result.user["type"])
-        # Everything else should be none
-        self.assertIsNone(result.step)
-        self.assertIsNone(result.task)
+        self.assertRaises(
+            TankError, context.from_entity, self.tk, shot["type"], shot["id"]
+        )
 
     def test_data_missing_task(self):
         """

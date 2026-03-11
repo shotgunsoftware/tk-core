@@ -14,7 +14,6 @@
 import os
 import sys
 
-
 # first look for our parent file
 current_folder = os.path.abspath(os.path.dirname(__file__))
 file_name_lookup = {

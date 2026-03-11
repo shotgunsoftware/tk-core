@@ -18,6 +18,7 @@ Hook which provides advanced customization of context creation.
 
     Contact support if you have any questions about how to migrate away from this hook.
 """
+
 from tank import Hook
 
 

@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import types
+import warnings
 
 from .pyside2_patcher import PySide2Patcher
 
@@ -97,7 +98,13 @@ class PySide6Patcher(PySide2Patcher):
 
             @staticmethod
             def setCodecForCStrings(codec):
-                pass
+                warnings.warn(
+                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists since Qt6/PySide6. "
+                    "This method will be removed from Toolkit after December 2026. "
+                    "Please remove calls to this method from your code.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
         QtCore.QTextCodec = QTextCodec
 
@@ -549,6 +556,10 @@ class PySide6Patcher(PySide2Patcher):
 
         # QtGui
         # ------------------------------------------------------------------------------------
+
+        # Prevent warnings log with exec_ - TODO FUTURE remove this once done with PySide2
+        qt_gui_shim.QApplication.exec_ = qt_gui_shim.QApplication.exec
+        qt_gui_shim.QDialog.exec_ = qt_gui_shim.QDialog.exec
 
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
