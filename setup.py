@@ -71,9 +71,7 @@ def get_install_requires():
     if os.path.exists(req_file):
         with open(req_file) as f:
             return [
-                line.strip()
-                for line in f
-                if line.strip() and not line.startswith("#")
+                line.strip() for line in f if line.strip() and not line.startswith("#")
             ]
     return []
 
