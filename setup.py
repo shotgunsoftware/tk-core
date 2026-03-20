@@ -68,12 +68,18 @@ def get_install_requires():
         f"{sys.version_info.major}.{sys.version_info.minor}",
         "requirements.txt",
     )
-    if os.path.exists(req_file):
-        with open(req_file) as f:
-            return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
-    return []
+    if not os.path.exists(req_file):
+        raise Exception(
+            f"Python {sys.version_info.major}.{sys.version_info.minor}"
+            " is not supported"
+        )
+
+    with open(req_file) as f:
+        return [
+            line.strip()
+            for line in f
+            if line.strip() and not line.strip().startswith("#")
+        ]
 
 
 # Retrieve long description and licence from external files
