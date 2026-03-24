@@ -14,7 +14,7 @@ that critical imports work without the pkgs.zip vendored dependencies.
 """
 
 import os
-import subprocess
+import subprocess  # nosec B404
 import sys
 import tempfile
 import unittest

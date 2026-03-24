@@ -14,7 +14,7 @@ This ensures that developer scripts always use the local tk-core
 """
 
 import os
-import subprocess
+import subprocess  # nosec B404
 import sys
 import unittest
 
