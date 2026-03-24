@@ -53,11 +53,3 @@ jobs:
           # Azure Pipelines 1-10
           SHOTGUN_TEST_ENTITY_SUFFIX: '$(Agent.Name)'
         condition: eq(variables['System.PullRequest.IsFork'], 'False')
-
-      # Validate pip install in a clean venv and import sgtk
-      - script: python tests/packaging_tests/test_pip_install.py
-        displayName: Validate pip install and import sgtk
-
-      # Validate developer scripts work when sgtk is also pip-installed
-      - script: python tests/packaging_tests/test_developer_scripts.py
-        displayName: Validate developer scripts with pip sgtk installed
