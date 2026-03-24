@@ -45,9 +45,7 @@ class PipInstallTests(SgtkIntegrationTest):
             subprocess.check_call(  # nosec B603
                 [python, "-m", "pip", "install", tk_core_root]
             )
-            subprocess.check_call(  # nosec B603
-                [python, "-c", "import sgtk"]
-            )
+            subprocess.check_call([python, "-c", "import sgtk"])  # nosec B603
             subprocess.check_call(  # nosec B603
                 [python, "-c", "from tank_vendor.shotgun_api3 import Shotgun"]
             )
