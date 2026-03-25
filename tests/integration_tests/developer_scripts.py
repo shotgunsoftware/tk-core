@@ -53,25 +53,19 @@ class DeveloperScriptsTests(SgtkIntegrationTest):
     def test_bake_config(self):
         """Validate bake_config.py --help works."""
         script = os.path.join(self.tk_core_repo_root, "developer", "bake_config.py")
-        subprocess.check_call(  # nosec B603
-            [self._venv_python, script, "--help"]
-        )
+        subprocess.check_call([self._venv_python, script, "--help"])  # nosec B603
 
     def test_build_plugin(self):
         """Validate build_plugin.py --help works."""
         script = os.path.join(self.tk_core_repo_root, "developer", "build_plugin.py")
-        subprocess.check_call(  # nosec B603
-            [self._venv_python, script, "--help"]
-        )
+        subprocess.check_call([self._venv_python, script, "--help"])  # nosec B603
 
     def test_populate_bundle_cache(self):
         """Validate populate_bundle_cache.py --help works."""
         script = os.path.join(
             self.tk_core_repo_root, "developer", "populate_bundle_cache.py"
         )
-        subprocess.check_call(  # nosec B603
-            [self._venv_python, script, "--help"]
-        )
+        subprocess.check_call([self._venv_python, script, "--help"])  # nosec B603
 
 
 if __name__ == "__main__":
