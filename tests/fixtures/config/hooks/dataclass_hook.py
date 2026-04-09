@@ -16,3 +16,34 @@ this hook.
 This is a regression test for https://github.com/shotgunsoftware/tk-core/pull/1047
 (https://github.com/shotgunsoftware/tk-core/commit/eaaadceafa4b449f819cf9c1b05cba229daaeeab)
 """
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import sgtk
+
+
+@dataclass(frozen=True)
+class Data:
+    name: str | None
+    number: int | float
+    error: (
+        sgtk.authentication.AuthenticationError
+        | sgtk.authentication.IncompleteCredentials
+        | sgtk.authentication.AuthenticationCancelled
+        | sgtk.authentication.ConsoleLoginNotSupportedError
+        | None
+    ) = None
+
+
+class TestHook(sgtk.get_hook_baseclass()):
+    def execute(self, dummy_param):
+        return Data("foo", 123)
+
+    def second_method(self, another_dummy_param):
+        return Data(
+            None,
+            -3.1419,
+            error=sgtk.authentication.AuthenticationCancelled("Cancelled"),
+        )
