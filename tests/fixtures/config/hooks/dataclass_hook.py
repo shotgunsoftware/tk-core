@@ -38,12 +38,12 @@ class Data:
 
 
 class TestHook(sgtk.get_hook_baseclass()):
-    def execute(self, dummy_param):
+    def execute(self):
         return Data("foo", 123)
 
-    def second_method(self, another_dummy_param):
+    def second_method(self):
         return Data(
             None,
             -3.1419,
-            error=sgtk.authentication.AuthenticationCancelled("Cancelled"),
+            error=sgtk.authentication.AuthenticationCancelled(),
         )
