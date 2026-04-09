@@ -57,8 +57,8 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     try:
         plugin_spec = importlib.util.spec_from_file_location(module_uid, plugin_file)
         module = importlib.util.module_from_spec(plugin_spec)
-        plugin_spec.loader.exec_module(module)
         sys.modules[module.__name__] = module
+        plugin_spec.loader.exec_module(module)
     except Exception:
         # log the full callstack to make sure that whatever the
         # calling code is doing, this error is logged to help
