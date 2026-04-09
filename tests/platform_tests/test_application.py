@@ -273,6 +273,22 @@ class TestGetSetting(TestApplication):
         )
 
 
+class TestDataclassHook(TestApplication):
+    """
+    Test loading, executing and calling ``dataclass_hook``.
+    """
+
+    def test_execute(self):
+        app = self.engine.apps["test_app"]
+        app.execute_hook_by_name("dataclass_hook", dummy_param=True)
+
+    def test_legacy_format(self):
+        app = self.engine.apps["test_app"]
+        app.execute_hook_expression(
+            "dataclass_hook", "second_method", another_dummy_param=True
+        )
+
+
 class TestExecuteHookByName(TestApplication):
     """
     Tests execute_hook_by_name
