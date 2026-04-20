@@ -348,6 +348,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "Constant failure",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -359,6 +360,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "Constant failure",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
@@ -383,6 +385,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "dummy_path.txt",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -394,6 +397,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "dummy_path.txt",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
