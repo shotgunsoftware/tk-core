@@ -112,6 +112,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
 
         create_data = []
+
         # wrap create so we can keep tabs of things
         def create_mock(entity_type, data, return_fields=None):
             create_data.append(data)
@@ -282,7 +283,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             }
 
         # Various paths we support, Unix and Windows styles
-        for (local_path, path_dict) in values.items():
+        for local_path, path_dict in values.items():
 
             publish_data = tank.util.register_publish(
                 self.tk, self.context, local_path, self.name, self.version, dry_run=True
@@ -299,6 +300,25 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertEqual(sg_dict["path"], path_dict)
             self.assertTrue("pathcache" not in sg_dict)
+
+    def test_no_thumbnail_skips_upload(self):
+        """
+        Verifies that upload_thumbnail is NOT called when no thumbnail_path is
+        provided to register_publish. Previously Toolkit would upload a default
+        no_preview.jpg placeholder; that behavior has been removed to avoid
+        unnecessary transcoding jobs on the FPT backend.
+        """
+        with mock.patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail"
+        ) as upload_thumb_mock:
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                self.path,
+                self.name,
+                self.version,
+            )
+        upload_thumb_mock.assert_not_called()
 
     def test_publish_errors(self):
         """Tests exceptions raised on publish errors."""
@@ -341,14 +361,12 @@ class TestShotgunRegisterPublish(TankTestBase):
             new=raise_value_error,
         ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
-
                 publish_data = tank.util.register_publish(
                     self.tk,
                     self.context,
                     "Constant failure",
                     self.name,
                     self.version,
-                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -360,7 +378,6 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "Constant failure",
                     self.name,
                     self.version,
-                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
@@ -385,7 +402,6 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "dummy_path.txt",
                     self.name,
                     self.version,
-                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -397,7 +413,6 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "dummy_path.txt",
                     self.name,
                     self.version,
-                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
@@ -440,7 +455,9 @@ class TestMultiRoot(TankTestBase):
         self.mockgun.server_caps = server_capsMock()
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch(
+            "tank_vendor.shotgun_api3.Shotgun.server_caps"
+        )
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
@@ -656,9 +673,7 @@ class TestCalcPathCacheProjectWithSlash(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super().setUp(
-            {"project_tank_name": "foo/bar"}
-        )
+        super().setUp({"project_tank_name": "foo/bar"})
 
     @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_multi_project_root(self, get_local_storage_roots):
