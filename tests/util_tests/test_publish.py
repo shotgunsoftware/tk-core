@@ -360,12 +360,16 @@ class TestShotgunRegisterPublish(TankTestBase):
             new=raise_value_error,
         ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
+                # thumbnail_path=__file__ is required here: without a thumbnail
+                # path upload_thumbnail is never called and the mock never
+                # fires, so the expected exception would not be raised.
                 publish_data = tank.util.register_publish(
                     self.tk,
                     self.context,
                     "Constant failure",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -377,6 +381,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "Constant failure",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
@@ -394,13 +399,16 @@ class TestShotgunRegisterPublish(TankTestBase):
             new=raise_io_error,
         ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
-
+                # thumbnail_path=__file__ is required here: without a thumbnail
+                # path upload_thumbnail is never called and the mock never
+                # fires, so the expected exception would not be raised.
                 publish_data = tank.util.register_publish(
                     self.tk,
                     self.context,
                     "dummy_path.txt",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -412,6 +420,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "dummy_path.txt",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
