@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Autodesk.
 """Case where we check defining a Python dataclass won't fail during hook loading.
 
-The dataclasses module check the `.sys.modules` for the ``Data`` class's ``__module__``
+The dataclasses module checks the `.sys.modules` for the ``Data`` class's ``__module__``
 during type checking, so it should exist in there and not fatally error when loading
 this hook.
 
