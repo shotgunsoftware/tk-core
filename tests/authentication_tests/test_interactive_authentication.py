@@ -692,8 +692,8 @@ class InteractiveTests(ShotgunTestBase):
                 self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
 
                 # login/password fields must be hidden
-                self.assertFalse(ld.ui.login.isVisible())
-                self.assertFalse(ld.ui.password.isVisible())
+                self.assertTrue(ld.ui.login.isHidden())
+                self.assertTrue(ld.ui.password.isHidden())
             finally:
                 ld._confirm_exit = lambda: True
                 ld.close()
