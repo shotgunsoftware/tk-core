@@ -62,7 +62,13 @@ class PipInstallTests(SgtkIntegrationTest):
 
             # Under the flat pip layout info.yml is absent; the version must
             # come from the installed sgtk distribution metadata instead of
-            # falling through to "unknown".
+            # falling through to "unknown". Strip PYTHONPATH from the
+            # subprocess env — the integration runner sets it to the source
+            # tree, which would otherwise shadow the venv's pip-installed
+            # sgtk and let _get_version_from_manifest pick up the source
+            # repo's info.yml.
+            subprocess_env = dict(os.environ)
+            subprocess_env.pop("PYTHONPATH", None)
             version = subprocess.check_output(  # nosec B603
                 [
                     python,
@@ -70,6 +76,7 @@ class PipInstallTests(SgtkIntegrationTest):
                     "import sgtk; print(sgtk.pipelineconfig_utils.get_currently_running_api_version())",
                 ],
                 text=True,
+                env=subprocess_env,
             ).strip()
             self.assertNotEqual(version, "unknown")
             self.assertTrue(
