@@ -111,7 +111,7 @@ class BootstrapPipTests(SgtkIntegrationTest):
         self.__clean_sgtk_modules()
         import sgtk
 
-        result = sgtk.get_currently_running_api_version()
+        result = sgtk.pipelineconfig_utils.get_currently_running_api_version()
         self.assertIsInstance(result, str)
         self.assertTrue(result, "version must be non-empty")
 

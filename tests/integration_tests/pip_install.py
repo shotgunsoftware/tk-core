@@ -67,7 +67,7 @@ class PipInstallTests(SgtkIntegrationTest):
                 [
                     python,
                     "-c",
-                    "import sgtk; print(sgtk.get_currently_running_api_version())",
+                    "import sgtk; print(sgtk.pipelineconfig_utils.get_currently_running_api_version())",
                 ],
                 text=True,
             ).strip()
