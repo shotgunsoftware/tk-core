@@ -439,7 +439,17 @@ def get_currently_running_api_version():
     info_yml_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "info.yml")
     )
-    return _get_version_from_manifest(info_yml_path)
+    version = _get_version_from_manifest(info_yml_path)
+    if version == "unknown":
+        # In a pip install the flat site-packages layout has no info.yml.
+        # Fall back to the installed distribution metadata; PEP 440 strips the
+        # leading 'v', so re-add it to match the info.yml convention.
+        try:
+            from importlib.metadata import version as _dist_version
+            version = "v" + _dist_version("sgtk")
+        except Exception:
+            pass
+    return version
 
 
 def get_core_api_version(core_install_root):
