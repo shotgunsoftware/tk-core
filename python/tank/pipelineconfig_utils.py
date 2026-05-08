@@ -446,6 +446,7 @@ def get_currently_running_api_version():
         # leading 'v', so re-add it to match the info.yml convention.
         try:
             from importlib.metadata import version as _dist_version
+
             version = "v" + _dist_version("sgtk")
         except Exception:
             pass
