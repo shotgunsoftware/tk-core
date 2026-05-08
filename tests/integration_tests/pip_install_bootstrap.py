@@ -100,6 +100,21 @@ class BootstrapPipTests(SgtkIntegrationTest):
         engine = manager.bootstrap_engine("tk-shell", self.asset)
         self.assertEqual(engine.name, "tk-shell")
 
+    def test_get_currently_running_api_version_in_simulated_pip_layout(self):
+        """
+        The simulated layout has no info.yml. The function must not raise; it
+        should return a non-empty string. The exact value depends on whether
+        sgtk is also pip-installed in the test runner's Python — importlib's
+        distribution metadata is read from the runtime Python's site-packages,
+        not from the sys.path-prepended simulated copy.
+        """
+        self.__clean_sgtk_modules()
+        import sgtk
+
+        result = sgtk.get_currently_running_api_version()
+        self.assertIsInstance(result, str)
+        self.assertTrue(result, "version must be non-empty")
+
 
 if __name__ == "__main__":
     unittest.main(failfast=True, verbosity=2)

@@ -60,6 +60,23 @@ class PipInstallTests(SgtkIntegrationTest):
                 ]
             )
 
+            # Under the flat pip layout info.yml is absent; the version must
+            # come from the installed sgtk distribution metadata instead of
+            # falling through to "unknown".
+            version = subprocess.check_output(  # nosec B603
+                [
+                    python,
+                    "-c",
+                    "import sgtk; print(sgtk.get_currently_running_api_version())",
+                ],
+                text=True,
+            ).strip()
+            self.assertNotEqual(version, "unknown")
+            self.assertTrue(
+                version.startswith("v"),
+                "expected vX.Y.Z, got %r" % version,
+            )
+
 
 if __name__ == "__main__":
     unittest.main(failfast=True, verbosity=2)

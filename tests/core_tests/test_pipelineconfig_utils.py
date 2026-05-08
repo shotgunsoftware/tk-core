@@ -359,3 +359,59 @@ class TestPipelineConfigUtils(ShotgunTestBase):
 
         self.assertEqual(sgtk.get_sgtk_module_path(), python_path)
         self.assertEqual(sgtk.get_sgtk_module_path(), tank.get_sgtk_module_path())
+
+
+class TestGetCurrentlyRunningApiVersion(ShotgunTestBase):
+    """
+    Tests get_currently_running_api_version, including the importlib.metadata
+    fallback used when info.yml is absent (e.g. flat pip install layout).
+    """
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_manifest_version_when_present(self, manifest_mock):
+        """
+        When info.yml is present, its version is returned and the dist-metadata
+        fallback is not consulted.
+        """
+        manifest_mock.return_value = "v1.2.3"
+        with mock.patch("importlib.metadata.version") as dist_mock:
+            self.assertEqual(
+                pipelineconfig_utils.get_currently_running_api_version(),
+                "v1.2.3",
+            )
+            dist_mock.assert_not_called()
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_falls_back_to_dist_metadata_when_manifest_missing(self, manifest_mock):
+        """
+        Pip install layout: info.yml is absent so the manifest yields "unknown",
+        and the function falls back to the installed sgtk distribution version,
+        re-adding the 'v' prefix that PEP 440 normalization strips.
+        """
+        manifest_mock.return_value = "unknown"
+        with mock.patch(
+            "importlib.metadata.version", return_value="0.23.8"
+        ) as dist_mock:
+            self.assertEqual(
+                pipelineconfig_utils.get_currently_running_api_version(),
+                "v0.23.8",
+            )
+            dist_mock.assert_called_once_with("sgtk")
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_unknown_when_manifest_and_dist_metadata_missing(
+        self, manifest_mock
+    ):
+        """
+        Neither info.yml nor an installed sgtk distribution available: preserve
+        the original "unknown" contract instead of raising.
+        """
+        manifest_mock.return_value = "unknown"
+        with mock.patch(
+            "importlib.metadata.version",
+            side_effect=Exception("PackageNotFoundError"),
+        ):
+            self.assertEqual(
+                pipelineconfig_utils.get_currently_running_api_version(),
+                "unknown",
+            )
