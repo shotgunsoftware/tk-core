@@ -638,6 +638,72 @@ class InteractiveTests(ShotgunTestBase):
         return_value=True,
     )
     @mock.patch(
+        "tank.authentication.login_dialog.get_shotgun_authenticator_support_web_login",
+        return_value=True,
+    )
+    @mock.patch(
+        "tank.authentication.session_cache.get_preferred_method",
+        return_value=None,
+    )
+    def test_initial_ui_not_basic_for_identity_site(self, *unused_mocks):
+        """
+        Regression test for the race condition where the dialog opened showing
+        the 3-fields (credentials) UI even for Identity/SSO-enabled sites.
+
+        The root cause was that _toggle_web() was only connected to the
+        QThread.finished signal, which is delivered through the Qt event queue.
+        Before the event loop ran (i.e. before show()/exec_()), the signal was
+        never dispatched, so the dialog opened with the default METHOD_BASIC.
+
+        The fix is to call _toggle_web() directly after wait() in __init__,
+        ensuring the correct UI is set synchronously before the dialog appears.
+
+        This test verifies method_selected *before* processEvents() is called
+        (simulating the window not yet having been shown) to prove the fix
+        works without relying on event-loop delivery.
+        """
+        from tank.authentication import login_dialog
+
+        identity_site_infos = {
+            "user_authentication_method": "oxygen",
+            "unified_login_flow_enabled": True,
+        }
+
+        with mock.patch(
+            "tank.authentication.site_info._get_site_infos",
+            return_value=identity_site_infos,
+        ), mock.patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+            ld = login_dialog.LoginDialog(
+                is_session_renewal=True,
+                hostname="https://identity.shotgunstudio.com",
+            )
+            try:
+                # Check method_selected *before* any processEvents() call.
+                # Without the fix, this would be METHOD_BASIC because the
+                # QThread.finished signal had not yet been dispatched.
+                self.assertNotEqual(
+                    ld.method_selected,
+                    auth_constants.METHOD_BASIC,
+                    "Dialog opened with credentials (3-fields) UI for an Identity-"
+                    "enabled site before the event loop ran. This is the race "
+                    "condition that was fixed by calling _toggle_web() synchronously "
+                    "after wait() in the constructor.",
+                )
+                self.assertEqual(ld.method_selected, auth_constants.METHOD_WEB_LOGIN)
+
+                # login/password fields must be hidden
+                self.assertTrue(ld.ui.login.isHidden())
+                self.assertTrue(ld.ui.password.isHidden())
+            finally:
+                ld._confirm_exit = lambda: True
+                ld.close()
+
+    @suppress_generated_code_qt_warnings
+    @mock.patch(
+        "tank.authentication.login_dialog._is_running_in_desktop",
+        return_value=True,
+    )
+    @mock.patch(
         "tank.authentication.web_login_support.get_shotgun_authenticator_support_web_login",
         return_value=True,
     )

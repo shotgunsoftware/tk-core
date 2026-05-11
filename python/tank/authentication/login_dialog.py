@@ -315,6 +315,16 @@ class LoginDialog(QtGui.QDialog):
                 % self._get_current_site()
             )
 
+        # QThread.finished is delivered through the Qt event queue and requires
+        # the event loop to be running. Since we are still in the constructor,
+        # the _toggle_web slot has not been called yet even though wait()
+        # returned and the thread is done. Call it directly here so the dialog
+        # opens with the correct UI (e.g. Identity/SSO sites must not flash the
+        # 3-fields credentials form before switching to the web-login view).
+        # The guard inside _toggle_web makes the subsequent signal delivery a
+        # no-op, so this is safe.
+        self._toggle_web()
+
         # Initialize exit confirm message box
         self.confirm_box = QtGui.QMessageBox(
             QtGui.QMessageBox.Question,
