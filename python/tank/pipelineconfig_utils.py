@@ -13,6 +13,7 @@ Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
 
+import importlib.metadata
 import os
 
 from tank_vendor import yaml
@@ -440,17 +441,15 @@ def get_currently_running_api_version():
         os.path.join(os.path.dirname(__file__), "..", "..", "info.yml")
     )
     version = _get_version_from_manifest(info_yml_path)
-    if version == "unknown":
-        # In a pip install the flat site-packages layout has no info.yml.
-        # Fall back to the installed distribution metadata; PEP 440 strips the
-        # leading 'v', so re-add it to match the info.yml convention.
-        try:
-            from importlib.metadata import version as _dist_version
-
-            version = "v" + _dist_version("sgtk")
-        except Exception:
-            pass
-    return version
+    if version is not None:
+        return version
+    # In a pip install the flat site-packages layout has no info.yml.
+    # Fall back to the installed distribution metadata; PEP 440 strips the
+    # leading 'v', so re-add it to match the info.yml convention.
+    try:
+        return "v" + importlib.metadata.version("sgtk")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
 
 
 def get_core_api_version(core_install_root):
@@ -466,7 +465,8 @@ def get_core_api_version(core_install_root):
     """
     # now try to get to the info.yml file to get the version number
     info_yml_path = os.path.join(core_install_root, "install", "core", "info.yml")
-    return _get_version_from_manifest(info_yml_path)
+    version = _get_version_from_manifest(info_yml_path)
+    return "unknown" if version is None else version
 
 
 def _get_version_from_manifest(info_yml_path):
@@ -475,15 +475,14 @@ def _get_version_from_manifest(info_yml_path):
     Returns the version given a manifest.
 
     :param info_yml_path: path to manifest file.
-    :returns: Always a string, 'unknown' if data cannot be found
+    :returns: Version string, or None if data cannot be found.
     """
     try:
         data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False) or {}
-        data = str(data.get("version", "unknown"))
+        version = data.get("version")
+        return str(version) if version is not None else None
     except Exception:
-        data = "unknown"
-
-    return data
+        return None
 
 
 def _get_core_descriptor_file(pipeline_config_path):

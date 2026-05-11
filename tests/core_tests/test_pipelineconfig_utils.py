@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import importlib.metadata
 import os
 import inspect
 import sys
@@ -384,11 +385,11 @@ class TestGetCurrentlyRunningApiVersion(ShotgunTestBase):
     @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
     def test_falls_back_to_dist_metadata_when_manifest_missing(self, manifest_mock):
         """
-        Pip install layout: info.yml is absent so the manifest yields "unknown",
+        Pip install layout: info.yml is absent so the manifest yields None,
         and the function falls back to the installed sgtk distribution version,
         re-adding the 'v' prefix that PEP 440 normalization strips.
         """
-        manifest_mock.return_value = "unknown"
+        manifest_mock.return_value = None
         with mock.patch(
             "importlib.metadata.version", return_value="0.23.8"
         ) as dist_mock:
@@ -406,10 +407,10 @@ class TestGetCurrentlyRunningApiVersion(ShotgunTestBase):
         Neither info.yml nor an installed sgtk distribution available: preserve
         the original "unknown" contract instead of raising.
         """
-        manifest_mock.return_value = "unknown"
+        manifest_mock.return_value = None
         with mock.patch(
             "importlib.metadata.version",
-            side_effect=Exception("PackageNotFoundError"),
+            side_effect=importlib.metadata.PackageNotFoundError("sgtk"),
         ):
             self.assertEqual(
                 pipelineconfig_utils.get_currently_running_api_version(),
