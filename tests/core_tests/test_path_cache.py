@@ -433,11 +433,16 @@ class TestAddMapping(TestPathCache):
         )
         self.assertEqual(len(res.fetchall()), 1)
 
-        # Verify the shotgun_status row was also written, which only happens
-        # when _rowid_from_filesystem_entity successfully returned a rowid
-        # that add_mappings can bind to the freshly created FilesystemLocation.
+        # Verify the shotgun_status row for our entry was also written, which
+        # only happens when _rowid_from_filesystem_entity successfully returned
+        # a rowid that add_mappings can bind to the freshly created
+        # FilesystemLocation. Scope by joining against path_cache to ignore
+        # pre-existing rows added by setup_multi_root_fixtures.
         res = self.db_cursor.execute(
-            "SELECT path_cache_id, shotgun_id FROM shotgun_status"
+            "SELECT ss.shotgun_id FROM shotgun_status ss "
+            "JOIN path_cache pc ON ss.path_cache_id = pc.rowid "
+            "WHERE pc.entity_type = ? AND pc.entity_id = ?",
+            (self.entity["type"], self.entity["id"]),
         )
         self.assertEqual(len(res.fetchall()), 1)
 
