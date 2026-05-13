@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import importlib
+import re
 import sys
 import unittest
 from unittest import mock
@@ -17,7 +18,8 @@ from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 # Configuration: Add or remove packages here to test different third-party libraries
-# Only include packages that are directly bundled in requirements/<version>/pkgs.zip
+# Packages from pkgs.zip are always tested. Packages from requirements/any/
+# are version-gated below.
 PACKAGES_TO_TEST = [
     {
         "name": "yaml",
@@ -40,6 +42,24 @@ PACKAGES_TO_TEST = [
         "description": "Linux distribution detection",
     },
 ]
+
+# Flow Data SDK uses types.UnionType and typing.TypeAlias, both 3.10+ only.
+# On 3.7/3.9 the shared loader will warn-and-continue; do not assert it here.
+if sys.version_info >= (3, 10):
+    PACKAGES_TO_TEST.append(
+        {
+            "name": "flow_data_sdk",
+            "attributes": [
+                "GQLClient",
+                "WorkflowContext",
+                "SDK_VERSION",
+                "DEFAULT_ENDPOINT",
+                "DEFAULT_AUTH_BASE_URL",
+                "GQLAPIError",
+            ],
+            "description": "Autodesk Flow Data SDK (beta)",
+        }
+    )
 
 
 class TestTankVendorImports(ShotgunTestBase):
@@ -244,6 +264,63 @@ class TestShotgunAPI3CertPatch(ShotgunTestBase):
         # Should return a string path
         self.assertIsInstance(cert_path, str)
         self.assertTrue(len(cert_path) > 0)
+
+
+@unittest.skipIf(
+    sys.version_info < (3, 10),
+    "Flow Data SDK requires Python 3.10+ (uses types.UnionType / typing.TypeAlias)",
+)
+class TestFlowDataSDK(ShotgunTestBase):
+    """Test the Flow Data SDK loaded from requirements/any/."""
+
+    def test_submodule_import(self):
+        """Lazy meta-finder resolves nested imports inside the shared zip."""
+        from tank_vendor.flow_data_sdk.base import client
+        from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
+
+        self.assertTrue(hasattr(client, "BaseGQLClient"))
+        self.assertIsNotNone(GQLAPIError)
+
+    def test_sdk_version_resolved_from_dist_info(self):
+        """
+        Canary: SDK_VERSION must NOT fall back to 'local_dev'.
+
+        flow_data_sdk/base/_version.py resolves SDK_VERSION via
+        importlib.metadata, which only succeeds when the SDK's .dist-info
+        directory was preserved in the shared zip. If this fails, the shared
+        zip in requirements/any/ is missing its .dist-info.
+        """
+        from tank_vendor import flow_data_sdk
+
+        self.assertNotEqual(
+            flow_data_sdk.SDK_VERSION,
+            "local_dev",
+            "SDK_VERSION fell back to 'local_dev' — the shared zip is "
+            "missing .dist-info.",
+        )
+        self.assertRegex(
+            flow_data_sdk.SDK_VERSION,
+            r"^\d+\.\d+",
+            "SDK_VERSION is not a PEP 440 version",
+        )
+
+    def test_dist_info_via_importlib_metadata(self):
+        """
+        importlib.metadata can read the version from the dist-info inside
+        the shared zip.
+
+        NOTE: the wheel's distribution name is "flow-data-sdk" but the SDK's
+        own _version.py queries the wrong name ("adsk-flow-data"). Until
+        upstream fixes that, tank_vendor patches SDK_VERSION at load time
+        (see _patch_flow_data_sdk_version in tank_vendor/__init__.py). This
+        test asserts the wheel's actual name resolves, which is what proves
+        the dist-info is being discovered from inside the zip.
+        """
+        from importlib.metadata import version
+
+        from tank_vendor import flow_data_sdk
+
+        self.assertEqual(version("flow-data-sdk"), flow_data_sdk.SDK_VERSION)
 
 
 if __name__ == "__main__":

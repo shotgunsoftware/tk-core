@@ -12,9 +12,11 @@
 tank_vendor module - Third-party dependency management for Shotgun Toolkit.
 
 This module handles loading and importing third-party Python packages from
-version-specific ZIP archives (pkgs.zip). It provides:
+ZIP archives. It provides:
 
-1. Auto-discovery of packages in pkgs.zip
+1. Auto-discovery of packages in two locations:
+   - requirements/<major>.<minor>/pkgs.zip   (per-Python-version, mandatory)
+   - requirements/any/*.zip                  (Python-version-independent, optional)
 2. Lazy import hook for transparent tank_vendor.* namespace aliasing
 3. Package-specific patches (e.g., SSL certificate handling for shotgun_api3)
 
@@ -22,12 +24,19 @@ Usage:
     # Direct imports work automatically:
     from tank_vendor import yaml
     from tank_vendor.shotgun_api3 import Shotgun
+    from tank_vendor import flow_data_sdk
 
     # Submodule imports work via lazy loading:
     from tank_vendor.shotgun_api3.lib import httplib2
+    from tank_vendor.flow_data_sdk.base import client
 
     # Mock.patch works seamlessly:
     mock.patch("tank_vendor.shotgun_api3.Shotgun.find")
+
+Shared zips in requirements/any/ are loaded after pkgs.zip, so per-version
+pinned packages take precedence over anything in the shared directory.
+Packages whose top-level name is already registered are skipped with a
+warning.
 
 Supported Python versions: 3.7+
 """
@@ -194,12 +203,46 @@ def _patch_shotgun_api3_certs(zip_path):
         shotgun_api3.Shotgun._get_certs_file = staticmethod(_patched_get_certs_file)
 
 
+def _patch_flow_data_sdk_version():
+    """
+    Work around an upstream bug in the Flow Data SDK.
+
+    flow_data_sdk/base/_version.py hardcodes the wheel distribution name as
+    "adsk-flow-data" and queries importlib.metadata.version() with it. The
+    published wheel is actually named "flow-data-sdk", so the lookup raises
+    PackageNotFoundError and SDK_VERSION falls back to the literal string
+    "local_dev" even when the .dist-info is present in our shared zip.
+
+    Until the SDK ships a fix (either rename the wheel to "adsk-flow-data" or
+    change _version.py to query "flow-data-sdk"), this patch overrides
+    SDK_VERSION with the value pip recorded in the wheel's METADATA. The
+    patch is a no-op once SDK_VERSION is no longer "local_dev", so it
+    quietly disappears the moment upstream is fixed.
+    """
+    if "flow_data_sdk" not in sys.modules:
+        return
+
+    flow_data_sdk = sys.modules["flow_data_sdk"]
+    if getattr(flow_data_sdk, "SDK_VERSION", None) != "local_dev":
+        return
+
+    from importlib.metadata import PackageNotFoundError, version
+
+    # The wheel's current published distribution name. If upstream eventually
+    # renames to adsk-flow-data, _version.py will resolve correctly and this
+    # patch returns early above; this lookup is the bridge for today's wheel.
+    try:
+        flow_data_sdk.SDK_VERSION = version("flow-data-sdk")
+    except PackageNotFoundError:
+        pass
+
+
 def _install_import_hook():
     """
     Install a lazy import hook that redirects tank_vendor.* imports to real packages.
 
     This enables transparent namespace aliasing, allowing code to use tank_vendor.package
-    while the actual package is loaded from pkgs.zip without the tank_vendor prefix.
+    while the actual package is loaded from a ZIP without the tank_vendor prefix.
 
     Examples:
         from tank_vendor.shotgun_api3.lib import httplib2
@@ -208,7 +251,7 @@ def _install_import_hook():
     How it works:
         1. Intercepts imports starting with "tank_vendor."
         2. Strips the "tank_vendor." prefix to get the real module name
-        3. Imports the real module (e.g., "shotgun_api3" → tank_vendor.shotgun_api3)
+        3. Imports the real module (e.g., "shotgun_api3" -> tank_vendor.shotgun_api3)
         4. Creates an alias in sys.modules so both names refer to the same module
 
     Why lazy loading:
@@ -227,121 +270,165 @@ def _install_import_hook():
         sys.meta_path.insert(0, sys._tank_vendor_meta_finder)
 
 
+def _discover_top_level_packages(zip_path):
+    """
+    Return the set of top-level importable package names inside a zip.
+
+    Filters out:
+        - .dist-info: Package metadata directories (still in zip for importlib.metadata,
+          but not importable as packages)
+        - __pycache__: Python bytecode cache
+        - .pyd/.so/.dylib: Platform-specific binary extensions
+        - _*: Private/internal modules (e.g., _ruamel_yaml.cp311-win_amd64.pyd)
+    """
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        top_level = set()
+        for name in zf.namelist():
+            parts = name.split("/")
+            if parts[0] and not parts[0].endswith(".py"):
+                top_level.add(parts[0])
+            elif parts[0].endswith(".py") and parts[0] != "__pycache__":
+                top_level.add(parts[0][:-3])
+
+    return {
+        pkg
+        for pkg in top_level
+        if not pkg.endswith(".dist-info")
+        and pkg != "__pycache__"
+        and not pkg.endswith(".py")
+        and not pkg.endswith(".pyd")
+        and not pkg.endswith(".so")
+        and not pkg.endswith(".dylib")
+        and not pkg.startswith("_")
+    }
+
+
+def _load_packages_from_zip(zip_path, *, required, path_position):
+    """
+    Validate a vendor zip, insert it on sys.path, and register its top-level
+    packages under the tank_vendor namespace.
+
+    Args:
+        zip_path: pathlib.Path to the zip file.
+        required: If True, failure to validate or import raises RuntimeError.
+            If False, failures emit warnings and the loader continues.
+        path_position: Index passed to sys.path.insert. Use 0 for the primary
+            zip (pkgs.zip) so it wins over system installs; higher indices for
+            additional zips so the primary still takes precedence.
+
+    Returns:
+        True if the zip was successfully loaded, False otherwise.
+    """
+    # Validate zip before attempting to load from it.
+    if not zip_path.exists() or not zip_path.is_file():
+        if required:
+            return False
+        # Optional zip simply absent: nothing to do, no warning.
+        return False
+
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            zf.namelist()
+    except (zipfile.BadZipFile, OSError, IOError) as e:
+        msg = (
+            f"Failed to load packages from {zip_path}: {e}. "
+            "Third-party dependencies from this zip will not be available."
+        )
+        if required:
+            warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            return False
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
+        return False
+
+    # Insertion ordering is load-bearing: importlib.metadata.version() resolves
+    # dist-info inside a zip only after the zip is on sys.path.
+    sys.path.insert(path_position, str(zip_path))
+
+    try:
+        import importlib
+
+        top_level_packages = _discover_top_level_packages(zip_path)
+
+        for package_name in sorted(top_level_packages):
+            # Collision check: an earlier zip already claimed this name.
+            # Earlier zips win (pkgs.zip is loaded before requirements/any/).
+            if f"tank_vendor.{package_name}" in sys.modules:
+                warnings.warn(
+                    f"Skipping {package_name} from {zip_path}: "
+                    f"already registered under tank_vendor.{package_name} "
+                    f"from an earlier zip.",
+                    RuntimeWarning,
+                )
+                continue
+
+            try:
+                mod = importlib.import_module(package_name)
+                sys.modules[f"tank_vendor.{package_name}"] = mod
+                globals()[package_name] = mod
+            except ImportError as e:
+                # Per-package import failures are tolerated. The most common
+                # cause is a package using syntax newer than the current Python
+                # (e.g. flow_data_sdk uses types.UnionType which is 3.10+).
+                warnings.warn(
+                    f"Could not import {package_name} from {zip_path}: {e}"
+                )
+
+    except Exception as e:
+        # Clean up sys.path on a wholesale failure so we don't leave a
+        # non-functional zip on the path interfering with other imports.
+        try:
+            sys.path.remove(str(zip_path))
+        except ValueError:
+            pass
+        if required:
+            raise RuntimeError(
+                f"Failed to import required modules from {zip_path}: {e}"
+            ) from e
+        warnings.warn(
+            f"Failed to import modules from {zip_path}: {e}",
+            RuntimeWarning,
+        )
+        return False
+
+    return True
+
+
 # ============================================================================
-# MAIN INITIALIZATION: Load third-party packages from pkgs.zip
+# MAIN INITIALIZATION
 # ============================================================================
 
-# Construct path to Python version-specific pkgs.zip containing third-party dependencies.
-# Path structure: <tk-core>/requirements/<major>.<minor>/pkgs.zip
-# Example: requirements/3.11/pkgs.zip for Python 3.11
-pkgs_zip_path = (
-    pathlib.Path(__file__).resolve().parent.parent.parent
-    / "requirements"
+_requirements_dir = pathlib.Path(__file__).resolve().parent.parent.parent / "requirements"
+
+# 1. Per-Python-version zip (mandatory). Contains pinned dependencies with
+#    binary extensions; load order keeps it ahead of any shared zips so its
+#    versions take precedence on name collision.
+_pkgs_zip_path = (
+    _requirements_dir
     / f"{sys.version_info.major}.{sys.version_info.minor}"
     / "pkgs.zip"
 )
+_pkgs_loaded = _load_packages_from_zip(
+    _pkgs_zip_path, required=True, path_position=0
+)
+if _pkgs_loaded and "shotgun_api3" in sys.modules:
+    _patch_shotgun_api3_certs(_pkgs_zip_path)
 
-# Validate pkgs.zip before attempting to load from it.
-# This provides backward compatibility for:
-# - Installations using old vendored copies
-# - Temporary locations without the requirements directory
-# - CI/CD environments where pkgs.zip might be extracted to a directory
-_pkgs_zip_valid = False
-if pkgs_zip_path.exists():
-    # Check if it's a file (not a directory) - in some CI environments,
-    # pkgs.zip might be extracted to a directory instead of kept as a ZIP.
-    if pkgs_zip_path.is_file():
-        # Validate that it's actually a valid ZIP file before adding to sys.path
-        try:
-            with zipfile.ZipFile(pkgs_zip_path, "r") as zf:
-                # Quick validation - just check that we can read the ZIP directory
-                zf.namelist()
-                _pkgs_zip_valid = True
-        except (zipfile.BadZipFile, OSError, IOError) as e:
-            # Not a valid ZIP file or can't be read - skip loading from pkgs.zip
-            warnings.warn(
-                f"Failed to load packages from {pkgs_zip_path}: {e}. "
-                "Third-party dependencies will be loaded from the Python environment instead.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
+# 2. Shared zips (optional, Python-version-independent). Drop a *.zip into
+#    requirements/any/ and it will be loaded automatically. Shared vendors are
+#    expected to use the system trust store and not ship data files that would
+#    need extraction from inside the zip.
+_shared_dir = _requirements_dir / "any"
+if _shared_dir.is_dir():
+    for _i, _shared_zip in enumerate(sorted(_shared_dir.glob("*.zip")), start=1):
+        _load_packages_from_zip(
+            _shared_zip, required=False, path_position=_i
+        )
 
-# If pkgs.zip is not found, assume pip-style installation where dependencies
-# are installed directly in the Python environment. In this case, we still
-# install the import hook to enable tank_vendor.* aliasing for compatibility.
-if not _pkgs_zip_valid:
-    # Install import hook even without pkgs.zip for pip installations
-    _install_import_hook()
-else:
-    # Add pkgs.zip to sys.path so Python can import packages directly from the ZIP.
-    # Insert at position 0 to prioritize over other installed packages.
-    sys.path.insert(0, str(pkgs_zip_path))
-    try:
-        # Step 1: Auto-discover all top-level packages in pkgs.zip
-        import importlib
+# Bridge an upstream bug in the Flow Data SDK's _version.py — see the
+# docstring on _patch_flow_data_sdk_version. No-op once upstream is fixed.
+_patch_flow_data_sdk_version()
 
-        with zipfile.ZipFile(pkgs_zip_path, "r") as zf:
-            # Get all top-level package names from the ZIP
-            top_level_packages = set()
-            for name in zf.namelist():
-                # Extract first component of path (top-level package/module)
-                parts = name.split("/")
-                if parts[0] and not parts[0].endswith(".py"):
-                    # It's a package directory
-                    top_level_packages.add(parts[0])
-                elif parts[0].endswith(".py") and parts[0] != "__pycache__":
-                    # It's a top-level module file
-                    top_level_packages.add(parts[0][:-3])  # Remove .py
-
-            # Filter out non-importable items:
-            # - .dist-info: Package metadata directories
-            # - __pycache__: Python bytecode cache
-            # - .py: Single file modules (already captured as packages)
-            # - .pyd/.so/.dylib: Platform-specific binary extensions
-            # - _*: Private/internal modules (e.g., _ruamel_yaml.cp311-win_amd64.pyd)
-            top_level_packages = {
-                pkg
-                for pkg in top_level_packages
-                if not pkg.endswith(".dist-info")
-                and pkg != "__pycache__"
-                and not pkg.endswith(".py")
-                and not pkg.endswith(".pyd")  # Windows binary modules
-                and not pkg.endswith(".so")  # Unix/Linux binary modules
-                and not pkg.endswith(".dylib")  # macOS binary modules
-                and not pkg.startswith("_")  # Private/internal modules
-            }
-
-        # Step 2: Import and register each top-level package under tank_vendor namespace
-        for package_name in sorted(top_level_packages):
-            try:
-                # Import the package
-                mod = importlib.import_module(package_name)
-
-                # Register in sys.modules under tank_vendor namespace
-                sys.modules[f"tank_vendor.{package_name}"] = mod
-
-                # Also set as attribute on tank_vendor module for direct access
-                globals()[package_name] = mod
-
-            except ImportError as e:
-                # Some packages might not import cleanly on all platforms
-                # Log but don't fail - they might not be needed
-                warnings.warn(f"Could not import {package_name} from pkgs.zip: {e}")
-
-        # Step 3: Install import hook for lazy submodule loading
-        # This enables imports like: from tank_vendor.shotgun_api3.lib import httplib2
-        # without pre-importing all submodules (which can fail on version incompatibilities)
-        _install_import_hook()
-
-        # Step 4: Apply package-specific patches
-        # These patches work around limitations or fix issues with specific packages
-        if "shotgun_api3" in sys.modules:
-            _patch_shotgun_api3_certs(pkgs_zip_path)
-
-    except Exception as e:
-        # Clean up sys.path on failure to avoid leaving it in an inconsistent state
-        # with a non-functional ZIP path that could interfere with subsequent imports
-        sys.path.remove(str(pkgs_zip_path))
-        raise RuntimeError(
-            f"Failed to import required modules from {pkgs_zip_path}: {e}"
-        ) from e
+# 3. Install the lazy import hook for nested submodule access.
+#    Idempotent via the _tank_vendor_meta_finder guard, so calling it once
+#    after both load steps is safe and sufficient.
+_install_import_hook()
