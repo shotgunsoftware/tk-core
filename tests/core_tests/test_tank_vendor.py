@@ -305,17 +305,7 @@ class TestFlowDataSDK(ShotgunTestBase):
         )
 
     def test_dist_info_via_importlib_metadata(self):
-        """
-        importlib.metadata can read the version from the dist-info inside
-        the shared zip.
-
-        NOTE: the wheel's distribution name is "flow-data-sdk" but the SDK's
-        own _version.py queries the wrong name ("adsk-flow-data"). Until
-        upstream fixes that, tank_vendor patches SDK_VERSION at load time
-        (see _patch_flow_data_sdk_version in tank_vendor/__init__.py). This
-        test asserts the wheel's actual name resolves, which is what proves
-        the dist-info is being discovered from inside the zip.
-        """
+        """importlib.metadata sees the same version as the SDK reports."""
         from importlib.metadata import version
 
         from tank_vendor import flow_data_sdk

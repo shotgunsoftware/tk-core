@@ -203,40 +203,6 @@ def _patch_shotgun_api3_certs(zip_path):
         shotgun_api3.Shotgun._get_certs_file = staticmethod(_patched_get_certs_file)
 
 
-def _patch_flow_data_sdk_version():
-    """
-    Work around an upstream bug in the Flow Data SDK.
-
-    flow_data_sdk/base/_version.py hardcodes the wheel distribution name as
-    "adsk-flow-data" and queries importlib.metadata.version() with it. The
-    published wheel is actually named "flow-data-sdk", so the lookup raises
-    PackageNotFoundError and SDK_VERSION falls back to the literal string
-    "local_dev" even when the .dist-info is present in our shared zip.
-
-    Until the SDK ships a fix (either rename the wheel to "adsk-flow-data" or
-    change _version.py to query "flow-data-sdk"), this patch overrides
-    SDK_VERSION with the value pip recorded in the wheel's METADATA. The
-    patch is a no-op once SDK_VERSION is no longer "local_dev", so it
-    quietly disappears the moment upstream is fixed.
-    """
-    if "flow_data_sdk" not in sys.modules:
-        return
-
-    flow_data_sdk = sys.modules["flow_data_sdk"]
-    if getattr(flow_data_sdk, "SDK_VERSION", None) != "local_dev":
-        return
-
-    from importlib.metadata import PackageNotFoundError, version
-
-    # The wheel's current published distribution name. If upstream eventually
-    # renames to adsk-flow-data, _version.py will resolve correctly and this
-    # patch returns early above; this lookup is the bridge for today's wheel.
-    try:
-        flow_data_sdk.SDK_VERSION = version("flow-data-sdk")
-    except PackageNotFoundError:
-        pass
-
-
 def _install_import_hook():
     """
     Install a lazy import hook that redirects tank_vendor.* imports to real packages.
@@ -423,10 +389,6 @@ if _shared_dir.is_dir():
         _load_packages_from_zip(
             _shared_zip, required=False, path_position=_i
         )
-
-# Bridge an upstream bug in the Flow Data SDK's _version.py — see the
-# docstring on _patch_flow_data_sdk_version. No-op once upstream is fixed.
-_patch_flow_data_sdk_version()
 
 # 3. Install the lazy import hook for nested submodule access.
 #    Idempotent via the _tank_vendor_meta_finder guard, so calling it once
