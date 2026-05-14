@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import importlib
-import re
 import sys
 import unittest
 from unittest import mock
