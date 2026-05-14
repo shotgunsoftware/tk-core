@@ -269,41 +269,40 @@ def _discover_top_level_packages(zip_path):
     }
 
 
-def _load_packages_from_zip(zip_path, *, required, path_position):
+def _load_packages_from_zip(zip_path, *, path_position):
     """
     Validate a vendor zip, insert it on sys.path, and register its top-level
     packages under the tank_vendor namespace.
 
+    Missing or unreadable zips are tolerated (return False, with a warning
+    for unreadable). A wholesale failure during package discovery/import
+    raises RuntimeError after cleaning the zip path off sys.path. Individual
+    package import failures inside the zip warn and are skipped.
+
     Args:
         zip_path: pathlib.Path to the zip file.
-        required: If True, failure to validate or import raises RuntimeError.
-            If False, failures emit warnings and the loader continues.
         path_position: Index passed to sys.path.insert. Use 0 for the primary
             zip (pkgs.zip) so it wins over system installs; higher indices for
             additional zips so the primary still takes precedence.
 
     Returns:
-        True if the zip was successfully loaded, False otherwise.
+        True if the zip was successfully loaded, False if it was missing
+        or unreadable.
     """
     # Validate zip before attempting to load from it.
     if not zip_path.exists() or not zip_path.is_file():
-        if required:
-            return False
-        # Optional zip simply absent: nothing to do, no warning.
         return False
 
     try:
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.namelist()
     except (zipfile.BadZipFile, OSError, IOError) as e:
-        msg = (
+        warnings.warn(
             f"Failed to load packages from {zip_path}: {e}. "
-            "Third-party dependencies from this zip will not be available."
+            "Third-party dependencies from this zip will not be available.",
+            RuntimeWarning,
+            stacklevel=2,
         )
-        if required:
-            warnings.warn(msg, RuntimeWarning, stacklevel=2)
-            return False
-        warnings.warn(msg, RuntimeWarning, stacklevel=2)
         return False
 
     # Insertion ordering is load-bearing: importlib.metadata.version() resolves
@@ -346,15 +345,9 @@ def _load_packages_from_zip(zip_path, *, required, path_position):
             sys.path.remove(str(zip_path))
         except ValueError:
             pass
-        if required:
-            raise RuntimeError(
-                f"Failed to import required modules from {zip_path}: {e}"
-            ) from e
-        warnings.warn(
-            f"Failed to import modules from {zip_path}: {e}",
-            RuntimeWarning,
-        )
-        return False
+        raise RuntimeError(
+            f"Failed to import required modules from {zip_path}: {e}"
+        ) from e
 
     return True
 
@@ -373,9 +366,7 @@ _pkgs_zip_path = (
     / f"{sys.version_info.major}.{sys.version_info.minor}"
     / "pkgs.zip"
 )
-_pkgs_loaded = _load_packages_from_zip(
-    _pkgs_zip_path, required=True, path_position=0
-)
+_pkgs_loaded = _load_packages_from_zip(_pkgs_zip_path, path_position=0)
 if _pkgs_loaded and "shotgun_api3" in sys.modules:
     _patch_shotgun_api3_certs(_pkgs_zip_path)
 
@@ -386,9 +377,7 @@ if _pkgs_loaded and "shotgun_api3" in sys.modules:
 _shared_dir = _requirements_dir / "any"
 if _shared_dir.is_dir():
     for _i, _shared_zip in enumerate(sorted(_shared_dir.glob("*.zip")), start=1):
-        _load_packages_from_zip(
-            _shared_zip, required=False, path_position=_i
-        )
+        _load_packages_from_zip(_shared_zip, path_position=_i)
 
 # 3. Install the lazy import hook for nested submodule access.
 #    Idempotent via the _tank_vendor_meta_finder guard, so calling it once
