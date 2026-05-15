@@ -15,7 +15,10 @@ This module handles loading and importing third-party Python packages from
 ZIP archives. It provides:
 
 1. Auto-discovery of packages in two locations:
-   - requirements/<major>.<minor>/pkgs.zip   (per-Python-version, mandatory)
+   - requirements/<major>.<minor>/pkgs.zip   (per-Python-version; present in
+                                              source checkouts, absent when
+                                              tk-core is pip-installed and
+                                              dependencies come from the env)
    - requirements/any/*.zip                  (Python-version-independent, optional)
 2. Lazy import hook for transparent tank_vendor.* namespace aliasing
 3. Package-specific patches (e.g., SSL certificate handling for shotgun_api3)
@@ -332,10 +335,15 @@ def _load_packages_from_zip(zip_path):
                 mod = importlib.import_module(package_name)
                 sys.modules[f"tank_vendor.{package_name}"] = mod
                 globals()[package_name] = mod
-            except ImportError as e:
-                # Per-package import failures are tolerated. The most common
-                # cause is a package using syntax newer than the current Python
-                # (e.g. flow_data_sdk uses types.UnionType which is 3.10+).
+            except Exception as e:
+                # Per-package import failures are tolerated. The catch is
+                # intentionally broad: a future shared vendor using syntax
+                # newer than the current Python (e.g. PEP 604 union syntax
+                # `int | None`) would raise SyntaxError at parse time, not
+                # ImportError. flow_data_sdk on Python 3.9 raises ImportError
+                # for its references to types.UnionType / typing.TypeAlias,
+                # which this catch also handles. Wholesale loader failures
+                # are still handled by the outer try/except.
                 warnings.warn(
                     f"Could not import {package_name} from {zip_path}: {e}"
                 )
