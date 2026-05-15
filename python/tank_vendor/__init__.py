@@ -397,3 +397,42 @@ if _shared_dir.is_dir():
 #    Idempotent via the _tank_vendor_meta_finder guard, so calling it once
 #    after both load steps is safe and sufficient.
 _install_import_hook()
+
+
+def _release_importlib_metadata_handles():
+    """
+    Release file handles that importlib.metadata holds on vendor zips.
+
+    importlib.metadata.FastPath.__new__ is @lru_cache'd, so the FastPath
+    instance for any zip it probes is kept alive forever. Inside
+    FastPath.zip_children(), the line `self.joinpath = zip_path.joinpath`
+    binds the zipfile.Path (and its underlying open ZipFile) as an instance
+    attribute on the cached FastPath — so the file handle stays open for
+    the lifetime of the cache.
+
+    This bites us on Windows / Python 3.13 when flow_data_sdk's _version.py
+    runs importlib.metadata.version("flow-data-sdk") during import. The
+    cached FastPath keeps our shared zip open, which then prevents the
+    tank share_core command from moving install/core (WinError 32 sharing
+    violation).
+
+    invalidate_caches() calls FastPath.__new__.cache_clear() which drops
+    the FastPath references. gc.collect() forces __del__ on the underlying
+    ZipFile objects so the handles close immediately rather than at the
+    next garbage collection cycle.
+    """
+    try:
+        from importlib.metadata import MetadataPathFinder
+    except ImportError:
+        # Python < 3.8 has no stdlib importlib.metadata; nothing to clear.
+        return
+    # invalidate_caches() is declared as `def invalidate_caches(cls)` without
+    # @classmethod in some Python versions, so call it on an instance for
+    # cross-version compatibility.
+    MetadataPathFinder().invalidate_caches()
+    import gc
+
+    gc.collect()
+
+
+_release_importlib_metadata_handles()
