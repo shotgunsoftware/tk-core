@@ -403,6 +403,8 @@ def _release_importlib_metadata_handles():
     """
     Release file handles that importlib.metadata holds on vendor zips.
 
+    Windows-only workaround.
+
     importlib.metadata.FastPath.__new__ is @lru_cache'd, so the FastPath
     instance for any zip it probes is kept alive forever. Inside
     FastPath.zip_children(), the line `self.joinpath = zip_path.joinpath`
@@ -416,11 +418,18 @@ def _release_importlib_metadata_handles():
     tank share_core command from moving install/core (WinError 32 sharing
     violation).
 
+    Linux and macOS don't have Windows' sharing-violation semantics — moving
+    or deleting files with open handles is allowed — so this cleanup is a
+    no-op on those platforms (and was observed to break a Linux/3.13
+    integration test, so we gate strictly on win32).
+
     invalidate_caches() calls FastPath.__new__.cache_clear() which drops
     the FastPath references. gc.collect() forces __del__ on the underlying
     ZipFile objects so the handles close immediately rather than at the
     next garbage collection cycle.
     """
+    if sys.platform != "win32":
+        return
     try:
         from importlib.metadata import MetadataPathFinder
     except ImportError:
