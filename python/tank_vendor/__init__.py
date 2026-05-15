@@ -269,21 +269,23 @@ def _discover_top_level_packages(zip_path):
     }
 
 
-def _load_packages_from_zip(zip_path, *, path_position):
+def _load_packages_from_zip(zip_path):
     """
-    Validate a vendor zip, insert it on sys.path, and register its top-level
-    packages under the tank_vendor namespace.
+    Validate a vendor zip, insert it at the front of sys.path, and register
+    its top-level packages under the tank_vendor namespace.
 
     Missing or unreadable zips are tolerated (return False, with a warning
     for unreadable). A wholesale failure during package discovery/import
     raises RuntimeError after cleaning the zip path off sys.path. Individual
     package import failures inside the zip warn and are skipped.
 
+    Each zip is always inserted at sys.path[0], so the LAST zip loaded ends
+    up at the front of sys.path. Collisions are resolved by sys.modules
+    (first-registered wins), independent of sys.path order — see callers
+    for the intentional load order.
+
     Args:
         zip_path: pathlib.Path to the zip file.
-        path_position: Index passed to sys.path.insert. Use 0 for the primary
-            zip (pkgs.zip) so it wins over system installs; higher indices for
-            additional zips so the primary still takes precedence.
 
     Returns:
         True if the zip was successfully loaded, False if it was missing
@@ -307,7 +309,7 @@ def _load_packages_from_zip(zip_path, *, path_position):
 
     # Insertion ordering is load-bearing: importlib.metadata.version() resolves
     # dist-info inside a zip only after the zip is on sys.path.
-    sys.path.insert(path_position, str(zip_path))
+    sys.path.insert(0, str(zip_path))
 
     try:
         import importlib
@@ -358,26 +360,38 @@ def _load_packages_from_zip(zip_path, *, path_position):
 
 _requirements_dir = pathlib.Path(__file__).resolve().parent.parent.parent / "requirements"
 
-# 1. Per-Python-version zip (mandatory). Contains pinned dependencies with
-#    binary extensions; load order keeps it ahead of any shared zips so its
-#    versions take precedence on name collision.
+# Load order matters for two distinct reasons:
+#
+# 1. sys.modules registration: the FIRST zip to register a top-level package
+#    wins (later zips' duplicates are skipped). So pkgs.zip is loaded first
+#    to keep its version-pinned dependencies authoritative.
+#
+# 2. sys.path order: we insert each zip at sys.path[0], so the LAST zip
+#    loaded ends up at the front. We want shared zips ahead of pkgs.zip on
+#    sys.path so that importlib.metadata.version() lookups (e.g. flow_data_sdk's
+#    _version.py querying its own dist-info) short-circuit on the shared zip
+#    and never scan pkgs.zip. Scanning pkgs.zip via importlib.metadata caches
+#    a FastPath instance that holds an open zipfile, which on Windows
+#    prevents the tank share_core command from moving install/core.
+#
+# So: load pkgs.zip first (sys.modules), then shared zips (sys.path front).
 _pkgs_zip_path = (
     _requirements_dir
     / f"{sys.version_info.major}.{sys.version_info.minor}"
     / "pkgs.zip"
 )
-_pkgs_loaded = _load_packages_from_zip(_pkgs_zip_path, path_position=0)
+_pkgs_loaded = _load_packages_from_zip(_pkgs_zip_path)
 if _pkgs_loaded and "shotgun_api3" in sys.modules:
     _patch_shotgun_api3_certs(_pkgs_zip_path)
 
-# 2. Shared zips (optional, Python-version-independent). Drop a *.zip into
-#    requirements/any/ and it will be loaded automatically. Shared vendors are
-#    expected to use the system trust store and not ship data files that would
-#    need extraction from inside the zip.
+# Shared zips (optional, Python-version-independent). Drop a *.zip into
+# requirements/any/ and it will be loaded automatically. Shared vendors are
+# expected to use the system trust store and not ship data files that would
+# need extraction from inside the zip.
 _shared_dir = _requirements_dir / "any"
 if _shared_dir.is_dir():
-    for _i, _shared_zip in enumerate(sorted(_shared_dir.glob("*.zip")), start=1):
-        _load_packages_from_zip(_shared_zip, path_position=_i)
+    for _shared_zip in sorted(_shared_dir.glob("*.zip")):
+        _load_packages_from_zip(_shared_zip)
 
 # 3. Install the lazy import hook for nested submodule access.
 #    Idempotent via the _tank_vendor_meta_finder guard, so calling it once
