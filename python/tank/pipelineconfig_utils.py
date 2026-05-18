@@ -466,7 +466,18 @@ def get_core_api_version(core_install_root):
     # now try to get to the info.yml file to get the version number
     info_yml_path = os.path.join(core_install_root, "install", "core", "info.yml")
     version = _get_version_from_manifest(info_yml_path)
-    return "unknown" if version is None else version
+    if version is not None:
+        return version
+    # In a pip install the flat site-packages layout has no install/core/info.yml.
+    # If the requested core is the currently-running one, defer to
+    # get_currently_running_api_version which falls back to distribution metadata.
+    try:
+        current_core_root = get_path_to_current_core()
+    except TankError:
+        return "unknown"
+    if os.path.realpath(core_install_root) == os.path.realpath(current_core_root):
+        return get_currently_running_api_version()
+    return "unknown"
 
 
 def _get_version_from_manifest(info_yml_path):

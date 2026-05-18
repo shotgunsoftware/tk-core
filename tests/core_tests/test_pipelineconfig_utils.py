@@ -416,3 +416,85 @@ class TestGetCurrentlyRunningApiVersion(ShotgunTestBase):
                 pipelineconfig_utils.get_currently_running_api_version(),
                 "unknown",
             )
+
+
+class TestGetCoreApiVersion(ShotgunTestBase):
+    """
+    Tests get_core_api_version, including the distribution-metadata fallback
+    used when the requested core is the currently-running one and info.yml is
+    absent (e.g. flat pip install layout).
+    """
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_manifest_version_when_present(self, manifest_mock):
+        """
+        When info.yml is present, its version is returned and no fallback runs.
+        """
+        manifest_mock.return_value = "v1.2.3"
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core"
+        ) as path_mock:
+            self.assertEqual(
+                pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                "v1.2.3",
+            )
+            path_mock.assert_not_called()
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_unknown_for_other_core_when_manifest_missing(
+        self, manifest_mock
+    ):
+        """
+        When info.yml is absent and the requested core is not the currently-running
+        one, distribution metadata must not leak in as the answer.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core",
+            return_value="/different/core",
+        ):
+            with mock.patch("importlib.metadata.version") as dist_mock:
+                self.assertEqual(
+                    pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                    "unknown",
+                )
+                dist_mock.assert_not_called()
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_falls_back_to_dist_metadata_for_current_core(self, manifest_mock):
+        """
+        Pip install layout: info.yml is absent and the requested core matches the
+        currently-running one, so the function defers to dist-metadata via
+        get_currently_running_api_version.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core",
+            return_value="/some/core/root",
+        ):
+            with mock.patch(
+                "importlib.metadata.version", return_value="0.23.8"
+            ) as dist_mock:
+                self.assertEqual(
+                    pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                    "v0.23.8",
+                )
+                dist_mock.assert_called_once_with("sgtk")
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_unknown_when_current_core_resolution_fails(
+        self, manifest_mock
+    ):
+        """
+        If get_path_to_current_core raises (e.g. moved/symlinked install), the
+        function preserves the "unknown" contract rather than propagating.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core",
+            side_effect=tank.TankError("unresolvable"),
+        ):
+            self.assertEqual(
+                pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                "unknown",
+            )
