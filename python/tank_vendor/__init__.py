@@ -247,7 +247,7 @@ def _discover_top_level_packages(zip_path):
         - .dist-info: Package metadata directories (still in zip for importlib.metadata,
           but not importable as packages)
         - __pycache__: Python bytecode cache
-        - .pyd/.so/.dylib: Platform-specific binary extensions
+        - .pyd/.so/.dylib/.dll: Platform-specific binary extensions
         - _*: Private/internal modules (e.g., _ruamel_yaml.cp311-win_amd64.pyd)
     """
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -268,6 +268,7 @@ def _discover_top_level_packages(zip_path):
         and not pkg.endswith(".pyd")
         and not pkg.endswith(".so")
         and not pkg.endswith(".dylib")
+        and not pkg.endswith(".dll")
         and not pkg.startswith("_")
     }
 
@@ -304,7 +305,8 @@ def _load_packages_from_zip(zip_path):
     except (zipfile.BadZipFile, OSError, IOError) as e:
         warnings.warn(
             f"Failed to load packages from {zip_path}: {e}. "
-            "Third-party dependencies from this zip will not be available.",
+            "Any dependencies it would have provided will need to be resolved "
+            "from the Python environment, or will fail at import time.",
             RuntimeWarning,
             stacklevel=2,
         )
@@ -345,7 +347,9 @@ def _load_packages_from_zip(zip_path):
                 # which this catch also handles. Wholesale loader failures
                 # are still handled by the outer try/except.
                 warnings.warn(
-                    f"Could not import {package_name} from {zip_path}: {e}"
+                    f"Could not import {package_name} from {zip_path}: {e}",
+                    RuntimeWarning,
+                    stacklevel=2,
                 )
 
     except Exception as e:
