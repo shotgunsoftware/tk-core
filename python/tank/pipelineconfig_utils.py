@@ -24,6 +24,7 @@ from .util import yaml_cache
 from .util import StorageRoots
 from .util import ShotgunPath
 from .util.shotgun import get_deferred_sg_connection
+from .util.version import is_version_older  # noqa: F401
 
 from .errors import TankError
 

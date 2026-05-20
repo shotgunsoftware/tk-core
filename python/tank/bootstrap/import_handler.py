@@ -16,6 +16,7 @@ import uuid
 import warnings
 
 from .. import LogManager
+from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
 
@@ -49,8 +50,16 @@ class CoreImportHandler(object):
         """
         # make sure handler is up
         handler = cls._initialize()
+        handler_core_version = pipelineconfig_utils.get_currently_running_api_version()
 
-        log.debug("%s: Begin swapping core to %s" % (handler, core_path))
+        target_core_version = pipelineconfig_utils.get_core_api_version(
+            os.path.dirname(os.path.dirname(os.path.dirname(core_path)))
+        )
+
+        log.debug(
+            "%s (version %s): Begin swapping core to %s (version %s)"
+            % (handler, handler_core_version, core_path, target_core_version)
+        )
 
         # swapping core means our logging singleton will be reset.
         # make sure that there are no log handlers registered
@@ -90,6 +99,20 @@ class CoreImportHandler(object):
         try:
             # Kick toolkit to re-import
             import tank
+
+        except:
+            # If anything happens here, log an error and continue.
+            # Check the core versions handler_core_version and target_core_version,
+            # There might be a breaking change between the two versions.
+            if pipelineconfig_utils.is_version_older(
+                target_core_version, handler_core_version
+            ):
+                log.exception(
+                    f"Core version mismatch: {target_core_version} might be older than"
+                    f" {handler_core_version}. Please check the release notes for breaking"
+                    f" changes: https://github.com/shotgunsoftware/tk-core/releases"
+                )
+            raise
 
         finally:
             # Restore the list of warning filters.
@@ -289,20 +312,14 @@ class CoreImportHandler(object):
             # later raise FileNotFoundError instead of the expected ImportError
             # when the module doesn't exist on disk.
             if os.path.isdir(os.path.join(package_path[0], module_name)):
-                module_file = os.path.join(
-                    package_path[0], module_name, "__init__.py"
-                )
+                module_file = os.path.join(package_path[0], module_name, "__init__.py")
             else:
-                module_file = os.path.join(
-                    package_path[0], module_name + ".py"
-                )
+                module_file = os.path.join(package_path[0], module_name + ".py")
 
             if not os.path.isfile(module_file):
                 return None
 
-            loader = importlib.machinery.SourceFileLoader(
-                module_fullname, module_file
-            )
+            loader = importlib.machinery.SourceFileLoader(module_fullname, module_file)
             spec = importlib.util.spec_from_loader(loader.name, loader)
             self._module_info[module_fullname] = spec
         except ImportError:
@@ -328,9 +345,7 @@ class CoreImportHandler(object):
         try:
             spec.loader.exec_module(module)
         except FileNotFoundError as e:
-            raise ImportError(
-                f"No module named '{module_fullname}'"
-            ) from e
+            raise ImportError(f"No module named '{module_fullname}'") from e
 
         # the module needs to know the loader so that reload() works
         module.__loader__ = self
