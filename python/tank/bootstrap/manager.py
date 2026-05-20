@@ -914,6 +914,86 @@ class ToolkitManager(object):
         log.debug("Bootstrapping engine %s." % engine_name)
         log.debug("-----------------------------------------------------------------")
 
+    def _resolve_project_id(self, entity):
+        """
+        Resolve a Shotgun project id from a target entity.
+
+        :param entity: ``None``, a Project dict, an entity with a ``project``
+                       link, or any entity that can be looked up in Shotgun
+                       to find its parent project.
+        :returns: Integer project id, or ``None`` for the site context.
+        """
+        if entity is None:
+            return None
+
+        if entity.get("type") == "Project":
+            return entity["id"]
+
+        if "project" in entity and entity["project"].get("type") == "Project":
+            return entity["project"]["id"]
+
+        data = self._sg_connection.find_one(
+            entity["type"], [["id", "is", entity["id"]]], ["project"]
+        )
+        if not data or not data.get("project"):
+            raise TankBootstrapError("Cannot resolve project for %s" % entity)
+        return data["project"]["id"]
+
+    def _check_and_trigger_am_auth(self, project_id, progress_callback):
+        """
+        If the resolved project is AM-ready, proactively obtain a Flow/MEDM
+        access token. Silent path (keyring -> refresh) is tried first; falls
+        back to opening a browser for PKCE if no usable cached/refresh token
+        exists.
+
+        No-op for non-AM projects or when ``project_id`` is None.
+
+        Configuration errors raise ``TankBootstrapError`` (deployment bug).
+        Runtime auth failures are logged and swallowed unless the
+        ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
+        they raise ``TankBootstrapError``.
+        """
+        from ..authentication import flow_auth
+
+        if project_id is None:
+            return
+        sg_project = self._sg_connection.find_one(
+            "Project",
+            [["id", "is", project_id]],
+            [flow_auth.AM_READY_PROJECT_FIELD],
+        )
+        if not sg_project or not sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
+            return
+
+        log.info("Project %s is AM-ready; triggering MEDM auth.", project_id)
+        self._report_progress(
+            progress_callback,
+            self._UPDATING_CONFIGURATION_RATE,
+            "Authenticating with Autodesk identity...",
+        )
+        try:
+            settings = flow_auth.resolve_flow_auth_settings()
+            flow_auth.init_authentication(settings)
+            # Token is intentionally discarded here; it now sits in keyring
+            # and adsk_auth's in-memory cache for the next consumer.
+            flow_auth.get_access_token()
+        except flow_auth.FlowAuthConfigurationError as e:
+            raise TankBootstrapError(
+                "MEDM auth misconfigured for AM-ready project %s: %s"
+                % (project_id, e)
+            )
+        except Exception as e:
+            if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
+                raise TankBootstrapError(
+                    "MEDM auth failed for AM-ready project %s: %s"
+                    % (project_id, e)
+                )
+            log.warning(
+                "MEDM auth failed; bootstrap will continue without a "
+                "pre-fetched token. Error: %s",
+                e,
+            )
+
     def _get_configuration(self, entity, progress_callback):
         """
         Resolves the configuration to use without creating it on disk.
@@ -928,25 +1008,7 @@ class ToolkitManager(object):
         self._report_progress(
             progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project..."
         )
-        if entity is None:
-            project_id = None
-
-        elif entity.get("type") == "Project":
-            project_id = entity["id"]
-
-        elif "project" in entity and entity["project"].get("type") == "Project":
-            # user passed a project link
-            project_id = entity["project"]["id"]
-
-        else:
-            # resolve from shotgun
-            data = self._sg_connection.find_one(
-                entity["type"], [["id", "is", entity["id"]]], ["project"]
-            )
-
-            if not data or not data.get("project"):
-                raise TankBootstrapError("Cannot resolve project for %s" % entity)
-            project_id = data["project"]["id"]
+        project_id = self._resolve_project_id(entity)
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
@@ -1062,6 +1124,9 @@ class ToolkitManager(object):
 
         else:
             raise TankBootstrapError("Unknown configuration update status!")
+
+        project_id = self._resolve_project_id(entity)
+        self._check_and_trigger_am_auth(project_id, progress_callback)
 
         return config
 

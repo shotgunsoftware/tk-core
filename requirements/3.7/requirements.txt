@@ -1,5 +1,7 @@
 distro==1.4.0
+keyring==23.13.1
 packaging==24.0
+pyjwt==2.8.0
 pyyaml==5.4.1
 ruamel.yaml==0.18.13
 shotgun_api3==3.9.0
