@@ -41,7 +41,7 @@ pinned packages take precedence over anything in the shared directory.
 Packages whose top-level name is already registered are skipped with a
 warning.
 
-Supported Python versions: 3.7+
+Supported Python versions: 3.9+
 """
 
 import pathlib
@@ -220,7 +220,7 @@ def _install_import_hook():
     How it works:
         1. Intercepts imports starting with "tank_vendor."
         2. Strips the "tank_vendor." prefix to get the real module name
-        3. Imports the real module (e.g., "shotgun_api3" -> tank_vendor.shotgun_api3)
+        3. Imports the real module (e.g., "shotgun_api3" → tank_vendor.shotgun_api3)
         4. Creates an alias in sys.modules so both names refer to the same module
 
     Why lazy loading:
@@ -295,7 +295,10 @@ def _load_packages_from_zip(zip_path):
         True if the zip was successfully loaded, False if it was missing
         or unreadable.
     """
-    # Validate zip before attempting to load from it.
+    # Step 1: Validate the zip exists, is a file (not a directory of extracted
+    # contents, as some CI environments produce), and can be opened as a ZIP.
+    # Missing zips are silent (pip-installed setups have no pkgs.zip). Unreadable
+    # zips warn so the failure mode is visible, but don't fail the import.
     if not zip_path.exists() or not zip_path.is_file():
         return False
 
@@ -312,6 +315,7 @@ def _load_packages_from_zip(zip_path):
         )
         return False
 
+    # Step 2: Put the zip on sys.path so Python can import directly from it.
     # Insertion ordering is load-bearing: importlib.metadata.version() resolves
     # dist-info inside a zip only after the zip is on sys.path.
     sys.path.insert(0, str(zip_path))
@@ -319,8 +323,11 @@ def _load_packages_from_zip(zip_path):
     try:
         import importlib
 
+        # Step 3: Auto-discover all top-level packages in the zip.
         top_level_packages = _discover_top_level_packages(zip_path)
 
+        # Step 4: Import and register each top-level package under the
+        # tank_vendor namespace.
         for package_name in sorted(top_level_packages):
             # Collision check: an earlier zip already claimed this name.
             # Earlier zips win (pkgs.zip is loaded before requirements/any/).
@@ -334,6 +341,10 @@ def _load_packages_from_zip(zip_path):
                 continue
 
             try:
+                # Import the real module and alias it under tank_vendor.* in
+                # sys.modules; also expose it as an attribute on this package
+                # so `from tank_vendor import <name>` works without going
+                # through the meta path finder.
                 mod = importlib.import_module(package_name)
                 sys.modules[f"tank_vendor.{package_name}"] = mod
                 globals()[package_name] = mod
@@ -364,6 +375,47 @@ def _load_packages_from_zip(zip_path):
         ) from e
 
     return True
+
+
+def _release_importlib_metadata_handles():
+    """
+    Release file handles that importlib.metadata holds on vendor zips.
+
+    Windows-only workaround.
+
+    importlib.metadata.FastPath.__new__ is @lru_cache'd, so the FastPath
+    instance for any zip it probes is kept alive forever. Inside
+    FastPath.zip_children(), the line `self.joinpath = zip_path.joinpath`
+    binds the zipfile.Path (and its underlying open ZipFile) as an instance
+    attribute on the cached FastPath — so the file handle stays open for
+    the lifetime of the cache.
+
+    This bites us on Windows / Python 3.13 when flow_data_sdk's _version.py
+    runs importlib.metadata.version("flow-data-sdk") during import. The
+    cached FastPath keeps our shared zip open, which then prevents the
+    tank share_core command from moving install/core (WinError 32 sharing
+    violation).
+
+    Linux and macOS don't have Windows' sharing-violation semantics — moving
+    or deleting files with open handles is allowed — so this cleanup is a
+    no-op on those platforms (and was observed to break a Linux/3.13
+    integration test, so we gate strictly on win32).
+
+    invalidate_caches() calls FastPath.__new__.cache_clear() which drops
+    the FastPath references. gc.collect() forces __del__ on the underlying
+    ZipFile objects so the handles close immediately rather than at the
+    next garbage collection cycle.
+    """
+    if sys.platform != "win32":
+        return
+    from importlib.metadata import MetadataPathFinder
+    # invalidate_caches() is declared as `def invalidate_caches(cls)` without
+    # @classmethod in some Python versions, so call it on an instance for
+    # cross-version compatibility.
+    MetadataPathFinder().invalidate_caches()
+    import gc
+
+    gc.collect()
 
 
 # ============================================================================
@@ -405,55 +457,12 @@ if _shared_dir.is_dir():
     for _shared_zip in sorted(_shared_dir.glob("*.zip")):
         _load_packages_from_zip(_shared_zip)
 
-# 3. Install the lazy import hook for nested submodule access.
-#    Idempotent via the _tank_vendor_meta_finder guard, so calling it once
-#    after both load steps is safe and sufficient.
+# Install the lazy import hook for nested submodule access.
+# Idempotent via the _tank_vendor_meta_finder guard, so calling it once
+# after both load steps is safe and sufficient.
 _install_import_hook()
 
-
-def _release_importlib_metadata_handles():
-    """
-    Release file handles that importlib.metadata holds on vendor zips.
-
-    Windows-only workaround.
-
-    importlib.metadata.FastPath.__new__ is @lru_cache'd, so the FastPath
-    instance for any zip it probes is kept alive forever. Inside
-    FastPath.zip_children(), the line `self.joinpath = zip_path.joinpath`
-    binds the zipfile.Path (and its underlying open ZipFile) as an instance
-    attribute on the cached FastPath — so the file handle stays open for
-    the lifetime of the cache.
-
-    This bites us on Windows / Python 3.13 when flow_data_sdk's _version.py
-    runs importlib.metadata.version("flow-data-sdk") during import. The
-    cached FastPath keeps our shared zip open, which then prevents the
-    tank share_core command from moving install/core (WinError 32 sharing
-    violation).
-
-    Linux and macOS don't have Windows' sharing-violation semantics — moving
-    or deleting files with open handles is allowed — so this cleanup is a
-    no-op on those platforms (and was observed to break a Linux/3.13
-    integration test, so we gate strictly on win32).
-
-    invalidate_caches() calls FastPath.__new__.cache_clear() which drops
-    the FastPath references. gc.collect() forces __del__ on the underlying
-    ZipFile objects so the handles close immediately rather than at the
-    next garbage collection cycle.
-    """
-    if sys.platform != "win32":
-        return
-    try:
-        from importlib.metadata import MetadataPathFinder
-    except ImportError:
-        # Python < 3.8 has no stdlib importlib.metadata; nothing to clear.
-        return
-    # invalidate_caches() is declared as `def invalidate_caches(cls)` without
-    # @classmethod in some Python versions, so call it on an instance for
-    # cross-version compatibility.
-    MetadataPathFinder().invalidate_caches()
-    import gc
-
-    gc.collect()
-
-
+# Windows-only cleanup: drop importlib.metadata's cached file handles on our
+# vendor zips so the tank share_core command can move install/core without
+# hitting WinError 32 sharing violations. No-op on Linux/macOS.
 _release_importlib_metadata_handles()
