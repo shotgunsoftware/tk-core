@@ -100,7 +100,7 @@ class CoreImportHandler(object):
             # Kick toolkit to re-import
             import tank
 
-        except:
+        except Exception:
             # If anything happens here, log an error and continue.
             # Check the core versions handler_core_version and target_core_version,
             # There might be a breaking change between the two versions.
