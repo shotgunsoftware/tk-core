@@ -345,7 +345,11 @@ def _load_packages_from_zip(zip_path):
                 # sys.modules; also expose it as an attribute on this package
                 # so `from tank_vendor import <name>` works without going
                 # through the meta path finder.
+                
+                # Import the package
                 mod = importlib.import_module(package_name)
+
+                # Register in sys.modules under tank_vendor namespace
                 sys.modules[f"tank_vendor.{package_name}"] = mod
                 globals()[package_name] = mod
             except Exception as e:
