@@ -107,12 +107,13 @@ class CoreImportHandler(object):
             if pipelineconfig_utils.is_version_older(
                 target_core_version, handler_core_version
             ):
-                log.exception(
+                error_message = (
                     f"Core version mismatch: {target_core_version} might be older than"
                     f" {handler_core_version}. Please check the release notes for breaking"
                     f" changes: https://github.com/shotgunsoftware/tk-core/releases"
                 )
-            raise
+                log.error(error_message)
+                raise ImportError(error_message)
 
         finally:
             # Restore the list of warning filters.
