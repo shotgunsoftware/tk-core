@@ -334,9 +334,7 @@ class TestSwapCoreVersionMismatch(ShotgunTestBase):
             decides whether to catch it.
         """
         if target_version_on_disk is not None:
-            info_path = os.path.join(
-                self._target_root, "install", "core", "info.yml"
-            )
+            info_path = os.path.join(self._target_root, "install", "core", "info.yml")
             with open(info_path, "w") as fh:
                 fh.write('version: "%s"\n' % target_version_on_disk)
 
@@ -353,7 +351,15 @@ class TestSwapCoreVersionMismatch(ShotgunTestBase):
             side_effect=self._make_fake_swap_core(handler),
         ), patch(
             "tank.bootstrap.import_handler.log"
-        ) as mock_log:
+        ) as mock_log, patch(
+            # swap_core calls LogManager().uninitialize_base_file_handler() on
+            # the process-wide singleton before the swap, and relies on the
+            # post-swap `import tank` to re-initialize it.  Because our test
+            # intentionally makes that import fail, the handler is never
+            # restored, which leaks state into subsequent test classes.  Mock
+            # the local import so the singleton is never touched.
+            "tank.log.LogManager"
+        ):
             with self.assertRaises(ImportError):
                 CoreImportHandler.swap_core(self._target_python)
             return mock_log
@@ -408,9 +414,7 @@ class TestSwapCoreVersionMismatch(ShotgunTestBase):
         )
 
         mismatch_calls = [
-            c
-            for c in mock_log.exception.call_args_list
-            if "mismatch" in str(c).lower()
+            c for c in mock_log.exception.call_args_list if "mismatch" in str(c).lower()
         ]
         self.assertFalse(
             mismatch_calls,
