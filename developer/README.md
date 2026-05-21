@@ -29,7 +29,11 @@ The `requirements/update_python_packages.py` script automates the creation and m
 
 ### Shared (Python-version-independent) vendor zips
 
-In addition to the per-version `pkgs.zip`, `requirements/any/` holds pure-Python packages that are safe to load across every supported Python version (e.g. the Autodesk Flow Data Beta SDK). Each zip is auto-discovered by `tank_vendor/__init__.py` and contains the importable package plus its `.dist-info/` directory at the zip's root.
+In addition to the per-version `pkgs.zip`, `requirements/any/` holds pure-Python
+packages that are safe to load across every supported Python version (e.g. the
+Autodesk Flow Data Beta SDK). Each zip is auto-discovered by
+`tank_vendor/__init__.py` and contains the importable package plus its
+`.dist-info/` directory at the zip's root.
 
 ## How to upgrade ruamel.yaml
 
