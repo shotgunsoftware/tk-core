@@ -329,9 +329,9 @@ class TestSwapCoreVersionMismatch(ShotgunTestBase):
             ``get_currently_running_api_version`` (the active/site core).
         :param target_version_on_disk: If given, overwrite the ``info.yml`` in
             the fake target root so ``get_core_api_version`` returns this value.
-        :returns: The mock logger captured during the call.
-        :raises ImportError: The patched import always raises; the caller
-            decides whether to catch it.
+        :returns: ``(mock_log, raised_exception)`` - the mock logger captured
+            during the call and the exception raised by ``swap_core``, or
+            ``None`` if it returned normally.
         """
         if target_version_on_disk is not None:
             info_path = os.path.join(self._target_root, "install", "core", "info.yml")
@@ -359,29 +359,44 @@ class TestSwapCoreVersionMismatch(ShotgunTestBase):
             # restored, which leaks state into subsequent test classes.  Mock
             # the local import so the singleton is never touched.
             "tank.log.LogManager"
-        ):
-            with self.assertRaises(ImportError):
+        ) as mock_lm:
+            # uninitialize_base_file_handler must return None (no active log
+            # file in tests) so that the `if prev_log_file:` guard in
+            # swap_core is False.  Without this, swap_core tries to call
+            # tank.LogManager() after the import failed, hitting an
+            # UnboundLocalError because the `tank` assignment never completed.
+            mock_lm.return_value.uninitialize_base_file_handler.return_value = None
+            raised = None
+            try:
                 CoreImportHandler.swap_core(self._target_python)
-            return mock_log
+            except Exception as exc:
+                raised = exc
+            return mock_log, raised
 
     # ------------------------------------------------------------------
     # Tests
     # ------------------------------------------------------------------
 
     def test_mismatch_message_logged_when_target_is_older(self):
-        """log.exception is called with version details when target < running core.
+        """log.error is called with version details when target < running core.
 
         Scenario: Desktop ships v0.23.8 (handler_version) but the project config
         still pins v0.22.4 (target_version). The post-swap ``import tank`` fails
         and the diagnostic must surface both version numbers and a link to the
-        release notes.
+        release notes. swap_core re-raises as ImportError.
         """
-        mock_log = self._run_swap(handler_version="v0.23.8")
+        mock_log, raised = self._run_swap(handler_version="v0.23.8")
 
-        logged = " ".join(str(c) for c in mock_log.exception.call_args_list)
+        self.assertIsInstance(
+            raised,
+            ImportError,
+            "swap_core should re-raise as ImportError on a version mismatch. "
+            "Got: %s" % raised,
+        )
+        logged = " ".join(str(c) for c in mock_log.error.call_args_list)
         self.assertTrue(
-            mock_log.exception.called,
-            "Expected log.exception to be called for a version-mismatch but it "
+            mock_log.error.called,
+            "Expected log.error to be called for a version-mismatch but it "
             "was not. All log calls: %s" % mock_log.mock_calls,
         )
         self.assertIn(
@@ -401,23 +416,29 @@ class TestSwapCoreVersionMismatch(ShotgunTestBase):
         )
 
     def test_no_mismatch_message_when_target_is_not_older(self):
-        """log.exception is NOT called when the target core is the same version or newer.
+        """log.error is NOT called when the target core is the same version or newer.
 
         Scenario: The project config has already been updated to v0.23.8 while the
         running core is v0.22.4. Even though the import still fails (the fake
         blocker is always active), the version-mismatch branch must NOT fire
-        because the target is not older than the handler.
+        because the target is not older than the handler.  swap_core swallows
+        the exception in this case (treated as a non-fatal import warning).
         """
-        mock_log = self._run_swap(
+        mock_log, raised = self._run_swap(
             handler_version="v0.22.4",
             target_version_on_disk="v0.23.8",
         )
 
+        self.assertIsNone(
+            raised,
+            "swap_core should NOT raise when the target core is not older. "
+            "Got: %s" % raised,
+        )
         mismatch_calls = [
-            c for c in mock_log.exception.call_args_list if "mismatch" in str(c).lower()
+            c for c in mock_log.error.call_args_list if "mismatch" in str(c).lower()
         ]
         self.assertFalse(
             mismatch_calls,
-            "log.exception should NOT be called with a mismatch message when "
+            "log.error should NOT be called with a mismatch message when "
             "the target core is not older. Unexpected calls: %s" % mismatch_calls,
         )
