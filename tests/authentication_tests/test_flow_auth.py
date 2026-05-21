@@ -23,7 +23,9 @@ from tank.authentication.flow_auth.errors import FlowAuthConfigurationError
 def _make_jwt(payload):
     """Build a minimal unsigned JWT-shaped string. Header/signature are ignored
     by the unverified decode used in flow_auth."""
-    header_b64 = base64.urlsafe_b64encode(b'{"alg":"none"}').rstrip(b"=").decode("ascii")
+    header_b64 = (
+        base64.urlsafe_b64encode(b'{"alg":"none"}').rstrip(b"=").decode("ascii")
+    )
     payload_b64 = (
         base64.urlsafe_b64encode(json.dumps(payload).encode("utf-8"))
         .rstrip(b"=")
@@ -35,7 +37,12 @@ def _make_jwt(payload):
 class _Settings:
     """Duck-typed FlowAuthSettings stand-in."""
 
-    def __init__(self, app_id="app", base_url="https://aps.example.com", callback="http://localhost:8080/cb"):
+    def __init__(
+        self,
+        app_id="app",
+        base_url="https://aps.example.com",
+        callback="http://localhost:8080/cb",
+    ):
         self.auth_application_id = app_id
         self.auth_base_url = base_url
         self.auth_callback_url = callback
@@ -98,7 +105,9 @@ class DecodeTokenPayloadTests(ShotgunTestBase):
         self.assertEqual(flow_auth_impl._decode_token_payload(token), payload)
 
     def test_malformed_jwt_returns_none(self):
-        self.assertIsNone(flow_auth_impl._decode_token_payload("not.a.jwt.too.many.dots"))
+        self.assertIsNone(
+            flow_auth_impl._decode_token_payload("not.a.jwt.too.many.dots")
+        )
 
     def test_non_jwt_string_returns_none(self):
         self.assertIsNone(flow_auth_impl._decode_token_payload("plain-string"))
@@ -116,7 +125,9 @@ class GetAccessTokenTests(ShotgunTestBase):
         flow_auth_impl._aps_configuration = None
         super().tearDown()
 
-    @mock.patch("tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth")
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
     def test_returns_fresh_token_without_refresh(self, mock_adsk):
         fresh = _make_jwt({"exp": int(time.time()) + 3600})
         mock_adsk.return_value = fresh
@@ -126,7 +137,9 @@ class GetAccessTokenTests(ShotgunTestBase):
         self.assertEqual(result, fresh)
         self.assertEqual(mock_adsk.call_count, 1)
 
-    @mock.patch("tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth")
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
     def test_forces_refresh_when_expiring_soon(self, mock_adsk):
         # First call returns a token expiring within the buffer; second call
         # returns a fresh one after force_refresh is set.

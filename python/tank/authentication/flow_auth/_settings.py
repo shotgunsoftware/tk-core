@@ -44,9 +44,7 @@ def resolve_flow_auth_settings() -> FlowAuthSettings:
         auth_application_id=os.environ.get(
             "TK_FLOW_AUTH_APPLICATION_ID", DEFAULT_AUTH_APPLICATION_ID
         ),
-        auth_base_url=os.environ.get(
-            "TK_FLOW_AUTH_BASE_URL", DEFAULT_AUTH_BASE_URL
-        ),
+        auth_base_url=os.environ.get("TK_FLOW_AUTH_BASE_URL", DEFAULT_AUTH_BASE_URL),
         auth_callback_url=os.environ.get(
             "TK_FLOW_AUTH_CALLBACK_URL", DEFAULT_AUTH_CALLBACK_URL
         ),

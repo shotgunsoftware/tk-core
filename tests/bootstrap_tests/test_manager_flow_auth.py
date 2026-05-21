@@ -41,13 +41,9 @@ class FlowAuthHookTests(ShotgunTestBase):
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
-    def test_am_ready_project_triggers_auth(
-        self, mock_resolve, mock_init, mock_get, _
-    ):
+    def test_am_ready_project_triggers_auth(self, mock_resolve, mock_init, mock_get, _):
         mock_resolve.return_value = mock.Mock()
-        mgr = self._build_manager_with_sg(
-            {flow_auth.AM_READY_PROJECT_FIELD: "abc-123"}
-        )
+        mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
         mgr._check_and_trigger_am_auth(self.PROJECT_ID, progress_callback=mock.Mock())
 
@@ -58,9 +54,7 @@ class FlowAuthHookTests(ShotgunTestBase):
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     def test_non_am_ready_project_skips_auth(self, mock_init, mock_get, _):
-        mgr = self._build_manager_with_sg(
-            {flow_auth.AM_READY_PROJECT_FIELD: None}
-        )
+        mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: None})
 
         mgr._check_and_trigger_am_auth(self.PROJECT_ID, progress_callback=None)
 
@@ -90,9 +84,7 @@ class FlowAuthHookTests(ShotgunTestBase):
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     def test_none_project_id_skips_auth(self, mock_init, mock_get, _):
-        mgr = self._build_manager_with_sg(
-            {flow_auth.AM_READY_PROJECT_FIELD: "abc-123"}
-        )
+        mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
         mgr._check_and_trigger_am_auth(None, progress_callback=None)
 
@@ -108,12 +100,12 @@ class FlowAuthHookTests(ShotgunTestBase):
     ):
         mock_resolve.return_value = mock.Mock()
         mock_init.side_effect = flow_auth.FlowAuthConfigurationError("missing app id")
-        mgr = self._build_manager_with_sg(
-            {flow_auth.AM_READY_PROJECT_FIELD: "abc-123"}
-        )
+        mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
         with self.assertRaises(TankBootstrapError):
-            mgr._check_and_trigger_am_auth(self.PROJECT_ID, progress_callback=mock.Mock())
+            mgr._check_and_trigger_am_auth(
+                self.PROJECT_ID, progress_callback=mock.Mock()
+            )
 
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
@@ -123,9 +115,7 @@ class FlowAuthHookTests(ShotgunTestBase):
     ):
         mock_resolve.return_value = mock.Mock()
         mock_get.side_effect = RuntimeError("network down")
-        mgr = self._build_manager_with_sg(
-            {flow_auth.AM_READY_PROJECT_FIELD: "abc-123"}
-        )
+        mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
         # Should not raise.
         mgr._check_and_trigger_am_auth(self.PROJECT_ID, progress_callback=mock.Mock())
@@ -138,9 +128,7 @@ class FlowAuthHookTests(ShotgunTestBase):
     ):
         mock_resolve.return_value = mock.Mock()
         mock_get.side_effect = RuntimeError("network down")
-        mgr = self._build_manager_with_sg(
-            {flow_auth.AM_READY_PROJECT_FIELD: "abc-123"}
-        )
+        mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
         with temp_env_var(TK_FLOW_AUTH_REQUIRED="1"):
             with self.assertRaises(TankBootstrapError):
@@ -162,9 +150,7 @@ class ResolveProjectIdTests(ShotgunTestBase):
 
     def test_project_entity_returns_id(self, _):
         mgr = ToolkitManager()
-        self.assertEqual(
-            mgr._resolve_project_id({"type": "Project", "id": 99}), 99
-        )
+        self.assertEqual(mgr._resolve_project_id({"type": "Project", "id": 99}), 99)
 
     def test_entity_with_project_link_returns_id(self, _):
         mgr = ToolkitManager()
@@ -178,11 +164,11 @@ class ResolveProjectIdTests(ShotgunTestBase):
     def test_entity_without_project_link_queries_sg(self, _):
         mgr = ToolkitManager()
         mgr._sg_connection = mock.Mock()
-        mgr._sg_connection.find_one.return_value = {"project": {"type": "Project", "id": 55}}
+        mgr._sg_connection.find_one.return_value = {
+            "project": {"type": "Project", "id": 55}
+        }
 
-        self.assertEqual(
-            mgr._resolve_project_id({"type": "Shot", "id": 1}), 55
-        )
+        self.assertEqual(mgr._resolve_project_id({"type": "Shot", "id": 1}), 55)
 
     def test_entity_with_no_project_raises(self, _):
         mgr = ToolkitManager()
