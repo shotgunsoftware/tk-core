@@ -10,9 +10,6 @@
 
 """Constants for Flow / MEDM authentication."""
 
-# TODO(SG-43166): confirm field name with Julien Langlois.
-# tk-framework-flowam/framework.py:51 reads "sg_flow_am_id" and treats a
-# truthy value as AM-ready; replicating that contract here.
 AM_READY_PROJECT_FIELD = "sg_flow_am_id"
 
 # TODO(SG-43166): confirm production APS values with Julien.
