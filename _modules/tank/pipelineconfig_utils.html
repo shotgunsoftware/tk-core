@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.23.8 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.23.9 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.8.<br>
+    <b>tk-core</b> v0.23.9.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -145,6 +145,7 @@
 <span class="sd">across storages, configurations etc.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib.metadata</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">tank_vendor</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml</span>
@@ -571,7 +572,16 @@
     <span class="n">info_yml_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
         <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;info.yml&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">version</span>
+    <span class="c1"># In a pip install the flat site-packages layout has no info.yml.</span>
+    <span class="c1"># Fall back to the installed distribution metadata; PEP 440 strips the</span>
+    <span class="c1"># leading &#39;v&#39;, so re-add it to match the info.yml convention.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;v&quot;</span> <span class="o">+</span> <span class="n">importlib</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;sgtk&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">importlib</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">PackageNotFoundError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_core_api_version</span><span class="p">(</span><span class="n">core_install_root</span><span class="p">):</span>
@@ -587,7 +597,19 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># now try to get to the info.yml file to get the version number</span>
     <span class="n">info_yml_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">core_install_root</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;info.yml&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">version</span>
+    <span class="c1"># In a pip install the flat site-packages layout has no install/core/info.yml.</span>
+    <span class="c1"># If the requested core is the currently-running one, defer to</span>
+    <span class="c1"># get_currently_running_api_version which falls back to distribution metadata.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">current_core_root</span> <span class="o">=</span> <span class="n">get_path_to_current_core</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">TankError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">core_install_root</span><span class="p">)</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">current_core_root</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_currently_running_api_version</span><span class="p">()</span>
+    <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_version_from_manifest</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">):</span>
@@ -596,15 +618,14 @@
 <span class="sd">    Returns the version given a manifest.</span>
 
 <span class="sd">    :param info_yml_path: path to manifest file.</span>
-<span class="sd">    :returns: Always a string, &#39;unknown&#39; if data cannot be found</span>
+<span class="sd">    :returns: Version string, or None if data cannot be found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">))</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
-
-    <span class="k">return</span> <span class="n">data</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
