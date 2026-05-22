@@ -1,6 +1,15 @@
 distro==1.4.0
+importlib-metadata==6.7.0
+importlib-resources==5.12.0
+jaraco.classes==3.2.3
+keyring==23.13.1
+more-itertools==9.1.0
 packaging==24.0
+PyJWT==2.8.0
+pywin32-ctypes==0.2.3
 PyYAML==5.4.1
 ruamel.yaml==0.18.13
 ruamel.yaml.clib==0.2.8
 shotgun-api3==3.9.0
+typing-extensions==4.7.1
+zipp==3.15.0

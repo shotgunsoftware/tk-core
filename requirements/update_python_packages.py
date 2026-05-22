@@ -88,9 +88,14 @@ def main():
         ]
 
         # Make sure we found as many Python packages as there
-        # are packages listed inside frozen_requirements.txt
-        # assert len(package_names) == nb_dependencies
-        assert len(package_names) >= nb_dependencies
+        # are packages listed inside frozen_requirements.txt.
+        # Count .dist-info directories rather than package directories because
+        # namespace packages (e.g. ruamel.yaml + ruamel.yaml.clib, jaraco.*)
+        # share a single parent directory, making package_names < nb_dependencies.
+        dist_info_count = len(
+            [name for name in os.listdir(temp_dir) if name.endswith(".dist-info")]
+        )
+        assert dist_info_count >= nb_dependencies
 
         # Write out the zip file for python packages. Compress the zip file with ZIP_DEFLATED. Note
         # that this requires zlib to decompress when importing. Compression also causes import to
