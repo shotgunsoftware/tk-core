@@ -921,7 +921,9 @@ class ToolkitManager(object):
         :param entity: ``None``, a Project dict, an entity with a ``project``
                        link, or any entity that can be looked up in Shotgun
                        to find its parent project.
+        :type entity: dict or None
         :returns: Integer project id, or ``None`` for the site context.
+        :rtype: int or None
         """
         if entity is None:
             return None
@@ -939,30 +941,58 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _check_and_trigger_am_auth(self, project_id, progress_callback):
+    def _check_and_trigger_am_auth(self, entity, progress_callback):
         """
         If the resolved project is AM-ready, proactively obtain a Flow/MEDM
         access token. Silent path (keyring -> refresh) is tried first; falls
         back to opening a browser for PKCE if no usable cached/refresh token
         exists.
 
-        No-op for non-AM projects or when ``project_id`` is None.
+        No-op for non-AM projects or when ``entity`` is None. The project and
+        its AM-ready field are resolved in a single ShotGrid request.
 
         Configuration errors raise ``TankBootstrapError`` (deployment bug).
         Runtime auth failures are logged and swallowed unless the
         ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
         they raise ``TankBootstrapError``.
+
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: dict or None
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+        :rtype: None
         """
         from ..authentication import flow_auth
 
-        if project_id is None:
+        if entity is None:
             return
-        sg_project = self._sg_connection.find_one(
-            "Project",
-            [["id", "is", project_id]],
-            [flow_auth.AM_READY_PROJECT_FIELD],
-        )
-        if not sg_project or not sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
+
+        am_field = flow_auth.AM_READY_PROJECT_FIELD
+
+        if entity.get("type") == "Project":
+            project_id = entity["id"]
+            sg_project = self._sg_connection.find_one(
+                "Project", [["id", "is", project_id]], [am_field]
+            )
+        elif "project" in entity and entity["project"].get("type") == "Project":
+            project_id = entity["project"]["id"]
+            sg_project = self._sg_connection.find_one(
+                "Project", [["id", "is", project_id]], [am_field]
+            )
+        else:
+            # Fetch the project link and AM-ready field in a single request
+            # using ShotGrid's deep-field notation, saving one API round-trip.
+            data = self._sg_connection.find_one(
+                entity["type"],
+                [["id", "is", entity["id"]]],
+                ["project", "project.Project.%s" % am_field],
+            )
+            if not data or not data.get("project"):
+                return
+            project_id = data["project"]["id"]
+            sg_project = {am_field: data.get("project.Project.%s" % am_field)}
+
+        if not sg_project or not sg_project.get(am_field):
             return
 
         log.info("Project %s is AM-ready; triggering MEDM auth.", project_id)
@@ -1125,8 +1155,7 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
-        project_id = self._resolve_project_id(entity)
-        self._check_and_trigger_am_auth(project_id, progress_callback)
+        self._check_and_trigger_am_auth(entity, progress_callback)
 
         return config
 
