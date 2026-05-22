@@ -209,6 +209,38 @@ class CoreImportHandler(object):
                     # log.debug("Removing sys.modules[%s]" % module_name)
                     del sys.modules[module_name]
 
+        # Remove the outgoing core's pkgs.zip from sys.path so the incoming
+        # core's tank_vendor/__init__.py can insert the correct one on load.
+        # Without this, a newer site core's pkgs.zip (which may lack packages
+        # like `six`) stays at sys.path[0] and is resolved by direct imports
+        # (e.g. `import shotgun_api3`) in older project core code.
+        current_core_root = os.path.normpath(os.path.dirname(self._core_path))
+        new_sys_path = []
+        for p in sys.path:
+            norm_p = os.path.normpath(p)
+            try:
+                if os.path.commonpath([norm_p, current_core_root]) == current_core_root:
+                    log.debug("Removing sys.path entry belonging to outgoing core: %s" % p)
+                    continue
+            except ValueError:
+                pass  # commonpath raises ValueError on mixed-drive paths on Windows
+            new_sys_path.append(p)
+        sys.path[:] = new_sys_path
+
+        # Remove the outgoing core's _TankVendorMetaFinder from sys.meta_path.
+        # This finder is installed by tank_vendor/__init__.py and redirects
+        # `tank_vendor.*` submodule lookups. After a swap it would intercept
+        # imports like `tank_vendor.six.moves` and fail to resolve them against
+        # the incoming core's environment. The incoming tank_vendor/__init__.py
+        # will install a fresh finder when it loads.
+        sys.meta_path[:] = [
+            h for h in sys.meta_path
+            if type(h).__name__ != "_TankVendorMetaFinder"
+        ]
+        if hasattr(sys, "_tank_vendor_meta_finder"):
+            del sys._tank_vendor_meta_finder
+        log.debug("Removed stale _TankVendorMetaFinder from sys.meta_path.")
+
         # reset importer to point at new core for future imports
         self._module_info = {}
         self._core_path = core_path
