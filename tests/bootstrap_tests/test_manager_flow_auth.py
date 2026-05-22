@@ -45,7 +45,9 @@ class FlowAuthHookTests(ShotgunTestBase):
         mock_resolve.return_value = mock.Mock()
         mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
-        mgr._check_and_trigger_am_auth({"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock())
+        mgr._check_and_trigger_am_auth(
+            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock()
+        )
 
         mock_resolve.assert_called_once()
         mock_init.assert_called_once_with(mock_resolve.return_value)
@@ -56,7 +58,9 @@ class FlowAuthHookTests(ShotgunTestBase):
     def test_non_am_ready_project_skips_auth(self, mock_init, mock_get, _):
         mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: None})
 
-        mgr._check_and_trigger_am_auth({"type": "Project", "id": self.PROJECT_ID}, progress_callback=None)
+        mgr._check_and_trigger_am_auth(
+            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=None
+        )
 
         mock_init.assert_not_called()
         mock_get.assert_not_called()
@@ -66,7 +70,9 @@ class FlowAuthHookTests(ShotgunTestBase):
     def test_missing_project_entity_skips_auth(self, mock_init, mock_get, _):
         mgr = self._build_manager_with_sg(None)
 
-        mgr._check_and_trigger_am_auth({"type": "Project", "id": self.PROJECT_ID}, progress_callback=None)
+        mgr._check_and_trigger_am_auth(
+            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=None
+        )
 
         mock_init.assert_not_called()
         mock_get.assert_not_called()
@@ -76,7 +82,9 @@ class FlowAuthHookTests(ShotgunTestBase):
     def test_empty_project_entity_skips_auth(self, mock_init, mock_get, _):
         mgr = self._build_manager_with_sg({})
 
-        mgr._check_and_trigger_am_auth({"type": "Project", "id": self.PROJECT_ID}, progress_callback=None)
+        mgr._check_and_trigger_am_auth(
+            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=None
+        )
 
         mock_init.assert_not_called()
         mock_get.assert_not_called()
@@ -104,7 +112,8 @@ class FlowAuthHookTests(ShotgunTestBase):
 
         with self.assertRaises(TankBootstrapError):
             mgr._check_and_trigger_am_auth(
-                {"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock()
+                {"type": "Project", "id": self.PROJECT_ID},
+                progress_callback=mock.Mock(),
             )
 
     @mock.patch("tank.authentication.flow_auth.get_access_token")
@@ -118,7 +127,9 @@ class FlowAuthHookTests(ShotgunTestBase):
         mgr = self._build_manager_with_sg({flow_auth.AM_READY_PROJECT_FIELD: "abc-123"})
 
         # Should not raise.
-        mgr._check_and_trigger_am_auth({"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock())
+        mgr._check_and_trigger_am_auth(
+            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock()
+        )
 
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
@@ -133,7 +144,8 @@ class FlowAuthHookTests(ShotgunTestBase):
         with temp_env_var(TK_FLOW_AUTH_REQUIRED="1"):
             with self.assertRaises(TankBootstrapError):
                 mgr._check_and_trigger_am_auth(
-                    {"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock()
+                    {"type": "Project", "id": self.PROJECT_ID},
+                    progress_callback=mock.Mock(),
                 )
 
 
