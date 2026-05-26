@@ -56,9 +56,7 @@ class FileStoreRoundTripTests(unittest.TestCase):
         file_store.persist_tokens(
             self.storage_dir, "myapp", "alice", {"access_token": "acc123"}
         )
-        self.assertIsNone(
-            file_store.get_access_token(self.storage_dir, "myapp", "bob")
-        )
+        self.assertIsNone(file_store.get_access_token(self.storage_dir, "myapp", "bob"))
 
     def test_delete_tokens_clears_entry(self):
         file_store.persist_tokens(
