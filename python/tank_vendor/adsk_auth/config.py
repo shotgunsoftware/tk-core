@@ -17,6 +17,7 @@ class AuthConfig:
     base_url: str
     callback_url: str
     required_application_scopes: List[str]
+    storage_dir: str
     description: str = ""
 
     def __post_init__(self) -> None:
@@ -28,6 +29,8 @@ class AuthConfig:
             raise ValueError("callback_url is required")
         if not self.required_application_scopes:
             raise ValueError("required_application_scopes must not be empty")
+        if not self.storage_dir or not self.storage_dir.strip():
+            raise ValueError("storage_dir is required")
         self.base_url = _normalize_base_url(self.base_url.strip())
         self.application_id = self.application_id.strip()
         self.callback_url = self.callback_url.strip()

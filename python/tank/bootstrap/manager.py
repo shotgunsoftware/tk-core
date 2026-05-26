@@ -944,7 +944,7 @@ class ToolkitManager(object):
     def _check_and_trigger_am_auth(self, entity, progress_callback):
         """
         If the resolved project is AM-ready, proactively obtain a Flow/MEDM
-        access token. Silent path (keyring -> refresh) is tried first; falls
+        access token. Silent path (file store -> refresh) is tried first; falls
         back to opening a browser for PKCE if no usable cached/refresh token
         exists.
 
@@ -1004,8 +1004,8 @@ class ToolkitManager(object):
         try:
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
-            # Token is intentionally discarded here; it now sits in keyring
-            # and adsk_auth's in-memory cache for the next consumer.
+            # Token is intentionally discarded here; it now sits in the file
+            # store and adsk_auth's in-memory cache for the next consumer.
             flow_auth.get_access_token()
         except flow_auth.FlowAuthConfigurationError as e:
             raise TankBootstrapError(

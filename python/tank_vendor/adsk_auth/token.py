@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Shotgun Software Inc.
 # CONFIDENTIAL AND PROPRIETARY
 
-"""Get access token: keyring -> refresh -> browser PKCE."""
+"""Get access token: file store -> refresh -> browser PKCE."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ import jwt
 from urllib.error import HTTPError
 
 from .config import AuthConfig
-from .keyring_store import (
+from .file_store import (
     delete_tokens,
-    get_access_token as get_access_token_from_keyring,
+    get_access_token as get_access_token_from_store,
     get_refresh_token,
     get_user_profile,
     persist_tokens,
@@ -23,7 +23,7 @@ from .pkce import exchange_refresh_token, web_authenticate
 
 _logger = logging.getLogger(__name__)
 
-# In-memory cache: profile -> access_token (avoids keyring read every call)
+# In-memory cache: profile -> access_token (avoids file read every call)
 _access_token_cache: dict[str, str] = {}
 
 
@@ -37,7 +37,7 @@ def get_access_token(
     browser: Any = None,
 ) -> str:
     """
-    Return a valid access token: use cache, then keyring, then refresh, then browser PKCE.
+    Return a valid access token: use cache, then file store, then refresh, then browser PKCE.
 
     Raises:
         RuntimeError: If a token could not be obtained.
@@ -58,13 +58,13 @@ def get_access_token(
             pass
 
     if force_reauthentication:
-        delete_tokens(config.application_id, user_profile)
+        delete_tokens(config.storage_dir, config.application_id, user_profile)
 
-    # 2. Valid token in keyring?
+    # 2. Valid token in file store?
     if not (force_reauthentication or force_refresh):
         try:
-            access_token = get_access_token_from_keyring(
-                config.application_id, user_profile
+            access_token = get_access_token_from_store(
+                config.storage_dir, config.application_id, user_profile
             )
             if access_token:
                 jwt.decode(
@@ -78,11 +78,13 @@ def get_access_token(
 
     # 3. Refresh token?
     try:
-        refresh_token = get_refresh_token(config.application_id, user_profile)
+        refresh_token = get_refresh_token(
+            config.storage_dir, config.application_id, user_profile
+        )
         if refresh_token:
             _logger.debug("Using refresh token")
             token_dict = exchange_refresh_token(config, refresh_token)
-            persist_tokens(config.application_id, user_profile, token_dict)
+            persist_tokens(config.storage_dir, config.application_id, user_profile, token_dict)
             access_token = token_dict["access_token"]
             _access_token_cache[user_profile] = access_token
             return access_token
@@ -92,14 +94,14 @@ def get_access_token(
     # 4. Browser PKCE
     _logger.warning("Opening browser to authenticate (timeout %.1fs)", time_out)
     token_dict = web_authenticate(config, time_out=time_out, browser=browser)
-    persist_tokens(config.application_id, user_profile, token_dict)
+    persist_tokens(config.storage_dir, config.application_id, user_profile, token_dict)
     access_token = token_dict["access_token"]
     _access_token_cache[user_profile] = access_token
     return access_token
 
 
 def clear_stored_tokens(config: AuthConfig, profile: Optional[str] = None) -> None:
-    """Remove tokens from keyring and in-memory cache for this app/profile."""
+    """Remove tokens from file store and in-memory cache for this app/profile."""
     user_profile = get_user_profile(profile)
     _access_token_cache.pop(user_profile, None)
-    delete_tokens(config.application_id, user_profile)
+    delete_tokens(config.storage_dir, config.application_id, user_profile)

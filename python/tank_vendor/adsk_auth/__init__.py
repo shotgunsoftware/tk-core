@@ -2,9 +2,9 @@
 # CONFIDENTIAL AND PROPRIETARY
 
 """
-Adsk auth – minimal Autodesk Platform Services (APS) authentication using PKCE + keyring.
+Adsk auth – minimal Autodesk Platform Services (APS) authentication using PKCE.
 
-Single flow: keyring -> refresh token -> browser PKCE. No Identity Client.
+Single flow: file store -> refresh token -> browser PKCE. No Identity Client.
 """
 
 from .config import AuthConfig

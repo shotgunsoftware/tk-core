@@ -23,6 +23,7 @@ from tank_vendor.adsk_auth import (
 )
 
 from ... import LogManager
+from ...util import LocalFileStorageManager
 from ._constants import REQUIRED_SCOPES
 from .errors import FlowAuthConfigurationError
 
@@ -66,6 +67,9 @@ def init_authentication(settings):
         callback_url=auth_callback_url,
         description="PKCE Test App",
         required_application_scopes=REQUIRED_SCOPES,
+        storage_dir=LocalFileStorageManager.get_global_root(
+            LocalFileStorageManager.CACHE
+        ),
     )
 
 
@@ -158,7 +162,7 @@ def _auth_options_from_kwargs(kwargs):
 
 
 def get_access_token(*args, **kwargs) -> str:
-    """Get access token from keyring or web (PKCE).
+    """Get access token from file store or web (PKCE).
 
     Ensures the returned token has at least 5 minutes of validity remaining,
     since the Flow API can fail when the token is about to expire.

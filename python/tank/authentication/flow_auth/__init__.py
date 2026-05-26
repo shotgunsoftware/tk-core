@@ -12,7 +12,7 @@
 Flow / MEDM authentication for Toolkit bootstrap.
 
 Triggered during bootstrap when a project is "AM-ready". Obtains an APS
-access token via PKCE; the token is cached in the OS keyring for reuse.
+access token via PKCE; the token is cached in a local file store for reuse.
 """
 
 from ._authentication import (
