@@ -177,3 +177,17 @@ def get_access_token(*args, **kwargs) -> str:
         token = get_access_token_from_adsk_auth(config, **options)
 
     return token
+
+
+def get_flow_access_token(**kwargs) -> str:
+    """Get a Flow access token, lazy-initialising auth if needed.
+
+    Safe to call without a prior ``init_authentication()`` — if bootstrap has
+    not already initialised the APS configuration, settings are resolved from
+    environment variables and initialisation is performed automatically.
+    """
+    if _aps_configuration is None:
+        from ._settings import resolve_flow_auth_settings
+
+        init_authentication(resolve_flow_auth_settings())
+    return get_access_token(**kwargs)

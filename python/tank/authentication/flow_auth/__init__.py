@@ -18,8 +18,10 @@ access token via PKCE; the token is cached in a local file store for reuse.
 from ._authentication import (
     init_authentication,
     get_access_token,
+    get_flow_access_token,
     check_token_expiry,
 )
+from ._client import FlowAuthenticationHandler, get_flow_client
 from ._constants import AM_READY_PROJECT_FIELD
 from ._settings import FlowAuthSettings, resolve_flow_auth_settings
 from .errors import FlowAuthError, FlowAuthConfigurationError
@@ -27,7 +29,10 @@ from .errors import FlowAuthError, FlowAuthConfigurationError
 __all__ = [
     "init_authentication",
     "get_access_token",
+    "get_flow_access_token",
     "check_token_expiry",
+    "FlowAuthenticationHandler",
+    "get_flow_client",
     "FlowAuthSettings",
     "resolve_flow_auth_settings",
     "FlowAuthError",

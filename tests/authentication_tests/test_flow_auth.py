@@ -116,6 +116,121 @@ class DecodeTokenPayloadTests(ShotgunTestBase):
         self.assertIsNone(flow_auth_impl._decode_token_payload("a.@@@.c"))
 
 
+class GetFlowAccessTokenTests(ShotgunTestBase):
+    def setUp(self):
+        super().setUp()
+        flow_auth_impl._aps_configuration = None
+
+    def tearDown(self):
+        flow_auth_impl._aps_configuration = None
+        super().tearDown()
+
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
+    def test_delegates_when_already_initialised(self, mock_adsk):
+        flow_auth.init_authentication(_Settings())
+        fresh = _make_jwt({"exp": int(time.time()) + 3600})
+        mock_adsk.return_value = fresh
+
+        result = flow_auth.get_flow_access_token()
+
+        self.assertEqual(result, fresh)
+        self.assertEqual(mock_adsk.call_count, 1)
+
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
+    @mock.patch(
+        "tank.authentication.flow_auth._settings.resolve_flow_auth_settings",
+        return_value=_Settings(),
+    )
+    def test_lazy_init_when_not_initialised(self, mock_resolve, mock_adsk):
+        fresh = _make_jwt({"exp": int(time.time()) + 3600})
+        mock_adsk.return_value = fresh
+
+        result = flow_auth.get_flow_access_token()
+
+        # resolve_flow_auth_settings() was called to build settings, and
+        # _aps_configuration is now populated (real init_authentication ran).
+        mock_resolve.assert_called_once()
+        self.assertIsNotNone(flow_auth_impl._aps_configuration)
+        self.assertEqual(result, fresh)
+
+
+class FlowAuthenticationHandlerTests(ShotgunTestBase):
+    def setUp(self):
+        super().setUp()
+        flow_auth_impl._aps_configuration = None
+
+    def tearDown(self):
+        flow_auth_impl._aps_configuration = None
+        super().tearDown()
+
+    @mock.patch("tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth")
+    def test_get_authentication_token_returns_token(self, mock_adsk):
+        flow_auth.init_authentication(_Settings())
+        fresh = _make_jwt({"exp": int(time.time()) + 3600})
+        mock_adsk.return_value = fresh
+
+        from tank.authentication.flow_auth import FlowAuthenticationHandler
+
+        handler = FlowAuthenticationHandler()
+        self.assertEqual(handler.get_authentication_token(), fresh)
+
+
+class GetFlowClientTests(ShotgunTestBase):
+    _DEFAULT = "https://default.example.com/graphql"
+
+    def setUp(self):
+        super().setUp()
+        flow_auth_impl._aps_configuration = None
+        # Stub the GQL SDK vendor modules so tests run without the zip installed.
+        self._mock_gql_cls = mock.MagicMock()
+        config_mod = mock.MagicMock(DEFAULT_ENDPOINT=self._DEFAULT)
+        data_mod = mock.MagicMock(GQLClient=self._mock_gql_cls)
+        self._sys_modules_patch = mock.patch.dict(
+            "sys.modules",
+            {
+                "tank_vendor.adsk.flow.data": data_mod,
+                "tank_vendor.adsk.flow.data.config": config_mod,
+            },
+        )
+        self._sys_modules_patch.start()
+
+    def tearDown(self):
+        self._sys_modules_patch.stop()
+        flow_auth_impl._aps_configuration = None
+        super().tearDown()
+
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
+    def test_returns_client_with_default_endpoint(self, mock_adsk):
+        flow_auth.init_authentication(_Settings())
+        mock_adsk.return_value = _make_jwt({"exp": int(time.time()) + 3600})
+
+        flow_auth.get_flow_client()
+
+        self._mock_gql_cls.assert_called_once()
+        _, kwargs = self._mock_gql_cls.call_args
+        self.assertEqual(kwargs["endpoint"], self._DEFAULT)
+        self.assertIn("auth_handler", kwargs)
+
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
+    def test_passes_custom_endpoint(self, mock_adsk):
+        flow_auth.init_authentication(_Settings())
+        mock_adsk.return_value = _make_jwt({"exp": int(time.time()) + 3600})
+        custom_url = "https://staging.example.com/graphql"
+
+        flow_auth.get_flow_client(custom_url)
+
+        _, kwargs = self._mock_gql_cls.call_args
+        self.assertEqual(kwargs["endpoint"], custom_url)
+
+
 class GetAccessTokenTests(ShotgunTestBase):
     def setUp(self):
         super().setUp()

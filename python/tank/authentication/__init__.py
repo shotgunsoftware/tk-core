@@ -33,6 +33,7 @@ from .web_login_support import (
     set_shotgun_authenticator_support_web_login,
 )
 from .shotgun_authenticator import ShotgunAuthenticator
+from .flow_auth import get_flow_access_token, FlowAuthenticationHandler, get_flow_client
 from .defaults_manager import DefaultsManager
 from .core_defaults_manager import CoreDefaultsManager
 from .user import (  # noqa
