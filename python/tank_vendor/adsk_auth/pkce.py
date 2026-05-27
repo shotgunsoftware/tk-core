@@ -5,18 +5,18 @@
 
 from __future__ import annotations
 
-import base64
-import errno
-import hashlib
-import logging
-import secrets
-import socket
-import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from typing import Any, Dict
 from urllib.parse import parse_qs, urlencode, urlparse
+import base64
+import errno
+import hashlib
 import json
+import logging
+import secrets
+import socket
+import threading
 import urllib.request
 import webbrowser
 
