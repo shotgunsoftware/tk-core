@@ -167,7 +167,9 @@ class FlowAuthenticationHandlerTests(ShotgunTestBase):
         flow_auth_impl._aps_configuration = None
         super().tearDown()
 
-    @mock.patch("tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth")
+    @mock.patch(
+        "tank.authentication.flow_auth._authentication.get_access_token_from_adsk_auth"
+    )
     def test_get_authentication_token_returns_token(self, mock_adsk):
         flow_auth.init_authentication(_Settings())
         fresh = _make_jwt({"exp": int(time.time()) + 3600})
