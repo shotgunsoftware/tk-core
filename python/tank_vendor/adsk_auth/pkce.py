@@ -16,10 +16,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from typing import Any, Dict
 from urllib.parse import parse_qs, urlencode, urlparse
-
 import json
 import urllib.request
-import urllib.error
 import webbrowser
 
 from .config import AuthConfig
