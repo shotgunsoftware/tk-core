@@ -12,10 +12,9 @@
 
 AM_READY_PROJECT_FIELD = "sg_flow_am_id"
 
-# TODO(SG-43166): confirm production APS values with Julien.
-DEFAULT_AUTH_APPLICATION_ID = "<TBD>"
+DEFAULT_AUTH_APPLICATION_ID = "8QyoQKXZ7HDuQFmptJGrzsp2GwpATmyV"
 DEFAULT_AUTH_BASE_URL = "https://api.aps.usa.autodesk.com"
-DEFAULT_AUTH_CALLBACK_URL = "http://localhost:8080/api/auth/callback"
+DEFAULT_AUTH_CALLBACK_URL = "http://localhost:4201/auth/callback"
 
 # Previously "openid" was also requested but is not used or required for
 # authentication to Flow, and exceeded Windows Credential Manager's 1280-char
