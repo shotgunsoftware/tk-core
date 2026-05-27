@@ -31,7 +31,7 @@ def get_flow_client(endpoint_url=None):
     """Return a ready-to-use Flow GQL SDK client with authentication wired in.
 
     Lazy-initialises APS auth if bootstrap has not already done so. Uses the
-    SDK default endpoint (``tank_vendor.adsk.flow.data.config.DEFAULT_ENDPOINT``)
+    SDK default endpoint (``tank_vendor.flow_data_sdk.config.DEFAULT_ENDPOINT``)
     when ``endpoint_url`` is not supplied.
 
     :param endpoint_url: Override the GraphQL endpoint. Defaults to the SDK's
