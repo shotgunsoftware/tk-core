@@ -194,8 +194,8 @@ class GetFlowClientTests(ShotgunTestBase):
         self._sys_modules_patch = mock.patch.dict(
             "sys.modules",
             {
-                "tank_vendor.adsk.flow.data": data_mod,
-                "tank_vendor.adsk.flow.data.config": config_mod,
+                "tank_vendor.flow_data_sdk": data_mod,
+                "tank_vendor.flow_data_sdk.config": config_mod,
             },
         )
         self._sys_modules_patch.start()
