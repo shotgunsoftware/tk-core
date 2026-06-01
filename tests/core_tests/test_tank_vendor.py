@@ -17,7 +17,8 @@ from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 # Configuration: Add or remove packages here to test different third-party libraries
-# Only include packages that are directly bundled in requirements/<version>/pkgs.zip
+# Packages from pkgs.zip are always tested. Packages from requirements/any/
+# are version-gated below.
 PACKAGES_TO_TEST = [
     {
         "name": "yaml",
@@ -40,6 +41,24 @@ PACKAGES_TO_TEST = [
         "description": "Linux distribution detection",
     },
 ]
+
+# Flow Data SDK uses types.UnionType and typing.TypeAlias, both 3.10+ only.
+# On 3.7/3.9 the shared loader will warn-and-continue; do not assert it here.
+if sys.version_info >= (3, 10):
+    PACKAGES_TO_TEST.append(
+        {
+            "name": "flow_data_sdk",
+            "attributes": [
+                "GQLClient",
+                "WorkflowContext",
+                "SDK_VERSION",
+                "DEFAULT_ENDPOINT",
+                "DEFAULT_AUTH_BASE_URL",
+                "GQLAPIError",
+            ],
+            "description": "Autodesk Flow Data SDK (beta)",
+        }
+    )
 
 
 class TestTankVendorImports(ShotgunTestBase):
@@ -244,6 +263,83 @@ class TestShotgunAPI3CertPatch(ShotgunTestBase):
         # Should return a string path
         self.assertIsInstance(cert_path, str)
         self.assertTrue(len(cert_path) > 0)
+
+
+@unittest.skipIf(
+    sys.version_info < (3, 10),
+    "Flow Data SDK requires Python 3.10+ (uses types.UnionType / typing.TypeAlias)",
+)
+class TestFlowDataSDK(ShotgunTestBase):
+    """Test the Flow Data SDK loaded from requirements/any/."""
+
+    def test_submodule_import(self):
+        """Lazy meta-finder resolves nested imports inside the shared zip."""
+        from tank_vendor.flow_data_sdk.base import client
+        from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
+
+        self.assertTrue(hasattr(client, "BaseGQLClient"))
+        self.assertIsNotNone(GQLAPIError)
+
+    def test_sdk_version_resolved_from_dist_info(self):
+        """
+        Canary: SDK_VERSION must NOT fall back to 'local_dev'.
+
+        flow_data_sdk/base/_version.py resolves SDK_VERSION via
+        importlib.metadata, which only succeeds when the SDK's .dist-info
+        directory was preserved in the shared zip. If this fails, the shared
+        zip in requirements/any/ is missing its .dist-info.
+        """
+        from tank_vendor import flow_data_sdk
+
+        self.assertNotEqual(
+            flow_data_sdk.SDK_VERSION,
+            "local_dev",
+            "SDK_VERSION fell back to 'local_dev' — the shared zip is "
+            "missing .dist-info.",
+        )
+        self.assertRegex(
+            flow_data_sdk.SDK_VERSION,
+            r"^\d+\.\d+",
+            "SDK_VERSION is not a PEP 440 version",
+        )
+
+    def test_dist_info_via_importlib_metadata(self):
+        """importlib.metadata sees the same version as the SDK reports."""
+        from importlib.metadata import version
+
+        from tank_vendor import flow_data_sdk
+
+        self.assertEqual(version("flow-data-sdk"), flow_data_sdk.SDK_VERSION)
+
+
+@unittest.skipIf(
+    sys.version_info >= (3, 10),
+    "Test verifies behaviour when the SDK is unimportable due to <3.10 syntax/types",
+)
+class TestFlowDataSDKAbsentOnOldPython(ShotgunTestBase):
+    """
+    On Python 3.7 and 3.9, flow_data_sdk fails to import because its source
+    references types.UnionType and typing.TypeAlias (both 3.10+). The shared
+    loader is supposed to warn and continue, leaving tank_vendor itself
+    fully usable. These tests pin that contract.
+    """
+
+    def test_tank_vendor_imports_cleanly(self):
+        """`import tank_vendor` must succeed even when shared vendors fail to load."""
+        import importlib
+
+        import tank_vendor
+
+        # Re-importing is a no-op when the module is already cached, but the
+        # call would raise if the loader had been left in an inconsistent
+        # state by a per-package failure.
+        importlib.import_module("tank_vendor")
+        self.assertIsNotNone(tank_vendor)
+
+    def test_flow_data_sdk_unavailable(self):
+        """The SDK is not registered under the tank_vendor namespace."""
+        with self.assertRaises(ImportError):
+            from tank_vendor import flow_data_sdk  # noqa: F401
 
 
 if __name__ == "__main__":
