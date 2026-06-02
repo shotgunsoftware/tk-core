@@ -1022,6 +1022,7 @@ class ToolkitManager(object):
                 "MEDM auth failed; bootstrap will continue without a "
                 "pre-fetched token. Error: %s",
                 e,
+                exc_info=True,
             )
 
     def _get_configuration(self, entity, progress_callback):
