@@ -192,6 +192,7 @@ def run_callback_server(
     port: int,
     ready_event: threading.Event | None = None,
     init_error: list[BaseException] | None = None,
+    server_container: list | None = None,
 ) -> None:
     """Run HTTP server in current thread to capture ?code=...&state=... ."""
     _CallbackHandler.session_store = session_store
@@ -213,6 +214,8 @@ def run_callback_server(
             raise
     # Request handler threads must be daemon so the process exits after we have the code.
     server.daemon_threads = True
+    if server_container is not None:
+        server_container.append(server)
     if ready_event is not None:
         ready_event.set()
     server.serve_forever()
@@ -238,11 +241,16 @@ def web_authenticate(
         )
     ready_event = threading.Event()
     init_error: list[BaseException] = []
+    server_container: list = []
 
     server_thread = threading.Thread(
         target=run_callback_server,
         args=(session_store, port),
-        kwargs={"ready_event": ready_event, "init_error": init_error},
+        kwargs={
+            "ready_event": ready_event,
+            "init_error": init_error,
+            "server_container": server_container,
+        },
     )
     server_thread.daemon = True
     server_thread.start()
@@ -257,18 +265,23 @@ def web_authenticate(
         ) from e
     time.sleep(0.5)
     try:
-        b = webbrowser.get(using=browser)
-        b.open_new(auth_url)
-        # With ThreadingMixIn the server thread never exits; poll with short joins
-        # so we return as soon as the callback handler has set session_store[state].
-        deadline = time.monotonic() + time_out
-        while time.monotonic() < deadline:
-            if session_store.get(state) is not None:
-                break
-            server_thread.join(timeout=0.25)
-    except webbrowser.Error as e:
-        _logger.error("Browser error: %s", e)
-        server_thread.join(timeout=0.5)
+        try:
+            b = webbrowser.get(using=browser)
+            b.open_new(auth_url)
+            # With ThreadingMixIn the server thread never exits; poll with short joins
+            # so we return as soon as the callback handler has set session_store[state].
+            deadline = time.monotonic() + time_out
+            while time.monotonic() < deadline:
+                if session_store.get(state) is not None:
+                    break
+                server_thread.join(timeout=0.25)
+        except webbrowser.Error as e:
+            _logger.error("Browser error: %s", e)
+            server_thread.join(timeout=0.5)
+    finally:
+        if server_container:
+            server_container[0].shutdown()
+            server_container[0].server_close()
 
     if session_store.get(state) is None:
         raise RuntimeError("Failed to obtain authorization code from browser")
