@@ -65,7 +65,7 @@ def init_authentication(settings):
         application_id=auth_application_id,
         base_url=auth_base_url,
         callback_url=auth_callback_url,
-        description="PKCE Test App",
+        description="Autodesk Toolkit",
         required_application_scopes=REQUIRED_SCOPES,
         storage_dir=LocalFileStorageManager.get_global_root(
             LocalFileStorageManager.CACHE
