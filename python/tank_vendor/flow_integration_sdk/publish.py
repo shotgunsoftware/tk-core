@@ -43,11 +43,17 @@ from .globals import (
     DER_SOURCE_COMP,
     DER_SOURCE_TYPE_ID,
     get_client,
+    IMAGE_TYPE_ID,
+    SOURCE_COMP,
+    SOURCE_PURPOSE,
+    THUMBNAIL_COMP,
+    THUMBNAIL_PURPOSE,
     TYPE_COMP,
 )
 from . import transferapi
 from .storage import (
     _cache_asset_info,
+    _find_component,
     get_storage_revision_dir,
 )
 
@@ -225,7 +231,6 @@ class CommentComponentSpec(ComponentSpec):
     def name(self) -> str:
         return COMMENT_COMP
 
-    @trace
     def create(self) -> medm_model.Component:
         """Create an MEDM component based on specifications."""
 
@@ -255,13 +260,63 @@ class DerivativeSourceComponentSpec(ComponentSpec):
     def name(self) -> str:
         return DER_SOURCE_COMP
 
-    @trace
     def create(self) -> medm_model.Component:
         """Create an MEDM component based on specifications."""
         return self.create_component(
             name=self.name,
             type_id=DER_SOURCE_TYPE_ID,
             folder={"objectId": self.revision_id},
+        )
+
+
+class SourceComponentSpec(BinaryComponentSpec):
+    """Specifications for creating a source component.
+    This is a component used to store the main source file(s) of the revision.
+    There is only expected to be one of these per revision.
+    """
+
+    def __init__(self, *files):
+        """
+        Args:
+            files: List of files to be stored in the component.
+        """
+        self.files = files
+
+    @property
+    def name(self) -> str:
+        return SOURCE_COMP
+
+    @trace
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return super().create(name=self.name, files=self.files, purpose=SOURCE_PURPOSE)
+
+
+class ThumbnailComponentSpec(BinaryComponentSpec):
+    """Specifications for creating a thumbnail component.
+    This is a component used to store the thumbnail for the revision.
+    There is only expected to be one of these per revision.
+    """
+
+    def __init__(self, thumbnail_file: str):
+        """
+        Args:
+            thumbnail_file: Path to thumbnail file.
+        """
+        self.file = thumbnail_file
+
+    @property
+    def name(self) -> str:
+        return THUMBNAIL_COMP
+
+    @trace
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return super().create(
+            name=self.name,
+            files=[self.file],
+            purpose=THUMBNAIL_PURPOSE,
+            type_id=IMAGE_TYPE_ID,
         )
 
 
@@ -300,12 +355,77 @@ class TypeComponentSpec(ComponentSpec):
     def name(self) -> str:
         return self._name
 
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=self.type_id,
+        )
+
+
+class FileSeqComponentSpec(TypeComponentSpec):
+    """Specifications for creating a file sequence type component.
+    This is a component used to designate an asset as containing a file sequence.
+    This may be combined with other type designations to describe the nature of the asset.
+    """
+
+    def __init__(
+        self,
+        type_id: str,
+        frame_start: int,
+        frame_end: int,
+        frame_set: str,
+        file_format: str,
+        name: str = "",
+    ):
+        """
+        Args:
+            type_id: The MEDM type identifier for the type component.
+            frame_start: First frame of file sequence.
+            frame_end: End frame of file sequence.
+            frame_set: A string expression denoting the set of frames
+                       within the sequence. (e.g. "1-5,10,13-20")
+            file_format: A string expression denoting the file naming and
+                         frame padding convention of the sequence.
+                         (e.g. "render.%04d.exr")
+            name: A unique name for the type component
+                  (since there may be more than one type component).
+                  If not provided, a default name will be used.
+
+        Raises:
+            ComponentSpecError
+        """
+        # NOTE: for now, this type id will be passed in because it will
+        #       be a custom schema. Later when the file sequence type id
+        #       is formalized under autodesk namespace, we will create a
+        #       global constant and use that instead.
+
+        # If provided, type id must be subtype of base type
+        if not is_sub_type(BASE_TYPE_ID, type_id):
+            msg = f"Type id {type_id} is not a subclass of base type."
+            raise ComponentSpecError(details=msg)
+
+        self.type_id = type_id
+        self.frame_start = frame_start
+        self.frame_end = frame_end
+        self.frame_set = frame_set
+        self.file_format = file_format
+        self._name = name or TYPE_COMP
+
+    @property
+    def name(self) -> str:
+        return self._name
+
     @trace
     def create(self) -> medm_model.Component:
         """Create an MEDM component based on specifications."""
         return self.create_component(
             name=self.name,
             type_id=self.type_id,
+            frameStart=self.frame_start,
+            frameEnd=self.frame_end,
+            frameSet=self.frame_set,
+            fileFormat=self.file_format,
         )
 
 
@@ -371,6 +491,7 @@ def publish_new_asset(
     return asset
 
 
+@trace
 def publish_new_revision(
     asset_id: str,
     components: list[ComponentSpec] | None = None,
@@ -431,7 +552,7 @@ def publish_new_revision(
 
 
 def _generate_medm_components(
-    comp_specs: list[ComponentSpec]
+    comp_specs: list[ComponentSpec],
 ) -> medm_model.ComponentDataInput:
     """Given component specs create medm component objects to be used in a publish."""
     comp_specs = [] if comp_specs is None else comp_specs
@@ -448,6 +569,7 @@ def _generate_medm_uses(used_versions: list[str]) -> medm_model.UsesTargetInput:
     return uses_inputs
 
 
+@trace
 def _upload_binaries(asset: medm_model.Asset, bin_specs: list[BinaryComponentSpec]):
     """Upload binaries of an asset post publish.
 
@@ -503,16 +625,9 @@ def _transfer_files(asset: medm_model.Asset, bin_specs: list[BinaryComponentSpec
     # The transfer API uses the raw graphql connection
     gql_client = get_client()
 
-    def find_component(asset, name):
-        # Find matching component on asset based on name
-        for comp in asset.components:
-            if comp.name == name:
-                return comp
-        return None
-
     for bin_spec in bin_specs:
         # Find matching component represented by the component spec object
-        comp = find_component(asset, bin_spec.name)
+        comp = _find_component(asset, name=bin_spec.name)
         if not comp:
             msg = f'Component "{bin_spec.name}" missing on medm asset object.'
             raise PublishAssetError(details=msg)
@@ -557,7 +672,7 @@ def _transfer_files(asset: medm_model.Asset, bin_specs: list[BinaryComponentSpec
 
     # Add sidecar file to cache important asset data if necessary
     try:
-        _cache_asset_info(asset)
+        _cache_asset_info(asset.id)
     except FlowError as exc:
         logger.warning(f"Caching asset info in storage dir failed: {exc}")
         has_failures = True

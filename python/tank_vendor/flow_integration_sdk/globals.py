@@ -48,6 +48,18 @@ IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
 # are not yet added to the autodesk domain, and must be created per collection.
 FILE_SEQ_TYPE = "type.fileSequence"
 
+
+# Component purposes
+# ------------------
+# Purposes are special designations that can be added to a binary component to
+# differentiate it based on function/characteristic. Values are completely arbitrary.
+# The purposes below are some basic defaults that are generally useful,
+# but integrations can choose to use other values.
+
+SOURCE_PURPOSE = "source"
+THUMBNAIL_PURPOSE = "thumbnail"
+
+
 # Component names
 # ---------------
 # Conventional component names for formally supported components.
@@ -56,6 +68,8 @@ FILE_SEQ_TYPE = "type.fileSequence"
 COMMENT_COMP = "Comment"
 DER_SOURCE_COMP = "Derivative Source"
 FILE_SEQ_COMP = "File Sequence"
+SOURCE_COMP = "Source"
+THUMBNAIL_COMP = "Thumbnail"
 TYPE_COMP = "Type"
 
 
