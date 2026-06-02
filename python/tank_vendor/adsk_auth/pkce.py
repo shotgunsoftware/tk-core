@@ -107,23 +107,19 @@ _ERRNO_AF_NOT_SUPPORTED = (getattr(errno, "EAFNOSUPPORT", 97), 10047)
 
 
 def _is_port_in_use(port: int) -> bool:
-    """Return True if the port is already bound (IPv4 or IPv6)."""
+    """Return True if the loopback port is already bound (IPv4 or IPv6)."""
     port = int(port)
-    # Probe IPv4 (e.g. python -m http.server binds here)
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("0.0.0.0", port))
+            s.bind(("127.0.0.1", port))
     except OSError as e:
         if getattr(e, "errno", None) in (errno.EADDRINUSE, errno.EACCES):
             return True
         raise
-    # Probe IPv6 (dual-stack; same port can be bound separately on some OSes).
     # If IPv6 is not available (EAFNOSUPPORT etc.), skip probe and assume port is free for our use.
     try:
         with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as s:
-            if hasattr(socket, "IPV6_V6ONLY"):
-                s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
-            s.bind(("::", port))
+            s.bind(("::1", port))
     except OSError as e:
         err = getattr(e, "errno", None)
         if err in (errno.EADDRINUSE, errno.EACCES):
@@ -170,26 +166,24 @@ class _CallbackHandler(BaseHTTPRequestHandler):
 
 
 class _ThreadingCallbackServerDualStack(ThreadingMixIn, HTTPServer):
-    """Threaded HTTP server binding to :: with IPV6_V6ONLY=0 (dual-stack)."""
+    """Threaded HTTP server binding to ::1 (IPv6 loopback only)."""
 
     address_family = socket.AF_INET6
 
     def server_bind(self) -> None:
         self.socket = socket.socket(self.address_family, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        if hasattr(socket, "IPV6_V6ONLY"):
-            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
-        self.socket.bind(("::", self.server_address[1]))
+        self.socket.bind(("::1", self.server_address[1]))
         self.server_address = self.socket.getsockname()
 
 
 class _ThreadingCallbackServerIPv4(ThreadingMixIn, HTTPServer):
-    """Threaded HTTP server binding to 0.0.0.0 (IPv4 only). Fallback when IPv6 is unavailable."""
+    """Threaded HTTP server binding to 127.0.0.1 (IPv4 loopback only)."""
 
     def server_bind(self) -> None:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind(self.server_address)
+        self.socket.bind(("127.0.0.1", self.server_address[1]))
         self.server_address = self.socket.getsockname()
 
 
@@ -203,7 +197,7 @@ def run_callback_server(
     _CallbackHandler.session_store = session_store
     port = int(port)
     try:
-        server = _ThreadingCallbackServerDualStack(("::", port), _CallbackHandler)
+        server = _ThreadingCallbackServerDualStack(("::1", port), _CallbackHandler)
     except OSError as e:
         err = getattr(e, "errno", None)
         if err in (errno.EADDRINUSE, errno.EACCES):
@@ -213,8 +207,8 @@ def run_callback_server(
                 ready_event.set()
             return
         if err in _ERRNO_AF_NOT_SUPPORTED:
-            _logger.debug("IPv6 not available, using IPv4 callback server")
-            server = _ThreadingCallbackServerIPv4(("0.0.0.0", port), _CallbackHandler)
+            _logger.debug("IPv6 not available, using IPv4 loopback callback server")
+            server = _ThreadingCallbackServerIPv4(("127.0.0.1", port), _CallbackHandler)
         else:
             raise
     # Request handler threads must be daemon so the process exits after we have the code.
