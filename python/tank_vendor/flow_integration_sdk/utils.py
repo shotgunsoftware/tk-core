@@ -55,12 +55,12 @@ def trace(func):
         """Output profiling info to log."""
         # List of internal object types we would want to trace
         supported_objects = [
-            "Asset",
-            "AssetRevision",
-            "Blob",
-            "Component",
+            "FlowAsset",
+            "FlowRevision",
+            "FlowBlob",
+            "FlowComponent",
             "ComponentSpec",
-            "Project",
+            "FlowProject",
         ]
         msg = "PROFILING: "
         if arg0.__class__ == type:

@@ -182,6 +182,7 @@ class UsesMixin:
     This includes FlowAssets and FlowRevisions.
     """
 
+    @trace
     def init_uses(self, version_id: str):
         """Explicit initialization function to store pertinent info.
         This should be called in the __init__() function of any inheriting classes.
@@ -251,6 +252,7 @@ class ComponentMixin:
     that contain components. This includes FlowAssets and FlowRevisions.
     """
 
+    @trace
     def init_components(self, components: list[medm_model.Component]):
         """Explicit initialization function to ingest component data.
         This should be called in the __init__() function of any inheriting classes.
@@ -270,7 +272,7 @@ class ComponentMixin:
 
         self.components = []  # List of components encoded as custom objects
         for medm_comp in components:
-            self.components.append(FlowComponent(medm_comp))
+            self.components.append(FlowComponent(self, medm_comp))
 
     @trace
     def get_binary_components(self) -> list[FlowComponent]:
@@ -339,7 +341,6 @@ class ComponentMixin:
                 continue
             if purpose and purpose != comp.purpose:
                 continue
-            #if type_id and not is_sub_type(type_id, comp.type_id):
             if type_id and type_id not in comp.parent_type_ids:
                 continue
             matches.append(comp)
@@ -412,6 +413,23 @@ class FlowProject(FlowEntity):
         project_id = f"urn:medm:project:{parts[3]}:{parts[4]}"
         return project_id
 
+    @classmethod
+    def get_collection_id(cls, input_id: str) -> str:
+        """Return the collection id of the collection session project belongs to.
+
+        Args:
+            input_id: An MEDM project, asset, revision or version id.
+
+        Raises:
+            FlowError
+        """
+        try:
+            prefix, col_id, sub_id = input_id.rsplit(":", maxsplit=2)
+        except ValueError as exc:
+            msg = f'Input id "{input_id}" is invalid. {exc}'
+            raise FlowError(msg) from exc
+        return col_id
+
     @trace
     def __init__(self, project: str | medm_model.Project):
         """
@@ -436,8 +454,6 @@ class FlowProject(FlowEntity):
                 q_project.call()
             except GQLAPIError as exc:
                 msg = f"Error querying project: {project}. {exc}"
-                import traceback
-                traceback.print_exc()
                 raise FlowError(msg) from exc
             if len(q_project.projects) == 0:
                 msg = "Error retrieving MEDM project."
@@ -569,7 +585,7 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
             raise FlowError(msg)
 
         # Store general entity information
-        super().__init__(self, asset)
+        super().__init__(asset)
         # Initialize ComponentMixin class
         self.init_components(asset.components)
         # Initialize UsesMixin class
@@ -743,8 +759,12 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         # Construct new versions query if necessary
         if self._q_versions is None or refresh:
             client = get_client()
-            sort_input = medm_model.SortInput(field="created.date", order=medm_model.SortOrderEnum.DESC)
-            q_input = medm_model.AssetVersionsByAssetIdInput(asset_id=self.id, sort=sort_input)
+            sort_input = medm_model.SortInput(
+                field="created.date", order=medm_model.SortOrderEnum.DESC
+            )
+            q_input = medm_model.AssetVersionsByAssetIdInput(
+                asset_id=self.id, sort=sort_input
+            )
             self._q_versions = client.service_asset.asset_versions_by_asset_id(q_input)
 
         # Wrap existing iterator in V2 sdk
@@ -806,7 +826,9 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
 
         # NOTE: the starting asset (i.e. parent) will always be returned in
         #       the asset list, so we must skip that one
-        der_assets = [FlowAsset(a) for a in q_derivatives.assets if a.id != self.parent_id]
+        der_assets = [
+            FlowAsset(a) for a in q_derivatives.assets if a.id != self.parent_id
+        ]
         # Now filter out derivatives of the wrong type
         der_assets = [a for a in der_assets if target_type_id in a.type_ids]
 
@@ -1029,7 +1051,6 @@ class FlowRevision(ComponentMixin, UsesMixin):
         """
         return get_storage_revision_dir(self.asset_id, self.revision_number)
 
-    @trace
     def get_component_storage_path(
         self,
         component_name: str = "",
@@ -1062,14 +1083,21 @@ class FlowRevision(ComponentMixin, UsesMixin):
         )
 
     @trace
-    def fetch(self, component_purpose: str):
+    def fetch(self, component_purpose: str, fetch_dependencies: bool = False):
         """Fetch the given component of this revision if not already on disk.
         If the specified component does not exist, nothing will happen.
 
         Args:
             component_purpose: Fetch component of this purpose.
+            fetch_dependencies: If True, also fetch components of the same purpose
+                                in this revisions "uses" tree.
+                                (This may not be appropriate for all component purposes.)
         """
-        fetch(self._revision, purpose=component_purpose, fetch_dependencies=True)
+        fetch(
+            self._revision,
+            component_purpose=component_purpose,
+            fetch_dependencies=fetch_dependencies,
+        )
 
     def __str__(self):
         """Readable string representation of revision object."""
@@ -1335,14 +1363,18 @@ class FlowComponent:
         }
 
     @trace
-    def __init__(self, component: medm_model.Component):
+    def __init__(self, revision: FlowRevision, component: medm_model.Component):
         """
         Args:
+            revision: Parent FlowRevision object.
             component: Medm component object to convert to custom object.
 
         Raises:
             FlowError
         """
+        # FlowRevision object that this component belongs to
+        self.revision = revision
+        # Original MEDM component object
         self._component = component
         # Uniquely identifying component name
         self.name = component.name
@@ -1399,9 +1431,9 @@ class FlowComponent:
         urns = [blob.uri for blob in self.blobs]
 
         # Get info about current project
-        session_project = get_session_project()
+        project_id = FlowProject.get_project_id(self.revision.id)
 
-        return fetch_blob_urls(session_project.id, urns)
+        return fetch_blob_urls(project_id, urns)
 
     @trace
     def download(
@@ -1428,12 +1460,12 @@ class FlowComponent:
             FlowError
         """
         # Get info about current project
-        session_project = get_session_project()
+        project_id = FlowProject.get_project_id(self.revision.id)
 
         # Do download
         download(
             self._component,
-            session_project.id,
+            project_id,
             directory,
             file_sequence,
             skip_download,

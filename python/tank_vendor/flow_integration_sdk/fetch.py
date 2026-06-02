@@ -37,6 +37,11 @@ from .storage import (
 )
 
 
+# urn to url cache - optimization to avoid re-querying urls that are fixed
+# Format: key = urn, value = url
+_urn_to_url = {}
+
+
 @trace
 def fetch_blob_urls(project_id: str, urns: list[str]) -> list[str]:
     """Query list of urls for given blob urns that can be used for
@@ -52,21 +57,45 @@ def fetch_blob_urls(project_id: str, urns: list[str]) -> list[str]:
     Raises:
         FlowError
     """
-    # Query the download URLs from the API
-    client = get_client()
-    q_input = medm_model.BinaryComponentUrlsByUrnsInput(
-        project_id=project_id,
-        urns=urns,
-    )
-    q_urls = client.service_binary.binary_component_urls_by_urns(q_input)
-    try:
-        q_urls.call()
-    except GQLAPIError as exc:
-        msg = f"Error fetching binary component urls: {exc}"
-        raise FlowError(msg) from exc
+    query_urns = []  # urns to be queried
+    result_urls = []  # final url list to be returned
 
-    urls = [bin_comp_url.url for bin_comp_url in q_urls.urls]
-    return urls
+    # Add any cached urls to the return result first
+    # Leave spaces in the list for values that must be queried
+    for urn in urns:
+        if urn in _urn_to_url:
+            result_urls.append(_urn_to_url[urn])
+        else:
+            result_urls.append(None)
+            query_urns.append(urn)
+
+    # Query the download URLs from the API
+    if query_urns:
+        client = get_client()
+        q_input = medm_model.BinaryComponentUrlsByUrnsInput(
+            project_id=project_id,
+            urns=query_urns,
+        )
+        q_urls = client.service_binary.binary_component_urls_by_urns(q_input)
+        try:
+            q_urls.call()
+        except GQLAPIError as exc:
+            msg = f"Error fetching binary component urls: {exc}"
+            raise FlowError(msg) from exc
+
+        queried_urls = [bin_comp_url.url for bin_comp_url in q_urls.urls]
+
+        # Cache the urls we just queried
+        for i, urn in enumerate(query_urns):
+            _urn_to_url[urn] = queried_urls[i]
+
+        # Merge quered urls with result by filling in the None spaces
+        # (this should preserve the input order)
+        for i, url in enumerate(result_urls):
+            if url is None:
+                result_urls[i] = queried_urls.pop(0)
+
+    return result_urls
 
 
 @trace
@@ -166,6 +195,9 @@ def fetch(
     """
     logger = get_logger(__name__)
 
+    # Get project id
+    project_id = _get_project_id(revision.id)
+
     # List of revisions to be fetched
     rev_list = [revision]
     if fetch_dependencies:
@@ -205,7 +237,7 @@ def fetch(
             continue
         # NOTE: the component is guaranteed to exist because we already found
         #       it - can assume this path will not be None
-        cache_source_path = get_storage_component_path(rev, name=comp.name)
+        cache_source_path = get_storage_component_path(rev, component_name=comp.name)
         file_seq_comp = _find_component(rev, type_id=get_schema_id(FILE_SEQ_TYPE))
         # Check primary storage for source path before fetching
         if file_seq_comp and not missing_seq_files(file_seq_comp):
@@ -222,6 +254,7 @@ def fetch(
         # Fetch the component (indicate if it's a file sequence)
         download(
             comp,
+            project_id,
             get_storage_revision_dir(rev.asset_id, rev.revision_number),
             file_sequence=file_seq_comp is not None,
             # NOTE: we may be in a situation where the source file already exists
@@ -296,3 +329,10 @@ def _get_file_list(fileseq_comp: medm_model.Component) -> list[str]:
     file_format = fileseq_comp.data["fileFormat"]
     file_list = [file_format % i for i in list(frame_set)]
     return file_list
+
+
+def _get_project_id(input_id: str) -> str:
+    """Convert a medm asset/revision/version id into a project id."""
+    parts = input_id.split(":")
+    project_id = f"urn:medm:project:{parts[3]}:{parts[4]}"
+    return project_id

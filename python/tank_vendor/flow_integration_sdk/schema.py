@@ -28,6 +28,7 @@ from .globals import (
     DER_SOURCE_TYPE_ID,
     FOLDER_TYPE_ID,
     get_client,
+    get_session_collection,
     IMAGE_TYPE_ID,
 )
 from .utils import get_logger, trace
@@ -80,20 +81,25 @@ def _read_schema_config(config_path: str):
     return raw_config
 
 
-def _compose_schema_id(type_name: str, version: str, org_id: str, group_id: str):
+def _compose_schema_id(type_name: str, version: str):
     """Generate a full type id with info provided."""
+    session_collection = get_session_collection()
+    org_id = session_collection.organization_id
+    group_id = session_collection.group_id
     namespace = f"{org_id}.{group_id}"
     return f"{namespace}:{type_name}-{version}"
 
 
-def cache_schema_config(config_path: str, org_id: str, group_id: str):
+@trace
+def cache_schema_config(config_path: str):
     """Add types from provided schema config json file into schema cache
     to optimize queries against them.
 
+    ..note:: `globals.init_session_collection()` must be called before
+             attempting to add to schema cache.
+
     Args:
         config_path: Path to json schema config file.
-        org_id: Organization id of collection that schemas were created in.
-        group_id: Group id of collection that schemas were created in.
 
     Raises:
         RuntimeError
@@ -107,7 +113,7 @@ def cache_schema_config(config_path: str, org_id: str, group_id: str):
         type_version = schema.get("version", "")
         display_name = schema.get("display_name", "")
         if type_name and type_version:
-            type_id = _compose_schema_id(type_name, type_version, org_id, group_id)
+            type_id = _compose_schema_id(type_name, type_version)
             _schema_ids[type_name] = type_id
         if display_name:
             _schema_display_names[type_id] = display_name
@@ -191,8 +197,6 @@ def is_sub_type(base_id: str, type_id: str) -> bool:
     Raises:
         FlowError
     """
-    from ..data import get_client, get_session_project
-
     logger = get_logger(__name__)
 
     if base_id == type_id:
@@ -218,9 +222,9 @@ def is_sub_type(base_id: str, type_id: str) -> bool:
         msg = f'Querying schema subclasses for base type "{base_id}" to find type "{type_id}".'
         logger.info(msg)
         client = get_client()
-        session_project = get_session_project()
+        session_collection = get_session_collection()
         q_input = flow_model.SchemasBySuperTypeInput(
-            collection_id=session_project.get_collection_id(),
+            collection_id=session_collection.id,
             type_id=base_id,
             include_sub_sub_classes=True,
         )

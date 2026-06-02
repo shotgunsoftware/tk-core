@@ -17,11 +17,13 @@ session variables relevant to MEDM access and asset management.
 
 from __future__ import annotations  # needed for python 3.9 support
 
+from dataclasses import dataclass
+
 from tank_vendor.flow_data_sdk import GQLClient
 from tank_vendor.flow_data_sdk.base.client import AuthenticationHandlerBase
+
 from .exceptions import FlowError
 from .utils import get_logger
-
 
 # Component type ids
 # ------------------
@@ -63,7 +65,7 @@ TYPE_COMP = "Type"
 # This variable is for internal use only and should be initialized
 # explicitly using the init_client() function, and accessed via get_client().
 
-_gql_client = None
+_gql_client: GQLClient | None = None
 
 
 def init_client(endpoint_url: str, auth_handler: AuthenticationHandlerBase):
@@ -79,9 +81,7 @@ def init_client(endpoint_url: str, auth_handler: AuthenticationHandlerBase):
 
     logger = get_logger(__name__)
     logger.info(f"Creating V2 GQL client with endpoint: {endpoint_url}")
-    _gql_client = GQLClient(
-        endpoint=endpoint_url, auth_handler=auth_handler
-    )
+    _gql_client = GQLClient(endpoint=endpoint_url, auth_handler=auth_handler)
     logger.info(f"_gql_client = {_gql_client}")
 
 
@@ -94,6 +94,77 @@ def get_client() -> GQLClient:
     if _gql_client is None:
         raise FlowError("GQL client has not been initialized.")
     return _gql_client
+
+
+# MEDM Session Collection
+# ----------------------
+# The session collection stores the MEDM collection that we are operating
+# under for the current session. Tracking this helps us to query schema information
+# from the right collection.
+
+_session_collection: SessionCollection | None = None
+
+
+@dataclass
+class SessionCollection:
+    """Data class containing relevant information for session collection.
+    It tracks the collection id, and provides easy access to pertinent attributes.
+    """
+
+    #: Id of collection
+    id: str
+    #: Organization ID of collection
+    organization_id: str
+    #: Group Id of collection
+    group_id: str
+
+    def is_cpa_collection(self) -> bool:
+        """Return true if session project is from a CPA provisioned collection."""
+        if self.organization_id == "fstech":
+            return False
+        return True
+
+    def __str__(self):
+        """Stringify object info in readable way."""
+        s = "SESSION COLLECTION:\n"
+        s += f"\tid: {self.id}\n"
+        s += f"\torganization_id: {self.organization_id}\n"
+        s += f"\tgroup_id: {self.group_id}\n"
+        return s
+
+
+def init_session_collection(collection_id: str, organization_id: str, group_id: str):
+    """Store collection info for session.
+
+    Global SessionCollection data object can be accessed using `get_session_collection()`
+    function.
+
+    Args:
+        collection_id: MEDM collection id.
+        organization_id: Organization id of collection.
+        group_id: Group id of collection.
+    """
+    global _session_collection
+
+    logger = get_logger(__name__)
+    logger.info("Setting session collection info...")
+    _session_collection = SessionCollection(
+        id=collection_id,
+        organization_id=organization_id,
+        group_id=group_id,
+    )
+    logger.info(_session_collection)
+
+
+def get_session_collection() -> SessionCollection:
+    """Return session collection if initialized, otherwise raises an error.
+
+    Raises:
+        FlowError
+    """
+    if _session_collection is None:
+        raise FlowError("Session collection has not been initialized.")
+    return _session_collection
 
 
 # Web App url

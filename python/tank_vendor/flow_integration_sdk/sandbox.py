@@ -205,6 +205,7 @@ class NewDraftInfo(DraftInfo):
 # DRAFT DATA ACCESSORS
 # ------------------------------------------
 
+
 @trace
 def get_draft_id(asset_id: str | None = None) -> str:
     """Return a local draft id for given asset.
@@ -317,6 +318,7 @@ def get_draft_context(draft_path: str) -> str | None:
 # ------------------------------------------
 # SANDBOX UTILITIES
 # ------------------------------------------
+
 
 @trace
 def create_asset_in_sandbox(

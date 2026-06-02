@@ -165,6 +165,7 @@ def get_storage_revision_dir(asset_id: str, revision_number: int) -> str:
     return cleanpath(get_storage_asset_dir(asset_id), f"r{revision_number}")
 
 
+@trace
 def _cache_asset_info(asset_id: str):
     """Store relevant, persistent metadata about this asset to its
     storage directory. This will be very useful for certain lookups.
@@ -249,7 +250,6 @@ def storage_key_to_asset_id(storage_key: str) -> str:
     raise FlowError(f"Invalid storage key provided: {storage_key}")
 
 
-@trace
 def get_storage_component_path(
     revision: medm_model.AssetRevision,
     component_name: str = "",
@@ -278,7 +278,7 @@ def get_storage_component_path(
     Raise:
         FlowError
     """
-    comp = _find_component(revision, component_name, component_purpose)
+    comp = _find_component(revision, name=component_name, purpose=component_purpose)
     if not comp:
         return None
     try:
@@ -292,25 +292,27 @@ def get_storage_component_path(
 
 def _find_component(
     revision: medm_model.AssetRevision,
-    component_name: str = "",
-    component_purpose: str = "",
-    component_type: str = "",
+    name: str = "",
+    purpose: str = "",
+    type_id: str = "",
 ) -> medm_model.Component | None:
     """Match component on given revision based on criteria.
     If multiple criteria is provided, the first intersection will be returned.
 
     Args:
         revision: Revision to be searched.
-        component_name: Name of component to match.
-        component_purpose: Purpose of component to match.
-                           NOTE: this is only applicable to binary components.
-        component_type: Type id of component to match.
+        name: Name of component to match.
+        purpose: Purpose of component to match.
+                 NOTE: this is only applicable to binary components.
+        type_id: Type id of component to match.
     """
     for comp in revision.components:
         comp_purpose = comp.data.get("purpose", "")
-        if component_name and comp.name != component_name:
+        if name and comp.name != name:
             continue
-        if component_purpose and comp_purpose != component_purpose:
+        if purpose and comp_purpose != purpose:
+            continue
+        if type_id and comp.type_id != type_id:
             continue
         return comp
     return None
