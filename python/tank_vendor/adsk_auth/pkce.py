@@ -5,10 +5,6 @@
 
 from __future__ import annotations
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from socketserver import ThreadingMixIn
-from typing import Any, Dict
-from urllib.parse import parse_qs, urlencode, urlparse
 import base64
 import errno
 import hashlib
@@ -19,6 +15,10 @@ import socket
 import threading
 import urllib.request
 import webbrowser
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+from typing import Any, Dict
+from urllib.parse import parse_qs, urlencode, urlparse
 
 from .config import AuthConfig
 

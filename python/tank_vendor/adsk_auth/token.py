@@ -7,18 +7,14 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Optional
-
-import jwt
 from urllib.error import HTTPError
 
+import jwt
+
 from .config import AuthConfig
-from .file_store import (
-    delete_tokens,
-    get_access_token as get_access_token_from_store,
-    get_refresh_token,
-    get_user_profile,
-    persist_tokens,
-)
+from .file_store import delete_tokens
+from .file_store import get_access_token as get_access_token_from_store
+from .file_store import get_refresh_token, get_user_profile, persist_tokens
 from .pkce import exchange_refresh_token, web_authenticate
 
 _logger = logging.getLogger(__name__)
