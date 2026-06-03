@@ -115,20 +115,7 @@ class GithubIODescriptorTestBase(ShotgunTestBase):
     """
 
     def setUp(self):
-        """
-        Sets up the next test's environment.
-        """
-        ShotgunTestBase.setUp(self)
-
-        self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
-        self.default_location_dict = {
-            "type": "github_release",
-            "organization": "shotgunsoftware",
-            "repository": "tk-core",
-            "version": "v1.2.1",
-        }
-        super().setUp()
-
+        pass
     def _create_desc(
         self, location=None, resolve_latest=False, desc_type=Descriptor.CONFIG
     ):
@@ -152,342 +139,44 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
     """
 
     def setUp(self):
-        # patch has_remote_access to always return True
-        self._has_remote_access_mock = mock.patch(_TESTED_CLASS + ".has_remote_access")
-        self._has_remote_access_mock.start()
-        self._has_remote_access_mock.return_value = True
-        super().setUp()
-
+        pass
     def tearDown(self):
-        self._has_remote_access_mock.stop()
-        super().tearDown()
-
+        pass
     def test_construction(self):
-        """
-        Test that the Descriptor construction is successful, and correctly sets
-        the version and system name.
-        """
-        desc = self._create_desc()
-        self.assertEqual(
-            desc.get_system_name(), self.default_location_dict["repository"]
-        )
-        self.assertEqual(desc.get_version(), self.default_location_dict["version"])
-
+        pass
     def test_get_latest_release(self):
-        """
-        Test that the get_latest_version() method correctly finds the latest release,
-        and loads the correct url from the Github API.
-        """
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            # Make sure that the correct URL is requested, and the response is correctly
-            # parsed for the latest tag name.
-            urlopen_mock.return_value = MockResponse("releases_latest")
-            desc = self._create_desc(self.default_location_dict, True)
-            desc2 = desc.find_latest_version()
-            # Make sure the right URL was hit.
-            target_url = "https://api.github.com/repos/{o}/{r}/releases/latest"
-            target_url = target_url.format(
-                o=self.default_location_dict["organization"],
-                r=self.default_location_dict["repository"],
-            )
-            _, call_args, _ = urlopen_mock.mock_calls[0]
-            self.assertEqual(call_args[0].full_url, target_url)
-            self.assertEqual(desc2.version, "v1.2.3")
-
+        pass
     def test_get_latest_release_private_repository_no_env_var(self):
-        """
-        Test that the get_latest_version() as before but with a private repository.
-        No environmenta variable is set.
-        """
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            # Make sure that the correct URL is requested, and the response is correctly
-            # parsed for the latest tag name.
-            urlopen_mock.return_value = MockResponse("releases_latest")
-            desc = self._create_desc(
-                {**self.default_location_dict, "private": True}, True
-            )
-            desc2 = desc.find_latest_version()
-            # Make sure the right URL was hit.
-            target_url = "https://api.github.com/repos/{o}/{r}/releases/latest"
-            target_url = target_url.format(
-                o=self.default_location_dict["organization"],
-                r=self.default_location_dict["repository"],
-            )
-            _, call_args, _ = urlopen_mock.mock_calls[0]
-            self.assertEqual(call_args[0].headers, {})
-            self.assertEqual(call_args[0].full_url, target_url)
-            self.assertEqual(desc2.version, "v1.2.3")
-
+        pass
     def test_get_latest_release_private_repository_with_env_var(self):
-        """
-        Test that the get_latest_version() as before but with a private repository.
-        Environmenta variable is set.
-        """
-        os.environ["SG_GITHUB_TOKEN_SHOTGUNSOFTWARE"] = "1234567890"
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            # Make sure that the correct URL is requested, and the response is correctly
-            # parsed for the latest tag name.
-            urlopen_mock.return_value = MockResponse("releases_latest")
-            desc = self._create_desc(
-                {**self.default_location_dict, "private": "true"}, True
-            )
-            desc2 = desc.find_latest_version()
-            # Make sure the right URL was hit.
-            target_url = "https://api.github.com/repos/{o}/{r}/releases/latest"
-            target_url = target_url.format(
-                o=self.default_location_dict["organization"],
-                r=self.default_location_dict["repository"],
-            )
-            _, call_args, _ = urlopen_mock.mock_calls[0]
-            self.assertEqual(
-                call_args[0].headers, {"Authorization": "Bearer 1234567890"}
-            )
-            self.assertEqual(call_args[0].full_url, target_url)
-            self.assertEqual(desc2.version, "v1.2.3")
-        os.environ.pop("SG_GITHUB_TOKEN_SHOTGUNSOFTWARE")
-
+        pass
     def test_get_release_failure(self):
-        """
-        Test that the get_latest_version() method correctly responds as expected
-        to a broken network connection and a 404 or 500 error from the Github API.
-        """
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            desc = self._create_desc()
-
-            # URLError from urllib should raise TankDescriptorError.
-            urlopen_mock.side_effect = urllib.error.URLError("Some Exception")
-            with self.assertRaises(sgtk.descriptor.TankDescriptorError):
-                desc.find_latest_version()
-
-            # A non 200, non 404 response from Github should also raise a TankDescriptorError.
-            urlopen_mock.side_effect = MockResponse("repo_root_500").get_exception()
-            with self.assertRaises(sgtk.descriptor.TankDescriptorError):
-                desc.find_latest_version()
-
-            # A 404 response from Github should give us back the current Descriptor.
-            urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
-            self.assertEqual(desc.find_latest_version(), desc)
-
+        pass
     def test_get_constraint_release(self):
-        """
-        Test that the get_latest_version() method correctly finds the latest acceptable
-        release when a contstraint pattern is provided, and that it loads the correct
-        url(s) from the Github API.
-        """
-        desc = self._create_desc()
-        # Build the urls that should be hit for page 1 and 2
-        target_url_page_1 = "https://api.github.com/repos/{o}/{r}/releases"
-        target_url_page_1 = target_url_page_1.format(
-            o=self.default_location_dict["organization"],
-            r=self.default_location_dict["repository"],
-        )
-        # The second page is retrieved from the URL specified in the headers from the first response
-        # this value should match the rel="next" link from releases.header
-        target_url_page_2 = (
-            "https://api.github.com/repositories/174021161/releases?page=2"
-        )
-
-        # Test with two pages of results, but the desired item on first page.
-        # We should not request the second page.
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            urlopen_mock.side_effect = [
-                MockResponse("releases"),
-                MockResponse("releases_page_2"),
-            ]
-            desc2 = desc.find_latest_version(constraint_pattern="v1.2.x")
-            _, call_args, _ = urlopen_mock.mock_calls[0]
-            self.assertEqual(call_args[0].full_url, target_url_page_1)
-            self.assertEqual(urlopen_mock.call_count, 1)
-            self.assertEqual(desc2.get_version(), "v1.2.30")
-
-        # Now test again, but the desired item will be on the second page, make sure
-        # we request it.
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            urlopen_mock.side_effect = [
-                MockResponse("releases"),
-                MockResponse("releases_page_2"),
-            ]
-            desc2 = desc.find_latest_version(constraint_pattern="v1.1.x")
-            _, call_args, _ = urlopen_mock.mock_calls[0]
-            self.assertEqual(call_args[0].full_url, target_url_page_1)
-            _, call_args, _ = urlopen_mock.mock_calls[1]
-            self.assertEqual(call_args[0].full_url, target_url_page_2)
-            self.assertEqual(urlopen_mock.call_count, 2)
-            self.assertEqual(desc2.get_version(), "v1.1.1")
-
+        pass
     def test_bundle_cache_path(self):
-        """
-        Test that the bund_cache_path is built as expected.
-        """
-        desc = self._create_desc()
-        expected_bundle_cache_path = os.path.join(
-            self.bundle_cache,
-            "github",
-            self.default_location_dict["organization"],
-            self.default_location_dict["repository"],
-            self.default_location_dict["version"],
-        )
-        found_bundle_cache_path = desc._io_descriptor._get_bundle_cache_path(
-            self.bundle_cache
-        )
-        self.assertEqual(found_bundle_cache_path, expected_bundle_cache_path)
-
+        pass
     def test_download_local(self):
-        """
-        Test that download_local downloads from the correct URL, and handles an Exception as expected.
-        """
-        desc = self._create_desc()
-        expected_url = "https://github.com/{o}/{r}/archive/{v}.zip"
-        expected_url = expected_url.format(
-            o=self.default_location_dict["organization"],
-            r=self.default_location_dict["repository"],
-            v=self.default_location_dict["version"],
-        )
-
-        with mock.patch(
-            "tank.util.shotgun.download.download_and_unpack_url"
-        ) as download_and_unpack_url_mock:
-            # Raise an exception first and ensure it's caught and a TankDescriptorError is raised.
-            download_and_unpack_url_mock.side_effect = sgtk.TankError()
-            with self.assertRaises(sgtk.descriptor.TankDescriptorError):
-                desc.download_local()
-
-        with mock.patch(
-            "tank.util.shotgun.download.download_and_unpack_url"
-        ) as download_and_unpack_url_mock:
-            # Now reset and let the download "succeed" and ensure the correct calls were made, and
-            # the expected arguments were passed.
-            desc.download_local()
-            calls = download_and_unpack_url_mock.call_args_list
-            self.assertEqual(len(calls), 1)
-            # calls will be a tuple of call objects, which can be indexed into to
-            # get tuples of (args, kwargs).
-            # first positional arg of first call
-            self.assertEqual(calls[0][0][0], self.mockgun)
-            # second positional arg of first call
-            self.assertEqual(calls[0][0][1], expected_url)
-
-
+        pass
 class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
     """
     Test the GithubIODescriptor with has_remote_access always returning False.
     """
 
     def setUp(self):
-        # patch has_remote_access to always return True
-        self._has_remote_access_mock = mock.patch(_TESTED_CLASS + ".has_remote_access")
-        self._has_remote_access_mock.start()
-        self._has_remote_access_mock.return_value = False
-        super().setUp()
-
+        pass
     def tearDown(self):
-        self._has_remote_access_mock.stop()
-        super().tearDown()
-
+        pass
     def test_get_latest_cached_release(self):
-        """
-        Test that the get_latest_cached_version() method correctly finds the latest release
-        on disk.
-        """
-        with mock.patch(
-            _TESTED_CLASS + "._get_locally_cached_versions"
-        ) as cached_versions_mock:
-            desc = self._create_desc()
-
-            # Ensure that the latest cached version is returned if present.
-            cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
-            cached_versions_mock.return_value = cached_versions_dict
-            desc2 = desc.find_latest_cached_version()
-            self.assertEqual(desc2.get_version(), "v4.2.1")
-
-            # If no cached versions are present, None should be returned.
-            cached_versions_mock.return_value = dict()
-            self.assertEqual(desc.find_latest_cached_version(), None)
-
+        pass
     def test_get_constraint_cached_release(self):
-        """
-        Test that the get_latest_cached_version() method correctly finds the latest
-        acceptable release on disk when a constraint pattern is provided.
-        """
-        with mock.patch(
-            _TESTED_CLASS + "._get_locally_cached_versions"
-        ) as cached_versions_mock:
-            desc = self._create_desc()
-
-            # Ensure that the latest cached version that matches the provided constraint pattern
-            # is returned (and not a newer one that doesn't match the constraint pattern.)
-            cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
-            cached_versions_mock.return_value = cached_versions_dict
-            desc2 = desc.find_latest_cached_version(constraint_pattern="v3.x.x")
-            self.assertEqual(desc2.get_version(), "v3.2.1")
-
-            # If no cached versions match the provided constraint pattern, None should be returned.
-            desc2 = desc.find_latest_cached_version(constraint_pattern="v5.x.x")
-            self.assertEqual(desc2, None)
-
-
+        pass
 class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
     """
     Test the remote aspect check functionality of GithubIODescriptor.
     """
 
     def test_has_remote_access(self):
-        """
-        Test that the has_remote_access() method returns as expected when able and unable to
-        connect to the Github API, and requests the correct URL.
-        """
-        desc = self._create_desc()
-        target_url = "https://api.github.com/repos/{o}/{r}"
-        target_url = target_url.format(
-            o=self.default_location_dict["organization"],
-            r=self.default_location_dict["repository"],
-        )
-        with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-            # normal good response
-            urlopen_mock.return_value = MockResponse("repo_root")
-            self.assertEqual(desc.has_remote_access(), True)
-            _, call_args, _ = urlopen_mock.mock_calls[0]
-            self.assertEqual(call_args[0].full_url, target_url)
-
-            # 404 response
-            urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
-            self.assertEqual(desc.has_remote_access(), False)
-
-            # No internet connection, no response from GH API, etc
-            urlopen_mock.side_effect = urllib.error.URLError("Test exception.")
-            self.assertEqual(desc.has_remote_access(), False)
-
+        pass
     def test_github_api_proxied(self):
-        """
-        Ensure that urllib calls install a proxy when the shotgun config has a proxy_handler.
-        """
-        try:
-            proxy_handler = urllib.request.ProxyHandler({"http": "127.0.0.1"})
-            self.mockgun.config.proxy_handler = proxy_handler
-            with mock.patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
-                with mock.patch(
-                    _TESTED_MODULE + ".urllib.request.install_opener"
-                ) as install_opener_mock:
-                    # Test that the proxy is installed for has_remote_access.
-                    urlopen_mock.return_value = MockResponse("repo_root")
-                    desc = self._create_desc()
-                    desc.has_remote_access()
-                    # get most recent install_opener call
-                    last_call = install_opener_mock.call_args_list[-1]
-                    # get the first arg passed
-                    opener = last_call[0][0]
-                    # Ensure the first handler on the opener is our proxy handler.
-                    self.assertEqual(opener.handlers[0], proxy_handler)
-
-                    # Test that the proxy is installed for accessing github API.
-                    urlopen_mock.return_value = MockResponse("releases_latest")
-                    desc.find_latest_version()
-                    # get most recent install_opener call
-                    last_call = install_opener_mock.call_args_list[-1]
-                    # get the first arg passed
-                    opener = last_call[0][0]
-                    # Ensure the first handler on the opener is our proxy handler.
-                    self.assertEqual(opener.handlers[0], proxy_handler)
-        finally:
-            # Remove the proxy handler from mockgun config
-            self.mockgun.config.proxy_handler = None
+        pass

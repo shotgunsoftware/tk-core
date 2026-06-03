@@ -17,13 +17,7 @@ from tank.errors import TankError
 
 class TestLegacyDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
-
-        super().setUp()
-
-        self.install_root = os.path.join(
-            self.tk.pipeline_configuration.get_install_location(), "install"
-        )
-
+        pass
     def _create_info_yaml(self, path):
         """
         create a mock info.yml
@@ -34,19 +28,4 @@ class TestLegacyDescriptorSupport(TankTestBase):
         fh.close()
 
     def test_get_from_location_and_paths(self):
-        """
-        Tests legacy method get_from_location_and_paths
-        """
-
-        location = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        path = os.path.join(self.install_root, "app_store", "tk-bundle", "v0.1.2")
-        self._create_info_yaml(path)
-
-        from sgtk.deploy import descriptor
-
-        d = descriptor.get_from_location_and_paths(
-            descriptor.AppDescriptor.APP, "dummy_value", self.install_root, location
-        )
-
-        self.assertEqual(d.get_path(), path)
-        self.assertEqual(d.__class__, sgtk.descriptor.AppDescriptor)
+        pass

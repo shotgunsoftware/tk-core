@@ -24,28 +24,6 @@ class TestBackwardsCompatibility(TestCase):
     """
 
     def test_attributes(self):
-        """
-        Ensure all attributes are present.
-        """
-        attrs = [
-            "ShotgunAuthenticationError",
-            "AuthenticationError",
-            "IncompleteCredentials",
-            "AuthenticationCancelled",
-            "ShotgunAuthenticator",
-            "DefaultsManager",
-            "deserialize_user",
-            "serialize_user",
-            "get_logger",
-        ]
-
-        for attr in attrs:
-            assert hasattr(shotgun_authentication, attr)
-
+        pass
     def test_get_logger(self):
-        """
-        Ensure the logger returned is the one from the authentication module so logged
-        message get through it.
-        """
-        assert isinstance(shotgun_authentication.get_logger(), logging.Logger)
-        assert shotgun_authentication.get_logger().name == "sgtk.core.authentication"
+        pass

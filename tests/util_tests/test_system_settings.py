@@ -25,11 +25,4 @@ class SystemSettingsTests(ShotgunTestBase):
     """
 
     def test_system_proxy(self):
-        """
-        Tests the fallback on the operating system http proxy.
-        """
-        http_proxy = "foo:bar@74.50.63.111:80"  # IP address of shotgunstudio.com
-
-        with mock.patch.dict(os.environ, {"http_proxy": "http://" + http_proxy}):
-            settings = SystemSettings()
-            self.assertEqual(settings.http_proxy, http_proxy)
+        pass

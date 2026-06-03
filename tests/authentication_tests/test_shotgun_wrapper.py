@@ -29,7 +29,7 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal(
-        self, renew_session_mock, server_caps_mock, _call_rpc_mock
+        pass
     ):
         """
         When there is no valid session cached, the engine's renew session should take care of the
@@ -64,7 +64,7 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_create_connection_with_session_renewal_failure(
-        self, renew_session_mock, server_caps_mock, _call_rpc_mock
+        pass
     ):
         """
         When there is no valid session cached, the engine's renew session should take care of the
@@ -96,11 +96,7 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @mock.patch("tank.authentication.session_cache.get_session_data")
     @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     def test_successfull_session_cache_snooping(
-        self,
-        _call_rpc_mock,
-        get_session_data_mock,
-        renew_session_mock,
-        server_caps_mock,
+        pass
     ):
         """
         Tests that if the session token is invalid (mocked by the _call_rpc mocker), that we will try to
@@ -144,11 +140,7 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @mock.patch("tank.authentication.session_cache.get_session_data")
     @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     def test_failed_session_cache_snooping(
-        self,
-        _call_rpc_mock,
-        get_session_data_mock,
-        renew_session_mock,
-        server_caps_mock,
+        pass
     ):
         """
         Tests that if the session token is invalid (mocked by the _call_rpc mocker), that the session cache

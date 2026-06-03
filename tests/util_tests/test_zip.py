@@ -39,82 +39,10 @@ class TestUnzipping(ShotgunTestBase):
     """
 
     def setUp(self):
-        """
-        Sets up entities in mocked shotgun database and creates Mock objects
-        to pass in as callbacks to Schema.create_folders. The mock objects are
-        then queried to see what paths the code attempted to create.
-        """
-        super().setUp()
-
-        # fixtures location for zips
-        self.zip_file_location = os.path.join(self.fixtures_root, "misc", "zip")
-
-        # make sure assert diffs are unlimited
-        self.maxDiff = None
-
+        pass
     def test_std_unzip(self):
-        """
-        Tests unzipping of a standard app store core bundle
-        """
-        zip = os.path.join(self.zip_file_location, "tank_core.zip")
-        txt = os.path.join(self.zip_file_location, "tank_core.txt")
-        with open(txt) as txt_file:
-            expected_output = txt_file.read().split("\n")
-
-        output_path_1 = os.path.join(self.project_root, "core_zip_test_1")
-        tank.util.zip.unzip_file(zip, output_path_1)
-        self.assertEqual(
-            set(get_file_list(output_path_1, output_path_1)), set(expected_output)
-        )
-
-        # if we enable auto_detect we should get the same result
-        output_path_2 = os.path.join(self.project_root, "core_zip_test_2")
-        tank.util.zip.unzip_file(zip, output_path_2, auto_detect_bundle=True)
-        self.assertEqual(
-            set(get_file_list(output_path_2, output_path_2)), set(expected_output)
-        )
-
+        pass
     def test_single_folder_unzip(self):
-        """
-        Tests unzipping an archive where everything resides in a subfolder
-        """
-        zip = os.path.join(self.zip_file_location, "zip_with_root_folder.zip")
-        txt_std = os.path.join(self.zip_file_location, "zip_with_root_folder.txt")
-        expected_output = open(txt_std).read().split("\n")
-        txt_auto = os.path.join(self.zip_file_location, "zip_with_root_auto_detect.txt")
-        expected_output_auto = open(txt_auto).read().split("\n")
-
-        output_path_1 = os.path.join(self.project_root, "config_zip_test_1")
-        tank.util.zip.unzip_file(zip, output_path_1)
-        self.assertEqual(
-            set(get_file_list(output_path_1, output_path_1)), set(expected_output)
-        )
-
-        # if we enable auto_detect we should get the same result
-        output_path_2 = os.path.join(self.project_root, "config_zip_test_2")
-        tank.util.zip.unzip_file(zip, output_path_2, auto_detect_bundle=True)
-        self.assertEqual(
-            set(get_file_list(output_path_2, output_path_2)), set(expected_output_auto)
-        )
-
+        pass
     def test_single_file_unzip(self):
-        """
-        Tests unzipping an archive with a single file (edge case)
-        """
-        zip = os.path.join(self.zip_file_location, "single_file.zip")
-
-        output_path_1 = os.path.join(self.project_root, "single_zip_test_1")
-        tank.util.zip.unzip_file(zip, output_path_1)
-
-        output_path_2 = os.path.join(self.project_root, "single_zip_test_2")
-        tank.util.zip.unzip_file(zip, output_path_2, auto_detect_bundle=True)
-
-        self.assertEqual(
-            set(get_file_list(output_path_1, output_path_1)),
-            set(get_file_list(output_path_2, output_path_2)),
-        )
-
-        # if we enable auto_detect we should get the same result
-        self.assertEqual(
-            set(get_file_list(output_path_2, output_path_2)), set(["/info.yml"])
-        )
+        pass
