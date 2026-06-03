@@ -16,17 +16,17 @@ This module contains general utilities that can be leveraged by Flow integration
 
 from __future__ import annotations  # needed for python 3.9 support
 
-import os
-import sys
-import re
 import logging
-import time
 import math
 import mimetypes
+import os
+import re
+import sys
+import time
 import traceback
 import urllib
-from typing import Callable
 from functools import wraps
+from typing import Callable
 
 from .exceptions import DirectoryNotCreatedError, FlowError
 

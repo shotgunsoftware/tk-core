@@ -36,15 +36,16 @@ As well, there are key utilities for manipulating drafts including
 
 from __future__ import annotations  # needed for python 3.9 support
 
+import json
 import os
 import shutil
-import json
 import uuid
 from dataclasses import dataclass, asdict
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
+from .fetch import fetch
 from .globals import BASE_TYPE_ID, get_client
 from .exceptions import (
     EntityNotFoundError,
@@ -54,18 +55,6 @@ from .exceptions import (
     PublishAssetError,
     PublishConflictError,
 )
-from .utils import (
-    cleanpath,
-    get_logger,
-    is_sub_directory,
-    relpath,
-    trace,
-)
-from .storage import (
-    get_sandbox_root,
-    get_storage_component_path,
-    get_storage_key,
-)
 from .publish import (
     CommentComponentSpec,
     ComponentSpec,
@@ -73,7 +62,18 @@ from .publish import (
     publish_new_revision,
     TypeComponentSpec,
 )
-from .fetch import fetch
+from .storage import (
+    get_sandbox_root,
+    get_storage_component_path,
+    get_storage_key,
+)
+from .utils import (
+    cleanpath,
+    get_logger,
+    is_sub_directory,
+    relpath,
+    trace,
+)
 
 
 @dataclass

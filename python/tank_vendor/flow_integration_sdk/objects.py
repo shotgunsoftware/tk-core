@@ -19,16 +19,21 @@ solution for seamless access to both the data model and associated binaries.
 
 from __future__ import annotations  # needed for python 3.9 support
 
+import datetime
 import re
 import urllib
-import datetime
 from collections.abc import Iterator
-from typing import Any
 from functools import cache
+from typing import Any
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
+from .exceptions import (
+    EntityNotFoundError,
+    FlowError,
+)
+from .fetch import download, fetch, fetch_blob_urls
 from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
@@ -37,16 +42,6 @@ from .globals import (
     get_client,
     get_webapp_url,
 )
-from .utils import (
-    cleanpath,
-    get_logger,
-    to_regex_safe_wildcard_string,
-    trace,
-)
-from .exceptions import (
-    EntityNotFoundError,
-    FlowError,
-)
 from .storage import (
     _cache_asset_info,
     get_storage_asset_dir,
@@ -54,7 +49,12 @@ from .storage import (
     get_storage_key,
     get_storage_revision_dir,
 )
-from .fetch import fetch, fetch_blob_urls, download
+from .utils import (
+    cleanpath,
+    get_logger,
+    to_regex_safe_wildcard_string,
+    trace,
+)
 
 
 class FlowEntity:

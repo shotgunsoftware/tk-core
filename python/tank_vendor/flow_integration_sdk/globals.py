@@ -23,9 +23,9 @@ from typing import Callable
 from tank_vendor.flow_data_sdk import GQLClient
 from tank_vendor.flow_data_sdk.base.client import AuthenticationHandlerBase
 
+from . import utils
 from .exceptions import FlowError
 from .utils import get_logger
-from . import utils
 
 # Component type ids
 # ------------------

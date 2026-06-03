@@ -16,16 +16,15 @@ This module provides asset download/fetching utilities.
 
 from __future__ import annotations  # needed for python 3.9 support
 
+import fileseq
 import os
 import zipfile
-import fileseq
-from functools import cache
 from collections.abc import Iterator
+from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
-from .utils import cleanpath, download_file, get_logger, trace
 from .globals import get_client, FILE_SEQ_TYPE
 from .exceptions import FlowError
 from .schema import get_schema_id
@@ -35,6 +34,7 @@ from .storage import (
     get_storage_component_path,
     get_storage_revision_dir,
 )
+from .utils import cleanpath, download_file, get_logger, trace
 
 
 # urn to url cache - optimization to avoid re-querying urls that are fixed

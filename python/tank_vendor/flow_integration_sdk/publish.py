@@ -18,17 +18,16 @@ from __future__ import annotations  # needed for python 3.9 support
 
 import os
 import uuid
-import zipfile
 import shutil
 import tempfile
+import zipfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
-from .utils import cleanpath, get_logger, mimetype, trace
-from .schema import is_sub_type
+from . import transferapi
 from .exceptions import (
     CreateAssetError,
     ComponentSpecError,
@@ -50,12 +49,13 @@ from .globals import (
     THUMBNAIL_PURPOSE,
     TYPE_COMP,
 )
-from . import transferapi
+from .schema import is_sub_type
 from .storage import (
     _cache_asset_info,
     _find_component,
     get_storage_revision_dir,
 )
+from .utils import cleanpath, get_logger, mimetype, trace
 
 
 @dataclass

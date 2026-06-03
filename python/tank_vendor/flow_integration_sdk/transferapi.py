@@ -16,12 +16,12 @@ API methods for transfering files to the remote server
 
 from __future__ import annotations  # needed for python 3.9 support
 
-import os
-import math
 import base64
 import hashlib
-import urllib.request
+import math
+import os
 import urllib.error
+import urllib.request
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError

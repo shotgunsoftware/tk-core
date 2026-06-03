@@ -18,22 +18,22 @@ from __future__ import annotations  # needed for python 3.9 support
 
 import os
 import json
-from functools import cache
 from filelock import FileLock
+from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 
+from .exceptions import (
+    ConfigurationError,
+    DirectoryNotCreatedError,
+    FlowError,
+)
 from .utils import (
     abspath,
     cleanpath,
     ensure_dir,
     get_logger,
     trace,
-)
-from .exceptions import (
-    ConfigurationError,
-    DirectoryNotCreatedError,
-    FlowError,
 )
 
 

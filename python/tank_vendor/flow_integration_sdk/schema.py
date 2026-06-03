@@ -14,13 +14,14 @@
 
 from __future__ import annotations  # needed for python 3.9 support
 
-import os
 import json
+import os
 from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as flow_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
+from .exceptions import FlowError
 from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
@@ -32,7 +33,6 @@ from .globals import (
     IMAGE_TYPE_ID,
 )
 from .utils import get_logger, trace
-from .exceptions import FlowError
 
 
 # Schema inheritance tree cache
