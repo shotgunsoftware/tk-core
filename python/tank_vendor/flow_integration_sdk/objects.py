@@ -468,6 +468,11 @@ class FlowProject(FlowEntity):
         super().__init__(project)
 
     @property
+    def collection_id(self) -> str:
+        """The id of the collection to which this project belongs."""
+        return self.get_collection_id(self.id)
+
+    @property
     def organization_id(self) -> str:
         """Organization id of collection to which project belongs.
         NOTE: This is useful for schema id determination.

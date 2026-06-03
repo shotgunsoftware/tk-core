@@ -18,12 +18,14 @@ session variables relevant to MEDM access and asset management.
 from __future__ import annotations  # needed for python 3.9 support
 
 from dataclasses import dataclass
+from typing import Callable
 
 from tank_vendor.flow_data_sdk import GQLClient
 from tank_vendor.flow_data_sdk.base.client import AuthenticationHandlerBase
 
 from .exceptions import FlowError
 from .utils import get_logger
+from . import utils
 
 # Component type ids
 # ------------------
@@ -201,3 +203,14 @@ def set_webapp_url(url: str):
 def get_webapp_url() -> str | None:
     """Return configured webapp url or None if it is not set."""
     return _webapp_url
+
+
+# Configure logger
+# ----------------
+# Set a logger callback for use in the integration sdk.
+# If not configured, a default python logger will be used.
+
+
+def set_logger_callback(callback: Callable):
+    """Set the function that returns the logger for the session."""
+    utils._logger_callback = callback
