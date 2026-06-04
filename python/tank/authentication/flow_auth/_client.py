@@ -27,7 +27,6 @@ class FlowAuthenticationHandler:
         return get_flow_access_token()
 
 
-# TODO: replace with proper client entry point
 def get_flow_client(endpoint_url=None):
     """Return a ready-to-use Flow GQL SDK client with authentication wired in.
 
