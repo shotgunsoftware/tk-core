@@ -33,12 +33,12 @@ class ToolkitManager(object):
     # Constants used to make the manager bootstrapping:
     # - download and cache the config dependencies needed to run the engine being started in a specific environment.
     # - download and cache all the config dependencies needed to run the engine in any environment.
-    (CACHE_SPARSE, CACHE_FULL) = range(2)
+    CACHE_SPARSE, CACHE_FULL = range(2)
 
     # Constants used to indicate that the manager is:
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
-    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
+    TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE = range(2)
 
     # List of constants representing the status of the progress bar when these event occurs during bootstrap.
     _RESOLVING_PROJECT_RATE = 0.0
@@ -943,8 +943,8 @@ class ToolkitManager(object):
 
     def _trigger_am_auth(self, entity, progress_callback):
         """
-        Proactively obtain a Flow/MEDM
-        access token. Silent path (file store -> refresh) is tried first; falls
+        Proactively obtain a Flow/MEDM access token.
+        Silent path (file store -> refresh) is tried first; falls
         back to opening a browser for PKCE if no usable cached/refresh token
         exists.
 
@@ -964,11 +964,6 @@ class ToolkitManager(object):
         """
         from ..authentication import flow_auth
 
-        if entity is None:
-            return
-
-        am_field = flow_auth.AM_READY_PROJECT_FIELD
-
         try:
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
@@ -977,14 +972,12 @@ class ToolkitManager(object):
             flow_auth.get_access_token()
         except flow_auth.FlowAuthConfigurationError as e:
             raise TankBootstrapError(
-                "MEDM auth misconfigured for AM-ready project %s"
-                % e
+                "MEDM auth misconfigured for AM-ready project: %s" % e
             )
         except Exception as e:
             if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
                 raise TankBootstrapError(
-                    "MEDM auth failed for AM-ready project %s"
-                    % e
+                    "MEDM auth failed for AM-ready project: %s" % e
                 )
             log.warning(
                 "MEDM auth failed; bootstrap will continue without a "
@@ -1058,7 +1051,9 @@ class ToolkitManager(object):
 
         elif self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
-            log.debug("Checking for pipeline configuration overrides in Flow Production Tracking.")
+            log.debug(
+                "Checking for pipeline configuration overrides in Flow Production Tracking."
+            )
             log.debug(
                 "In order to turn this off, set do_shotgun_config_lookup to False"
             )
@@ -1135,6 +1130,12 @@ class ToolkitManager(object):
                     [flow_auth.AM_READY_PROJECT_FIELD],
                 )
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
+                    # Retrieve and cache the flow am project id on the context object
+                    flow_project_id = sg_project.get(flow_auth.AM_READY_PROJECT_FIELD)
+                    tk, _ = config.get_tk_instance(self._sg_user)
+                    ctx = tk.context_from_entity_dictionary(entity)
+                    ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = flow_project_id
+                    # Authenticate into Flow AM
                     self._trigger_am_auth(entity, progress_callback)
 
         return config
