@@ -19,6 +19,7 @@ import json
 
 from tank_vendor import yaml
 from . import authentication
+from .authentication.flow_auth import AM_READY_PROJECT_FIELD
 
 from .util import login
 from .util import shotgun_entity
@@ -29,6 +30,9 @@ from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
 from .template import TemplatePath
+
+# Sentinel used to distinguish "not yet fetched" from "fetched and is None".
+_FLOW_AM_ID_NOT_FETCHED = object()
 
 
 class Context(object):
@@ -72,6 +76,7 @@ class Context(object):
         user=None,
         additional_entities=None,
         source_entity=None,
+        flow_am_project_id=_FLOW_AM_ID_NOT_FETCHED,
     ):
         """
         Context objects are not constructed by hand but are fabricated by the
@@ -86,6 +91,7 @@ class Context(object):
         self.__user = user
         self.__additional_entities = additional_entities or []
         self.__source_entity = source_entity
+        self.__flow_am_project_id = flow_am_project_id
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -99,6 +105,8 @@ class Context(object):
         msg.append("  PTR URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         msg.append("  Source Entity: %s" % str(self.__source_entity))
+        if self.__flow_am_project_id is not _FLOW_AM_ID_NOT_FETCHED:
+            msg.append("  Flow AM Project ID: %s" % str(self.__flow_am_project_id))
 
         return "<Sgtk Context: %s>" % ("\n".join(msg))
 
@@ -259,6 +267,8 @@ class Context(object):
         ctx_copy.__user = copy.deepcopy(self.__user, memo)
         ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
         ctx_copy.__source_entity = copy.deepcopy(self.__source_entity, memo)
+        # str/None/sentinel are all safe to assign directly without deepcopy
+        ctx_copy.__flow_am_project_id = self.__flow_am_project_id
 
         # except:
         # ctx_copy._entity_fields_cache
@@ -402,6 +412,31 @@ class Context(object):
                   Will be an empty list in most cases.
         """
         return self.__additional_entities
+
+    @property
+    def flow_am_project_id(self):
+        """
+        The FlowAM project ID for this context, or ``None`` if the project is
+        not FlowAM-enabled or there is no project in this context.
+
+        The value is read from the ``sg_flow_am_id`` field on the ShotGrid
+        project entity. It is fetched from ShotGrid on first access and then
+        cached for the lifetime of this context object.
+
+        :returns: A string containing the FlowAM project ID, or ``None``.
+        :rtype: str or None
+        """
+        if self.__flow_am_project_id is _FLOW_AM_ID_NOT_FETCHED:
+            if self.__project is None:
+                self.__flow_am_project_id = None
+            else:
+                result = self.__tk.shotgun.find_one(
+                    "Project",
+                    [["id", "is", self.__project["id"]]],
+                    [AM_READY_PROJECT_FIELD],
+                )
+                self.__flow_am_project_id = (result or {}).get(AM_READY_PROJECT_FIELD)
+        return self.__flow_am_project_id
 
     @property
     def entity_locations(self):
@@ -815,8 +850,8 @@ class Context(object):
     def to_dict(self):
         """
         Converts the context into a dictionary with keys ``project``,
-        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
-        ``source_entity``.
+        ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
+        ``source_entity``, and ``flow_am_project_id``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -835,6 +870,7 @@ class Context(object):
                 self._cleanup_entity(entity) for entity in self.additional_entities
             ],
             "source_entity": self._cleanup_entity(self.source_entity),
+            "flow_am_project_id": self.flow_am_project_id,
         }
 
     def _cleanup_entity(self, entity):
@@ -903,6 +939,7 @@ class Context(object):
             user=data.get("user"),
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
+            flow_am_project_id=data.get("flow_am_project_id", _FLOW_AM_ID_NOT_FETCHED),
         )
 
     ################################################################################################
