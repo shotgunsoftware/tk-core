@@ -941,9 +941,9 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _check_and_trigger_am_auth(self, entity, progress_callback):
+    def _trigger_am_auth(self, entity, progress_callback):
         """
-        If the resolved project is AM-ready, proactively obtain a Flow/MEDM
+        Proactively obtain a Flow/MEDM
         access token. Silent path (file store -> refresh) is tried first; falls
         back to opening a browser for PKCE if no usable cached/refresh token
         exists.
@@ -969,38 +969,6 @@ class ToolkitManager(object):
 
         am_field = flow_auth.AM_READY_PROJECT_FIELD
 
-        if entity.get("type") == "Project":
-            project_id = entity["id"]
-            sg_project = self._sg_connection.find_one(
-                "Project", [["id", "is", project_id]], [am_field]
-            )
-        elif "project" in entity and entity["project"].get("type") == "Project":
-            project_id = entity["project"]["id"]
-            sg_project = self._sg_connection.find_one(
-                "Project", [["id", "is", project_id]], [am_field]
-            )
-        else:
-            # Fetch the project link and AM-ready field in a single request
-            # using ShotGrid's deep-field notation, saving one API round-trip.
-            data = self._sg_connection.find_one(
-                entity["type"],
-                [["id", "is", entity["id"]]],
-                ["project", "project.Project.%s" % am_field],
-            )
-            if not data or not data.get("project"):
-                return
-            project_id = data["project"]["id"]
-            sg_project = {am_field: data.get("project.Project.%s" % am_field)}
-
-        if not sg_project or not sg_project.get(am_field):
-            return
-
-        log.info("Project %s is AM-ready; triggering MEDM auth.", project_id)
-        self._report_progress(
-            progress_callback,
-            self._UPDATING_CONFIGURATION_RATE,
-            "Authenticating with Autodesk identity...",
-        )
         try:
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
@@ -1009,14 +977,14 @@ class ToolkitManager(object):
             flow_auth.get_access_token()
         except flow_auth.FlowAuthConfigurationError as e:
             raise TankBootstrapError(
-                "MEDM auth misconfigured for AM-ready project %s: %s"
-                % (project_id, e)
+                "MEDM auth misconfigured for AM-ready project %s"
+                % e
             )
         except Exception as e:
             if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
                 raise TankBootstrapError(
-                    "MEDM auth failed for AM-ready project %s: %s"
-                    % (project_id, e)
+                    "MEDM auth failed for AM-ready project %s"
+                    % e
                 )
             log.warning(
                 "MEDM auth failed; bootstrap will continue without a "
@@ -1156,7 +1124,10 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
-        self._check_and_trigger_am_auth(entity, progress_callback)
+        tk, _ = config.get_tk_instance(self._sg_user)
+        ctx = tk.context_from_entity_dictionary(entity)
+        if ctx.flow_am_project_id:
+            self._trigger_am_auth(entity, progress_callback)
 
         return config
 
