@@ -941,7 +941,7 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _check_and_trigger_am_auth(self, entity, progress_callback):
+    def _trigger_am_auth(self, entity, progress_callback):
         """
         Proactively obtain a Flow/MEDM access token.
         Silent path (file store -> refresh) is tried first; falls
