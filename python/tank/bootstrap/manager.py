@@ -1124,10 +1124,11 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
-        tk, _ = config.get_tk_instance(self._sg_user)
-        ctx = tk.context_from_entity_dictionary(entity)
-        if ctx.flow_am_project_id:
-            self._trigger_am_auth(entity, progress_callback)
+        if entity is not None:
+            tk, _ = config.get_tk_instance(self._sg_user)
+            ctx = tk.context_from_entity_dictionary(entity)
+            if ctx.flow_am_project_id:
+                self._trigger_am_auth(entity, progress_callback)
 
         return config
 
