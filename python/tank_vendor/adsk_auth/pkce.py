@@ -226,7 +226,7 @@ def web_authenticate(
     *,
     time_out: float = 30.0,
     browser: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run PKCE in browser; return token dict (access_token, refresh_token, ...)."""
     import time
 
