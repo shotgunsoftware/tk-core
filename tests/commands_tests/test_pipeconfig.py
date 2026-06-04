@@ -36,6 +36,14 @@ class TestPipelineConfig(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Prepare unit test.
+        """
+        TankTestBase.setUp(self)
+
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_pc_push(self):
         pass

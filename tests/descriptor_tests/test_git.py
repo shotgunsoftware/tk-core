@@ -22,7 +22,24 @@ class TestGitIODescriptor(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Sets up the next test's environment.
+        """
+        ShotgunTestBase.setUp(self)
+
+        # bare repo cloned from our official default config
+        # multiple branches and tags
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "misc", "tk-config-default.git"
+        )
+
+        # Bare-minimum repo with both annotated and lightweight tags
+        self.git_tag_repo_uri = os.path.join(
+            self.fixtures_root, "misc", "tag-test-repo.git"
+        )
+
+        self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
+
     def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.CONFIG):
         """
         Helper method around create_descriptor

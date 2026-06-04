@@ -28,7 +28,34 @@ class TestResolverBase(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        self.install_root = os.path.join(
+            self.tk.pipeline_configuration.get_install_location(), "install"
+        )
+
+        # set up bundle cache mock
+        path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.2")
+        self._create_info_yaml(path)
+
+        self.config_1 = {
+            "type": "app_store",
+            "version": "v0.1.2",
+            "name": "tk-config-test",
+        }
+
+        self._john_smith = self.mockgun.create(
+            "HumanUser", {"login": "john.smith", "name": "John Smith"}
+        )
+        self._project = self.mockgun.create("Project", {"name": "my_project"})
+
+        # set up a resolver
+        self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="foo.maya",
+            project_id=self._project["id"],
+            bundle_cache_fallback_paths=[self.install_root],
+        )
+
     def _create_info_yaml(self, path):
         """
         create a mock info.yml
@@ -82,7 +109,25 @@ class TestUserRestriction(TestResolverBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        self._john_doe = self.mockgun.create(
+            "HumanUser", {"login": "john.doe", "name": "John Doe"}
+        )
+
+        self._john_doe_pc = self._create_pc(
+            "Doe Sandbox",
+            users=[self._john_doe],
+            plugin_ids="foo.*",
+            path="/path/to/john/doe",
+        )
+        self._smith_pc = self._create_pc(
+            "Smith Sandbox",
+            users=[self._john_smith],
+            plugin_ids="foo.*",
+            path="/path/to/user",
+        )
+
     def test_find_user_sandbox(self):
         pass
     def test_find_shared_sandbox(self):
@@ -105,7 +150,17 @@ class TestFallbackHandling(TestResolverBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.4")
+        self._create_info_yaml(path)
+
+        self.config_2 = {
+            "type": "app_store",
+            "version": "v0.1.4",
+            "name": "tk-config-test",
+        }
+
     @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_base_config(self, find_mock):
         pass
@@ -119,7 +174,9 @@ class TestAutoUpdate(TestResolverBase):
     engine on a site or Project context.
     """
     def setUp(self):
-        pass
+        super().setUp()
+        self.resolver._plugin_id = 'basic.desktop'
+
 class TestResolverPriority(TestResolverBase):
     """
     This test ensures that the following priority is respected when multiple pipeline configurations
@@ -263,7 +320,15 @@ class TestResolverSiteConfig(TestResolverBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # set up a resolver
+        self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="foo.maya",
+            project_id=None,
+            bundle_cache_fallback_paths=[self.install_root],
+        )
+
     @mock.patch("os.path.isdir", return_value=True)
     def test_resolve_installed_from_sg(self, _):
         pass
@@ -275,7 +340,13 @@ class TestResolvedConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
     def test_resolve_installed_configuration(self):
         pass
     def test_resolve_baked_configuration(self):
@@ -288,7 +359,13 @@ class TestResolvedLatestConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
     def test_resolve_latest_cached_configuration(self):
         pass
 class TestResolveWithFilter(TestResolverBase):

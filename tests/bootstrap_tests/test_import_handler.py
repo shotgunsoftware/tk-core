@@ -27,9 +27,37 @@ class TestCoreImportHandlerFindSpec(ShotgunTestBase):
     """Tests for CoreImportHandler.find_spec to ensure correct module resolution."""
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        self.core_root = tempfile.mkdtemp(prefix="tk_core_test_")
+
+        # Build a minimal fake core layout:
+        #
+        #   <core_root>/
+        #     tank/
+        #       __init__.py
+        #       platform/
+        #         __init__.py
+        #         qt5/
+        #           __init__.py          (empty, like the real qt5 module)
+        #         engine.py
+        self._make_package("tank")
+        self._make_package("tank", "platform")
+        self._make_package("tank", "platform", "qt5")
+        self._make_module("tank", "platform", "engine")
+
+        self.handler = CoreImportHandler(self.core_root)
+
     def tearDown(self):
-        pass
+        # Clean up any modules we injected during tests
+        to_remove = [
+            k for k in sys.modules if k.startswith("tank._test_import_handler_")
+        ]
+        for k in to_remove:
+            del sys.modules[k]
+        shutil.rmtree(self.core_root, ignore_errors=True)
+        super().tearDown()
+
     def _make_package(self, *parts):
         pkg_dir = os.path.join(self.core_root, *parts)
         os.makedirs(pkg_dir, exist_ok=True)
@@ -75,9 +103,14 @@ class TestCoreImportHandlerLoadModule(ShotgunTestBase):
     """Tests for CoreImportHandler.load_module error handling."""
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.core_root = tempfile.mkdtemp(prefix="tk_core_test_")
+        self.handler = CoreImportHandler(self.core_root)
+
     def tearDown(self):
-        pass
+        shutil.rmtree(self.core_root, ignore_errors=True)
+        super().tearDown()
+
     def test_load_module_converts_file_not_found_to_import_error(self):
         pass
 class TestImportErrorNotFileNotFoundError(ShotgunTestBase):
@@ -88,9 +121,39 @@ class TestImportErrorNotFileNotFoundError(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.core_root = tempfile.mkdtemp(prefix="tk_core_test_")
+
+        # Create a package with an __init__.py (like qt5)
+        qt5_dir = os.path.join(self.core_root, "tank", "platform", "qt5")
+        os.makedirs(qt5_dir)
+        with open(os.path.join(self.core_root, "tank", "__init__.py"), "w") as f:
+            f.write("")
+        with open(
+            os.path.join(self.core_root, "tank", "platform", "__init__.py"), "w"
+        ) as f:
+            f.write("")
+        with open(os.path.join(qt5_dir, "__init__.py"), "w") as f:
+            f.write("")
+
+        self.handler = CoreImportHandler(self.core_root)
+        self._injected_handler = False
+        self._stashed_modules = {}
+
     def tearDown(self):
-        pass
+        if self._injected_handler and self.handler in sys.meta_path:
+            sys.meta_path.remove(self.handler)
+
+        for key, mod in self._stashed_modules.items():
+            if mod is _SENTINEL:
+                sys.modules.pop(key, None)
+            else:
+                sys.modules[key] = mod
+        self._stashed_modules.clear()
+
+        shutil.rmtree(self.core_root, ignore_errors=True)
+        super().tearDown()
+
     def _inject_handler_and_modules(self):
         """Set up handler in sys.meta_path and fake parent modules."""
         sys.meta_path.insert(0, self.handler)

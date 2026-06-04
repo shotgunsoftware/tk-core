@@ -94,7 +94,11 @@ class TestConfigLocations(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp({"primary_root_name": "primary"})
+        self._project = self.mockgun.create(
+            "Project", {"name": "config_locations_test"}
+        )
+
     def test_token_resolution_with_installed_configuration(self):
         pass
     def test_token_resolution_with_cached_configuration(self):

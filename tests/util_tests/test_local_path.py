@@ -23,9 +23,20 @@ class TestLocalFileStorage(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # We can't assume that SHOTGUN_HOME is not set, so unset it for the tests.
+        self._old_value = os.environ.get(self.SHOTGUN_HOME)
+        if self._old_value:
+            del os.environ[self.SHOTGUN_HOME]
+
     def tearDown(self):
-        pass
+        # Set it back if there was a value before.
+        if self._old_value:
+            os.environ[self.SHOTGUN_HOME] = self._old_value
+
+        super().tearDown()
+
     def test_global(self):
         pass
     def test_legacy_global(self):

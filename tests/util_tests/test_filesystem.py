@@ -25,7 +25,11 @@ import stat
 
 class TestFileSystem(TankTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+        self.util_filesystem_test_folder_location = os.path.join(
+            self.fixtures_root, "util", "filesystem"
+        )
+
     def test_safe_delete_non_existing_folder(self):
         pass
     def test_safe_delete_folder(self):
@@ -46,7 +50,16 @@ class TestOpenInFileBrowser(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.test_folder = os.path.join(self.tank_temp, "foo")
+        self.test_file = os.path.join(self.test_folder, "bar.txt")
+        self.test_sequence = os.path.join(self.test_folder, "render.%04d.exr")
+        if not os.path.exists(self.test_folder):
+            os.mkdir(self.test_folder)
+        if not os.path.exists(self.test_file):
+            with open(self.test_file, "wt") as fh:
+                fh.write("hello test file!\n")
+
     def test_bad_path(self):
         pass
     @mock.patch("subprocess.call", return_value=0)

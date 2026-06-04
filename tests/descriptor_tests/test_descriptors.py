@@ -73,7 +73,13 @@ class TestConfigDescriptor(TankTestBase):
         pass
 class TestDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
-        pass
+
+        super().setUp()
+
+        self.install_root = os.path.join(
+            self.tk.pipeline_configuration.get_install_location(), "install"
+        )
+
     def _create_info_yaml(self, path):
         """
         create a mock info.yml
@@ -120,7 +126,16 @@ class TestConstraintValidation(unittest.TestCase):
     """
 
     def setUp(self):
-        pass
+        """
+        Ensures the Shotgun version cache is cleared between tests.
+        """
+        super().setUp()
+        # Set the server info on the Mockgun object.
+        self._up_to_date_sg = Mockgun("https://foo.shotgunstudio.com")
+        self._up_to_date_sg.server_info = {"version": (6, 6, 6)}
+        self._out_of_date_sg = Mockgun("https://foo.shotgunstudio.com")
+        self._out_of_date_sg.server_info = {"version": (6, 6, 5)}
+
     def _create_descriptor(
         self, version_constraints, supported_engines, sg_connection=None
     ):

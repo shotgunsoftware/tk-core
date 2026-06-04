@@ -27,7 +27,8 @@ git_sha = "b2cbcb9cefea668eb4ccf071e51cc650ebb27504"
 
 class TestVersionCompare(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+
     versions = {
         ("1.2.3", "1.2.3"): EQUAL,
         ("1.2.3", "1.0.0"): NEWER,

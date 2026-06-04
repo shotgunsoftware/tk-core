@@ -39,22 +39,82 @@ class TestEngineBase(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Sets up a few entities so we can create a vaid context.
+        """
+        super().setUp()
+
+        self.setup_fixtures()
+
+        # setup shot
+        seq = {"type": "Sequence", "name": "seq_name", "id": 3}
+        seq_path = os.path.join(self.project_root, "sequences/Seq")
+        self.add_production_path(seq_path, seq)
+        shot = {"type": "Shot", "name": "shot_name", "id": 2, "project": self.project}
+        shot_path = os.path.join(seq_path, "shot_code")
+        self.add_production_path(shot_path, shot)
+        step = {"type": "Step", "name": "step_name", "id": 4}
+        self.shot_step_path = os.path.join(shot_path, "step_name")
+        self.add_production_path(self.shot_step_path, step)
+
+        self.test_resource = os.path.join(
+            self.pipeline_config_root, "config", "foo", "bar.png"
+        )
+        os.makedirs(os.path.dirname(self.test_resource))
+        fh = open(self.test_resource, "wt")
+        fh.write("test")
+        fh.close()
+
+        self.context = self.tk.context_from_path(self.shot_step_path)
+
     def tearDown(self):
-        pass
+        """
+        Tears down the current engine.
+        """
+        cur_engine = tank.platform.current_engine()
+        if cur_engine:
+            cur_engine.destroy()
+        os.remove(self.test_resource)
+
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
+
 class TestDialogCreation(TestEngineBase):
     """
     Tests how engines construct and show dialogs.
     """
 
     def setUp(self):
-        pass
+        """
+        We need a QApplication to run these tests.
+        """
+        super().setUp()
+
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        if QtGui.QApplication.instance() is None:
+            QtGui.QApplication([])
+
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
     @skip_if_pyside_missing
     def test_create_widget(self):
         pass
     @skip_if_pyside_missing
     def tearDown(self):
-        pass
+        """
+        Tears down the current engine.
+        """
+        cur_engine = sgtk.platform.current_engine()
+        if cur_engine:
+            cur_engine.destroy()
+
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
+
 class TestStartEngine(TestEngineBase):
     """
     Tests how engines are started.
@@ -82,7 +142,24 @@ class TestExecuteInMainThread(TestEngineBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Starts up an engine and makes sure Qt is ready to be used.
+        """
+        super().setUp()
+
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        # See if a QApplication instance exists, and if not create one.  Use the
+        # QApplication.instance() method, since qApp can contain a non-None
+        # value even if no QApplication has been constructed on PySide2.
+        if not QtGui.QApplication.instance():
+            self._app = QtGui.QApplication(sys.argv)
+        else:
+            self._app = QtGui.QApplication.instance()
+
+        tank.platform.start_engine("test_engine", self.tk, self.context)
+
     @unittest.skipIf(
         (
             (sys.version_info.major, sys.version_info.minor) == (3, 11)
@@ -198,7 +275,23 @@ class TestContextChange(TestEngineBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Prepares a mocker that will count how many times a method is called with certain parameters.
+        """
+        TestEngineBase.setUp(self)
+
+        # Create pass-through patches for methods that should be invoked
+        # when switching context. We'll use them layer to count how many times
+        # they have been invoked and with what parameters.
+        self._pre_patch = mock.patch(
+            "sgtk.platform.engine._CoreContextChangeHookGuard._execute_pre_context_change",
+            wraps=engine._CoreContextChangeHookGuard._execute_pre_context_change,
+        )
+        self._post_patch = mock.patch(
+            "sgtk.platform.engine._CoreContextChangeHookGuard._execute_post_context_change",
+            wraps=engine._CoreContextChangeHookGuard._execute_post_context_change,
+        )
+
     @contextlib.contextmanager
     def _assert_hooks_invoked(self, old_context, new_context):
         """
@@ -252,9 +345,30 @@ class TestShowDialog(TestEngineBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Prepares the engine and makes sure Qt is ready.
+        """
+        super().setUp()
+        self.setup_fixtures()
+
+        self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        # Create an application instance so we can take control of the execution
+        # of the dialog.
+        if QtGui.QApplication.instance() is None:
+            self._app = QtGui.QApplication(sys.argv)
+        else:
+            self._app = QtGui.QApplication.instance()
+
+        self._dialog_dimissed = False
+
     def tearDown(self):
-        pass
+        self.engine.destroy()
+        super().tearDown()
+
     @suppress_generated_code_qt_warnings
     def test_gui_app_and_close(self):
         pass

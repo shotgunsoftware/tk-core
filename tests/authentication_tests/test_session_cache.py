@@ -24,7 +24,10 @@ from tank_vendor import yaml
 
 class SessionCacheTests(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+        # Wipe the global session file that has been edited by previous tests.
+        self._write_global_yml({})
+
     def _write_global_yml(self, content):
         """
         Writes the global authentication file.

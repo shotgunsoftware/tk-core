@@ -22,7 +22,9 @@ class TestHookProperties(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures()
+
     def test_core_hook_properties(self):
         pass
     def test_no_parent_hook_properties(self):

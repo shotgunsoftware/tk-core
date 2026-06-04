@@ -88,65 +88,24 @@ class UserTests(ShotgunTestBase):
         side_effect=ConnectionRefusedError(),
     )
     def test_are_credentials_expired(
-        pass
+        self,
+        call_rpc_mock,
     ):
-        """
-        Makes sure the are_credentials_expired method can survive a
-        ConnectionRefusedError.
-        """
-
-        su = self._create_test_user()
-        self.assertTrue(su.are_credentials_expired())
-
+        pass
     @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_failure(
-        pass
+        self, renew_session_mock, call_rpc_mock, server_caps_mock
     ):
-        """
-        Makes sure we can refresh credentials correctly.
-
-        :param renew_session_mock: Mock for the renew_session method in interactive_authentication.
-        :param renew_session_mock: Mock for the _call_rpc method on the Shotgun class.
-        """
-
-        su = self._create_test_user()
-
-        # First make sure we are failing if the session is not renewed correctly.
-        call_rpc_mock.side_effect = AuthenticationFault()
-        sg = su.create_sg_connection()
-        with self.assertRaises(AuthenticationFault):
-            sg._call_rpc()
-
+        pass
     @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @mock.patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @mock.patch("tank.authentication.interactive_authentication.renew_session")
     def test_refresh_credentials_on_old_connection(
-        pass
+        self, renew_session_mock, call_rpc_mock, server_caps_mock
     ):
-        """
-        Makes sure that an existing connection with old session token can still be
-        refreshed with the newer token on the user object.
-
-        :param renew_session_mock: Mock for the renew_session method in interactive_authentication.
-        :param renew_session_mock: Mock for the _call_rpc method on the Shotgun class.
-        """
-
-        su = self._create_test_user()
-
-        # Simulate a session renewal has happened since the Shotgun connection
-        # creationg
-        sg = su.create_sg_connection()
-        su.impl.set_session_token("session_token_2")
-
-        # Make sure the Shotgun instance still has the old value.
-        self.assertEqual(sg.config.session_token, "session_token")
-
-        # Trigger _call_rpc to make sure sure the ShotgunWrapper copied over the session_token.
-        sg._call_rpc()
-        self.assertEqual(sg._user.get_session_token(), "session_token_2")
-
+        pass
     def test_unresolvable_user(self):
         pass
     def test_resolving_human_user(self):

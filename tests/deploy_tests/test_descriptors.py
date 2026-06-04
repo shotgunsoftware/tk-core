@@ -17,7 +17,13 @@ from tank.errors import TankError
 
 class TestLegacyDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
-        pass
+
+        super().setUp()
+
+        self.install_root = os.path.join(
+            self.tk.pipeline_configuration.get_install_location(), "install"
+        )
+
     def _create_info_yaml(self, path):
         """
         create a mock info.yml

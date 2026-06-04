@@ -43,7 +43,12 @@ class DefaultsManagerTest(ShotgunTestBase):
     _SHOTGUN_YML_PROXY = "shotgun:yml@192.168.1.1"
 
     def setUp(self):
-        pass
+        """
+        Sets up the next test's environment.
+        """
+        ShotgunTestBase.setUp(self)
+        UserSettings.clear_singleton()
+
     @mock.patch(
         "tank.authentication.session_cache.get_current_host",
         return_value=_SESSION_CACHE_HOST,

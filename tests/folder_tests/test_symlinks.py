@@ -18,7 +18,35 @@ class TestSymlinks(TankTestBase):
     """Test Symbolic link support."""
 
     def setUp(self):
-        pass
+
+        super().setUp()
+        self.setup_fixtures(parameters={"core": "core.override/symlinks_core"})
+
+        self.shot_aaa = {
+            "type": "Shot",
+            "id": 1,
+            "code": "aaa",
+            "project": self.project,
+        }
+
+        self.asset_bbb = {
+            "type": "Asset",
+            "id": 1,
+            "code": "bbb",
+            "sg_asset_type": "vehicle",
+            "project": self.project,
+        }
+
+        self.add_to_sg_mock_db([self.shot_aaa, self.asset_bbb])
+
+        self.aaa = os.path.join(self.project_root, "aaa")
+        self.aaa_work = os.path.join(self.project_root, "aaa", "work")
+        self.aaa_link = os.path.join(self.project_root, "aaa", "foo")
+
+        self.bbb = os.path.join(self.project_root, "vehicle", "bbb")
+        self.bbb_work = os.path.join(self.project_root, "vehicle", "bbb", "work")
+        self.bbb_link = os.path.join(self.project_root, "vehicle", "bbb", "test")
+
     def test_create_symlink(self):
         pass
     def test_list_field_token(self):

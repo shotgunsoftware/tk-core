@@ -22,7 +22,34 @@ class TestStaticFolderFilters(TankTestBase):
     """Test static folder filters."""
 
     def setUp(self):
-        pass
+
+        super().setUp()
+        self.setup_fixtures(parameters={"core": "core.override/static_filters_core"})
+
+        self.shot_aaa = {
+            "type": "Shot",
+            "id": 1,
+            "code": "aaa",
+            "project": self.project,
+        }
+
+        self.shot_bbb = {
+            "type": "Shot",
+            "id": 2,
+            "code": "bbb",
+            "project": self.project,
+        }
+
+        self.add_to_sg_mock_db([self.shot_aaa, self.shot_bbb])
+
+        self.aaa = os.path.join(self.project_root, "aaa")
+        self.aaa_work = os.path.join(self.project_root, "aaa", "work")
+        self.aaa_pub = os.path.join(self.project_root, "aaa", "publish")
+
+        self.bbb = os.path.join(self.project_root, "bbb")
+        self.bbb_work = os.path.join(self.project_root, "bbb", "work")
+        self.bbb_pub = os.path.join(self.project_root, "bbb", "publish")
+
     def test_create_with_filter_triggering(self):
         pass
     def test_create_with_no_filter_triggering(self):

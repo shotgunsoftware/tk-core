@@ -48,56 +48,36 @@ class TestCoreUpdate(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Prepare unit test.
+        """
+        TankTestBase.setUp(self)
+
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("core_update_tests", parameters={"installed_config": True})
+
+        # This will be the core version we will update to.
+        self._mock_store.add_core("v0.19.5")
+
     def test_installed_core_update_core_api_yaml(self, mock_config_path, *_):
         pass
     @mock.patch(
         "tank.descriptor.descriptor.Descriptor.is_immutable", return_value=True,
     )
     def test_immutable_config_core_update_core_api_yaml(
-        pass
+        self, _mock_is_immutable, mock_config_path, *_
     ):
-        """
-        Checks that the config's core_api.yml does not get updated when the config is immutable.
-        """
-        # We need to set the `pipelineconfig_utils.get_path_to_current_core` to return
-        # the path to the config created by the fixtures.
-        mock_config_path.return_value = self.pipeline_config_root
-        # Run appstore updates.
-        command = self.tk.get_command("core")
-        command.set_logger(logging.getLogger("/dev/null"))
-        command.execute({})
-
-        # Now we check that the config did not get updated since it is immutable
-        # the version number should have stayed the same.
-        descriptor = get_core_descriptor(self.pipeline_config_root, self.tk.shotgun)
-        self.assertEqual(descriptor.version, "v0.18.91")
-
+        pass
     @mock.patch(
         "tank.descriptor.descriptor.Descriptor.is_dev", return_value=True,
     )
     @mock.patch("tank.descriptor.descriptor.Descriptor.get_path")
     def test_dev_config_core_update_core_api_yaml(
-        pass
+        self, mock_get_path, _mock_is_dev, mock_config_path, *_
     ):
-        """
-        Checks if the core_api.yml gets updated when running a core update command, when using a dev config.
-        """
-        # We need to set the `pipelineconfig_utils.get_path_to_current_core` to return
-        # the path to the config created by the fixtures.
-        mock_config_path.return_value = self.pipeline_config_root
-        # We're mocking the Descriptor.get_path as the tests run with an installed config, but we
-        # want it to behave as if it was a dev descriptor config.
-        # An installed config's Descriptor.get_path will return the path to the root of the
-        # PipelineConfiguration location, where as a dev descriptor's get_path would return the path
-        # to what would normally be the "config" folder inside the root of an installed config.
-        mock_get_path.return_value = self.project_config
-        # Run appstore updates.
-        command = self.tk.get_command("core")
-        command.set_logger(logging.getLogger("/dev/null"))
-        command.execute({})
-
-        # Now we check that the config did not get updated since it is immutable
-        # the version number should have stayed the same.
-        descriptor = get_core_descriptor(self.pipeline_config_root, self.tk.shotgun)
-        self.assertEqual(descriptor.version, "v0.19.5")
+        pass

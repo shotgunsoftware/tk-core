@@ -24,7 +24,111 @@ class TestStorageRoots(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+
+        super().setUp()
+
+        # ---- mock some local storages
+
+        self.primary_storage = {
+            "type": "LocalStorage",
+            "id": 1,
+            "code": "primary",
+            "mac_path": "/tmp/primary",
+            "windows_path": "X:\\tmp\\primary",
+            "linux_path": "/tmp/primary",
+        }
+        self.add_to_sg_mock_db([self.primary_storage])
+
+        self.work_storage = {
+            "type": "LocalStorage",
+            "id": 2,
+            "code": "work",
+            "mac_path": "/tmp/work",
+            "windows_path": "X:\\tmp\\work",
+            "linux_path": "/tmp/work",
+        }
+        self.add_to_sg_mock_db([self.work_storage])
+
+        self.data_storage = {
+            "type": "LocalStorage",
+            "id": 3,
+            "code": "data",
+            "mac_path": "/tmp/data",
+            "windows_path": "X:\\tmp\\data",
+            "linux_path": "/tmp/data",
+        }
+        self.add_to_sg_mock_db([self.data_storage])
+
+        # ---- paths/metadata defined by the fixtures
+
+        # this folder houses all storage root-specific fixtures
+        roots_fixtures_folder = os.path.join(
+            self.fixtures_root, "util", "storage_roots"
+        )
+
+        # no roots
+        self._no_roots_config_folder = os.path.join(
+            roots_fixtures_folder, "no_roots", "config"
+        )
+        # these tests assume the metadata matches the corresponding fixture roots
+        self._no_roots_metadata = {}
+
+        # empty roots
+        self._empty_roots_config_folder = os.path.join(
+            roots_fixtures_folder, "empty_roots", "config"
+        )
+        # these tests assume the metadata matches the corresponding fixture roots
+        self._empty_roots_metadata = {}
+
+        # single root
+        self._single_root_config_folder = os.path.join(
+            roots_fixtures_folder, "single_root", "config"
+        )
+        # these tests assume the metadata matches the corresponding fixture roots
+        self._single_root_metadata = {
+            "primary": {
+                "linux_path": "/tmp/primary",
+                "mac_path": "/tmp/primary",
+                "windows_path": "X:\\tmp\\primary",
+            }
+        }
+
+        # multiple roots
+        self._multiple_roots_config_folder = os.path.join(
+            roots_fixtures_folder, "multiple_roots", "config"
+        )
+        # these tests assume the metadata matches the corresponding fixture roots
+        self._multiple_roots_metadata = {
+            "work": {
+                "linux_path": "/tmp/work",
+                "mac_path": "/tmp/work",
+                "windows_path": "X:\\tmp\\work",
+                "default": True,
+            },
+            "data": {
+                "linux_path": "/tmp/data",
+                "mac_path": "/tmp/data",
+                "windows_path": "X:\\tmp\\data",
+            },
+            "foobar": {
+                "linux_path": "/tmp/foobar",
+                "mac_path": "/tmp/foobar",
+                "windows_path": "X:\\tmp\\foobar",
+            },
+        }
+
+        # corrupt roots
+        self._corrupt_roots_config_folder = os.path.join(
+            roots_fixtures_folder, "corrupt_roots", "config"
+        )
+
+        # setup a temp folder for reading/writing configs
+        self._config_folder = os.path.join(
+            self.tank_temp, "test_storage_roots", "config"
+        )
+        if not os.path.exists(self._config_folder):
+            os.makedirs(self._config_folder)
+
     def test_storage_roots_file_exists(self):
         pass
     def test_storage_roots_from_config(self):

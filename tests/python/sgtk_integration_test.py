@@ -49,7 +49,95 @@ class SgtkIntegrationTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
+        """
+        Sets up the test suite.
+        """
+
+        # Set up logging
+        sgtk.LogManager().initialize_base_file_handler(
+            cls._camel_to_snake(cls.__name__)
+        )
+        sgtk.LogManager().initialize_custom_handler()
+
+        # Create a temporary directory for these tests and make sure
+        # it is cleaned up.
+        if "SHOTGUN_TEST_TEMP" not in os.environ:
+            cls.temp_dir = tempfile.mkdtemp()
+            # Only clean up the temp dir when not retrieving coverage for the tests,
+            # or we won't be able ot merge the reports from all runs.
+            if "SHOTGUN_TEST_COVERAGE" not in os.environ:
+                # Do not rely on tearDown to cleanup files on disk. Use the atexit callback which is
+                # much more realiable.
+                atexit.register(cls._cleanup_temp_dir)
+        else:
+            cls.temp_dir = os.environ["SHOTGUN_TEST_TEMP"]
+
+        # Ensures calls to the tempfile module generate paths under the unit test temp folder.
+        tempfile.tempdir = cls.temp_dir
+
+        # Ensure Toolkit writes to the temporary directory
+        os.environ["SHOTGUN_HOME"] = os.path.join(cls.temp_dir, "shotgun_home")
+
+        # Create a user and connection to Shotgun.
+        sa = sgtk.authentication.ShotgunAuthenticator()
+        user = sa.create_script_user(
+            os.environ["SHOTGUN_SCRIPT_NAME"],
+            os.environ["SHOTGUN_SCRIPT_KEY"],
+            os.environ["SHOTGUN_HOST"],
+        )
+        cls.user = user
+        cls.sg = user.create_sg_connection()
+
+        # Write the credentials to disk instead of passing them as arguments
+        # on the command line to avoid them being printed on screen in CI. Let's not
+        # trust the filtering on those.
+        cls.shotgun_credentials_file = os.path.join(cls.temp_dir, "sg_credentials.txt")
+        with open(cls.shotgun_credentials_file, "wt") as fh:
+            yaml.safe_dump(
+                {
+                    "script-name": os.environ["SHOTGUN_SCRIPT_NAME"],
+                    "script-key": os.environ["SHOTGUN_SCRIPT_KEY"],
+                },
+                fh,
+            )
+        atexit.register(cls._clean_credentials)
+
+        # Advertise the temporary directory and root of the tk-core repo
+        cls.tk_core_repo_root = os.path.normpath(
+            os.path.join(os.path.dirname(__file__), "..", "..")
+        )
+        # Set it also as an environment variable so it can be used by subprocess or a configuration.
+        os.environ["TK_CORE_REPO_ROOT"] = cls.tk_core_repo_root
+        cls.fixtures_root = os.path.join(cls.tk_core_repo_root, "tests", "fixtures")
+
+        # Create or update the integration_tests local storage with the current test run
+        # temp folder location.
+        storage_name = cls._create_unique_name("integration_tests")
+        cls.local_storage = cls.sg.find_one(
+            "LocalStorage", [["code", "is", storage_name]], ["code"]
+        )
+        if cls.local_storage is None:
+            cls.local_storage = cls.sg.create("LocalStorage", {"code": storage_name})
+
+        # Use platform agnostic token to facilitate tests.
+        cls.local_storage["path"] = os.path.join(cls.temp_dir, "storage")
+        cls.sg.update(
+            "LocalStorage",
+            cls.local_storage["id"],
+            # This means that a test suite can only run one at a time again a given site per
+            # platform. This is reasonable limitation, as our CI runs on only one
+            # node at a time.
+            {
+                sgtk.util.ShotgunPath.get_shotgun_storage_key(): cls.local_storage[
+                    "path"
+                ]
+            },
+        )
+
+        # Ensure the local storage folder exists on disk.
+        if not os.path.exists(cls.local_storage["path"]):
+            os.makedirs(cls.local_storage["path"])
+
     @staticmethod
     def _camel_to_snake(text):
         """

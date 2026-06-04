@@ -29,9 +29,41 @@ class TestApplication(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures()
+
+        # setup shot
+        seq = {"type": "Sequence", "code": "seq_name", "id": 3}
+        seq_path = os.path.join(self.project_root, "sequences", "seq_name")
+        self.add_production_path(seq_path, seq)
+
+        shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "sg_sequence": seq,
+            "project": self.project,
+        }
+        shot_path = os.path.join(seq_path, "shot_name")
+        self.add_production_path(shot_path, shot)
+
+        step = {"type": "Step", "code": "step_name", "id": 4}
+        self.shot_step_path = os.path.join(shot_path, "step_name")
+        self.add_production_path(self.shot_step_path, step)
+
+        context = self.tk.context_from_path(self.shot_step_path)
+        self.engine = tank.platform.start_engine("test_engine", self.tk, context)
+
     def tearDown(self):
-        pass
+        # engine is held as global, so must be destroyed.
+        cur_engine = tank.platform.current_engine()
+        if cur_engine:
+            cur_engine.destroy()
+
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
+
 class TestAppFrameworks(TestApplication):
     """
     Tests for framework related operations
@@ -56,7 +88,9 @@ class TestGetSetting(TestApplication):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.app = self.engine.apps["test_app"]
+
     def test_get_setting(self):
         pass
 class TestDataclassHook(TestApplication):

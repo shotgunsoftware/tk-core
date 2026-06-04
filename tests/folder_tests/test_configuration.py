@@ -26,7 +26,11 @@ class TestFolderConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.schema_location = os.path.join(
+            self.pipeline_config_root, "config", "core", "schema"
+        )
+
     def test_project_root_mismatch(self):
         pass
     def test_project_one_yml_missing(self):

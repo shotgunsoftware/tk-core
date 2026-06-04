@@ -73,12 +73,19 @@ class _MockedShotgunUser(object):
 
 class TestPrepareEngine(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp({"primary_root_name": "primary"})
+
     def test_prepare_engine(self):
         pass
 class TestGetPipelineConfigs(TankTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+
+        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
+        self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})
+        self._project = self.mockgun.create("Project", {"name": "my_project"})
+        self._mocked_sg_user = _MockedShotgunUser(self.mockgun, "john.doe")
+
     def test_basic_execution(self):
         pass
     def test_user_filters(self):

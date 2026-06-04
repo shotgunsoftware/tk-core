@@ -25,7 +25,13 @@ class TestShotgunIODescriptor(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Sets up the next test's environment.
+        """
+        ShotgunTestBase.setUp(self)
+
+        self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
+
     def _create_desc(self, location):
         """Helper method"""
         return sgtk.descriptor.create_descriptor(

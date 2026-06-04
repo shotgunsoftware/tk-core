@@ -26,7 +26,33 @@ class TestEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures()
+
+        self.test_env = "test"
+        self.test_engine = "test_engine"
+
+        # create env object
+        self.env = self.tk.pipeline_configuration.get_environment(self.test_env)
+
+        # get raw environment
+        env_file = os.path.join(self.project_config, "env", "test.yml")
+        fh = open(env_file)
+        self.raw_env_data = yaml.load(fh, Loader=yaml.FullLoader)
+        fh.close()
+
+        # get raw app metadata
+        app_md = os.path.join(self.project_config, "bundles", "test_app", "info.yml")
+        fh = open(app_md)
+        self.raw_app_metadata = yaml.load(fh, Loader=yaml.FullLoader)
+        fh.close()
+
+        # get raw engine metadata
+        eng_md = os.path.join(self.project_config, "bundles", "test_engine", "info.yml")
+        fh = open(eng_md)
+        self.raw_engine_metadata = yaml.load(fh, Loader=yaml.FullLoader)
+        fh.close()
+
     def test_basic_properties(self):
         pass
     def test_engine_settings(self):
@@ -57,7 +83,15 @@ class TestEnvironment(TankTestBase):
         pass
 class TestDumpEnvironment(TankTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+        # This test will write to the configuration folder, so copy it.
+        self.setup_fixtures(parameters={"installed_config": True})
+
+        # create env object
+        self.env = self.tk.pipeline_configuration.get_environment(
+            "test_dump", writable=True
+        )
+
     def test_dump(self):
         pass
     def test_dump_full(self):
@@ -70,7 +104,18 @@ class TestUpdateEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        # The following tests are going to update the configuration.
+        self.setup_fixtures(parameters={"installed_config": True})
+
+        self.test_env = "test"
+        self.test_engine = "test_engine"
+
+        # create env object
+        self.env = self.tk.pipeline_configuration.get_environment(
+            self.test_env, writable=True
+        )
+
     def test_add_engine(self):
         pass
     def test_add_app(self):
@@ -88,14 +133,19 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.env.set_yaml_preserve_mode(True)
+
+
 class TestRuamelParser(TankTestBase):
     """
     Tests writing yaml files using the ruamel parser
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures(parameters={"installed_config": True})
+
     def test_yaml(self):
         pass
 class TestPyYamlParser(TankTestBase):
@@ -104,6 +154,8 @@ class TestPyYamlParser(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures(parameters={"installed_config": True})
+
     def test_yaml(self):
         pass

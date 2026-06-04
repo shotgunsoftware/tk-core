@@ -38,9 +38,18 @@ class AppSessionLauncherTests(ShotgunTestBase):
         pass
 class AppSessionLauncherAPITests(ShotgunTestBase):
     def setUp(self):
-        pass
+        self.httpd = MyTCPServer()
+        self.httpd.start()
+
+        self.api_url = "http://{fqdn}:{port}".format(
+            fqdn=self.httpd.server_address[0],
+            port=self.httpd.server_address[1],
+        )
+
     def tearDown(self):
-        pass
+        if self.httpd:
+            self.httpd.stop()
+
     @mock.patch("time.sleep")
     def test_valid(self, *mocks):
         pass

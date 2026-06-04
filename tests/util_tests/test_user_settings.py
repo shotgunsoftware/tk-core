@@ -27,7 +27,13 @@ class UserSettingsTests(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Make sure the singleton is reset at the beginning of this test.
+        """
+        super().setUp()
+        UserSettings.clear_singleton()
+        self.addCleanup(UserSettings.clear_singleton)
+
     def test_empty_file(self):
         pass
     def test_filled_file(self):

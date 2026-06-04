@@ -35,7 +35,18 @@ class TestTemplateKey(ShotgunTestBase):
         pass
 class TestStringKey(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+        self.str_field = StringKey("field_name")
+        self.alphanum_field = StringKey("field_name", filter_by="alphanumeric")
+        self.alpha_field = StringKey("field_name", filter_by="alpha")
+
+        self.regex_field = StringKey(
+            "field_name", filter_by="^[0-9]{3}@[a-z]+"
+        )  # e.g 123@foo
+
+        self.choice_field = StringKey("field_name", choices=["a", "b"])
+        self.default_field = StringKey("field_name", default="b")
+
     def test_invalid(self):
         pass
     def test_default(self):
@@ -118,7 +129,9 @@ class TestStringKey(ShotgunTestBase):
         pass
 class TestIntegerKey(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+        self.int_field = IntegerKey("field_name")
+
     def test_bad_default(self):
         pass
     def test_illegal_choice(self):
@@ -271,7 +284,9 @@ class TestIntegerKey(ShotgunTestBase):
         pass
 class TestSequenceKey(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+        self.seq_field = SequenceKey("field_name")
+
     def test_framespec_no_format(self):
         pass
     def test_framspec_short_format(self):
@@ -333,7 +348,10 @@ class TestEyeKey(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.eye_key = StringKey("eye", default="%V", choices=["%V", "L", "R"])
+        self.default_value = "%V"
+
     def test_validate(self):
         pass
     def test_str_from_value_default(self):
@@ -346,7 +364,13 @@ class TestTimestampKey(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Creates a bunch of dates and strings for testing.
+        """
+        super().setUp()
+        self._datetime = datetime.datetime(2015, 6, 24, 21, 20, 30)
+        self._datetime_string = "2015-06-24-21-20-30"
+
     def test_default_values(self):
         pass
     def test_init(self):

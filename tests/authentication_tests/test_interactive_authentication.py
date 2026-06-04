@@ -56,9 +56,24 @@ class InteractiveTests(ShotgunTestBase):
     """
 
     def setUp(self, *args, **kwargs):
-        pass
+        """
+        Adds Qt modules to tank.platform.qt and initializes QApplication
+        """
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        # See if a QApplication instance exists, and if not create one.  Use the
+        # QApplication.instance() method, since qApp can contain a non-None
+        # value even if no QApplication has been constructed on PySide2.
+        if not QtGui.QApplication.instance():
+            self._app = QtGui.QApplication(sys.argv)
+        super().setUp()
+
     def tearDown(self):
-        pass
+        super().tearDown()
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        QtGui.QApplication.processEvents()
+
     @suppress_generated_code_qt_warnings
     def test_site_and_user_disabled_on_session_renewal(self):
         pass
@@ -431,7 +446,15 @@ class UtilsTests(ShotgunTestBase):
         pass
 class SsoSaml2CoreTests(ShotgunTestBase):
     def setUp(self, *args, **kwargs):
-        pass
+        qt_modules_mock = {
+            "QtCore": mock.Mock(),
+            "QtGui": mock.Mock(),
+            "QtNetwork": mock.Mock(),
+            "QtWebEngineWidgets": mock.Mock(),
+        }
+        self.sso_saml2 = SsoSaml2Core(qt_modules=qt_modules_mock)
+        super().setUp()
+
     def test_on_renew_sso_session(self):
         pass
     def test_on_sso_login_attempt(self):

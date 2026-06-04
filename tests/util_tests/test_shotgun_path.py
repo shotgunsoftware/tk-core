@@ -20,7 +20,8 @@ class TestShotgunPath(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
     def test_construction(self):
         pass
     def test_property_access(self):

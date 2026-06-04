@@ -39,7 +39,19 @@ class TestUnzipping(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp()
+
+        # fixtures location for zips
+        self.zip_file_location = os.path.join(self.fixtures_root, "misc", "zip")
+
+        # make sure assert diffs are unlimited
+        self.maxDiff = None
+
     def test_std_unzip(self):
         pass
     def test_single_folder_unzip(self):

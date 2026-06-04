@@ -25,7 +25,60 @@ class TestTemplatePath(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp(parameters={"primary_root_name": "primary_with_a_different_name"})
+        # Make various types of keys(fields)
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot", default="s1", choices=["s1", "s2", "shot_1"]),
+            "Step": StringKey("Step"),
+            "branch": StringKey("branch", filter_by="alphanumeric"),
+            "name": StringKey("name"),
+            "name_alpha": StringKey("name_alpha", filter_by="alphanumeric"),
+            "version": IntegerKey("version", format_spec="03"),
+            "snapshot": IntegerKey("snapshot", format_spec="03"),
+            "ext": StringKey("ext"),
+            "seq_num": SequenceKey("seq_num"),
+            "frame": SequenceKey("frame", format_spec="04"),
+        }
+        # Make a template
+        self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.ma"
+
+        # legacy style template object which only knows about the currently running operating system
+        self.template_path_current_os_only = TemplatePath(
+            self.definition, self.keys, self.project_root
+        )
+
+        project_root = os.path.join(self.tank_temp, "project_code")
+        self._project_roots = {self.primary_root_name: {}}
+        # Create the roots.yml like structure. Double down on the key names so it can be used in all scenarios
+        # where we require the roots.
+        for os_name in [
+            "windows_path",
+            "linux_path",
+            "mac_path",
+            "win32",
+            "linux",
+            "darwin",
+        ]:
+            self._project_roots[self.primary_root_name][os_name] = project_root
+        self._primary_project_root = project_root
+
+        # new style template object which supports all recognized platforms
+        # get all OS roots for primary storage
+        all_roots = self._project_roots[self.primary_root_name]
+
+        self.template_path = TemplatePath(
+            self.definition, self.keys, self.project_root, per_platform_roots=all_roots
+        )
+
+        self.project_root_template = TemplatePath(
+            "/", self.keys, self.project_root, per_platform_roots=all_roots
+        )
+
+        # make template with sequence key
+        self.sequence = TemplatePath("/path/to/seq.{frame}.ext", self.keys, "", "frame")
+
+
 class TestInit(TestTemplatePath):
     def test_static_simple(self):
         pass
@@ -35,7 +88,12 @@ class TestValidate(TestTemplatePath):
     """Test Case for validating a path"""
 
     def setUp(self):
-        pass
+        super().setUp()
+        relative_path = os.path.join(
+            "shots", "seq_1", "shot_1", "Anm", "work", "shot_1.mmm.v001.002.ma"
+        )
+        self.valid_path = os.path.join(self.project_root, relative_path)
+
     def test_project_root(self):
         pass
     def test_valid_path(self):
@@ -222,7 +280,9 @@ class TestGetKeysSepInValue(TestTemplatePath):
     """Tests for cases where seperator used between keys is used in value for keys."""
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.keys["Asset"] = StringKey("Asset")
+
     def assert_path_matches(self, definition, input_path, expected):
         template = TemplatePath(definition, self.keys, "")
         result = template.get_fields(input_path)

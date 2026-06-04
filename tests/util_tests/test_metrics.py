@@ -140,9 +140,30 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Storing the value as it might have be changed in tests
+        self._saved_dispatch_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
+
+        self._urlopen_mock = None
+        self._mocked_method = None
+
     def tearDown(self):
-        pass
+
+        # Unpatch the `urlopen` method
+        if self._mocked_method:
+            self._urlopen_mock.stop()
+            self._urlopen_mock = None
+            self._mocked_method = None
+
+        self._destroy_engine()
+
+        # Restore value as it might have been changed in tests
+        MetricsDispatchWorkerThread.DISPATCH_INTERVAL = self._saved_dispatch_interval
+
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
     def _get_urllib_request_calls(self, return_only_calls_after_reset=False):
         """
         Helper test method that traverses `mock_calls` and return a list of `urllib.Request` specific calls
@@ -371,9 +392,23 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Setting up the mocked method
+        self._metrics_queue_singleton_log_mock = mock.patch(
+            "tank.util.metrics.MetricsQueueSingleton.log"
+        )
+        self._mocked_method = self._metrics_queue_singleton_log_mock.start()
+
     def tearDown(self):
-        pass
+        if self._mocked_method:
+            self._metrics_queue_singleton_log_mock.stop()
+            self._metrics_queue_singleton_log_mock = None
+            self._mocked_method.reset_mock()
+            self._mocked_method = None
+
+        super().tearDown()
+
     def test_legacy_util_import_statement(self):
         pass
     def test_log_event_metric(self):
@@ -397,9 +432,57 @@ class TestBundleMetrics(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures()
+
+        # setup shot
+        seq = {"type": "Sequence", "code": "seq_name", "id": 3}
+        seq_path = os.path.join(self.project_root, "sequences", "seq_name")
+        self.add_production_path(seq_path, seq)
+
+        shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "sg_sequence": seq,
+            "project": self.project,
+        }
+        shot_path = os.path.join(seq_path, "shot_name")
+        self.add_production_path(shot_path, shot)
+
+        step = {"type": "Step", "code": "step_name", "id": 4}
+        self.shot_step_path = os.path.join(shot_path, "step_name")
+        self.add_production_path(self.shot_step_path, step)
+
+        self.test_resource = os.path.join(
+            self.pipeline_config_root, "config", "foo", "bar.png"
+        )
+        os.makedirs(os.path.dirname(self.test_resource))
+        fh = open(self.test_resource, "wt")
+        fh.write("test")
+        fh.close()
+
+        # Set the dispatch interval to something not too big so tests will not
+        # wait for a long time.
+        self._metrics_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
+        MetricsDispatchWorkerThread.DISPATCH_INTERVAL = 2
+        # Make sure we have an empty queue
+        metrics_queue = MetricsQueueSingleton()
+        metrics_queue.get_metrics()
+        self.context = self.tk.context_from_path(self.shot_step_path)
+        self._authenticate()
+
     def tearDown(self):
-        pass
+        MetricsDispatchWorkerThread.DISPATCH_INTERVAL = self._metrics_interval
+        # engine is held as global, so must be destroyed.
+        cur_engine = tank.platform.current_engine()
+        if cur_engine:
+            cur_engine.destroy()
+        os.remove(self.test_resource)
+        self._de_authenticate()
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
     def _authenticate(self):
         # Need to set authenticated user prior to MetricDispatcher.start below
         user = ShotgunAuthenticator().create_script_user(
@@ -421,7 +504,10 @@ from tank.util.metrics import PlatformInfo
 
 class TestPlatformInfo(unittest.TestCase):
     def setUp(self):
-        pass
+        super().setUp()
+        # reset un-cache PlatformInfo cached value
+        PlatformInfo._PlatformInfo__cached_platform_info = None
+
     @mock.patch("platform.system", return_value="Windows")
     @mock.patch("platform.release", return_value="XP")
     def test_as_windows(self, mocked_release, mocked_system):
@@ -441,18 +527,9 @@ class TestPlatformInfo(unittest.TestCase):
     @mock.patch("platform.system", return_value="Linux")
     @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_linux_without_distribution(
-        pass
+        self, mocked_linux_distribution, mocked_system
     ):
-        """
-        Tests handling of an exception caused by the 'linux_distribution' method.
-        """
-        platform_info = PlatformInfo.get_platform_info()
-        self.assertIsNotNone(platform_info)
-        self.assertEqual("Linux", platform_info["OS"])
-        self.assertEqual("Unknown", platform_info["OS Version"])
-        self.assertTrue(mocked_system.called)
-        self.assertTrue(mocked_linux_distribution.called)
-
+        pass
     @mock.patch("platform.system", return_value="Darwin")
     @mock.patch("platform.mac_ver", side_effect=Exception)
     def test_as_mac_without_mac_version(self, mocked_mac_ver, mocked_system):

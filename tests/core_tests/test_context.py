@@ -35,10 +35,82 @@ USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
 
 class TestContext(TankTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "Step": StringKey("Step"),
+            "static_key": StringKey("static_key"),
+        }
+
+        # set up test data with single sequence, shot, step and human user
+        self.seq = {"type": "Sequence", "code": "seq_name", "id": 3}
+
+        self.shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "extra_field": "extravalue",  # used to test query from template
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+
+        self.step = {"type": "Step", "code": "step_name", "id": 4}
+
+        self.shot_alt = {
+            "type": "Shot",
+            "code": "shot_name_alt",
+            "id": 123,
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+
+        # One human user not matching the current login
+        self.other_user = {
+            "type": "HumanUser",
+            "name": USER_NAME,
+            "id": 1,
+            "login": "user_login",
+        }
+        # One human user matching the current login
+        self.current_login = tank.util.login.get_login_name()
+        self.current_user = {
+            "type": "HumanUser",
+            "name": USER_NAME,
+            "id": 2,
+            "login": self.current_login,
+        }
+
+        self.seq_path = os.path.join(self.project_root, "sequence/Seq")
+        self.add_production_path(self.seq_path, self.seq)
+        self.shot_path = os.path.join(self.seq_path, "shot_code")
+        self.add_production_path(self.shot_path, self.shot)
+        self.shot_path_alt = os.path.join(self.seq_path, "shot_code_alt")
+        self.add_production_path(self.shot_path_alt, self.shot_alt)
+        self.step_path = os.path.join(self.shot_path, "step_short_name")
+        self.add_production_path(self.step_path, self.step)
+        self.other_user_path = os.path.join(self.step_path, "user_login")
+        self.add_production_path(self.other_user_path, self.other_user)
+
+        # adding a path with step as the root (step/sequence/shot)
+        alt_2_step_path = "step_short_name"
+        self.add_production_path(alt_2_step_path, self.step)
+        alt_2_seq_path = os.path.join(alt_2_step_path, "Seq")
+        self.add_production_path(alt_2_seq_path, self.seq)
+        alt_2_shot_path = os.path.join(alt_2_seq_path, "shot_code")
+        self.add_production_path(alt_2_shot_path, self.shot)
+
+
 class TestEq(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+        # params used in creating contexts
+        self.kws = {}
+        self.kws["project"] = self.project
+        self.kws["entity"] = self.shot
+        self.kws["step"] = self.step
+
     def test_equal(self):
         pass
     def test_not_equal(self):
@@ -56,7 +128,14 @@ class TestEq(TestContext):
         pass
 class TestUser(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+        kws1 = {}
+        kws1["tk"] = self.tk
+        kws1["project"] = self.project
+        kws1["entity"] = self.shot
+        kws1["step"] = self.step
+        self.context = context.Context(**kws1)
+
     @mock.patch("tank.util.login.get_current_user")
     def test_local_login(self, get_current_user):
         pass
@@ -78,7 +157,20 @@ class TestFromPathWithPrevious(TestContext):
         pass
 class TestUrl(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Add task data to mocked shotgun
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
+        self.add_to_sg_mock_db(self.task)
+
     def test_project(self):
         pass
     def test_empty(self):
@@ -93,7 +185,20 @@ class TestStringRepresentation(TestContext):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Add task data to mocked shotgun
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
+        self.add_to_sg_mock_db(self.task)
+
     def test_site(self):
         pass
     def test_project(self):
@@ -106,7 +211,29 @@ class TestStringRepresentation(TestContext):
         pass
 class TestFromEntity(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Add task data to mocked shotgun
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
+        self.publishedfile = dict(
+            id=2,
+            type="PublishedFile",
+            project=self.project,
+            entity=self.shot,
+            task=self.task,
+        )
+
+        self.add_to_sg_mock_db(self.task)
+        self.add_to_sg_mock_db(self.publishedfile)
+
     @mock.patch("tank.util.login.get_current_user")
     def test_from_linked_entity_types(self, get_current_user):
         pass
@@ -131,51 +258,9 @@ class TestFromEntity(TestContext):
     @mock.patch("tank.context.from_entity")
     @mock.patch("tank.util.login.get_current_user")
     def test_from_entity_dictionary_additional_entities(
-        pass
+        self, get_current_user, from_entity
     ):
-        """
-        Test context.from_entity_dictionary - this can contruct a context from
-        an entity dictionary looking at linked entities where available.
-
-        Falls back to 'from_entity' if the entity dictionary doesn't contain
-        everything needed.
-        """
-        get_current_user.return_value = self.current_user
-
-        # overload from_entity to ensure it causes a test fail if from_entity_dictionary
-        # falls back to it:
-        from_entity.return_value = {}
-
-        add_value = {"name": "additional", "id": 3, "type": "add_type"}
-        ent_dict = {
-            "type": "Task",
-            "id": self.task["id"],
-            "content": self.task["content"],
-            "additional_field": add_value,
-        }
-        ent_dict["project"] = self.project
-        ent_dict["entity"] = self.shot
-        ent_dict["step"] = self.step
-
-        result = context.from_entity_dictionary(self.tk, ent_dict)
-        self.assertIsNotNone(result)
-
-        self.check_entity(self.project, result.project)
-        self.assertEqual(3, len(result.project))
-
-        self.check_entity(self.shot, result.entity)
-        self.assertEqual(3, len(result.entity))
-
-        self.check_entity(self.current_user, result.user)
-
-        self.check_entity(self.step, result.step)
-        self.assertEqual(3, len(result.step))
-
-        self.assertEqual(self.task["type"], result.task["type"])
-        self.assertEqual(self.task["id"], result.task["id"])
-        self.assertEqual(self.task["content"], result.task["name"])
-        self.assertEqual(3, len(result.task))
-
+        pass
     def check_entity(self, first_entity, second_entity, check_name=True):
         "Checks two entity dictionaries have the same values for keys type, id and name."
         self.assertEqual(first_entity["type"], second_entity["type"])
@@ -187,7 +272,31 @@ class TestFromEntity(TestContext):
         pass
 class TestAsTemplateFields(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+        # create a context obj using predefined data
+        kws = {}
+        kws["tk"] = self.tk
+        kws["project"] = self.project
+        kws["entity"] = self.shot
+        kws["step"] = self.step
+        self.ctx = context.Context(**kws)
+
+        # create a template with which to filter
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "Step": StringKey("Step"),
+            "static_key": StringKey("static_key"),
+            "shotgun_field": StringKey(
+                "shotgun_field",
+                shotgun_entity_type="Shot",
+                shotgun_field_name="shotgun_field",
+            ),
+        }
+
+        template_def = "/sequence/{Sequence}/{Shot}/{Step}/work"
+        self.template = TemplatePath(template_def, self.keys, self.project_root)
+
     def test_bad_path_cache_entry(self):
         pass
     def test_validate_parameter(self):
@@ -242,7 +351,46 @@ class TestAsTemplateFields(TestContext):
         pass
 class TestSerialize(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+        # params used in creating contexts
+        # Add data to mocked shotgun
+        self.task = self.mockgun.create(
+            "Task",
+            {
+                "content": "task_content",
+                "project": self.project,
+                "entity": self.shot,
+                "step": self.step,
+            },
+        )
+
+        self.version = self.mockgun.create(
+            "Version", {"code": "version_code", "project": self.project}
+        )
+
+        self.user = self.mockgun.create("HumanUser", {"name": USER_NAME})
+
+        self.kws = {}
+        self.kws["tk"] = self.tk
+        self.kws["project"] = self.project
+        self.kws["entity"] = self.shot
+        self.kws["step"] = self.step
+        self.kws["task"] = self.task
+        # FIXME: Mockgun does not properly set the name field on a
+        # Task so pass it in.
+        self.kws["task"]["name"] = "task_content"
+        self.kws["user"] = self.user
+        self.kws["additional_entities"] = [self.seq]
+        self.kws["source_entity"] = self.version
+
+        # self._auth_user differs from self.kws["user"], because self._auth_user
+        # is the user we are authenticated as when talking to Shotgun
+        # while self.kws["user"] is the user associated with the current
+        # context.
+        self._auth_user = ShotgunAuthenticator().create_script_user(
+            "script_user", "script_key", "https://abc.shotgunstudio.com"
+        )
+
     def test_from_dict(self):
         pass
     def test_dict_cleanup(self):
@@ -283,7 +431,20 @@ class TestSerialize(TestContext):
         pass
 class TestMultiRoot(TestContext):
     def setUp(self):
-        pass
+        super().setUp()
+
+        self.setup_multi_root_fixtures()
+
+        # adding shot path with alternate root
+        seq_path = os.path.join(self.alt_root_1, "sequence/Seq")
+        self.add_production_path(seq_path, self.seq)
+        self.alt_1_shot_path = os.path.join(seq_path, "shot_code")
+        self.add_production_path(self.alt_1_shot_path, self.shot)
+        self.alt_1_step_path = os.path.join(self.alt_1_shot_path, "step_short_name")
+        self.add_production_path(self.alt_1_step_path, self.step)
+        self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
+        self.add_production_path(self.alt_1_other_user_path, self.other_user)
+
     def test_non_primary_entity_paths(self):
         pass
     @mock.patch("tank.util.login.get_current_user")

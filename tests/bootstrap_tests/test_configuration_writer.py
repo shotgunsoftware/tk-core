@@ -99,7 +99,14 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
     """
 
     def setUp(self):
-        pass
+        # Makes sure every unit test run in its own sandbox.
+        super().setUp()
+        self._root = os.path.join(self.tank_temp, self.short_test_name)
+        os.makedirs(self._root)
+        self._cw = ConfigurationWriter(
+            ShotgunPath.from_current_os_path(self._root), self.mockgun
+        )
+
     def _get_default_intepreters(self):
         """
         Gets the default interpreter values for the Shotgun Desktop.

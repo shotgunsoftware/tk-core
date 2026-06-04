@@ -48,84 +48,9 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
     @mock.patch("tank.authentication.session_cache.generate_session_token")
     @mock.patch("tank.util.LocalFileStorageManager.get_global_root")
     def test_create_session_user(
-        pass
+        self, get_global_root, generate_session_token_mock, server_caps_mock
     ):
-        """
-        Makes sure that create_session_user does correct input validation.
-        :param generate_session_token_mock: Mocked so we can skip communicating
-                                            with the Shotgun server.
-        """
-        generate_session_token_mock.return_value = "session_token"
-        get_global_root.return_value = os.path.join(self.tank_temp, "session_cache")
-
-        # No login should throw
-        with self.assertRaises(IncompleteCredentials):
-            ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
-                "", "session_token"
-            )
-
-        # No password or session token should throw
-        with self.assertRaises(IncompleteCredentials):
-            ShotgunAuthenticator(CustomDefaultManager()).create_session_user("login")
-
-        # Passing a password should generate a session token
-        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
-            "login", password="password", host="https://host.shotgunstudio.com"
-        )
-        self.assertIsInstance(session_user, user.ShotgunUser)
-        self.assertNotIsInstance(session_user, user.ShotgunWebUser)
-        self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEqual(generate_session_token_mock.call_count, 1)
-        self.assertEqual(session_user.impl.get_session_token(), "session_token")
-
-        connection = session_user.create_sg_connection()
-        self.assertEqual(connection.config.session_token, "session_token")
-
-        # Passing invalid session_metadata will result in a regular ShotgunUser
-        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
-            "login",
-            password="password",
-            host="https://host.shotgunstudio.com",
-            session_metadata="invalid session_metadata",
-        )
-        self.assertIsInstance(session_user, user.ShotgunUser)
-        self.assertNotIsInstance(session_user, user.ShotgunWebUser)
-        self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEqual(generate_session_token_mock.call_count, 2)
-        self.assertEqual(session_user.impl.get_session_token(), "session_token")
-
-        connection = session_user.create_sg_connection()
-        self.assertEqual(connection.config.session_token, "session_token")
-
-        # Passing valid session_metadata will result in a ShotgunWebUser
-        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
-            "login",
-            password="password",
-            host="https://host.shotgunstudio.com",
-            session_metadata=valid_web_session_metadata,
-        )
-        self.assertIsInstance(session_user, user.ShotgunWebUser)
-        self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEqual(generate_session_token_mock.call_count, 3)
-        self.assertEqual(session_user.impl.get_session_token(), "session_token")
-
-        connection = session_user.create_sg_connection()
-        self.assertEqual(connection.config.session_token, "session_token")
-
-        # Passing valid session_metadata will result in a ShotgunSamlUser
-        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
-            "login",
-            password="password",
-            host="https://host.shotgunstudio.com",
-            session_metadata=valid_sso_session_metadata,
-        )
-        self.assertIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEqual(generate_session_token_mock.call_count, 4)
-        self.assertEqual(session_user.impl.get_session_token(), "session_token")
-
-        connection = session_user.create_sg_connection()
-        self.assertEqual(connection.config.session_token, "session_token")
-
+        pass
     @mock.patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     def test_create_script_user(self, server_caps_mock):
         pass

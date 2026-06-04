@@ -94,7 +94,13 @@ class TestShotgunEntity(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp()
+        self.setup_fixtures()
+
     def test_entity_name_field(self):
         pass
     def test_entity_to_string(self):

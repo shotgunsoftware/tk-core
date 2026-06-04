@@ -81,7 +81,50 @@ class TestConfiguration(TestConfigurationBase):
         pass
 class TestSSOClaims(TestConfigurationBase):
     def setUp(self):
-        pass
+        super().setUp()
+
+        config_folder = sgtk.util.ShotgunPath.from_current_os_path(
+            os.path.join(self.tank_temp, str(uuid.uuid4()))
+        )
+
+        self._configuration = CachedConfiguration(
+            config_folder,
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(self.fixtures_root),
+            ),
+            self.project["id"],
+            "basic.dcc",
+            None,
+            [],
+        )
+
+        self._mock_return_value(
+            "tank.pipelineconfig_utils.get_core_python_path_for_config",
+            return_value=os.path.join(REPO_ROOT, "python"),
+        )
+
+        # Do not waste time copying files around or core swapping. Also, deactivate
+        # thread startup and shutdown, we only want to ensure they are invoked.
+        for mocked_method in [
+            "tank.bootstrap.import_handler.CoreImportHandler.swap_core",
+            "tank.bootstrap.cached_configuration.CachedConfiguration._ensure_core_local",
+            "tank.bootstrap.configuration_writer.ConfigurationWriter.install_core",
+            "tank.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command",
+        ]:
+            self._mock_return_value(mocked_method, return_value=None)
+
+        self._start_claims_mock = self._mock_return_value(
+            "tank.authentication.user.ShotgunSamlUser.start_claims_renewal",
+            return_value=None,
+        )
+        self._stop_claims_mock = self._mock_return_value(
+            "tank.authentication.user.ShotgunSamlUser.stop_claims_renewal",
+            return_value=None,
+        )
+
     def test_claims_renewal_inactive(self):
         pass
     def test_claims_renewal_active(self):
@@ -96,52 +139,81 @@ class TestInvalidInstalledConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
     def test_resolve_installed_configuration(self):
         pass
 class TestBakedConfiguration(TestConfigurationBase):
     def setUp(self):
-        pass
+        super().setUp()
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._build_plugin_path = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__), "..", "..", "developer", "build_plugin.py"
+            )
+        )
+        sys.path.append(os.path.dirname(self._build_plugin_path))
+
     def tearDown(self):
-        pass
+        super().tearDown()
+        if os.path.dirname(self._build_plugin_path) in sys.path:
+            sys.path.remove(os.path.dirname(self._build_plugin_path))
+        # Tear down the running engine, if any
+        current_engine = sgtk.platform.current_engine()
+        if current_engine:
+            current_engine.destroy()
+        if sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
+            del os.environ[sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
+
     @mock.patch("tank.authentication.ShotgunAuthenticator.get_user")
     @mock.patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     @mock.patch(
         "sgtk.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command"
     )
     def test_build_and_use(
-        pass
+        self, core_install_mock, get_user_mock, create_tank_command_mock
     ):
-        """
-        Test baking a plugin and bootstrapping it with current tk-core.
-        """
-        default_user = self._create_session_user("default_user")
-        get_user_mock.return_value = default_user
-        # Bake the plugin
-        import build_plugin
-
-        plugin_path = os.path.join(self.fixtures_root, "bootstrap_tests", "test_plugin")
-        bake_folder = os.path.join(self.tank_temp, "test_baked")
-        build_plugin.build_plugin(
-            self.mockgun, plugin_path, bake_folder, do_bake=True, use_system_core=True
-        )
-        # And try to bootstrap it
-        # The config name and version is controlled by the
-        # fixtures/bootstrap_tests/test_plugin/info.yml file.
-        bootstrap_script = os.path.join(
-            bake_folder, "tk-config-boottest-v1.2.3", "bootstrap.py"
-        )
-        # Define some globals needed by the bootstrap script
-        global_namespace = {"__file__": bootstrap_script, "__name__": "__main__"}
-        with open(bootstrap_script, "rb") as pf:
-            exec(compile(pf.read(), bootstrap_script, "exec"), global_namespace)
-        self.assertNotEqual(sgtk.platform.current_engine(), None)
-        sgtk.platform.current_engine().destroy()
-
-
+        pass
 class TestCachedConfiguration(ShotgunTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Reset the tank_name and create a storage named after the one in the config.
+        self.mockgun.update("Project", self.project["id"], {"tank_name": None})
+        self.mockgun.create("LocalStorage", {"code": "primary"})
+
+        # Initialize a cached configuration pointing to the config.
+        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
+
+        self._temp_config_root = os.path.join(self.tank_temp, self.short_test_name)
+        self._cached_config = CachedConfiguration(
+            sgtk.util.ShotgunPath.from_current_os_path(self._temp_config_root),
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(config_root),
+            ),
+            self.project["id"],
+            "basic.*",
+            None,
+            [],
+        )
+
+        # Due to this being a test that runs offline, we can't use anything other than a
+        # path descriptor, which means that it is mutable. Because LOCAL_CFG_DIFFERENT
+        # is actually returned by three different code paths, the only way to ensure that
+        # we are indeed in the up to date state, which means everything is ready to do, is
+        # to cheat and make the descriptor immutable by monkey-patching it.
+        self._cached_config._descriptor.is_immutable = lambda: True
+        # Seems up the test tremendously since installing core becomes a noop.
+        self._cached_config._config_writer.install_core = lambda _: None
+        self._cached_config._config_writer.create_tank_command = lambda: None
+
     def test_verifies_tank_name(self):
         pass
     def test_ensure_config_not_missing_after_update(self):

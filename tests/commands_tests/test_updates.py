@@ -29,7 +29,26 @@ class TestSimpleUpdates(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Prepare unit test.
+        """
+        TankTestBase.setUp(self)
+
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
+
+        self._mock_store.add_engine("tk-test", "v1.0.0")
+        self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
+        self._mock_store.add_application("tk-multi-nodep", "v2.0.0")
+        self._mock_store.add_framework("tk-framework-test", "v1.0.0")
+        self._mock_store.add_framework("tk-framework-test", "v1.0.1")
+        self._mock_store.add_framework("tk-framework-test", "v1.1.0")
+
     def test_environment(self):
         pass
     def test_simple_update(self):
@@ -40,7 +59,27 @@ class TestIncludeUpdates(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Prepares unit test with basic bundles.
+        """
+        TankTestBase.setUp(self)
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
+
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        self._engine_bundle = self._mock_store.add_engine("tk-engine", "v1.0.0")
+        self._app_bundle = self._mock_store.add_application("tk-multi-app", "v1.0.0")
+        self._2nd_level_dep_bundle = self._mock_store.add_framework(
+            "tk-framework-2nd-level-dep", "v1.0.0"
+        )
+
+        self._update_cmd = self.tk.get_command("updates")
+        self._update_cmd.set_logger(logging.getLogger("/dev/null"))
+
     def _get_env(self, env_name):
         """
         Retrieves the environment file specified.

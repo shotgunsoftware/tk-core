@@ -25,7 +25,12 @@ from tank.util import (
 
 class MetricsCacheTests(unittest.TestCase):
     def tearDown(self):
-        pass
+        for k in os.environ:
+            if k.startswith("sgtk_metric_cache_"):
+                del os.environ[k]
+
+        super().tearDown()
+
     def test_log(self, *mocks):
         pass
     @patch.object(metrics.EventMetric, "log")

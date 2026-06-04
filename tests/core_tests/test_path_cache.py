@@ -67,9 +67,16 @@ class TestPathCache(TankTestBase):
     """Base class for path cache tests."""
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_multi_root_fixtures()
+        self.path_cache = path_cache.PathCache(self.tk)
+        self.path_cache_location = self.path_cache._get_path_cache_location()
+
     def tearDown(self):
-        pass
+        self.path_cache.close()
+        super().tearDown()
+
+
 class TestInit(TestPathCache):
     def test_db_exists(self):
         pass
@@ -81,7 +88,14 @@ class TestInit(TestPathCache):
         pass
 class TestAddMapping(TestPathCache):
     def setUp(self):
-        pass
+        super().setUp()
+
+        # entity for testing
+        self.entity = {"type": "EntityType", "id": 1, "name": "EntityName"}
+
+        # get db connection
+        self.db_cursor = self.path_cache._connection.cursor()
+
     def test_primary_path(self):
         pass
     def test_dupe_failure(self):
@@ -104,7 +118,23 @@ class TestGetEntity(TestPathCache):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.non_project = {
+            "type": "NonProjectEntity",
+            "id": 999,
+            "name": "NonProjectName",
+        }
+        # adding project roots
+
+        proj = {
+            "type": "Project",
+            "id": self.project["id"],
+            "name": self.project["name"],
+        }
+        add_item_to_cache(self.path_cache, proj, self.project_root)
+        add_item_to_cache(self.path_cache, proj, self.alt_root_1)
+        add_item_to_cache(self.path_cache, proj, self.alt_root_2)
+
     def test_non_project_primary_path(self):
         pass
     def test_non_project_alternate(self):
@@ -125,7 +155,52 @@ class Test_SeperateRoots(TestPathCache):
         pass
 class TestShotgunSync(TankTestBase):
     def setUp(self, project_tank_name="project_code"):
-        pass
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp(
+            parameters={"project_tank_name": project_tank_name}
+        )
+        self.setup_fixtures()
+
+        self.seq = {
+            "type": "Sequence",
+            "id": 2,
+            "code": "seq_code",
+            "project": self.project,
+        }
+        self.shot = {
+            "type": "Shot",
+            "id": 1,
+            "code": "shot_code",
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+        self.step = {
+            "type": "Step",
+            "id": 3,
+            "code": "step_code",
+            "entity_type": "Shot",
+            "short_name": "step_short_name",
+        }
+        self.task = {
+            "type": "Task",
+            "id": 4,
+            "entity": self.shot,
+            "step": self.step,
+            "project": self.project,
+        }
+
+        entities = [self.shot, self.seq, self.step, self.project, self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.schema_location = os.path.join(
+            self.pipeline_config_root, "config", "core", "schema"
+        )
+
     def _get_path_cache(self):
         path_cache = tank.path_cache.PathCache(self.tk)
         c = path_cache._connection.cursor()
@@ -153,7 +228,48 @@ class TestConcurrentShotgunSync(TankTestBase):
     """
 
     def setUp(self, project_tank_name="project_code"):
-        pass
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp(project_tank_name)
+        self.setup_fixtures()
+
+        self.seq = {
+            "type": "Sequence",
+            "id": 2,
+            "code": "seq_code",
+            "project": self.project,
+        }
+        self.shot = {
+            "type": "Shot",
+            "id": 1,
+            "code": "shot_code",
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+        self.step = {
+            "type": "Step",
+            "id": 3,
+            "code": "step_code",
+            "entity_type": "Shot",
+            "short_name": "step_short_name",
+        }
+        self.task = {
+            "type": "Task",
+            "id": 4,
+            "entity": self.shot,
+            "step": self.step,
+            "project": self.project,
+        }
+
+        entities = [self.shot, self.seq, self.step, self.project, self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self._multiprocess_fail = False
+
     def concurrent_full_sync(self):
         """
         Run full sync 20 times
@@ -308,9 +424,31 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Create a new project, we will assign a new Filesystemlocation entity to this
+        self._project_entity_b = self.mockgun.create("Project", {"name": "Project_B"})
+
+        # create a new FilesystemLocation entity and attach it to the default project 1 that generated by TankTestBase
+        # We hope to retrieve this entity in our test
+        self._asset_entity = self.mockgun.create(
+            "FilesystemLocation",
+            {"code": "MyAsset_A", "project": {"type": "Project", "id": 1}},
+        )
+
+        # create a new FilesystemLocation entity and associate it with the new project we created
+        # we hope not to retrieve this entity in our test
+        self._asset_entity = self.mockgun.create(
+            "FilesystemLocation",
+            {"code": "MyAsset_B", "project": self._project_entity_b},
+        )
+
+        self._pc = path_cache.PathCache(self.tk)
+
     def tearDown(self):
-        pass
+        self._pc.close()
+        super().tearDown()
+
     def test_get_entities(self):
         pass
 class TestPathCacheDelete(TankTestBase):
@@ -319,9 +457,58 @@ class TestPathCacheDelete(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Creates a bunch of entities in Mockgun and adds an entry to the FilesystemLocation.
+        """
+        super().setUp()
+
+        # Create a bunch of entities for unit testing.
+        self._project_link = self.mockgun.create("Project", {"name": "MyProject"})
+
+        self._shot_entity = self.mockgun.create(
+            "Shot", {"code": "MyShot", "project": self._project_link}
+        )
+        self._shot_entity["name"] = "MyShot"
+        self._shot_full_path = os.path.join(self.project_root, "shot")
+
+        self._asset_entity = self.mockgun.create(
+            "Asset", {"code": "MyAsset", "project": self._project_link}
+        )
+        self._asset_entity["name"] = "MyAsset"
+        self._asset_full_path = os.path.join(self.project_root, "asset")
+
+        self._pc = path_cache.PathCache(self.tk)
+
+        # Register the asset. This will be our sentinel to make sure we are not deleting too much stuff during
+        # the tests.
+        add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
+
+        # Wrap some methods in a mock so we can track their usage.
+        self._pc._do_full_sync = mock.Mock(wraps=self._pc._do_full_sync)
+        self._pc._import_filesystem_location_entry = mock.Mock(
+            wraps=self._pc._import_filesystem_location_entry
+        )
+        self._pc._remove_filesystem_location_entities = mock.Mock(
+            wraps=self._pc._remove_filesystem_location_entities
+        )
+
     def tearDown(self):
-        pass
+        """
+        Ensures our sentinel is still present.
+        """
+        try:
+            # Ensure nothing has messed with our asset.
+            paths = self._pc.get_paths(
+                self._asset_entity["type"], self._asset_entity["id"], primary_only=True
+            )
+            self.assertEqual(len(paths), 1)
+
+            # Ensure no full sync has happened. We're testing incremental syncs here!
+            self.assertEqual(self._pc._do_full_sync.called, False)
+        finally:
+            self._pc.close()
+            super().tearDown()
+
     @contextlib.contextmanager
     def mock_remote_path_cache(self):
         """
@@ -366,9 +553,18 @@ class TestPathCacheBatchOperation(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self._pc = path_cache.PathCache(self.tk)
+
+        # dial down batch sizes for these tests
+        self._prev_batch_size = self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE
+        self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 11
+
     def tearDown(self):
-        pass
+        self._pc.close()
+        self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = self._prev_batch_size
+        super().tearDown()
+
     def test_high_volume_batch_deletion(self):
         pass
     @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")

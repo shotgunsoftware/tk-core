@@ -26,9 +26,103 @@ from . import assert_paths_to_create, execute_folder_creation_proxy
 # test against a Task node where create_with_parent is false
 class TestSchemaCreateFoldersSingleTask(TankTestBase):
     def setUp(self):
-        pass
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp()
+
+        self.setup_fixtures(
+            parameters={"core": "core.override/shotgun_single_task_core"}
+        )
+
+        self.seq = {
+            "type": "Sequence",
+            "id": 2,
+            "code": "seq_code",
+            "project": self.project,
+        }
+        self.shot = {
+            "type": "Shot",
+            "id": 1,
+            "code": "shot_code",
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+        self.step = {
+            "type": "Step",
+            "id": 3,
+            "code": "step_code",
+            "short_name": "step_short_name",
+        }
+
+        self.step2 = {
+            "type": "Step",
+            "id": 33,
+            "code": "step_code_2",
+            "short_name": "step_short_name_2",
+        }
+
+        self.asset = {
+            "type": "Asset",
+            "id": 4,
+            "sg_asset_type": "assettype",
+            "code": "assetname",
+            "project": self.project,
+        }
+        self.task = {
+            "type": "Task",
+            "id": 23,
+            "entity": self.shot,
+            "step": self.step,
+            "content": "task1",
+            "project": self.project,
+        }
+
+        self.task2 = {
+            "type": "Task",
+            "id": 25,
+            "entity": self.shot,
+            "step": self.step2,
+            "content": "task2",
+            "project": self.project,
+        }
+
+        entities = [
+            self.shot,
+            self.seq,
+            self.step,
+            self.step2,
+            self.project,
+            self.asset,
+            self.task,
+            self.task2,
+        ]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.schema_location = os.path.join(
+            self.pipeline_config_root, "config", "core", "schema"
+        )
+
+        self.FolderIOReceiverBackup = (
+            folder.folder_io.FolderIOReceiver.execute_folder_creation
+        )
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = (
+            execute_folder_creation_proxy
+        )
+
     def tearDown(self):
-        pass
+
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
+        # and do local teardown
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = (
+            self.FolderIOReceiverBackup
+        )
+
     def test_shot(self):
         pass
     def test_task_a(self):
@@ -40,9 +134,103 @@ class TestSchemaCreateFoldersSingleTask(TankTestBase):
 
 class TestSchemaCreateFoldersMultiTask(TankTestBase):
     def setUp(self):
-        pass
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp()
+
+        self.setup_fixtures(
+            parameters={"core": "core.override/shotgun_multi_task_core"}
+        )
+
+        self.seq = {
+            "type": "Sequence",
+            "id": 2,
+            "code": "seq_code",
+            "project": self.project,
+        }
+        self.shot = {
+            "type": "Shot",
+            "id": 1,
+            "code": "shot_code",
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+        self.step = {
+            "type": "Step",
+            "id": 3,
+            "code": "step_code",
+            "short_name": "step_short_name",
+        }
+
+        self.step2 = {
+            "type": "Step",
+            "id": 33,
+            "code": "step_code_2",
+            "short_name": "step_short_name_2",
+        }
+
+        self.asset = {
+            "type": "Asset",
+            "id": 4,
+            "sg_asset_type": "assettype",
+            "code": "assetname",
+            "project": self.project,
+        }
+        self.task = {
+            "type": "Task",
+            "id": 23,
+            "entity": self.shot,
+            "content": "task1",
+            "step": self.step,
+            "project": self.project,
+        }
+
+        self.task2 = {
+            "type": "Task",
+            "id": 25,
+            "entity": self.shot,
+            "content": "task2",
+            "step": self.step2,
+            "project": self.project,
+        }
+
+        entities = [
+            self.shot,
+            self.seq,
+            self.step,
+            self.step2,
+            self.project,
+            self.asset,
+            self.task,
+            self.task2,
+        ]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.schema_location = os.path.join(
+            self.pipeline_config_root, "config", "core", "schema"
+        )
+
+        self.FolderIOReceiverBackup = (
+            folder.folder_io.FolderIOReceiver.execute_folder_creation
+        )
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = (
+            execute_folder_creation_proxy
+        )
+
     def tearDown(self):
-        pass
+
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
+        # and do local teardown
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = (
+            self.FolderIOReceiverBackup
+        )
+
     def make_path_list(self):
 
         expected_paths = []

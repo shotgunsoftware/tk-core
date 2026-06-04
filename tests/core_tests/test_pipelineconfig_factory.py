@@ -32,7 +32,9 @@ class TestTankFromPath(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_multi_root_fixtures()
+
     def test_primary_branch(self):
         pass
     def test_alternate_branch(self):
@@ -47,7 +49,12 @@ class TestArchivedProjects(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        self.setup_fixtures()
+
+        # archive default project
+        self.mockgun.update("Project", self.project["id"], {"archived": True})
+
     def test_archived(self):
         pass
 class TestTankFromEntity(TankTestBase):
@@ -56,7 +63,38 @@ class TestTankFromEntity(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        self.setup_fixtures()
+
+        # in addition to the default project, set up another project
+        # and shots linked to both
+        self.shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "project": self.project,
+        }
+
+        self.other_project = {
+            "type": "Project",
+            "name": "Project with no pipeline config",
+            "id": 12346,
+        }
+
+        self.other_shot = {
+            "type": "Shot",
+            "code": "a shot with no pipeline config",
+            "id": 12345,
+            "project": self.other_project,
+        }
+
+        self.non_proj_entity = {"type": "HumanUser", "login": "foo.bar", "id": 999}
+
+        self.add_to_sg_mock_db(
+            [self.shot, self.other_project, self.other_shot, self.non_proj_entity]
+        )
+
     def test_bad_project(self):
         pass
     def test_bad_entity(self):
@@ -76,7 +114,19 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # define an additional pipeline config with overlapping paths
+        self.overlapping_pc = {
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "id": 123456,
+            "project": self.project,
+            ShotgunPath.get_shotgun_storage_key(): self.project_root,
+        }
+
+        self.add_to_sg_mock_db(self.overlapping_pc)
+
     def test_primary_duplicates_from_path(self):
         pass
     def test_primary_duplicates_from_entity(self):
@@ -94,7 +144,97 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+
+        # Clean Mockgun of existing project and pipeline configurations. We want a clean slate.
+        self.mockgun.delete("PipelineConfiguration", self.sg_pc_entity["id"])
+        self.mockgun.delete("Project", self.project["id"])
+
+        # Create two projects with different tank names.
+        self.project_with_tank_name = self.mockgun.create(
+            "Project",
+            {"name": "WithTankName", "tank_name": "with_tank_name", "archived": False},
+        )
+        self.project_with_another_tank_name = self.mockgun.create(
+            "Project",
+            {
+                "name": "WithAnotherTankName",
+                "tank_name": "with_another_tank_name",
+                "archived": False,
+            },
+        )
+
+        # Create four different kinds of pipeline configurations, 2 site wide ones and 2 project specific ones.
+        self.site_wide_path = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "SiteWidePath",
+                "windows_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "linux_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "mac_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "project": None,
+            },
+        )
+
+        self.site_wide_desc = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "SiteWideDescriptor",
+                "descriptor": "sgtk:descriptor:path?path="
+                + os.path.join(self.tank_temp, "site_wide_descriptor"),
+                "plugin_ids": "basic.*",
+                "project": None,
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None,
+            },
+        )
+        # Remove some values from the resulting dict, this will make validation easier in the tests.
+        self.site_wide_desc = self._remove_items(
+            self.site_wide_desc, ["plugin_ids", "descriptor"]
+        )
+
+        self.proj_spec_path = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "ProjectSpecificPath",
+                "windows_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "linux_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "mac_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "project": self.project_with_tank_name,
+            },
+        )
+
+        self.proj_spec_desc = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "ProjectSpecificDescriptor",
+                "descriptor": "sgtk:descriptor:path?path="
+                + os.path.join(self.tank_temp, "project_specific_descriptor"),
+                "plugin_ids": "basic.*",
+                "project": self.project_with_tank_name,
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None,
+            },
+        )
+        # Remove some values from the resulting dict, this will make validation easier in the tests.
+        self.proj_spec_desc = self._remove_items(
+            self.proj_spec_desc, ["plugin_ids", "descriptor"]
+        )
+
+        self.project_with_tank_name = self._remove_items(
+            self.project_with_tank_name, ["archived"]
+        )
+        self.project_with_another_tank_name = self._remove_items(
+            self.project_with_another_tank_name, ["archived"]
+        )
+
+        # Retrieve all the pipeline configuration info.
+        self._sg_data = sgtk.pipelineconfig_factory._get_pipeline_configs(True)
+
+        self.maxDiff = None
+
     def test_get_pipeline_configs(self):
         pass
     def test_get_pipeline_configs_from_path(self):
@@ -122,7 +262,23 @@ class TestTankFromWithSiteConfig(TankTestBase):
     """
 
     def setUp(self):
-        pass
+        super().setUp()
+        # Turn the config into a site configuration.
+        self.mockgun.update(
+            "PipelineConfiguration",
+            self.sg_pc_entity["id"],
+            {
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None,
+                "project": None,
+            },
+        )
+
+        self.mockgun.create(
+            "PipelineConfiguration", {"code": "NoPath", "project": self.project}
+        )
+
     def test_from_path(self):
         pass
     def test_from_entity(self):
@@ -164,7 +320,42 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
     STORAGE_ROOT = "C:"
 
     def setUp(self):
-        pass
+
+        # set up a project named temp, so that it will end up in c:\temp
+        super().setUp(
+            parameters={"project_tank_name": self.PROJECT_NAME}
+        )
+
+        # set up std fixtures
+        self.setup_fixtures()
+
+        # patch primary local storage def
+        self.primary_storage["windows_path"] = self.STORAGE_ROOT
+        # re-add it
+        self.add_to_sg_mock_db(self.primary_storage)
+
+        # now re-write roots.yml
+        roots = {"primary": {}}
+        for os_name in ["windows_path", "linux_path", "mac_path"]:
+            # TODO make os specific roots
+            roots["primary"][os_name] = self.sg_pc_entity[os_name]
+        roots_path = os.path.join(
+            self.pipeline_config_root, "config", "core", "roots.yml"
+        )
+        roots_file = open(roots_path, "w")
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()
+
+        # need a new pipeline config object that is
+        # using the new roots def file we just created
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
+            self.pipeline_config_root
+        )
+        # push this new pipeline config into the tk api
+        self.tk._Tank__pipeline_config = self.pipeline_configuration
+        # force reload templates
+        self.tk.reload_templates()
+
     def test_project_path_lookup(self):
         pass
 class TestTankFromPathOverlapStorage(TankTestBase):
@@ -189,7 +380,73 @@ class TestTankFromPathOverlapStorage(TankTestBase):
     """
 
     def setUp(self):
-        pass
+
+        # set up two storages and two projects
+        super().setUp(
+            parameters={"project_tank_name": "foo"}
+        )
+
+        # add second project
+        self.project_2 = {
+            "type": "Project",
+            "id": 2345,
+            "tank_name": "bar",
+            "name": "project_name",
+            "archived": False,
+        }
+
+        # define entity for pipeline configuration
+        self.project_2_pc = {
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "id": 123456,
+            "project": self.project_2,
+            "windows_path": "F:\\temp\\bar_pc",
+            "mac_path": "/tmp/bar_pc",
+            "linux_path": "/tmp/bar_pc",
+        }
+
+        self.add_to_sg_mock_db(self.project_2)
+        self.add_to_sg_mock_db(self.project_2_pc)
+
+        # set up std fixtures
+        self.setup_multi_root_fixtures()
+
+        # patch storages
+        self.alt_storage_1["windows_path"] = "C:\\temp"
+        self.alt_storage_1["mac_path"] = "/tmp"
+        self.alt_storage_1["linux_path"] = "/tmp"
+
+        self.alt_storage_2["windows_path"] = "C:\\temp\\foo"
+        self.alt_storage_2["mac_path"] = "/tmp/foo"
+        self.alt_storage_2["linux_path"] = "/tmp/foo"
+
+        self.add_to_sg_mock_db(self.alt_storage_1)
+        self.add_to_sg_mock_db(self.alt_storage_2)
+
+        # Write roots file
+        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
+        for os_name in ["windows_path", "linux_path", "mac_path"]:
+            roots["primary"][os_name] = os.path.dirname(self.project_root)
+            roots["alternate_1"][os_name] = self.alt_storage_1[os_name]
+            roots["alternate_2"][os_name] = self.alt_storage_2[os_name]
+        roots_path = os.path.join(
+            self.pipeline_config_root, "config", "core", "roots.yml"
+        )
+        roots_file = open(roots_path, "w")
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()
+
+        # need a new pipeline config object that is using the new
+        # roots def file we just created
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
+            self.pipeline_config_root
+        )
+        # push this new pipeline config into the tk api
+        self.tk._Tank__pipeline_config = self.pipeline_configuration
+        # force reload templates
+        self.tk.reload_templates()
+
     def test_project_path_lookup_studio_mode(self):
         pass
     def test_project_path_lookup_local_mode(self):
@@ -201,6 +458,31 @@ class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
     """
 
     def setUp(self):
-        pass
+
+        super().setUp()
+
+        # a separate project record without the tank name set
+        self.other_project = {
+            "type": "Project",
+            "name": "Project without tank_name set",
+            "id": 77777,
+            "archived": False,
+            "tank_name": None,
+        }
+
+        # define an additional pipeline config linked to the other project
+        self.other_pc = {
+            "type": "PipelineConfiguration",
+            "code": "Other",
+            "id": 123456,
+            "project": self.other_project,
+            "windows_path": "/foobar",
+            "mac_path": "/foobar",
+            "linux_path": "/foobar",
+        }
+
+        self.add_to_sg_mock_db(self.other_project)
+        self.add_to_sg_mock_db(self.other_pc)
+
     def test_sgtk_from_path_project_no_tank_name(self):
         pass

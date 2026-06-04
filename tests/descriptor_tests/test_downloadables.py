@@ -61,7 +61,15 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
     # ShotgunTestBase and have the TestDownloadableIODescriptors call the test
     # methods on that new clean instance that is serializable.
     def setUp(self):
-        pass
+        """
+        Instantiate the actual test class that is are pickle-able by multiprocessing
+        and pass any information required for the test to function.
+        """
+        super().setUp()
+        self.imp = Implementation(
+            self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
+        )
+
     def test_appstore_downloads(self):
         pass
     def test_shotgun_entity_downloads(self):

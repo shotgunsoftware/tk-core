@@ -26,9 +26,67 @@ from . import assert_paths_to_create, execute_folder_creation_proxy
 
 class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
     def setUp(self):
-        pass
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super().setUp()
+
+        self.setup_fixtures(parameters={"core": "core.override/optional_folder_fields"})
+
+        # set up our schema for sg_other_field (string)
+        field_def = {
+            "data_type": {"editable": False, "value": "entity"},
+            "description": {"editable": True, "value": ""},
+            "editable": {"editable": False, "value": True},
+            "entity_type": {"editable": False, "value": "Shot"},
+            "mandatory": {"editable": False, "value": False},
+            "name": {"editable": True, "value": "Other Field"},
+            "properties": {
+                "default_value": {"editable": False, "value": None},
+                "summary_default": {"editable": True, "value": "none"},
+                "valid_types": {"editable": True, "value": []},
+            },
+            "unique": {"editable": False, "value": False},
+        }
+
+        # FIXME: The schema is cached in memory for unit tests to reuse, modifying this is BAD.
+        self.tk.shotgun._schema = copy.deepcopy(self.tk.shotgun._schema)
+        self.tk.shotgun._schema["Shot"]["sg_other_field"] = field_def
+
+        self.shot = {
+            "type": "Shot",
+            "id": 1,
+            "code": "shot_code",
+            "sg_other_field": None,
+            "project": self.project,
+        }
+
+        entities = [self.shot, self.project]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.schema_location = os.path.join(
+            self.pipeline_config_root, "config", "core", "schema"
+        )
+
+        self.FolderIOReceiverBackup = (
+            folder.folder_io.FolderIOReceiver.execute_folder_creation
+        )
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = (
+            execute_folder_creation_proxy
+        )
+
     def tearDown(self):
-        pass
+        # important to call base class so it can clean up memory
+        super().tearDown()
+
+        # and do local teardown
+        folder.folder_io.FolderIOReceiver.execute_folder_creation = (
+            self.FolderIOReceiverBackup
+        )
+
     def test_other_is_none(self):
         pass
     def test_other_isnt_none(self):

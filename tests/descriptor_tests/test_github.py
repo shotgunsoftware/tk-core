@@ -115,7 +115,20 @@ class GithubIODescriptorTestBase(ShotgunTestBase):
     """
 
     def setUp(self):
-        pass
+        """
+        Sets up the next test's environment.
+        """
+        ShotgunTestBase.setUp(self)
+
+        self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
+        self.default_location_dict = {
+            "type": "github_release",
+            "organization": "shotgunsoftware",
+            "repository": "tk-core",
+            "version": "v1.2.1",
+        }
+        super().setUp()
+
     def _create_desc(
         self, location=None, resolve_latest=False, desc_type=Descriptor.CONFIG
     ):
@@ -139,9 +152,16 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
     """
 
     def setUp(self):
-        pass
+        # patch has_remote_access to always return True
+        self._has_remote_access_mock = mock.patch(_TESTED_CLASS + ".has_remote_access")
+        self._has_remote_access_mock.start()
+        self._has_remote_access_mock.return_value = True
+        super().setUp()
+
     def tearDown(self):
-        pass
+        self._has_remote_access_mock.stop()
+        super().tearDown()
+
     def test_construction(self):
         pass
     def test_get_latest_release(self):
@@ -164,9 +184,16 @@ class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
     """
 
     def setUp(self):
-        pass
+        # patch has_remote_access to always return True
+        self._has_remote_access_mock = mock.patch(_TESTED_CLASS + ".has_remote_access")
+        self._has_remote_access_mock.start()
+        self._has_remote_access_mock.return_value = False
+        super().setUp()
+
     def tearDown(self):
-        pass
+        self._has_remote_access_mock.stop()
+        super().tearDown()
+
     def test_get_latest_cached_release(self):
         pass
     def test_get_constraint_cached_release(self):

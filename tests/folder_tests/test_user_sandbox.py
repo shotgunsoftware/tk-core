@@ -24,7 +24,36 @@ from tank_test.tank_test_base import (
 
 class TestHumanUser(TankTestBase):
     def setUp(self):
-        pass
+        super().setUp()
+
+        self.setup_fixtures(parameters={"core": "core.override/humanuser_core"})
+
+        self.shot = {
+            "type": "Shot",
+            "id": 1,
+            "code": "shot_code",
+            "project": self.project,
+        }
+
+        self.humanuser = {
+            "type": "HumanUser",
+            "name": "Mr Foo",
+            "id": 2,
+            "login": "foo",
+        }
+
+        self.humanuser2 = {
+            "type": "HumanUser",
+            "id": 4,
+            "name": "Mr Bar",
+            "login": "bar",
+        }
+
+        self.add_to_sg_mock_db([self.shot, self.humanuser, self.humanuser2])
+
+        self.user_path = os.path.join(self.project_root, "foo", "shot_code")
+        self.user_path2 = os.path.join(self.project_root, "bar", "shot_code")
+
     @mock.patch("tank.util.login.get_current_user")
     def test_not_made_default(self, get_current_user):
         pass

@@ -39,27 +39,9 @@ class TestGetSgConfigData(ShotgunTestBase):
     def test_proxy_is_optional(self, get_api_core_config_location_mock):
         pass
     def test_incomplete_script_user_credentials(
-        pass
+        self, get_api_core_config_location_mock
     ):
-        with self.assertRaises(errors.TankError):
-            tank.util.shotgun.connection._parse_config_data(
-                {"host": "host", "api_script": "api_script"},
-                "default",
-                "not_a_file.cfg",
-            )
-
-        with self.assertRaises(errors.TankError):
-            tank.util.shotgun.connection._parse_config_data(
-                {"host": "host", "api_key": "api_key"}, "default", "not_a_file.cfg"
-            )
-
-        with self.assertRaises(errors.TankError):
-            tank.util.shotgun.connection._parse_config_data(
-                {"api_key": "api_key", "api_script": "api_script"},
-                "default",
-                "not_a_file.cfg",
-            )
-
+        pass
     def test_parse_config_data_cleans_host(self, get_api_core_config_location_mock):
         pass
     def test_sanitize_url(self, get_api_core_config_location_mock):
@@ -83,9 +65,43 @@ class ConnectionSettingsTestCases:
         _STORE_PROXY = "127.0.0.3"
 
         def setUp(self):
-            pass
+            """
+            Clear cached appstore connection
+            """
+            tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
+            tank.set_authenticated_user(None)
+
+            # Prevents from connecting to Shotgun.
+            self._server_caps_mock = mock.patch(
+                "tank_vendor.shotgun_api3.Shotgun.server_caps"
+            )
+            self._server_caps_mock.start()
+            self.addCleanup(self._server_caps_mock.stop)
+
+            # Avoids crash because we're not in a pipeline configuration.
+            self._get_api_core_config_location_mock = mock.patch(
+                "tank.util.shotgun.connection.__get_api_core_config_location",
+                return_value="unused_path_location",
+            )
+            self._get_api_core_config_location_mock.start()
+            self.addCleanup(self._get_api_core_config_location_mock.stop)
+
+            # Mocks app store script user credentials retrieval
+            self._get_app_store_key_from_shotgun_mock = mock.patch(
+                "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore."
+                "_IODescriptorAppStore__get_app_store_key_from_shotgun",
+                return_value=("abc", "123"),
+            )
+            self._get_app_store_key_from_shotgun_mock.start()
+            self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
+
         def tearDown(self):
-            pass
+            """
+            Clear cached appstore connection
+            """
+            tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
+            tank.set_authenticated_user(None)
+
         def test_connections_no_proxy(self):
             pass
         def test_connections_site_proxy(self):
