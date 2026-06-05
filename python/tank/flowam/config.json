@@ -1,0 +1,188 @@
+{
+  "name": "demo_pipeline",
+  "version": "1.0.2",
+  "description": "Flow Toolkit pipeline schema definitions",
+  "schemas": [
+    {
+      "name": "type.container",
+      "version": "1.0.0",
+      "display_name": "Container",
+      "kind": "type",
+      "description": "Basic container representing a work unit.",
+      "inherits": [],
+      "properties": []
+    },
+    {
+      "name": "type.container.asset",
+      "version": "1.0.0",
+      "display_name": "Asset Build",
+      "kind": "type",
+      "description": "Asset type container.",
+      "inherits": [
+        "$ref:type.container"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.container.shot",
+      "version": "1.0.0",
+      "display_name": "Shot",
+      "kind": "type",
+      "description": "Shot type container.",
+      "inherits": [
+        "$ref:type.container"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.pipelineStep",
+      "version": "1.0.0",
+      "display_name": "Pipeline Step",
+      "kind": "type",
+      "description": "Base type for a step in a production pipeline.",
+      "inherits": [],
+      "properties": []
+    },
+    {
+      "name": "type.workfile",
+      "version": "1.0.0",
+      "display_name": "Workfile",
+      "kind": "type",
+      "description": "File-based work unit.",
+      "inherits": [],
+      "properties": []
+    },
+    {
+      "name": "type.workfile.generic",
+      "version": "1.0.0",
+      "display_name": "Generic Workfile",
+      "kind": "type",
+      "description": "Generic workfile which can contain arbitrary file types.",
+      "inherits": [
+        "$ref:type.workfile"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.workfile.maya",
+      "version": "1.0.0",
+      "display_name": "Maya Workfile",
+      "kind": "type",
+      "description": "Maya native workfile.",
+      "inherits": [
+        "$ref:type.workfile"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.workfile.hou",
+      "version": "1.0.0",
+      "display_name": "Houdini Workfile",
+      "kind": "type",
+      "description": "Houdini native workfile.",
+      "inherits": [
+        "$ref:type.workfile"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.workfile.nuke",
+      "version": "1.0.0",
+      "display_name": "Nuke Workfile",
+      "kind": "type",
+      "description": "Nuke script workfile.",
+      "inherits": [
+        "$ref:type.workfile"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.workfile.usd",
+      "version": "1.0.0",
+      "display_name": "USD Workfile",
+      "kind": "type",
+      "description": "USD native workfile.",
+      "inherits": [
+        "$ref:type.workfile"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.derivative",
+      "version": "1.0.0",
+      "display_name": "Derivative",
+      "kind": "type",
+      "description": "Derivative output from a workfile, also referred to as a work product.",
+      "inherits": [],
+      "properties": []
+    },
+    {
+      "name": "type.derivative.maya",
+      "version": "1.0.0",
+      "display_name": "Maya Derivative",
+      "kind": "type",
+      "description": "Maya native type derivative work product.",
+      "inherits": [
+        "$ref:type.derivative"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.derivative.usd",
+      "version": "1.0.0",
+      "display_name": "USD Derivative",
+      "kind": "type",
+      "description": "Universal Scene Description (USD) derivative work product.",
+      "inherits": [
+        "$ref:type.derivative"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.template",
+      "version": "1.0.0",
+      "display_name": "Template",
+      "kind": "type",
+      "description": "Indicates an asset that is intended to be used as a template for building other assets.",
+      "inherits": [],
+      "properties": []
+    },
+    {
+      "name": "type.derivative.abc",
+      "version": "1.0.0",
+      "display_name": "Alembic Derivative",
+      "kind": "type",
+      "description": "Alembic derivative work product.",
+      "inherits": [
+        "$ref:type.derivative"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.fileSequence",
+      "version": "1.0.0",
+      "display_name": "File Sequence",
+      "kind": "type",
+      "description": "Asset contains a file sequence.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "frameStart",
+          "data_type": "Int32" 
+        },
+        {
+          "name": "frameEnd",
+          "data_type": "Int32"
+        },
+        {
+          "name": "frameSet",
+          "data_type": "String"
+        },
+        {
+          "name": "fileFormat",
+          "data_type": "String"
+        }
+      ]
+    }
+  ]
+}

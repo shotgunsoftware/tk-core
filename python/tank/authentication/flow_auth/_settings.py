@@ -15,6 +15,12 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from ...flowam.constants import (
+    FLOW_AUTH_APP_ID,
+    FLOW_AUTH_BASE_URL,
+    FLOW_AUTH_CALLBACK_URL,
+)
+
 from ._constants import (
     DEFAULT_AUTH_APPLICATION_ID,
     DEFAULT_AUTH_BASE_URL,
@@ -31,21 +37,23 @@ class FlowAuthSettings:
     auth_callback_url: str
 
 
-def resolve_flow_auth_settings() -> FlowAuthSettings:
+def resolve_flow_auth_settings(
+    overrides: dict[str, str] | None = None,
+) -> FlowAuthSettings:
     """
     Resolve APS auth settings: env-var overrides, falling back to hardcoded defaults.
 
-    Override env vars:
-        TK_FLOW_AUTH_APPLICATION_ID
-        TK_FLOW_AUTH_BASE_URL
-        TK_FLOW_AUTH_CALLBACK_URL
+    Args:
+        overrides: Dictionary which can contain the following override keys:
+                    FLOW_AUTH_APP_ID
+                    FLOW_AUTH_BASE_URL
+                    FLOW_AUTH_CALLBACK_URL
     """
+    overrides = {} if overrides is None else overrides
     return FlowAuthSettings(
-        auth_application_id=os.environ.get(
-            "TK_FLOW_AUTH_APPLICATION_ID", DEFAULT_AUTH_APPLICATION_ID
+        auth_application_id=overrides.get(
+            FLOW_AUTH_APP_ID, DEFAULT_AUTH_APPLICATION_ID
         ),
-        auth_base_url=os.environ.get("TK_FLOW_AUTH_BASE_URL", DEFAULT_AUTH_BASE_URL),
-        auth_callback_url=os.environ.get(
-            "TK_FLOW_AUTH_CALLBACK_URL", DEFAULT_AUTH_CALLBACK_URL
-        ),
+        auth_base_url=overrides.get(FLOW_AUTH_BASE_URL, DEFAULT_AUTH_BASE_URL),
+        auth_callback_url=overrides.get(FLOW_AUTH_CALLBACK_URL, DEFAULT_AUTH_CALLBACK_URL),
     )

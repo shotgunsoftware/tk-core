@@ -162,6 +162,10 @@ class Engine(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
+        # Do Flow sdk initialization if context is configured with Flow
+        if context.flow_am_project_id:
+            self._init_flow(tk, context.flow_am_project_id)
+
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
         # done in either 'pre_app_init()' or 'post_app_init()'.  'init_engine()' is left
         # in here to provide backwards compatibility with any legacy code.
@@ -293,6 +297,64 @@ class Engine(TankBundle):
             self.name,
             self.__env.name,
         )
+
+    def _init_flow(self, tk, flow_project_id: str):
+        """Do some session set up in order to use the Flow Integration SDK.
+
+        Args:
+            tk: Sgtk handle.
+            flow_project_id: The flow project associated with current sg project context.
+        """
+        from tank.authentication import flow_auth
+        from tank.flowam.constants import FLOW_SCHEMA_CONFIG_PATH
+        from tank_vendor.flow_integration_sdk import globals
+        from tank_vendor.flow_integration_sdk import schema
+        from tank_vendor.flow_integration_sdk.exceptions import FlowError
+        from tank_vendor.flow_integration_sdk.objects import FlowProject
+        from tank.util import yaml_cache
+
+        self.log_info("Doing Flow Integration SDK initialization...")
+        self.log_info(f"Flow AM Project ID: {flow_project_id}")
+        
+        # Read flow settings from config
+        config_root = tk.pipeline_configuration.get_path()
+        flow_yml = os.path.join(
+            config_root,
+            "config",
+            "core",
+            "flow.yml"
+        )
+        self.log_info(f"Reading flow settings from: {flow_yml}...")
+        if os.path.exists(flow_yml):
+            settings = yaml_cache.g_yaml_cache.get(flow_yml) or {}
+        else:
+            self.log_error(f"Flow SDK could not be configured properly - flow.yml not found!")
+            return
+        flow_endpoint = settings.get("endpoint")
+        flow_web_url = settings.get("web_url")
+
+        # Configure logger
+        globals.set_logger_callback(LogManager().get_logger)
+        # Initialize MEDM GQL client
+        globals.init_client(flow_endpoint, flow_auth.FlowAuthenticationHandler())
+        # Store web url
+        globals.set_webapp_url(flow_web_url)
+        # Set session collection
+        try:
+            project = FlowProject(flow_project_id)
+        except FlowError as exc:
+            msg = "Could not complete Flow initialization: {exc}"
+            raise RuntimeError(msg) from exc
+        globals.init_session_collection(
+            project.collection_id, project.organization_id, project.group_id
+        )
+        # Cache custom schema config
+        try:
+            schema.cache_schema_config(FLOW_SCHEMA_CONFIG_PATH)
+        except (RuntimeError, ValueError) as exc:
+            msg = "Could not complete Flow initialization: {exc}"
+            raise RuntimeError(msg) from exc
+        self.log_info("Initialzation complete!")
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
@@ -774,7 +836,7 @@ class Engine(TankBundle):
         # context change, it's that the target context isn't configured properly.
         # As such, we'll let any exceptions (mostly TankEngineInitError) bubble
         # up since it's a critical error case.
-        (new_env, engine_descriptor) = get_env_and_descriptor_for_engine(
+        new_env, engine_descriptor = get_env_and_descriptor_for_engine(
             engine_name=self.instance_name, tk=self.tank, context=new_context
         )
 
@@ -1247,7 +1309,7 @@ class Engine(TankBundle):
         """
         # return a dictionary grouping all the commands by instance name
         commands_by_instance = {}
-        for (name, value) in self.commands.items():
+        for name, value in self.commands.items():
             app_instance = value["properties"].get("app")
             if app_instance is None:
                 continue
@@ -1984,7 +2046,7 @@ class Engine(TankBundle):
         :returns: Stylesheet string with replacements applied
         """
         processed_style_sheet = style_sheet
-        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.items():
+        for token, value in constants.SG_STYLESHEET_CONSTANTS.items():
             processed_style_sheet = processed_style_sheet.replace(
                 "{{%s}}" % token, value
             )
@@ -2128,7 +2190,12 @@ class Engine(TankBundle):
 
         :returns: dict
         """
-        base = {"qt_core": None, "qt_gui": None, "qt_web_engine_widgets": None, "dialog_base": None}
+        base = {
+            "qt_core": None,
+            "qt_gui": None,
+            "qt_web_engine_widgets": None,
+            "dialog_base": None,
+        }
         try:
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
@@ -2892,7 +2959,7 @@ def get_engine_path(engine_name, tk, context):
     """
     # get environment and engine location
     try:
-        (env, engine_descriptor) = get_env_and_descriptor_for_engine(
+        env, engine_descriptor = get_env_and_descriptor_for_engine(
             engine_name, tk, context
         )
     except TankEngineInitError:
@@ -3068,7 +3135,7 @@ def _start_engine(engine_name, tk, old_context, new_context):
         LogManager().initialize_base_file_handler(engine_name)
 
     # get environment and engine location
-    (env, engine_descriptor) = get_env_and_descriptor_for_engine(
+    env, engine_descriptor = get_env_and_descriptor_for_engine(
         engine_name, tk, new_context
     )
 

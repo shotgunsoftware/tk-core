@@ -941,7 +941,29 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _trigger_am_auth(self, entity, progress_callback):
+    def _get_config_flow_settings(self, config):
+        """Retrieve Flow settings from config."""
+        from tank.util import yaml_cache
+
+        config_root = config.path.current_os
+        if not config_root:
+            return {}
+
+        override_path = os.path.join(
+            config_root,
+            "config",
+            "core",
+            "flow.yml",
+        )
+
+        log.info(f"Checking for Flow config: {override_path}")
+        if os.path.exists(override_path):
+            return yaml_cache.g_yaml_cache.get(override_path) or {}
+        else:
+            log.error("Flow config could not be found!")
+        return {}
+
+    def _trigger_am_auth(self, config, entity, progress_callback):
         """
         Proactively obtain a Flow/MEDM access token.
         Silent path (file store -> refresh) is tried first; falls
@@ -962,13 +984,15 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :rtype: None
         """
+        from ..authentication import flow_auth
+
         if entity is None:
             return
 
-        from ..authentication import flow_auth
-
         try:
-            settings = flow_auth.resolve_flow_auth_settings()
+            log.info("Triggering Flow authentication...")
+            overrides = self._get_config_flow_settings(config)
+            settings = flow_auth.resolve_flow_auth_settings(overrides)
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file
             # store and adsk_auth's in-memory cache for the next consumer.
@@ -978,6 +1002,7 @@ class ToolkitManager(object):
                 "MEDM auth misconfigured for AM-ready project: %s" % e
             )
         except Exception as e:
+            # TODO: is this still used?
             if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
                 raise TankBootstrapError(
                     "MEDM auth failed for AM-ready project: %s" % e
@@ -1135,11 +1160,12 @@ class ToolkitManager(object):
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
                     # Retrieve and cache the flow am project id on the context object
                     flow_project_id = sg_project.get(flow_auth.AM_READY_PROJECT_FIELD)
+                    log.info(f"Current SG project is associated with a Flow project: {flow_project_id}")
                     tk, _ = config.get_tk_instance(self._sg_user)
                     ctx = tk.context_from_entity_dictionary(entity)
                     ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = flow_project_id
                     # Authenticate into Flow AM
-                    self._trigger_am_auth(entity, progress_callback)
+                    self._trigger_am_auth(config, entity, progress_callback)
 
         return config
 
