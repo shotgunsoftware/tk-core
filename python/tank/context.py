@@ -410,9 +410,8 @@ class Context(object):
         The FlowAM project ID for this context, or ``None`` if the project is
         not FlowAM-enabled or there is no project in this context.
 
-        The value is read from the ``sg_flow_am_id`` field on the ShotGrid
-        project entity. It is fetched from ShotGrid on first access and then
-        cached for the lifetime of this context object.
+        The value is read from the ``sg_flow_am_id`` field on the project dict.
+        It is populated by the bootstrap manager after it queries ShotGrid.
 
         :returns: A string containing the FlowAM project ID, or ``None``.
         :rtype: str or None
@@ -420,7 +419,7 @@ class Context(object):
         from .authentication import flow_auth
 
         if self.project:
-            return self.project[flow_auth.AM_READY_PROJECT_FIELD]
+            return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
         return None
 
     @property
@@ -915,7 +914,7 @@ class Context(object):
 
         :returns: :class:`Context`
         """
-        return Context(
+        ctx = Context(
             tk=data.get("tk"),
             project=data.get("project"),
             entity=data.get("entity"),
@@ -924,8 +923,10 @@ class Context(object):
             user=data.get("user"),
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
-            flow_am_project_id=data.get("flow_am_project_id", _FLOW_AM_ID_NOT_FETCHED),
         )
+        if ctx.project is not None and "flow_am_project_id" in data:
+            ctx.project[AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
+        return ctx
 
     ################################################################################################
     # private methods

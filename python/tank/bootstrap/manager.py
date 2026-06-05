@@ -962,6 +962,9 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :rtype: None
         """
+        if entity is None:
+            return
+
         from ..authentication import flow_auth
 
         try:
