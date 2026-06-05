@@ -155,6 +155,7 @@ from .api import (
     get_authenticated_user,
 )
 from .api import Sgtk, sgtk_from_path, sgtk_from_entity
+from .authentication.flow_auth import get_flow_client, get_flow_access_token
 from .pipelineconfig_utils import (
     get_python_interpreter_for_config,
     get_core_python_path_for_config,
