@@ -19,9 +19,14 @@ from queue import Empty
 
 import tank
 from tank import LogManager, folder, path_cache
-from tank.util import StorageRoots, is_windows
+from tank.util import StorageRoots
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase, mock, temp_env_var
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+    only_run_on_windows,
+    temp_env_var,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -377,6 +382,69 @@ class TestAddMapping(TestPathCache):
         )
         entry = res.fetchall()[0]
         self.assertEqual(entity_name, entry[0])
+
+    @only_run_on_windows
+    def test_path_lookup_handles_separator_mismatch_in_shotgun_response(self):
+        """
+        Verifies that path-to-rowid matching in _upload_cache_data_to_shotgun
+        survives separator differences between the locally cached path and
+        the local_path returned in Shotgun's response.
+
+        On Windows, locally cached paths use backslashes (per _sanitize_path),
+        while Shotgun normalizes the local_path it stores to forward slashes.
+        Without the normalization in _rowid_from_filesystem_entity, the
+        string-equality compare fails and add_mappings raises TankError on
+        every Windows folder creation flow.
+
+        Only applicable on Windows since POSIX paths use the same separator
+        on both sides.
+        """
+        relative_path = "shot_separator_mismatch"
+        full_path = os.path.join(self.project_root, relative_path)
+
+        # Wrap Mockgun's batch so the response uses forward slashes for
+        # local_path, mirroring real Shotgun's normalization on storage.
+        original_batch = self.tk.shotgun.batch
+
+        def slash_normalizing_batch(batch_data):
+            response = original_batch(batch_data)
+            for entity in response:
+                if entity.get("path") and entity["path"].get("local_path"):
+                    entity["path"]["local_path"] = (
+                        entity["path"]["local_path"].replace("\\", "/")
+                    )
+            return response
+
+        with mock.patch.object(
+            self.tk.shotgun, "batch", side_effect=slash_normalizing_batch
+        ):
+            # Pre-fix: raises TankError("Could not resolve row id for path!")
+            # because d["path"] (backslashes) != path (forward slashes) in the
+            # equality compare inside _rowid_from_filesystem_entity.
+            # Post-fix: os.path.normpath + os.path.normcase normalize both
+            # sides before comparing, allowing the match to succeed.
+            add_item_to_cache(self.path_cache, self.entity, full_path)
+
+        # Verify the path-cache row was committed.
+        res = self.db_cursor.execute(
+            "SELECT path FROM path_cache "
+            "WHERE entity_type = ? AND entity_id = ?",
+            (self.entity["type"], self.entity["id"]),
+        )
+        self.assertEqual(len(res.fetchall()), 1)
+
+        # Verify the shotgun_status row for our entry was also written, which
+        # only happens when _rowid_from_filesystem_entity successfully returned
+        # a rowid that add_mappings can bind to the freshly created
+        # FilesystemLocation. Scope by joining against path_cache to ignore
+        # pre-existing rows added by setup_multi_root_fixtures.
+        res = self.db_cursor.execute(
+            "SELECT ss.shotgun_id FROM shotgun_status ss "
+            "JOIN path_cache pc ON ss.path_cache_id = pc.rowid "
+            "WHERE pc.entity_type = ? AND pc.entity_id = ?",
+            (self.entity["type"], self.entity["id"]),
+        )
+        self.assertEqual(len(res.fetchall()), 1)
 
 
 class TestGetEntity(TestPathCache):

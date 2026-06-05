@@ -991,14 +991,51 @@ class ToolkitManager(object):
 
     def _get_configuration(self, entity, progress_callback):
         """
-        Resolves the configuration to use without creating it on disk.
+        Resolve a Shotgun project id from a target entity.
+
+        :param entity: ``None``, a Project dict, an entity with a ``project``
+                       link, or any entity that can be looked up in Shotgun
+                       to find its parent project.
+        :type entity: dict or None
+        :returns: Integer project id, or ``None`` for the site context.
+        :rtype: int or None
+        """
+        if entity is None:
+            return None
+
+        if entity.get("type") == "Project":
+            return entity["id"]
+
+        if "project" in entity and entity["project"].get("type") == "Project":
+            return entity["project"]["id"]
+
+        data = self._sg_connection.find_one(
+            entity["type"], [["id", "is", entity["id"]]], ["project"]
+        )
+        if not data or not data.get("project"):
+            raise TankBootstrapError("Cannot resolve project for %s" % entity)
+        return data["project"]["id"]
+
+    def _check_and_trigger_am_auth(self, entity, progress_callback):
+        """
+        If the resolved project is AM-ready, proactively obtain a Flow/MEDM
+        access token. Silent path (file store -> refresh) is tried first; falls
+        back to opening a browser for PKCE if no usable cached/refresh token
+        exists.
+
+        No-op for non-AM projects or when ``entity`` is None. The project and
+        its AM-ready field are resolved in a single ShotGrid request.
+
+        Configuration errors raise ``TankBootstrapError`` (deployment bug).
+        Runtime auth failures are logged and swallowed unless the
+        ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
+        they raise ``TankBootstrapError``.
 
         :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :type entity: dict or None
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
-
-        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
+        :rtype: None
         """
         self._report_progress(
             progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project..."

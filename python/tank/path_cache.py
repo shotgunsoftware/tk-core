@@ -513,14 +513,23 @@ class PathCache(object):
 
         # now create a dictionary where input path cache rowid (path_cache_row_id)
         # is mapped to the shotgun ids that were just created
+        def _normalize_path(p):
+            # Local cache paths use os.sep (backslashes on Windows, per
+            # _sanitize_path) while paths round-tripped through Shotgun's
+            # local_path field come back with forward slashes. normpath
+            # unifies separators and collapses redundant components;
+            # normcase lowercases on case-insensitive filesystems (Windows).
+            return os.path.normcase(os.path.normpath(p)) if p else p
+
         def _rowid_from_filesystem_entity(fsl_entity):
             path = fsl_entity[SG_PATH_FIELD]["local_path"]
+            normalized_path = _normalize_path(path)
             for d in data:
                 # We need to match not only the path but also the entity type when associating the FilesystemLocation
                 # entities with the local cache's row ids, because Task folders generate two entries with the same
                 # path, one for the Task and one for the Step.
                 if (
-                    d["path"] == path
+                    _normalize_path(d["path"]) == normalized_path
                     and d["entity"]["type"] == fsl_entity["linked_entity_type"]
                 ):
                     return d["path_cache_row_id"]
