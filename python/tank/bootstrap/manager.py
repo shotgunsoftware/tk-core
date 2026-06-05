@@ -941,81 +941,6 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _trigger_am_auth(self, entity, progress_callback):
-        """
-        Proactively obtain a Flow/MEDM access token.
-        Silent path (file store -> refresh) is tried first; falls
-        back to opening a browser for PKCE if no usable cached/refresh token
-        exists.
-
-        No-op for non-AM projects or when ``entity`` is None. The project and
-        its AM-ready field are resolved in a single ShotGrid request.
-
-        Configuration errors raise ``TankBootstrapError`` (deployment bug).
-        Runtime auth failures are logged and swallowed unless the
-        ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
-        they raise ``TankBootstrapError``.
-
-        :param entity: Shotgun entity used to resolve a project context.
-        :type entity: dict or None
-        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
-                                  Set to ``None`` to use the default callback function.
-        :rtype: None
-        """
-        if entity is None:
-            return
-
-        from ..authentication import flow_auth
-
-        try:
-            settings = flow_auth.resolve_flow_auth_settings()
-            flow_auth.init_authentication(settings)
-            # Token is intentionally discarded here; it now sits in the file
-            # store and adsk_auth's in-memory cache for the next consumer.
-            flow_auth.get_access_token()
-        except flow_auth.FlowAuthConfigurationError as e:
-            raise TankBootstrapError(
-                "MEDM auth misconfigured for AM-ready project: %s" % e
-            )
-        except Exception as e:
-            if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
-                raise TankBootstrapError(
-                    "MEDM auth failed for AM-ready project: %s" % e
-                )
-            log.warning(
-                "MEDM auth failed; bootstrap will continue without a "
-                "pre-fetched token. Error: %s",
-                e,
-                exc_info=True,
-            )
-
-    def _get_configuration(self, entity, progress_callback):
-        """
-        Resolve a Shotgun project id from a target entity.
-
-        :param entity: ``None``, a Project dict, an entity with a ``project``
-                       link, or any entity that can be looked up in Shotgun
-                       to find its parent project.
-        :type entity: dict or None
-        :returns: Integer project id, or ``None`` for the site context.
-        :rtype: int or None
-        """
-        if entity is None:
-            return None
-
-        if entity.get("type") == "Project":
-            return entity["id"]
-
-        if "project" in entity and entity["project"].get("type") == "Project":
-            return entity["project"]["id"]
-
-        data = self._sg_connection.find_one(
-            entity["type"], [["id", "is", entity["id"]]], ["project"]
-        )
-        if not data or not data.get("project"):
-            raise TankBootstrapError("Cannot resolve project for %s" % entity)
-        return data["project"]["id"]
-
     def _check_and_trigger_am_auth(self, entity, progress_callback):
         """
         If the resolved project is AM-ready, proactively obtain a Flow/MEDM
@@ -1036,6 +961,80 @@ class ToolkitManager(object):
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
         :rtype: None
+        """
+        from ..authentication import flow_auth
+
+        if entity is None:
+            return
+
+        am_field = flow_auth.AM_READY_PROJECT_FIELD
+
+        if entity.get("type") == "Project":
+            project_id = entity["id"]
+            sg_project = self._sg_connection.find_one(
+                "Project", [["id", "is", project_id]], [am_field]
+            )
+        elif "project" in entity and entity["project"].get("type") == "Project":
+            project_id = entity["project"]["id"]
+            sg_project = self._sg_connection.find_one(
+                "Project", [["id", "is", project_id]], [am_field]
+            )
+        else:
+            # Fetch the project link and AM-ready field in a single request
+            # using ShotGrid's deep-field notation, saving one API round-trip.
+            data = self._sg_connection.find_one(
+                entity["type"],
+                [["id", "is", entity["id"]]],
+                ["project", "project.Project.%s" % am_field],
+            )
+            if not data or not data.get("project"):
+                return
+            project_id = data["project"]["id"]
+            sg_project = {am_field: data.get("project.Project.%s" % am_field)}
+
+        if not sg_project or not sg_project.get(am_field):
+            return
+
+        log.info("Project %s is AM-ready; triggering MEDM auth.", project_id)
+        self._report_progress(
+            progress_callback,
+            self._UPDATING_CONFIGURATION_RATE,
+            "Authenticating with Autodesk identity...",
+        )
+        try:
+            settings = flow_auth.resolve_flow_auth_settings()
+            flow_auth.init_authentication(settings)
+            # Token is intentionally discarded here; it now sits in the file
+            # store and adsk_auth's in-memory cache for the next consumer.
+            flow_auth.get_access_token()
+        except flow_auth.FlowAuthConfigurationError as e:
+            raise TankBootstrapError(
+                "MEDM auth misconfigured for AM-ready project %s: %s"
+                % (project_id, e)
+            )
+        except Exception as e:
+            if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
+                raise TankBootstrapError(
+                    "MEDM auth failed for AM-ready project %s: %s"
+                    % (project_id, e)
+                )
+            log.warning(
+                "MEDM auth failed; bootstrap will continue without a "
+                "pre-fetched token. Error: %s",
+                e,
+                exc_info=True,
+            )
+
+    def _get_configuration(self, entity, progress_callback):
+        """
+        Resolves the configuration to use without creating it on disk.
+
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+
+        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
         self._report_progress(
             progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project..."
@@ -1159,24 +1158,7 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
-        if entity is not None:
-            from ..authentication import flow_auth
-
-            project_id = self._resolve_project_id(entity)
-            if project_id:
-                sg_project = self._sg_connection.find_one(
-                    "Project",
-                    [["id", "is", project_id]],
-                    [flow_auth.AM_READY_PROJECT_FIELD],
-                )
-                if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
-                    # Retrieve and cache the flow am project id on the context object
-                    flow_project_id = sg_project.get(flow_auth.AM_READY_PROJECT_FIELD)
-                    tk, _ = config.get_tk_instance(self._sg_user)
-                    ctx = tk.context_from_entity_dictionary(entity)
-                    ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = flow_project_id
-                    # Authenticate into Flow AM
-                    self._trigger_am_auth(entity, progress_callback)
+        self._check_and_trigger_am_auth(entity, progress_callback)
 
         return config
 
