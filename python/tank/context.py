@@ -19,7 +19,7 @@ import json
 
 from tank_vendor import yaml
 from . import authentication
-from .authentication.flow_auth import AM_READY_PROJECT_FIELD
+from .authentication import flow_auth
 
 from .util import login
 from .util import shotgun_entity
@@ -416,8 +416,6 @@ class Context(object):
         :returns: A string containing the FlowAM project ID, or ``None``.
         :rtype: str or None
         """
-        from .authentication import flow_auth
-
         if self.project:
             return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
         return None
@@ -925,7 +923,7 @@ class Context(object):
             source_entity=data.get("source_entity"),
         )
         if ctx.project is not None and "flow_am_project_id" in data:
-            ctx.project[AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
+            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
         return ctx
 
     ################################################################################################
