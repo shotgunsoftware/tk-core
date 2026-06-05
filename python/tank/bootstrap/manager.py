@@ -15,7 +15,7 @@ from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import ConfigurationResolver
-from ..authentication import ShotgunAuthenticator
+from ..authentication import ShotgunAuthenticator, flow_auth
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
@@ -962,8 +962,6 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :rtype: None
         """
-        from ..authentication import flow_auth
-
         if entity is None:
             return
 
