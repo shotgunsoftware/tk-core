@@ -343,7 +343,7 @@ class Engine(TankBundle):
         try:
             project = FlowProject(flow_project_id)
         except FlowError as exc:
-            msg = "Could not complete Flow initialization: {exc}"
+            msg = f"Could not complete Flow initialization: {exc}"
             raise RuntimeError(msg) from exc
         globals.init_session_collection(
             project.collection_id, project.organization_id, project.group_id

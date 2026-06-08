@@ -18,6 +18,7 @@ import copy
 import json
 
 from tank_vendor import yaml
+from tank_vendor.flow_integration_sdk import sandbox
 from . import authentication
 from .authentication import flow_auth
 
@@ -87,6 +88,7 @@ class Context(object):
         self.__user = user
         self.__additional_entities = additional_entities or []
         self.__source_entity = source_entity
+        self.__flow_draft_id = None
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -405,7 +407,7 @@ class Context(object):
         return self.__additional_entities
 
     @property
-    def flow_am_project_id(self):
+    def flow_am_project_id(self) -> str | None:
         """
         The FlowAM project ID for this context, or ``None`` if the project is
         not FlowAM-enabled or there is no project in this context.
@@ -419,6 +421,13 @@ class Context(object):
         if self.project:
             return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
         return None
+    
+    @property
+    def flow_am_draft_id(self) -> str | None:
+        """Current Flow draft context.
+        If not None, this designates the current draft being worked on within the DCC session.
+        """
+        return self.__flow_draft_id
 
     @property
     def entity_locations(self):
@@ -724,6 +733,19 @@ class Context(object):
         ctx_copy = copy.deepcopy(self)
         ctx_copy.__user = user
         return ctx_copy
+    
+    def set_flow_context(cls, file_path: str):
+        """Set the current flow asset context based on opened file path.
+
+        Args:
+            file_path: File currently opened in DCC.
+        """
+        self.__flow_draft_id = sandbox.get_draft_context(file_path)
+
+    def clear_flow_context(self):
+        """Clear the current flow asset context."""
+
+        self.__flow_draft_id = None
 
     ################################################################################################
     # serialization
