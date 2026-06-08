@@ -1492,3 +1492,13 @@ class TestContextFlowAmProjectId(TankTestBase):
         ctx = context.Context(self.tk, project=project)
         ctx_copy = copy.deepcopy(ctx)
         self.assertEqual(ctx_copy.flow_am_project_id, "am-project-abc")
+
+    def test_from_dict_preserves_existing_project_value(self):
+        """from_dict does not overwrite sg_flow_am_id already on the project dict."""
+        project = dict(self.project, sg_flow_am_id="existing-am-id")
+        data = context.Context(self.tk, project=project).to_dict()
+        data["project"] = dict(project)
+        data["flow_am_project_id"] = None
+
+        restored = context.Context.from_dict(self.tk, data)
+        self.assertEqual(restored.flow_am_project_id, "existing-am-id")

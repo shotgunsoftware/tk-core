@@ -15,7 +15,7 @@ from . import constants
 from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import ConfigurationResolver
-from ..authentication import ShotgunAuthenticator
+from ..authentication import ShotgunAuthenticator, flow_auth
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
@@ -970,9 +970,6 @@ class ToolkitManager(object):
         back to opening a browser for PKCE if no usable cached/refresh token
         exists.
 
-        No-op for non-AM projects or when ``entity`` is None. The project and
-        its AM-ready field are resolved in a single ShotGrid request.
-
         Configuration errors raise ``TankBootstrapError`` (deployment bug).
         Runtime auth failures are logged and swallowed unless the
         ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
@@ -984,8 +981,6 @@ class ToolkitManager(object):
                                   Set to ``None`` to use the default callback function.
         :rtype: None
         """
-        from ..authentication import flow_auth
-
         if entity is None:
             return
 
@@ -1148,8 +1143,6 @@ class ToolkitManager(object):
             raise TankBootstrapError("Unknown configuration update status!")
 
         if entity is not None:
-            from ..authentication import flow_auth
-
             project_id = self._resolve_project_id(entity)
             if project_id:
                 sg_project = self._sg_connection.find_one(
