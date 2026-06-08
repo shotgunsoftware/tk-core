@@ -922,7 +922,11 @@ class Context(object):
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
         )
-        if ctx.project is not None and "flow_am_project_id" in data:
+        if (
+            ctx.project is not None
+            and "flow_am_project_id" in data
+            and flow_auth.AM_READY_PROJECT_FIELD not in ctx.project
+        ):
             ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
         return ctx
 
