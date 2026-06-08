@@ -19,6 +19,7 @@ import json
 
 from tank_vendor import yaml
 from . import authentication
+from .authentication import flow_auth
 
 from .util import login
 from .util import shotgun_entity
@@ -402,6 +403,22 @@ class Context(object):
                   Will be an empty list in most cases.
         """
         return self.__additional_entities
+
+    @property
+    def flow_am_project_id(self):
+        """
+        The FlowAM project ID for this context, or ``None`` if the project is
+        not FlowAM-enabled or there is no project in this context.
+
+        The value is read from the ``sg_flow_am_id`` field on the project dict.
+        It is populated by the bootstrap manager after it queries ShotGrid.
+
+        :returns: A string containing the FlowAM project ID, or ``None``.
+        :rtype: str or None
+        """
+        if self.project:
+            return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
+        return None
 
     @property
     def entity_locations(self):
@@ -815,8 +832,8 @@ class Context(object):
     def to_dict(self):
         """
         Converts the context into a dictionary with keys ``project``,
-        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
-        ``source_entity``.
+        ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
+        ``source_entity``, and ``flow_am_project_id``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -835,6 +852,7 @@ class Context(object):
                 self._cleanup_entity(entity) for entity in self.additional_entities
             ],
             "source_entity": self._cleanup_entity(self.source_entity),
+            "flow_am_project_id": self.flow_am_project_id,
         }
 
     def _cleanup_entity(self, entity):
@@ -894,7 +912,7 @@ class Context(object):
 
         :returns: :class:`Context`
         """
-        return Context(
+        ctx = Context(
             tk=data.get("tk"),
             project=data.get("project"),
             entity=data.get("entity"),
@@ -904,6 +922,13 @@ class Context(object):
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
         )
+        if (
+            ctx.project is not None
+            and "flow_am_project_id" in data
+            and flow_auth.AM_READY_PROJECT_FIELD not in ctx.project
+        ):
+            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
+        return ctx
 
     ################################################################################################
     # private methods
@@ -1305,7 +1330,8 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         if sg_entity is None:
             raise TankError(
-                "Entity %s with id %s not found in Flow Production Tracking!" % (entity_type, entity_id)
+                "Entity %s with id %s not found in Flow Production Tracking!"
+                % (entity_type, entity_id)
             )
 
         if sg_entity.get("task"):
@@ -1719,7 +1745,7 @@ def context_yaml_representer(dumper, context):
     # pipeline config path as part of the dict
     context_dict["_pc_path"] = context.tank.pipeline_configuration.get_path()
 
-    return dumper.represent_mapping(u"!TankContext", context_dict)
+    return dumper.represent_mapping("!TankContext", context_dict)
 
 
 def context_yaml_constructor(loader, node):
@@ -1750,7 +1776,7 @@ def context_yaml_constructor(loader, node):
 
 
 yaml.add_representer(Context, context_yaml_representer)
-yaml.add_constructor(u"!TankContext", context_yaml_constructor)
+yaml.add_constructor("!TankContext", context_yaml_constructor)
 
 ################################################################################################
 # utility methods
@@ -1807,7 +1833,9 @@ def _task_from_sg(tk, task_id, additional_fields=None):
         "Task", [["id", "is", task_id]], standard_fields + additional_fields
     )
     if not task:
-        raise TankError("Unable to locate Task with id %s in Flow Production Tracking" % task_id)
+        raise TankError(
+            "Unable to locate Task with id %s in Flow Production Tracking" % task_id
+        )
 
     # add task so it can be processed with other shotgun entities
     task["task"] = {"type": "Task", "id": task_id, "name": task["content"]}
@@ -1867,7 +1895,8 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     if not data:
         raise TankError(
-            "Unable to locate %s with id %s in Flow Production Tracking" % (entity_type, entity_id)
+            "Unable to locate %s with id %s in Flow Production Tracking"
+            % (entity_type, entity_id)
         )
 
     # create context
