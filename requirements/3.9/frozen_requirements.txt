@@ -1,7 +1,8 @@
 distro==1.4.0
+Fileseq==2.1.2
 packaging==25.0
 PyJWT==2.10.1
 PyYAML==5.4.1
+ruamel-yaml-clib==0.2.15
 ruamel.yaml==0.18.14
-ruamel.yaml.clib==0.2.15
-shotgun_api3==3.10.0
+shotgun-api3==3.10.0
