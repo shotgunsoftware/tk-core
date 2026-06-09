@@ -951,7 +951,7 @@ class ToolkitManager(object):
             return {}
 
         # Config path if reading from cached config
-        override_path_cached = os.path.join(
+        override_path_cache = os.path.join(
             config_root,
             "config",
             "core",

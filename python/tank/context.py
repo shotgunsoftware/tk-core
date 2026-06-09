@@ -421,7 +421,7 @@ class Context(object):
         if self.project:
             return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
         return None
-    
+
     @property
     def flow_am_draft_id(self) -> str | None:
         """Current Flow draft context.
@@ -733,8 +733,8 @@ class Context(object):
         ctx_copy = copy.deepcopy(self)
         ctx_copy.__user = user
         return ctx_copy
-    
-    def set_flow_context(cls, file_path: str):
+
+    def set_flow_context(self, file_path: str):
         """Set the current flow asset context based on opened file path.
 
         Args:
