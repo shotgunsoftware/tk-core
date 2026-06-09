@@ -308,8 +308,7 @@ class Engine(TankBundle):
         from tank.authentication import flow_auth
         from tank.flowam.constants import FLOW_SCHEMA_CONFIG_PATH
         from tank.flowam.utils import get_config_flow_settings
-        from tank_vendor.flow_integration_sdk import globals
-        from tank_vendor.flow_integration_sdk import schema
+        from tank_vendor.flow_integration_sdk import globals, schema, storage
         from tank_vendor.flow_integration_sdk.exceptions import FlowError
         from tank_vendor.flow_integration_sdk.objects import FlowProject
 
@@ -320,6 +319,8 @@ class Engine(TankBundle):
         settings = get_config_flow_settings(tk.pipeline_configuration)
         flow_endpoint = settings.get("endpoint")
         flow_web_url = settings.get("web_url")
+        flow_sandbox_root = settings.get("sandbox_root")
+        flow_storage_root = settings.get("storage_root")
 
         # Configure logger
         globals.set_logger_callback(LogManager().get_logger)
@@ -343,6 +344,10 @@ class Engine(TankBundle):
         except (RuntimeError, ValueError) as exc:
             msg = "Could not complete Flow initialization: {exc}"
             raise RuntimeError(msg) from exc
+        # Configure storage roots
+        storage.set_sandbox_root(flow_sandbox_root, create_dir=True)
+        storage.set_storage_root(flow_storage_root, create_dir=True)
+        
         self.log_info("Initialzation complete!")
 
     ##########################################################################################
