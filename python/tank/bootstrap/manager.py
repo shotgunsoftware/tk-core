@@ -16,6 +16,7 @@ from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator, flow_auth
+from ..flowam import constants as flow_const
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
@@ -999,7 +1000,12 @@ class ToolkitManager(object):
         try:
             log.info("Triggering Flow authentication...")
             overrides = self._get_config_flow_settings(pipeline_config)
-            settings = flow_auth.resolve_flow_auth_settings(overrides)
+            # Set authentication overrides in reserved env vars so they will persist
+            # across toolkit engine sessions
+            os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[flow_const.FLOW_AUTH_APP_ID]
+            os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[flow_const.FLOW_AUTH_BASE_URL]
+            os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[flow_const.FLOW_AUTH_CALLBACK_URL]
+            settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file
             # store and adsk_auth's in-memory cache for the next consumer.
