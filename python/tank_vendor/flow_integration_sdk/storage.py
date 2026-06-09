@@ -18,7 +18,6 @@ from __future__ import annotations  # needed for python 3.9 support
 
 import os
 import json
-from filelock import FileLock
 from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
@@ -211,11 +210,8 @@ def _cache_asset_info(asset_id: str):
     try:
         if not os.path.exists(storage_dir):
             os.makedirs(storage_dir)
-        # Lock file before writing to it
-        lock = FileLock(f"{file_path}.lock")
-        with lock:
-            with open(file_path, "w") as f:
-                f.write(json.dumps(info, indent=4))
+        with open(file_path, "w") as f:
+            f.write(json.dumps(info, indent=4))
     except Exception as exc:  # pylint: disable=broad-except
         msg = f"Asset info file could not be written: {file_path}"
         raise FlowError(msg) from exc
