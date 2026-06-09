@@ -17,6 +17,7 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator, flow_auth
 from ..flowam import constants as flow_const
+from ..flowam import utils as flow_utils
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
@@ -942,39 +943,6 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _get_config_flow_settings(self, pipeline_config):
-        """Retrieve Flow settings from config."""
-        from tank.util import yaml_cache
-
-        config_root = pipeline_config.get_config_location()
-        if not config_root:
-            return {}
-
-        # Config path if reading from cached config
-        override_path_cache = os.path.join(
-            config_root,
-            "config",
-            "core",
-            "flow.yml",
-        )
-        # Config path if reading form dev descriptor
-        override_path_dev = os.path.join(
-            config_root,
-            "core",
-            "flow.yml",
-        )
-
-        log.info(f"Checking for Flow config: {override_path_dev}")
-        if os.path.exists(override_path_dev):
-            return yaml_cache.g_yaml_cache.get(override_path_dev) or {}
-        else:
-            log.info(f"Checking for Flow config: {override_path_cache}")
-            if os.path.exists(override_path_cache):
-                return yaml_cache.g_yaml_cache.get(override_path_cache) or {}
-            else:
-                log.error("Flow config could not be found!")
-        return {}
-
     def _trigger_am_auth(self, pipeline_config, entity, progress_callback):
         """
         Proactively obtain a Flow/MEDM access token.
@@ -987,7 +955,7 @@ class ToolkitManager(object):
         ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
         they raise ``TankBootstrapError``.
 
-        :param pipeline_config: tk.pipeline_configuration object.
+        :param pipeline_config: PipelineConfiguration object.
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: dict or None
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
@@ -999,12 +967,15 @@ class ToolkitManager(object):
 
         try:
             log.info("Triggering Flow authentication...")
-            overrides = self._get_config_flow_settings(pipeline_config)
+            overrides = flow_utils.get_config_flow_settings(pipeline_config)
             # Set authentication overrides in reserved env vars so they will persist
             # across toolkit engine sessions
-            os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[flow_const.FLOW_AUTH_APP_ID]
-            os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[flow_const.FLOW_AUTH_BASE_URL]
-            os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[flow_const.FLOW_AUTH_CALLBACK_URL]
+            if flow_const.FLOW_AUTH_APP_ID in overrides:
+                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[flow_const.FLOW_AUTH_APP_ID]
+            if flow_const.FLOW_AUTH_BASE_URL in overrides:
+                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[flow_const.FLOW_AUTH_BASE_URL]
+            if flow_const.FLOW_AUTH_CALLBACK_URL in overrides:
+                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[flow_const.FLOW_AUTH_CALLBACK_URL]
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file

@@ -307,40 +307,17 @@ class Engine(TankBundle):
         """
         from tank.authentication import flow_auth
         from tank.flowam.constants import FLOW_SCHEMA_CONFIG_PATH
+        from tank.flowam.utils import get_config_flow_settings
         from tank_vendor.flow_integration_sdk import globals
         from tank_vendor.flow_integration_sdk import schema
         from tank_vendor.flow_integration_sdk.exceptions import FlowError
         from tank_vendor.flow_integration_sdk.objects import FlowProject
-        from tank.util import yaml_cache
 
         self.log_info("Doing Flow Integration SDK initialization...")
         self.log_info(f"Flow AM Project ID: {flow_project_id}")
 
         # Read flow settings from config
-        config_root = tk.pipeline_configuration.get_config_location()
-        # Cached config location
-        flow_yml_cache = os.path.join(
-            config_root,
-            "config",
-            "core",
-            "flow.yml"
-        )
-        # Dev config location
-        flow_yml_dev = os.path.join(
-            config_root,
-            "core",
-            "flow.yml"
-        )
-        self.log_info(f"Reading flow settings from: {flow_yml_dev}...")
-        if os.path.exists(flow_yml_dev):
-            settings = yaml_cache.g_yaml_cache.get(flow_yml_dev) or {}
-        else:
-            self.log_info(f"Reading flow settings from: {flow_yml_cache}...")
-            if os.path.exists(flow_yml_cache):
-                settings = yaml_cache.g_yaml_cache.get(flow_yml_cache) or {}
-            else:
-                self.log_error(f"Flow SDK could not be configured properly - flow.yml not found!")
-                return
+        settings = get_config_flow_settings(tk.pipeline_configuration)
         flow_endpoint = settings.get("endpoint")
         flow_web_url = settings.get("web_url")
 
