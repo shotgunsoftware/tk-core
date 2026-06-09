@@ -317,19 +317,30 @@ class Engine(TankBundle):
         self.log_info(f"Flow AM Project ID: {flow_project_id}")
 
         # Read flow settings from config
-        config_root = tk.pipeline_configuration.get_path()
-        flow_yml = os.path.join(
+        config_root = tk.pipeline_configuration.get_config_location()
+        # Cached config location
+        flow_yml_cache = os.path.join(
             config_root,
             "config",
             "core",
             "flow.yml"
         )
-        self.log_info(f"Reading flow settings from: {flow_yml}...")
-        if os.path.exists(flow_yml):
-            settings = yaml_cache.g_yaml_cache.get(flow_yml) or {}
+        # Dev config location
+        flow_yml_dev = os.path.join(
+            config_root,
+            "core",
+            "flow.yml"
+        )
+        self.log_info(f"Reading flow settings from: {flow_yml_dev}...")
+        if os.path.exists(flow_yml_dev):
+            settings = yaml_cache.g_yaml_cache.get(flow_yml_dev) or {}
         else:
-            self.log_error(f"Flow SDK could not be configured properly - flow.yml not found!")
-            return
+            self.log_info(f"Reading flow settings from: {flow_yml_cache}...")
+            if os.path.exists(flow_yml_cache):
+                settings = yaml_cache.g_yaml_cache.get(flow_yml_cache) or {}
+            else:
+                self.log_error(f"Flow SDK could not be configured properly - flow.yml not found!")
+                return
         flow_endpoint = settings.get("endpoint")
         flow_web_url = settings.get("web_url")
 
@@ -344,7 +355,8 @@ class Engine(TankBundle):
             project = FlowProject(flow_project_id)
         except FlowError as exc:
             msg = f"Could not complete Flow initialization: {exc}"
-            raise RuntimeError(msg) from exc
+            self.log_exception(msg)
+            return
         globals.init_session_collection(
             project.collection_id, project.organization_id, project.group_id
         )

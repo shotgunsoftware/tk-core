@@ -98,7 +98,6 @@ def init_client(endpoint_url: str, auth_handler: AuthenticationHandlerBase):
     logger = get_logger(__name__)
     logger.info(f"Creating V2 GQL client with endpoint: {endpoint_url}")
     _gql_client = GQLClient(endpoint=endpoint_url, auth_handler=auth_handler)
-    logger.info(f"_gql_client = {_gql_client}")
 
 
 def get_client() -> GQLClient:

@@ -941,29 +941,40 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _get_config_flow_settings(self, config):
+    def _get_config_flow_settings(self, pipeline_config):
         """Retrieve Flow settings from config."""
         from tank.util import yaml_cache
 
-        config_root = config.path.current_os
+        config_root = pipeline_config.get_config_location()
         if not config_root:
             return {}
 
-        override_path = os.path.join(
+        # Config path if reading from cached config
+        override_path_cached = os.path.join(
             config_root,
             "config",
             "core",
             "flow.yml",
         )
+        # Config path if reading form dev descriptor
+        override_path_dev = os.path.join(
+            config_root,
+            "core",
+            "flow.yml",
+        )
 
-        log.info(f"Checking for Flow config: {override_path}")
-        if os.path.exists(override_path):
-            return yaml_cache.g_yaml_cache.get(override_path) or {}
+        log.info(f"Checking for Flow config: {override_path_dev}")
+        if os.path.exists(override_path_dev):
+            return yaml_cache.g_yaml_cache.get(override_path_dev) or {}
         else:
-            log.error("Flow config could not be found!")
+            log.info(f"Checking for Flow config: {override_path_cache}")
+            if os.path.exists(override_path_cache):
+                return yaml_cache.g_yaml_cache.get(override_path_cache) or {}
+            else:
+                log.error("Flow config could not be found!")
         return {}
 
-    def _trigger_am_auth(self, config, entity, progress_callback):
+    def _trigger_am_auth(self, pipeline_config, entity, progress_callback):
         """
         Proactively obtain a Flow/MEDM access token.
         Silent path (file store -> refresh) is tried first; falls
@@ -975,6 +986,7 @@ class ToolkitManager(object):
         ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
         they raise ``TankBootstrapError``.
 
+        :param pipeline_config: tk.pipeline_configuration object.
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: dict or None
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
@@ -986,7 +998,7 @@ class ToolkitManager(object):
 
         try:
             log.info("Triggering Flow authentication...")
-            overrides = self._get_config_flow_settings(config)
+            overrides = self._get_config_flow_settings(pipeline_config)
             settings = flow_auth.resolve_flow_auth_settings(overrides)
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file
@@ -1158,7 +1170,7 @@ class ToolkitManager(object):
                     ctx = tk.context_from_entity_dictionary(entity)
                     ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = flow_project_id
                     # Authenticate into Flow AM
-                    self._trigger_am_auth(config, entity, progress_callback)
+                    self._trigger_am_auth(tk.pipeline_configuration, entity, progress_callback)
 
         return config
 
