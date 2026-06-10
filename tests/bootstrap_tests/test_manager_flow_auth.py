@@ -153,9 +153,9 @@ class TriggerAmAuthTests(ShotgunTestBase):
         mgr = ToolkitManager()
 
         with temp_env_var(
-            TK_FLOW_AUTH_APPLICATION_ID=None,
-            TK_FLOW_AUTH_BASE_URL=None,
-            TK_FLOW_AUTH_CALLBACK_URL=None,
+            TK_FLOW_AUTH_APPLICATION_ID="test-app-id",
+            TK_FLOW_AUTH_BASE_URL="test-base-url",
+            TK_FLOW_AUTH_CALLBACK_URL="test-callback-url",
         ):
             mgr._trigger_am_auth(
                 self.pipeline_config,
