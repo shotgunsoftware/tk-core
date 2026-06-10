@@ -168,7 +168,7 @@
       "properties": [
         {
           "name": "frameStart",
-          "data_type": "Int32" 
+          "data_type": "Int32"
         },
         {
           "name": "frameEnd",
