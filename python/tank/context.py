@@ -74,6 +74,7 @@ class Context(object):
         user=None,
         additional_entities=None,
         source_entity=None,
+        flow_draft_id=None,
     ):
         """
         Context objects are not constructed by hand but are fabricated by the
@@ -88,7 +89,7 @@ class Context(object):
         self.__user = user
         self.__additional_entities = additional_entities or []
         self.__source_entity = source_entity
-        self.__flow_draft_id = None
+        self.__flow_draft_id = flow_draft_id
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -262,6 +263,7 @@ class Context(object):
         ctx_copy.__user = copy.deepcopy(self.__user, memo)
         ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
         ctx_copy.__source_entity = copy.deepcopy(self.__source_entity, memo)
+        ctx_copy.__flow_draft_id = copy.deepcopy(self.__flow_draft_id, memo)
 
         # except:
         # ctx_copy._entity_fields_cache
@@ -855,7 +857,7 @@ class Context(object):
         """
         Converts the context into a dictionary with keys ``project``,
         ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
-        ``source_entity``, and ``flow_project_id``.
+        ``source_entity``, ``flow_project_id`` and ``flow_draft_id``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -875,6 +877,7 @@ class Context(object):
             ],
             "source_entity": self._cleanup_entity(self.source_entity),
             "flow_project_id": self.flow_project_id,
+            "flow_draft_id": self.flow_draft_id,
         }
 
     def _cleanup_entity(self, entity):
@@ -943,6 +946,7 @@ class Context(object):
             user=data.get("user"),
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
+            flow_draft_id=data.get("flow_draft_id"),
         )
         if (
             ctx.project is not None
