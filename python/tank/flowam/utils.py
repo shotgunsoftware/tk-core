@@ -10,6 +10,8 @@
 
 """Shared utilities for Flow Integration."""
 
+from __future__ import annotations  # needed for python 3.9 support
+
 import os
 
 from tank import LogManager
