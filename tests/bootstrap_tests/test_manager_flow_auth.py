@@ -30,78 +30,153 @@ class TriggerAmAuthTests(ShotgunTestBase):
 
     PROJECT_ID = 42
 
+    def setUp(self):
+        super(TriggerAmAuthTests, self).setUp()
+        self.pipeline_config = mock.Mock()
+
+    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
-    def test_triggers_auth(self, mock_resolve, mock_init, mock_get, _):
+    def test_triggers_auth(
+        self, mock_resolve, mock_init, mock_get, mock_get_settings, _
+    ):
         mock_resolve.return_value = mock.Mock()
+        mock_get_settings.return_value = {}
+
         mgr = ToolkitManager()
 
         mgr._trigger_am_auth(
-            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock()
+            self.pipeline_config,
+            {"type": "Project", "id": self.PROJECT_ID},
+            progress_callback=mock.Mock(),
         )
 
+        mock_get_settings.assert_called_once_with(self.pipeline_config)
         mock_resolve.assert_called_once()
         mock_init.assert_called_once_with(mock_resolve.return_value)
         mock_get.assert_called_once()
 
+    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
-    def test_none_entity_skips_auth(self, mock_init, mock_get, _):
+    def test_none_entity_skips_auth(self, mock_init, mock_get, mock_get_settings, _):
         mgr = ToolkitManager()
 
-        mgr._trigger_am_auth(None, progress_callback=None)
+        mgr._trigger_am_auth(
+            self.pipeline_config,
+            None,
+            progress_callback=None,
+        )
 
+        mock_get_settings.assert_not_called()
         mock_init.assert_not_called()
         mock_get.assert_not_called()
 
+    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
     def test_configuration_error_raises_TankBootstrapError(
-        self, mock_resolve, mock_init, _
+        self, mock_resolve, mock_init, mock_get_settings, _
     ):
         mock_resolve.return_value = mock.Mock()
+        mock_get_settings.return_value = {}
         mock_init.side_effect = flow_auth.FlowAuthConfigurationError("missing app id")
+
         mgr = ToolkitManager()
 
         with self.assertRaises(TankBootstrapError):
             mgr._trigger_am_auth(
+                self.pipeline_config,
                 {"type": "Project", "id": self.PROJECT_ID},
                 progress_callback=mock.Mock(),
             )
 
+    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
     def test_runtime_error_soft_fails_by_default(
-        self, mock_resolve, mock_init, mock_get, _
+        self, mock_resolve, mock_init, mock_get, mock_get_settings, _
     ):
         mock_resolve.return_value = mock.Mock()
+        mock_get_settings.return_value = {}
         mock_get.side_effect = RuntimeError("network down")
+
         mgr = ToolkitManager()
 
         # Should not raise.
         mgr._trigger_am_auth(
-            {"type": "Project", "id": self.PROJECT_ID}, progress_callback=mock.Mock()
+            self.pipeline_config,
+            {"type": "Project", "id": self.PROJECT_ID},
+            progress_callback=mock.Mock(),
         )
 
+    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
     def test_runtime_error_hard_fails_with_env_var(
-        self, mock_resolve, mock_init, mock_get, _
+        self, mock_resolve, mock_init, mock_get, mock_get_settings, _
     ):
         mock_resolve.return_value = mock.Mock()
+        mock_get_settings.return_value = {}
         mock_get.side_effect = RuntimeError("network down")
+
         mgr = ToolkitManager()
 
         with temp_env_var(TK_FLOW_AUTH_REQUIRED="1"):
             with self.assertRaises(TankBootstrapError):
                 mgr._trigger_am_auth(
+                    self.pipeline_config,
                     {"type": "Project", "id": self.PROJECT_ID},
                     progress_callback=mock.Mock(),
                 )
 
+    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
+    @mock.patch("tank.authentication.flow_auth.get_access_token")
+    @mock.patch("tank.authentication.flow_auth.init_authentication")
+    @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
+    def test_auth_overrides_set_environment(
+        self, mock_resolve, mock_init, mock_get, mock_get_settings, _
+    ):
+        mock_resolve.return_value = mock.Mock()
+        mock_get_settings.return_value = {
+            flow_const.FLOW_AUTH_APP_ID: "test-app",
+            flow_const.FLOW_AUTH_BASE_URL: "https://example.com",
+            flow_const.FLOW_AUTH_CALLBACK_URL: "http://localhost/callback",
+        }
+
+        mgr = ToolkitManager()
+
+        with temp_env_var(
+            TK_FLOW_AUTH_APPLICATION_ID=None,
+            TK_FLOW_AUTH_BASE_URL=None,
+            TK_FLOW_AUTH_CALLBACK_URL=None,
+        ):
+            mgr._trigger_am_auth(
+                self.pipeline_config,
+                {"type": "Project", "id": self.PROJECT_ID},
+                progress_callback=mock.Mock(),
+            )
+
+            self.assertEqual(
+                os.environ["TK_FLOW_AUTH_APPLICATION_ID"],
+                "test-app",
+            )
+            self.assertEqual(
+                os.environ["TK_FLOW_AUTH_BASE_URL"],
+                "https://example.com",
+            )
+            self.assertEqual(
+                os.environ["TK_FLOW_AUTH_CALLBACK_URL"],
+                "http://localhost/callback",
+            )
+
+        mock_get_settings.assert_called_once_with(self.pipeline_config)
+        mock_resolve.assert_called_once()
+        mock_init.assert_called_once_with(mock_resolve.return_value)
+        mock_get.assert_called_once()
 
 @mock.patch(
     "tank.authentication.ShotgunAuthenticator.get_user",
