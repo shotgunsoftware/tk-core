@@ -117,4 +117,4 @@ def init_flow(pipeline_config: PipelineConfiguration, flow_project_id: str):
     storage.set_sandbox_root(flow_sandbox_root, create_dir=True)
     storage.set_storage_root(flow_storage_root, create_dir=True)
 
-    logger.info("Initialzation complete!")
+    logger.info("Initialization complete!")
