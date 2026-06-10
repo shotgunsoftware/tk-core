@@ -165,9 +165,9 @@ class Engine(TankBundle):
                 sys.path.append(python_path)
 
         # Do Flow sdk initialization if context is configured with Flow
-        if context.flow_am_project_id:
+        if context.flow_project_id:
             try:
-                flow_utils.init_flow(tk.pipeline_configuration, context.flow_am_project_id)
+                flow_utils.init_flow(tk.pipeline_configuration, context.flow_project_id)
             except RuntimeError as exc:
                 self.log_error("Error occurred during Flow initialization!")
                 self.log_exception(exc)

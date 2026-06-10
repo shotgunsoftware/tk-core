@@ -407,7 +407,7 @@ class Context(object):
         return self.__additional_entities
 
     @property
-    def flow_am_project_id(self) -> str | None:
+    def flow_project_id(self) -> str | None:
         """
         The FlowAM project ID for this context, or ``None`` if the project is
         not FlowAM-enabled or there is no project in this context.
@@ -423,7 +423,7 @@ class Context(object):
         return None
 
     @property
-    def flow_am_draft_id(self) -> str | None:
+    def flow_draft_id(self) -> str | None:
         """Current Flow draft context.
         If not None, this designates the current draft being worked on within the DCC session.
         """
@@ -855,7 +855,7 @@ class Context(object):
         """
         Converts the context into a dictionary with keys ``project``,
         ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
-        ``source_entity``, and ``flow_am_project_id``.
+        ``source_entity``, and ``flow_project_id``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -874,7 +874,7 @@ class Context(object):
                 self._cleanup_entity(entity) for entity in self.additional_entities
             ],
             "source_entity": self._cleanup_entity(self.source_entity),
-            "flow_am_project_id": self.flow_am_project_id,
+            "flow_project_id": self.flow_project_id,
         }
 
     def _cleanup_entity(self, entity):
@@ -946,10 +946,10 @@ class Context(object):
         )
         if (
             ctx.project is not None
-            and "flow_am_project_id" in data
+            and "flow_project_id" in data
             and flow_auth.AM_READY_PROJECT_FIELD not in ctx.project
         ):
-            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
+            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_project_id"]
         return ctx
 
     ################################################################################################
