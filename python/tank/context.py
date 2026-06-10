@@ -12,6 +12,7 @@
 Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
+from __future__ import annotations  # needed for python 3.9 support
 
 import os
 import copy
