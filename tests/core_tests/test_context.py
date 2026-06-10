@@ -1552,7 +1552,7 @@ class TestContextFlowDraftId(TankTestBase):
 
         restored = context.deserialize(ctx.serialize())
 
-        self.assertEqual(restored.flow_draft_id, "draft-abc")  
+        self.assertEqual(restored.flow_draft_id, "draft-abc")
 
     def test_deepcopy_preserves_value(self):
         """Deepcopying a context preserves flow_draft_id."""
