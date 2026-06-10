@@ -16,7 +16,7 @@ This module contains custom exception classes.
 from __future__ import annotations  # needed for python 3.9 support
 
 
-class FlowError(RuntimeError):
+class FlowError(Exception):
     """Base error class for Flow asset management errors."""
 
     def __init__(

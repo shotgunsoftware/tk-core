@@ -21,6 +21,8 @@ import inspect
 import weakref
 import threading
 
+from tank.flowam import utils as flow_utils
+
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
@@ -164,7 +166,11 @@ class Engine(TankBundle):
 
         # Do Flow sdk initialization if context is configured with Flow
         if context.flow_am_project_id:
-            self._init_flow(tk, context.flow_am_project_id)
+            try:
+                flow_utils.init_flow(tk.pipeline_configuration, context.flow_am_project_id)
+            except RuntimeError as exc:
+                self.log_error("Error occurred during Flow initialization!")
+                self.log_exception(exc)
 
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
         # done in either 'pre_app_init()' or 'post_app_init()'.  'init_engine()' is left
@@ -297,58 +303,6 @@ class Engine(TankBundle):
             self.name,
             self.__env.name,
         )
-
-    def _init_flow(self, tk, flow_project_id: str):
-        """Do some session set up in order to use the Flow Integration SDK.
-
-        Args:
-            tk: Sgtk handle.
-            flow_project_id: The flow project associated with current sg project context.
-        """
-        from tank.authentication import flow_auth
-        from tank.flowam.constants import FLOW_SCHEMA_CONFIG_PATH
-        from tank.flowam.utils import get_config_flow_settings
-        from tank_vendor.flow_integration_sdk import globals, schema, storage
-        from tank_vendor.flow_integration_sdk.exceptions import FlowError
-        from tank_vendor.flow_integration_sdk.objects import FlowProject
-
-        self.log_info("Doing Flow Integration SDK initialization...")
-        self.log_info(f"Flow AM Project ID: {flow_project_id}")
-
-        # Read flow settings from config
-        settings = get_config_flow_settings(tk.pipeline_configuration)
-        flow_endpoint = settings.get("endpoint")
-        flow_web_url = settings.get("web_url")
-        flow_sandbox_root = settings.get("sandbox_root")
-        flow_storage_root = settings.get("storage_root")
-
-        # Configure logger
-        globals.set_logger_callback(LogManager().get_logger)
-        # Initialize MEDM GQL client
-        globals.init_client(flow_endpoint, flow_auth.FlowAuthenticationHandler())
-        # Store web url
-        globals.set_webapp_url(flow_web_url)
-        # Set session collection
-        try:
-            project = FlowProject(flow_project_id)
-        except FlowError as exc:
-            msg = f"Could not complete Flow initialization: {exc}"
-            self.log_exception(msg)
-            return
-        globals.init_session_collection(
-            project.collection_id, project.organization_id, project.group_id
-        )
-        # Cache custom schema config
-        try:
-            schema.cache_schema_config(FLOW_SCHEMA_CONFIG_PATH)
-        except (RuntimeError, ValueError) as exc:
-            msg = "Could not complete Flow initialization: {exc}"
-            raise RuntimeError(msg) from exc
-        # Configure storage roots
-        storage.set_sandbox_root(flow_sandbox_root, create_dir=True)
-        storage.set_storage_root(flow_storage_root, create_dir=True)
-        
-        self.log_info("Initialzation complete!")
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
