@@ -104,6 +104,32 @@ class InvalidDraftError(FlowError):
         self.draft_id = draft_id
 
 
+class SchemaBuilderError(FlowError):
+    """General exception for errors related to SchemaBuilder operations."""
+    
+    def __init__(self, *args, **kwargs):
+        message = "SchemaBuilder operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
+class SchemaDisplayDataError(FlowError):
+    def __init__(self, *args, **kwargs):
+        message = "Schema display data operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
+class SchemaError(FlowError):
+    def __init__(self, *args, **kwargs):
+        message = "Schema operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
+class SchemaLibraryError(FlowError):
+    def __init__(self, *args, **kwargs):
+        message = "Schema library operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
 class PublishAssetError(FlowError):
     def __init__(self, *args, **kwargs):
         message = "Could not publish asset."

@@ -29,3 +29,7 @@ FLOW_STORAGE_ROOT = "storage_root"
 # Location of config for specifying custom schemas used
 # in the toolkit Flow integration
 FLOW_SCHEMA_CONFIG_PATH = str(pathlib.Path(__file__).resolve().parent) + "/config.json"
+
+# SG Project field that stores the current schema config version,
+# used to skip schema provisioning when the version already matches.
+FLOW_SCHEMA_VERSION_FIELD = "sg_flow_schema_config_version"

@@ -1217,6 +1217,18 @@ class ToolkitManager(object):
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
+            
+            # Inject the flow fields to context
+            if ctx.project is not None:
+                sg_project = self._sg_connection.find_one(
+                    "Project",
+                    [["id", "is", ctx.project["id"]]],
+                    [flow_const.FLOW_SCHEMA_VERSION_FIELD],
+                )
+                if sg_project:
+                    ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = (
+                        sg_project.get(flow_const.FLOW_SCHEMA_VERSION_FIELD)
+                    )
 
         self._report_progress(
             progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine..."

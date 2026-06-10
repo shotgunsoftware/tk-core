@@ -174,7 +174,13 @@ class Engine(TankBundle):
         # Do Flow sdk initialization if context is configured with Flow
         if context.flow_project_id:
             try:
-                flow_utils.init_flow(tk.pipeline_configuration, context.flow_project_id)
+                flow_utils.init_flow(
+                    tk.pipeline_configuration,
+                    tk.shotgun,
+                    context.flow_project_id,
+                    context.flow_schema_version,
+                    context.project["id"],
+                )
             except RuntimeError as exc:
                 self.log_error("Error occurred during Flow initialization!")
                 self.log_exception(exc)
