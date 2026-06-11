@@ -73,6 +73,11 @@ class Engine(TankBundle):
         Engine instances are constructed by the toolkit launch process
         and various factory methods such as :meth:`start_engine`.
 
+        For Flow-enabled contexts (``context.flow_project_id`` set), this
+        also runs ``flow_utils.init_flow()`` to set up the Flow Integration
+        SDK session and provision pipeline schemas when the SG schema
+        config version does not match the bundled config.
+
         :param tk: :class:`~sgtk.Sgtk` instance
         :param context: A context object to define the context on disk where the engine is operating
         :type context: :class:`~sgtk.Context`

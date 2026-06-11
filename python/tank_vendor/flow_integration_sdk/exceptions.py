@@ -104,27 +104,27 @@ class InvalidDraftError(FlowError):
         self.draft_id = draft_id
 
 
-class SchemaBuilderError(FlowError):
+class FlowSchemaBuilderError(FlowError):
     """General exception for errors related to SchemaBuilder operations."""
-    
+
     def __init__(self, *args, **kwargs):
         message = "SchemaBuilder operation failed."
         super().__init__(message, *args, **kwargs)
 
 
-class SchemaDisplayDataError(FlowError):
+class FlowSchemaDisplayDataError(FlowError):
     def __init__(self, *args, **kwargs):
         message = "Schema display data operation failed."
         super().__init__(message, *args, **kwargs)
 
 
-class SchemaError(FlowError):
+class FlowSchemaError(FlowError):
     def __init__(self, *args, **kwargs):
         message = "Schema operation failed."
         super().__init__(message, *args, **kwargs)
 
 
-class SchemaLibraryError(FlowError):
+class FlowSchemaLibraryError(FlowError):
     def __init__(self, *args, **kwargs):
         message = "Schema library operation failed."
         super().__init__(message, *args, **kwargs)

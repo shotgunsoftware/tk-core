@@ -24,10 +24,10 @@ from tank_vendor.flow_data_sdk.base.exceptions import (
 )
 
 from .exceptions import (
-    SchemaBuilderError,
-    SchemaDisplayDataError,
-    SchemaError,
-    SchemaLibraryError,
+    FlowSchemaBuilderError,
+    FlowSchemaDisplayDataError,
+    FlowSchemaError,
+    FlowSchemaLibraryError,
 )
 from .globals import BASE_TYPE_ID, get_client
 from .schema import get_schema_id
@@ -229,11 +229,11 @@ class SchemaBuilder:
         )
 
         # Add optional fields if present
-        if property_dict.get("default_value"):
+        if "default_value" in property_dict:
             properties_definition_input.value = property_dict["default_value"]
-        if property_dict.get("context"):
+        if "context" in property_dict:
             properties_definition_input.context = property_dict["context"]
-        if property_dict.get("length"):
+        if "length" in property_dict:
             properties_definition_input.length = property_dict["length"]
 
         return properties_definition_input
@@ -245,7 +245,7 @@ class SchemaBuilder:
             Schema: The created or existing Schema instance.
 
         Raises:
-            SchemaError: If schema creation or commit fails due to a client error.
+            FlowSchemaError: If schema creation or commit fails due to a client error.
             ValueError: If referenced schemas in 'inherits' or 'properties' are
                 not found.
         """
@@ -298,7 +298,7 @@ class SchemaBuilder:
             self.schema = query_response.schema
             logger.info("Created new schema: %s", self.schema.name)
         except (GQLAPIError, FlowConnectionError, ValidationError) as e:
-            raise SchemaError(
+            raise FlowSchemaError(
                 details=(
                     f"Failed to create schema '{self.schema_dict['name']}' "
                     f"version '{self.schema_dict['version']}': {e}"
@@ -311,7 +311,7 @@ class SchemaBuilder:
         """Retrieve the display data object for the current schema.
 
         This method attempts to fetch the SchemaDisplayData associated with the
-        schema instance. If the schema has not been built, a SchemaBuilderError
+        schema instance. If the schema has not been built, a FlowSchemaBuilderError
         is raised. If no display data exists for the schema, None is returned.
 
         Returns:
@@ -319,11 +319,11 @@ class SchemaBuilder:
                 otherwise None.
 
         Raises:
-            SchemaBuilderError: If the schema instance has not been built.
+            FlowSchemaBuilderError: If the schema instance has not been built.
         """
 
         if not self.schema:
-            raise SchemaBuilderError(details="Schema instance has not been built yet.")
+            raise FlowSchemaBuilderError(details="Schema instance has not been built yet.")
 
         client = get_client()
         schema_display_data = None
@@ -361,9 +361,9 @@ class SchemaBuilder:
                 display name if it already matches the desired value.
 
         Raises:
-            SchemaBuilderError: If the schema instance has not been built or the
+            FlowSchemaBuilderError: If the schema instance has not been built or the
                 schema definition does not specify a display name.
-            SchemaDisplayDataError: If updating the display name fails due to an
+            FlowSchemaDisplayDataError: If updating the display name fails due to an
                 error (such as an API failure).
         """
 
@@ -372,10 +372,10 @@ class SchemaBuilder:
         display_name = self.schema_dict.get("display_name")
 
         if not self.schema:
-            raise SchemaBuilderError(details="Schema instance has not been built yet.")
+            raise FlowSchemaBuilderError(details="Schema instance has not been built yet.")
 
         if not display_name:
-            raise SchemaBuilderError(
+            raise FlowSchemaBuilderError(
                 details="No display name specified in schema definition."
             )
 
@@ -416,7 +416,7 @@ class SchemaBuilder:
             )
             return display_name
         except (GQLAPIError, FlowConnectionError, ValidationError) as e:
-            raise SchemaDisplayDataError(
+            raise FlowSchemaDisplayDataError(
                 details=(
                     f"Could not update display data for schema "
                     f"'{self.schema.name}': {e}."
@@ -431,7 +431,7 @@ def _get_schema_library(
     if not found.
 
     Raises:
-        SchemaLibraryError: If retrieving schema libraries fails due to a client
+        FlowSchemaLibraryError: If retrieving schema libraries fails due to a client
             error.
     """
 
@@ -449,7 +449,7 @@ def _get_schema_library(
         )
         schema_libraries = list(schema_query.libraries_iterator or [])
     except (GQLAPIError, FlowConnectionError, ValidationError) as e:
-        raise SchemaLibraryError(
+        raise FlowSchemaLibraryError(
             details=f"Failed to retrieve all schema libraries: {e}"
         ) from e
 
@@ -472,7 +472,7 @@ def _create_schema_library(
     """Create a schema library if it does not exist, or return the existing one.
 
     Raises:
-        SchemaLibraryError: If retrieving or creating the schema library fails
+        FlowSchemaLibraryError: If retrieving or creating the schema library fails
             due to a client error.
     """
 
@@ -504,7 +504,7 @@ def _create_schema_library(
         return schema_library
 
     except (GQLAPIError, FlowConnectionError, ValidationError) as e:
-        raise SchemaLibraryError(
+        raise FlowSchemaLibraryError(
             details=f"Failed to create SchemaLibrary '{library_id}': {e}"
         ) from e
 
@@ -574,14 +574,10 @@ def create_pipeline_schemas(collection_id: str, project_id: str):
     schemas.
 
     The function performs the following steps:
-        1. Loads and validates the config.json file from the pipeline scripts
-           directory.
-        2. Creates or retrieves the schema library 'Flow Toolkit Library' for
-           the collection.
-        3. Iterates through the schemas defined in the config file, creating any
-           that do not exist, and updating their display names as needed.
-        4. Skips creation of schemas that already exist.
-        5. Forces schema cache refresh to include newly created schemas.
+        1. Loads and validates the config.json file.
+        2. Queries existing schema type ids for the target collection.
+        3. Creates the schema library if any configured schemas are missing.
+        4. Creates any missing schemas and sets their display names.
 
     Args:
         collection_id: The collection_id to create pipeline schemas.
@@ -593,10 +589,10 @@ def create_pipeline_schemas(collection_id: str, project_id: str):
         KeyError: If the config file does not contain a 'schemas' key,
             or if required keys are missing in the schema definition.
         ValueError: If schema definition or property values are invalid.
-        SchemaError: If schema creation or retrieval fails.
-        SchemaBuilderError: If schema building fails.
-        SchemaDisplayDataError: If updating display data fails.
-        SchemaLibraryError: If schema library operations fail.
+        FlowSchemaError: If schema creation or retrieval fails.
+        FlowSchemaBuilderError: If schema building fails.
+        FlowSchemaDisplayDataError: If updating display data fails.
+        FlowSchemaLibraryError: If schema library operations fail.
     """
     logger = get_logger(__name__)
     config = _load_config_file()

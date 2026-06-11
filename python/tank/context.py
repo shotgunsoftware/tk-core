@@ -436,7 +436,7 @@ class Context(object):
     @property
     def flow_schema_version(self) -> str | None:
         """
-        The FlowAM schema version the project in context, or ``None`` if the project is
+        The FlowAM schema version of the project in context, or ``None`` if the project is
         not FlowAM-enabled or there is no schema created.
 
         The value is read from the ``sg_flow_schema_config_version`` field on the project dict.

@@ -1263,6 +1263,7 @@ class TestSerialize(TestContext):
             "user": {"type": "HumanUser", "id": self.user["id"], "name": USER_NAME},
             "flow_project_id": None,
             "flow_draft_id": None,
+            "flow_schema_version": None,
         }
 
         ctx = context.Context(**self.kws)

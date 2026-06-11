@@ -975,11 +975,17 @@ class ToolkitManager(object):
             # Set authentication overrides in reserved env vars so they will persist
             # across toolkit engine sessions
             if flow_const.FLOW_AUTH_APP_ID in overrides:
-                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[flow_const.FLOW_AUTH_APP_ID]
+                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[
+                    flow_const.FLOW_AUTH_APP_ID
+                ]
             if flow_const.FLOW_AUTH_BASE_URL in overrides:
-                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[flow_const.FLOW_AUTH_BASE_URL]
+                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[
+                    flow_const.FLOW_AUTH_BASE_URL
+                ]
             if flow_const.FLOW_AUTH_CALLBACK_URL in overrides:
-                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[flow_const.FLOW_AUTH_CALLBACK_URL]
+                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[
+                    flow_const.FLOW_AUTH_CALLBACK_URL
+                ]
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file
@@ -1133,14 +1139,23 @@ class ToolkitManager(object):
                 sg_project = self._sg_connection.find_one(
                     "Project",
                     [["id", "is", project_id]],
-                    [flow_auth.AM_READY_PROJECT_FIELD, flow_const.FLOW_SCHEMA_VERSION_FIELD],
+                    [
+                        flow_auth.AM_READY_PROJECT_FIELD,
+                        flow_const.FLOW_SCHEMA_VERSION_FIELD,
+                    ],
                 )
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
                     # Retrieve and cache the flow am project id on the context object
-                    self._flow_project_id = sg_project.get(flow_auth.AM_READY_PROJECT_FIELD)
-                    self._flow_schema_version = sg_project.get(flow_const.FLOW_SCHEMA_VERSION_FIELD)
-                    log.info(f"Current SG project is associated with a Flow project: {self._flow_project_id}")
-                    
+                    self._flow_project_id = sg_project.get(
+                        flow_auth.AM_READY_PROJECT_FIELD
+                    )
+                    self._flow_schema_version = sg_project.get(
+                        flow_const.FLOW_SCHEMA_VERSION_FIELD
+                    )
+                    log.info(
+                        f"Current SG project is associated with a Flow project: {self._flow_project_id}"
+                    )
+
                     tk, _ = config.get_tk_instance(self._sg_user)
                     # Authenticate into Flow AM
                     self._trigger_am_auth(
@@ -1198,6 +1213,11 @@ class ToolkitManager(object):
 
         If entity is None, the method will bootstrap into the site config.
 
+        For Flow-enabled projects, the Flow project id and schema version
+        cached during ``_get_updated_configuration()`` are injected onto
+        ``ctx.project`` so the engine can read them via
+        ``context.flow_project_id`` and ``context.flow_schema_version``.
+
         Please note that the API version of the tk instance that hosts
         the engine may not be the same as the API version that was
         executed during the bootstrap.
@@ -1223,11 +1243,13 @@ class ToolkitManager(object):
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
-            
+
             # Inject flow fields to context if current project is related to a Flow project.
             if ctx.project and self._flow_project_id is not None:
                 ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = self._flow_project_id
-                ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = self._flow_schema_version
+                ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = (
+                    self._flow_schema_version
+                )
 
         self._report_progress(
             progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine..."

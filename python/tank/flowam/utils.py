@@ -182,9 +182,7 @@ def init_flow(
     # Provision pipeline schemas for CPA collections only
     session_collection = globals.get_session_collection()
     if not session_collection.is_cpa_collection():
-        logger.info(
-            "Skipping pipeline schema provisioning - not a CPA collection."
-        )
+        logger.info("Skipping pipeline schema provisioning - not a CPA collection.")
     else:
         current_version = get_schema_config_version()
         if sg_schema_version == current_version:
