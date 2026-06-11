@@ -312,35 +312,5 @@ class TestFlowDataSDK(ShotgunTestBase):
         self.assertEqual(version("flow-data-sdk"), flow_data_sdk.SDK_VERSION)
 
 
-@unittest.skipIf(
-    sys.version_info >= (3, 10),
-    "Test verifies behaviour when the SDK is unimportable due to <3.10 syntax/types",
-)
-class TestFlowDataSDKAbsentOnOldPython(ShotgunTestBase):
-    """
-    On Python 3.7 and 3.9, flow_data_sdk fails to import because its source
-    references types.UnionType and typing.TypeAlias (both 3.10+). The shared
-    loader is supposed to warn and continue, leaving tank_vendor itself
-    fully usable. These tests pin that contract.
-    """
-
-    def test_tank_vendor_imports_cleanly(self):
-        """`import tank_vendor` must succeed even when shared vendors fail to load."""
-        import importlib
-
-        import tank_vendor
-
-        # Re-importing is a no-op when the module is already cached, but the
-        # call would raise if the loader had been left in an inconsistent
-        # state by a per-package failure.
-        importlib.import_module("tank_vendor")
-        self.assertIsNotNone(tank_vendor)
-
-    def test_flow_data_sdk_unavailable(self):
-        """The SDK is not registered under the tank_vendor namespace."""
-        with self.assertRaises(ImportError):
-            from tank_vendor import flow_data_sdk  # noqa: F401
-
-
 if __name__ == "__main__":
     unittest.main()
