@@ -22,6 +22,7 @@ import weakref
 import threading
 
 from tank.flowam import utils as flow_utils
+from tank.flowam import host as flow_host
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -106,6 +107,10 @@ class Engine(TankBundle):
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
         self._async_invoker = None
+
+        # Flow host object used in Flow asset management integration
+        # Engines that support Flow integration will initialize this value to an instance of FlowHost
+        self._flow_host = None
 
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
@@ -693,6 +698,18 @@ class Engine(TankBundle):
         :rtype: bool
         """
         return True
+    
+    @property
+    def flow_host(self) -> flow_host.FlowHost | None:
+        """If the current context is Flow enabled, and the current
+        engine supports Flow integration, this value will be an instance of FlowHost.
+        The FlowHost class implements the required interface for the Flow asset management
+        integration to work within a dcc/engine.
+        
+        If the current context is not Flow enabled, or the current engine has not had
+        Flow support added, the value will be None.
+        """
+        return self._flow_host
 
     ##########################################################################################
     # init and destroy

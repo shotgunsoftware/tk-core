@@ -295,6 +295,26 @@ def is_sub_directory(root_path: str, full_path: str) -> bool:
         return False
 
 
+def fileext(filepath: str):
+    """Return extension of given file path without the dot and in lower case.
+    Examples:
+        >>> fileext('c:/temp/file.txt')
+        'txt'
+        >>> fileext('dir/another_dir/file.PNG')
+        'png'
+        >>> fileext('dir/another_dir')
+        ''
+        >>> fileext('dir/another.dir/folder')
+        ''
+        >>> fileext('file.backup.tar.gz')
+        'gz'
+    """
+    filename = os.path.basename(filepath)
+    if "." not in filename:
+        return ""
+    return os.path.splitext(filename)[-1].strip(".").lower()
+
+
 def mimetype(ext: str):
     """Return the mimetype of the given file extension.
 
