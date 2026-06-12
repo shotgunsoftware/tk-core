@@ -986,16 +986,8 @@ class ToolkitManager(object):
                 "MEDM auth misconfigured for AM-ready project: %s" % e
             )
         except Exception as e:
-            # TODO: is this still used?
-            if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
-                raise TankBootstrapError(
-                    "MEDM auth failed for AM-ready project: %s" % e
-                )
-            log.warning(
-                "MEDM auth failed; bootstrap will continue without a "
-                "pre-fetched token. Error: %s",
-                e,
-                exc_info=True,
+            raise TankBootstrapError(
+                "MEDM auth failed for AM-ready project: %s" % e
             )
 
     def _get_configuration(self, entity, progress_callback):
