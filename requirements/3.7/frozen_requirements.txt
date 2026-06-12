@@ -1,9 +1,7 @@
 distro==1.4.0
 Fileseq==2.1.2
 packaging==24.0
-PyJWT==2.8.0
 PyYAML==5.4.1
 ruamel.yaml==0.18.13
 ruamel.yaml.clib==0.2.8
 shotgun-api3==3.9.0
-typing-extensions==4.7.1

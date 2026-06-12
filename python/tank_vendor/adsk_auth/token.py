@@ -9,7 +9,11 @@ import logging
 from typing import Any, Optional
 from urllib.error import HTTPError
 
-import jwt
+try:
+    import jwt
+except ImportError:
+    # TODO: Remove when Python 3.7 is discontinued
+    jwt = None
 
 from .config import AuthConfig
 from .file_store import delete_tokens
@@ -47,6 +51,8 @@ def get_access_token(
     # 1. Valid token in cache?
     cached = _access_token_cache.get(user_profile)
     if cached and not (force_refresh or force_reauthentication):
+        if jwt is None:  # TODO: Remove when Python 3.7 is discontinued
+            return cached
         try:
             jwt.decode(cached, options={"verify_signature": False, "verify_exp": True})
             return cached
@@ -63,6 +69,9 @@ def get_access_token(
                 config.storage_dir, config.application_id, user_profile
             )
             if access_token:
+                if jwt is None:  # TODO: Remove when Python 3.7 is discontinued
+                    _access_token_cache[user_profile] = access_token
+                    return access_token
                 jwt.decode(
                     access_token,
                     options={"verify_signature": False, "verify_exp": True},
