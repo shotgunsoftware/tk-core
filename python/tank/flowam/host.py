@@ -29,20 +29,22 @@ class FlowHost(ABC):
     #: key = file extension from FILE_TYPES, value = mime type
     MIME_TYPES: dict[str, str] = {}
 
-    @classmethod
-    def host_init(cls) -> None:
-        """Do any necessary host related set up."""
-        pass
+    def __init__(self, context):
+        """Base class initialization.
 
-    @classmethod
+        Args:
+            context: Sgtk context object to be passed in from engine.
+        """
+        # Store sgtk context
+        self.context = context
+
     @abstractmethod
-    def current_file(cls) -> str:
+    def current_file(self) -> str:
         """Return current open file path in dcc."""
         raise NotImplementedError()
 
-    @classmethod
     @abstractmethod
-    def new_scene(cls, force: bool = True) -> bool:
+    def new_scene(self, force: bool = True) -> bool:
         """Open new scene in the host application.
 
         Args:
@@ -53,9 +55,8 @@ class FlowHost(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
     @abstractmethod
-    def open_file(cls, filepath: str, force: bool = True) -> bool:
+    def open_file(self, filepath: str, force: bool = True) -> bool:
         """Open the specified file in the host application.
 
         Args:
@@ -67,8 +68,7 @@ class FlowHost(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
-    def save_file(cls, file_path: str):
+    def save_file(self, file_path: str):
         """Save the current scene to the specified file path.
 
         This operation may not be applicable to all hosts.
@@ -78,8 +78,7 @@ class FlowHost(ABC):
         """
         pass
 
-    @classmethod
-    def export(cls, file_path: str):
+    def export(self, file_path: str):
         """Export current scene to file path specified and file type
         designated by file extension.
 
@@ -90,10 +89,9 @@ class FlowHost(ABC):
         """
         pass
 
-    @classmethod
     @abstractmethod
     def dialog(
-        cls,
+        self,
         title: str,
         msg: str,
         buttons: list[str] | None = None,
@@ -119,10 +117,9 @@ class FlowHost(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
     @abstractmethod
     def file_dialog(
-        cls,
+        self,
         title: str,
         starting_dir: str = "",
         folder_mode: bool = False,
@@ -147,9 +144,8 @@ class FlowHost(ABC):
         """
         raise NotImplementedError()
 
-    @classmethod
     @abstractmethod
-    def copy_to_clipboard(cls, text: str) -> bool:
+    def copy_to_clipboard(self, text: str) -> bool:
         """Copy given text to clipboard of relevant application.
         Default implementation copies to system clipboard.
 
@@ -162,8 +158,7 @@ class FlowHost(ABC):
         raise NotImplementedError()
 
     # TODO: add these back in
-    #@classmethod
-    #def get_dependency_tree(cls, must_exist: bool = True) -> DependencyData:
+    #def get_dependency_tree(self, must_exist: bool = True) -> DependencyData:
     #    """Return a DependencyData object which is the root of the
     #    dependency tree for the scene.
 
@@ -173,9 +168,8 @@ class FlowHost(ABC):
     #    # Return empty root node by default
     #    return DependencyData()
 
-    #@classmethod
     #def update_dependency(
-    #    cls,
+    #    self,
     #    dep: DependencyData,
     #    file_path: str,
     #) -> DependencyData:
@@ -192,8 +186,7 @@ class FlowHost(ABC):
     #    # Do nothing by default
     #    return dep
 
-    @classmethod
-    def env_var_marker(cls, var_name: str) -> str:
+    def env_var_marker(self, var_name: str) -> str:
         """Return the environment variable marker format for this host.
 
         Args:
