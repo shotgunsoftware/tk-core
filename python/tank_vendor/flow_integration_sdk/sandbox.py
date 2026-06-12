@@ -451,6 +451,13 @@ def checkout_revision(
         component_name=component_name,
         component_purpose=component_purpose,
     )
+    if cached_path is None:
+        # This indicates that the specified component does not exist
+        # on the revision, so raise an error
+        msg = "Revision does not contain a component fitting the filter: "
+        msg += f"component_name = {component_name}, component_purpose = {component_purpose}. "
+        msg += "No source file(s) to copy.  Checkout cannot be completed."
+        raise FlowError(msg)
 
     draft_path = cleanpath(draft_folder, os.path.basename(cached_path))
     msg = "Copying files to draft folder...\n"

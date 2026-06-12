@@ -50,7 +50,6 @@ from .storage import (
     get_storage_revision_dir,
 )
 from .utils import (
-    cleanpath,
     get_logger,
     to_regex_safe_wildcard_string,
     trace,
@@ -1262,7 +1261,7 @@ class FlowVersion:
 class FlowComponent:
     """Container class for data relevant to a particular medm_model.Component.
     Presents component data in a more readable and accessible way.
-    """ 
+    """
 
     @trace
     def __init__(self, revision: FlowRevision, component: medm_model.Component):
