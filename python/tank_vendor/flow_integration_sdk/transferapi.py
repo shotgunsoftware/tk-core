@@ -193,6 +193,8 @@ def upload_blob(client, file_path, urn_id, upload_uri):
             for part_num in range(1, total_parts + 1):
                 # Read chunk data
                 chunk_data = f.read(part_size)
+                # MD5 Hash is only used as a checksum so there is
+                # no security risk for using it here
                 md5_hash = base64.b64encode(hashlib.md5(chunk_data).digest()).decode(
                     "utf-8"
                 )
@@ -207,6 +209,11 @@ def upload_blob(client, file_path, urn_id, upload_uri):
                     md5_hash=md5_hash,
                 )
                 upload_url = part_info.send_url
+                # Confirm that upload url is a web url and not a file:// url
+                # which could present a security breach
+                if not upload_url.startswith("http"):
+                    msg = f"Suspicious url returned: {upload_url}. Aborting upload..."
+                    raise RuntimeError(msg)
 
                 # Create request and upload the part data
                 headers = {
