@@ -157,34 +157,33 @@ class FlowHost(ABC):
         """
         raise NotImplementedError()
 
-    # TODO: add these back in
-    #def get_dependency_tree(self, must_exist: bool = True) -> DependencyData:
-    #    """Return a DependencyData object which is the root of the
-    #    dependency tree for the scene.
+    def get_dependency_tree(self, must_exist: bool = True) -> DependencyData:
+        """Return a DependencyData object which is the root of the
+        dependency tree for the scene.
 
-    #    Args:
-    #        must_exist: Only return dependencies that can be found on disk.
-    #    """
-    #    # Return empty root node by default
-    #    return DependencyData()
+        Args:
+            must_exist: Only return dependencies that can be found on disk.
+        """
+        # Return empty root node by default
+        return DependencyData()
 
-    #def update_dependency(
-    #    self,
-    #    dep: DependencyData,
-    #    file_path: str,
-    #) -> DependencyData:
-    #    """Update an existing dependency to point to given file in current scene.
+    def update_dependency(
+        self,
+        dep: DependencyData,
+        file_path: str,
+    ) -> DependencyData:
+        """Update an existing dependency to point to given file in current scene.
 
-    #    Args:
-    #        dep: DependencyData node which identifies the dependency to be updated.
-    #        file_path: New path to set dependency to.
+        Args:
+            dep: DependencyData node which identifies the dependency to be updated.
+            file_path: New path to set dependency to.
 
-    #    Returns:
-    #        DependencyData object describing new state of dependency.
-    #        NOTE: This will be an isolated node, not including sub-dependency info.
-    #    """
-    #    # Do nothing by default
-    #    return dep
+        Returns:
+            DependencyData object describing new state of dependency.
+            NOTE: This will be an isolated node, not including sub-dependency info.
+        """
+        # Do nothing by default
+        return dep
 
     def env_var_marker(self, var_name: str) -> str:
         """Return the environment variable marker format for this host.
