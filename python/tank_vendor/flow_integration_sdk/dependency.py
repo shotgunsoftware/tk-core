@@ -21,12 +21,17 @@ import re
 from dataclasses import dataclass, field, fields
 from enum import Enum
 
-from tank_vendor.flow_integration_sdk.utils import to_regex_safe_wildcard_string
+from tank_vendor.flow_integration_sdk.exceptions import FlowError
+from tank_vendor.flow_integration_sdk.storage import storage_key_to_asset_id
 from tank_vendor.flow_integration_sdk.objects import (
     FlowRevision,
     FlowVersion,
 )
-from . import utils
+from tank_vendor.flow_integration_sdk.utils import (
+    cleanpath,
+    to_regex_safe_wildcard_string,
+    trace,
+)
 
 
 class DepType(Enum):
@@ -88,7 +93,7 @@ class DependencyData:
         If provided, copy info from cached dependency tree to avoid querying it.
         """
         # Parse file path for asset info
-        comp_info = utils.identify_component(self.file_path)
+        comp_info = identify_component(self.file_path)
         if comp_info:
             self.asset_id = comp_info.get("asset_id")
             self.revision_id = comp_info.get("revision_id")
@@ -354,3 +359,109 @@ class DependencyData:
             d.parent = dep
 
         return dep
+
+
+@trace
+def identify_component(file_path: str) -> dict | None:
+    """Given a file path, determine if it belongs to an asset, and
+    return information identifying the exact component blob that the path
+    is associated with.
+
+    NOTE: Only paths within primary storage (NFS cache) can be identified.
+    All other paths, including sandbox paths, will return None.
+
+    Args:
+        file_path: Absolute path to a file.
+        ignore_root: If True, root directory does not need to map to
+                     current configured roots. It is recommended to keep
+                     this to True if not trying validate full path for optimal
+                     performance.
+
+    Returns:
+        Dictionary with keys:
+            * asset_id -> Id of asset
+            * revision_id -> Id of revision
+            * version_id -> Id of version
+            * component_name -> Name of component
+            * blob_index -> Index into binary array of component
+
+        or None if the file path cannot be identified.
+    """
+    file_path = cleanpath(file_path)
+
+    # Absolute path pattern (expecting a root)
+    expr = r".*(?P<comp_path>/[^/]+/((r\d+)|(draft))/.+)"
+    m = re.match(expr, file_path)
+    if not m:
+        # Relative path pattern (expecting to begin with storage id)
+        expr = r"(?P<comp_path>[^/]+/((r\d+)|(draft))/.+)"
+        m = re.match(expr, file_path)
+        if not m:
+            # Not an asset path - failed test for overall asset path pattern
+            return None
+    comp_path = m.group("comp_path")
+
+    # add prepended / to match expected asset path pattern if not present
+    if not comp_path.startswith("/"):
+        comp_path = "/" + comp_path
+
+    # Parse expected pieces of asset path
+    try:
+        _, storage_id, rev_num, comp_path = comp_path.split("/", maxsplit=3)
+    except ValueError:
+        # Not an asset path - unable to parse into key path components
+        return None
+
+    # Look up asset based on storage key
+    try:
+        asset_id = storage_key_to_asset_id(storage_id)
+    except FlowError:
+        # Not an asset path - storage key component does not map to an asset
+        return None
+
+    # Convert revision number to integer
+    if rev_num == "draft":
+        # Not an asset path - draft paths don't count
+        return None
+    else:
+        try:
+            rev_num = int(rev_num.strip("r"))
+        except ValueError:
+            # Not an asset path - non-int value for revision number component
+            return None
+
+    revision_id = FlowRevision.get_revision_id(asset_id, rev_num)
+    try:
+        # NOTE: Using accessor method rather than constructing new instance
+        #       because this will return a cached object if it exists
+        #       This is ok since revisions are immutable.
+        revision = FlowRevision.get_revision(revision_id)
+    except FlowError:
+        # Not an asset - revision number is out of range
+        return None
+
+    # Determine component and blob index based on component path
+    # Try and match against existing binary components on revision
+    component = blob_index = None
+    bin_comps = revision.get_binary_components()
+    if "%" in comp_path:
+        # File sequence paths will be stored as a zip file
+        comp_path, _, _ = comp_path.rsplit(".", maxsplit=2)
+        comp_path += ".zip"
+    for comp in bin_comps:
+        for i, blob in enumerate(comp.blobs):
+            if blob.path == comp_path:
+                component = comp
+                blob_index = i
+                break
+    if component is None:
+        # Not an asset path - no component blob matches file
+        return None
+
+    return {
+        "asset_id": asset_id,
+        "revision_id": revision_id,
+        "version_id": revision.version_id,
+        "component_name": component.name,
+        "blob_index": blob_index,
+    }

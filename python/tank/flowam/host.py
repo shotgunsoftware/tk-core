@@ -14,6 +14,8 @@ from __future__ import annotations  # needed for Houdini support
 
 from abc import ABC, abstractmethod
 
+from tank_vendor.flow_integration_sdk.dependency import DependencyData
+
 
 class FlowHost(ABC):
     """Abstract base class defining a required interface for DCC/engine
