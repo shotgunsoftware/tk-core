@@ -315,6 +315,71 @@ def get_draft_context(draft_path: str) -> str | None:
     return draft_id
 
 
+def get_asset_drafts(asset_id: str) -> list[CheckoutDraftInfo]:
+    """Return all local drafts that exist for the given asset.
+
+    .. note:: Currently, we only support a single draft per asset,
+              however this could change in the future with the introduction
+              of multiple checkouts/sandboxes. Returning a list keeps this
+              utility flexible.
+
+    The returned values will be CheckoutDraftInfo objects which will contain
+    detailed information about each draft.
+
+    .. note:: This function can only be used to retrieve information about
+              checkouts. Please use `get_drafts(draft_type="new")` function
+              to retrieve list of brand new assets that exist in sandbox.
+
+    Args:
+        asset_id: Id of MEDM asset. This can also be a revision or version id
+                  from the same asset.
+
+    Returns:
+        List of CheckoutDraftInfo objects.
+    """
+    # Retrieve asset's draft id
+    draft_id = get_draft_id(asset_id)
+    # Read draft info if it exists
+    try:
+        draft_info = read_draft_info(draft_id)
+    except InvalidDraftError:
+        return []
+    return [draft_info]
+
+
+def get_drafts(draft_type: str | None = None) -> list[DraftInfo]:
+    """Return a list of all drafts found in local sandbox.
+
+    Args:
+        draft_type: If specified, filter by given draft type.
+                    Accepted values include "new" or "checkout".
+
+    Returns:
+        List of DraftInfo objects that may be either
+        CheckoutDraftInfo or NewDraftInfo types.
+
+    Raise:
+        FlowError
+    """
+    sandbox_root = get_sandbox_root()
+    if not os.path.exists(sandbox_root):
+        raise FlowError(f"Configured sandbox root does not exist: {sandbox_root}")
+
+    drafts = []
+    for item in os.listdir(sandbox_root):
+        if not os.path.isdir(os.path.join(sandbox_root, item)):
+            continue
+        draft_id = item
+        try:
+            draft_info = read_draft_info(draft_id)
+        except InvalidDraftError:
+            continue
+        if draft_type is not None and draft_type != draft_info.draft_type:
+            continue  # skip if filter doesn't match
+        drafts.append(draft_info)
+    return drafts
+
+
 # ------------------------------------------
 # SANDBOX UTILITIES
 # ------------------------------------------

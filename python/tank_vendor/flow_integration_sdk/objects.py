@@ -42,6 +42,7 @@ from .globals import (
     get_client,
     get_webapp_url,
 )
+from .sandbox import CheckoutDraftInfo, get_asset_drafts
 from .storage import (
     _cache_asset_info,
     get_storage_asset_dir,
@@ -554,6 +555,37 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         webapp_url = webapp_url.rstrip("/")
         web_id = urllib.parse.quote(asset_id)
         return f"{webapp_url}/assets?id={web_id}"
+
+    @classmethod
+    def get_drafts(cls, asset_id: str) -> list[CheckoutDraftInfo]:
+        """Return all local drafts that exist for the given asset.
+
+        .. note:: Currently, we only support a single draft per asset,
+                  however this could change in the future with the introduction
+                  of multiple checkouts/sandboxes. Returning a list keeps this
+                  utility flexible.
+
+        The returned values will be CheckoutDraftInfo objects which will contain
+        detailed information about each draft.
+
+        Args:
+            asset_id: Id of MEDM asset. This can also be a revision or version id
+                      from the same asset.
+
+        Returns:
+            List of CheckoutDraftInfo objects.
+
+        Raises:
+            FlowError
+        """
+        # Convert to asset id if necessary
+        if FlowRevision.is_revision_id(asset_id) or FlowVersion.is_version_id(asset_id):
+            asset_id = FlowAsset.get_asset_id(asset_id)
+        elif not FlowAsset.is_asset_id(asset_id):
+            msg = f"Invalid input id provided: {asset_id}. "
+            msg += "Input must be an asset, revision or version id."
+            raise FlowError(msg)
+        return get_asset_drafts(asset_id)
 
     @trace
     def __init__(self, asset: str | medm_model.Asset):
