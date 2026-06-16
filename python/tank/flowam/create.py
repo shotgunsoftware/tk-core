@@ -80,32 +80,35 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
         folder = project.find_child(SHOT_TYPE)
         if not folder:
             logger.info(f'Creating "{SHOT_TYPE}" folder...')
-            folder = publish_new_asset(
+            raw_asset = publish_new_asset(
                 name=ensure_unique_name(SHOT_TYPE, project),
                 parent_id=project.id,
                 description="Folder for Shot assets.",
                 components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {SHOT_TYPE}")],
             )
+            folder = FlowAsset(raw_asset)
     elif sg_entity_type == ASSET_TYPE:
         folder = project.find_child(ASSET_FOLDER)
         if not folder:
             logger.info(f'Creating "{ASSET_FOLDER}" folder...')
-            folder = publish_new_asset(
+            raw_asset = publish_new_asset(
                 name=ensure_unique_name(ASSET_FOLDER, project),
                 parent_id=project.id,
                 description="Folder for Asset Build assets.",
                 components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {ASSET_TYPE}")],
             )
+            folder = FlowAsset(raw_asset)
     elif inputs.create_mode.value == "GENERIC":
         folder = project.find_child(GENERIC_FOLDER)
         if not folder:
             logger.info(f'Creating "{GENERIC_FOLDER}" folder...')
-            folder = publish_new_asset(
+            raw_asset = publish_new_asset(
                 name=ensure_unique_name(GENERIC_FOLDER, project),
                 parent_id=project.id,
                 description="Folder for Generic assets.",
                 components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {GENERIC_FOLDER}")],
             )
+            folder = FlowAsset(raw_asset)
     else:
         msg = f"Invalid entity type provided: {sg_entity_type}."
         raise CreateAssetError(data=inputs.asdict(), details=msg)
@@ -139,30 +142,33 @@ def get_or_create_workfile_parent(root_folder: FlowAsset, inputs) -> FlowAsset:
             if sg_entity_type == ASSET_TYPE
             else "type.container.shot"
         )
-        container = publish_new_asset(
+        raw_asset = publish_new_asset(
             name=ensure_unique_name(sg_entity_name, root_folder),
             parent_id=root_folder.id,
             components=[TypeComponentSpec(type_id=get_schema_id(container_type), name=f"Type {container_type}")],
-            )
+        )
+        container = FlowAsset(raw_asset)
 
     pipeline_step = container.find_child(sg_pipeline_step)
     if not pipeline_step:
         logger.info(f'Creating pipeline step asset for "{sg_pipeline_step}"...')
-        pipeline_step = publish_new_asset(
+        raw_asset = publish_new_asset(
             name=ensure_unique_name(sg_pipeline_step, container),
             parent_id=container.id,
             components=[TypeComponentSpec(type_id=get_schema_id(PIPELINE_STEP_TYPE), name=f"Type {PIPELINE_STEP_TYPE}")],
         )
+        pipeline_step = FlowAsset(raw_asset)
 
     task_folder = pipeline_step.find_child(sg_task_name)
     if not task_folder:
         logger.info(f'Creating task folder asset for "{sg_task_name}"...')
-        task_folder = publish_new_asset(
+        raw_asset = publish_new_asset(
             name=ensure_unique_name(sg_task_name, pipeline_step),
             parent_id=pipeline_step.id,
             description=f'Folder for task "{sg_task_name}".',
             components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {FOLDER_TYPE_ID}")],
         )
+        task_folder = FlowAsset(raw_asset)
 
     return task_folder
 
