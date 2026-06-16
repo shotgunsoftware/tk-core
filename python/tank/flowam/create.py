@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import annotations
+from __future__ import annotations  # needed for python 3.9 support
 
 import re
 
@@ -29,6 +29,7 @@ GENERIC_FOLDER = "Generic"
 PIPELINE_STEP_TYPE = "type.pipelineStep"
 SHOT_FOLDER = "Shots"
 SHOT_TYPE = "Shot"
+
 
 @trace
 def create_asset_hierarchy(inputs) -> FlowAsset:
@@ -84,7 +85,9 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
                 name=ensure_unique_name(SHOT_TYPE, project),
                 parent_id=project.id,
                 description="Folder for Shot assets.",
-                components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {SHOT_TYPE}")],
+                components=[
+                    TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {SHOT_TYPE}")
+                ],
             )
             folder = FlowAsset(raw_asset)
     elif sg_entity_type == ASSET_TYPE:
@@ -95,7 +98,9 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
                 name=ensure_unique_name(ASSET_FOLDER, project),
                 parent_id=project.id,
                 description="Folder for Asset Build assets.",
-                components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {ASSET_TYPE}")],
+                components=[
+                    TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {ASSET_TYPE}")
+                ],
             )
             folder = FlowAsset(raw_asset)
     elif inputs.create_mode.value == "GENERIC":
@@ -106,7 +111,11 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
                 name=ensure_unique_name(GENERIC_FOLDER, project),
                 parent_id=project.id,
                 description="Folder for Generic assets.",
-                components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {GENERIC_FOLDER}")],
+                components=[
+                    TypeComponentSpec(
+                        type_id=FOLDER_TYPE_ID, name=f"Type {GENERIC_FOLDER}"
+                    )
+                ],
             )
             folder = FlowAsset(raw_asset)
     else:
@@ -145,7 +154,11 @@ def get_or_create_workfile_parent(root_folder: FlowAsset, inputs) -> FlowAsset:
         raw_asset = publish_new_asset(
             name=ensure_unique_name(sg_entity_name, root_folder),
             parent_id=root_folder.id,
-            components=[TypeComponentSpec(type_id=get_schema_id(container_type), name=f"Type {container_type}")],
+            components=[
+                TypeComponentSpec(
+                    type_id=get_schema_id(container_type), name=f"Type {container_type}"
+                )
+            ],
         )
         container = FlowAsset(raw_asset)
 
@@ -155,7 +168,12 @@ def get_or_create_workfile_parent(root_folder: FlowAsset, inputs) -> FlowAsset:
         raw_asset = publish_new_asset(
             name=ensure_unique_name(sg_pipeline_step, container),
             parent_id=container.id,
-            components=[TypeComponentSpec(type_id=get_schema_id(PIPELINE_STEP_TYPE), name=f"Type {PIPELINE_STEP_TYPE}")],
+            components=[
+                TypeComponentSpec(
+                    type_id=get_schema_id(PIPELINE_STEP_TYPE),
+                    name=f"Type {PIPELINE_STEP_TYPE}",
+                )
+            ],
         )
         pipeline_step = FlowAsset(raw_asset)
 
@@ -166,7 +184,9 @@ def get_or_create_workfile_parent(root_folder: FlowAsset, inputs) -> FlowAsset:
             name=ensure_unique_name(sg_task_name, pipeline_step),
             parent_id=pipeline_step.id,
             description=f'Folder for task "{sg_task_name}".',
-            components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {FOLDER_TYPE_ID}")],
+            components=[
+                TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {FOLDER_TYPE_ID}")
+            ],
         )
         task_folder = FlowAsset(raw_asset)
 

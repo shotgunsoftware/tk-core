@@ -10,7 +10,7 @@
 # *****************************************************************************
 #
 
-from __future__ import annotations  # needed for Houdini support
+from __future__ import annotations  # needed for python 3.9 support
 
 from abc import ABC, abstractmethod
 
