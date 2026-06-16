@@ -124,3 +124,14 @@ class PublishConflictError(FlowError):
         self.asset = asset
         self.checkout_version = checkout_version
         self.checkout_revision = checkout_revision
+
+
+class ThumbnailError(FlowError):
+    def __init__(self, *args, revision_id: str, **kwargs):
+        """
+        Args:
+            revision_id: Id of revision.
+        """
+        message = f"Could not retrieve thumbnail for revision: {revision_id}."
+        super().__init__(message, *args, **kwargs)
+        self.revision_id = revision_id

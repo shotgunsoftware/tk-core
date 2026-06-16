@@ -33,7 +33,13 @@ from .exceptions import (
     EntityNotFoundError,
     FlowError,
 )
-from .fetch import download, fetch, fetch_blob_urls
+from .fetch import (
+    download,
+    fetch,
+    fetch_blob_urls,
+    get_thumbnail_file,
+    get_thumbnail_url,
+)
 from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
@@ -1134,6 +1140,31 @@ class FlowRevision(ComponentMixin, UsesMixin):
             component_purpose=component_purpose,
             fetch_dependencies=fetch_dependencies,
         )
+
+    @trace
+    def get_thumbnail_file(self) -> str:
+        """Return the file path to the revision's thumbnail if it exists,
+        fetching it if necessary.
+
+        Returns:
+            Full path to thumbnail in storage.
+
+        Raises:
+            ThumbnailError
+        """
+        return get_thumbnail_file(self._revision)
+
+    @trace
+    def get_thumbnail_url(self) -> str:
+        """Return the signed url to the revision's thumbnail if it exists.
+
+        Returns:
+            Url that can be used to download thumbnail.
+
+        Raises:
+            ThumbnailError
+        """
+        return get_thumbnail_url(self._revision)
 
     def __str__(self):
         """Readable string representation of revision object."""
