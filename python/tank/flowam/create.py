@@ -8,15 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""Shared helpers for creating Flow AM asset hierarchy.
-
-These helpers are used by both the publisher (tk-multi-publish2) and the loader
-(tk-multi-loader2).  They deal exclusively with hierarchy resolution and remote
-asset creation; they have no dependency on any DCC host or publisher-specific
-inputs.
-
-"""
-
 from __future__ import annotations
 
 import re
