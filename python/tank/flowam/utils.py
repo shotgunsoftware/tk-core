@@ -21,7 +21,6 @@ from dataclasses import dataclass, asdict
 
 from tank import LogManager
 from tank.authentication import flow_auth
-from tank.context import Context
 from tank.pipelineconfig import PipelineConfiguration
 from tank.util import yaml_cache
 from tank_vendor.flow_integration_sdk import globals, schema, storage
@@ -121,7 +120,7 @@ def get_config_flow_settings(pipeline_config: PipelineConfiguration) -> dict:
 def init_flow(
     pipeline_config : PipelineConfiguration,
     sg_connection,
-    context: Context,
+    context,
 ):
     """Do session set up + schema provisioning for the Flow Integration SDK.
 
