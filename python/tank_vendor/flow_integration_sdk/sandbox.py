@@ -615,8 +615,8 @@ def publish_draft(
     # Retrieve draft metadata
     draft_info = read_draft_info(draft_id)
 
-    # Add comment component to components
-    components = [] if components is None else components
+    # Add comment component to components if not already present
+    components = [] if components is None else list(components)
     components.append(CommentComponentSpec(comment))
 
     if draft_info.draft_type == "new":

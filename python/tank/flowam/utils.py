@@ -15,6 +15,7 @@ from __future__ import annotations  # needed for python 3.9 support
 import fileseq
 import os
 from dataclasses import dataclass, asdict
+import webbrowser
 
 from tank import LogManager
 from tank.authentication import flow_auth
@@ -224,3 +225,12 @@ def create_components_for_publish(
         type_comp = TypeComponentSpec(type_id=type_id, name=f"Type {i}")
         components.append(type_comp)
     return components
+
+
+def open_explorer(dir_path: str):
+    """Open a file explorer to the directory path provided.
+
+    Args:
+        dir_path: Full path to local directory.
+    """
+    return webbrowser.open(f"file:///{dir_path}")
