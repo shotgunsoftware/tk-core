@@ -1093,7 +1093,7 @@ class FlowRevision(ComponentMixin, UsesMixin):
         """
         return get_storage_revision_dir(self.asset_id, self.revision_number)
 
-    def get_component_storage_path(
+    def get_storage_component_path(
         self,
         component_name: str = "",
         component_purpose: str = "",
@@ -1427,7 +1427,7 @@ class FlowComponent:
         project_id = FlowProject.get_project_id(self.revision.id)
 
         # Do download
-        download(
+        return download(
             self._component,
             project_id,
             directory,
