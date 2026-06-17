@@ -182,9 +182,7 @@ class Engine(TankBundle):
                 flow_utils.init_flow(
                     tk.pipeline_configuration,
                     tk.shotgun,
-                    context.flow_project_id,
-                    context.flow_schema_version,
-                    context.project["id"],
+                    context,
                 )
             except RuntimeError as exc:
                 self.log_error("Error occurred during Flow initialization!")

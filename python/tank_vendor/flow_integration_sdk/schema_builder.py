@@ -12,8 +12,6 @@
 
 from __future__ import annotations  # needed for python 3.9 support
 
-import json
-import os
 from typing import Any
 
 from tank_vendor.flow_data_sdk.base import model as flow_model
@@ -30,6 +28,8 @@ from .exceptions import (
     FlowSchemaLibraryError,
 )
 from .globals import BASE_TYPE_ID, get_client
+from .objects import FlowProject
+from . import schema
 from .schema import get_schema_id
 from .utils import cleanpath, get_logger
 
@@ -509,63 +509,7 @@ def _create_schema_library(
         ) from e
 
 
-def _load_config_file() -> dict:
-    """Load and validate the config.json file.
-
-    This function loads the config.json file from the Flow AM constants path,
-    validates that it contains valid JSON and has the required 'schemas' key.
-
-    Returns:
-        dict: The parsed config dictionary.
-
-    Raises:
-        FileNotFoundError: If the config file does not exist or cannot be opened.
-        json.JSONDecodeError: If the config file contains invalid JSON.
-        KeyError: If the config file does not contain a 'schemas' key.
-    """
-    from tank.flowam.constants import FLOW_SCHEMA_CONFIG_PATH
-
-    config_path = FLOW_SCHEMA_CONFIG_PATH
-
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Config file not found: {config_path}")
-
-    try:
-        with open(config_path, encoding="utf-8") as f:
-            config = json.load(f)
-    except FileNotFoundError as exc:
-        raise FileNotFoundError(
-            f"Could not open the config file {config_path}"
-        ) from exc
-    except json.JSONDecodeError as exc:
-        raise json.JSONDecodeError(
-            f"File {config_path} does not contain valid JSON.", doc="", pos=0
-        ) from exc
-
-    if "schemas" not in config:
-        raise KeyError("The config file must contain a 'schemas' key.")
-
-    return config
-
-
-def get_schema_config_version() -> str:
-    """Retrieve the schema config version from the config.json file.
-
-    This function reads the config.json file located at FLOW_SCHEMA_CONFIG_PATH
-    and extracts the 'version' key. If the file does not exist or contains
-    invalid JSON, appropriate exceptions are raised. If the 'version' key is
-    missing, a default value of 'unknown' is returned.
-
-    Returns:
-        str: The schema config version from the config.json file, or 'unknown'
-            if not specified.
-    """
-
-    config = _load_config_file()
-    return config.get("version", "unknown")
-
-
-def create_pipeline_schemas(collection_id: str, project_id: str):
+def create_pipeline_schemas(project_id: str, config_path: str):
     """Create pipeline schemas under the schema library 'Flow Toolkit Library'
     for a CPA collection.
 
@@ -580,8 +524,8 @@ def create_pipeline_schemas(collection_id: str, project_id: str):
         4. Creates any missing schemas and sets their display names.
 
     Args:
-        collection_id: The collection_id to create pipeline schemas.
         project_id: The Flow AM project ID.
+        config_path: Path to the schema config json file.
     Raises:
         RuntimeError: If schema library creation fails.
         FileNotFoundError: If the config file does not exist.
@@ -595,8 +539,12 @@ def create_pipeline_schemas(collection_id: str, project_id: str):
         FlowSchemaLibraryError: If schema library operations fail.
     """
     logger = get_logger(__name__)
-    config = _load_config_file()
+
+    config = schema._read_schema_config(config_path)
+    if "schemas" not in config:
+        raise KeyError("The schema config file must contain a 'schemas' key with a list of schemas to create.")
     client = get_client()
+    collection_id = FlowProject.get_collection_id(project_id)
 
     # Retrieve all existing published schema type ids for the collection
     try:

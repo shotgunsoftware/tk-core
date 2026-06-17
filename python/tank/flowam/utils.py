@@ -21,6 +21,7 @@ from dataclasses import dataclass, asdict
 
 from tank import LogManager
 from tank.authentication import flow_auth
+from tank.context import Context
 from tank.pipelineconfig import PipelineConfiguration
 from tank.util import yaml_cache
 from tank_vendor.flow_integration_sdk import globals, schema, storage
@@ -34,10 +35,7 @@ from tank_vendor.flow_integration_sdk.publish import (
     FileSeqComponentSpec,
 )
 from tank_vendor.flow_integration_sdk.objects import FlowProject
-from tank_vendor.flow_integration_sdk.schema_builder import (
-    create_pipeline_schemas,
-    get_schema_config_version,
-)
+from tank_vendor.flow_integration_sdk.schema_builder import create_pipeline_schemas
 from tank_vendor.flow_integration_sdk.utils import trace
 
 from .constants import FLOW_SCHEMA_CONFIG_PATH, FLOW_SCHEMA_VERSION_FIELD
@@ -121,11 +119,9 @@ def get_config_flow_settings(pipeline_config: PipelineConfiguration) -> dict:
 
 
 def init_flow(
-    pipeline_config,
+    pipeline_config : PipelineConfiguration,
     sg_connection,
-    flow_project_id: str,
-    sg_schema_version: str | None,
-    sg_project_id: int,
+    context: Context,
 ):
     """Do session set up + schema provisioning for the Flow Integration SDK.
 
@@ -134,18 +130,14 @@ def init_flow(
             settings from config.
         sg_connection: Shotgun connection, used to write the schema config
             version back to SG.
-        flow_project_id: The flow project associated with current sg project
-            context.
-        sg_schema_version: The schema config version stored on the SG Project,
-            used to skip provisioning when it already matches.
-        sg_project_id: The ShotGrid project entity id, used to write back
-            the schema config version after a successful build.
+        context: The current Toolkit context, used to read the flow project id,
+            schema version, and SG project id.
 
     Raises:
         RuntimeError
     """
     logger.info("Doing Flow Integration SDK initialization...")
-    logger.info(f"Flow AM Project ID: {flow_project_id}")
+    logger.info(f"Flow AM Project ID: {context.flow_project_id}")
 
     # Read flow settings from config
     settings = get_config_flow_settings(pipeline_config)
@@ -162,7 +154,7 @@ def init_flow(
     globals.set_webapp_url(flow_web_url)
     # Set session collection
     try:
-        project = FlowProject(flow_project_id)
+        project = FlowProject(context.flow_project_id)
     except FlowError as exc:
         msg = f"Could not complete Flow initialization: {exc}"
         raise RuntimeError(msg) from exc
@@ -184,8 +176,8 @@ def init_flow(
     if not session_collection.is_cpa_collection():
         logger.info("Skipping pipeline schema provisioning - not a CPA collection.")
     else:
-        current_version = get_schema_config_version()
-        if sg_schema_version == current_version:
+        current_version = schema.get_schema_config_version(FLOW_SCHEMA_CONFIG_PATH)
+        if context.flow_schema_version == current_version:
             logger.info(
                 f"Schema config version {current_version} matches. "
                 "Skipping schema provisioning."
@@ -193,12 +185,12 @@ def init_flow(
         else:
             try:
                 create_pipeline_schemas(
-                    collection_id=session_collection.id,
-                    project_id=flow_project_id,
+                    project_id=context.flow_project_id,
+                    config_path=FLOW_SCHEMA_CONFIG_PATH,
                 )
                 sg_connection.update(
                     "Project",
-                    sg_project_id,
+                    context.project["id"],
                     {FLOW_SCHEMA_VERSION_FIELD: current_version},
                 )
             except (

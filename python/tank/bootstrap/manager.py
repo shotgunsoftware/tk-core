@@ -1145,7 +1145,8 @@ class ToolkitManager(object):
                     ],
                 )
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
-                    # Retrieve and cache the flow am project id on the context object
+                    # Store flow fields temporarily to avoid re-querying.
+                    # They will be cached on the context object after the context object has been rebuilt.
                     self._flow_project_id = sg_project.get(
                         flow_auth.AM_READY_PROJECT_FIELD
                     )
@@ -1153,7 +1154,7 @@ class ToolkitManager(object):
                         flow_const.FLOW_SCHEMA_VERSION_FIELD
                     )
                     log.info(
-                        f"Current SG project is associated with a Flow project: {self._flow_project_id}"
+                        f"Current SG project is associated with a Flow project: {self._flow_project_id} with schema version {self._flow_schema_version}."
                     )
 
                     tk, _ = config.get_tk_instance(self._sg_user)
