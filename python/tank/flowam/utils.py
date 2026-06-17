@@ -163,7 +163,7 @@ def init_flow(pipeline_config: PipelineConfiguration, flow_project_id: str):
 
 @trace
 def create_components_for_publish(
-    source_paths: list[str],
+    source_paths: list[str] | None = None,
     thumbnail_path: str = "",
     comment: str = "",
     type_ids: list[str] | None = None,
@@ -171,7 +171,7 @@ def create_components_for_publish(
     """Generate the components relevant to publish a new revision.
 
     Args:
-        source_paths: List of local paths to the source files.
+        source_paths: Optional list of local paths to the source files.
         thumbnail_path: Optional path to thumbnail file.
         comment: Generate a comment component with given comment string.
                  Should only be included if the publish method does not
@@ -181,15 +181,17 @@ def create_components_for_publish(
                   (i.e. not going through sandbox).
     """
     # Source component contains the source file
-    source_comp = SourceComponentSpec(*source_paths)
-    components: list[ComponentSpec] = [source_comp]
+    components: list[ComponentSpec] = []
+    if source_paths:
+        source_comp = SourceComponentSpec(*source_paths)
+        components.append(source_comp)
     # Thumbnail component contains the thumbnail file
     if thumbnail_path:
         thumbnail_comp = ThumbnailComponentSpec(thumbnail_path)
         components.append(thumbnail_comp)
     # Need to add a special file sequence type component if there are
     # multiple source files
-    if len(source_paths) > 1:
+    if source_paths and len(source_paths) > 1:
         sequences = fileseq.findSequencesInList(source_paths)
         if len(sequences) > 1:
             msg = "Ambiguous file sequence provided for publish."
