@@ -23,6 +23,8 @@ from tank_vendor.flow_integration_sdk.publish import (
 from tank_vendor.flow_integration_sdk.schema import get_schema_id
 from tank_vendor.flow_integration_sdk.utils import get_logger, trace
 
+from .utils import BaseInputs
+
 # Folder names
 ASSET_FOLDER = "Assets"
 SHOT_FOLDER = "Shots"
@@ -54,7 +56,7 @@ class CreateMode(Enum):
 
 
 @trace
-def create_asset_hierarchy(inputs) -> FlowAsset:
+def create_asset_hierarchy(inputs: BaseInputs) -> FlowAsset:
     """Ensure the folder hierarchy above a new generic workfile exists.
 
     Returns the immediate parent under which the workfile asset should be
@@ -79,7 +81,7 @@ def create_asset_hierarchy(inputs) -> FlowAsset:
 
 
 @trace
-def get_or_create_root_folder(inputs) -> FlowAsset:
+def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
     """Retrieve (or create) the top-level folder for the new asset.
 
     Returns:
@@ -125,7 +127,7 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
                 ],
             )
             folder = FlowAsset(raw_asset)
-    elif inputs.create_mode.value == CreateMode.GENERIC.value:
+    elif inputs.create_mode == CreateMode.GENERIC:
         folder = project.find_child(GENERIC_FOLDER)
         if not folder:
             logger.info(f'Creating "{GENERIC_FOLDER}" folder...')
@@ -148,7 +150,7 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
 
 
 @trace
-def get_or_create_workfile_parent(root_folder: FlowAsset, inputs) -> FlowAsset:
+def get_or_create_workfile_parent(root_folder: FlowAsset, inputs: BaseInputs) -> FlowAsset:
     """Determine (and create if necessary) the task-level folder that will be
     the direct parent of the workfile asset.
 
