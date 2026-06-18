@@ -14,8 +14,8 @@ from __future__ import annotations  # needed for python 3.9 support
 
 import fileseq
 import os
-from dataclasses import dataclass, asdict
 import webbrowser
+from dataclasses import dataclass, asdict
 
 from tank import LogManager
 from tank.authentication import flow_auth

@@ -238,6 +238,19 @@ def get_draft_folder(draft_id: str) -> str:
     return f"{sandbox_root}/{draft_id}/draft"
 
 
+def get_draft_info_file(draft_id: str) -> str:
+    """Return expected path to draft info sidecar file, whether
+    or not it exists.
+
+    Args:
+        draft_id: Id that uniquely identifies a draft within local sandbox.
+
+    Returns:
+        Full path to draft info sidecar file on local disk.
+    """
+    return cleanpath(get_draft_folder(draft_id), ".draft")
+
+
 @trace
 def read_draft_info(draft_id: str) -> DraftInfo:
     """Read the draft info sidecar file and convert into draft dataclass.
@@ -251,8 +264,7 @@ def read_draft_info(draft_id: str) -> DraftInfo:
     Raises:
         InvalidDraftError
     """
-    draft_folder = get_draft_folder(draft_id)
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     if not os.path.exists(draft_info_file):
         msg = f"Draft info file not found: {draft_info_file}"
         raise InvalidDraftError(draft_id=draft_id, details=msg)
@@ -437,7 +449,7 @@ def create_asset_in_sandbox(
     # Add a sidecar file to store metadata of new asset
     # This will ensure that when it's publish time, we have all the info we need
     # to create the appropriate asset entity.
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     draft_info = NewDraftInfo(
         draft_id=draft_id,
         name=name,
@@ -537,7 +549,7 @@ def checkout_revision(
     asset = _query_asset(revision.asset_id)
 
     # Write draft info
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     draft_info = CheckoutDraftInfo(
         draft_id=draft_id,
         name=asset.name,
@@ -684,8 +696,7 @@ def publish_draft(
     # about current draft. After a publish, we will treat the draft has being
     # checked out from the most recent published version.
     # NOTE: we can continue to use the same draft id.
-    draft_folder = get_draft_folder(draft_id)
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     draft_info = CheckoutDraftInfo(
         draft_id=draft_id,
         name=asset.name,
