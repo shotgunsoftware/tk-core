@@ -11,6 +11,7 @@
 from __future__ import annotations  # needed for python 3.9 support
 
 import re
+from enum import Enum
 
 from tank_vendor.flow_integration_sdk.exceptions import CreateAssetError, FlowError
 from tank_vendor.flow_integration_sdk.globals import FOLDER_TYPE_ID
@@ -22,13 +23,34 @@ from tank_vendor.flow_integration_sdk.publish import (
 from tank_vendor.flow_integration_sdk.schema import get_schema_id
 from tank_vendor.flow_integration_sdk.utils import get_logger, trace
 
-# AM folder / type name constants (mirrors POC asset_management/constants.py)
+# Folder names
 ASSET_FOLDER = "Assets"
-ASSET_TYPE = "Asset"
-GENERIC_FOLDER = "Generic"
-PIPELINE_STEP_TYPE = "type.pipelineStep"
 SHOT_FOLDER = "Shots"
+GENERIC_FOLDER = "Generic"
+TEMPLATE_FOLDER = "Templates"
+
+# SG entity types
 SHOT_TYPE = "Shot"
+ASSET_TYPE = "Asset"
+
+# Custom schema types
+ASSET_CONTAINER_TYPE = "type.container.asset"
+CONTAINER_TYPE = "type.container"
+DERIVATIVE_TYPE = "type.derivative"
+GENERIC_WORKFILE_TYPE = "type.workfile.generic"
+PIPELINE_STEP_TYPE = "type.pipelineStep"
+SHOT_CONTAINER_TYPE = "type.container.shot"
+TEMPLATE_TYPE = "type.template"
+WORKFILE_TYPE = "type.workfile"
+
+
+class CreateMode(Enum):
+    """Enum of modes for creating a new asset."""
+
+    NEW = "new"  #: Create a DCC asset from a new scene as the source.
+    CURRENT = "current"  #: Create a DCC asset from the current scene as the source.
+    TEMPLATE = "template"  #: Create a DCC asset from template scene as the source.
+    GENERIC = "generic"  #: Create a generic asset from a specified source file.
 
 
 @trace
@@ -147,9 +169,9 @@ def get_or_create_workfile_parent(root_folder: FlowAsset, inputs) -> FlowAsset:
             f'folder "{root_folder.name}"...'
         )
         container_type = (
-            "type.container.asset"
+            ASSET_CONTAINER_TYPE
             if sg_entity_type == ASSET_TYPE
-            else "type.container.shot"
+            else SHOT_CONTAINER_TYPE
         )
         raw_asset = publish_new_asset(
             name=ensure_unique_name(sg_entity_name, root_folder),
