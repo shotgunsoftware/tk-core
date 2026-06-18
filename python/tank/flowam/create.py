@@ -125,7 +125,7 @@ def get_or_create_root_folder(inputs) -> FlowAsset:
                 ],
             )
             folder = FlowAsset(raw_asset)
-    elif inputs.create_mode.value == "GENERIC":
+    elif inputs.create_mode.value == CreateMode.GENERIC.value:
         folder = project.find_child(GENERIC_FOLDER)
         if not folder:
             logger.info(f'Creating "{GENERIC_FOLDER}" folder...')
