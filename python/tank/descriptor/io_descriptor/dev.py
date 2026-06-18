@@ -10,6 +10,7 @@
 
 from .path import IODescriptorPath
 
+from ...util import process
 from ... import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -51,3 +52,25 @@ class IODescriptorDev(IODescriptorPath):
         Returns true if this item is intended for development purposes
         """
         return True
+
+    def get_version(self):
+        v = super().get_version()
+        if v.lower() != "undefined": # TODO constant
+            return v
+
+        desc = self.get_git_output("describe", "--tags", "--first-parent")
+        if not desc:
+            return v
+
+        return desc.replace("-", "+dev-", 1)
+
+    def get_git_output(self, *args):
+        cmd_args = ["git", "-C", self._path]
+        cmd_args.extend(args)
+        try:
+            output = process.subprocess_check_output(cmd_args)
+        except process.SubprocessCalledProcessError as e:
+            log.debug("Unable to run git command - {e}")
+        else:
+            # note: it seems on windows, the result is sometimes wrapped in single quotes.
+            return output.strip().strip("'")
