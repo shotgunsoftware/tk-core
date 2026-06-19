@@ -18,11 +18,15 @@ import os
 import re
 import webbrowser
 from dataclasses import dataclass, asdict
+from typing import TYPE_CHECKING
 
 from tank import LogManager
 from tank.authentication import flow_auth
 from tank.pipelineconfig import PipelineConfiguration
 from tank.util import yaml_cache
+
+if TYPE_CHECKING:
+    from tank.context import Context
 from tank_vendor.flow_integration_sdk import globals, schema, storage
 from tank_vendor.flow_integration_sdk.exceptions import FlowError
 from tank_vendor.flow_integration_sdk.publish import (
@@ -118,9 +122,9 @@ def get_config_flow_settings(pipeline_config: PipelineConfiguration) -> dict:
 
 
 def init_flow(
-    pipeline_config : PipelineConfiguration,
+    pipeline_config: PipelineConfiguration,
     sg_connection,
-    context,
+    context: Context,
 ):
     """Do session set up + schema provisioning for the Flow Integration SDK.
 
@@ -136,7 +140,9 @@ def init_flow(
         RuntimeError
     """
     logger.info("Doing Flow Integration SDK initialization...")
-    logger.info(f"Flow AM Project ID: {context.flow_project_id}")
+    flow_project_id = context.flow_project_id
+    sg_project_id = context.project["id"]
+    logger.info(f"Flow AM Project ID: {flow_project_id}")
 
     # Read flow settings from config
     settings = get_config_flow_settings(pipeline_config)
@@ -153,7 +159,7 @@ def init_flow(
     globals.set_webapp_url(flow_web_url)
     # Set session collection
     try:
-        project = FlowProject(context.flow_project_id)
+        project = FlowProject(flow_project_id)
     except FlowError as exc:
         msg = f"Could not complete Flow initialization: {exc}"
         raise RuntimeError(msg) from exc
@@ -184,12 +190,12 @@ def init_flow(
         else:
             try:
                 create_pipeline_schemas(
-                    project_id=context.flow_project_id,
+                    project_id=flow_project_id,
                     config_path=FLOW_SCHEMA_CONFIG_PATH,
                 )
                 sg_connection.update(
                     "Project",
-                    context.project["id"],
+                    sg_project_id,
                     {FLOW_SCHEMA_VERSION_FIELD: current_version},
                 )
             except (
