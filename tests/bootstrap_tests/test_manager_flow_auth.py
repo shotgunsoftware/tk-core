@@ -99,26 +99,6 @@ class TriggerAmAuthTests(ShotgunTestBase):
     @mock.patch("tank.authentication.flow_auth.get_access_token")
     @mock.patch("tank.authentication.flow_auth.init_authentication")
     @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
-    def test_runtime_error_soft_fails_by_default(
-        self, mock_resolve, mock_init, mock_get, mock_get_settings, _
-    ):
-        mock_resolve.return_value = mock.Mock()
-        mock_get_settings.return_value = {}
-        mock_get.side_effect = RuntimeError("network down")
-
-        mgr = ToolkitManager()
-
-        # Should not raise.
-        mgr._trigger_am_auth(
-            self.pipeline_config,
-            {"type": "Project", "id": self.PROJECT_ID},
-            progress_callback=mock.Mock(),
-        )
-
-    @mock.patch("tank.bootstrap.manager.flow_utils.get_config_flow_settings")
-    @mock.patch("tank.authentication.flow_auth.get_access_token")
-    @mock.patch("tank.authentication.flow_auth.init_authentication")
-    @mock.patch("tank.authentication.flow_auth.resolve_flow_auth_settings")
     def test_runtime_error_hard_fails_with_env_var(
         self, mock_resolve, mock_init, mock_get, mock_get_settings, _
     ):

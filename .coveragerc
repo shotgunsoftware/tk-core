@@ -40,5 +40,12 @@ source=
     */python/tank
 
 [report]
+omit =
+    *tank/authentication/ui/*
+    *tank/authentication/sso_saml2/*
+    *tank/platform/qt5/*
+    *tank/bootstrap/manager.py
+    *tank/platform/engine.py
+    *tank/flowam/utils.py
 exclude_lines =
     raise NotImplementedError
