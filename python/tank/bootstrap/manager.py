@@ -16,6 +16,8 @@ from .errors import TankBootstrapError
 from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator, flow_auth
+from ..flowam import constants as flow_const
+from ..flowam import utils as flow_utils
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
@@ -941,7 +943,7 @@ class ToolkitManager(object):
             raise TankBootstrapError("Cannot resolve project for %s" % entity)
         return data["project"]["id"]
 
-    def _trigger_am_auth(self, entity, progress_callback):
+    def _trigger_am_auth(self, pipeline_config, entity, progress_callback):
         """
         Proactively obtain a Flow/MEDM access token.
         Silent path (file store -> refresh) is tried first; falls
@@ -953,6 +955,7 @@ class ToolkitManager(object):
         ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
         they raise ``TankBootstrapError``.
 
+        :param pipeline_config: PipelineConfiguration object.
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: dict or None
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
@@ -963,6 +966,16 @@ class ToolkitManager(object):
             return
 
         try:
+            log.info("Triggering Flow authentication...")
+            overrides = flow_utils.get_config_flow_settings(pipeline_config)
+            # Set authentication overrides in reserved env vars so they will persist
+            # across toolkit engine sessions
+            if flow_const.FLOW_AUTH_APP_ID in overrides:
+                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[flow_const.FLOW_AUTH_APP_ID]
+            if flow_const.FLOW_AUTH_BASE_URL in overrides:
+                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[flow_const.FLOW_AUTH_BASE_URL]
+            if flow_const.FLOW_AUTH_CALLBACK_URL in overrides:
+                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[flow_const.FLOW_AUTH_CALLBACK_URL]
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file
@@ -973,15 +986,8 @@ class ToolkitManager(object):
                 "MEDM auth misconfigured for AM-ready project: %s" % e
             )
         except Exception as e:
-            if os.environ.get("TK_FLOW_AUTH_REQUIRED") == "1":
-                raise TankBootstrapError(
-                    "MEDM auth failed for AM-ready project: %s" % e
-                )
-            log.warning(
-                "MEDM auth failed; bootstrap will continue without a "
-                "pre-fetched token. Error: %s",
-                e,
-                exc_info=True,
+            raise TankBootstrapError(
+                "MEDM auth failed for AM-ready project: %s" % e
             )
 
     def _get_configuration(self, entity, progress_callback):
@@ -1128,11 +1134,12 @@ class ToolkitManager(object):
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
                     # Retrieve and cache the flow am project id on the context object
                     flow_project_id = sg_project.get(flow_auth.AM_READY_PROJECT_FIELD)
+                    log.info(f"Current SG project is associated with a Flow project: {flow_project_id}")
                     tk, _ = config.get_tk_instance(self._sg_user)
                     ctx = tk.context_from_entity_dictionary(entity)
                     ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = flow_project_id
                     # Authenticate into Flow AM
-                    self._trigger_am_auth(entity, progress_callback)
+                    self._trigger_am_auth(tk.pipeline_configuration, entity, progress_callback)
 
         return config
 

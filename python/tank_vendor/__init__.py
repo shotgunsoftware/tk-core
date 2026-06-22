@@ -457,6 +457,10 @@ if _pkgs_loaded and "shotgun_api3" in sys.modules:
 # expected to use the system trust store and not ship data files that would
 # need extraction from inside the zip.
 _shared_dir = _requirements_dir / "any"
+if not _shared_dir.is_dir():
+    # Fallback for pip-installed packages: setup.py's build_py copies
+    # requirements/any/*.zip into tank_vendor/vendor_any/ in the wheel.
+    _shared_dir = pathlib.Path(__file__).resolve().parent / "vendor_any"
 if _shared_dir.is_dir():
     for _shared_zip in sorted(_shared_dir.glob("*.zip")):
         _load_packages_from_zip(_shared_zip)

@@ -12,12 +12,14 @@
 Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
+from __future__ import annotations  # needed for python 3.9 support
 
 import os
 import copy
 import json
 
 from tank_vendor import yaml
+from tank_vendor.flow_integration_sdk import sandbox
 from . import authentication
 from .authentication import flow_auth
 
@@ -73,6 +75,7 @@ class Context(object):
         user=None,
         additional_entities=None,
         source_entity=None,
+        flow_draft_id=None,
     ):
         """
         Context objects are not constructed by hand but are fabricated by the
@@ -87,6 +90,7 @@ class Context(object):
         self.__user = user
         self.__additional_entities = additional_entities or []
         self.__source_entity = source_entity
+        self.__flow_draft_id = flow_draft_id
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -260,6 +264,7 @@ class Context(object):
         ctx_copy.__user = copy.deepcopy(self.__user, memo)
         ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
         ctx_copy.__source_entity = copy.deepcopy(self.__source_entity, memo)
+        ctx_copy.__flow_draft_id = copy.deepcopy(self.__flow_draft_id, memo)
 
         # except:
         # ctx_copy._entity_fields_cache
@@ -405,7 +410,7 @@ class Context(object):
         return self.__additional_entities
 
     @property
-    def flow_am_project_id(self):
+    def flow_project_id(self) -> str | None:
         """
         The FlowAM project ID for this context, or ``None`` if the project is
         not FlowAM-enabled or there is no project in this context.
@@ -419,6 +424,13 @@ class Context(object):
         if self.project:
             return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
         return None
+
+    @property
+    def flow_draft_id(self) -> str | None:
+        """Current Flow draft context.
+        If not None, this designates the current draft being worked on within the DCC session.
+        """
+        return self.__flow_draft_id
 
     @property
     def entity_locations(self):
@@ -725,6 +737,19 @@ class Context(object):
         ctx_copy.__user = user
         return ctx_copy
 
+    def set_flow_context(self, file_path: str):
+        """Set the current flow asset context based on opened file path.
+
+        Args:
+            file_path: File currently opened in DCC.
+        """
+        self.__flow_draft_id = sandbox.get_draft_context(file_path)
+
+    def clear_flow_context(self):
+        """Clear the current flow asset context."""
+
+        self.__flow_draft_id = None
+
     ################################################################################################
     # serialization
 
@@ -833,7 +858,7 @@ class Context(object):
         """
         Converts the context into a dictionary with keys ``project``,
         ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
-        ``source_entity``, and ``flow_am_project_id``.
+        ``source_entity``, ``flow_project_id`` and ``flow_draft_id``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -852,7 +877,8 @@ class Context(object):
                 self._cleanup_entity(entity) for entity in self.additional_entities
             ],
             "source_entity": self._cleanup_entity(self.source_entity),
-            "flow_am_project_id": self.flow_am_project_id,
+            "flow_project_id": self.flow_project_id,
+            "flow_draft_id": self.flow_draft_id,
         }
 
     def _cleanup_entity(self, entity):
@@ -921,13 +947,14 @@ class Context(object):
             user=data.get("user"),
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
+            flow_draft_id=data.get("flow_draft_id"),
         )
         if (
             ctx.project is not None
-            and "flow_am_project_id" in data
+            and "flow_project_id" in data
             and flow_auth.AM_READY_PROJECT_FIELD not in ctx.project
         ):
-            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_am_project_id"]
+            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_project_id"]
         return ctx
 
     ################################################################################################

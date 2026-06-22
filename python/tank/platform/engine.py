@@ -21,6 +21,8 @@ import inspect
 import weakref
 import threading
 
+from tank.flowam import utils as flow_utils
+
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
@@ -161,6 +163,14 @@ class Engine(TankBundle):
             if not os.path.exists(init_path):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
+
+        # Do Flow sdk initialization if context is configured with Flow
+        if context.flow_project_id:
+            try:
+                flow_utils.init_flow(tk.pipeline_configuration, context.flow_project_id)
+            except RuntimeError as exc:
+                self.log_error("Error occurred during Flow initialization!")
+                self.log_exception(exc)
 
         # Note, 'init_engine()' is now deprecated and all derived initialisation should be
         # done in either 'pre_app_init()' or 'post_app_init()'.  'init_engine()' is left
@@ -774,7 +784,7 @@ class Engine(TankBundle):
         # context change, it's that the target context isn't configured properly.
         # As such, we'll let any exceptions (mostly TankEngineInitError) bubble
         # up since it's a critical error case.
-        (new_env, engine_descriptor) = get_env_and_descriptor_for_engine(
+        new_env, engine_descriptor = get_env_and_descriptor_for_engine(
             engine_name=self.instance_name, tk=self.tank, context=new_context
         )
 
@@ -1247,7 +1257,7 @@ class Engine(TankBundle):
         """
         # return a dictionary grouping all the commands by instance name
         commands_by_instance = {}
-        for (name, value) in self.commands.items():
+        for name, value in self.commands.items():
             app_instance = value["properties"].get("app")
             if app_instance is None:
                 continue
@@ -1984,7 +1994,7 @@ class Engine(TankBundle):
         :returns: Stylesheet string with replacements applied
         """
         processed_style_sheet = style_sheet
-        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.items():
+        for token, value in constants.SG_STYLESHEET_CONSTANTS.items():
             processed_style_sheet = processed_style_sheet.replace(
                 "{{%s}}" % token, value
             )
@@ -2128,7 +2138,12 @@ class Engine(TankBundle):
 
         :returns: dict
         """
-        base = {"qt_core": None, "qt_gui": None, "qt_web_engine_widgets": None, "dialog_base": None}
+        base = {
+            "qt_core": None,
+            "qt_gui": None,
+            "qt_web_engine_widgets": None,
+            "dialog_base": None,
+        }
         try:
             importer = QtImporter()
             base["qt_core"] = importer.QtCore
@@ -2892,7 +2907,7 @@ def get_engine_path(engine_name, tk, context):
     """
     # get environment and engine location
     try:
-        (env, engine_descriptor) = get_env_and_descriptor_for_engine(
+        env, engine_descriptor = get_env_and_descriptor_for_engine(
             engine_name, tk, context
         )
     except TankEngineInitError:
@@ -3068,7 +3083,7 @@ def _start_engine(engine_name, tk, old_context, new_context):
         LogManager().initialize_base_file_handler(engine_name)
 
     # get environment and engine location
-    (env, engine_descriptor) = get_env_and_descriptor_for_engine(
+    env, engine_descriptor = get_env_and_descriptor_for_engine(
         engine_name, tk, new_context
     )
 

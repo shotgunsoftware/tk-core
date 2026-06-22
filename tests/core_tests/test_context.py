@@ -1261,7 +1261,8 @@ class TestSerialize(TestContext):
                 {"type": "Sequence", "name": "seq_name", "id": self.seq["id"]}
             ],
             "user": {"type": "HumanUser", "id": self.user["id"], "name": USER_NAME},
-            "flow_am_project_id": None,
+            "flow_project_id": None,
+            "flow_draft_id": None,
         }
 
         ctx = context.Context(**self.kws)
@@ -1442,63 +1443,149 @@ class TestMultiRoot(TestContext):
 
 
 class TestContextFlowAmProjectId(TankTestBase):
-    """Tests for Context.flow_am_project_id."""
+    """Tests for Context.flow_project_id."""
 
     def setUp(self):
         super().setUp()
         self.setup_fixtures()
 
     def test_returns_none_for_non_am_project(self):
-        """flow_am_project_id is None when sg_flow_am_id is not set on the project."""
+        """flow_project_id is None when sg_flow_am_id is not set on the project."""
         ctx = context.Context(self.tk, project=self.project)
-        self.assertIsNone(ctx.flow_am_project_id)
+        self.assertIsNone(ctx.flow_project_id)
 
     def test_returns_none_for_empty_context(self):
-        """flow_am_project_id is None when the context has no project."""
+        """flow_project_id is None when the context has no project."""
         ctx = context.create_empty(self.tk)
-        self.assertIsNone(ctx.flow_am_project_id)
+        self.assertIsNone(ctx.flow_project_id)
 
     def test_returns_value_when_set(self):
-        """flow_am_project_id returns sg_flow_am_id when set on the project dict."""
+        """flow_project_id returns sg_flow_am_id when set on the project dict."""
         project = dict(self.project, sg_flow_am_id="am-project-abc")
         ctx = context.Context(self.tk, project=project)
-        self.assertEqual(ctx.flow_am_project_id, "am-project-abc")
+        self.assertEqual(ctx.flow_project_id, "am-project-abc")
 
     def test_survives_serialization_roundtrip(self):
-        """flow_am_project_id is preserved through serialize/deserialize."""
+        """flow_project_id is preserved through serialize/deserialize."""
         project = dict(self.project, sg_flow_am_id="am-project-abc")
         ctx = context.Context(self.tk, project=project)
         serialized = ctx.serialize()
         restored = context.deserialize(serialized)
-        self.assertEqual(restored.flow_am_project_id, "am-project-abc")
+        self.assertEqual(restored.flow_project_id, "am-project-abc")
 
     def test_set_on_project_dict(self):
-        """flow_am_project_id can be set by writing sg_flow_am_id onto the project dict."""
+        """flow_project_id can be set by writing sg_flow_am_id onto the project dict."""
         ctx = context.Context(self.tk, project=dict(self.project))
         ctx.project["sg_flow_am_id"] = "explicit-am-id"
-        self.assertEqual(ctx.flow_am_project_id, "explicit-am-id")
+        self.assertEqual(ctx.flow_project_id, "explicit-am-id")
 
     def test_included_in_to_dict(self):
-        """flow_am_project_id appears in the dict returned by to_dict()."""
+        """flow_project_id appears in the dict returned by to_dict()."""
         project = dict(self.project, sg_flow_am_id="explicit-am-id")
         ctx = context.Context(self.tk, project=project)
         d = ctx.to_dict()
-        self.assertIn("flow_am_project_id", d)
-        self.assertEqual(d["flow_am_project_id"], "explicit-am-id")
+        self.assertIn("flow_project_id", d)
+        self.assertEqual(d["flow_project_id"], "explicit-am-id")
 
     def test_deepcopy_preserves_value(self):
-        """Deepcopying a context preserves flow_am_project_id."""
+        """Deepcopying a context preserves flow_project_id."""
         project = dict(self.project, sg_flow_am_id="am-project-abc")
         ctx = context.Context(self.tk, project=project)
         ctx_copy = copy.deepcopy(ctx)
-        self.assertEqual(ctx_copy.flow_am_project_id, "am-project-abc")
+        self.assertEqual(ctx_copy.flow_project_id, "am-project-abc")
 
     def test_from_dict_preserves_existing_project_value(self):
         """from_dict does not overwrite sg_flow_am_id already on the project dict."""
         project = dict(self.project, sg_flow_am_id="existing-am-id")
         data = context.Context(self.tk, project=project).to_dict()
         data["project"] = dict(project)
-        data["flow_am_project_id"] = None
+        data["flow_project_id"] = None
 
         restored = context.Context.from_dict(self.tk, data)
-        self.assertEqual(restored.flow_am_project_id, "existing-am-id")
+        self.assertEqual(restored.flow_project_id, "existing-am-id")
+
+
+class TestContextFlowDraftId(TankTestBase):
+    """Tests for Context.flow_draft_id."""
+
+    def setUp(self):
+        super().setUp()
+        self.setup_fixtures()
+
+    def test_defaults_to_none(self):
+        """flow_draft_id is None by default."""
+        ctx = context.Context(self.tk)
+        self.assertIsNone(ctx.flow_draft_id)
+
+    def test_returns_constructor_value(self):
+        """flow_draft_id returns the value passed to the constructor."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+        self.assertEqual(ctx.flow_draft_id, "draft-abc")
+
+    def test_included_in_to_dict(self):
+        """flow_draft_id appears in the dict returned by to_dict()."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+
+        data = ctx.to_dict()
+
+        self.assertIn("flow_draft_id", data)
+        self.assertEqual(data["flow_draft_id"], "draft-abc")
+
+    def test_from_dict_preserves_value(self):
+        """flow_draft_id is restored by from_dict."""
+        data = {
+            "project": self.project,
+            "flow_draft_id": "draft-abc",
+        }
+
+        restored = context.Context.from_dict(self.tk, data)
+
+        self.assertEqual(restored.flow_draft_id, "draft-abc")
+
+    def test_pickle_serialization_roundtrip_preserves_value(self):
+        """flow_draft_id is preserved through pickle serialize/deserialize."""
+        ctx = context.Context(
+            self.tk,
+            project=self.project,
+            flow_draft_id="draft-abc",
+        )
+
+        restored = context.deserialize(ctx.serialize())
+
+        self.assertEqual(restored.flow_draft_id, "draft-abc")
+
+    def test_deepcopy_preserves_value(self):
+        """Deepcopying a context preserves flow_draft_id."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+
+        ctx_copy = copy.deepcopy(ctx)
+
+        self.assertEqual(ctx_copy.flow_draft_id, "draft-abc")
+
+    def test_create_copy_for_user_preserves_value(self):
+        """create_copy_for_user preserves flow_draft_id."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+        user = {"type": "HumanUser", "id": 123, "name": "Copied User"}
+
+        copied_ctx = ctx.create_copy_for_user(user)
+
+        self.assertEqual(copied_ctx.flow_draft_id, "draft-abc")
+
+    @mock.patch("tank.context.sandbox.get_draft_context")
+    def test_set_flow_context_sets_value_from_sandbox(self, get_draft_context):
+        """set_flow_context stores the draft id returned by sandbox."""
+        get_draft_context.return_value = "draft-abc"
+        ctx = context.Context(self.tk)
+
+        ctx.set_flow_context("/path/to/file.ma")
+
+        get_draft_context.assert_called_once_with("/path/to/file.ma")
+        self.assertEqual(ctx.flow_draft_id, "draft-abc")
+
+    def test_clear_flow_context_clears_value(self):
+        """clear_flow_context resets flow_draft_id to None."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+
+        ctx.clear_flow_context()
+
+        self.assertIsNone(ctx.flow_draft_id)
