@@ -13,7 +13,9 @@
 from __future__ import annotations  # needed for python 3.9 support
 
 import fileseq
+import glob
 import os
+import re
 import webbrowser
 from dataclasses import dataclass, asdict
 
@@ -234,3 +236,22 @@ def open_explorer(dir_path: str):
         dir_path: Full path to local directory.
     """
     return webbrowser.open(f"file:///{dir_path}")
+
+
+def search_file_expression(file_path: str):
+    """Search file system for files matching expression that
+    uses frame padding of the format "%0Nd" where N is an integer
+    denoting number of digits in frame padding.
+
+    If path does not contain a frame padding, search for the path as is.
+    """
+    expr = r"(?P<base_path>.+\.)%0(?P<frame_pad>\d)d(?P<ext>\..+)"
+    m = re.match(expr, file_path)
+    if m:
+        frame_pad = int(m.group("frame_pad"))
+        file_expr = m.group("base_path") + frame_pad * "[0-9]" + m.group("ext")
+        file_list = glob.glob(file_expr)
+        return file_list
+    elif os.path.exists(file_path):
+        return [file_path]
+    return []
