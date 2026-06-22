@@ -12,7 +12,9 @@
 Defines the base class for all Tank Engines.
 """
 
-from __future__ import annotations  # required to support typing annotations in python 3.9
+from __future__ import (
+    annotations,
+)  # required to support typing annotations in python 3.9
 
 import os
 import sys
@@ -700,14 +702,14 @@ class Engine(TankBundle):
         :rtype: bool
         """
         return True
-    
+
     @property
     def flow_host(self) -> flow_host.FlowHost | None:
         """If the current context is Flow enabled, and the current
         engine supports Flow integration, this value will be an instance of FlowHost.
         The FlowHost class implements the required interface for the Flow asset management
         integration to work within a dcc/engine.
-        
+
         If the current context is not Flow enabled, or the current engine has not had
         Flow support added, the value will be None.
         """
