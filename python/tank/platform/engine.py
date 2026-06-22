@@ -12,9 +12,7 @@
 Defines the base class for all Tank Engines.
 """
 
-from __future__ import (
-    annotations,
-)  # required to support typing annotations in python 3.9
+from __future__ import annotations  # required to support python 3.9
 
 import os
 import sys
