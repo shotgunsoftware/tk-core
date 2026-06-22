@@ -19,12 +19,12 @@ omit=
     *tank/authentication/ui/*
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
-    python/tank/bootstrap/manager.py
-    python/tank/platform/engine.py
-    python/tank/flowam/create.py
-    python/tank/flowam/host.py
-    python/tank/flowam/open.py
-    python/tank/flowam/utils.py
+    *tank/bootstrap/manager.py
+    *tank/platform/engine.py
+    *tank/flowam/create.py
+    *tank/flowam/host.py
+    *tank/flowam/open.py
+    *tank/flowam/utils.py
 
 
 [paths]
@@ -48,7 +48,10 @@ omit =
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
     *tank/bootstrap/manager.py
-    *tank/platform/engine.py
+    *tank/flowam/create.py
+    *tank/flowam/host.py
+    *tank/flowam/open.py
     *tank/flowam/utils.py
+    *tank/platform/engine.py
 exclude_lines =
     raise NotImplementedError
