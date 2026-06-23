@@ -103,6 +103,7 @@ def _handle_existing_draft(revision: FlowRevision) -> CheckoutDraftInfo | None:
     except InvalidDraftError:
         # This indicates that the draft is corrupted
         checkout_version = None
+        checkout_revision = None
 
     # If not host is available, just cancel the operation
     flow_host = sgtk.platform.current_engine().flow_host
@@ -152,7 +153,7 @@ def _handle_existing_draft(revision: FlowRevision) -> CheckoutDraftInfo | None:
         # 1 - overwrite existing draft
         # 2 - cancel
         msg = f"An existing checkout already exists of version {checkout_version} "
-        msg += f"(r{checkout_revision}) of this asset. Would you like to overwite "
+        msg += f"(r{checkout_revision}) of this asset. Would you like to overwrite "
         msg += f"this with a checkout of version {revision.version_number} "
         msg += f"(r{revision.revision_number})?"
         options = ["New checkout", "Cancel"]

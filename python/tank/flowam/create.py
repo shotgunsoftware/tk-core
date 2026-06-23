@@ -63,7 +63,7 @@ def create_asset_hierarchy(inputs: BaseInputs) -> FlowAsset:
     created.
 
     Args:
-        inputs: A ``CreateGenericInputs`` instance (or any inputs object with
+        inputs: A ``BaseInputs`` instance (or any inputs object with
                 ``am_project_id``, ``sg_entity_name``, and a ``create_mode``
                 compatible with ``CreateMode.GENERIC``).
 
@@ -150,7 +150,9 @@ def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
 
 
 @trace
-def get_or_create_workfile_parent(root_folder: FlowAsset, inputs: BaseInputs) -> FlowAsset:
+def get_or_create_workfile_parent(
+    root_folder: FlowAsset, inputs: BaseInputs
+) -> FlowAsset:
     """Determine (and create if necessary) the task-level folder that will be
     the direct parent of the workfile asset.
 

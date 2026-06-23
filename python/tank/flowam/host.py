@@ -58,12 +58,11 @@ class FlowHost(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def open_file(self, filepath: str, force: bool = True) -> bool:
+    def open_file(self, file_path: str) -> bool:
         """Open the specified file in the host application.
 
         Args:
             file_path: Absolute path to the local file to open.
-            force: If true, force action even if there are unsaved changes.
 
         Returns:
             True if file is opened, False on error or if operation is cancelled.
