@@ -239,3 +239,20 @@ def is_sub_type(base_id: str, type_id: str) -> bool:
         except GQLAPIError as exc:
             msg = f'Error querying subtypes of base type "{base_id}": {exc}'
             raise FlowError(msg) from exc
+
+
+def get_schema_config_version(config_path: str) -> str:
+    """Retrieve the schema config version from a config.json file.
+
+    Args:
+        config_path: Path to the schema config json file.
+
+    Returns:
+        The schema config version, or 'unknown' if the key is not present.
+
+    Raises:
+        RuntimeError: If the config file is not found.
+        ValueError: If the config file contains invalid JSON.
+    """
+    config = _read_schema_config(config_path)
+    return config.get("version", "unknown")
