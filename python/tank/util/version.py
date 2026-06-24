@@ -183,6 +183,27 @@ def normalize_version_format(version: str) -> str:
     return version
 
 
+def format_version_range(min_version, max_version=None):
+    """
+    Format a version range as a human-readable string.
+
+    :param str min_version: The minimum version of the range.
+    :param str max_version: The maximum version of the range, or None for open-ended.
+    :returns: A formatted string such as ">=1.2.3" or ">=1.2.3, <2.0.0".
+    :rtype: str
+    """
+    if max_version is None:
+        return ">=%s" % min_version
+
+    if is_version_newer_or_equal(min_version, max_version):
+        raise ValueError(
+            "min_version (%s) must be less than max_version (%s)"
+            % (min_version, max_version)
+        )
+
+    return ">=%s, <%s" % (min_version, max_version)
+
+
 def _compare_versions(a, b):
     """
     Tests if version a is newer than version b.
