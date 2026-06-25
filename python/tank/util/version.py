@@ -192,6 +192,8 @@ def format_version_range(min_version, max_version=None):
     :returns: A formatted string such as ">=1.2.3" or ">=1.2.3, <2.0.0".
     :rtype: str
     """
+    min_version = str(min_version)
+
     if max_version is None:
         return ">=%s" % min_version
 
