@@ -22,6 +22,6 @@ method_resolve = {
 def method_resolve_reverse(m):
     global method_resolve
 
-    for (k, v) in method_resolve.items():
+    for k, v in method_resolve.items():
         if v == m:
             return k

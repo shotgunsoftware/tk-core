@@ -687,9 +687,7 @@ class SetupProjectAction(Action):
 
         default_config_locations = self._get_default_configuration_location(log, params)
 
-        linux_path = self._ask_location(
-            log, default_config_locations["linux"], "Linux"
-        )
+        linux_path = self._ask_location(log, default_config_locations["linux"], "Linux")
         windows_path = self._ask_location(
             log, default_config_locations["win32"], "Windows"
         )
@@ -950,7 +948,7 @@ class SetupProjectAction(Action):
         mapped_roots = []
 
         # loop over required storage roots
-        for (root_name, root_info) in required_roots.items():
+        for root_name, root_info in required_roots.items():
 
             log.info("%s" % (root_name,))
             log.info("-" * len(root_name))
@@ -1057,7 +1055,7 @@ class SetupProjectAction(Action):
         # ---- now we've mapped the roots, and they're all valid, we need to
         #      update the root information on the core wizard
 
-        for (root_name, storage_name) in mapped_roots:
+        for root_name, storage_name in mapped_roots:
 
             root_info = required_roots[root_name]
             storage_data = storage_by_name[storage_name.lower()]

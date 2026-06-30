@@ -57,4 +57,3 @@ repos:
     rev: 26.5.1
     hooks:
     - id: black
-      exclude: "tests|python\/tank"

@@ -514,7 +514,7 @@ class StringKey(TemplateKey):
             if match is None:
                 # no match. return empty string
                 # validate should prevent this from happening
-                resolved_value = u""
+                resolved_value = ""
 
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the match.
@@ -1099,9 +1099,7 @@ class SequenceKey(IntegerKey):
         error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
         error_msg += "Valid format strings: %s\n" % full_format_strings
 
-        if isinstance(value, str) and value.startswith(
-            self.FRAMESPEC_FORMAT_INDICATOR
-        ):
+        if isinstance(value, str) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
             pattern = self._extract_format_string(value)
             if pattern in self.VALID_FORMAT_STRINGS:
@@ -1110,9 +1108,7 @@ class SequenceKey(IntegerKey):
                 self._last_error = error_msg
                 return False
 
-        elif isinstance(value, str) and re.match(
-            self.FLAME_PATTERN_REGEX, value
-        ):
+        elif isinstance(value, str) and re.match(self.FLAME_PATTERN_REGEX, value):
             # value is matching the flame-style sequence pattern
             # [1234-5678]
             return True
@@ -1131,16 +1127,12 @@ class SequenceKey(IntegerKey):
 
     def _as_string(self, value):
 
-        if isinstance(value, str) and value.startswith(
-            self.FRAMESPEC_FORMAT_INDICATOR
-        ):
+        if isinstance(value, str) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
-        if isinstance(value, str) and re.match(
-            self.FLAME_PATTERN_REGEX, value
-        ):
+        if isinstance(value, str) and re.match(self.FLAME_PATTERN_REGEX, value):
             # this is a flame style sequence token [1234-56773]
             return value
 
@@ -1167,9 +1159,7 @@ class SequenceKey(IntegerKey):
         """
         Returns XYZ given the string "FORMAT:    XYZ"
         """
-        if isinstance(value, str) and value.startswith(
-            self.FRAMESPEC_FORMAT_INDICATOR
-        ):
+        if isinstance(value, str) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             pattern = value.replace(self.FRAMESPEC_FORMAT_INDICATOR, "").strip()
         else:
             # passthrough

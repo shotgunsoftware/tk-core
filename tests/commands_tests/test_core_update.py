@@ -88,7 +88,8 @@ class TestCoreUpdate(TankTestBase):
         self.assertEqual(descriptor.version, "v0.19.5")
 
     @mock.patch(
-        "tank.descriptor.descriptor.Descriptor.is_immutable", return_value=True,
+        "tank.descriptor.descriptor.Descriptor.is_immutable",
+        return_value=True,
     )
     def test_immutable_config_core_update_core_api_yaml(
         self, _mock_is_immutable, mock_config_path, *_
@@ -110,7 +111,8 @@ class TestCoreUpdate(TankTestBase):
         self.assertEqual(descriptor.version, "v0.18.91")
 
     @mock.patch(
-        "tank.descriptor.descriptor.Descriptor.is_dev", return_value=True,
+        "tank.descriptor.descriptor.Descriptor.is_dev",
+        return_value=True,
     )
     @mock.patch("tank.descriptor.descriptor.Descriptor.get_path")
     def test_dev_config_core_update_core_api_yaml(

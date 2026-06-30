@@ -397,6 +397,7 @@ class _Patcher(object):
         :returns: A decorated function with an extra
             positional argument referencing the mock store singleton.
         """
+
         # Need to reapply doc and name to the method or we won't be able
         # to invoke the test individually.
         @functools.wraps(func)

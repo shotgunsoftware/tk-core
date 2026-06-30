@@ -39,13 +39,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         """
         self.tk.shotgun.create("LocalStorage", {"code": "project_specific_root"})
         with mock.patch.object(
-                self.tk.shotgun,
-                "find_one",
-                return_value={
-                    "type": "Project",
-                    "id": 1,
-                    "sg_storage_root_name": "project_specific_root",
-                },
+            self.tk.shotgun,
+            "find_one",
+            return_value={
+                "type": "Project",
+                "id": 1,
+                "sg_storage_root_name": "project_specific_root",
+            },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -66,13 +66,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         Fall back to global root.
         """
         with mock.patch.object(
-                self.tk.shotgun,
-                "find_one",
-                return_value={
-                    "type": "Project",
-                    "id": 1,
-                    "sg_storage_root_name": "project_specific_root",
-                },
+            self.tk.shotgun,
+            "find_one",
+            return_value={
+                "type": "Project",
+                "id": 1,
+                "sg_storage_root_name": "project_specific_root",
+            },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -109,13 +109,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         Project-specific root is retrieved from environment variables.
         """
         with mock.patch.dict(
-                os.environ,
-                {
-                    "STORAGE_ROOT_"
-                    + str(
-                        self.pipeline_configuration.get_project_id()
-                    ): "project_specific_root"
-                },
+            os.environ,
+            {
+                "STORAGE_ROOT_"
+                + str(
+                    self.pipeline_configuration.get_project_id()
+                ): "project_specific_root"
+            },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -158,17 +158,22 @@ class TestDefaultStorageRootHook(TankTestBase):
         """
         Project-specific windows root is retrieved from custom Flow Production Tracking project field.
         """
-        self.tk.shotgun.create("LocalStorage", {"code": "primary_mapped",
-                                                "windows_path": "P:\\Foo\\test_root", })
+        self.tk.shotgun.create(
+            "LocalStorage",
+            {
+                "code": "primary_mapped",
+                "windows_path": "P:\\Foo\\test_root",
+            },
+        )
 
         with mock.patch.object(
-                self.tk.shotgun,
-                "find_one",
-                return_value={
-                    "type": "Project",
-                    "id": 1,
-                    "sg_projects_root": "P:\\Foo\\test_root",
-                },
+            self.tk.shotgun,
+            "find_one",
+            return_value={
+                "type": "Project",
+                "id": 1,
+                "sg_projects_root": "P:\\Foo\\test_root",
+            },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -189,13 +194,13 @@ class TestDefaultStorageRootHook(TankTestBase):
         Fall back to global root.
         """
         with mock.patch.object(
-                self.tk.shotgun,
-                "find_one",
-                return_value={
-                    "type": "Project",
-                    "id": 1,
-                    "sg_projects_root": "P:\\Foo\\test_root",
-                },
+            self.tk.shotgun,
+            "find_one",
+            return_value={
+                "type": "Project",
+                "id": 1,
+                "sg_projects_root": "P:\\Foo\\test_root",
+            },
         ):
             tk2 = tank.sgtk_from_path(self.project_root)
             self.assertEqual(
@@ -215,7 +220,10 @@ class TestDefaultStorageRootHook(TankTestBase):
         Test fallback behaviour if no custom project field set.
         """
         #
-        self.tk.shotgun.create("LocalStorage", {"code": "primary_mapped", "windows_path": "P:\\Foo\\test_root"})
+        self.tk.shotgun.create(
+            "LocalStorage",
+            {"code": "primary_mapped", "windows_path": "P:\\Foo\\test_root"},
+        )
         tk2 = tank.sgtk_from_path(self.project_root)
         self.assertEqual(
             tk2.pipeline_configuration.get_primary_data_root_name(),

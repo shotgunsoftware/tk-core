@@ -34,8 +34,14 @@ class PySide6PatcherTests(TankTestBase):
         # Assert QtGui attributes
         assert gui.QApplication.desktop
         assert gui.QAbstractButton.animateClick
-        assert gui.QSortFilterProxyModel.filterRegExp == gui.QSortFilterProxyModel.filterRegularExpression
-        assert gui.QSortFilterProxyModel.setFilterRegExp == gui.QSortFilterProxyModel.setFilterRegularExpression
+        assert (
+            gui.QSortFilterProxyModel.filterRegExp
+            == gui.QSortFilterProxyModel.filterRegularExpression
+        )
+        assert (
+            gui.QSortFilterProxyModel.setFilterRegExp
+            == gui.QSortFilterProxyModel.setFilterRegularExpression
+        )
         assert gui.QDesktopWidget == gui.QScreen
         assert gui.QFontMetrics.width == gui.QFontMetrics.horizontalAdvance
         assert gui.QFont.setWeight == gui.QFont.setLegacyWeight

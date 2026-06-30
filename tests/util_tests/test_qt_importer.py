@@ -40,9 +40,8 @@ class QtImporterTests(TankTestBase):
         assert qt.shiboken
         assert qt.shiboken.__name__ == "shiboken2"
 
-        assert (
-            qt.QtWebEngineWidgets is None
-            or isinstance(qt.QtWebEngineWidgets, types.ModuleType)
+        assert qt.QtWebEngineWidgets is None or isinstance(
+            qt.QtWebEngineWidgets, types.ModuleType
         )
 
         # Expect PySide2 as the binding
@@ -134,7 +133,7 @@ class QtImporterTests(TankTestBase):
     @unittest.mock.patch.dict(
         # Set the SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT variable
         "os.environ",
-        {"SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT": "1"}
+        {"SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT": "1"},
     )
     def test_skip_webengine_qt5(self, *mocks):
         # Test default Qt interface (Qt4)
@@ -167,7 +166,7 @@ class QtImporterTests(TankTestBase):
     @unittest.mock.patch.dict(
         # Set the SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT variable
         "os.environ",
-        {"SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT": "1"}
+        {"SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT": "1"},
     )
     def test_skip_webengine_qt6(self, *mocks):
         # Test default Qt interface (Qt4)

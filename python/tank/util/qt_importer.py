@@ -148,7 +148,6 @@ class QtImporter(object):
         except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
 
-
     def _import_pyside2(self):
         """
         This will be called at initialization to discover every PySide 2 modules.

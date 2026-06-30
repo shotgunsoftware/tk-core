@@ -23,13 +23,14 @@ from tank.util import sgre as re
 from .qt_abstraction import QtGui
 
 
-class FuzzyMatcher():
+class FuzzyMatcher:
     """
     Implement an algorithm to rank strings via fuzzy matching.
 
     Based on the analysis at
     http://crossplatform.net/sublime-text-ctrl-p-fuzzy-matching-in-python
     """
+
     def __init__(self, pattern):
         # construct a pattern that matches the letters in order
         # for example "aad" turns into "(a).*?(a).*?(d)".
@@ -51,6 +52,7 @@ class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
     """
     Filters rows based on fuzzy matching and sorts them based on their score.
     """
+
     def __init__(self, parent):
         super().__init__(parent)
         self.set_filter("")

@@ -971,11 +971,17 @@ class ToolkitManager(object):
             # Set authentication overrides in reserved env vars so they will persist
             # across toolkit engine sessions
             if flow_const.FLOW_AUTH_APP_ID in overrides:
-                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[flow_const.FLOW_AUTH_APP_ID]
+                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[
+                    flow_const.FLOW_AUTH_APP_ID
+                ]
             if flow_const.FLOW_AUTH_BASE_URL in overrides:
-                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[flow_const.FLOW_AUTH_BASE_URL]
+                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[
+                    flow_const.FLOW_AUTH_BASE_URL
+                ]
             if flow_const.FLOW_AUTH_CALLBACK_URL in overrides:
-                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[flow_const.FLOW_AUTH_CALLBACK_URL]
+                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[
+                    flow_const.FLOW_AUTH_CALLBACK_URL
+                ]
             settings = flow_auth.resolve_flow_auth_settings()
             flow_auth.init_authentication(settings)
             # Token is intentionally discarded here; it now sits in the file
@@ -986,9 +992,7 @@ class ToolkitManager(object):
                 "MEDM auth misconfigured for AM-ready project: %s" % e
             )
         except Exception as e:
-            raise TankBootstrapError(
-                "MEDM auth failed for AM-ready project: %s" % e
-            )
+            raise TankBootstrapError("MEDM auth failed for AM-ready project: %s" % e)
 
     def _get_configuration(self, entity, progress_callback):
         """
@@ -1134,12 +1138,16 @@ class ToolkitManager(object):
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
                     # Retrieve and cache the flow am project id on the context object
                     flow_project_id = sg_project.get(flow_auth.AM_READY_PROJECT_FIELD)
-                    log.info(f"Current SG project is associated with a Flow project: {flow_project_id}")
+                    log.info(
+                        f"Current SG project is associated with a Flow project: {flow_project_id}"
+                    )
                     tk, _ = config.get_tk_instance(self._sg_user)
                     ctx = tk.context_from_entity_dictionary(entity)
                     ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = flow_project_id
                     # Authenticate into Flow AM
-                    self._trigger_am_auth(tk.pipeline_configuration, entity, progress_callback)
+                    self._trigger_am_auth(
+                        tk.pipeline_configuration, entity, progress_callback
+                    )
 
         return config
 

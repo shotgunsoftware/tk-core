@@ -53,7 +53,9 @@ def _get_site_infos(url, http_proxy=None):
         # require authentication.
         http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
         if http_proxy:
-            logger.debug("Using HTTP proxy to connect to the PTR server: %s", http_proxy)
+            logger.debug(
+                "Using HTTP proxy to connect to the PTR server: %s", http_proxy
+            )
 
         logger.info("Infos for site '%s' not in cache or expired", url)
         sg = shotgun_api3.Shotgun(

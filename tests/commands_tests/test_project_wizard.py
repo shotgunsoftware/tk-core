@@ -163,10 +163,8 @@ class TestSetupProjectWizard(TankTestBase):
             {
                 "darwin": "/Volumes/configs/{0}".format(self.short_test_name),
                 "linux": "/mnt/configs/{0}".format(self.short_test_name),
-
                 # Compat with tk-framework-adminui prior to v0.8.1
                 "linux2": "/mnt/configs/{0}".format(self.short_test_name),
-
                 "win32": "Z:\\configs\\{0}".format(self.short_test_name),
             },
         )

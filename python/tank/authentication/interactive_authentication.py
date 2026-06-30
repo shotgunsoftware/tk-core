@@ -78,6 +78,7 @@ def _get_ui_state() -> bool:
 
     return bool(QtGui and QtGui.QApplication.instance())
 
+
 class SessionRenewal(object):
     """
     Handles multi-threaded session renewal. This class handles the use case when
@@ -220,6 +221,7 @@ def renew_session(user):
     # If we have a gui, we need gui based authentication
     if has_ui:
         from .ui_authentication import UiAuthenticationHandler
+
         authenticator = UiAuthenticationHandler(
             is_session_renewal=True, session_metadata=user.get_session_metadata()
         )

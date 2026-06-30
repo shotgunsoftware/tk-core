@@ -501,7 +501,10 @@ class PathCache(object):
             sg_batch_data.append(req)
 
         # push to shotgun in a single xact
-        log.debug("Uploading %s path entries to Flow Production Tracking..." % len(sg_batch_data))
+        log.debug(
+            "Uploading %s path entries to Flow Production Tracking..."
+            % len(sg_batch_data)
+        )
 
         try:
             response = self._tk.shotgun.batch(sg_batch_data)
@@ -905,7 +908,9 @@ class PathCache(object):
                     - path
 
         """
-        log.debug("Fetching already registered folders from Flow Production Tracking...")
+        log.debug(
+            "Fetching already registered folders from Flow Production Tracking..."
+        )
 
         sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
@@ -1334,7 +1339,7 @@ class PathCache(object):
                 )
                 self._update_last_event_log_synced(c, event_log_id)
                 # and indicate in the path cache that all these records have been pushed
-                for (pc_row_id, sg_id) in sg_id_lookup.items():
+                for pc_row_id, sg_id in sg_id_lookup.items():
                     c.execute(
                         "INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
                         "VALUES(?, ?)",
@@ -1745,7 +1750,9 @@ class PathCache(object):
         SG_BATCH_SIZE = 50
 
         log.info("")
-        log.info("Step 1 - Downloading current path data from Flow Production Tracking...")
+        log.info(
+            "Step 1 - Downloading current path data from Flow Production Tracking..."
+        )
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
@@ -1860,9 +1867,12 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in ids_to_look_for.items():
+        for et, sg_records_for_et in ids_to_look_for.items():
 
-            log.info(" - Checking %s %ss in Flow Production Tracking..." % (len(sg_records_for_et), et))
+            log.info(
+                " - Checking %s %ss in Flow Production Tracking..."
+                % (len(sg_records_for_et), et)
+            )
 
             # get the ids from shotgun for the current et.
             sg_ids = [x["entity"]["id"] for x in sg_records_for_et]
@@ -1898,5 +1908,6 @@ class PathCache(object):
 
         log.info("")
         log.info(
-            "Migration complete. %s records created in Flow Production Tracking" % len(sg_valid_records)
+            "Migration complete. %s records created in Flow Production Tracking"
+            % len(sg_valid_records)
         )

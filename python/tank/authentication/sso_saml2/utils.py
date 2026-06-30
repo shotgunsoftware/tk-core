@@ -17,7 +17,7 @@ from .core.utils import (  # noqa
     get_saml_claims_expiration,
     get_session_expiration,
     _decode_cookies,
-    _get_shotgun_user_id
+    _get_shotgun_user_id,
 )
 
 

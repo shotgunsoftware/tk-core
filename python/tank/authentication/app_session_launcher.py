@@ -89,7 +89,7 @@ def process(
 
         url_handlers.append(
             urllib.request.HTTPSHandler(
-                context = ssl.create_default_context(
+                context=ssl.create_default_context(
                     cafile=ca_certs,
                 ),
             ),
@@ -255,10 +255,12 @@ def process(
         elif response_code_major == 3:
             location = response.headers.get("location", None)
 
-            logger.debug("Request redirected: http code: {code}; redirect to: {location}".format(
-                code=response.code,
-                location=location,
-            ))
+            logger.debug(
+                "Request redirected: http code: {code}; redirect to: {location}".format(
+                    code=response.code,
+                    location=location,
+                )
+            )
 
             raise AuthenticationError(
                 "Request redirected",
@@ -286,9 +288,11 @@ def process(
             )
 
         elif response.code != http.client.OK:
-            logger.debug("Request denied: http code is: {code}".format(
-                code=response.code,
-            ))
+            logger.debug(
+                "Request denied: http code is: {code}".format(
+                    code=response.code,
+                )
+            )
             raise AuthenticationError(
                 "Request denied",
                 payload=getattr(response, "json", response),
@@ -503,9 +507,11 @@ if __name__ == "__main__":
 
     lh = logging.StreamHandler()
     lh.setLevel(logging.DEBUG)
-    lh.setFormatter(logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s",
-    ))
+    lh.setFormatter(
+        logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s",
+        )
+    )
 
     logger.addHandler(lh)
     print()

@@ -203,13 +203,13 @@ class SwitchAppAction(Action):
         log.info("")
         log.info("Current version")
         log.info("------------------------------------")
-        for (k, v) in descriptor.get_dict().items():
+        for k, v in descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
 
         log.info("")
         log.info("New version")
         log.info("------------------------------------")
-        for (k, v) in new_descriptor.get_dict().items():
+        for k, v in new_descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
 
         log.info("")

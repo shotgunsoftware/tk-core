@@ -67,8 +67,7 @@ class Environment(object):
         return "Environment %s" % os.path.basename(self._env_path)
 
     def _refresh(self):
-        """Refreshes the environment data from disk
-        """
+        """Refreshes the environment data from disk"""
         data = self.__load_environment_data()
 
         self._env_data = environment_includes.process_includes(
@@ -233,7 +232,7 @@ class Environment(object):
                 constants.ENVIRONMENT_LOCATION_KEY
             )
 
-        for (eng, app) in self.__app_settings:
+        for eng, app in self.__app_settings:
             descriptor_dict = self.__app_settings[(eng, app)].get(
                 constants.ENVIRONMENT_LOCATION_KEY
             )
@@ -323,7 +322,7 @@ class Environment(object):
 
         apps = []
         engine_app_tuples = list(self.__app_settings.keys())
-        for (engine_name, app_name) in engine_app_tuples:
+        for engine_name, app_name in engine_app_tuples:
             if engine_name == engine:
                 apps.append(app_name)
         return apps
@@ -834,7 +833,7 @@ class WritableEnvironment(InstalledEnvironment):
         super().__init__(env_path, pipeline_config, context)
 
     def _get_ruamel_yaml(self):
-        vendor_path  = os.path.join(os.path.dirname(__file__), "../..", "tank_vendor")
+        vendor_path = os.path.join(os.path.dirname(__file__), "../..", "tank_vendor")
 
         if vendor_path not in sys.path:
             sys.path.append(vendor_path)

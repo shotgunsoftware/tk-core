@@ -1133,7 +1133,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
-        for (key, value_schema) in items.items():
+        for key, value_schema in items.items():
             processed_val[key] = _post_process_settings_r(
                 tk=tk, key=key, value=value[key], schema=value_schema, bundle=bundle
             )

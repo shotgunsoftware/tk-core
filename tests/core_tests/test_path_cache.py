@@ -410,8 +410,8 @@ class TestAddMapping(TestPathCache):
             response = original_batch(batch_data)
             for entity in response:
                 if entity.get("path") and entity["path"].get("local_path"):
-                    entity["path"]["local_path"] = (
-                        entity["path"]["local_path"].replace("\\", "/")
+                    entity["path"]["local_path"] = entity["path"]["local_path"].replace(
+                        "\\", "/"
                     )
             return response
 
@@ -427,8 +427,7 @@ class TestAddMapping(TestPathCache):
 
         # Verify the path-cache row was committed.
         res = self.db_cursor.execute(
-            "SELECT path FROM path_cache "
-            "WHERE entity_type = ? AND entity_id = ?",
+            "SELECT path FROM path_cache " "WHERE entity_type = ? AND entity_id = ?",
             (self.entity["type"], self.entity["id"]),
         )
         self.assertEqual(len(res.fetchall()), 1)
@@ -575,9 +574,7 @@ class TestShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super().setUp(
-            parameters={"project_tank_name": project_tank_name}
-        )
+        super().setUp(parameters={"project_tank_name": project_tank_name})
         self.setup_fixtures()
 
         self.seq = {

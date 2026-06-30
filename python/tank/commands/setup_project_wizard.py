@@ -651,9 +651,9 @@ class SetupProjectWizard(object):
                     )
                     return_data["using_runtime"] = False
                     return_data["pipeline_config"] = data
-                    return_data[
-                        "core_path"
-                    ] = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    return_data["core_path"] = (
+                        pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    )
 
                     # finally, check the logic for localization:
                     # if this core that we have found and resolved is localized,

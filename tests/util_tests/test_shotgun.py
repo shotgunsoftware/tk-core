@@ -535,7 +535,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # `file:///fixtures_root/config/hooks/toolkitty.png`
         if sys.platform == "win32":
             self.download_url = "file:///{p}".format(
-                p = self.download_source.replace("\\", "/")
+                p=self.download_source.replace("\\", "/")
             )
         else:
             self.download_url = urllib.parse.urlunparse(

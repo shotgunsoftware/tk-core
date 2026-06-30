@@ -153,6 +153,7 @@ def skip_if_pyside_missing(func):
     """
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
 
+
 def _has_pyside2():
     """
     Tests if PySide2 is avalable.
@@ -161,6 +162,7 @@ def _has_pyside2():
     pyside2_spec = importlib.util.find_spec("PySide2")
     found = pyside2_spec is not None
     return found
+
 
 def skip_if_pyside2(found=True):
     """
@@ -188,6 +190,7 @@ def _has_pyside6():
     found = pyside6_spec is not None
     return found
 
+
 def skip_if_pyside6(found=True):
     """
     Decorator that allows to skip tests if PySide6 is missing.
@@ -203,6 +206,7 @@ def skip_if_pyside6(found=True):
         return unittest.skipIf(found_pyside6 == found, msg)(func)
 
     return _skip_if_pyside6
+
 
 def suppress_generated_code_qt_warnings(func):
     """
@@ -798,16 +802,12 @@ class TankTestBase(unittest.TestCase):
             )
 
         # swap the mapped storage ids
-        self.roots[self.alt_storage_3["code"]][
-            "shotgun_storage_id"
-        ] = self.alt_storage_4[
-            "id"
-        ]  # local storage 4
-        self.roots[self.alt_storage_4["code"]][
-            "shotgun_storage_id"
-        ] = self.alt_storage_3[
-            "id"
-        ]  # local storage 3
+        self.roots[self.alt_storage_3["code"]]["shotgun_storage_id"] = (
+            self.alt_storage_4["id"]
+        )  # local storage 4
+        self.roots[self.alt_storage_4["code"]]["shotgun_storage_id"] = (
+            self.alt_storage_3["id"]
+        )  # local storage 3
 
         roots_path = os.path.join(
             self.pipeline_config_root, "config", "core", "roots.yml"

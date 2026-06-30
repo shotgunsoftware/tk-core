@@ -595,7 +595,7 @@ class LogManager(object):
 
     @property
     def log_file(self):
-        """ Full path to the current log file or None if logging is not active. """
+        """Full path to the current log file or None if logging is not active."""
         return self._std_file_handler_log_file
 
     @property
@@ -832,6 +832,8 @@ sgtk_root_logger.propagate = False
 # this should not be changed, but any filtering
 # should happen via log handlers
 sgtk_root_logger.setLevel(logging.DEBUG)
+
+
 #
 # create a 'nop' log handler to be attached.
 # this is to avoid warnings being reported that
