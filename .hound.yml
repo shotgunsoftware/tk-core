@@ -14,5 +14,8 @@ python:
   enabled: true
   config_file: .flake8
 
+black:
+  enabled: false
+
 rubocop:
   enabled: false
