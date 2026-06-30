@@ -94,7 +94,7 @@ class InstallAppAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 3:
@@ -411,7 +411,7 @@ class InstallEngineAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 2:

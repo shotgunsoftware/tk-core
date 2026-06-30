@@ -12,7 +12,6 @@
 
 import pathlib
 
-
 # Flow Settings
 # -------------
 # These are settings names that can be configured within a flow.yml file.

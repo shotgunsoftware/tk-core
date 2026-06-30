@@ -763,16 +763,16 @@ class TankTestBase(unittest.TestCase):
 
         # Add multiple project roots. Do not update the roots file on creating each storage, wait until all are
         # created and write them all at once (also, we need to swap storage 3 and 4)
-        (self.alt_root_1, self.alt_storage_1) = self.create_storage_root(
+        self.alt_root_1, self.alt_storage_1 = self.create_storage_root(
             project_name, "alternate_1", False
         )
-        (self.alt_root_2, self.alt_storage_2) = self.create_storage_root(
+        self.alt_root_2, self.alt_storage_2 = self.create_storage_root(
             project_name, "alternate_2", False
         )
-        (self.alt_root_3, self.alt_storage_3) = self.create_storage_root(
+        self.alt_root_3, self.alt_storage_3 = self.create_storage_root(
             project_name, "alternate_3", False
         )
-        (self.alt_root_4, self.alt_storage_4) = self.create_storage_root(
+        self.alt_root_4, self.alt_storage_4 = self.create_storage_root(
             project_name, "alternate_4", False
         )
 

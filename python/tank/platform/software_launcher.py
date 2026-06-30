@@ -79,9 +79,7 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
              on disk.
     """
     # Get the engine environment and descriptor using engine.py code
-    (env, engine_descriptor) = get_env_and_descriptor_for_engine(
-        engine_name, tk, context
-    )
+    env, engine_descriptor = get_env_and_descriptor_for_engine(engine_name, tk, context)
 
     # Make sure it exists locally
     if not engine_descriptor.exists_local():

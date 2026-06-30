@@ -27,7 +27,6 @@ relative paths are always required and context based paths are always optional.
 
 """
 
-
 import os
 import sys
 import copy

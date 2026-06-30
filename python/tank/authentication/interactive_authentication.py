@@ -33,7 +33,6 @@ import threading
 import os
 from tank.util import is_windows
 
-
 logger = LogManager.get_logger(__name__)
 
 

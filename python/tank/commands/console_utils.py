@@ -20,7 +20,6 @@ from ..errors import TankError, TankNoDefaultValueError
 from ..descriptor import CheckVersionConstraintsError
 from ..platform.bundle import resolve_default_value
 
-
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
 
@@ -34,7 +33,7 @@ def format_bundle_info(log, descriptor, required_updates=None):
     :param required_updates: A list of bundle names that require updating.
     """
     # yay we can install! - get release notes
-    (summary, url) = descriptor.changelog
+    summary, url = descriptor.changelog
 
     if required_updates:
         add_padding = "     "

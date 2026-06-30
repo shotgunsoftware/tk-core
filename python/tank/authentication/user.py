@@ -18,7 +18,6 @@ from . import user_impl
 from .. import LogManager
 from .errors import AuthenticationCancelled
 
-
 logger = LogManager.get_logger(__name__)
 
 # Ensure that the SSO-related logging will be merged in our loggin.

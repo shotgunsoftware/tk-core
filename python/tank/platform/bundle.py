@@ -827,7 +827,7 @@ class TankBundle(object):
             # Entries are on the following form
             #
             # hook_publish_file:
-            #    type: hook
+            # type: hook
             #    description: Called when a file is published, e.g. copied from a work area to a publish area.
             #    default_value: maya_publish_file
             #

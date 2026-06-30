@@ -311,7 +311,7 @@ class GetEntityCommandsAction(Action):
             tokens += [""] * (NUM_EXPECTED_TOKENS - len(tokens))
 
             # extract the information from the tokens
-            (name, title, _, _, icon, description) = tuple(tokens)
+            name, title, _, _, icon, description = tuple(tokens)
 
             commands.append(
                 {"name": name, "title": title, "icon": icon, "description": description}

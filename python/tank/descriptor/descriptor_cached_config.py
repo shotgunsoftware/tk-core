@@ -69,7 +69,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
             #
             # location:
             #    name: tk-core
-            #    type: app_store
+            # type: app_store
             #    version: v0.16.34
 
             log.debug("Detected core descriptor file '%s'" % core_descriptor_path)

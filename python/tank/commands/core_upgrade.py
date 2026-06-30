@@ -11,6 +11,7 @@
 """
 Tank command allowing to do core updates.
 """
+
 from ..errors import TankError
 from .action_base import Action
 
@@ -197,7 +198,7 @@ class CoreUpdateAction(Action):
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
-            (summary, url) = installer.get_release_notes()
+            summary, url = installer.get_release_notes()
 
             log.info("")
             log.info("Newer version %s is available." % new_version)

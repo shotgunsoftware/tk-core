@@ -24,7 +24,6 @@ from tank_vendor.flow_integration_sdk.objects import FlowProject
 
 from .constants import FLOW_SCHEMA_CONFIG_PATH
 
-
 logger = LogManager.get_logger(__name__)
 
 

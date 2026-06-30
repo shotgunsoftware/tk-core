@@ -11,6 +11,7 @@
 """
 Defines the base class for all Tank Hooks.
 """
+
 import os
 import sys
 import logging

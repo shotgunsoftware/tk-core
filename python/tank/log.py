@@ -220,7 +220,6 @@ Python provides a large number of log handlers as part of its standard library.
 For more information, see https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers
 """
 
-
 import logging
 from logging.handlers import RotatingFileHandler
 import os

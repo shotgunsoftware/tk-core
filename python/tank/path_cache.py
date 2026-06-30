@@ -115,8 +115,7 @@ class PathCache(object):
                 # up the default page size somewhat (from 4k -> 8k) to improve
                 # performance. See https://sqlite.org/pragma.html#pragma_page_size
 
-                c.executescript(
-                    """
+                c.executescript("""
                     PRAGMA page_size=8192;
 
                     CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
@@ -134,8 +133,7 @@ class PathCache(object):
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
 
                     CREATE INDEX shotgun_status_shotgun_id ON shotgun_status(shotgun_id);
-                    """
-                )
+                    """)
                 self._connection.commit()
 
             else:
@@ -160,8 +158,7 @@ class PathCache(object):
 
                 # check for primary entity field - this was added back in 0.12.x
                 if "primary_entity" not in field_names:
-                    c.executescript(
-                        """
+                    c.executescript("""
                         ALTER TABLE path_cache ADD COLUMN primary_entity integer;
                         UPDATE path_cache SET primary_entity=1;
 
@@ -170,8 +167,7 @@ class PathCache(object):
 
                         DROP INDEX IF EXISTS path_cache_all;
                         CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
-                        """
-                    )
+                        """)
 
                     self._connection.commit()
 
@@ -1334,7 +1330,7 @@ class PathCache(object):
                 )
 
                 # now push to shotgun
-                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(
+                event_log_id, sg_id_lookup = self._upload_cache_data_to_shotgun(
                     data_for_sg, desc
                 )
                 self._update_last_event_log_synced(c, event_log_id)
@@ -1780,18 +1776,14 @@ class PathCache(object):
 
         try:
             # get all records and check each one against shotgun.
-            pc_data = list(
-                cursor.execute(
-                    """select pc.rowid,
+            pc_data = list(cursor.execute("""select pc.rowid,
                                                     pc.entity_type,
                                                     pc.entity_id,
                                                     pc.entity_name,
                                                     pc.root,
                                                     pc.path,
                                                     pc.primary_entity
-                                             from path_cache pc"""
-                )
-            )
+                                             from path_cache pc"""))
         finally:
             cursor.close()
 

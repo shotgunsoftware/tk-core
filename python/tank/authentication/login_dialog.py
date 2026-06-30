@@ -17,6 +17,7 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+
 import os
 import sys
 from tank_vendor import shotgun_api3

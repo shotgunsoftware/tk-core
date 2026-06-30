@@ -165,7 +165,7 @@ class EntityExpression(object):
                 regex_obj = None
 
                 if ":" in field_token_expression:
-                    (full_field_name, regex) = field_token_expression.split(":", 1)
+                    full_field_name, regex = field_token_expression.split(":", 1)
 
                     try:
                         regex_obj = re.compile(regex, re.UNICODE)

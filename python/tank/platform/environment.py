@@ -279,7 +279,7 @@ class Environment(object):
         without its extension
         """
         file_name_with_ext = os.path.basename(self._env_path)
-        (file_name, ext) = os.path.splitext(file_name_with_ext)
+        file_name, ext = os.path.splitext(file_name_with_ext)
         return file_name
 
     @property
@@ -596,7 +596,7 @@ class Environment(object):
             absolute_location,
         )
         # first, find the location of the engine:
-        (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
+        engine_tokens, engine_yml_file = self.find_location_for_engine(engine_name)
 
         # load the engine data:
         engine_yml_data = self.__load_data(engine_yml_file)
@@ -813,7 +813,7 @@ class WritableEnvironment(InstalledEnvironment):
     content back to disk.
     """
 
-    (NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS) = range(3)
+    NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS = range(3)
     """Format enumeration to use when dumping an environment.
 
     NONE: Don't modify the settings.
@@ -1013,7 +1013,7 @@ class WritableEnvironment(InstalledEnvironment):
         # It is the difference between the following:
         #
         # common.engines.tk-maya.location:
-        #   type: app_store
+        # type: app_store
         #   name: tk-maya
         #   version: v0.8.1
         #
@@ -1021,7 +1021,7 @@ class WritableEnvironment(InstalledEnvironment):
         #
         # common.apps.tk-multi-shotgunpanel:
         #   location:
-        #     type: app_store
+        # type: app_store
         #     name: tk-multi-shotgunpanel
         #     version: v1.4.3
         #
@@ -1051,7 +1051,7 @@ class WritableEnvironment(InstalledEnvironment):
         # in a concrete manner (ie: the actual dict and not an include
         # to another yml file). The absolute_location argument will allow
         # us to do that.
-        (tokens, yml_file) = self._find_location_for_engine(
+        tokens, yml_file = self._find_location_for_engine(
             engine_name, absolute_location=True
         )
 
@@ -1094,7 +1094,7 @@ class WritableEnvironment(InstalledEnvironment):
         # in a concrete manner (ie: the actual dict and not an include
         # to another yml file). The absolute_location argument will allow
         # us to do that.
-        (tokens, yml_file) = self._find_location_for_app(
+        tokens, yml_file = self._find_location_for_app(
             engine_name, app_name, absolute_location=True
         )
 
@@ -1132,7 +1132,7 @@ class WritableEnvironment(InstalledEnvironment):
         # in a concrete manner (ie: the actual dict and not an include
         # to another yml file). The absolute_location argument will allow
         # us to do that.
-        (tokens, yml_file) = self._find_location_for_framework(
+        tokens, yml_file = self._find_location_for_framework(
             framework_name, absolute_location=True
         )
 
@@ -1404,7 +1404,7 @@ class WritableEnvironment(InstalledEnvironment):
         for engine_name in self.get_engines():
 
             # only process settings in this file
-            (tokens, engine_file) = self.find_location_for_engine(engine_name)
+            tokens, engine_file = self.find_location_for_engine(engine_name)
             if not engine_file == self._env_path:
                 continue
 
@@ -1437,7 +1437,7 @@ class WritableEnvironment(InstalledEnvironment):
             for app_name in self.get_apps(engine_name):
 
                 # only process settings in this file
-                (tokens, app_file) = self.find_location_for_app(engine_name, app_name)
+                tokens, app_file = self.find_location_for_app(engine_name, app_name)
                 if not app_file == self._env_path:
                     continue
 
@@ -1470,7 +1470,7 @@ class WritableEnvironment(InstalledEnvironment):
         for fw_name in self.get_frameworks():
 
             # only process settings in this file
-            (tokens, fw_file) = self.find_location_for_framework(fw_name)
+            tokens, fw_file = self.find_location_for_framework(fw_name)
             if not fw_file == self._env_path:
                 continue
 

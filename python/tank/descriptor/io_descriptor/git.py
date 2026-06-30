@@ -236,7 +236,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         and for folders on disk, e.g. 'tk-maya'
         """
         bn = os.path.basename(self._path)
-        (name, ext) = os.path.splitext(bn)
+        name, ext = os.path.splitext(bn)
         return name
 
     def has_remote_access(self):

@@ -12,6 +12,7 @@
 App configuration and schema validation.
 
 """
+
 import os
 import sys
 
