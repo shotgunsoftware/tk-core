@@ -104,6 +104,32 @@ class InvalidDraftError(FlowError):
         self.draft_id = draft_id
 
 
+class FlowSchemaBuilderError(FlowError):
+    """General exception for errors related to SchemaBuilder operations."""
+
+    def __init__(self, *args, **kwargs):
+        message = "SchemaBuilder operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
+class FlowSchemaDisplayDataError(FlowError):
+    def __init__(self, *args, **kwargs):
+        message = "Schema display data operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
+class FlowSchemaError(FlowError):
+    def __init__(self, *args, **kwargs):
+        message = "Schema operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
+class FlowSchemaLibraryError(FlowError):
+    def __init__(self, *args, **kwargs):
+        message = "Schema library operation failed."
+        super().__init__(message, *args, **kwargs)
+
+
 class PublishAssetError(FlowError):
     def __init__(self, *args, **kwargs):
         message = "Could not publish asset."
@@ -124,3 +150,14 @@ class PublishConflictError(FlowError):
         self.asset = asset
         self.checkout_version = checkout_version
         self.checkout_revision = checkout_revision
+
+
+class ThumbnailError(FlowError):
+    def __init__(self, *args, revision_id: str, **kwargs):
+        """
+        Args:
+            revision_id: Id of revision.
+        """
+        message = f"Could not retrieve thumbnail for revision: {revision_id}."
+        super().__init__(message, *args, **kwargs)
+        self.revision_id = revision_id

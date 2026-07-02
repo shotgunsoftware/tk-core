@@ -12,6 +12,8 @@
 Defines the base class for all Tank Engines.
 """
 
+from __future__ import annotations  # required to support python 3.9
+
 import os
 import sys
 import logging
@@ -22,6 +24,7 @@ import weakref
 import threading
 
 from tank.flowam import utils as flow_utils
+from tank.flowam import host as flow_host
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -70,6 +73,11 @@ class Engine(TankBundle):
         Engine instances are constructed by the toolkit launch process
         and various factory methods such as :meth:`start_engine`.
 
+        For Flow-enabled contexts (``context.flow_project_id`` set), this
+        also runs ``flow_utils.init_flow()`` to set up the Flow Integration
+        SDK session and provision pipeline schemas when the SG schema
+        config version does not match the bundled config.
+
         :param tk: :class:`~sgtk.Sgtk` instance
         :param context: A context object to define the context on disk where the engine is operating
         :type context: :class:`~sgtk.Context`
@@ -106,6 +114,10 @@ class Engine(TankBundle):
         # to access the invoker don't trip on undefined variables.
         self._invoker = None
         self._async_invoker = None
+
+        # Flow host object used in Flow asset management integration
+        # Engines that support Flow integration will initialize this value to an instance of FlowHost
+        self._flow_host = None
 
         # get the engine settings
         settings = self.__env.get_engine_settings(self.__engine_instance_name)
@@ -167,7 +179,11 @@ class Engine(TankBundle):
         # Do Flow sdk initialization if context is configured with Flow
         if context.flow_project_id:
             try:
-                flow_utils.init_flow(tk.pipeline_configuration, context.flow_project_id)
+                flow_utils.init_flow(
+                    tk.pipeline_configuration,
+                    tk.shotgun,
+                    context,
+                )
             except RuntimeError as exc:
                 self.log_error("Error occurred during Flow initialization!")
                 self.log_exception(exc)
@@ -693,6 +709,18 @@ class Engine(TankBundle):
         :rtype: bool
         """
         return True
+
+    @property
+    def flow_host(self) -> flow_host.FlowHost | None:
+        """If the current context is Flow enabled, and the current
+        engine supports Flow integration, this value will be an instance of FlowHost.
+        The FlowHost class implements the required interface for the Flow asset management
+        integration to work within a dcc/engine.
+
+        If the current context is not Flow enabled, or the current engine has not had
+        Flow support added, the value will be None.
+        """
+        return self._flow_host
 
     ##########################################################################################
     # init and destroy

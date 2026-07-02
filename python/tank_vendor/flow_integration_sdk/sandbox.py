@@ -238,6 +238,19 @@ def get_draft_folder(draft_id: str) -> str:
     return f"{sandbox_root}/{draft_id}/draft"
 
 
+def get_draft_info_file(draft_id: str) -> str:
+    """Return expected path to draft info sidecar file, whether
+    or not it exists.
+
+    Args:
+        draft_id: Id that uniquely identifies a draft within local sandbox.
+
+    Returns:
+        Full path to draft info sidecar file on local disk.
+    """
+    return cleanpath(get_draft_folder(draft_id), ".draft")
+
+
 @trace
 def read_draft_info(draft_id: str) -> DraftInfo:
     """Read the draft info sidecar file and convert into draft dataclass.
@@ -251,8 +264,7 @@ def read_draft_info(draft_id: str) -> DraftInfo:
     Raises:
         InvalidDraftError
     """
-    draft_folder = get_draft_folder(draft_id)
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     if not os.path.exists(draft_info_file):
         msg = f"Draft info file not found: {draft_info_file}"
         raise InvalidDraftError(draft_id=draft_id, details=msg)
@@ -315,6 +327,71 @@ def get_draft_context(draft_path: str) -> str | None:
     return draft_id
 
 
+def get_asset_drafts(asset_id: str) -> list[CheckoutDraftInfo]:
+    """Return all local drafts that exist for the given asset.
+
+    .. note:: Currently, we only support a single draft per asset,
+              however this could change in the future with the introduction
+              of multiple checkouts/sandboxes. Returning a list keeps this
+              utility flexible.
+
+    The returned values will be CheckoutDraftInfo objects which will contain
+    detailed information about each draft.
+
+    .. note:: This function can only be used to retrieve information about
+              checkouts. Please use `get_drafts(draft_type="new")` function
+              to retrieve list of brand new assets that exist in sandbox.
+
+    Args:
+        asset_id: Id of MEDM asset. This can also be a revision or version id
+                  from the same asset.
+
+    Returns:
+        List of CheckoutDraftInfo objects.
+    """
+    # Retrieve asset's draft id
+    draft_id = get_draft_id(asset_id)
+    # Read draft info if it exists
+    try:
+        draft_info = read_draft_info(draft_id)
+    except InvalidDraftError:
+        return []
+    return [draft_info]
+
+
+def get_drafts(draft_type: str | None = None) -> list[DraftInfo]:
+    """Return a list of all drafts found in local sandbox.
+
+    Args:
+        draft_type: If specified, filter by given draft type.
+                    Accepted values include "new" or "checkout".
+
+    Returns:
+        List of DraftInfo objects that may be either
+        CheckoutDraftInfo or NewDraftInfo types.
+
+    Raise:
+        FlowError
+    """
+    sandbox_root = get_sandbox_root()
+    if not os.path.exists(sandbox_root):
+        raise FlowError(f"Configured sandbox root does not exist: {sandbox_root}")
+
+    drafts = []
+    for item in os.listdir(sandbox_root):
+        if not os.path.isdir(os.path.join(sandbox_root, item)):
+            continue
+        draft_id = item
+        try:
+            draft_info = read_draft_info(draft_id)
+        except InvalidDraftError:
+            continue
+        if draft_type is not None and draft_type != draft_info.draft_type:
+            continue  # skip if filter doesn't match
+        drafts.append(draft_info)
+    return drafts
+
+
 # ------------------------------------------
 # SANDBOX UTILITIES
 # ------------------------------------------
@@ -372,7 +449,7 @@ def create_asset_in_sandbox(
     # Add a sidecar file to store metadata of new asset
     # This will ensure that when it's publish time, we have all the info we need
     # to create the appropriate asset entity.
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     draft_info = NewDraftInfo(
         draft_id=draft_id,
         name=name,
@@ -472,7 +549,7 @@ def checkout_revision(
     asset = _query_asset(revision.asset_id)
 
     # Write draft info
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     draft_info = CheckoutDraftInfo(
         draft_id=draft_id,
         name=asset.name,
@@ -550,8 +627,8 @@ def publish_draft(
     # Retrieve draft metadata
     draft_info = read_draft_info(draft_id)
 
-    # Add comment component to components
-    components = [] if components is None else components
+    # Add comment component to components if not already present
+    components = [] if components is None else list(components)
     components.append(CommentComponentSpec(comment))
 
     if draft_info.draft_type == "new":
@@ -619,8 +696,7 @@ def publish_draft(
     # about current draft. After a publish, we will treat the draft has being
     # checked out from the most recent published version.
     # NOTE: we can continue to use the same draft id.
-    draft_folder = get_draft_folder(draft_id)
-    draft_info_file = cleanpath(draft_folder, ".draft")
+    draft_info_file = get_draft_info_file(draft_id)
     draft_info = CheckoutDraftInfo(
         draft_id=draft_id,
         name=asset.name,

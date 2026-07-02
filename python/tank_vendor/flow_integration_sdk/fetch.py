@@ -25,8 +25,12 @@ from functools import cache
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
-from .globals import get_client, FILE_SEQ_TYPE
-from .exceptions import FlowError
+from .exceptions import FlowError, ThumbnailError
+from .globals import (
+    get_client,
+    FILE_SEQ_TYPE,
+    THUMBNAIL_PURPOSE,
+)
 from .schema import get_schema_id
 from .storage import (
     _cache_asset_info,
@@ -265,6 +269,69 @@ def fetch(
 
         # Once fetched, cache asset info in storage dir if necessary
         _cache_asset_info(rev.asset_id)
+
+
+@trace
+def get_thumbnail_file(revision: medm_model.AssetRevision) -> str:
+    """Return the path to the thumbnail file on disk. Fetch the file if necessary.
+
+    Args:
+        revision: Revision whose thumbnail should be fetched.
+
+    Returns:
+        File path to thumbnail.
+
+    Raises:
+        ThumbnailError
+    """
+    # Check that thumbnail component exists and
+    # get path to thumbnail path of revision in local storage
+    thumbnail_comp = _find_component(revision, purpose=THUMBNAIL_PURPOSE)
+    if thumbnail_comp is None:
+        msg = "Revision does not have a thumbnail component."
+        raise ThumbnailError(revision_id=revision.id, details=msg)
+
+    # Fetch thumbnail component of revision
+    fetch(revision, component_purpose=THUMBNAIL_PURPOSE)
+
+    # Verify that fetch was successful
+    file_path = get_storage_component_path(revision, component_name=thumbnail_comp.name)
+    if not os.path.exists(file_path):
+        msg = f"Thumbnail file does not exist in storage: {file_path}"
+        raise ThumbnailError(revision_id=revision.id, details=msg)
+
+    return file_path
+
+
+@trace
+def get_thumbnail_url(revision: medm_model.AssetRevision) -> str:
+    """Return a signed url of the thumbnail for given revision.
+
+    Args:
+        revision: Revision whose thumbnail should be fetched.
+
+    Returns:
+        Url of thumbnail.
+
+    Raises:
+        ThumbnailError
+    """
+    # Get project id
+    project_id = _get_project_id(revision.id)
+
+    # Check that thumbnail component exists
+    thumbnail_comp = _find_component(revision, purpose=THUMBNAIL_PURPOSE)
+    if thumbnail_comp is None:
+        msg = "Revision has no thumbnail component."
+        raise ThumbnailError(revision_id=revision.id, details=msg)
+
+    # Fetch the thumbnail's url (assume single blob)
+    try:
+        urn = thumbnail_comp.data.get("data", [])[0]["uri"]
+        return fetch_blob_urls(project_id, [urn])[0]
+    except (FlowError, IndexError) as exc:
+        msg = "Could not fetch thumbnail url."
+        raise ThumbnailError(revision_id=revision.id, details=msg) from exc
 
 
 @cache
