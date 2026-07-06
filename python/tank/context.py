@@ -23,6 +23,7 @@ from tank_vendor import yaml
 from tank_vendor.flow_integration_sdk import sandbox
 from . import authentication
 from .authentication import flow_auth
+from .flowam import constants as flow_const
 
 from .util import login
 from .util import shotgun_entity
@@ -432,6 +433,22 @@ class Context(object):
         If not None, this designates the current draft being worked on within the DCC session.
         """
         return self.__flow_draft_id
+
+    @property
+    def flow_schema_version(self) -> str | None:
+        """
+        The FlowAM schema version of the project in context, or ``None`` if the project is
+        not FlowAM-enabled or there is no schema created.
+
+        The value is read from the ``sg_flow_schema_config_version`` field on the project dict.
+        It is populated by the bootstrap manager after it queries ShotGrid.
+
+        :returns: A string containing the FlowAM schema version, or ``None``.
+        :rtype: str or None
+        """
+        if self.project:
+            return self.project.get(flow_const.FLOW_SCHEMA_VERSION_FIELD)
+        return None
 
     @property
     def entity_locations(self):
@@ -859,7 +876,7 @@ class Context(object):
         """
         Converts the context into a dictionary with keys ``project``,
         ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
-        ``source_entity``, ``flow_project_id`` and ``flow_draft_id``.
+        ``source_entity``, ``flow_project_id``, ``flow_draft_id`` and ``flow_schema_version``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -880,6 +897,7 @@ class Context(object):
             "source_entity": self._cleanup_entity(self.source_entity),
             "flow_project_id": self.flow_project_id,
             "flow_draft_id": self.flow_draft_id,
+            "flow_schema_version": self.flow_schema_version,
         }
 
     def _cleanup_entity(self, entity):
@@ -956,6 +974,14 @@ class Context(object):
             and flow_auth.AM_READY_PROJECT_FIELD not in ctx.project
         ):
             ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_project_id"]
+        if (
+            ctx.project is not None
+            and "flow_schema_version" in data
+            and flow_const.FLOW_SCHEMA_VERSION_FIELD not in ctx.project
+        ):
+            ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = data[
+                "flow_schema_version"
+            ]
         return ctx
 
     ################################################################################################

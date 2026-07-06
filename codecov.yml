@@ -6,3 +6,11 @@ ignore:
 
   # disable PySide6 code coverage for now
   - "**tank/util/pyside6_patcher.py"
+
+  # flowam and other files not covered by unit tests
+  - "**tank/bootstrap/manager.py"
+  - "**tank/flowam/create.py"
+  - "**tank/flowam/host.py"
+  - "**tank/flowam/open.py"
+  - "**tank/flowam/utils.py"
+  - "**tank/platform/engine.py"

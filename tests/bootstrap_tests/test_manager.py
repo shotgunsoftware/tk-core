@@ -148,13 +148,28 @@ class TestFunctionality(ShotgunTestBase):
         class_attrs = set(dir(ToolkitManager))
         instance_attrs = set(dir(ToolkitManager()))
         unserializable_attrs = set(
-            ["_sg_connection", "_sg_user", "_pre_engine_start_callback", "_progress_cb"]
+            [
+                "_pre_engine_start_callback",
+                "_progress_cb",
+                "_sg_connection",
+                "_sg_user",
+            ]
+        )
+        # Transient runtime state: queried during bootstrap and cached onto the
+        # context object afterwards. Not user-configured, so not serialized.
+        transient_attrs = set(
+            [
+                "_flow_project_id",
+                "_flow_schema_version",
+            ]
         )
         # Through this operation, we're taking all the symbols that are defined from an instance,
         # we then remove everything that is defined also in the class, which means we're left
         # with what was added during __init__, and then we remove the parameters we know can't
         # be serialized. We're left with a small list of values that can be serialized.
-        instance_data_members = instance_attrs - class_attrs - unserializable_attrs
+        instance_data_members = (
+            instance_attrs - class_attrs - unserializable_attrs - transient_attrs
+        )
         self.assertEqual(len(instance_data_members), 7)
 
         # Create a manager that hasn't been updated yet.
