@@ -31,7 +31,6 @@ from tank_vendor.flow_integration_sdk.sandbox import (
 )
 from tank_vendor.flow_integration_sdk.utils import trace
 
-
 logger = LogManager.get_logger(__name__)
 
 
