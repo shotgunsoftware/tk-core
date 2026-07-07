@@ -118,6 +118,9 @@ if "TANK_CURRENT_PC" not in os.environ:
 
 ########################################################################
 
+# first import the log manager since a lot of modules require this.
+from .log import LogManager  # isort: skip
+
 # make sure that all sub-modules are imported at the same as the main module
 from . import (
     authentication,
@@ -161,9 +164,6 @@ from .errors import (
     TankUnreadableFileError,
 )
 from .hook import Hook, get_hook_baseclass
-
-# first import the log manager since a lot of modules require this.
-from .log import LogManager
 from .pipelineconfig_utils import (
     get_core_python_path_for_config,
     get_python_interpreter_for_config,
