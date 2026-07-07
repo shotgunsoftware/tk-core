@@ -1,4 +1,21 @@
 
+coverage:
+  status:
+    project:
+      default:
+        # Coverage checks are advisory only - never block CI
+        informational: true
+        # Only flag if overall project coverage drops below 80%
+        target: 80%
+        # Ignore drops of 1% or less (noise from small changes)
+        threshold: 1%
+    patch:
+      default:
+        # Coverage checks are advisory only - never block CI
+        informational: true
+        # Only flag if less than 80% of new/changed lines are covered
+        target: 80%
+
 ignore:
   # ignore generated QT files
   - "**tank/authentication/ui/login_dialog.py"
