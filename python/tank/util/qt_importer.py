@@ -158,8 +158,8 @@ class QtImporter(object):
         # throw an import error which will be handled by the calling code. Note that PySide2 can be
         # imported even if the Qt binaries are missing, so it's better to try importing QtCore for
         # testing.
-        from PySide2 import QtCore
         import shiboken2
+        from PySide2 import QtCore
 
         # List of all Qt 5 modules.
         sub_modules = [
@@ -233,8 +233,9 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple.
         """
         import PySide2
-        from PySide2 import QtCore, QtGui, QtWidgets
         import shiboken2
+        from PySide2 import QtCore, QtGui, QtWidgets
+
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
@@ -268,6 +269,7 @@ class QtImporter(object):
 
         import PySide6
         import shiboken6
+
         from .pyside6_patcher import PySide6Patcher
 
         QtWebEngineWidgets, QtWebEngineCore = None, None

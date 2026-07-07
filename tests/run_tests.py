@@ -9,9 +9,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
-import os
 import glob
+import os
+import sys
 import tempfile
 import traceback
 from optparse import OptionParser

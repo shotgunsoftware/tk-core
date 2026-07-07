@@ -19,11 +19,11 @@ next to it in the file system. This is what it will attempt to install.
 
 """
 
-import os
-import sys
-import stat
 import datetime
+import os
 import shutil
+import stat
+import sys
 
 LooseVersion = None
 try:

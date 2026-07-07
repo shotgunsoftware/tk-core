@@ -8,8 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import importlib.util
+import os
 
 plugin_path = os.path.join(
     os.environ["TK_CORE_REPO_ROOT"], "docs", "examples", "bootstrap_hook.py"

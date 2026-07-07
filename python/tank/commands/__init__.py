@@ -8,5 +8,5 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .tank_command import list_commands, get_command, SgtkSystemCommand
 from .interaction import CommandInteraction
+from .tank_command import SgtkSystemCommand, get_command, list_commands

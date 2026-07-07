@@ -8,15 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
-
-from tank_vendor import yaml
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+import os
 
 import tank
 from tank import TankError
 from tank.util import is_linux, is_macos, is_windows
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+from tank_vendor import yaml
 
 
 class TestGetProjectRoots(TankTestBase):

@@ -24,8 +24,9 @@ is being used, for example:
        raise TankError("Shot names cannot start with AA!")
 """
 
-from tank import Hook
 import re
+
+from tank import Hook
 
 
 class ProcessFolderName(Hook):

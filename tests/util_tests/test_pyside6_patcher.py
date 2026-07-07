@@ -8,13 +8,12 @@
 # agreement to the ShotGrid Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk.
 
+from tank.util import pyside6_patcher
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     skip_if_pyside6,
 )
-
-from tank.util import pyside6_patcher
 
 
 @skip_if_pyside6(found=False)

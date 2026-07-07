@@ -19,16 +19,16 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import json
 import http.client
+import json
 
-from .shotgun_wrapper import ShotgunWrapper
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
+from tank_vendor.shotgun_api3 import AuthenticationFault, ProtocolError, Shotgun
 
-from . import session_cache
-from .errors import IncompleteCredentials, UnresolvableHumanUser, UnresolvableScriptUser
 from .. import LogManager
 from ..util import pickle
+from . import session_cache
+from .errors import IncompleteCredentials, UnresolvableHumanUser, UnresolvableScriptUser
+from .shotgun_wrapper import ShotgunWrapper
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper

@@ -10,15 +10,14 @@
 
 import os
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-)
-
+from sgtk import TankError
 from tank.util import EnvironmentVariableFileLookupError
 from tank.util.user_settings import UserSettings
-from sgtk import TankError
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+)
 
 
 class UserSettingsTests(ShotgunTestBase):

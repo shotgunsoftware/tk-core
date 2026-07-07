@@ -13,40 +13,40 @@ Unit tests for interactive authentication.
 """
 
 import contextlib
-
-import sys
 import os
+import sys
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    ShotgunTestBase,
-    skip_if_pyside_missing,
-    interactive,
-    mock,
-    suppress_generated_code_qt_warnings,
-)
+import tank
+import tank_vendor.shotgun_api3
 from tank.authentication import (
-    console_authentication,
     ConsoleLoginNotSupportedError,
     ConsoleLoginWithSSONotSupportedError,
-    constants as auth_constants,
+    console_authentication,
+)
+from tank.authentication import constants as auth_constants
+from tank.authentication import (
     errors,
     interactive_authentication,
     invoker,
-    user_impl,
     site_info,
-)
-from tank.authentication.utils import sanitize_http_proxy
-from tank.authentication.sso_saml2.core.sso_saml2_core import (
-    SsoSaml2Core,
-    get_renew_path,
+    user_impl,
 )
 from tank.authentication.sso_saml2.core.authentication_session_data import (
     AuthenticationSessionData,
 )
-
-import tank
-import tank_vendor.shotgun_api3
+from tank.authentication.sso_saml2.core.sso_saml2_core import (
+    SsoSaml2Core,
+    get_renew_path,
+)
+from tank.authentication.utils import sanitize_http_proxy
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    interactive,
+    mock,
+    skip_if_pyside_missing,
+    suppress_generated_code_qt_warnings,
+)
 
 
 @skip_if_pyside_missing
@@ -585,7 +585,7 @@ class InteractiveTests(ShotgunTestBase):
         Make sure that the site and user fields are disabled when doing session renewal
         """
 
-        from tank.authentication.ui.qt_abstraction import QtGui, QtCore
+        from tank.authentication.ui.qt_abstraction import QtCore, QtGui
 
         # Test window close event
         with self._login_dialog() as ld:

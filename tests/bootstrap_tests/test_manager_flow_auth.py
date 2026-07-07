@@ -12,14 +12,12 @@ import os
 
 from sgtk.bootstrap import ToolkitManager
 from sgtk.bootstrap.errors import TankBootstrapError
-
 from tank.authentication import flow_auth
 from tank.flowam import constants as flow_const
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
     temp_env_var,
 )
 

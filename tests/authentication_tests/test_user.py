@@ -11,15 +11,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import base64
-import pytest
 
+import pytest
+from tank.authentication import errors, user, user_impl
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
 )
-
-from tank.authentication import user, user_impl, errors
 from tank_vendor.shotgun_api3 import AuthenticationFault
 
 # Create a set of valid cookies, for SSO and Web related tests.

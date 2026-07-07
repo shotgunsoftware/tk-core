@@ -14,15 +14,13 @@ Unit tests tank updates.
 
 import datetime
 import os
+
 import sgtk
-
 from sgtk.util import ShotgunPath
-
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
 
 

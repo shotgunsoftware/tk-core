@@ -10,14 +10,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from tank.authentication.sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     only_run_on_nix,
     skip_if_pyside_missing,
 )
-
-from tank.authentication.sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
 
 
 @only_run_on_nix  # This test issues a seg-fault on Windows

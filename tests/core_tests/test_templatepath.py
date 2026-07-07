@@ -12,11 +12,10 @@ import os
 
 import tank
 from tank import TankError
-
 from tank.template import TemplatePath
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
-from tank.templatekey import StringKey, IntegerKey, SequenceKey
+from tank.templatekey import IntegerKey, SequenceKey, StringKey
 from tank.util import is_windows
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 
 class TestTemplatePath(ShotgunTestBase):

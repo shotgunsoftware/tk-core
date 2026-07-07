@@ -11,11 +11,10 @@
 import os
 
 from ...errors import TankError
-
 from .entity import Entity
-from .util import translate_filter_tokens
-from .expression_tokens import FilterExpressionToken, CurrentTaskExpressionToken
+from .expression_tokens import CurrentTaskExpressionToken, FilterExpressionToken
 from .step import ShotgunStep
+from .util import translate_filter_tokens
 
 
 class ShotgunTask(Entity):

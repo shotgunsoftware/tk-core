@@ -11,11 +11,10 @@
 
 import time
 
-from . import utils
-
 from tank_vendor import shotgun_api3
 
 from .. import LogManager
+from . import utils
 
 logger = LogManager.get_logger(__name__)
 

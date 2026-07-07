@@ -13,10 +13,10 @@ Main entry points for folder creation.
 
 """
 
+from ..errors import TankError
 from .configuration import FolderConfiguration
 from .folder_io import FolderIOReceiver
 from .folder_types import EntityLinkTypeMismatch
-from ..errors import TankError
 
 
 def create_single_folder_item(

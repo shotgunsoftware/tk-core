@@ -15,38 +15,38 @@ Methods for handling of the tank command
 
 import logging
 
+from .. import LogManager
+from .. import constants as constants_global
+from ..errors import TankError
+from ..platform.engine import get_environment_from_context, start_engine
+from . import (
+    app_info,
+    cache_apps,
+    cache_yaml,
+    clone_configuration,
+    constants,
+    copy_apps,
+    core_localize,
+    core_upgrade,
+    desktop_migration,
+    dump_config,
+    folders,
+    get_entity_commands,
+    install,
+    misc,
+    move_pc,
+    path_cache,
+    pc_overview,
+    push_pc,
+    setup_project,
+    setup_project_wizard,
+    switch,
+    unregister_folders,
+    update,
+    validate_config,
+)
 from .action_base import Action
 from .interaction import RawInputCommandInteraction, YesToEverythingInteraction
-from . import folders
-from . import misc
-from . import move_pc
-from . import pc_overview
-from . import path_cache
-from . import update
-from . import push_pc
-from . import setup_project
-from . import setup_project_wizard
-from . import dump_config
-from . import validate_config
-from . import cache_apps
-from . import switch
-from . import app_info
-from . import core_upgrade
-from . import core_localize
-from . import install
-from . import clone_configuration
-from . import copy_apps
-from . import unregister_folders
-from . import desktop_migration
-from . import cache_yaml
-from . import get_entity_commands
-from . import constants
-
-
-from .. import constants as constants_global
-from .. import LogManager
-from ..platform.engine import start_engine, get_environment_from_context
-from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
 

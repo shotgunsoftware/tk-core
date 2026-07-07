@@ -9,34 +9,30 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sgtk
-
 import unittest
 
+import sgtk
+from tank.descriptor import (
+    CheckVersionConstraintsError,
+    ConfigDescriptor,
+    CoreDescriptor,
+    Descriptor,
+    TankDescriptorError,
+    TankMissingManifestError,
+    create_descriptor,
+)
+from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
+from tank.errors import TankError
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     SealedMock,
     ShotgunTestBase,
     TankTestBase,
+    mock,
 )
-
-
-from tank.errors import TankError
-from tank.descriptor import (
-    CheckVersionConstraintsError,
-    TankDescriptorError,
-    create_descriptor,
-    Descriptor,
-    TankMissingManifestError,
-    ConfigDescriptor,
-    CoreDescriptor,
-)
-from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
-
-from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):

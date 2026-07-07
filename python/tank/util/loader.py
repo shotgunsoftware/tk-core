@@ -13,13 +13,13 @@ Methods for loading and managing plugins, e.g. Apps, Engines, Hooks etc.
 
 """
 
-import sys
 import importlib.util
-import traceback
 import inspect
+import sys
+import traceback
 
-from ..errors import TankError
 from .. import LogManager
+from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
 

@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
+
 from .platforms import is_linux, is_macos, is_windows
 
 

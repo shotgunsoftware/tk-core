@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py as _build_py
 
 

@@ -13,9 +13,10 @@ This hook is invoked during folder creation when :meth:`sgtk.Sgtk.create_filesys
 called.
 """
 
-from tank import Hook
 import os
 import shutil
+
+from tank import Hook
 from tank.util import is_windows
 
 

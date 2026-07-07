@@ -10,13 +10,11 @@
 
 import os
 import unittest
-
 from unittest.mock import patch
 
 from tank.platform import (
     engine,
 )
-
 from tank.util import (
     metrics,
     metrics_cache,

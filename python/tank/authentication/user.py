@@ -12,10 +12,8 @@ import os
 import threading
 import time
 
-from . import sso_saml2
-from . import interactive_authentication
-from . import user_impl
 from .. import LogManager
+from . import interactive_authentication, sso_saml2, user_impl
 from .errors import AuthenticationCancelled
 
 logger = LogManager.get_logger(__name__)

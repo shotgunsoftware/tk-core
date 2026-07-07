@@ -11,10 +11,9 @@
 import os
 
 from ...errors import TankError
-
 from .base import Folder
 from .entity import Entity
-from .util import translate_filter_tokens, resolve_shotgun_filters
+from .util import resolve_shotgun_filters, translate_filter_tokens
 
 
 class Static(Folder):

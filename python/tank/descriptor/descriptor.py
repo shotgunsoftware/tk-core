@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
-from ..log import LogManager
-from ..util import filesystem
-from .io_descriptor import create_io_descriptor
-from .errors import TankDescriptorError
-from ..util import LocalFileStorageManager
-from . import constants
 from .. import constants as constants2
+from ..log import LogManager
+from ..util import LocalFileStorageManager, filesystem
+from . import constants
+from .errors import TankDescriptorError
+from .io_descriptor import create_io_descriptor
 
 logger = LogManager.get_logger(__name__)
 

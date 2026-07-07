@@ -8,18 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..util import ShotgunPath
-from ..errors import TankError
-from . import constants
-from ..util import filesystem
-from ..util import is_linux, is_macos, is_windows
+import os
+import shutil
 
 from tank_vendor import yaml
 
+from ..errors import TankError
+from ..util import ShotgunPath, filesystem, is_linux, is_macos, is_windows
+from . import constants
 from .action_base import Action
-
-import os
-import shutil
 
 
 class CloneConfigAction(Action):

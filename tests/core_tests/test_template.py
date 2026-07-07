@@ -10,22 +10,27 @@
 
 import copy
 import os
-import time
 import sys
-
+import time
 import unittest
+
 import tank
 from tank import TankError
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
-from tank.template import Template, TemplatePath, TemplateString
-from tank.template import make_template_paths, make_template_strings
+from tank.template import (
+    Template,
+    TemplatePath,
+    TemplateString,
+    make_template_paths,
+    make_template_strings,
+)
 from tank.templatekey import (
-    TemplateKey,
-    StringKey,
     IntegerKey,
     SequenceKey,
+    StringKey,
+    TemplateKey,
     TimestampKey,
 )
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, setUpModule  # noqa
 
 
 class TestTemplate(unittest.TestCase):

@@ -11,9 +11,7 @@
 import os
 
 from tank import TankError
-from tank.util import LocalFileStorageManager
-from tank.util import is_macos, is_windows
-
+from tank.util import LocalFileStorageManager, is_macos, is_windows
 from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 

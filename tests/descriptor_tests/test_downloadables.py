@@ -8,29 +8,28 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from functools import reduce
+import contextlib
 import multiprocessing
 import os
+import shutil
 import sys
 import tempfile
 import time
 import uuid
-import shutil
 import zipfile
-import contextlib
+from functools import reduce
+
 import pytest
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-    skip_if_git_missing,
-    temp_env_var,
-)
-
 import sgtk
 import tank
 from tank.util import is_windows
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    skip_if_git_missing,
+    temp_env_var,
+)
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):

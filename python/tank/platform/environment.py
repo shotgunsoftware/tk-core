@@ -13,19 +13,18 @@ Environment Settings Object and access.
 
 """
 
+import copy
 import os
 import sys
-import copy
 
 from tank_vendor import yaml
-from .bundle import resolve_default_value
-from . import constants
-from . import environment_includes
-from ..errors import TankError, TankUnreadableFileError
-from .errors import TankMissingEnvironmentFile
 
-from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
+from ..errors import TankError, TankUnreadableFileError
+from ..util.yaml_cache import g_yaml_cache
+from . import constants, environment_includes
+from .bundle import resolve_default_value
+from .errors import TankMissingEnvironmentFile
 
 logger = LogManager.get_logger(__name__)
 

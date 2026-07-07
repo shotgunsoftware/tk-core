@@ -12,18 +12,17 @@
 Tests for templatefield module.
 """
 
-from tank import TankError
 import copy
-import sys
 import datetime
+import sys
 
+from tank import TankError
+from tank.templatekey import IntegerKey, SequenceKey, StringKey, TimestampKey, make_keys
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
 )
-
-from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 
 
 class TestTemplateKey(ShotgunTestBase):

@@ -8,17 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import sys
-import shutil
 import datetime
+import os
+import shutil
+import sys
 
+from .. import pipelineconfig_factory, pipelineconfig_utils
 from ..errors import TankError
 from ..util import filesystem
 from ..util.version import is_version_older
 from .action_base import Action
-from .. import pipelineconfig_utils
-from .. import pipelineconfig_factory
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API

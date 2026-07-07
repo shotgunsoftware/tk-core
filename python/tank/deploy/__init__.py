@@ -8,6 +8,4 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import descriptor
-from . import dev_descriptor
-from . import util
+from . import descriptor, dev_descriptor, util

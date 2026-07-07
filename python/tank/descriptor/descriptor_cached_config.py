@@ -12,10 +12,10 @@ import os
 
 from tank_vendor import yaml
 
-from . import constants
-from .errors import TankDescriptorError
-from .descriptor_config import ConfigDescriptor
 from .. import LogManager
+from . import constants
+from .descriptor_config import ConfigDescriptor
+from .errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)
 

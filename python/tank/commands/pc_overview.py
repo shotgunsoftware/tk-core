@@ -9,13 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
+import os
+
 from .. import pipelineconfig_utils
+from ..errors import TankError
 from ..util import ShotgunPath
 from . import constants
-from ..errors import TankError
 from .action_base import Action
-
-import os
 
 
 class PCBreakdownAction(Action):

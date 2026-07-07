@@ -9,8 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
+
 import tank
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 
 def get_file_list(folder, prefix):

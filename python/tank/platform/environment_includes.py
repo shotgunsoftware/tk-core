@@ -27,20 +27,18 @@ relative paths are always required and context based paths are always optional.
 
 """
 
+import copy
 import os
 import sys
-import copy
 
 from ..errors import TankError
+from ..log import LogManager
 from ..template import TemplatePath
 from ..templatekey import StringKey
-from ..log import LogManager
-
-from . import constants
-
 from ..util import sgre as re
-from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
+from ..util.yaml_cache import g_yaml_cache
+from . import constants
 
 log = LogManager.get_logger(__name__)
 

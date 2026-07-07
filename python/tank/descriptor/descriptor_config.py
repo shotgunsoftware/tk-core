@@ -10,16 +10,14 @@
 
 import os
 
-from ..errors import TankFileDoesNotExistError
-from . import constants
-from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor, create_descriptor
-from .io_descriptor import is_descriptor_version_missing
 from .. import LogManager
-from ..util import StorageRoots
-from ..util import ShotgunPath
+from ..errors import TankFileDoesNotExistError
+from ..util import ShotgunPath, StorageRoots
 from ..util.version import is_version_older
-from .io_descriptor import descriptor_uri_to_dict
+from . import constants
+from .descriptor import Descriptor, create_descriptor
+from .errors import TankInvalidInterpreterLocationError
+from .io_descriptor import descriptor_uri_to_dict, is_descriptor_version_missing
 
 log = LogManager.get_logger(__name__)
 

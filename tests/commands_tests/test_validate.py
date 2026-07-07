@@ -14,9 +14,8 @@ Unit tests tank validate.
 
 import logging
 
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
-
 from tank_test.mock_appstore import patch_app_store
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 
 class TestSimpleValidate(TankTestBase):

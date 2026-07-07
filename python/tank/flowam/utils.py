@@ -12,14 +12,14 @@
 
 from __future__ import annotations  # needed for python 3.9 support
 
-import fileseq
 import glob
 import os
 import re
 import webbrowser
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
+import fileseq
 from tank import LogManager
 from tank.authentication import flow_auth
 from tank.pipelineconfig import PipelineConfiguration
@@ -27,17 +27,18 @@ from tank.util import yaml_cache
 
 if TYPE_CHECKING:
     from tank.context import Context
+
 from tank_vendor.flow_integration_sdk import globals, schema, storage
 from tank_vendor.flow_integration_sdk.exceptions import FlowError
+from tank_vendor.flow_integration_sdk.objects import FlowProject
 from tank_vendor.flow_integration_sdk.publish import (
-    ComponentSpec,
     CommentComponentSpec,
+    ComponentSpec,
+    FileSeqComponentSpec,
     SourceComponentSpec,
     ThumbnailComponentSpec,
     TypeComponentSpec,
-    FileSeqComponentSpec,
 )
-from tank_vendor.flow_integration_sdk.objects import FlowProject
 from tank_vendor.flow_integration_sdk.schema_builder import create_pipeline_schemas
 from tank_vendor.flow_integration_sdk.utils import trace
 

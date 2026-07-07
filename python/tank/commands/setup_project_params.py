@@ -9,29 +9,21 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import tempfile
 import uuid
-import sys
-
-from . import constants
-from . import util
-
-from ..util import StorageRoots
-from ..util import sgre as re
-from ..util import shotgun
-from ..util import filesystem
-from ..util import is_windows
-from ..util.version import is_version_newer
-from ..util.zip import unzip_file, zip_file
-
-from .. import hook
-from ..errors import TankError, TankErrorProjectIsSetup
-from .. import pipelineconfig_utils
-from ..descriptor import create_descriptor, Descriptor
 
 from tank_vendor import yaml
 
-from ..util import ShotgunPath
+from .. import hook, pipelineconfig_utils
+from ..descriptor import Descriptor, create_descriptor
+from ..errors import TankError, TankErrorProjectIsSetup
+from ..util import ShotgunPath, StorageRoots, filesystem, is_windows
+from ..util import sgre as re
+from ..util import shotgun
+from ..util.version import is_version_newer
+from ..util.zip import unzip_file, zip_file
+from . import constants, util
 
 
 class ProjectSetupParameters(object):

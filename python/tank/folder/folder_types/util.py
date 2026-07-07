@@ -15,11 +15,10 @@ Utility methods related to folder creation
 import copy
 
 from ...errors import TankError
-
 from .expression_tokens import (
-    FilterExpressionToken,
     CurrentStepExpressionToken,
     CurrentTaskExpressionToken,
+    FilterExpressionToken,
 )
 
 

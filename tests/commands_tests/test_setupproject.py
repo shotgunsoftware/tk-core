@@ -12,18 +12,17 @@
 Unit tests tank setup_project.
 """
 
-import os
 import logging
+import os
 
 import tank
 from tank.util import is_linux, is_macos, is_windows
+from tank_test.mock_appstore import patch_app_store
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
-
-from tank_test.mock_appstore import patch_app_store
 
 
 class TestSetupProject(TankTestBase):

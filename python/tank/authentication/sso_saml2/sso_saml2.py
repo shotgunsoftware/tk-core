@@ -17,7 +17,6 @@ Integration with Shotgun API.
 # pylint: disable=unused-import
 
 from .core.sso_saml2_core import SsoSaml2Core  # noqa
-
 from .core.utils import (  # noqa
     set_logger_parent,
 )

@@ -29,9 +29,8 @@ import hashlib
 import json
 import os
 
-from . import metrics
-
 from .. import LogManager
+from . import metrics
 
 logger = LogManager.get_logger(__name__)
 

@@ -12,8 +12,8 @@ import os
 from io import StringIO
 
 from ..errors import TankError
-from .action_base import Action
 from ..util import filesystem
+from .action_base import Action
 
 
 class DumpConfigAction(Action):

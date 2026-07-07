@@ -8,21 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import collections
+import os
 import pprint
 
-
+from . import LogManager, constants, pipelineconfig_utils
 from .errors import TankError, TankInitError
-from . import LogManager
-from .util import shotgun
-from .util import pickle
-from .util import filesystem
-from .util import ShotgunPath
-from . import constants
-from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
-from .util import LocalFileStorageManager
+from .util import LocalFileStorageManager, ShotgunPath, filesystem, pickle, shotgun
 
 log = LogManager.get_logger(__name__)
 

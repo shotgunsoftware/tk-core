@@ -16,15 +16,15 @@ access token via PKCE; the token is cached in a local file store for reuse.
 """
 
 from ._authentication import (
-    init_authentication,
+    check_token_expiry,
     get_access_token,
     get_flow_access_token,
-    check_token_expiry,
+    init_authentication,
 )
 from ._client import FlowAuthenticationHandler, get_flow_client
 from ._constants import AM_READY_PROJECT_FIELD
 from ._settings import FlowAuthSettings, resolve_flow_auth_settings
-from .errors import FlowAuthError, FlowAuthConfigurationError
+from .errors import FlowAuthConfigurationError, FlowAuthError
 
 __all__ = [
     "init_authentication",

@@ -10,10 +10,9 @@
 
 import copy
 
+from ... import LogManager
 from ..errors import TankDescriptorError
 from .base import IODescriptorBase
-
-from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 

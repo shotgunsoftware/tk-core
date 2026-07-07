@@ -10,10 +10,9 @@
 
 import sys
 
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
-from tank.util import is_windows
-
 import sgtk
+from tank.util import is_windows
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 
 class TestHookProperties(TankTestBase):

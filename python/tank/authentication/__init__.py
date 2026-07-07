@@ -18,28 +18,28 @@ credentials are reused. If a Toolkit-enabled process is launched a second time, 
 credentials are reused if available.
 """
 
+from .core_defaults_manager import CoreDefaultsManager
+from .defaults_manager import DefaultsManager
+from .errors import ConsoleLoginWithSSONotSupportedError  # For backward compatibility.
 from .errors import (  # noqa
     AuthenticationCancelled,
     AuthenticationError,
-    ConsoleLoginWithSSONotSupportedError,  # For backward compatibility.
     ConsoleLoginNotSupportedError,
     IncompleteCredentials,
     ShotgunAuthenticationError,
     UnresolvableHumanUser,
     UnresolvableScriptUser,
 )
-from .web_login_support import (
-    get_shotgun_authenticator_support_web_login,
-    set_shotgun_authenticator_support_web_login,
-)
+from .flow_auth import FlowAuthenticationHandler, get_flow_access_token, get_flow_client
 from .shotgun_authenticator import ShotgunAuthenticator
-from .flow_auth import get_flow_access_token, FlowAuthenticationHandler, get_flow_client
-from .defaults_manager import DefaultsManager
-from .core_defaults_manager import CoreDefaultsManager
 from .user import (  # noqa
-    deserialize_user,
-    serialize_user,
     ShotgunSamlUser,
     ShotgunUser,
     ShotgunWebUser,
+    deserialize_user,
+    serialize_user,
+)
+from .web_login_support import (
+    get_shotgun_authenticator_support_web_login,
+    set_shotgun_authenticator_support_web_login,
 )

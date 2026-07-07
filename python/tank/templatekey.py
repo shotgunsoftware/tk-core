@@ -12,9 +12,10 @@
 Classes for fields on TemplatePaths and TemplateStrings
 """
 
-import sys
 import collections.abc
 import datetime
+import sys
+
 from . import constants
 from .errors import TankError
 from .util import sgre as re

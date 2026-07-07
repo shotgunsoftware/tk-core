@@ -7,16 +7,15 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import sys
-
-from .action_base import Action
-from ..errors import TankError
-from ..util.process import SubprocessCalledProcessError, subprocess_check_output
-from ..util import is_linux, is_macos, is_windows
-
 import itertools
 import operator
 import os
+import sys
+
+from ..errors import TankError
+from ..util import is_linux, is_macos, is_windows
+from ..util.process import SubprocessCalledProcessError, subprocess_check_output
+from .action_base import Action
 
 
 def execute_tank_command(pipeline_config_path, args):

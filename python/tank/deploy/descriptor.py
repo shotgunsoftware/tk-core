@@ -14,7 +14,7 @@ Legacy handling of descriptors for the PTR desktop app.
 This code may be removed at some point in the future.
 """
 
-from ..descriptor import create_descriptor, Descriptor
+from ..descriptor import Descriptor, create_descriptor
 from ..util import shotgun
 
 

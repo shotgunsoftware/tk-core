@@ -11,11 +11,10 @@
 import os
 
 import sgtk
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
 )
 
 

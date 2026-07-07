@@ -10,25 +10,24 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
 import datetime
-from sgtk.util import pickle
 import json
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-)
+import os
 
 import tank
+from sgtk.util import pickle
 from tank import context
-from tank.errors import TankError, TankContextDeserializationError
-from tank.template import TemplatePath
-from tank.templatekey import StringKey, IntegerKey
-from tank_vendor import yaml
 from tank.authentication import ShotgunAuthenticator
+from tank.errors import TankContextDeserializationError, TankError
+from tank.template import TemplatePath
+from tank.templatekey import IntegerKey, StringKey
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
+from tank_vendor import yaml
 
 USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
 

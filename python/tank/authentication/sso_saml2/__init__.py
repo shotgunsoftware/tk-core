@@ -21,15 +21,14 @@ from .core.errors import (  # noqa
     SsoSaml2MissingQtNetwork,
     SsoSaml2MultiSessionNotSupportedError,
 )
+from .core.utils import (  # noqa
+    get_logger,
+    set_logger_parent,
+)
 
 # Functions
 from .utils import (  # noqa
     get_saml_claims_expiration,
     has_sso_info_in_cookies,
     has_unified_login_flow_info_in_cookies,
-)
-
-from .core.utils import (  # noqa
-    get_logger,
-    set_logger_parent,
 )

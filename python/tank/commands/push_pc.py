@@ -8,20 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..util import filesystem
-from . import constants
+import datetime
+import os
+import shutil
+
 from ..errors import TankError
 from ..pipelineconfig import PipelineConfiguration
-
-from . import console_utils
-
+from ..util import ShotgunPath, filesystem
+from . import console_utils, constants
 from .action_base import Action
-
-from ..util import ShotgunPath
-
-import os
-import datetime
-import shutil
 
 # Core configuration files which are associated with the core API installation and not
 # the pipeline configuration.

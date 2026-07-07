@@ -21,6 +21,7 @@ import os
 import sys
 import time
 
+from ...utils import sanitize_http_proxy
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
     SsoSaml2IncompletePySide2,
@@ -39,7 +40,6 @@ from .utils import (
     get_session_id,
     get_user_name,
 )
-from ...utils import sanitize_http_proxy
 
 try:
     from .username_password_dialog import UsernamePasswordDialog

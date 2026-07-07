@@ -8,14 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-)
-
 import tank
-from tank.util import login
 from tank.authentication import ShotgunAuthenticator
+from tank.util import login
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
 
 
 class LoginTests(TankTestBase):

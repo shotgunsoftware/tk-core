@@ -13,12 +13,13 @@ Implements a caching mechanism to avoid loading the same yaml file multiple time
 unless it's changed on disk.
 """
 
-import os
 import copy
+import os
 import threading
 
 from tank_vendor import yaml
-from ..errors import TankError, TankUnreadableFileError, TankFileDoesNotExistError
+
+from ..errors import TankError, TankFileDoesNotExistError, TankUnreadableFileError
 
 
 class CacheItem(object):

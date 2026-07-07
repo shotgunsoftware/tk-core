@@ -8,22 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import base64
-
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-)
-
-from tank_test.tank_test_base import setUpModule  # noqa
+import os
 
 from tank.authentication import (
-    ShotgunAuthenticator,
-    IncompleteCredentials,
     DefaultsManager,
-    user_impl,
+    IncompleteCredentials,
+    ShotgunAuthenticator,
     user,
+    user_impl,
+)
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
 )
 
 # Create a set of valid cookies, for SSO and Web related tests.

@@ -11,14 +11,12 @@
 import os
 
 import sgtk
-
 from sgtk.bootstrap import ToolkitManager
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
     TankTestBase,
+    mock,
     temp_env_var,
 )
 

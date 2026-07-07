@@ -10,8 +10,8 @@
 
 import sgtk
 import tank
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
 from tank.util.shotgun_entity import get_sg_entity_name_field, sg_entity_to_string
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, setUpModule  # noqa
 
 KNOWN_SG_ENTITIES = [
     "ActionMenuItem",

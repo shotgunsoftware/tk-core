@@ -10,10 +10,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from tank.authentication.sso_saml2.core.utils import _encode_cookies, get_user_name
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
-
-from tank.authentication.sso_saml2.core.utils import get_user_name, _encode_cookies
 
 
 class SamlSsoCoreUtilsTests(ShotgunTestBase):

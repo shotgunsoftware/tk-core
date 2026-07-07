@@ -15,25 +15,20 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 from __future__ import annotations  # needed for python 3.9 support
 
-import os
 import copy
 import json
+import os
 
 from tank_vendor import yaml
 from tank_vendor.flow_integration_sdk import sandbox
-from . import authentication
-from .authentication import flow_auth
-from .flowam import constants as flow_const
 
-from .util import login
-from .util import shotgun_entity
-from .util import shotgun
-from .util import get_sg_entity_name_field
-from .util import pickle
-from . import constants
-from .errors import TankError, TankContextDeserializationError
+from . import authentication, constants
+from .authentication import flow_auth
+from .errors import TankContextDeserializationError, TankError
+from .flowam import constants as flow_const
 from .path_cache import PathCache
 from .template import TemplatePath
+from .util import get_sg_entity_name_field, login, pickle, shotgun, shotgun_entity
 
 
 class Context(object):

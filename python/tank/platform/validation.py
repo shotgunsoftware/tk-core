@@ -16,12 +16,12 @@ App configuration and schema validation.
 import os
 import sys
 
-from . import constants
 from ..errors import TankError, TankNoDefaultValueError
-from ..template import TemplateString
-from .bundle import resolve_default_value
-from ..util.version import is_version_older, is_version_number
 from ..log import LogManager
+from ..template import TemplateString
+from ..util.version import is_version_number, is_version_older
+from . import constants
+from .bundle import resolve_default_value
 
 # We're potentially running here in an environment with
 # no engine available via current_engine(), so we'll have

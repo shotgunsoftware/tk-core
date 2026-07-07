@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import code
+import os
+import sys
+
 from ..errors import TankError
 from .action_base import Action
-
-import code
-import sys
-import os
 
 
 class ClearCacheAction(Action):
@@ -128,8 +128,8 @@ class InteractiveShellAction(Action):
 
         # attempt install tab command completion
         try:
-            import rlcompleter
             import readline
+            import rlcompleter
 
             if "libedit" in readline.__doc__:
                 # macosx, some versions - see

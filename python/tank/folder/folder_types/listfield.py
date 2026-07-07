@@ -8,12 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 from ...errors import TankError
 from ...util import shotgun_entity
-
 from .base import Folder
 from .expression_tokens import FilterExpressionToken
 

@@ -8,11 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import subprocess
 import pprint
+import subprocess
 
-from .platforms import is_windows
 from ..log import LogManager
+from .platforms import is_windows
 
 logger = LogManager.get_logger(__name__)
 

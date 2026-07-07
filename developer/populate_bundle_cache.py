@@ -18,7 +18,6 @@ a primed bundle cache.
 
 # system imports
 import os
-
 import sys
 
 # add sgtk API
@@ -30,16 +29,15 @@ sys.path.insert(0, python_folder)
 
 # sgtk imports
 from sgtk import LogManager
-from sgtk.util import filesystem
 from sgtk.descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
-
+from sgtk.util import filesystem
 from utils import (
-    cache_apps,
-    authenticate,
-    add_authentication_options,
     OptionParserLineBreakingEpilog,
-    cleanup_bundle_cache,
+    add_authentication_options,
+    authenticate,
     automated_setup_documentation,
+    cache_apps,
+    cleanup_bundle_cache,
 )
 
 # set up logging

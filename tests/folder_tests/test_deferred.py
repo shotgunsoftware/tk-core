@@ -10,12 +10,11 @@
 
 import os
 import shutil
+
 import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
-from tank import folder
+from tank import TankError, folder, hook
 from tank_test.tank_test_base import *
+from tank_vendor import yaml
 
 
 class TestDeferredFolderCreation(TankTestBase):

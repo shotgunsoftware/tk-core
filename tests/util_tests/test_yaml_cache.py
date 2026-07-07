@@ -8,15 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 import sgtk
-from sgtk.util.yaml_cache import YamlCache
 from sgtk import TankError
-from tank_vendor import yaml
-from tank_test.tank_test_base import ShotgunTestBase
+from sgtk.util.yaml_cache import YamlCache
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase
+from tank_vendor import yaml
 
 
 class TestYamlCache(ShotgunTestBase):

@@ -16,11 +16,12 @@ and create a plugin scaffold, complete with standard helpers and
 a primed bundle cache.
 """
 
+import datetime
+
 # system imports
 import os
-import sys
 import shutil
-import datetime
+import sys
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -31,22 +32,27 @@ sys.path.insert(0, python_folder)
 
 # sgtk imports
 from tank import LogManager
-from tank.util import filesystem, sgre as re
-from tank.errors import TankError
-from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
-from tank.descriptor import create_descriptor, is_descriptor_version_missing
-from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
+from tank.bootstrap.baked_configuration import BakedConfiguration
+from tank.descriptor import (
+    Descriptor,
+    create_descriptor,
+    descriptor_dict_to_uri,
+    descriptor_uri_to_dict,
+    is_descriptor_version_missing,
+)
+from tank.errors import TankError
+from tank.util import filesystem
+from tank.util import sgre as re
 from tank_vendor import yaml
-
 from utils import (
-    cache_apps,
-    authenticate,
-    add_authentication_options,
     OptionParserLineBreakingEpilog,
+    add_authentication_options,
+    authenticate,
+    automated_setup_documentation,
+    cache_apps,
     cleanup_bundle_cache,
     wipe_folder,
-    automated_setup_documentation,
 )
 
 # set up logging

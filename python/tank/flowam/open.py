@@ -13,7 +13,6 @@ from __future__ import annotations  # needed for python 3.9 support
 import os
 
 import sgtk
-
 from tank import LogManager
 from tank_vendor.flow_integration_sdk.exceptions import (
     DraftExistsError,
@@ -21,10 +20,14 @@ from tank_vendor.flow_integration_sdk.exceptions import (
     InvalidDraftError,
 )
 from tank_vendor.flow_integration_sdk.globals import SOURCE_PURPOSE
-from tank_vendor.flow_integration_sdk.objects import FlowVersion, FlowRevision
+from tank_vendor.flow_integration_sdk.objects import FlowRevision, FlowVersion
 from tank_vendor.flow_integration_sdk.sandbox import (
     CheckoutDraftInfo,
+)
+from tank_vendor.flow_integration_sdk.sandbox import (
     checkout_revision as checkout_revision_in_sandbox,
+)
+from tank_vendor.flow_integration_sdk.sandbox import (
     get_draft_id,
     is_local_draft,
     read_draft_info,

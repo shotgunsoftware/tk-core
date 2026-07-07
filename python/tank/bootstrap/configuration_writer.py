@@ -8,23 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import datetime
 import os
 import sys
-import datetime
-
-from . import constants
-
-from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
-
-from ..util import filesystem
-from ..util import StorageRoots
-from ..util.shotgun import connection
-from ..util.move_guard import MoveGuard
-from ..util import is_macos, is_windows
 
 from tank_vendor import yaml
 
 from .. import LogManager
+from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
+from ..util import StorageRoots, filesystem, is_macos, is_windows
+from ..util.move_guard import MoveGuard
+from ..util.shotgun import connection
+from . import constants
 
 log = LogManager.get_logger(__name__)
 

@@ -8,17 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
 import os
 import shutil
-
-from . import constants
-from ..errors import TankError
-from ..util import StorageRoots
-from ..util import filesystem
-from ..api import sgtk_from_path
+import sys
 
 from tank_vendor import yaml
+
+from ..api import sgtk_from_path
+from ..errors import TankError
+from ..util import StorageRoots, filesystem
+from . import constants
 
 
 @filesystem.with_cleared_umask

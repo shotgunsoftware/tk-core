@@ -11,13 +11,13 @@
 import types
 import unittest.mock
 
+from tank.util import qt_importer
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     skip_if_pyside2,
     skip_if_pyside6,
 )
-from tank.util import qt_importer
 
 
 class QtImporterTests(TankTestBase):

@@ -15,9 +15,9 @@ User settings management.
 import configparser
 import os
 
-from .local_file_storage import LocalFileStorageManager
-from .errors import EnvironmentVariableFileLookupError, TankError
 from .. import LogManager
+from .errors import EnvironmentVariableFileLookupError, TankError
+from .local_file_storage import LocalFileStorageManager
 from .singleton import Singleton
 from .system_settings import SystemSettings
 

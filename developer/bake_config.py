@@ -15,8 +15,8 @@ a local path.
 
 # system imports
 import os
-import sys
 import shutil
+import sys
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -25,23 +25,27 @@ python_folder = os.path.abspath(os.path.join(this_folder, "..", "python"))
 # any installed version in site-packages
 sys.path.insert(0, python_folder)
 
-# sgtk imports
-from tank import LogManager
-from tank.util import filesystem
-from tank.descriptor import Descriptor, descriptor_uri_to_dict
-from tank.descriptor import create_descriptor, is_descriptor_version_missing
-from tank.descriptor.errors import TankDescriptorError
-from tank.bootstrap import constants as bootstrap_constants
 import functools
 
+# sgtk imports
+from tank import LogManager
+from tank.bootstrap import constants as bootstrap_constants
+from tank.descriptor import (
+    Descriptor,
+    create_descriptor,
+    descriptor_uri_to_dict,
+    is_descriptor_version_missing,
+)
+from tank.descriptor.errors import TankDescriptorError
+from tank.util import filesystem
 from utils import (
-    cache_apps,
-    authenticate,
-    add_authentication_options,
     OptionParserLineBreakingEpilog,
+    add_authentication_options,
+    authenticate,
+    automated_setup_documentation,
+    cache_apps,
     cleanup_bundle_cache,
     wipe_folder,
-    automated_setup_documentation,
 )
 
 # Set up logging

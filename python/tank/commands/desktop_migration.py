@@ -8,9 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from . import console_utils, constants
 from .action_base import Action
-from . import console_utils
-from . import constants
 
 _MESSAGE = (
     "This command will migrate the PTR site configuration used by the Desktop app so "

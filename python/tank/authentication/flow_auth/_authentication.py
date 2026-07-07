@@ -19,8 +19,8 @@ import time
 
 from tank_vendor.adsk_auth import (
     AuthConfig,
-    get_access_token as get_access_token_from_adsk_auth,
 )
+from tank_vendor.adsk_auth import get_access_token as get_access_token_from_adsk_auth
 
 from ... import LogManager
 from ...util import LocalFileStorageManager

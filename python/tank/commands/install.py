@@ -9,10 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import TankError
-from . import console_utils
+from . import console_utils, constants, util
 from .action_base import Action
-from . import util
-from . import constants
 
 
 class InstallAppAction(Action):

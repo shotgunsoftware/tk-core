@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sgtk
 
-from tank_test.tank_test_base import *
+import sgtk
 from tank.errors import TankError
+from tank_test.tank_test_base import *
 
 
 class TestLegacyDescriptorSupport(TankTestBase):

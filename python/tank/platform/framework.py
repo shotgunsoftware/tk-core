@@ -15,12 +15,10 @@ Defines the base class for all Tank Frameworks.
 
 import os
 
-from ..util.loader import load_plugin
-from . import constants
-
 from ..errors import TankError
+from ..util.loader import load_plugin
+from . import constants, validation
 from .bundle import TankBundle
-from . import validation
 
 
 class Framework(TankBundle):
