@@ -161,6 +161,7 @@ class TriggerAmAuthTests(ShotgunTestBase):
         mock_init.assert_called_once_with(mock_resolve.return_value)
         mock_get.assert_called_once()
 
+
 @mock.patch(
     "tank.authentication.ShotgunAuthenticator.get_user",
     return_value=mock.Mock(),

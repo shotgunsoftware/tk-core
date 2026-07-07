@@ -22,7 +22,7 @@ class TestSgre(TestCase):
         Ensure that sgre injects the re.ASCII flag appropriately, and that
         unicode characters do not match.
         """
-        char = u"漢字"
+        char = "漢字"
         expr = r"\w+"
 
         # test all wrapped methods
@@ -38,7 +38,7 @@ class TestSgre(TestCase):
         Ensure that `sgre` injects the `re.ASCII` flag appropriately when flags
         are passed positionally, and that Unicode characters do not match.
         """
-        char = u"a漢字"
+        char = "a漢字"
         expr = r"a\w+"
 
         # test all wrapped methods
@@ -61,7 +61,7 @@ class TestSgre(TestCase):
         also passed as keyword arguments, and that unicode characters do not
         match.
         """
-        char = u"a漢字"
+        char = "a漢字"
         expr = r"a\w+"
 
         # test all wrapped methods
@@ -76,7 +76,7 @@ class TestSgre(TestCase):
         """
         Ensure that the unicode flag overrides the flag insertion behavior.
         """
-        char = u"a漢字"
+        char = "a漢字"
         expr = r"a\w+"
 
         # test all wrapped methods

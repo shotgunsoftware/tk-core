@@ -996,9 +996,7 @@ class ToolkitManager(object):
                 "MEDM auth misconfigured for AM-ready project: %s" % e
             )
         except Exception as e:
-            raise TankBootstrapError(
-                "MEDM auth failed for AM-ready project: %s" % e
-            )
+            raise TankBootstrapError("MEDM auth failed for AM-ready project: %s" % e)
 
     def _get_configuration(self, entity, progress_callback):
         """

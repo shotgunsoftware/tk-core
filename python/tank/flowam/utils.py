@@ -43,7 +43,6 @@ from tank_vendor.flow_integration_sdk.utils import trace
 
 from .constants import FLOW_SCHEMA_CONFIG_PATH, FLOW_SCHEMA_VERSION_FIELD
 
-
 logger = LogManager.get_logger(__name__)
 
 

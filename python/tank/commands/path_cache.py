@@ -176,7 +176,9 @@ class PathCacheMigrationAction(Action):
         # first load up the current path cache file and make sure
         # shotgun has got all those entries present as FilesystemLocations.
         log.info("")
-        log.info("Phase 1/3: Pushing data from the current path cache to Flow Production Tracking...")
+        log.info(
+            "Phase 1/3: Pushing data from the current path cache to Flow Production Tracking..."
+        )
         curr_pc = path_cache.PathCache(self.tk)
         try:
             curr_pc.ensure_all_entries_are_in_shotgun()
@@ -191,7 +193,9 @@ class PathCacheMigrationAction(Action):
 
         # and synchronize path cache
         log.info("")
-        log.info("Phase 3/3: Synchronizing your local machine with Flow Production Tracking...")
+        log.info(
+            "Phase 3/3: Synchronizing your local machine with Flow Production Tracking..."
+        )
         pc = path_cache.PathCache(self.tk)
         try:
             pc.synchronize(full_sync=True)

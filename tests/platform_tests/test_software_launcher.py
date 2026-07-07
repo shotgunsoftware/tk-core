@@ -296,7 +296,7 @@ class TestEngineLauncher(TankTestBase):
         )
         sw_versions = launcher.scan_software()
         for sw_version in sw_versions:
-            (supported, reason) = launcher._is_supported(sw_version)
+            supported, reason = launcher._is_supported(sw_version)
             if sw_version.version in [2, 3, 4]:
                 self.assertEqual(supported, True)
                 self.assertEqual(reason, "")

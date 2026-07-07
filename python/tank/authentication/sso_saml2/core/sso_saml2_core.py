@@ -129,7 +129,9 @@ def get_renew_path(session, logger):
     # When this variable is set, it is passed to Autodesk Identity's login.
     tk_shotgun_default_login = os.getenv("TK_SHOTGRID_DEFAULT_LOGIN")
     # When this variable is set for a SSO domain, skip the initial login page.
-    tk_shotgun_sso_domain = sanitize_http_proxy(os.getenv("TK_SHOTGRID_SSO_DOMAIN")).netloc
+    tk_shotgun_sso_domain = sanitize_http_proxy(
+        os.getenv("TK_SHOTGRID_SSO_DOMAIN")
+    ).netloc
 
     # Flow Production Tracking's renew endpoint supports some useful
     # Autodesk Identity params.
@@ -210,6 +212,7 @@ class SsoSaml2Core(object):
             )
         if QtNetwork and not hasattr(QtNetwork, "QSslConfiguration"):
             raise SsoSaml2IncompletePySide2("Missing class QtNetwork.QSslConfiguration")
+
         class TKWebPageQtWebEngine(QtWebEngineWidgets.QWebEnginePage):
             """
             Wrapper class to better control the behaviour when clicking on links

@@ -144,7 +144,7 @@ class StorageRoots(object):
             the required roots.
         """
 
-        (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
+        local_storage_lookup, unmapped_roots = storage_roots.get_local_storages(
             sg_connection
         )
 

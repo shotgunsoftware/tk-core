@@ -20,7 +20,6 @@ from tank_test.tank_test_base import *
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
 
-
 # test secondary entities.
 
 

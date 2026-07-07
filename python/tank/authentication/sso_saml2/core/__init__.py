@@ -11,6 +11,7 @@
 This module contains files which are shared between RV and Toolkit.
 """
 
+
 def __getattr__(name):
     """
     Retro compatibility - SG-40049 - Temporary workaround for compatibility for
@@ -22,7 +23,7 @@ def __getattr__(name):
     https://github.com/shotgunsoftware/tk-nuke/blob/v0.16.0/engine.py#L396
     This was removed in https://github.com/shotgunsoftware/tk-nuke/pull/125.
 
-	TODO: Remove this after 2026-07.
+        TODO: Remove this after 2026-07.
     """
 
     try:
@@ -33,6 +34,7 @@ def __getattr__(name):
 
         try:
             import inspect
+
             frame = inspect.currentframe().f_back
             caller_mod = frame.f_globals.get("__name__", "")
             is_import = caller_mod.startswith("importlib.") or caller_mod == "builtins"
@@ -50,6 +52,7 @@ def __getattr__(name):
         )
 
         import warnings
+
         warnings.warn(
             deprecation_message,
             DeprecationWarning,
@@ -58,10 +61,12 @@ def __getattr__(name):
 
         try:
             import tank
+
             logger = tank.LogManager.get_logger(__name__)
             logger.warning(deprecation_message)
         except:
-            pass # nosec
+            pass  # nosec
 
         import importlib
+
         return importlib.import_module(f"{__name__}.{name}")

@@ -150,7 +150,7 @@ class GetEntityCommandsAction(Action):
         per_entity_type = itertools.groupby(entities, operator.itemgetter(0))
 
         commands_per_entity = {}
-        for (entity_type, entities_of_type) in per_entity_type:
+        for entity_type, entities_of_type in per_entity_type:
             # make a list out of the grouped entity tuples
             entities_of_type = list(entities_of_type)
             try:
@@ -311,7 +311,7 @@ class GetEntityCommandsAction(Action):
             tokens += [""] * (NUM_EXPECTED_TOKENS - len(tokens))
 
             # extract the information from the tokens
-            (name, title, _, _, icon, description) = tuple(tokens)
+            name, title, _, _, icon, description = tuple(tokens)
 
             commands.append(
                 {"name": name, "title": title, "icon": icon, "description": description}

@@ -466,7 +466,7 @@ class TestExecuteHook(TestApplication):
             "{config}/config_test_hook.py:{config}/more_hooks/config_test_hook.py"
         )
 
-        (disk_location_1, disk_location_2) = hook.test_inheritance_disk_location()
+        disk_location_1, disk_location_2 = hook.test_inheritance_disk_location()
 
         self.assertEqual(
             disk_location_1, os.path.join(self.project_config, "hooks", "toolkitty.png")

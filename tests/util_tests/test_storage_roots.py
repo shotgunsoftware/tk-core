@@ -339,7 +339,7 @@ class TestStorageRoots(ShotgunTestBase):
         """Test the get_local_storages method."""
 
         single_root = StorageRoots.from_metadata(self._single_root_metadata)
-        (single_root_lookup, unmapped_roots) = single_root.get_local_storages(
+        single_root_lookup, unmapped_roots = single_root.get_local_storages(
             self.mockgun
         )
 
@@ -357,7 +357,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(unmapped_roots, [])
 
         multiple_roots = StorageRoots.from_metadata(self._multiple_roots_metadata)
-        (multiple_root_lookup, unmapped_roots) = multiple_roots.get_local_storages(
+        multiple_root_lookup, unmapped_roots = multiple_roots.get_local_storages(
             self.mockgun
         )
 

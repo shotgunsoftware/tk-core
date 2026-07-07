@@ -94,7 +94,7 @@ class InstallAppAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 3:
@@ -411,7 +411,7 @@ class InstallEngineAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 2:
@@ -539,8 +539,8 @@ class InstallEngineAction(Action):
             # run descriptor factory method
             log.info("Connecting to git...")
             location = {"type": "git", "path": engine_name}
-            engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(
-                location
+            engine_descriptor = (
+                self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
             )
             log.info(
                 "Latest tag in repository '%s' is %s."
@@ -559,8 +559,8 @@ class InstallEngineAction(Action):
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
             location = {"type": "app_store", "name": engine_name}
-            engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(
-                location
+            engine_descriptor = (
+                self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
             )
             log.info(
                 "Latest approved App Store Version is %s." % engine_descriptor.version

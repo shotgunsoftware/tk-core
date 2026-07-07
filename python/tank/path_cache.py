@@ -115,8 +115,7 @@ class PathCache(object):
                 # up the default page size somewhat (from 4k -> 8k) to improve
                 # performance. See https://sqlite.org/pragma.html#pragma_page_size
 
-                c.executescript(
-                    """
+                c.executescript("""
                     PRAGMA page_size=8192;
 
                     CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
@@ -134,8 +133,7 @@ class PathCache(object):
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
 
                     CREATE INDEX shotgun_status_shotgun_id ON shotgun_status(shotgun_id);
-                    """
-                )
+                    """)
                 self._connection.commit()
 
             else:
@@ -160,8 +158,7 @@ class PathCache(object):
 
                 # check for primary entity field - this was added back in 0.12.x
                 if "primary_entity" not in field_names:
-                    c.executescript(
-                        """
+                    c.executescript("""
                         ALTER TABLE path_cache ADD COLUMN primary_entity integer;
                         UPDATE path_cache SET primary_entity=1;
 
@@ -170,8 +167,7 @@ class PathCache(object):
 
                         DROP INDEX IF EXISTS path_cache_all;
                         CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
-                        """
-                    )
+                        """)
 
                     self._connection.commit()
 
@@ -501,7 +497,10 @@ class PathCache(object):
             sg_batch_data.append(req)
 
         # push to shotgun in a single xact
-        log.debug("Uploading %s path entries to Flow Production Tracking..." % len(sg_batch_data))
+        log.debug(
+            "Uploading %s path entries to Flow Production Tracking..."
+            % len(sg_batch_data)
+        )
 
         try:
             response = self._tk.shotgun.batch(sg_batch_data)
@@ -905,7 +904,9 @@ class PathCache(object):
                     - path
 
         """
-        log.debug("Fetching already registered folders from Flow Production Tracking...")
+        log.debug(
+            "Fetching already registered folders from Flow Production Tracking..."
+        )
 
         sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
@@ -1329,12 +1330,12 @@ class PathCache(object):
                 )
 
                 # now push to shotgun
-                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(
+                event_log_id, sg_id_lookup = self._upload_cache_data_to_shotgun(
                     data_for_sg, desc
                 )
                 self._update_last_event_log_synced(c, event_log_id)
                 # and indicate in the path cache that all these records have been pushed
-                for (pc_row_id, sg_id) in sg_id_lookup.items():
+                for pc_row_id, sg_id in sg_id_lookup.items():
                     c.execute(
                         "INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
                         "VALUES(?, ?)",
@@ -1745,7 +1746,9 @@ class PathCache(object):
         SG_BATCH_SIZE = 50
 
         log.info("")
-        log.info("Step 1 - Downloading current path data from Flow Production Tracking...")
+        log.info(
+            "Step 1 - Downloading current path data from Flow Production Tracking..."
+        )
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
@@ -1773,18 +1776,14 @@ class PathCache(object):
 
         try:
             # get all records and check each one against shotgun.
-            pc_data = list(
-                cursor.execute(
-                    """select pc.rowid,
+            pc_data = list(cursor.execute("""select pc.rowid,
                                                     pc.entity_type,
                                                     pc.entity_id,
                                                     pc.entity_name,
                                                     pc.root,
                                                     pc.path,
                                                     pc.primary_entity
-                                             from path_cache pc"""
-                )
-            )
+                                             from path_cache pc"""))
         finally:
             cursor.close()
 
@@ -1860,9 +1859,12 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in ids_to_look_for.items():
+        for et, sg_records_for_et in ids_to_look_for.items():
 
-            log.info(" - Checking %s %ss in Flow Production Tracking..." % (len(sg_records_for_et), et))
+            log.info(
+                " - Checking %s %ss in Flow Production Tracking..."
+                % (len(sg_records_for_et), et)
+            )
 
             # get the ids from shotgun for the current et.
             sg_ids = [x["entity"]["id"] for x in sg_records_for_et]
@@ -1898,5 +1900,6 @@ class PathCache(object):
 
         log.info("")
         log.info(
-            "Migration complete. %s records created in Flow Production Tracking" % len(sg_valid_records)
+            "Migration complete. %s records created in Flow Production Tracking"
+            % len(sg_valid_records)
         )

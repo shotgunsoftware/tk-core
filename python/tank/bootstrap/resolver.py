@@ -376,9 +376,9 @@ class ConfigurationResolver(object):
                 # field. Note that this may be None if for example the pipeline configuration
                 # is defined for another operating system.
                 try:
-                    pipeline_config[
-                        "config_descriptor"
-                    ] = self._create_config_descriptor(sg_connection, pipeline_config)
+                    pipeline_config["config_descriptor"] = (
+                        self._create_config_descriptor(sg_connection, pipeline_config)
+                    )
                     yield pipeline_config
 
                 except TankBootstrapInvalidPipelineConfigurationError as e:
@@ -841,7 +841,9 @@ class ConfigurationResolver(object):
                 "Will use pipeline configuration id '%s'" % pipeline_config_identifier
             )
 
-            log.debug("Requesting pipeline configuration data from Flow Production Tracking...")
+            log.debug(
+                "Requesting pipeline configuration data from Flow Production Tracking..."
+            )
 
             # Fetch the one and only config that matches this id.
             pipeline_config = sg_connection.find_one(
@@ -869,7 +871,9 @@ class ConfigurationResolver(object):
 
             # We couldn't resolve anything from Shotgun, so we'll resolve the configuration using
             # an offline resolve.
-            return self.resolve_not_found_sg_configuration(fallback_config_descriptor, sg_connection)
+            return self.resolve_not_found_sg_configuration(
+                fallback_config_descriptor, sg_connection
+            )
 
         else:
             # Something was found in Shotgun, which means we've also potentially resolved its

@@ -57,7 +57,7 @@ class ProjectSetupParameters(object):
     - run project setup!
     """
 
-    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = range(2)
+    CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG = range(2)
 
     def __init__(self, log, sg):
         """
@@ -1019,7 +1019,7 @@ class TemplateConfiguration(object):
         # now extract the cfg and validate
         old_umask = os.umask(0)
         try:
-            (self._cfg_folder, self._version, self._config_mode) = self._process_config(
+            self._cfg_folder, self._version, self._config_mode = self._process_config(
                 config_uri
             )
         finally:
@@ -1272,7 +1272,7 @@ class TemplateConfiguration(object):
         storage_info = {}
 
         # do the storage lookup and mapping in PTR
-        (local_storage_lookup, unmapped_roots) = self._storage_roots.get_local_storages(
+        local_storage_lookup, unmapped_roots = self._storage_roots.get_local_storages(
             self._sg
         )
 

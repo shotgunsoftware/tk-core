@@ -59,7 +59,7 @@ class SymlinkToken(object):
             # - listfield tokens contain the value
             # - sg entity values contain the value in a compute_name key
             name_value = None
-            for (field_name, field_value) in sg_data.items():
+            for field_name, field_value in sg_data.items():
 
                 if token == field_name:
                     if isinstance(field_value, dict):

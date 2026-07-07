@@ -181,7 +181,9 @@ def download_and_unpack_attachment(
     )
 
 
-def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False, headers=None):
+def download_and_unpack_url(
+    sg, url, target, retries=5, auto_detect_bundle=False, headers=None
+):
     """
     Downloads the content from the provided url, assumes it is a zip file
     and attempts to unpack it into the given location.
@@ -197,7 +199,9 @@ def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False
         the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    return _download_and_unpack(sg, target, retries, auto_detect_bundle, url=url, headers=headers or {})
+    return _download_and_unpack(
+        sg, target, retries, auto_detect_bundle, url=url, headers=headers or {}
+    )
 
 
 @LogManager.log_timing

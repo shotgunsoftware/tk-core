@@ -21,10 +21,14 @@ import urllib.request
 import tank
 from tank.authentication import ShotgunAuthenticator
 from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
-from tank.util.metrics import (EventMetric, MetricsDispatchWorkerThread,
-                               MetricsQueueSingleton, log_metric,
-                               log_user_activity_metric,
-                               log_user_attribute_metric)
+from tank.util.metrics import (
+    EventMetric,
+    MetricsDispatchWorkerThread,
+    MetricsQueueSingleton,
+    log_metric,
+    log_user_activity_metric,
+    log_user_attribute_metric,
+)
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
 
@@ -929,8 +933,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
         in util.__init__ to preserve retro compatibility and prevent
         exception in legacy engine code.
         """
-        from tank.util import (log_user_activity_metric,
-                               log_user_attribute_metric)
+        from tank.util import log_user_activity_metric, log_user_attribute_metric
 
         # Bogus test call to the two legacy metric methods
         log_user_activity_metric("Test Module", "Test Action")

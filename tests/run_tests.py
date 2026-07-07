@@ -16,7 +16,6 @@ import tempfile
 import traceback
 from optparse import OptionParser
 
-
 # Let the user know which Python is picked up to run the tests.
 print()
 print(
@@ -253,7 +252,7 @@ def _parse_command_line():
         help="Run tests and redirect logging output to the console.",
     )
 
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
 
     test_names = args or []
 

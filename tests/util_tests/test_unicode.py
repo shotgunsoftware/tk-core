@@ -75,25 +75,24 @@ class TestUnicode(TestCase):
         Ensure all values encoded with ISO-8859-1 are properly converted to str.
         """
         logins = [
-            'AñoVolvió',
-            'JiříVyčítal',
-            '日本のユーザー*',
-            '이사이트에서는개발자가',
-            'およびその他の教育リソース'
-            '工作流技术总监或将要设置工作流并希望开发',
-            'Martin Tlustý',
+            "AñoVolvió",
+            "JiříVyčítal",
+            "日本のユーザー*",
+            "이사이트에서는개발자가",
+            "およびその他の教育リソース" "工作流技术总监或将要设置工作流并希望开发",
+            "Martin Tlustý",
         ]
 
         for login in logins:
             expected_value = {
-                'type': 'SessionUser',
-                'data': {
-                    'http_proxy': None,
-                    'host': 'https://xyxyxyxyx.jjj',
-                    'login': login,
-                    'session_token': 'de97e6ff868b6b2ce332',
-                    'session_metadata': 'G9kZXNrLmNvbTsgcGF0aD0v'
-                }
+                "type": "SessionUser",
+                "data": {
+                    "http_proxy": None,
+                    "host": "https://xyxyxyxyx.jjj",
+                    "login": login,
+                    "session_token": "de97e6ff868b6b2ce332",
+                    "session_metadata": "G9kZXNrLmNvbTsgcGF0aD0v",
+                },
             }
 
             dumps_value = sgtk.util.pickle.dumps(expected_value)

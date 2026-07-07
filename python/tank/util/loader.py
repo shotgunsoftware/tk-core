@@ -66,7 +66,7 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
         log.exception("Cannot load plugin file '%s'" % plugin_file)
 
         # dump out the callstack for this one -- to help people get good messages when there is a plugin error
-        (exc_type, exc_value, exc_traceback) = sys.exc_info()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         message = ""
         message += (
             "Failed to load plugin %s. The following error was reported:\n"

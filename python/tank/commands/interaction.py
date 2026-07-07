@@ -14,7 +14,6 @@ Interfaces for prompting the user for input during tank command execution.
 
 from .. import LogManager
 
-
 log = LogManager.get_logger(__name__)
 
 

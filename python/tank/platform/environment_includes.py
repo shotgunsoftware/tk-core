@@ -27,7 +27,6 @@ relative paths are always required and context based paths are always optional.
 
 """
 
-
 import os
 import sys
 import copy
@@ -136,7 +135,7 @@ def _resolve_refs_r(lookup_dict, data):
 
     elif isinstance(data, dict):
         processed_val = {}
-        for (k, v) in data.items():
+        for k, v in data.items():
             processed_val[k] = _resolve_refs_r(lookup_dict, v)
 
     elif isinstance(data, str) and data.startswith("@"):
@@ -350,9 +349,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                 # If the value of the token is an include, then we can
                 # recurse up, directly referencing the include name as
                 # the new token.
-                if isinstance(token_data, str) and token_data.startswith(
-                    "@"
-                ):
+                if isinstance(token_data, str) and token_data.startswith("@"):
                     include_token = token_data
                 else:
                     # In the case where the data isn't itself an include,

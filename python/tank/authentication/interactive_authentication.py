@@ -33,7 +33,6 @@ import threading
 import os
 from tank.util import is_windows
 
-
 logger = LogManager.get_logger(__name__)
 
 
@@ -77,6 +76,7 @@ def _get_ui_state() -> bool:
         QtGui = None
 
     return bool(QtGui and QtGui.QApplication.instance())
+
 
 class SessionRenewal(object):
     """
@@ -220,6 +220,7 @@ def renew_session(user):
     # If we have a gui, we need gui based authentication
     if has_ui:
         from .ui_authentication import UiAuthenticationHandler
+
         authenticator = UiAuthenticationHandler(
             is_session_renewal=True, session_metadata=user.get_session_metadata()
         )

@@ -57,10 +57,10 @@ class LocalFileStorageManager(object):
     """
 
     # generation of path structures
-    (CORE_V17, CORE_V18) = range(2)
+    CORE_V17, CORE_V18 = range(2)
 
     # supported types of paths
-    (LOGGING, CACHE, PERSISTENT, PREFERENCES) = range(4)
+    LOGGING, CACHE, PERSISTENT, PREFERENCES = range(4)
 
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):

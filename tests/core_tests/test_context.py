@@ -702,7 +702,8 @@ class TestFromEntity(TestContext):
             context.from_entity(self.tk, "Task", -1)
         # PublishedFiles go through some dedicated code.
         with self.assertRaisesRegex(
-            TankError, "Entity PublishedFile with id -1 not found in Flow Production Tracking!"
+            TankError,
+            "Entity PublishedFile with id -1 not found in Flow Production Tracking!",
         ):
             context.from_entity(self.tk, "PublishedFile", -1)
 

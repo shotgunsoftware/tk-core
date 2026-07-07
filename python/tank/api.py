@@ -38,7 +38,7 @@ class Sgtk(object):
     manipulation and the Toolkit template system.
     """
 
-    (DEFAULT, CENTRALIZED, DISTRIBUTED) = range(3)
+    DEFAULT, CENTRALIZED, DISTRIBUTED = range(3)
 
     def __init__(self, project_path):
         """

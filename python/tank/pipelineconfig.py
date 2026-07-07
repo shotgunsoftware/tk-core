@@ -12,6 +12,7 @@
 Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
+
 import os
 import glob
 import pickle
@@ -664,7 +665,7 @@ class PipelineConfiguration(object):
             return None
 
         # get the storage data for required roots
-        (mapped_roots, unmapped_roots) = self.get_local_storage_mapping()
+        mapped_roots, unmapped_roots = self.get_local_storage_mapping()
 
         if root_name in mapped_roots:
             return mapped_roots[root_name]
@@ -1127,7 +1128,7 @@ class PipelineConfiguration(object):
         env_names = []
         for f in glob.glob(self.get_environment_path("*")):
             file_name = os.path.basename(f)
-            (name, _) = os.path.splitext(file_name)
+            name, _ = os.path.splitext(file_name)
             env_names.append(name)
         return env_names
 

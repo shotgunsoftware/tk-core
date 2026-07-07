@@ -182,7 +182,9 @@ class TestFileSystem(TankTestBase):
         copy_test_root_folder = os.path.join(self.tank_temp, "copy_tests")
         fs.ensure_folder_exists(copy_test_root_folder, permissions=0o777)
         # Source folder
-        copy_test_src_folder = os.path.join(copy_test_root_folder, "copy_test_src_folder")
+        copy_test_src_folder = os.path.join(
+            copy_test_root_folder, "copy_test_src_folder"
+        )
         fs.ensure_folder_exists(copy_test_src_folder, permissions=0o777)
         # Copy src file
         copy_test_basename = "copy_file.txt"

@@ -15,6 +15,7 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+
 import http.client
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault

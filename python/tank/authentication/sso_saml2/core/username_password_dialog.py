@@ -75,8 +75,7 @@ class UsernamePasswordDialog(QtGui.QDialog):
         buttons.button(QtGui.QDialogButtonBox.Cancel).clicked.connect(self.close)
 
         # On Qt4, this sets the look-and-feel to that of the toolkit.
-        self.setStyleSheet(
-            """QWidget
+        self.setStyleSheet("""QWidget
             {
                 background-color:  rgb(36, 39, 42);
                 color: rgb(192, 193, 195);
@@ -98,8 +97,7 @@ class UsernamePasswordDialog(QtGui.QDialog):
                 color: rgb(248, 248, 248);
                 background-color: rgb(35, 165, 225);
             }
-            """
-        )
+            """)
 
     @property
     def username(self):

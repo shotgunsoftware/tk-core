@@ -483,7 +483,7 @@ class TestMultiRoot(TankTestBase):
 
         _, proj_2_root = self.create_project({"name": "second project"})
         proj_2_name = os.path.basename(proj_2_root)
-        (proj_2_alt_root, proj_2_alt_storage) = self.create_storage_root(
+        proj_2_alt_root, proj_2_alt_storage = self.create_storage_root(
             proj_2_name, "second_alternate_1"
         )
         proj_2_pub = {
@@ -535,7 +535,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # `file:///fixtures_root/config/hooks/toolkitty.png`
         if sys.platform == "win32":
             self.download_url = "file:///{p}".format(
-                p = self.download_source.replace("\\", "/")
+                p=self.download_source.replace("\\", "/")
             )
         else:
             self.download_url = urllib.parse.urlunparse(

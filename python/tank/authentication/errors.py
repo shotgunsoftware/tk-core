@@ -73,9 +73,7 @@ class UnresolvableHumanUser(UnresolvableUser):
         """
         :param str login: ``login`` field value of the ``HumanUser`` that could not be resolved.
         """
-        super().__init__(
-            "person", "HumanUser", "login", login
-        )
+        super().__init__("person", "HumanUser", "login", login)
 
 
 class UnresolvableScriptUser(UnresolvableUser):
@@ -87,9 +85,7 @@ class UnresolvableScriptUser(UnresolvableUser):
         """
         :param str script_name: ``firstname`` field value of the ``ApiUser`` that could not be resolved.
         """
-        super().__init__(
-            "script", "ApiUser", "firstname", script_name
-        )
+        super().__init__("script", "ApiUser", "firstname", script_name)
 
 
 class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):

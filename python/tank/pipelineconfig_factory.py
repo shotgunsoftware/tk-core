@@ -184,7 +184,8 @@ def _from_path(path, force_reread_shotgun_cache):
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
         log.debug(
-            "Resolved the official path registered in PTR to be %s." % pc_registered_path
+            "Resolved the official path registered in PTR to be %s."
+            % pc_registered_path
         )
 
         if pc_registered_path is None:
@@ -259,7 +260,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     """
     # extract path data from the pipeline configuration shotgun data
     # this will return lists of dicts with keys ``id``, (local os) ``path`` and ``project_id``
-    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(
+    all_pc_data, primary_pc_data = _get_pipeline_configuration_data(
         associated_pipeline_configs
     )
 

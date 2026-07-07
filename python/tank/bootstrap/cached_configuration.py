@@ -140,7 +140,7 @@ class CachedConfiguration(Configuration):
             % (storage_roots.roots_file, storage_roots.required_roots)
         )
 
-        (_, unmapped_roots) = storage_roots.get_local_storages(self._sg_connection)
+        _, unmapped_roots = storage_roots.get_local_storages(self._sg_connection)
 
         # get a list of all defined storage roots without a corresponding PTR
         # local storage defined
@@ -258,7 +258,7 @@ class CachedConfiguration(Configuration):
         try:
             # Move to backup needs to undo changes when failing because we need to put the configuration
             # in a usable state.
-            (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(
+            config_backup_path, core_backup_path = self._config_writer.move_to_backup(
                 undo_on_error=True
             )
         except Exception as e:

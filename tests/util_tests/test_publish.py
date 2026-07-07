@@ -112,6 +112,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
 
         create_data = []
+
         # wrap create so we can keep tabs of things
         def create_mock(entity_type, data, return_fields=None):
             create_data.append(data)

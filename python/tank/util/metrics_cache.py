@@ -97,7 +97,7 @@ def consume():
             logger.debug("Invalid cached metric format")
             continue
 
-        (args, kwargs) = data
+        args, kwargs = data
         if not isinstance(args, list) or not isinstance(kwargs, dict):
             logger.debug("Invalid cached metric format")
             continue

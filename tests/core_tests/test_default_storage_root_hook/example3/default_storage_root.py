@@ -25,14 +25,16 @@ class DefaultStorageRoot(Hook):
 
         # check if custom field was set and filled
         if not sg_data or not sg_data.get("sg_projects_root"):
-            log.info("No project root for project configured, using global storage root.")
+            log.info(
+                "No project root for project configured, using global storage root."
+            )
             return
 
         # Stores the Windows drive for the project, e.g "P:"
         drive_root = sg_data["sg_projects_root"]
         # check if local storage exists on PTR site
         local_storage = self.parent.shotgun.find(
-            "LocalStorage", [['windows_path', 'is', drive_root]], ['code']
+            "LocalStorage", [["windows_path", "is", drive_root]], ["code"]
         )
 
         if not local_storage:
@@ -44,22 +46,24 @@ class DefaultStorageRoot(Hook):
         # Check if we have folder creation metadata
         if metadata:
             # Override data associated with the directory to use the new storage root.
-            metadata.update({"root_name": local_storage[0]['code']})
+            metadata.update({"root_name": local_storage[0]["code"]})
 
         # Update the default configuration root to map to the correct PTR LocalStorage in the
         # StorageRoots object.
-        log.info('Overriding project root to LocalStorage %s' % local_storage)
+        log.info("Overriding project root to LocalStorage %s" % local_storage)
         storage_roots.update_root(
-            'primary_mapped',
+            "primary_mapped",
             {
                 "default": True,
-                "shotgun_storage_id": local_storage[0]['id'],
+                "shotgun_storage_id": local_storage[0]["id"],
                 "windows_path": drive_root,
-            }
+            },
         )
 
         # Write the updated metadata into the '.../config/core/roots.yml' file in the localised
         # configuration. This should ensure that any StorageRoots.from_config(...) calls return
         # correctly.
-        config_folder = os.path.join(self.parent.pipeline_configuration.get_path(), 'config')
+        config_folder = os.path.join(
+            self.parent.pipeline_configuration.get_path(), "config"
+        )
         StorageRoots.write(self.parent.shotgun, config_folder, storage_roots)

@@ -21,7 +21,6 @@ from .. import LogManager
 from .singleton import Singleton
 from .system_settings import SystemSettings
 
-
 logger = LogManager.get_logger(__name__)
 
 
