@@ -27,7 +27,7 @@ from .exceptions import (
     FlowSchemaError,
     FlowSchemaLibraryError,
 )
-from .globals import get_client
+from .globals import KIND_BASE_TYPE_ID, get_client
 from .objects import FlowProject
 from . import schema
 from .schema import get_schema_id
@@ -297,20 +297,7 @@ class SchemaBuilder:
             query_response = create_schema_query.call()
             self.schema = query_response.schema
             logger.info(f"Created new schema: {self.schema.name}")
-        except GQLAPIError as e:
-            if "already exists" in str(e):
-                logger.info(
-                    f"Schema '{self.schema_dict['name']}' version '{self.schema_dict['version']}' already exists in collection. "
-                    "Skipping creation."
-                )
-            else:
-                raise FlowSchemaError(
-                    details=(
-                        f"Failed to create schema '{self.schema_dict['name']}' "
-                        f"version '{self.schema_dict['version']}': {e}"
-                    )
-                ) from e
-        except (FlowConnectionError, ValidationError) as e:
+        except (GQLAPIError, FlowConnectionError, ValidationError) as e:
             raise FlowSchemaError(
                 details=(
                     f"Failed to create schema '{self.schema_dict['name']}' "
@@ -559,30 +546,29 @@ def create_pipeline_schemas(project_id: str, config_path: str):
     client = get_client()
     collection_id = FlowProject.get_collection_id(project_id)
 
-    # Retrieve all existing schema type ids in our library.
-    # If the library does not exist yet (first run), treat as empty.
-    try:
-        schemas_by_library_input = flow_model.SchemasByLibraryIdInput(
-            project_id=project_id,
-            library_id=FLOW_TOOLKIT_LIBRARY_ID,
-        )
-        schema_query = client.service_schema.schemas_by_library_id(
-            variables=schemas_by_library_input
-        )
-        existing_schema_types = {s.type_id for s in schema_query.schemas_iterator}
+    # Collect distinct schema kinds present in config, then query existing
+    # schemas per kind. This avoids querying for kinds not used in the config.
+    kinds_in_config = {s["kind"] for s in config.get("schemas", []) if "kind" in s}
 
+    existing_schema_types = set()
+    try:
+        for kind in kinds_in_config:
+            base_type_id = KIND_BASE_TYPE_ID[kind]
+            schemas_by_supertype_input = flow_model.SchemasBySuperTypeInput(
+                collection_id=collection_id,
+                type_id=base_type_id,
+                include_sub_sub_classes=True,
+            )
+            schema_query = client.service_schema.schemas_by_super_type(
+                variables=schemas_by_supertype_input
+            )
+            existing_schema_types.update(schema_query.schema_types_iterator)
         logger.info(
-            f"Retrieved {len(existing_schema_types)} existing schemas from "
-            f"library '{FLOW_TOOLKIT_LIBRARY_ID}'."
+            f"Retrieved {len(existing_schema_types)} existing schemas for "
+            f"collection '{collection_id}'."
         )
     except GQLAPIError as e:
-        if "NOT_FOUND" in str(e) or "do not have permission" in str(e):
-            logger.info(
-                f"Library '{FLOW_TOOLKIT_LIBRARY_ID}' not found. Assuming no existing schemas."
-            )
-            existing_schema_types = set()
-        else:
-            raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
+        raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
     except (FlowConnectionError, ValidationError) as e:
         raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
 
