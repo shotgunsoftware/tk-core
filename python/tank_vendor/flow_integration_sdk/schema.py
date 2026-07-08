@@ -23,6 +23,8 @@ from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
 from .exceptions import FlowError
 from .globals import (
+    BASE_COMPONENT_TYPE_ID,
+    BASE_PROPERTY_TYPE_ID,
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
@@ -31,6 +33,7 @@ from .globals import (
     get_client,
     get_session_collection,
     IMAGE_TYPE_ID,
+    KIND_BASE_TYPE_ID,
 )
 from .utils import get_logger, trace
 
@@ -43,12 +46,14 @@ from .utils import get_logger, trace
 _schema_tree: dict[str, list[str]] = {}
 
 # Hardcode some well known relationships and root types
-_schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
-_schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[BASE_COMPONENT_TYPE_ID] = []
+_schema_tree[BASE_PROPERTY_TYPE_ID] = []
 _schema_tree[BASE_TYPE_ID] = []
-_schema_tree[BINARY_TYPE_ID] = []
-_schema_tree[COMMENT_TYPE_ID] = []
-_schema_tree[DER_SOURCE_TYPE_ID] = []
+_schema_tree[BINARY_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
+_schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
+_schema_tree[DER_SOURCE_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
+_schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
 
 
 # Schema type ids cache
@@ -121,13 +126,23 @@ def cache_schema_config(config_path: str):
     # Add configured types to schema tree cache
     for schema in raw_config.get("schemas", {}):
         type_name = schema.get("name", "")
+        kind = schema.get("kind")
+        if not kind:
+            raise ValueError(
+                f"Schema '{type_name}' is missing required 'kind' field."
+            )
         parent_types = schema.get("inherits", [])
-        # strip "$ref:" suffix
+        # strip "$ref:" prefix
         parent_types = [pt[5:] for pt in parent_types]
         # convert to full ids
         parent_types = [get_schema_id(pt) for pt in parent_types]
-        # always include base type
-        parent_types.append(BASE_TYPE_ID)
+        # always include the kind-appropriate base type
+        if kind not in KIND_BASE_TYPE_ID:
+            raise ValueError(
+                f"Unknown schema kind '{kind}' for '{type_name}'. "
+                f"Must be one of: {', '.join(KIND_BASE_TYPE_ID)}"
+            )
+        parent_types.append(KIND_BASE_TYPE_ID[kind])
         type_id = get_schema_id(type_name)
         # store ancestral relationship
         if type_id:
