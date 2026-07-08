@@ -565,11 +565,9 @@ def create_pipeline_schemas(project_id: str, config_path: str):
             existing_schema_types.update(schema_query.schema_types_iterator)
         logger.info(
             f"Retrieved {len(existing_schema_types)} existing schemas for "
-            f"collection '{collection_id}'."
+            f'collection "{collection_id}".'
         )
-    except GQLAPIError as e:
-        raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
-    except (FlowConnectionError, ValidationError) as e:
+    except (GQLAPIError, FlowConnectionError, ValidationError) as e:
         raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
 
     # Check if schema listed in config.json already exists
@@ -580,7 +578,7 @@ def create_pipeline_schemas(project_id: str, config_path: str):
         schema_type_id = get_schema_id(schema_dict["name"])
         if schema_type_id not in existing_schema_types:
             logger.info(
-                f"Schema '{schema_type_id}' not found. Adding to list to be created."
+                f'Schema "{schema_type_id}" not found. Adding to list to be created.'
             )
             need_to_create.append(schema_dict)
 
