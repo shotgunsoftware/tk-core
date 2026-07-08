@@ -43,13 +43,14 @@ from .globals import (
     DER_SOURCE_TYPE_ID,
     get_client,
     IMAGE_TYPE_ID,
+    REFERENCE_TYPE,
     SOURCE_COMP,
     SOURCE_PURPOSE,
     THUMBNAIL_COMP,
     THUMBNAIL_PURPOSE,
     TYPE_COMP,
 )
-from .schema import is_sub_type
+from .schema import get_schema_id, is_sub_type
 from .storage import (
     _cache_asset_info,
     _find_component,
@@ -266,6 +267,36 @@ class DerivativeSourceComponentSpec(ComponentSpec):
             name=self.name,
             type_id=DER_SOURCE_TYPE_ID,
             folder={"objectId": self.revision_id},
+        )
+
+
+class ReferenceComponentSpec(ComponentSpec):
+    """Specifications for creating a reference component.
+    This is a component used to record a dependency on another asset/version.
+    Multiple reference components may be added to a single revision, one per
+    dependency.
+    """
+
+    def __init__(self, name: str, version_id: str):
+        """
+        Args:
+            name: Unique name for this component within the revision
+                  (e.g. "Reference 0", "Reference 1").
+            version_id: The MEDM version id of the dependency being referenced.
+        """
+        self._name = name
+        self.version_id = version_id
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=get_schema_id(REFERENCE_TYPE),
+            targetVersion=self.version_id,
         )
 
 

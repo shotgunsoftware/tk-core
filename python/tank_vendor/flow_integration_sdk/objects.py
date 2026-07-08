@@ -45,6 +45,7 @@ from .globals import (
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
     DER_SOURCE_TYPE_ID,
+    REFERENCE_TYPE,
     get_client,
     get_webapp_url,
 )
@@ -318,6 +319,22 @@ class ComponentMixin:
         """
         type_comps = self.get_type_components()
         return [comp.type_id for comp in type_comps]
+
+    @trace
+    def get_references(self) -> list[FlowComponent]:
+        """Return all reference components on this asset/revision.
+
+        Reference components record dependencies on other MEDM versions at
+        publish time (one component per dependency).
+
+        Returns:
+            List of FlowComponent objects whose type matches the
+            ``component.reference`` schema. Empty list if none found.
+        """
+        from .schema import get_schema_id
+
+        ref_type_id = get_schema_id(REFERENCE_TYPE)
+        return self.find_components(type_id=ref_type_id)
 
     @trace
     def find_components(

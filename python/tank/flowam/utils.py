@@ -32,11 +32,13 @@ from tank_vendor.flow_integration_sdk.exceptions import FlowError
 from tank_vendor.flow_integration_sdk.publish import (
     ComponentSpec,
     CommentComponentSpec,
+    ReferenceComponentSpec,
     SourceComponentSpec,
     ThumbnailComponentSpec,
     TypeComponentSpec,
     FileSeqComponentSpec,
 )
+from tank_vendor.flow_integration_sdk.dependency import DependencyData, DepType
 from tank_vendor.flow_integration_sdk.objects import FlowProject
 from tank_vendor.flow_integration_sdk.schema_builder import create_pipeline_schemas
 from tank_vendor.flow_integration_sdk.utils import trace
@@ -216,6 +218,7 @@ def create_components_for_publish(
     thumbnail_path: str = "",
     comment: str = "",
     type_ids: list[str] | None = None,
+    int_deps: list[DependencyData] | None = None,
 ) -> list[ComponentSpec]:
     """Generate the components relevant to publish a new revision.
 
@@ -228,6 +231,9 @@ def create_components_for_publish(
         type_ids: A list of type ids to be converted into type components.
                   This is only relevant if publishing a new asset direct to remote
                   (i.e. not going through sandbox).
+        int_deps: Optional list of internal dependencies found in the scene.
+                  Asset-type dependencies (those with a version_id) are recorded
+                  as ReferenceComponentSpec entries on the revision.
     """
     # Source component contains the source file
     components: list[ComponentSpec] = []
@@ -272,6 +278,17 @@ def create_components_for_publish(
         # NOTE: component names must be unique!
         type_comp = TypeComponentSpec(type_id=type_id, name=f"Type {i}")
         components.append(type_comp)
+    # Add reference components for each asset-type internal dependency
+    if int_deps:
+        ref_index = 0
+        for dep in int_deps:
+            if dep.dep_type == DepType.ASSET and dep.version_id:
+                ref_comp = ReferenceComponentSpec(
+                    name=f"Reference {ref_index}",
+                    version_id=dep.version_id,
+                )
+                components.append(ref_comp)
+                ref_index += 1
     return components
 
 

@@ -49,6 +49,7 @@ IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
 FILE_SEQ_TYPE = "type.fileSequence"
+REFERENCE_TYPE = "component.reference"
 
 
 # Component purposes
