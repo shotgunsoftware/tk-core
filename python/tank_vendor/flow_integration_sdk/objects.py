@@ -44,11 +44,13 @@ from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
-    DER_SOURCE_TYPE_ID,
+    DER_SOURCE_COMP,
+    DER_SOURCE_TYPE,
     get_client,
     get_webapp_url,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
+from .schema import get_schema_id
 from .storage import (
     _cache_asset_info,
     get_storage_asset_dir,
@@ -820,38 +822,25 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
             raise FlowError(msg) from exc
 
     @trace
-    def find_derivative(
-        self,
-        target_type_id: str,
-        target_component_name: str,
-    ) -> FlowAsset | None:
-        """Search asset to find an outbound derivative where the target
-        matches the criteria provided.
+    def get_derivatives(self) -> list[FlowAsset]:
+        """Find siblings of this asset that were derived from it.
+        (i.e. have a Source component that points to this asset)
 
-        This function searches across ALL revisions of the source asset to find
-        any existing derivative relationship.
-
-        Args:
-            target_type_id: Type of target revision.
-            target_component_name: Name of component on target revision to be matched.
-                                   (Derivative relationships are component to component.)
-
-        Returns:
-            The first derivative asset found, or None.
+        Raises:
+            FlowError
         """
-        # This target id should match the beginning of any revision id belonging to this asset
-        target_id = self.id.replace(self.MEDM_ENTITY, FlowRevision.MEDM_ENTITY)
 
-        # Generate a query to find assets which contain a source-derivative
-        # component with a matching target id
+        # This target id should match the beginning of any version id belonging to this asset
+        target_id = self.id.replace(self.MEDM_ENTITY, FlowVersion.MEDM_ENTITY)
+        der_source_type_id = get_schema_id(DER_SOURCE_TYPE)
+
+        # Generate a query to find assets which contain a Source component with a matching target id
         # Since we know derivative assets will be siblings of the current asset
         # we can safely scope this query to the parent asset with depth of 1.
         client = get_client()
-        q_filter = f"has.component.type=={DER_SOURCE_TYPE_ID};"
-        q_filter += f"components[typeId:{DER_SOURCE_TYPE_ID}].data.folder.objectId=like={target_id}*;"
-        q_filter += (
-            f"components[typeId:{DER_SOURCE_TYPE_ID}].name=='{target_component_name}'"
-        )
+        q_filter = f"has.component.type=={der_source_type_id};"
+        q_filter += f"components[typeId:{der_source_type_id}].data.targetVersion=like={target_id}*;"
+        q_filter += f"components[typeId:{der_source_type_id}].name=='{DER_SOURCE_COMP}'"
         q_input = medm_model.AssetsByTraversalInput(
             start_at_id=self.parent_id,  # search under parent
             depth=1,  # search immediate children only
@@ -871,6 +860,24 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         der_assets = [
             FlowAsset(a) for a in q_derivatives.assets if a.id != self.parent_id
         ]
+        return der_assets
+
+    @trace
+    def find_derivative(
+        self,
+        target_type_id: str,
+    ) -> FlowAsset | None:
+        """Search asset to find an outbound derivative where the target
+        matches the criteria provided.
+
+        Args:
+            target_type_id: Type of target revision.
+
+        Returns:
+            The first derivative asset found, or None.
+        """
+        # Get list of assets that are derivatives of this asset
+        der_assets = self.get_derivatives()
         # Now filter out derivatives of the wrong type
         der_assets = [a for a in der_assets if target_type_id in a.type_ids]
 

@@ -28,7 +28,6 @@ from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
-    DER_SOURCE_TYPE_ID,
     FOLDER_TYPE_ID,
     get_client,
     get_session_collection,
@@ -51,7 +50,6 @@ _schema_tree[BASE_PROPERTY_TYPE_ID] = []
 _schema_tree[BASE_TYPE_ID] = []
 _schema_tree[BINARY_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
 _schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
-_schema_tree[DER_SOURCE_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
 _schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
 _schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
 

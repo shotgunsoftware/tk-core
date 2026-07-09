@@ -106,7 +106,7 @@ def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
         if not folder:
             logger.info(f'Creating "{SHOT_TYPE}" folder...')
             raw_asset = publish_new_asset(
-                name=ensure_unique_name(SHOT_TYPE, project),
+                name=SHOT_TYPE,
                 parent_id=project.id,
                 description="Folder for Shot assets.",
                 components=[
@@ -119,7 +119,7 @@ def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
         if not folder:
             logger.info(f'Creating "{ASSET_FOLDER}" folder...')
             raw_asset = publish_new_asset(
-                name=ensure_unique_name(ASSET_FOLDER, project),
+                name=ASSET_FOLDER,
                 parent_id=project.id,
                 description="Folder for Asset Build assets.",
                 components=[
@@ -132,7 +132,7 @@ def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
         if not folder:
             logger.info(f'Creating "{GENERIC_FOLDER}" folder...')
             raw_asset = publish_new_asset(
-                name=ensure_unique_name(GENERIC_FOLDER, project),
+                name=GENERIC_FOLDER,
                 parent_id=project.id,
                 description="Folder for Generic assets.",
                 components=[
@@ -164,59 +164,63 @@ def get_or_create_workfile_parent(
     sg_entity_type = inputs.sg_entity_type
     sg_entity_name = inputs.sg_entity_name
     sg_pipeline_step = inputs.sg_pipeline_step
-    sg_task_name = inputs.sg_task_name
 
     container = root_folder.find_child(sg_entity_name)
+    container_type = (
+        ASSET_CONTAINER_TYPE
+        if sg_entity_type == ASSET_TYPE
+        else SHOT_CONTAINER_TYPE
+    )
     if not container:
         logger.info(
             f'Creating container asset for "{sg_entity_name}" under '
             f'folder "{root_folder.name}"...'
         )
-        container_type = (
-            ASSET_CONTAINER_TYPE
-            if sg_entity_type == ASSET_TYPE
-            else SHOT_CONTAINER_TYPE
-        )
-        raw_asset = publish_new_asset(
-            name=ensure_unique_name(sg_entity_name, root_folder),
+        medm_asset = publish_new_asset(
+            name=sg_entity_name,
             parent_id=root_folder.id,
             components=[
                 TypeComponentSpec(
-                    type_id=get_schema_id(container_type), name=f"Type {container_type}"
+                    type_id=get_schema_id(container_type), name=f"Type"
                 )
             ],
         )
-        container = FlowAsset(raw_asset)
+        container = FlowAsset(medm_asset)
 
     pipeline_step = container.find_child(sg_pipeline_step)
     if not pipeline_step:
-        logger.info(f'Creating pipeline step asset for "{sg_pipeline_step}"...')
-        raw_asset = publish_new_asset(
-            name=ensure_unique_name(sg_pipeline_step, container),
+        logger.info(f'Creating pipeline step folder for "{sg_pipeline_step}"...')
+        medm_asset = publish_new_asset(
+            name=sg_pipeline_step,
             parent_id=container.id,
-            components=[
-                TypeComponentSpec(
-                    type_id=get_schema_id(PIPELINE_STEP_TYPE),
-                    name=f"Type {PIPELINE_STEP_TYPE}",
-                )
-            ],
+            components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name="Type")],
         )
-        pipeline_step = FlowAsset(raw_asset)
+        pipeline_step = FlowAsset(medm_asset)
 
-    task_folder = pipeline_step.find_child(sg_task_name)
-    if not task_folder:
-        logger.info(f'Creating task folder asset for "{sg_task_name}"...')
-        raw_asset = publish_new_asset(
-            name=ensure_unique_name(sg_task_name, pipeline_step),
-            parent_id=pipeline_step.id,
-            description=f'Folder for task "{sg_task_name}".',
-            components=[
-                TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {FOLDER_TYPE_ID}")
-            ],
-        )
-        task_folder = FlowAsset(raw_asset)
+    if inputs.create_mode == CreateMode.GENERIC:
+        # Parent generic assets directly under pipeline step
+        parent = pipeline_step
+    else:
+        # For dcc assets, parent them under a root asset
+        # that will house the dcc asset as one of its "representations"
+        # NOTE: the root asset will be container type for now
+        asset_root = pipeline_step.find_child(sg_entity_name)
+        if not asset_root:
+            logger.info(f'Creating root asset for "{sg_entity_name}"...')
+            medm_asset = publish_new_asset(
+                name=sg_entity_name,
+                parent_id=pipeline_step.id,
+                description=f'Root asset for "{sg_entity_name}".',
+                components=[
+                    TypeComponentSpec(
+                        type_id=get_schema_id(container_type), name=f"Type"
+                    )
+                ],
+            )
+            asset_root = FlowAsset(medm_asset)
+        parent = asset_root
 
-    return task_folder
+    return parent
 
 
 def ensure_unique_name(name: str, parent: FlowAsset | FlowProject) -> str:
