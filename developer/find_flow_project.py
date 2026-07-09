@@ -7,15 +7,20 @@ Standalone CLI to find your Flow project ID using the Flow Data SDK.
 Use this script to retrieve the Flow project ID for a given FPT project,
 so it can be linked in the FPT site settings.
 
-Usage:
-    # Staging environment:
-    python scripts/find_flow_project.py --env staging
+Defaults to production values. Override any individual setting via flags.
 
-    # Production environment:
-    python scripts/find_flow_project.py --env prod
+Usage:
+    # Production (default):
+    python scripts/find_flow_project.py
+
+    # Override just the endpoint (e.g. for staging):
+    python scripts/find_flow_project.py --endpoint https://medm-v2.medata-s-ue1.cloudos.autodesk.com/api/v2/graphql
+
+    # Override multiple values:
+    python scripts/find_flow_project.py --endpoint <url> --application-id <id> --auth-base-url <url>
 
     # Filter by project name (case-insensitive):
-    python scripts/find_flow_project.py --env staging --name "My Project"
+    python scripts/find_flow_project.py --name "My Project"
 """
 
 from __future__ import annotations
@@ -37,19 +42,10 @@ from tank_vendor.flow_data_sdk.base.client import AuthenticationHandlerBase
 
 APS_REQUIRED_SCOPES = ["data:read", "data:write", "data:create"]
 
-PROD_CONFIG = {
-    "auth_application_id": "8QyoQKXZ7HDuQFmptJGrzsp2GwpATmyV",
-    "auth_base_url": "https://developer.api.autodesk.com/",
-    "auth_callback_url": "http://localhost:4201/auth/callback",
-    "endpoint": "https://medm-v2.medata-p-ue1.cloudos.autodesk.com/api/v2/graphql",
-}
-
-STAGING_CONFIG_TEMPLATE = {
-    "auth_application_id": "<your staging auth_application_id>",
-    "auth_base_url": "<your staging auth_base_url>",
-    "auth_callback_url": "http://localhost:4201/auth/callback",
-    "endpoint": "<your staging endpoint>",
-}
+DEFAULT_APPLICATION_ID = "8QyoQKXZ7HDuQFmptJGrzsp2GwpATmyV"
+DEFAULT_AUTH_BASE_URL = "https://developer.api.autodesk.com/"
+DEFAULT_AUTH_CALLBACK_URL = "http://localhost:4201/auth/callback"
+DEFAULT_ENDPOINT = "https://medm-v2.medata-p-ue1.cloudos.autodesk.com/api/v2/graphql"
 
 
 class TokenAuthHandler(AuthenticationHandlerBase):
@@ -67,10 +63,24 @@ def main() -> None:
         description="List Flow collections/projects to find project IDs for FPT linking.",
     )
     parser.add_argument(
-        "--env",
-        choices=["staging", "prod"],
-        required=True,
-        help="Target environment: 'staging' or 'prod'",
+        "--endpoint",
+        default=DEFAULT_ENDPOINT,
+        help=f"Flow GraphQL endpoint URL (default: {DEFAULT_ENDPOINT})",
+    )
+    parser.add_argument(
+        "--application-id",
+        default=DEFAULT_APPLICATION_ID,
+        help="APS application ID (default: prod value)",
+    )
+    parser.add_argument(
+        "--auth-base-url",
+        default=DEFAULT_AUTH_BASE_URL,
+        help=f"APS auth base URL (default: {DEFAULT_AUTH_BASE_URL})",
+    )
+    parser.add_argument(
+        "--auth-callback-url",
+        default=DEFAULT_AUTH_CALLBACK_URL,
+        help=f"OAuth callback URL (default: {DEFAULT_AUTH_CALLBACK_URL})",
     )
     parser.add_argument(
         "--name",
@@ -89,29 +99,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.env == "staging":
-        config = STAGING_CONFIG_TEMPLATE
-        if "<" in config["auth_application_id"]:
-            print(
-                "Staging environment selected.\n"
-                "Please fill in your staging values in STAGING_CONFIG_TEMPLATE "
-                "inside scripts/find_flow_project.py before running:\n"
-                "  - auth_application_id\n"
-                "  - auth_base_url\n"
-                "  - endpoint"
-            )
-            sys.exit(1)
-    else:
-        config = PROD_CONFIG
-
-    print(f"Environment : {args.env}")
-    print(f"Endpoint    : {config['endpoint']}")
+    print(f"Endpoint    : {args.endpoint}")
     print("Authenticating... (browser may open if no valid cached token)")
 
     auth_config = AuthConfig(
-        application_id=config["auth_application_id"],
-        base_url=config["auth_base_url"],
-        callback_url=config["auth_callback_url"],
+        application_id=args.application_id,
+        base_url=args.auth_base_url,
+        callback_url=args.auth_callback_url,
         description="Flow find project CLI",
         required_application_scopes=APS_REQUIRED_SCOPES,
         storage_dir=LocalFileStorageManager.get_global_root(
@@ -125,7 +119,7 @@ def main() -> None:
     )
 
     client = GQLClient(
-        endpoint=config["endpoint"],
+        endpoint=args.endpoint,
         auth_handler=TokenAuthHandler(token),
     )
 
