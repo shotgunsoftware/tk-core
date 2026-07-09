@@ -12,17 +12,14 @@
 Tests settings retrieval through the DefaultsManager
 """
 
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-)
-
-from tank_test.tank_test_base import setUpModule  # noqa
-
-from tank.authentication import CoreDefaultsManager
-from tank.authentication import DefaultsManager
-from tank.util.user_settings import UserSettings
 import sgtk
+from tank.authentication import CoreDefaultsManager, DefaultsManager
+from tank.util.user_settings import UserSettings
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+)
 
 
 class DefaultsManagerTest(ShotgunTestBase):

@@ -10,8 +10,9 @@
 
 import os
 import zipfile
-from . import filesystem
+
 from .. import LogManager
+from . import filesystem
 
 log = LogManager.get_logger(__name__)
 

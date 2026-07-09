@@ -16,10 +16,9 @@ Known constraints:
 
 """
 
-from . import constants
 from ..errors import TankError
-
 from ..path_cache import PathCache
+from . import constants
 
 
 class FolderIOReceiver(object):

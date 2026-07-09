@@ -17,11 +17,12 @@ at any point.
 """
 
 import http.client
-
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 from xmlrpc.client import ProtocolError
-from . import interactive_authentication, session_cache
+
+from tank_vendor.shotgun_api3 import AuthenticationFault, Shotgun
+
 from .. import LogManager
+from . import interactive_authentication, session_cache
 
 logger = LogManager.get_logger(__name__)
 

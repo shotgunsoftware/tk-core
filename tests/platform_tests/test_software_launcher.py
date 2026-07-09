@@ -11,18 +11,18 @@
 import logging
 import os
 
+from tank.errors import TankEngineInitError
+from tank.platform import (
+    LaunchInformation,
+    SoftwareLauncher,
+    SoftwareVersion,
+    create_engine_launcher,
+)
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
-
-from tank.platform import create_engine_launcher
-from tank.platform import SoftwareLauncher
-from tank.platform import SoftwareVersion
-from tank.platform import LaunchInformation
-
-from tank.errors import TankEngineInitError
 
 
 class TestEngineLauncher(TankTestBase):

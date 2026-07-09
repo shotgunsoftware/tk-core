@@ -27,8 +27,9 @@ for all users in Shotgun and if a match is found, this is deemed to be the
 current user.
 """
 
-from tank import Hook
 import os
+
+from tank import Hook
 from tank.util import is_windows
 
 

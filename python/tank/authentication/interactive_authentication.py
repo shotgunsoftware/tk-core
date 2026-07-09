@@ -24,14 +24,14 @@ at any point.
 
 # Using "with" with the lock to make sure it is always released.
 
-from .errors import AuthenticationCancelled
-from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
+import os
+import threading
+
+from tank.util import is_windows
 
 from .. import LogManager
-
-import threading
-import os
-from tank.util import is_windows
+from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
+from .errors import AuthenticationCancelled
 
 logger = LogManager.get_logger(__name__)
 

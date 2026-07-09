@@ -10,18 +10,16 @@
 
 import os
 
-from .descriptor_config import ConfigDescriptor
-from .. import pipelineconfig_utils
-from .. import LogManager
-from ..util import ShotgunPath
-from . import constants
-from .errors import TankMissingManifestError
-
+from .. import LogManager, pipelineconfig_utils
 from ..errors import (
-    TankNotPipelineConfigurationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
+    TankNotPipelineConfigurationError,
 )
+from ..util import ShotgunPath
+from . import constants
+from .descriptor_config import ConfigDescriptor
+from .errors import TankMissingManifestError
 
 log = LogManager.get_logger(__name__)
 

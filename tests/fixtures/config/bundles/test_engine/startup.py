@@ -12,7 +12,7 @@ import os
 
 import sgtk
 from sgtk import TankError
-from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
+from sgtk.platform import LaunchInformation, SoftwareLauncher, SoftwareVersion
 
 
 class TestLauncher(SoftwareLauncher):

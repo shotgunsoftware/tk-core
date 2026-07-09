@@ -15,16 +15,15 @@ all Tank items in the file system are kept.
 """
 
 import collections
-import sqlite3
-import sys
-import os
 import itertools
 import json
+import os
+import sqlite3
+import sys
 
-from .platform.engine import show_global_busy, clear_global_busy
-from . import constants
+from . import LogManager, constants
 from .errors import TankError
-from . import LogManager
+from .platform.engine import clear_global_busy, show_global_busy
 from .util.login import get_current_user
 
 # Shotgun field definitions to store the path cache data

@@ -12,13 +12,13 @@
 This test makes sure that various tank command operations do not fail.
 """
 
-import sys
 import os
-
+import sys
 import traceback
 import unittest
-from sgtk_integration_test import SgtkIntegrationTest
+
 import sgtk
+from sgtk_integration_test import SgtkIntegrationTest
 
 logger = sgtk.LogManager.get_logger(__name__)
 

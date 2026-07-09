@@ -9,15 +9,14 @@
 # not expressly granted therein are reserved by Autodesk.
 
 import os
-import sys
-import types
-import tempfile
 import shutil
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+import sys
+import tempfile
+import types
 
 from tank.bootstrap.import_handler import CoreImportHandler
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase
 
 # creates a unique object instance that can never collide with any real value.
 _SENTINEL = object()

@@ -9,18 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import shutil
+import stat
+import subprocess  # noqa
+
+import tank.util.filesystem as fs
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
-
-import tank.util.filesystem as fs
-
-import subprocess  # noqa
-import shutil
-import stat
 
 
 class TestFileSystem(TankTestBase):

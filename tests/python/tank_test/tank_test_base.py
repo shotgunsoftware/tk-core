@@ -12,33 +12,30 @@
 Base class for engine and app testing
 """
 
-import sys
-import os
-import time
-import shutil
-import pprint
-import threading
-import tempfile
-import contextlib
 import atexit
-import uuid
+import contextlib
 import datetime
 import importlib.util
-from functools import wraps
-
-from collections import defaultdict
-
-from tank_vendor.shotgun_api3.lib import mockgun
-
+import os
+import pprint
+import shutil
+import sys
+import tempfile
+import threading
+import time
 import unittest
+import uuid
+from collections import defaultdict
+from functools import wraps
 from unittest import mock
 
 import sgtk
 import tank
 from tank import path_cache, pipelineconfig_factory
-from tank_vendor import yaml
 from tank.util import is_windows
 from tank.util.user_settings import UserSettings
+from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import mockgun
 
 TANK_TEMP = None
 

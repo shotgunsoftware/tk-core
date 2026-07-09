@@ -10,14 +10,12 @@
 
 import os
 
-from .action_base import Action
-from . import console_utils
-from . import util
-from ..platform.environment import WritableEnvironment
-from ..descriptor import CheckVersionConstraintsError
-from . import constants
-from ..util.version import is_version_number, is_version_newer
 from .. import pipelineconfig_utils
+from ..descriptor import CheckVersionConstraintsError
+from ..platform.environment import WritableEnvironment
+from ..util.version import is_version_newer, is_version_number
+from . import console_utils, constants, util
+from .action_base import Action
 
 
 class AppUpdatesAction(Action):

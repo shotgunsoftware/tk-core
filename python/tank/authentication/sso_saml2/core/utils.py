@@ -13,13 +13,12 @@ SSO/SAML2 Core utility functions.
 
 # pylint: disable=line-too-long
 
-import sys
 import base64
 import binascii
 import logging
-from urllib.parse import unquote_plus
+import sys
 from http.cookies import SimpleCookie
-
+from urllib.parse import unquote_plus
 
 from .errors import SsoSaml2MultiSessionNotSupportedError
 

@@ -14,8 +14,9 @@ Utility methods for unserializing JSON documents.
 # We need to add this to the file or the import json will reimport this
 # module instead of importing the global json module.
 from __future__ import absolute_import
-import sys
+
 import json
+import sys
 
 from .unicode import ensure_contains_str
 

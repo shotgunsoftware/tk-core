@@ -9,9 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from .action_base import Action
+
 from ..errors import TankError
-from ..platform import validation, bundle
+from ..platform import bundle, validation
+from .action_base import Action
 
 
 class ValidateConfigAction(Action):

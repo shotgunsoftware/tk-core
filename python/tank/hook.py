@@ -12,18 +12,19 @@
 Defines the base class for all Tank Hooks.
 """
 
+import inspect
+import logging
 import os
 import sys
-import logging
-import inspect
 import threading
-from .util.loader import load_plugin
+
 from . import LogManager
 from .errors import (
     TankError,
     TankFileDoesNotExistError,
     TankHookMethodDoesNotExistError,
 )
+from .util.loader import load_plugin
 
 log = LogManager.get_logger(__name__)
 

@@ -9,26 +9,24 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import importlib.metadata
-import os
 import inspect
+import os
 import sys
 
 import sgtk
 import tank
-
-from tank import pipelineconfig_utils
 from tank import (
-    TankInvalidInterpreterLocationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
+    TankInvalidInterpreterLocationError,
     TankNotPipelineConfigurationError,
+    pipelineconfig_utils,
 )
 from tank.util import ShotgunPath, is_windows
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
     temp_env_var,
 )
 

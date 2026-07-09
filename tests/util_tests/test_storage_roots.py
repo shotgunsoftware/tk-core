@@ -10,12 +10,10 @@
 
 import os
 
+from tank.errors import TankError
+from tank.util import ShotgunPath, StorageRoots
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
-
-from tank.errors import TankError
-from tank.util import ShotgunPath
-from tank.util import StorageRoots
 
 
 class TestStorageRoots(ShotgunTestBase):

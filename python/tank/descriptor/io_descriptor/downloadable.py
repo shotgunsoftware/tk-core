@@ -12,11 +12,10 @@ import contextlib
 import os
 import uuid
 
-from .base import IODescriptorBase
-from ..errors import TankDescriptorIOError
-from ...util import filesystem
-
 from ... import LogManager
+from ...util import filesystem
+from ..errors import TankDescriptorIOError
+from .base import IODescriptorBase
 
 log = LogManager.get_logger(__name__)
 

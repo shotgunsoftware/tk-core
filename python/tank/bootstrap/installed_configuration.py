@@ -10,9 +10,9 @@
 
 import os
 
-from .errors import TankBootstrapError
-from .configuration import Configuration
 from .. import LogManager
+from .configuration import Configuration
+from .errors import TankBootstrapError
 
 log = LogManager.get_logger(__name__)
 

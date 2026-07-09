@@ -1,11 +1,10 @@
 import os
 
-from tank.templatekey import StringKey
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank.platform.validation import *
-
 import tank
+from tank.platform.validation import *
+from tank.templatekey import StringKey
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
 
 
 class TestValidateSchema(ShotgunTestBase):

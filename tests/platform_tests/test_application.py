@@ -9,11 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import inspect
-from io import StringIO
 import logging
 import os
 import shutil
 import tempfile
+from io import StringIO
 from unittest import mock
 
 import tank

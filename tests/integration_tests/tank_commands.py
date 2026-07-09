@@ -14,19 +14,16 @@ This test makes sure that various tank command operations do not fail.
 
 import os
 import re
-import sys
 import shutil
-
+import sys
 import unittest
-from tank.util import is_linux, is_macos, is_windows, filesystem
-from tank.util import yaml_cache, zip
 
+import sgtk
 from sgtk_integration_test import SgtkIntegrationTest
+from tank.util import filesystem, is_linux, is_macos, is_windows, yaml_cache, zip
 from tank_test.tank_test_base import (
     mock,
 )
-
-import sgtk
 
 logger = sgtk.LogManager.get_logger(__name__)
 

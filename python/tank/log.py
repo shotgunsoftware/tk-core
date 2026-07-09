@@ -221,13 +221,14 @@ For more information, see https://docs.python.org/2/library/logging.handlers.htm
 """
 
 import logging
-from logging.handlers import RotatingFileHandler
 import os
 import sys
 import time
-import weakref
 import uuid
+import weakref
 from functools import wraps
+from logging.handlers import RotatingFileHandler
+
 from . import constants
 
 

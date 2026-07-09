@@ -10,16 +10,12 @@
 
 import os
 
-from .configuration import Configuration
-from .configuration_writer import ConfigurationWriter
-
-from .. import LogManager
-from .. import constants
-
+from .. import LogManager, constants, pipelineconfig_utils
+from ..errors import TankFileDoesNotExistError
 from ..util import ShotgunPath
 from ..util.pickle import store_env_var_pickled
-from ..errors import TankFileDoesNotExistError
-from .. import pipelineconfig_utils
+from .configuration import Configuration
+from .configuration_writer import ConfigurationWriter
 
 log = LogManager.get_logger(__name__)
 

@@ -16,13 +16,12 @@ import functools
 import sys
 from unittest import mock
 
+from packaging import version
 from sgtk.descriptor import Descriptor, create_descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.util import sgre as re
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
-
-from packaging import version
 
 
 class MockStore(object):

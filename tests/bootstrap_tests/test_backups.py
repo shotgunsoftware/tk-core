@@ -8,18 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import fnmatch
+import os
 import stat
+from shutil import copytree
+
 import sgtk
 from sgtk.pipelineconfig_utils import get_metadata
 from tank.util import is_windows
-from shutil import copytree
-
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
     temp_env_var,
 )
 

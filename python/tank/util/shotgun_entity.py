@@ -12,8 +12,9 @@
 Utilities relating to Shotgun entities
 """
 
-from . import constants, sgre as re
 from ..errors import TankError
+from . import constants
+from . import sgre as re
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.

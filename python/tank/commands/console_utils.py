@@ -15,9 +15,9 @@ Various helper methods relating to user interaction via the shell.
 import textwrap
 
 from .. import pipelineconfig_utils
-from ..platform import validation
-from ..errors import TankError, TankNoDefaultValueError
 from ..descriptor import CheckVersionConstraintsError
+from ..errors import TankError, TankNoDefaultValueError
+from ..platform import validation
 from ..platform.bundle import resolve_default_value
 
 ##########################################################################################

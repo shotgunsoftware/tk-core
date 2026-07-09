@@ -13,21 +13,20 @@ Handles the creation of a configuration object structure based on the folder con
 
 """
 
-import os
 import fnmatch
-
-from .folder_types import (
-    Static,
-    ListField,
-    Entity,
-    Project,
-    UserWorkspace,
-    ShotgunStep,
-    ShotgunTask,
-)
+import os
 
 from ..errors import TankError, TankUnreadableFileError
 from ..util import yaml_cache
+from .folder_types import (
+    Entity,
+    ListField,
+    Project,
+    ShotgunStep,
+    ShotgunTask,
+    Static,
+    UserWorkspace,
+)
 
 
 def read_ignore_files(schema_config_path):

@@ -8,13 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..errors import TankError
-from . import constants
-from . import util
-from . import console_utils
-from .action_base import Action
-
 import os
+
+from ..errors import TankError
+from . import console_utils, constants, util
+from .action_base import Action
 
 
 class SwitchAppAction(Action):

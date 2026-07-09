@@ -12,11 +12,11 @@
 ALT_API_NAME = "tank"
 THIS_MODULE_NAME = "sgtk"
 
-# first import our alternative API
-import tank
-
 # now go through and duplicate all entries in sys.modules
 import sys
+
+# first import our alternative API
+import tank
 
 # Generate a list of keys to iterate over,
 # since we'll be mutating the dict as we iterate.

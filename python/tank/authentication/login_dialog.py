@@ -20,35 +20,32 @@ at any point.
 
 import os
 import sys
+
 from tank_vendor import shotgun_api3
-from .. import constants
-from .web_login_support import get_shotgun_authenticator_support_web_login
-from .ui import resources_rc  # noqa
-from .ui import login_dialog
-from . import constants as auth_constants
-from . import session_cache
+
+from .. import LogManager, constants
+from ..util import LocalFileStorageManager, login, metrics_cache
 from ..util.metrics import EventMetric
 from ..util.shotgun import connection
-from ..util import login
-from ..util import LocalFileStorageManager
-from ..util import metrics_cache
-from .errors import AuthenticationError
-from .ui.qt_abstraction import (
-    QtGui,
-    QtCore,
-    QtNetwork,
-    QtWebEngineWidgets,
-    qt_version_tuple,
-)
 from . import app_session_launcher
-from . import site_info
+from . import constants as auth_constants
+from . import session_cache, site_info
+from .errors import AuthenticationError
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
     SsoSaml2MissingQtModuleError,
 )
 from .sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
-
-from .. import LogManager
+from .ui import resources_rc  # noqa
+from .ui import login_dialog
+from .ui.qt_abstraction import (
+    QtCore,
+    QtGui,
+    QtNetwork,
+    QtWebEngineWidgets,
+    qt_version_tuple,
+)
+from .web_login_support import get_shotgun_authenticator_support_web_login
 
 logger = LogManager.get_logger(__name__)
 

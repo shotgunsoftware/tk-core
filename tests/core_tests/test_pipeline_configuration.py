@@ -8,23 +8,22 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import logging
+import os
 import shutil
 
+import tank
+from tank.bootstrap.configuration_writer import ConfigurationWriter
+from tank.commands import get_command
+from tank.descriptor import Descriptor, create_descriptor
+from tank.util import ShotgunPath, is_linux, is_macos, is_windows
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
     temp_env_var,
 )
-
-import tank
-from tank.commands import get_command
-from tank.bootstrap.configuration_writer import ConfigurationWriter
-from tank.descriptor import Descriptor, create_descriptor
 from tank_vendor import yaml
-from tank.util import ShotgunPath, is_linux, is_macos, is_windows
 
 
 class TestPipelineConfig(TankTestBase):

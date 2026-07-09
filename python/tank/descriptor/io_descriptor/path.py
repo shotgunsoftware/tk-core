@@ -10,10 +10,10 @@
 
 import os
 
-from .base import IODescriptorBase
-from ..errors import TankDescriptorError
-from ...util import ShotgunPath
 from ... import LogManager
+from ...util import ShotgunPath
+from ..errors import TankDescriptorError
+from .base import IODescriptorBase
 
 log = LogManager.get_logger(__name__)
 

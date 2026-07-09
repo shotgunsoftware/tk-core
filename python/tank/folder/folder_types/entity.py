@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 from ...errors import TankError
 from ...util import shotgun_entity
-
-from .errors import EntityLinkTypeMismatch
 from .base import Folder
+from .errors import EntityLinkTypeMismatch
 from .expression_tokens import FilterExpressionToken
-from .util import translate_filter_tokens, resolve_shotgun_filters
+from .util import resolve_shotgun_filters, translate_filter_tokens
 
 
 class Entity(Folder):

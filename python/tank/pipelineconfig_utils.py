@@ -18,15 +18,10 @@ import os
 
 from tank_vendor import yaml
 
-from . import constants
-from . import LogManager
-
-from .util import yaml_cache
-from .util import StorageRoots
-from .util import ShotgunPath
-from .util.shotgun import get_deferred_sg_connection
-
+from . import LogManager, constants
 from .errors import TankError
+from .util import ShotgunPath, StorageRoots, yaml_cache
+from .util.shotgun import get_deferred_sg_connection
 
 logger = LogManager.get_logger(__name__)
 

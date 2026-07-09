@@ -8,9 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from . import constants
 from .descriptor import Descriptor
 from .errors import TankMissingManifestError
-from . import constants
 
 
 class CoreDescriptor(Descriptor):

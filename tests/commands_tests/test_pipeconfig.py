@@ -13,21 +13,19 @@ Unit tests tank pipeline configs.
 """
 
 import os
-import tempfile
 import shutil
 import stat
+import tempfile
 
 import sgtk
 from tank.errors import TankError
 from tank.util import is_windows
-
+from tank_test.mock_appstore import patch_app_store
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
-
-from tank_test.mock_appstore import patch_app_store
 
 
 class TestPipelineConfig(TankTestBase):

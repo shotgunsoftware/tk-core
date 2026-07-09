@@ -8,18 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import uuid
 import shutil
-import tempfile
 import subprocess
+import tempfile
+import uuid
 
-from .downloadable import IODescriptorDownloadable
 from ... import LogManager
-from ...util.process import subprocess_check_output, SubprocessCalledProcessError
-
+from ...util import filesystem, is_windows
+from ...util.process import SubprocessCalledProcessError, subprocess_check_output
 from ..errors import TankError
-from ...util import filesystem
-from ...util import is_windows
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 

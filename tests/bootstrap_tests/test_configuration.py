@@ -8,24 +8,23 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import uuid
 import os
 import sys
+import uuid
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-    TankTestBase,
-)
-
-from tank.bootstrap import constants
-from sgtk.bootstrap.cached_configuration import CachedConfiguration
-from sgtk.bootstrap.configuration import Configuration
-from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
-from sgtk.authentication.user_impl import SessionUser
 import sgtk
 import tank_vendor
+from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
+from sgtk.authentication.user_impl import SessionUser
+from sgtk.bootstrap.cached_configuration import CachedConfiguration
+from sgtk.bootstrap.configuration import Configuration
+from tank.bootstrap import constants
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    TankTestBase,
+    mock,
+)
 from tank_vendor import yaml
 
 REPO_ROOT = os.path.normpath(

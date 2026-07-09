@@ -16,11 +16,12 @@ Management of file and directory templates.
 import os
 import sys
 
-from . import templatekey
+from tank.util import is_linux, is_macos, is_windows
+from tank.util import sgre as re
+
+from . import constants, templatekey
 from .errors import TankError
-from . import constants
 from .template_path_parser import TemplatePathParser
-from tank.util import is_linux, is_macos, is_windows, sgre as re
 
 
 class Template(object):

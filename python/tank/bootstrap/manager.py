@@ -8,20 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import inspect
+import os
 
-from . import constants
-from .errors import TankBootstrapError
-from .configuration import Configuration
-from .resolver import ConfigurationResolver
+from .. import LogManager
 from ..authentication import ShotgunAuthenticator, flow_auth
+from ..errors import TankError
 from ..flowam import constants as flow_const
 from ..flowam import utils as flow_utils
 from ..pipelineconfig import PipelineConfiguration
-from .. import LogManager
-from ..errors import TankError
 from ..util import ShotgunPath
+from . import constants
+from .configuration import Configuration
+from .errors import TankBootstrapError
+from .resolver import ConfigurationResolver
 
 log = LogManager.get_logger(__name__)
 

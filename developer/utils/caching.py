@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import glob
+import os
 import shutil
 import stat
 
-from tank.util import filesystem
-from tank.platform import environment
-from tank.descriptor import Descriptor, create_descriptor
-
 from tank import LogManager
+from tank.descriptor import Descriptor, create_descriptor
+from tank.platform import environment
+from tank.util import filesystem
 
 logger = LogManager.get_logger("utils.caching")
 

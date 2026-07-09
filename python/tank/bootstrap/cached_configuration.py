@@ -9,21 +9,19 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import pprint
 import sys
 import traceback
-import pprint
-
-from . import constants
-
-from ..descriptor import create_descriptor, Descriptor
-from .errors import TankBootstrapError, TankMissingTankNameError
-
-from ..util import filesystem, version
 
 from tank_vendor import yaml
+
+from .. import LogManager
+from ..descriptor import Descriptor, create_descriptor
+from ..util import filesystem, version
+from . import constants
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
-from .. import LogManager
+from .errors import TankBootstrapError, TankMissingTankNameError
 
 log = LogManager.get_logger(__name__)
 

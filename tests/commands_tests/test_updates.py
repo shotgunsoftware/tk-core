@@ -12,15 +12,13 @@
 Unit tests tank updates.
 """
 
+import logging
 import os
 import sys
-import logging
-
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 from tank.platform.environment import InstalledEnvironment
-
 from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 
 class TestSimpleUpdates(TankTestBase):

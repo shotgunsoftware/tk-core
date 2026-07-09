@@ -14,8 +14,8 @@ will provide a default host and an optional http proxy. If a script user has
 been configured with the core, its credentials will also be provided.
 """
 
-from .defaults_manager import DefaultsManager
 from ..util import shotgun
+from .defaults_manager import DefaultsManager
 
 
 class CoreDefaultsManager(DefaultsManager):

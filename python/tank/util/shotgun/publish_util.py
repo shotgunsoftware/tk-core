@@ -13,9 +13,8 @@ Utility methods related to Published Files in Shotgun
 """
 
 from ...log import LogManager
+from .. import constants, login
 from ..shotgun_path import ShotgunPath
-from .. import constants
-from .. import login
 
 log = LogManager.get_logger(__name__)
 

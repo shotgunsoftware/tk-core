@@ -8,36 +8,36 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
-import os
-from html import escape
-import logging
-import string
-import tank
-import textwrap
 import datetime
+import logging
+import os
+import string
+import sys
+import textwrap
+from html import escape
 
-from tank.errors import TankError, TankInitError
-from tank.commands.tank_command import get_actions, run_action
+import tank
+from tank import LogManager, pipelineconfig_utils
+from tank.authentication import (
+    AuthenticationCancelled,
+    AuthenticationError,
+    CoreDefaultsManager,
+    IncompleteCredentials,
+    ShotgunAuthenticationError,
+    ShotgunAuthenticator,
+)
+from tank.commands import constants as command_constants
+from tank.commands.action_base import Action
 from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
-from tank.commands.action_base import Action
-from tank.util import shotgun
-from tank.util import shotgun_entity
+from tank.commands.tank_command import get_actions, run_action
+from tank.errors import TankError, TankInitError
+from tank.platform import constants as platform_constants
+from tank.platform import engine
 from tank.util import is_windows
 from tank.util import sgre as re
-from tank.platform import constants as platform_constants
-from tank.authentication import ShotgunAuthenticator
-from tank.authentication import AuthenticationError
-from tank.authentication import ShotgunAuthenticationError
-from tank.authentication import AuthenticationCancelled
-from tank.authentication import IncompleteCredentials
-from tank.authentication import CoreDefaultsManager
-from tank.commands import constants as command_constants
+from tank.util import shotgun, shotgun_entity
 from tank_vendor import yaml
-from tank.platform import engine
-from tank import pipelineconfig_utils
-from tank import LogManager
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")

@@ -30,8 +30,8 @@ c:\foo\bar\hello.yml - absolute path, windows
 
 import os
 
-from .errors import TankError
 from . import constants
+from .errors import TankError
 from .util import yaml_cache
 from .util.includes import resolve_include
 

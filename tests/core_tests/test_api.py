@@ -13,12 +13,11 @@ import os
 import tank
 from tank.api import Tank
 from tank.template import TemplatePath, TemplateString
-from tank.templatekey import StringKey, IntegerKey, SequenceKey
-
+from tank.templatekey import IntegerKey, SequenceKey, StringKey
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
 
 

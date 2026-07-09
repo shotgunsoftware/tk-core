@@ -19,23 +19,21 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from . import constants
-from . import session_cache
-from .. import LogManager
-from .errors import (
-    AuthenticationError,
-    AuthenticationCancelled,
-    ConsoleLoginNotSupportedError,
-)
+import webbrowser
+from getpass import getpass
+
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from . import site_info
-from . import app_session_launcher
+
+from .. import LogManager
 from ..util import metrics_cache
 from ..util.metrics import EventMetric
 from ..util.shotgun.connection import sanitize_url
-
-from getpass import getpass
-import webbrowser
+from . import app_session_launcher, constants, session_cache, site_info
+from .errors import (
+    AuthenticationCancelled,
+    AuthenticationError,
+    ConsoleLoginNotSupportedError,
+)
 
 logger = LogManager.get_logger(__name__)
 

@@ -14,11 +14,11 @@ import tank
 from tank import context, errors
 from tank.util import is_windows
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
-    setUpModule,
-    only_run_on_windows,
+    mock,
     only_run_on_nix,
+    only_run_on_windows,
+    setUpModule,
 )
 
 

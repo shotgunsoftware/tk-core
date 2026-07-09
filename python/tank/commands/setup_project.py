@@ -13,19 +13,15 @@ import sys
 import textwrap
 import traceback
 
-from .action_base import Action
-from . import core_localize
-from ..errors import TankError
-from ..util import shotgun
-from ..util import ShotgunPath
-from ..util import is_linux, is_macos, is_windows
-from . import constants
 from .. import pipelineconfig_utils
+from ..errors import TankError
+from ..util import ShotgunPath, is_linux, is_macos, is_windows, shotgun
 from ..util.filesystem import ensure_folder_exists
-
+from . import constants, core_localize
+from .action_base import Action
+from .interaction import YesToEverythingInteraction
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
-from .interaction import YesToEverythingInteraction
 
 
 class SetupProjectAction(Action):

@@ -13,18 +13,14 @@ Default implementation for the Tank Dialog
 
 """
 
-from . import QtCore, QtGui
-from . import ui_tank_dialog
-from . import TankDialogBase
-from .config_item import ConfigItem
-from .. import engine
-from .. import application
-from .. import constants
-from ...errors import TankError
-
-import sys
-import os
 import inspect
+import os
+import sys
+
+from ...errors import TankError
+from .. import application, constants, engine
+from . import QtCore, QtGui, TankDialogBase, ui_tank_dialog
+from .config_item import ConfigItem
 
 
 class TankQDialog(TankDialogBase):

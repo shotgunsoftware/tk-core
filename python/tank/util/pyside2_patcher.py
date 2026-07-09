@@ -12,10 +12,10 @@
 PySide 2 backwards compatibility layer for use with PySide 1 code.
 """
 
-import os
-import sys
 import functools
+import os
 import subprocess
+import sys
 import types
 import warnings
 import webbrowser

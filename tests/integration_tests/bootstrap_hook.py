@@ -15,10 +15,10 @@ default implementation.
 
 import os
 import tempfile
-
 import unittest
-from sgtk_integration_test import SgtkIntegrationTest
+
 import sgtk
+from sgtk_integration_test import SgtkIntegrationTest
 
 logger = sgtk.LogManager.get_logger(__name__)
 

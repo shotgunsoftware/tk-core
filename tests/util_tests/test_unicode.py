@@ -11,6 +11,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from unittest import TestCase
+
 import sgtk
 
 

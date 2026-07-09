@@ -11,15 +11,15 @@
 Utility methods for manipulating files and folders
 """
 
+import datetime
+import errno
+import functools
 import os
 import re
-import sys
-import errno
-import stat
 import shutil
-import datetime
-import functools
+import stat
 import subprocess
+import sys
 from contextlib import contextmanager
 
 from .. import LogManager

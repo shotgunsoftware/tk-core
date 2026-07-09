@@ -13,27 +13,25 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
-import sys
-import os
 import fnmatch
+import os
 import pprint
+import sys
 
+from .. import LogManager
 from ..descriptor import (
     Descriptor,
     create_descriptor,
     descriptor_uri_to_dict,
     is_descriptor_version_missing,
 )
-from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
+from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
+from ..util import LocalFileStorageManager, ShotgunPath, filesystem
+from . import constants
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
+from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
 from .installed_configuration import InstalledConfiguration
-from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
-from ..util import filesystem
-from ..util import ShotgunPath
-from ..util import LocalFileStorageManager
-from .. import LogManager
-from . import constants
 
 log = LogManager.get_logger(__name__)
 

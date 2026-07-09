@@ -13,26 +13,19 @@ Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
 
-import os
 import glob
+import os
 import pickle
 
 from tank_vendor import yaml
 
-from .errors import TankError, TankUnreadableFileError
-from .util.version import is_version_older
-from . import constants
-from .platform.environment import InstalledEnvironment, WritableEnvironment
-from .util import shotgun, yaml_cache
-from .util import ShotgunPath
-from .util import StorageRoots
-from .util.pickle import retrieve_env_var_pickled
-from . import hook
-from . import pipelineconfig_utils
-from . import template_includes
-from . import LogManager
-
+from . import LogManager, constants, hook, pipelineconfig_utils, template_includes
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from .errors import TankError, TankUnreadableFileError
+from .platform.environment import InstalledEnvironment, WritableEnvironment
+from .util import ShotgunPath, StorageRoots, shotgun, yaml_cache
+from .util.pickle import retrieve_env_var_pickled
+from .util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
 

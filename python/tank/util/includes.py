@@ -8,14 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import sys
-import posixpath
 import ntpath
+import os
+import posixpath
+import sys
 
-from .shotgun_path import ShotgunPath
-from .platforms import is_windows
 from ..errors import TankError
+from .platforms import is_windows
+from .shotgun_path import ShotgunPath
 
 
 def _is_abs(path):

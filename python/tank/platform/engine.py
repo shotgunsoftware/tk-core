@@ -14,47 +14,37 @@ Defines the base class for all Tank Engines.
 
 from __future__ import annotations  # required to support python 3.9
 
-import os
-import sys
-import logging
-import pprint
-import traceback
 import inspect
-import weakref
+import logging
+import os
+import pprint
+import sys
 import threading
+import traceback
+import weakref
 
-from tank.flowam import utils as flow_utils
 from tank.flowam import host as flow_host
+from tank.flowam import utils as flow_utils
 
-from ..util.qt_importer import QtImporter
-from ..util.loader import load_plugin
 from .. import hook
-
 from ..errors import TankError
+from ..log import LogManager
+from ..util import metrics_cache
+from ..util import sgre as re
+from ..util.loader import load_plugin
+from ..util.metrics import EventMetric, MetricsDispatcher
+from ..util.qt_importer import QtImporter
+from . import application, constants, events, qt, qt5, qt6, validation
+from .bundle import TankBundle
+from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 from .errors import (
-    TankEngineInitError,
-    TankUnresolvedEnvironmentError,
     TankContextChangeNotSupportedError,
     TankEngineEventError,
+    TankEngineInitError,
     TankMissingEngineError,
+    TankUnresolvedEnvironmentError,
 )
-
-from ..util import sgre as re
-from ..util.metrics import EventMetric
-from ..util.metrics import MetricsDispatcher
-from ..util import metrics_cache
-from ..log import LogManager
-
-from . import application
-from . import constants
-from . import validation
-from . import events
-from . import qt
-from . import qt5
-from . import qt6
-from .bundle import TankBundle
 from .framework import setup_frameworks
-from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
@@ -348,7 +338,7 @@ class Engine(TankBundle):
 
         if self.has_ui:
             # only import QT if we have a UI
-            from .qt import QtGui, QtCore
+            from .qt import QtCore, QtGui
 
             url = QtCore.QUrl.fromLocalFile(LogManager().log_folder)
             status = QtGui.QDesktopServices.openUrl(url)
@@ -436,8 +426,8 @@ class Engine(TankBundle):
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
             try:
+                from .qt import QtCore, QtGui
                 from .qt.busy_dialog import BusyDialog
-                from .qt import QtGui, QtCore
 
             except:
                 # QT import failed. This may be because someone has upgraded the core
@@ -1236,7 +1226,7 @@ class Engine(TankBundle):
             self._invoker if invoker_id == self._SYNC_INVOKER else self._async_invoker
         )
         if invoker:
-            from .qt import QtGui, QtCore
+            from .qt import QtCore, QtGui
 
             if (
                 QtGui.QApplication.instance()
@@ -1722,7 +1712,8 @@ class Engine(TankBundle):
             self.logger.exception(exc)
 
             import traceback
-            from sgtk.platform.qt import QtGui, QtCore
+
+            from sgtk.platform.qt import QtCore, QtGui
 
             # A very simple widget that ensures that the exception is visible and
             # selectable should the user need to copy/paste it into a support
@@ -2484,7 +2475,7 @@ class Engine(TankBundle):
         invoker = None
         async_invoker = None
         if self.has_ui:
-            from .qt import QtGui, QtCore
+            from .qt import QtCore, QtGui
 
             # Classes are defined locally since Qt might not be available.
             if QtGui and QtCore:

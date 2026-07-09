@@ -12,20 +12,19 @@
 Provides a base class for integration tests.
 """
 
+import atexit
+import copy
 import os
+import subprocess
 import sys
 import tempfile
-import atexit
-import subprocess
 import threading
 import time
-import copy
-
 import unittest
 
 import sgtk
 from sgtk.util import sgre as re
-from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
+from sgtk.util.filesystem import safe_delete_file, safe_delete_folder
 from tank_vendor import yaml
 
 

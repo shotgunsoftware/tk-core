@@ -1,6 +1,6 @@
 import os
-import sgtk
 
+import sgtk
 from tank import Hook
 from tank.util.storage_roots import StorageRoots
 

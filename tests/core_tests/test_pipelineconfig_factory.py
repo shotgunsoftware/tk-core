@@ -11,19 +11,20 @@
 import os
 import pickle
 import sys
-from tank_vendor import yaml
+
 import sgtk
 import tank
-from tank.api import Tank
-from tank.util import is_windows
-from tank.errors import TankInitError
 from sgtk.util import ShotgunPath
+from tank.api import Tank
+from tank.errors import TankInitError
+from tank.util import is_windows
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
     TankTestBase,
+    mock,
 )
+from tank_vendor import yaml
 
 
 class TestTankFromPath(TankTestBase):

@@ -11,15 +11,15 @@
 import itertools
 import os
 import sys
+
 import sgtk
 from sgtk.util import ShotgunPath
-
+from tank.bootstrap import constants
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
-from tank.bootstrap import constants
 
 
 class TestResolverBase(TankTestBase):
