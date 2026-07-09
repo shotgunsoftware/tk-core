@@ -126,9 +126,7 @@ def cache_schema_config(config_path: str):
         type_name = schema.get("name", "")
         kind = schema.get("kind")
         if not kind:
-            raise ValueError(
-                f"Schema '{type_name}' is missing required 'kind' field."
-            )
+            raise ValueError(f"Schema '{type_name}' is missing required 'kind' field.")
         parent_types = schema.get("inherits", [])
         # strip "$ref:" prefix
         parent_types = [pt[5:] for pt in parent_types]
