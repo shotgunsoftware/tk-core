@@ -14,7 +14,7 @@ Usage:
     python scripts/find_flow_project.py
 
     # Override just the endpoint (e.g. for staging):
-    python scripts/find_flow_project.py --endpoint https://medm-v2.medata-s-ue1.cloudos.autodesk.com/api/v2/graphql
+    python scripts/find_flow_project.py --endpoint <url>
 
     # Override multiple values:
     python scripts/find_flow_project.py --endpoint <url> --application-id <id> --auth-base-url <url>
@@ -34,17 +34,18 @@ _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _REPO_ROOT = os.path.dirname(_SCRIPT_DIR)
 sys.path.insert(0, os.path.join(_REPO_ROOT, "python"))
 
+from tank.authentication.flow_auth._constants import (
+    DEFAULT_AUTH_APPLICATION_ID,
+    DEFAULT_AUTH_BASE_URL,
+    DEFAULT_AUTH_CALLBACK_URL,
+    REQUIRED_SCOPES,
+)
 from tank.util import LocalFileStorageManager
 from tank_vendor.adsk_auth import AuthConfig, get_access_token
 from tank_vendor.flow_data_sdk import GQLClient
 from tank_vendor.flow_data_sdk.base import model as flow_model
 from tank_vendor.flow_data_sdk.base.client import AuthenticationHandlerBase
 
-APS_REQUIRED_SCOPES = ["data:read", "data:write", "data:create"]
-
-DEFAULT_APPLICATION_ID = "8QyoQKXZ7HDuQFmptJGrzsp2GwpATmyV"
-DEFAULT_AUTH_BASE_URL = "https://developer.api.autodesk.com/"
-DEFAULT_AUTH_CALLBACK_URL = "http://localhost:4201/auth/callback"
 DEFAULT_ENDPOINT = "https://medm-v2.medata-p-ue1.cloudos.autodesk.com/api/v2/graphql"
 
 
@@ -69,7 +70,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--application-id",
-        default=DEFAULT_APPLICATION_ID,
+        default=DEFAULT_AUTH_APPLICATION_ID,
         help="APS application ID (default: prod value)",
     )
     parser.add_argument(
@@ -107,7 +108,7 @@ def main() -> None:
         base_url=args.auth_base_url,
         callback_url=args.auth_callback_url,
         description="Flow find project CLI",
-        required_application_scopes=APS_REQUIRED_SCOPES,
+        required_application_scopes=REQUIRED_SCOPES,
         storage_dir=LocalFileStorageManager.get_global_root(
             LocalFileStorageManager.CACHE
         ),
