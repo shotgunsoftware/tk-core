@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import zipfile
 
 from .. import LogManager
@@ -102,6 +103,20 @@ def zip_file(source_folder, target_zip_file):
     log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
 
 
+def _to_extended_path(path):
+    """
+    On Windows, prepend the extended-length path prefix to paths >= 260
+    characters to bypass the MAX_PATH limitation.
+
+    :param path: Absolute, normalised path string.
+    :returns: Path with ``\\\\?\\`` prefix on Windows when necessary, otherwise
+        the original path unchanged.
+    """
+    if sys.platform == "win32" and len(path) >= 260 and not path.startswith("\\\\?\\"):
+        return "\\\\?\\" + path
+    return path
+
+
 def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     """
     Helper method used by unzip_file()
@@ -143,20 +158,24 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
 
     target_path = os.path.normpath(target_path)
 
+    # On Windows, use the extended-length path prefix for paths >= 260 characters
+    # to avoid MAX_PATH limitations.
+    os_path = _to_extended_path(target_path)
+
     # Create all upper directories if necessary.
-    upperdirs = os.path.dirname(target_path)
+    upperdirs = os.path.dirname(os_path)
     if upperdirs and not os.path.exists(upperdirs):
         os.makedirs(upperdirs, 0o777)
 
     if item_path[-1] == "/":
         # this is a directory!
-        if not os.path.isdir(target_path):
-            os.mkdir(target_path, 0o777)
+        if not os.path.isdir(os_path):
+            os.mkdir(os_path, 0o777)
 
     else:
         # this is a file! - write it in a way which is compatible
         # with py25 zipfile library interface
-        target_obj = open(target_path, "wb")
+        target_obj = open(os_path, "wb")
         target_obj.write(zip_obj.read(item_path))
         target_obj.close()
         # Restore permissions on the extracted file
@@ -171,6 +190,6 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
         # If one execution bit is set, give execution rights to everyone
         mode = zip_info.external_attr >> 16 & 0x49
         if mode:
-            os.chmod(target_path, 0o777)
+            os.chmod(os_path, 0o777)
 
     return target_path
