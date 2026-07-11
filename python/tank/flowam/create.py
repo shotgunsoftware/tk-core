@@ -167,9 +167,7 @@ def get_or_create_workfile_parent(
 
     container = root_folder.find_child(sg_entity_name)
     container_type = (
-        ASSET_CONTAINER_TYPE
-        if sg_entity_type == ASSET_TYPE
-        else SHOT_CONTAINER_TYPE
+        ASSET_CONTAINER_TYPE if sg_entity_type == ASSET_TYPE else SHOT_CONTAINER_TYPE
     )
     if not container:
         logger.info(
@@ -180,9 +178,7 @@ def get_or_create_workfile_parent(
             name=sg_entity_name,
             parent_id=root_folder.id,
             components=[
-                TypeComponentSpec(
-                    type_id=get_schema_id(container_type), name=f"Type"
-                )
+                TypeComponentSpec(type_id=get_schema_id(container_type), name=f"Type")
             ],
         )
         container = FlowAsset(medm_asset)

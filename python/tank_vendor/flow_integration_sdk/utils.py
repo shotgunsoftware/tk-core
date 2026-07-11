@@ -384,3 +384,23 @@ def download_file(url, local_filename):
         msg = f'Request to get url "{url}" failed. {exc}'
         traceback.print_exc()
         raise FlowError(msg) from exc
+
+
+def build_reference_value(object_id: str) -> dict:
+    """Build a component property value for a reference-2.0.0 typed property.
+
+    Build the nested object required for component properties typed as
+    autodesk.me:reference-2.0.0, which inherits from autodesk.data:reference-2.0.0
+    and stores the referenced entity ID under objectId.id.
+
+    Args:
+        object_id: The URN or ID of the entity being referenced.
+
+    Returns:
+        Dict matching the autodesk.data:reference-2.0.0 schema structure.
+
+    Examples:
+        >>> build_reference_value("urn:medm:asset:c:p:abc")
+        {'objectId': {'id': 'urn:medm:asset:c:p:abc'}}
+    """
+    return {"objectId": {"id": object_id}}

@@ -57,7 +57,7 @@ from .storage import (
     _find_component,
     get_storage_revision_dir,
 )
-from .utils import cleanpath, get_logger, mimetype, trace
+from .utils import build_reference_value, cleanpath, get_logger, mimetype, trace
 
 
 @dataclass
@@ -267,7 +267,7 @@ class DerivativeSourceComponentSpec(ComponentSpec):
         return self.create_component(
             name=self.name,
             type_id=get_schema_id(DER_SOURCE_TYPE),
-            targetVersion=self.version_id,
+            targetVersion=build_reference_value(self.version_id),
         )
 
 
@@ -418,7 +418,7 @@ class VariantSetComponentSpec(ComponentSpec):
             type_id=get_schema_id(VARIANT_SET_TYPE),
             setName=self.set_name,
             variantName=self.variant_name,
-            targetAsset=self.asset_id,
+            targetAsset=build_reference_value(self.asset_id),
             displayName=self.display_name,
         )
 
