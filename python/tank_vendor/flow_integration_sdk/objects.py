@@ -839,7 +839,7 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         # we can safely scope this query to the parent asset with depth of 1.
         client = get_client()
         q_filter = f"has.component.type=={der_source_type_id};"
-        q_filter += f"components[typeId:{der_source_type_id}].data.targetVersion=like={target_id}*;"
+        q_filter += f"components[typeId:{der_source_type_id}].data.targetVersion.objectId.id=like={target_id}*;"
         q_filter += f"components[typeId:{der_source_type_id}].name=='{DER_SOURCE_COMP}'"
         q_input = medm_model.AssetsByTraversalInput(
             start_at_id=self.parent_id,  # search under parent
