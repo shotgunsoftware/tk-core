@@ -57,7 +57,7 @@ from .storage import (
     _find_component,
     get_storage_revision_dir,
 )
-from .utils import build_reference_value, cleanpath, get_logger, mimetype, trace
+from .utils import cleanpath, get_logger, mimetype, trace
 
 
 @dataclass
@@ -105,6 +105,26 @@ class ComponentSpec(ABC):
             Component object that can be added to an AssetRevision.
         """
         return medm_model.ComponentDataInput(name=name, data=data, type_id=type_id)
+
+    @staticmethod
+    def build_reference_value(object_id: str) -> dict:
+        """Build a component property value for a reference-2.0.0 typed property.
+
+        Build the nested object required for component properties typed as
+        autodesk.me:reference-2.0.0, which inherits from autodesk.data:reference-2.0.0
+        and stores the referenced entity ID under objectId.id.
+
+        Args:
+            object_id: The URN or ID of the entity being referenced.
+
+        Returns:
+            Dict matching the autodesk.data:reference-2.0.0 schema structure.
+
+        Examples:
+            >>> ComponentSpec.build_reference_value("urn:medm:asset:c:p:abc")
+            {'objectId': {'id': 'urn:medm:asset:c:p:abc'}}
+        """
+        return {"objectId": {"id": object_id}}
 
 
 class BinaryComponentSpec(ComponentSpec):
@@ -267,7 +287,7 @@ class DerivativeSourceComponentSpec(ComponentSpec):
         return self.create_component(
             name=self.name,
             type_id=get_schema_id(DER_SOURCE_TYPE),
-            targetVersion=build_reference_value(self.version_id),
+            targetVersion=self.build_reference_value(self.version_id),
         )
 
 
@@ -418,7 +438,7 @@ class VariantSetComponentSpec(ComponentSpec):
             type_id=get_schema_id(VARIANT_SET_TYPE),
             setName=self.set_name,
             variantName=self.variant_name,
-            targetAsset=build_reference_value(self.asset_id),
+            targetAsset=self.build_reference_value(self.asset_id),
             displayName=self.display_name,
         )
 
