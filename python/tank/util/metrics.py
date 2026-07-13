@@ -72,7 +72,7 @@ class PlatformInfo(object):
             # For macOS / OSX we keep only the Major.minor
             os_version = re.findall(r"\d*\.\d*", raw_version_str)[0]
 
-        except:
+        except Exception:
             pass
 
         return os_version
@@ -96,7 +96,7 @@ class PlatformInfo(object):
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
             os_version = "%s %s" % (distribution, major_version_str)
 
-        except:
+        except Exception:
             pass
 
         return os_version
@@ -116,7 +116,7 @@ class PlatformInfo(object):
             # as it returns a friendly name e.g: XP, 7, 10 etc.
             os_version = platform.release()
 
-        except:
+        except Exception:
             pass
 
         return os_version
@@ -161,7 +161,7 @@ class PlatformInfo(object):
             else:
                 os_info["OS"] = "Unsupported system: (%s)" % (system)
 
-        except:
+        except Exception:
             # On any exception we fallback to default value
             pass
 
@@ -243,7 +243,7 @@ class MetricsQueueSingleton(object):
 
             # remember that we've logged this one already
             self.__logged_metrics.add(metric_identifier)
-        except:
+        except Exception:
             pass
         finally:
             self._lock.release()
@@ -275,7 +275,7 @@ class MetricsQueueSingleton(object):
 
                 # would be nice to be able to pop N from deque. oh well.
                 metrics = [self._queue.popleft() for i in range(0, count)]
-        except:
+        except Exception:
             pass
         finally:
             self._lock.release()
@@ -434,7 +434,7 @@ class MetricsDispatchWorkerThread(Thread):
                     else:
                         break
 
-            except Exception as e:
+            except Exception:
                 pass
             finally:
                 # wait, checking for halt event before more processing
@@ -790,7 +790,7 @@ class EventMetric(object):
                 from sgtk.platform.util import current_bundle
 
                 bundle = current_bundle()
-            except:
+            except Exception:
                 pass
 
         if not bundle:
@@ -800,7 +800,7 @@ class EventMetric(object):
                 from ..platform.engine import current_engine
 
                 bundle = current_engine()
-            except:
+            except Exception:
                 # Bailing out trying to guess bundle
                 pass
 

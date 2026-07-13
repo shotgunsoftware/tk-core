@@ -60,7 +60,7 @@ def get_version():
         if re.match(r"v[0-9]*.[0-9]*.[0-9]*", version_git):
             return version_git
         return "dev"
-    except:
+    except Exception:
         # Blindly ignore problems, git might be not available, or the user could
         # be installing from zip archive, etc...
         pass

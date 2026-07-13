@@ -49,7 +49,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     try:
         if entity_type_code in schema_data:
             display_name = schema_data[entity_type_code]["name"]["value"]
-    except:
+    except Exception:
         pass
 
     return display_name

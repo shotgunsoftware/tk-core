@@ -311,13 +311,13 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                 )
 
                 # entity
-                if update_entity_thumbnail == True and context.entity is not None:
+                if update_entity_thumbnail and context.entity is not None:
                     tk.shotgun.upload_thumbnail(
                         context.entity["type"], context.entity["id"], thumbnail_path
                     )
 
                 # task
-                if update_task_thumbnail == True and task is not None:
+                if update_task_thumbnail and task is not None:
                     tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
 
             else:

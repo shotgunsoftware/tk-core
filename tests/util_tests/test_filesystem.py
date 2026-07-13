@@ -64,7 +64,7 @@ class TestFileSystem(TankTestBase):
         shutil.copytree(src_folder, dst_folder)
         self.assertTrue(os.path.exists(dst_folder))
         # open a file in the directory to remove ...
-        with open(os.path.join(dst_folder, "ReadWrite.txt")) as f:
+        with open(os.path.join(dst_folder, "ReadWrite.txt")):
             # ... and check that a failure occurs
             fs.safe_delete_folder(dst_folder)
             if is_windows():

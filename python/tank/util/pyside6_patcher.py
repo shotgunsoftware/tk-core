@@ -227,7 +227,7 @@ class PySide6Patcher(PySide2Patcher):
                     screens = QtGui.QGuiApplication.screens()
                     screen = screens[screen_index]
                     screen.geometryChanged.emit()
-                except:
+                except Exception:
                     pass
 
         original_QScreen_availableGeometry = QtGui.QScreen.availableGeometry

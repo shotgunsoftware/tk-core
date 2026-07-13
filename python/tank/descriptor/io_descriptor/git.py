@@ -113,7 +113,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         log.debug("Checking that git exists and can be executed...")
         try:
             output = _check_output(["git", "--version"])
-        except:
+        except Exception:
             log.exception("Unexpected error:")
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "

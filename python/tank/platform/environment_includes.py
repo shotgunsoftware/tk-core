@@ -29,7 +29,6 @@ relative paths are always required and context based paths are always optional.
 
 import copy
 import os
-import sys
 
 from ..errors import TankError
 from ..log import LogManager
@@ -103,7 +102,7 @@ def _resolve_includes(file_name, data, context):
             try:
                 f = context.as_template_fields(template)
                 full_path = template.apply_fields(f)
-            except TankError as e:
+            except TankError:
                 # if this path could not be resolved, that's ok! These paths are always optional.
                 continue
 

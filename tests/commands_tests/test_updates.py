@@ -14,7 +14,6 @@ Unit tests tank updates.
 
 import logging
 import os
-import sys
 
 from tank.platform.environment import InstalledEnvironment
 from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store

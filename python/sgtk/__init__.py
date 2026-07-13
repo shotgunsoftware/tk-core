@@ -16,7 +16,7 @@ THIS_MODULE_NAME = "sgtk"
 import sys
 
 # first import our alternative API
-import tank
+import tank  # noqa: F401
 
 # Generate a list of keys to iterate over,
 # since we'll be mutating the dict as we iterate.

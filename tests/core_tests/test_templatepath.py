@@ -895,6 +895,7 @@ class TestGetFields(TestTemplatePath):
         input_path = "path/to/seq.0003.ext"
         expected = {"frame": 3}
         result = self.sequence.get_fields(input_path)
+        self.assertEqual(expected, result)
 
     def test_nuke_framespec(self):
         input_path = "path/to/seq.%04d.ext"

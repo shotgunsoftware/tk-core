@@ -10,7 +10,6 @@
 
 import copy
 import os
-import sys
 
 from tank.errors import TankError
 from tank.platform.environment import Environment
@@ -528,7 +527,7 @@ class TestRuamelParser(TankTestBase):
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
-        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+        expected_env = [line.replace("FLOAT_VALUE", repr(1.1)) for line in expected_env]
         # additionally, convert the lines to sets so that the test does not
         # depend on the order of a dictionary.
         self.assertEqual(set(updated_env), set(expected_env))
@@ -566,5 +565,5 @@ class TestPyYamlParser(TankTestBase):
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
-        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+        expected_env = [line.replace("FLOAT_VALUE", repr(1.1)) for line in expected_env]
         self.assertEqual(updated_env, expected_env)

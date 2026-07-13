@@ -135,7 +135,7 @@ class Static(Folder):
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!
-        if is_primary == False and self._create_with_parent == False:
+        if not is_primary and not self._create_with_parent:
             return False
 
         # base class implementation

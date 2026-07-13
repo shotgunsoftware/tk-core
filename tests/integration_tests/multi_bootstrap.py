@@ -13,7 +13,6 @@ This test makes sure that various tank command operations do not fail.
 """
 
 import os
-import sys
 import traceback
 import unittest
 

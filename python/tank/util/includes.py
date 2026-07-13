@@ -11,7 +11,6 @@
 import ntpath
 import os
 import posixpath
-import sys
 
 from ..errors import TankError
 from .platforms import is_windows

@@ -115,7 +115,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         log.debug("Checking if the version is pointing to the latest commit...")
         try:
             output = _check_output(["git", "ls-remote", self._path, branch])
-        except:
+        except Exception:
             log.exception("Unexpected error:")
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "

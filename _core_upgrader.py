@@ -99,7 +99,7 @@ def __current_version_less_than(log, sgtk_install_root, ver):
     """
     log.debug("Checking if the currently installed version is less than %s..." % ver)
 
-    if __is_upgrade(sgtk_install_root) == False:
+    if not __is_upgrade(sgtk_install_root):
         # there is no current version. So it is definitely
         # not at least version X
         log.debug(

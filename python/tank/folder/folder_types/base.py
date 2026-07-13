@@ -174,7 +174,7 @@ class Folder(object):
 
             # before recursing down our specific recursion path, make sure all static content
             # has been created at this level in the folder structure
-            static_children = [ch for ch in self._children if ch.is_dynamic() == False]
+            static_children = [ch for ch in self._children if not ch.is_dynamic()]
 
             for created_folder, sg_data_dict in created_data:
 
@@ -255,7 +255,7 @@ class Folder(object):
         dc_value = self._config_metadata.get("defer_creation")
         # if defer_creation config param not specified or None means we
         # can always go ahead with folder creation!!
-        if dc_value is None or dc_value == False:
+        if dc_value is None or dc_value is False:
             # deferred value not specified means proceed with creation!
             return True
 
@@ -266,7 +266,7 @@ class Folder(object):
             return False
 
         # now handle all cases where we have an engine_str and some sort of deferred behaviour.
-        if dc_value == True:
+        if dc_value is True:
             # defer create for all engine_strs!
             return True
 

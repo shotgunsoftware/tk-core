@@ -1341,7 +1341,7 @@ class PathCache(object):
                         (pc_row_id, sg_id),
                     )
 
-        except:
+        except Exception:
             # error processing shotgun. Make sure we roll back the sqlite path cache
             # transaction
             self._connection.rollback()
@@ -1856,7 +1856,6 @@ class PathCache(object):
             ids_to_look_for[sg_record["entity"]["type"]].append(sg_record)
 
         # now query shotgun for each of the types
-        ids_in_shotgun = {}
         sg_valid_records = []
         for et, sg_records_for_et in ids_to_look_for.items():
 

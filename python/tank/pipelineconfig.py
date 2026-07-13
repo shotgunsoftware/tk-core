@@ -1209,7 +1209,7 @@ class PipelineConfiguration(object):
 
         try:
             return_value = hook.execute_hook(hook_path, parent, **kwargs)
-        except:
+        except Exception:
             # log the full callstack to make sure that whatever the
             # calling code is doing, this error is logged to help
             # with troubleshooting and support
@@ -1243,9 +1243,6 @@ class PipelineConfiguration(object):
         )
         hook_paths = [os.path.join(hooks_path, file_name)]
 
-        # the hook.method display name used when logging the metric
-        hook_method_display = "%s.%s" % (hook_name, method_name)
-
         # now add a custom hook if that exists.
         hook_folder = self.get_core_hooks_location()
         hook_path = os.path.join(hook_folder, file_name)
@@ -1256,7 +1253,7 @@ class PipelineConfiguration(object):
             return_value = hook.execute_hook_method(
                 hook_paths, parent, method_name, **kwargs
             )
-        except:
+        except Exception:
             # log the full callstack to make sure that whatever the
             # calling code is doing, this error is logged to help
             # with troubleshooting and support

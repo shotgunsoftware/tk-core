@@ -14,7 +14,6 @@ Tests for templatefield module.
 
 import copy
 import datetime
-import sys
 
 from tank import TankError
 from tank.templatekey import IntegerKey, SequenceKey, StringKey, TimestampKey, make_keys
@@ -844,7 +843,6 @@ class TestSequenceKey(ShotgunTestBase):
         default frame spec value can be returned, frame spec with
         one place has special cases.
         """
-        value = None
         seq_field = SequenceKey("field_name")
         expected = "%d"
         result = seq_field.str_from_value(value="FORMAT:%d")
@@ -1127,7 +1125,6 @@ class TestEyeKey(ShotgunTestBase):
         self.assertEqual(self.default_value, self.eye_key.str_from_value())
 
     def test_set_choices(self):
-        eye_key = StringKey("eye", default="%V", choices=["l", "r", "%V"])
         self.assertTrue(self.eye_key.validate(self.default_value))
         self.assertTrue(self.eye_key.validate("l"))
         self.assertTrue(self.eye_key.validate("r"))
