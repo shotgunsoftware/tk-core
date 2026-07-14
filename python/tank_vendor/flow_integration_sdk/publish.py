@@ -44,6 +44,8 @@ from .globals import (
     FILE_SEQ_TYPE,
     get_client,
     IMAGE_TYPE_ID,
+    LAYER_COMP,
+    LAYER_TYPE,
     SOURCE_COMP,
     SOURCE_PURPOSE,
     THUMBNAIL_COMP,
@@ -507,6 +509,38 @@ class FileSeqComponentSpec(TypeComponentSpec):
         )
 
 
+class LayerComponentSpec(ComponentSpec):
+    """Specifications for creating a layer component.
+
+    A layer component represents a named compositional relationship where the
+    target asset contributes compositionally to this asset. It carries a
+    ``targetAsset`` reference to the contributing child asset.
+    """
+
+    def __init__(self, layer_name: str, asset_id: str):
+        """
+        Args:
+            layer_name: Name identifying this layer relationship
+                        (e.g. the pipeline-step name).
+            asset_id: MEDM id of the target asset the layer points to.
+        """
+        self.layer_name = layer_name
+        self.asset_id = asset_id
+
+    @property
+    def name(self) -> str:
+        return f"{LAYER_COMP}-{self.layer_name}"
+    
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=get_schema_id(LAYER_TYPE),
+            layerName=self.layer_name,
+            targetAsset=self.build_reference_value(self.asset_id),
+        )
+
+
 @trace
 def publish_new_asset(
     name: str,
@@ -573,8 +607,8 @@ def publish_new_asset(
 def publish_new_revision(
     asset_id: str,
     components: list[ComponentSpec] | None = None,
-    used_versions: list[str] | None = None,
     components_action: medm_model.ListAction = medm_model.ListAction.REPLACE,
+    used_versions: list[str] | None = None,
 ) -> medm_model.Asset:
     """Publish a new version of an existing asset.
 
@@ -583,6 +617,9 @@ def publish_new_revision(
         components: List of component specifications that will be converted into components
                     to be attached to asset revision.
                     (Components are used to store binaries and metadata on revisions.)
+        components_action: Whether the component list should replace existing components
+                           or append to them. Valid values are ListAction.REPLACE (default)
+                           and ListAction.ADD.
         used_versions: List of version ids of other assets used by this asset.
                        (Stored as "uses" relationships with other asset versions.)
         components_action: Should component list replace existing components or append to them?

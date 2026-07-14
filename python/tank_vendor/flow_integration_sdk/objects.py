@@ -48,6 +48,7 @@ from .globals import (
     DER_SOURCE_TYPE,
     get_client,
     get_webapp_url,
+    LAYER_TYPE,
     VARIANT_SET_TYPE,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
@@ -937,6 +938,26 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
             return der_assets[0]
 
         return None
+    
+    @trace
+    def get_layers(self) -> list[FlowAsset]:
+        """Return the layer folder assets registered on this container.
+
+        LayerComponents live on the container (this asset) and each one carries
+        a targetAsset reference pointing to a child layer folder. This method
+        reads those components and returns the referenced FlowAsset objects.
+
+        Returns:
+            List of layer folder :class:`FlowAsset` objects.
+        """
+        layer_type_id = get_schema_id(LAYER_TYPE)
+        layer_ids = [
+            comp.data["targetAsset"]["objectId"]["id"]
+            for comp in self.components
+            if comp.type_id == layer_type_id
+        ]
+        layer_assets = [FlowAsset(asset_id) for asset_id in layer_ids]
+        return layer_assets
 
     def __str__(self):
         """Readable string representation of asset object."""
@@ -1142,6 +1163,25 @@ class FlowRevision(ComponentMixin, UsesMixin):
             # Will ignore malformed comment components for now
             return comment_comp.properties.get("subjectLine")
         return None
+
+    def get_layers(self) -> list[FlowAsset]:
+        """Return the layer folder assets registered on this revision.
+
+        LayerComponents live on a revision and each one carries a targetAsset
+        reference pointing to a child layer folder. This method reads those
+        components and returns the referenced FlowAsset objects.
+
+        Returns:
+            List of layer folder :class:`FlowAsset` objects.
+        """
+        layer_type_id = get_schema_id(LAYER_TYPE)
+        layer_ids = [
+            comp.data["targetAsset"]["objectId"]["id"]
+            for comp in self.components
+            if comp.type_id == layer_type_id
+        ]
+        layer_assets = [FlowAsset(asset_id) for asset_id in layer_ids]
+        return layer_assets
 
     def get_storage_dir(self) -> str:
         """Return the full path of asset revision directory in primary storage

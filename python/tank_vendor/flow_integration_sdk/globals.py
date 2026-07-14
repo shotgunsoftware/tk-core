@@ -56,6 +56,7 @@ KIND_BASE_TYPE_ID = {
 # are not yet added to the autodesk domain, and must be created per collection.
 FILE_SEQ_TYPE = "type.fileSequence"
 DER_SOURCE_TYPE = "component.source"
+LAYER_TYPE = "component.layer"
 VARIANT_SET_TYPE = "component.variantSet"
 
 
@@ -78,6 +79,7 @@ THUMBNAIL_PURPOSE = "thumbnail"
 COMMENT_COMP = "Comment"
 DER_SOURCE_COMP = "Derivative Source"
 FILE_SEQ_COMP = "File Sequence"
+LAYER_COMP = "Layer"
 SOURCE_COMP = "Source"
 THUMBNAIL_COMP = "Thumbnail"
 TYPE_COMP = "Type"
