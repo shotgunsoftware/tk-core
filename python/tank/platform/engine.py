@@ -23,9 +23,7 @@ import threading
 import traceback
 import weakref
 
-from tank.flowam import (  # noqa: F401 used in the flow_host property's return annotation
-    host as flow_host,
-)
+from tank.flowam import host as flow_host  # noqa: F401 (used in return annotation)
 from tank.flowam import utils as flow_utils
 
 from .. import hook
