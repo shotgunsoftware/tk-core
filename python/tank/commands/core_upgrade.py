@@ -24,7 +24,6 @@ from .. import pipelineconfig_utils
 from ..errors import TankError
 from ..util import shotgun
 from ..util.version import is_version_head, is_version_newer
-from . import console_utils
 from .action_base import Action
 
 

@@ -15,7 +15,6 @@ import sys
 from tank_vendor import yaml
 
 from .. import LogManager
-from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 from ..util import StorageRoots, filesystem, is_macos, is_windows
 from ..util.move_guard import MoveGuard
 from ..util.shotgun import connection

@@ -18,7 +18,7 @@ from tank_vendor import yaml
 from .. import hook, pipelineconfig_utils
 from ..descriptor import Descriptor, create_descriptor
 from ..errors import TankError, TankErrorProjectIsSetup
-from ..util import ShotgunPath, StorageRoots, filesystem, is_windows
+from ..util import ShotgunPath, StorageRoots, filesystem
 from ..util import sgre as re
 from ..util import shotgun
 from ..util.version import is_version_newer
@@ -506,8 +506,8 @@ class ProjectSetupParameters(object):
 
             # if force is false then tank_name must be empty
             if (
-                self.get_auto_path_mode() == False
-                and force == False
+                not self.get_auto_path_mode()
+                and not force
                 and proj["tank_name"] is not None
             ):
                 raise TankErrorProjectIsSetup()

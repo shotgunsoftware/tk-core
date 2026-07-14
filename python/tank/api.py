@@ -1034,7 +1034,6 @@ def get_authenticated_user():
     :returns: A :class:`~sgtk.authentication.ShotgunUser` derived object if set,
         None otherwise.
     """
-    global _authenticated_user
     return _authenticated_user
 
 

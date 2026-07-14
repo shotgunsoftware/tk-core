@@ -372,7 +372,6 @@ def get_sg_connection():
 
     :return: PTR API handle
     """
-    global _g_sg_cached_connections
     sg = getattr(_g_sg_cached_connections, "sg", None)
 
     if sg is None:

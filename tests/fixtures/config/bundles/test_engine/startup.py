@@ -11,7 +11,6 @@
 import os
 
 import sgtk
-from sgtk import TankError
 from sgtk.platform import LaunchInformation, SoftwareLauncher, SoftwareVersion
 
 

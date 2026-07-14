@@ -23,7 +23,9 @@ import threading
 import traceback
 import weakref
 
-from tank.flowam import host as flow_host
+from tank.flowam import (  # noqa: F401 used in the flow_host property's return annotation
+    host as flow_host,
+)
 from tank.flowam import utils as flow_utils
 
 from .. import hook
@@ -426,10 +428,10 @@ class Engine(TankBundle):
         if self.has_ui:
             # we cannot import QT until here as non-ui engines don't have QT defined.
             try:
-                from .qt import QtCore, QtGui
+                from .qt import QtCore
                 from .qt.busy_dialog import BusyDialog
 
-            except:
+            except Exception:
                 # QT import failed. This may be because someone has upgraded the core
                 # to the latest but are still running a earlier version of the
                 # Shotgun or Shell engine where the self.has_ui method is not
@@ -701,7 +703,7 @@ class Engine(TankBundle):
         return True
 
     @property
-    def flow_host(self) -> flow_host.FlowHost | None:
+    def flow_host(self) -> flow_host.FlowHost | None:  # noqa: F811
         """If the current context is Flow enabled, and the current
         engine supports Flow integration, this value will be an instance of FlowHost.
         The FlowHost class implements the required interface for the Flow asset management
@@ -836,7 +838,6 @@ class Engine(TankBundle):
             # a context change. If one of them is not, then we remove it
             # from the persistent app pool, which will force it to be
             # rebuilt when apps are loaded later on.
-            non_compliant_app_paths = []
             for install_path, app_instances in self.__application_pool.items():
                 for instance_name, app in app_instances.items():
                     self.log_debug(
@@ -2174,7 +2175,7 @@ class Engine(TankBundle):
                 base["dialog_base"] = None
             base["wrapper"] = importer.binding
             base["shiboken"] = importer.shiboken
-        except:
+        except Exception:
 
             self.log_exception(
                 "Default engine QT definition failed to find QT. "
@@ -2897,7 +2898,6 @@ def current_engine():
 
     :returns: :class:`Engine` instance or None if no engine is running.
     """
-    global g_current_engine
     return g_current_engine
 
 

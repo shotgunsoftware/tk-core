@@ -14,7 +14,6 @@ Method to unregister folders from the path cache
 
 from .. import path_cache
 from ..errors import TankError
-from ..util.login import get_current_user
 from .action_base import Action
 
 

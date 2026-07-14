@@ -12,10 +12,8 @@ import copy
 import os
 import shutil
 
-import tank
-from tank import TankError, folder, hook, path_cache
-from tank_test.tank_test_base import *
-from tank_vendor import yaml
+from tank import TankError, folder, path_cache
+from tank_test.tank_test_base import TankTestBase
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
 
@@ -982,7 +980,6 @@ class TestFolderCreationEdgeCases(TankTestBase):
         self.assertEqual(paths_in_db, [shot_path])
 
         # change the id of the shot - effectively deleting and creating a shot!
-        old_id = self.shot["id"]
         self.shot["id"] = 12345
         # make sure to null the link going from the task too - this is how shotgun
         # would have done a retirement.

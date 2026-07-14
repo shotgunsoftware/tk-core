@@ -10,14 +10,13 @@
 
 import os
 import pprint
-import sys
 import traceback
 
 from tank_vendor import yaml
 
 from .. import LogManager
 from ..descriptor import Descriptor, create_descriptor
-from ..util import filesystem, version
+from ..util import filesystem
 from . import constants
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
@@ -259,7 +258,7 @@ class CachedConfiguration(Configuration):
             config_backup_path, core_backup_path = self._config_writer.move_to_backup(
                 undo_on_error=True
             )
-        except Exception as e:
+        except Exception:
             log.exception(
                 "Unexpected error while making a backup of the configuration. Toolkit will use the "
                 "original configuration."

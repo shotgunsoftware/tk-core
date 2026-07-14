@@ -15,7 +15,7 @@ import shutil
 from ..errors import TankError
 from ..pipelineconfig import PipelineConfiguration
 from ..util import ShotgunPath, filesystem
-from . import console_utils, constants
+from . import constants
 from .action_base import Action
 
 # Core configuration files which are associated with the core API installation and not
@@ -131,7 +131,7 @@ class PushPCAction(Action):
             raise TankError("Aborted by user.")
         try:
             target_pc_id = int(answer)
-        except:
+        except Exception:
             raise TankError("Please enter a number!")
 
         self._run(

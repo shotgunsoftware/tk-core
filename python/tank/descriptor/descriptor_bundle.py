@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from .. import LogManager, pipelineconfig_utils
-from ..util import shotgun
 from ..util.version import is_version_older
 from . import constants
 from .descriptor import Descriptor

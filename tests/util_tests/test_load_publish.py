@@ -12,9 +12,8 @@ import os
 import sys
 
 import sgtk
-from tank import context, errors
 from tank.util import is_linux, is_macos, is_windows
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 
 class TestCoreHook(TankTestBase):
