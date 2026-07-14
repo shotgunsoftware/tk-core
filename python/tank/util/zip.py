@@ -103,7 +103,7 @@ def zip_file(source_folder, target_zip_file):
     log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
 
 
-def _to_extended_path(path):
+def _to_extended_path(path: str) -> str:
     """
     On Windows, prepend the extended-length path prefix to paths >= 260
     characters to bypass the MAX_PATH limitation.
@@ -112,7 +112,12 @@ def _to_extended_path(path):
     :returns: Path with ``\\\\?\\`` prefix on Windows when necessary, otherwise
         the original path unchanged.
     """
-    if sys.platform == "win32" and len(path) >= 260 and not path.startswith("\\\\?\\"):
+    if (
+        sys.platform == "win32"
+        and os.path.isabs(path)
+        and len(path) >= 260
+        and not path.startswith("\\\\?\\")
+    ):
         return "\\\\?\\" + path
     return path
 
