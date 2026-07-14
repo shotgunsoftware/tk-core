@@ -48,6 +48,7 @@ from .globals import (
     DER_SOURCE_TYPE,
     get_client,
     get_webapp_url,
+    VARIANT_SET_TYPE,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
 from .schema import get_schema_id
@@ -374,6 +375,57 @@ class ComponentMixin:
         if matches:
             return matches[0]
         return None
+
+    @trace
+    def get_sources(self) -> list[str]:
+        """Find any Source components within the component list and
+        return a list of target versions that they point to.
+
+        NOTE: A source relationship designates provenance. The target
+              source cab be considered the entity from which this entity
+              was derived.
+
+        Returns:
+            List of version ids that this revision designates as a source.
+
+        Raises:
+            FlowError
+        """
+        source_type_id = get_schema_id(DER_SOURCE_TYPE)
+        source_comps = self.find_components(type_id=source_type_id)
+        try:
+            return [c.properties["targetVersion"] for c in source_comps]
+        except KeyError as exc:
+            msg = f"Malformed source component detected. {exc}"
+            raise FlowError(msg) from exc
+
+    @trace
+    def get_variant_sets(self) -> dict[str, list[tuple[str, str]]]:
+        """Find any VariantSet components within the component list and
+        return a dictionary of variant sets of the structure
+
+            set name -> list of variants
+
+        where each variant is a tuple (variant name, asset id).
+
+        Returns:
+            Dictionary of variant set names to lists of variants.
+        """
+        varset_type_id = get_schema_id(VARIANT_SET_TYPE)
+        varset_comps = self.find_components(type_id=varset_type_id)
+        varsets = {}
+        try:
+            for comp in varset_comps:
+                set_name = comp.properties["setName"]
+                variant_name = comp.properties["variantName"]
+                variant_id = comp.properties["targetAsset"]
+                if set_name not in varsets:
+                    varsets[set_name] = []
+                varsets[set_name].append((variant_name, variant_id))
+        except KeyError as exc:
+            msg = f"Malformed variant set component detected. {exc}"
+            raise FlowError(msg) from exc
+        return varsets
 
 
 class FlowProject(FlowEntity):
@@ -1369,7 +1421,16 @@ class FlowComponent:
         for prop, val in component.data.items():
             if prop in ["data", "purpose"]:
                 continue  # already processed these
-            self.properties[prop] = val
+            if isinstance(val, dict) and "reference" in val["typeid"]:
+                try:
+                    # For reference typed properties, store the target entity id
+                    # as the property value
+                    self.properties[prop] = val["objectId"]["id"]
+                except KeyError:
+                    # Ignore malformed properties
+                    continue
+            else:
+                self.properties[prop] = val
 
     @trace
     def get_blob_path(self, blob_index: int = 0) -> str:
