@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
+import unittest
 
 import tank
 from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
@@ -119,3 +121,41 @@ class TestUnzipping(ShotgunTestBase):
         self.assertEqual(
             set(get_file_list(output_path_2, output_path_2)), set(["/info.yml"])
         )
+
+
+class TestToExtendedPath(ShotgunTestBase):
+    """
+    Tests the tank.util.zip._to_extended_path() helper.
+    """
+
+    _LONG_ABS_PATH = "C:\\" + "a" * 257  # 260 chars, absolute
+
+    def test_short_path_unchanged(self):
+        """A path under 260 characters is returned unchanged on all platforms."""
+        path = "C:\\short\\path\\file.txt"
+        self.assertEqual(tank.util.zip._to_extended_path(path), path)
+
+    def test_relative_path_unchanged(self):
+        """A relative path >= 260 characters must NOT receive the prefix."""
+        path = "relative\\" + "a" * 257  # long but relative
+        self.assertFalse(os.path.isabs(path))
+        self.assertEqual(tank.util.zip._to_extended_path(path), path)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_long_absolute_path_prefixed_on_windows(self):
+        """A long absolute path on Windows receives the \\\\?\\ prefix."""
+        result = tank.util.zip._to_extended_path(self._LONG_ABS_PATH)
+        self.assertTrue(result.startswith("\\\\?\\"))
+        self.assertEqual(result, "\\\\?\\" + self._LONG_ABS_PATH)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_already_prefixed_path_unchanged(self):
+        """A path that already has the \\\\?\\ prefix is not double-prefixed."""
+        prefixed = "\\\\?\\" + self._LONG_ABS_PATH
+        self.assertEqual(tank.util.zip._to_extended_path(prefixed), prefixed)
+
+    @unittest.skipIf(sys.platform == "win32", "Non-Windows behaviour")
+    def test_long_absolute_path_unchanged_on_non_windows(self):
+        """A long absolute path on non-Windows platforms is returned unchanged."""
+        path = "/" + "a" * 260
+        self.assertEqual(tank.util.zip._to_extended_path(path), path)
