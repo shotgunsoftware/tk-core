@@ -182,9 +182,7 @@ def get_or_create_workfile_parent(
             name=sg_entity_name,
             parent_id=root_folder.id,
             components=[
-                TypeComponentSpec(
-                    type_id=get_schema_id(container_type), name=f"Type {container_type}"
-                )
+                TypeComponentSpec(type_id=get_schema_id(container_type), name=f"Type")
             ],
         )
         container = FlowAsset(medm_asset)
@@ -195,7 +193,7 @@ def get_or_create_workfile_parent(
         medm_asset = publish_new_asset(
             name=sg_pipeline_step,
             parent_id=container.id,
-            components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {FOLDER_TYPE_ID}")],
+            components=[TypeComponentSpec(type_id=FOLDER_TYPE_ID, name="Type")],
         )
         pipeline_step = FlowAsset(medm_asset)
 
@@ -206,7 +204,9 @@ def get_or_create_workfile_parent(
         publish_new_revision(
             asset_id=container.id,
             components=[
-                LayerComponentSpec(layer_name=sg_pipeline_step, asset_id=pipeline_step.id)
+                LayerComponentSpec(
+                    layer_name=sg_pipeline_step, asset_id=pipeline_step.id
+                )
             ],
             components_action=medm_model.ListAction.ADD,
         )
@@ -226,7 +226,7 @@ def get_or_create_workfile_parent(
                 description=f'Root asset for "{sg_entity_name}".',
                 components=[
                     TypeComponentSpec(
-                        type_id=get_schema_id(container_type), name=f"Type {container_type}"
+                        type_id=get_schema_id(container_type), name=f"Type"
                     )
                 ],
             )
