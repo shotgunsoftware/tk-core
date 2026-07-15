@@ -108,17 +108,36 @@ def _to_extended_path(path: str) -> str:
     On Windows, prepend the extended-length path prefix to paths >= 260
     characters to bypass the MAX_PATH limitation.
 
-    :param path: Absolute, normalised path string.
-    :returns: Path with ``\\\\?\\`` prefix on Windows when necessary, otherwise
-        the original path unchanged.
+    Extended-length paths come in two flavours:
+
+    * Drive-letter paths (``C:\\...``) are prefixed with ``\\\\?\\``.
+    * UNC paths (``\\\\server\\share\\...``) require the ``\\\\?\\UNC\\``
+      prefix; naively prepending ``\\\\?\\`` produces an invalid path.
+
+    Drive-less rooted paths (``\\foo``) are not eligible for the prefix
+    because the extended-length syntax requires a fully-qualified path.
+
+    :param path: Normalised path string.
+    :returns: Path with the appropriate extended-length prefix on Windows
+        when necessary, otherwise the original path unchanged.
     """
-    if (
-        sys.platform == "win32"
-        and os.path.isabs(path)
-        and len(path) >= 260
-        and not path.startswith("\\\\?\\")
-    ):
+    if sys.platform != "win32" or len(path) < 260:
+        return path
+
+    if path.startswith("\\\\?\\"):
+        # Already an extended-length path - don't double-prefix.
+        return path
+
+    if path.startswith("\\\\"):
+        # UNC path (\\\\server\\share\\...). The extended-length form requires
+        # \\\\?\\UNC\\ rather than \\\\?\\\\\\\\
+        return "\\\\?\\UNC\\" + path[2:]
+
+    if len(path) >= 3 and path[1] == ":" and path[2] == "\\":
+        # Fully-qualified drive-letter path (C:\\...).
         return "\\\\?\\" + path
+
+    # Drive-less rooted paths (\\foo) or relative paths are not eligible.
     return path
 
 

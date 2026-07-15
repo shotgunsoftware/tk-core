@@ -128,7 +128,8 @@ class TestToExtendedPath(ShotgunTestBase):
     Tests the tank.util.zip._to_extended_path() helper.
     """
 
-    _LONG_ABS_PATH = "C:\\" + "a" * 257  # 260 chars, absolute
+    _LONG_ABS_PATH = "C:\\" + "a" * 257  # 260 chars, drive-letter absolute
+    _LONG_UNC_PATH = "\\\\server\\share\\" + "a" * 245  # 260 chars, UNC
 
     def test_short_path_unchanged(self):
         """A path under 260 characters is returned unchanged on all platforms."""
@@ -143,7 +144,7 @@ class TestToExtendedPath(ShotgunTestBase):
 
     @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
     def test_long_absolute_path_prefixed_on_windows(self):
-        """A long absolute path on Windows receives the \\\\?\\ prefix."""
+        """A long drive-letter path on Windows receives the \\\\?\\ prefix."""
         result = tank.util.zip._to_extended_path(self._LONG_ABS_PATH)
         self.assertTrue(result.startswith("\\\\?\\"))
         self.assertEqual(result, "\\\\?\\" + self._LONG_ABS_PATH)
@@ -153,6 +154,25 @@ class TestToExtendedPath(ShotgunTestBase):
         """A path that already has the \\\\?\\ prefix is not double-prefixed."""
         prefixed = "\\\\?\\" + self._LONG_ABS_PATH
         self.assertEqual(tank.util.zip._to_extended_path(prefixed), prefixed)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_long_unc_path_prefixed_with_unc_prefix(self):
+        """A long UNC path receives \\\\?\\UNC\\ prefix, not \\\\?\\\\\\\\."""
+        result = tank.util.zip._to_extended_path(self._LONG_UNC_PATH)
+        self.assertTrue(result.startswith("\\\\?\\UNC\\"))
+        self.assertEqual(result, "\\\\?\\UNC\\" + self._LONG_UNC_PATH[2:])
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_already_extended_unc_path_unchanged(self):
+        """A path already using \\\\?\\UNC\\ is not double-prefixed."""
+        prefixed = "\\\\?\\UNC\\" + self._LONG_UNC_PATH[2:]
+        self.assertEqual(tank.util.zip._to_extended_path(prefixed), prefixed)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_drive_less_rooted_path_unchanged(self):
+        """A drive-less rooted path (\\foo) must NOT receive the prefix."""
+        path = "\\" + "a" * 259  # rooted but no drive letter, >= 260 chars
+        self.assertEqual(tank.util.zip._to_extended_path(path), path)
 
     @unittest.skipIf(sys.platform == "win32", "Non-Windows behaviour")
     def test_long_absolute_path_unchanged_on_non_windows(self):
