@@ -44,7 +44,6 @@ from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
-    DER_SOURCE_TYPE_ID,
     DER_SOURCE_COMP,
     DER_SOURCE_TYPE,
     REFERENCE_TYPE,
