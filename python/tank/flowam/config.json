@@ -1,6 +1,6 @@
 {
   "name": "demo_pipeline",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Flow Toolkit pipeline schema definitions",
   "schemas": [
     {
