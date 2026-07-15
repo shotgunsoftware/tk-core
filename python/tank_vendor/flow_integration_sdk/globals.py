@@ -39,9 +39,6 @@ BASE_PROPERTY_TYPE_ID = "autodesk.me:property-1.0.0"
 BASE_TYPE_ID = "autodesk.me:type-1.1.0"
 BINARY_TYPE_ID = "autodesk.me:component.binary-1.0.0"
 COMMENT_TYPE_ID = "autodesk.me:component.publishComment-1.0.0"
-# NOTE: This is a temporary schema being annexed for representing derivative source
-#       which should be switched for a dedicated schema later.
-DER_SOURCE_TYPE_ID = "autodesk.me:component.dynamicPlaylistSource-1.0.0"
 FOLDER_TYPE_ID = "autodesk.me:type.folder-1.0.0"
 IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
 
@@ -58,6 +55,8 @@ KIND_BASE_TYPE_ID = {
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
 FILE_SEQ_TYPE = "type.fileSequence"
+DER_SOURCE_TYPE = "component.source"
+VARIANT_SET_TYPE = "component.variantSet"
 
 
 # Component purposes

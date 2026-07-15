@@ -1,6 +1,6 @@
 {
   "name": "demo_pipeline",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Flow Toolkit pipeline schema definitions",
   "schemas": [
     {
@@ -181,6 +181,46 @@
         {
           "name": "fileFormat",
           "data_type": "String"
+        }
+      ]
+    },
+    {
+      "name": "component.variantSet",
+      "version": "1.0.0",
+      "display_name": "Variant Set",
+      "kind": "component",
+      "description": "The target asset is a selectable realization of this asset for setName=variantName.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "setName",
+          "data_type": "String"
+        },
+        {
+          "name": "variantName",
+          "data_type": "String"
+        },
+        {
+          "name": "targetAsset",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        },
+        {
+          "name": "displayName",
+          "data_type": "String"
+        }
+      ]
+    },
+    {
+      "name": "component.source",
+      "version": "1.0.0",
+      "display_name": "Source",
+      "kind": "component",
+      "description": "The target asset represents provenance or derivation lineage.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "targetVersion",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
         }
       ]
     }

@@ -40,7 +40,8 @@ from .globals import (
     COMMENT_COMP,
     COMMENT_TYPE_ID,
     DER_SOURCE_COMP,
-    DER_SOURCE_TYPE_ID,
+    DER_SOURCE_TYPE,
+    FILE_SEQ_TYPE,
     get_client,
     IMAGE_TYPE_ID,
     SOURCE_COMP,
@@ -48,8 +49,9 @@ from .globals import (
     THUMBNAIL_COMP,
     THUMBNAIL_PURPOSE,
     TYPE_COMP,
+    VARIANT_SET_TYPE,
 )
-from .schema import is_sub_type
+from .schema import get_schema_id, is_sub_type
 from .storage import (
     _cache_asset_info,
     _find_component,
@@ -103,6 +105,26 @@ class ComponentSpec(ABC):
             Component object that can be added to an AssetRevision.
         """
         return medm_model.ComponentDataInput(name=name, data=data, type_id=type_id)
+
+    @staticmethod
+    def build_reference_value(object_id: str) -> dict:
+        """Build a component property value for a reference-2.0.0 typed property.
+
+        Build the nested object required for component properties typed as
+        autodesk.me:reference-2.0.0, which inherits from autodesk.data:reference-2.0.0
+        and stores the referenced entity ID under objectId.id.
+
+        Args:
+            object_id: The URN or ID of the entity being referenced.
+
+        Returns:
+            Dict matching the autodesk.data:reference-2.0.0 schema structure.
+
+        Examples:
+            >>> ComponentSpec.build_reference_value("urn:medm:asset:c:p:abc")
+            {'objectId': {'id': 'urn:medm:asset:c:p:abc'}}
+        """
+        return {"objectId": {"id": object_id}}
 
 
 class BinaryComponentSpec(ComponentSpec):
@@ -249,12 +271,12 @@ class DerivativeSourceComponentSpec(ComponentSpec):
     There is only expected to be one of these per revision.
     """
 
-    def __init__(self, revision_id: str):
+    def __init__(self, version_id: str):
         """
         Args:
-            revision_id: Id of source revision.
+            version_id: Id of source version.
         """
-        self.revision_id = revision_id
+        self.version_id = version_id
 
     @property
     def name(self) -> str:
@@ -264,8 +286,8 @@ class DerivativeSourceComponentSpec(ComponentSpec):
         """Create an MEDM component based on specifications."""
         return self.create_component(
             name=self.name,
-            type_id=DER_SOURCE_TYPE_ID,
-            folder={"objectId": self.revision_id},
+            type_id=get_schema_id(DER_SOURCE_TYPE),
+            targetVersion=self.build_reference_value(self.version_id),
         )
 
 
@@ -363,6 +385,64 @@ class TypeComponentSpec(ComponentSpec):
         )
 
 
+class VariantSetComponentSpec(ComponentSpec):
+    """Specifications for creating a variant set component.
+    This is a component used in a conceptually atomic asset
+    to list available variant sets and variants for the asset.
+    There can be multiple such components on an asset with
+    that may span multiple variant sets.
+
+    Example: If an asset were to have two orthogonal variant
+             sets for model representation, and surfacing look
+             as outlined below.
+
+        -> Set 1 = Representation
+                - Variant (Maya)
+                - Variant (Alembic)
+        -> Set 2 = Look
+                - Variant (Default)
+                - Variant (Dirty)
+
+            This would require four VariantSet components to
+            be added to the asset.
+
+        -> VariantSet 1 = Representation-Maya
+        -> VariantSet 2 = Representation-Alembic
+        -> VariantSet 3 = Look-Default
+        -> VariantSet 4 = Look-Dirty
+    """
+
+    def __init__(
+        self, set_name: str, variant_name: str, asset_id: str, display_name: str = ""
+    ):
+        """
+        Args:
+            set_name: Name of variant set under which this variant belongs.
+            variant_name: Name of this specific variant under the set name.
+            asset_id: The asset which represents this variant.
+            display_name: An optional display name for this set+variant combo.
+        """
+        self.set_name = set_name
+        self.variant_name = variant_name
+        self.asset_id = asset_id
+        self.display_name = display_name
+
+    @property
+    def name(self) -> str:
+        return f"{self.set_name}-{self.variant_name}"
+
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=get_schema_id(VARIANT_SET_TYPE),
+            setName=self.set_name,
+            variantName=self.variant_name,
+            targetAsset=self.build_reference_value(self.asset_id),
+            displayName=self.display_name,
+        )
+
+
 class FileSeqComponentSpec(TypeComponentSpec):
     """Specifications for creating a file sequence type component.
     This is a component used to designate an asset as containing a file sequence.
@@ -371,7 +451,6 @@ class FileSeqComponentSpec(TypeComponentSpec):
 
     def __init__(
         self,
-        type_id: str,
         frame_start: int,
         frame_end: int,
         frame_set: str,
@@ -380,7 +459,6 @@ class FileSeqComponentSpec(TypeComponentSpec):
     ):
         """
         Args:
-            type_id: The MEDM type identifier for the type component.
             frame_start: First frame of file sequence.
             frame_end: End frame of file sequence.
             frame_set: A string expression denoting the set of frames
@@ -401,11 +479,11 @@ class FileSeqComponentSpec(TypeComponentSpec):
         #       global constant and use that instead.
 
         # If provided, type id must be subtype of base type
+        type_id = get_schema_id(FILE_SEQ_TYPE)
         if not is_sub_type(BASE_TYPE_ID, type_id):
             msg = f"Type id {type_id} is not a subclass of base type."
             raise ComponentSpecError(details=msg)
 
-        self.type_id = type_id
         self.frame_start = frame_start
         self.frame_end = frame_end
         self.frame_set = frame_set
@@ -421,7 +499,7 @@ class FileSeqComponentSpec(TypeComponentSpec):
         """Create an MEDM component based on specifications."""
         return self.create_component(
             name=self.name,
-            type_id=self.type_id,
+            type_id=get_schema_id(FILE_SEQ_TYPE),
             frameStart=self.frame_start,
             frameEnd=self.frame_end,
             frameSet=self.frame_set,
@@ -496,6 +574,7 @@ def publish_new_revision(
     asset_id: str,
     components: list[ComponentSpec] | None = None,
     used_versions: list[str] | None = None,
+    components_action: medm_model.ListAction = medm_model.ListAction.REPLACE,
 ) -> medm_model.Asset:
     """Publish a new version of an existing asset.
 
@@ -506,6 +585,10 @@ def publish_new_revision(
                     (Components are used to store binaries and metadata on revisions.)
         used_versions: List of version ids of other assets used by this asset.
                        (Stored as "uses" relationships with other asset versions.)
+        components_action: Should component list replace existing components or append to them?
+                          Valid values are:
+                            * ListAction.REPLACE (default)
+                            * ListAction.ADD
 
     Returns:
         Updated asset object.
@@ -524,7 +607,7 @@ def publish_new_revision(
     m_input = medm_model.UpdateAssetInput(
         id=asset_id,
         components=medm_components,
-        components_action=medm_model.ListAction.REPLACE.value,
+        components_action=components_action.value,
         named_version_change=medm_model.NamedVersionChangeEnum.CREATE_NEW.value,
         uses=medm_uses,
     )
