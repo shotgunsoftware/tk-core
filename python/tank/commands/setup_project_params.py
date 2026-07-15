@@ -506,8 +506,8 @@ class ProjectSetupParameters(object):
 
             # if force is false then tank_name must be empty
             if (
-                not self.get_auto_path_mode()
-                and not force
+                self.get_auto_path_mode() is False
+                and force is False
                 and proj["tank_name"] is not None
             ):
                 raise TankErrorProjectIsSetup()

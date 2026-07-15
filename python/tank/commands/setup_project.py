@@ -479,7 +479,7 @@ class SetupProjectAction(Action):
             ["archived", "is_not", True],
         ]
 
-        if not show_initialized_projects:
+        if show_initialized_projects is False:
             # not force mode. Only show non-set up projects
             filters.append(["tank_name", "is", None])
 

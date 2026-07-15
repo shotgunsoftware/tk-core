@@ -311,7 +311,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                 )
 
                 # entity
-                if update_entity_thumbnail and context.entity is not None:
+                if update_entity_thumbnail is True and context.entity is not None:
                     tk.shotgun.upload_thumbnail(
                         context.entity["type"], context.entity["id"], thumbnail_path
                     )

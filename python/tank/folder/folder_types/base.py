@@ -174,7 +174,7 @@ class Folder(object):
 
             # before recursing down our specific recursion path, make sure all static content
             # has been created at this level in the folder structure
-            static_children = [ch for ch in self._children if not ch.is_dynamic()]
+            static_children = [ch for ch in self._children if ch.is_dynamic() is False]
 
             for created_folder, sg_data_dict in created_data:
 

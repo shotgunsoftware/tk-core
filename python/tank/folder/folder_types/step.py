@@ -147,7 +147,7 @@ class ShotgunStep(Entity):
         # shot, we want all the steps to be created at the same time.
         # however, if we have create_with_parent set to False, we only want to create
         # this node if we are creating folders for a task.
-        if not create_with_parent:
+        if create_with_parent is False:
             # do not auto-create with parent - only create when a task has been specified.
             # create an expression object to represent the current step.
             # we pass in the field which is the connection between the task and the step field

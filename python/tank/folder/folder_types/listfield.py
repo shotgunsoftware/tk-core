@@ -105,7 +105,7 @@ class ListField(Folder):
         # list fields are only created when they are on the primary path,
         # e.g. we don't recurse down to create asset types when shots are created,
         # but only when assets are created.
-        if not is_primary and not self._create_with_parent:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
