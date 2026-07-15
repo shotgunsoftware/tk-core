@@ -274,9 +274,7 @@ class SchemaBuilder:
         # Build property list for CreateSchemaInput
         properties = []
         for property_dict in self.schema_dict.get("properties", []):
-            properties.append(
-                self._create_properties_definition_input(property_dict)
-            )
+            properties.append(self._create_properties_definition_input(property_dict))
 
         try:
             # Create CreateSchemaInput for the mutation
@@ -323,7 +321,9 @@ class SchemaBuilder:
         """
 
         if not self.schema:
-            raise FlowSchemaBuilderError(details="Schema instance has not been built yet.")
+            raise FlowSchemaBuilderError(
+                details="Schema instance has not been built yet."
+            )
 
         client = get_client()
         schema_display_data = None
@@ -372,7 +372,9 @@ class SchemaBuilder:
         display_name = self.schema_dict.get("display_name")
 
         if not self.schema:
-            raise FlowSchemaBuilderError(details="Schema instance has not been built yet.")
+            raise FlowSchemaBuilderError(
+                details="Schema instance has not been built yet."
+            )
 
         if not display_name:
             raise FlowSchemaBuilderError(
@@ -494,9 +496,7 @@ def _create_schema_library(
             project_id=project_id,
         )
         # Create and call the schema mutation
-        schema_query = client.service_schema.create_schema_library(
-            variables=input_data
-        )
+        schema_query = client.service_schema.create_schema_library(variables=input_data)
         query_response = schema_query.call()
         # Extract the created schema library from the response
         schema_library = query_response.schema_library
@@ -542,7 +542,9 @@ def create_pipeline_schemas(project_id: str, config_path: str):
 
     config = schema._read_schema_config(config_path)
     if "schemas" not in config:
-        raise KeyError("The schema config file must contain a 'schemas' key with a list of schemas to create.")
+        raise KeyError(
+            "The schema config file must contain a 'schemas' key with a list of schemas to create."
+        )
     client = get_client()
     collection_id = FlowProject.get_collection_id(project_id)
 

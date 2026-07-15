@@ -28,7 +28,6 @@ from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
-    DER_SOURCE_TYPE_ID,
     FOLDER_TYPE_ID,
     get_client,
     get_session_collection,
@@ -51,7 +50,6 @@ _schema_tree[BASE_PROPERTY_TYPE_ID] = []
 _schema_tree[BASE_TYPE_ID] = []
 _schema_tree[BINARY_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
 _schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
-_schema_tree[DER_SOURCE_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
 _schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
 _schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
 
@@ -128,9 +126,7 @@ def cache_schema_config(config_path: str):
         type_name = schema.get("name", "")
         kind = schema.get("kind")
         if not kind:
-            raise ValueError(
-                f"Schema '{type_name}' is missing required 'kind' field."
-            )
+            raise ValueError(f"Schema '{type_name}' is missing required 'kind' field.")
         parent_types = schema.get("inherits", [])
         # strip "$ref:" prefix
         parent_types = [pt[5:] for pt in parent_types]
