@@ -959,7 +959,7 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
             return der_assets[0]
 
         return None
-    
+
     def __str__(self):
         """Readable string representation of asset object."""
         s = "------------------------------\n"
