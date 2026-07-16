@@ -427,22 +427,28 @@ class ComponentMixin:
             msg = f"Malformed variant set component detected. {exc}"
             raise FlowError(msg) from exc
         return varsets
-    
-    @trace
-    def get_references(self) -> list[FlowComponent]:
-        """Return all reference components on this asset/revision.
 
-        Reference components record dependencies on other MEDM versions at
-        publish time (one component per dependency).
+    @trace
+    def get_references(self) -> list[str]:
+        """Find any Reference components within the component list and
+        return a list of target versions that they point to.
+
+        NOTE: A reference relationship designates a dependency on another
+              asset version at the time of publish.
 
         Returns:
-            List of FlowComponent objects whose type matches the
-            ``component.reference`` schema. Empty list if none found.
-        """
-        from .schema import get_schema_id
+            List of version ids that this revision references as dependencies.
 
+        Raises:
+            FlowError
+        """
         ref_type_id = get_schema_id(REFERENCE_TYPE)
-        return self.find_components(type_id=ref_type_id)
+        ref_comps = self.find_components(type_id=ref_type_id)
+        try:
+            return [c.properties["targetVersion"] for c in ref_comps]
+        except KeyError as exc:
+            msg = f"Malformed reference component detected. {exc}"
+            raise FlowError(msg) from exc
 
 
 class FlowProject(FlowEntity):
