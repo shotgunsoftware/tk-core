@@ -278,17 +278,28 @@ def create_components_for_publish(
         # NOTE: component names must be unique!
         type_comp = TypeComponentSpec(type_id=type_id, name=f"Type {i}")
         components.append(type_comp)
-    # Add reference components for each asset-type internal dependency
+    # Add reference components for each dependency.
+    # Callers are expected to pass only resolved asset dependencies
+    # (dep_type == ASSET with a valid version_id).
     if deps:
-        ref_index = 0
-        for dep in deps:
-            if dep.dep_type == DepType.ASSET and dep.version_id:
-                ref_comp = ReferenceComponentSpec(
-                    name=f"Reference {ref_index}",
+        for i, dep in enumerate(deps):
+            if dep.dep_type != DepType.ASSET:
+                raise FlowError(
+                    f"Dependency at index {i} has unexpected type "
+                    f"{dep.dep_type!r}. Only DepType.ASSET deps should be "
+                    "passed as reference components."
+                )
+            if not dep.version_id:
+                raise FlowError(
+                    f"Dependency at index {i} is missing a version_id. "
+                    "Cannot create a reference component without a target version."
+                )
+            components.append(
+                ReferenceComponentSpec(
+                    name=f"Reference {i}",
                     version_id=dep.version_id,
                 )
-                components.append(ref_comp)
-                ref_index += 1
+            )
     return components
 
 
