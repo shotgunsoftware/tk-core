@@ -288,7 +288,7 @@ def create_components_for_publish(
             if dep.dep_type != DepType.ASSET:
                 raise FlowError(
                     f"Dependency at index {i} has unexpected type "
-                    f"{dep.dep_type!r}. Only DepType.ASSET deps should be "
+                    f"{dep.dep_type}. Only DepType.ASSET deps should be "
                     "passed as reference components."
                 )
             if not dep.version_id:
