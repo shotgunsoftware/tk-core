@@ -318,7 +318,7 @@ class ReferenceComponentSpec(ComponentSpec):
         return self.create_component(
             name=self.name,
             type_id=get_schema_id(REFERENCE_TYPE),
-            targetVersion=self.version_id,
+            targetVersion=self.build_reference_value(self.version_id),
         )
 
 

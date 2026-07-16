@@ -324,22 +324,6 @@ class ComponentMixin:
         return [comp.type_id for comp in type_comps]
 
     @trace
-    def get_references(self) -> list[FlowComponent]:
-        """Return all reference components on this asset/revision.
-
-        Reference components record dependencies on other MEDM versions at
-        publish time (one component per dependency).
-
-        Returns:
-            List of FlowComponent objects whose type matches the
-            ``component.reference`` schema. Empty list if none found.
-        """
-        from .schema import get_schema_id
-
-        ref_type_id = get_schema_id(REFERENCE_TYPE)
-        return self.find_components(type_id=ref_type_id)
-
-    @trace
     def find_components(
         self,
         name: str = "",
@@ -443,6 +427,22 @@ class ComponentMixin:
             msg = f"Malformed variant set component detected. {exc}"
             raise FlowError(msg) from exc
         return varsets
+    
+    @trace
+    def get_references(self) -> list[FlowComponent]:
+        """Return all reference components on this asset/revision.
+
+        Reference components record dependencies on other MEDM versions at
+        publish time (one component per dependency).
+
+        Returns:
+            List of FlowComponent objects whose type matches the
+            ``component.reference`` schema. Empty list if none found.
+        """
+        from .schema import get_schema_id
+
+        ref_type_id = get_schema_id(REFERENCE_TYPE)
+        return self.find_components(type_id=ref_type_id)
 
 
 class FlowProject(FlowEntity):

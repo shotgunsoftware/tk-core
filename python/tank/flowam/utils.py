@@ -232,8 +232,10 @@ def create_components_for_publish(
                   This is only relevant if publishing a new asset direct to remote
                   (i.e. not going through sandbox).
         deps: Optional list of internal dependencies found in the scene.
-                  Asset-type dependencies (those with a version_id) are recorded
-                  as ReferenceComponentSpec entries on the revision.
+                  These will be recorded as ReferenceComponentSpec entries on the revision.
+
+    Raises:
+        FlowError
     """
     # Source component contains the source file
     components: list[ComponentSpec] = []
