@@ -1,6 +1,6 @@
 {
   "name": "demo_pipeline",
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "Flow Toolkit pipeline schema definitions",
   "schemas": [
     {
@@ -234,7 +234,7 @@
       "properties": [
         {
           "name": "targetVersion",
-          "data_type": "autodesk.me:reference-2.0.0"
+          "data_type": "$id:autodesk.me:reference-2.0.0"
         }
       ]
     }
