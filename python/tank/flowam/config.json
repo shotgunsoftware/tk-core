@@ -185,6 +185,24 @@
       ]
     },
     {
+      "name": "component.layer",
+      "version": "1.0.0",
+      "display_name": "Layer",
+      "kind": "component",
+      "description": "A named compositional relationship. The target asset contributes compositionally to this asset.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "name",
+          "data_type": "String"
+        },
+        {
+          "name": "targetAsset",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
       "name": "component.variantSet",
       "version": "1.0.0",
       "display_name": "Variant Set",
