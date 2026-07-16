@@ -428,6 +428,27 @@ class ComponentMixin:
             raise FlowError(msg) from exc
         return varsets
 
+    @trace
+    def get_layers(self) -> dict[str, str]:
+        """Find any Layer components and return a dictionary of layer names
+        mapped to the asset id of each layer asset.
+
+        Returns:
+            Dictionary mapping layer name to asset id.
+        """
+        layer_type_id = get_schema_id(LAYER_TYPE)
+        layer_comps = self.find_components(type_id=layer_type_id)
+        layers = {}
+        try:
+            for comp in layer_comps:
+                layer_name = comp.properties["layerName"]
+                layer_id = comp.properties["targetAsset"]
+                layers[layer_name] = layer_id
+        except KeyError as exc:
+            msg = f"Malformed layer component detected. {exc}"
+            raise FlowError(msg) from exc
+        return layers
+
 
 class FlowProject(FlowEntity):
     """Container class for data relevant to a particular medm_model.Project.
@@ -939,26 +960,6 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
 
         return None
     
-    @trace
-    def get_layers(self) -> list[FlowAsset]:
-        """Return the layer folder assets registered on this container.
-
-        LayerComponents live on the container (this asset) and each one carries
-        a targetAsset reference pointing to a child layer folder. This method
-        reads those components and returns the referenced FlowAsset objects.
-
-        Returns:
-            List of layer folder :class:`FlowAsset` objects.
-        """
-        layer_type_id = get_schema_id(LAYER_TYPE)
-        layer_ids = [
-            comp.data["targetAsset"]["objectId"]["id"]
-            for comp in self.components
-            if comp.type_id == layer_type_id
-        ]
-        layer_assets = [FlowAsset(asset_id) for asset_id in layer_ids]
-        return layer_assets
-
     def __str__(self):
         """Readable string representation of asset object."""
         s = "------------------------------\n"
@@ -1163,25 +1164,6 @@ class FlowRevision(ComponentMixin, UsesMixin):
             # Will ignore malformed comment components for now
             return comment_comp.properties.get("subjectLine")
         return None
-
-    def get_layers(self) -> list[FlowAsset]:
-        """Return the layer folder assets registered on this revision.
-
-        LayerComponents live on a revision and each one carries a targetAsset
-        reference pointing to a child layer folder. This method reads those
-        components and returns the referenced FlowAsset objects.
-
-        Returns:
-            List of layer folder :class:`FlowAsset` objects.
-        """
-        layer_type_id = get_schema_id(LAYER_TYPE)
-        layer_ids = [
-            comp.data["targetAsset"]["objectId"]["id"]
-            for comp in self.components
-            if comp.type_id == layer_type_id
-        ]
-        layer_assets = [FlowAsset(asset_id) for asset_id in layer_ids]
-        return layer_assets
 
     def get_storage_dir(self) -> str:
         """Return the full path of asset revision directory in primary storage

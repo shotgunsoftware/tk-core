@@ -44,7 +44,6 @@ from .globals import (
     FILE_SEQ_TYPE,
     get_client,
     IMAGE_TYPE_ID,
-    LAYER_COMP,
     LAYER_TYPE,
     SOURCE_COMP,
     SOURCE_PURPOSE,
@@ -529,7 +528,7 @@ class LayerComponentSpec(ComponentSpec):
 
     @property
     def name(self) -> str:
-        return f"{LAYER_COMP}-{self.layer_name}"
+        return f"Layer-{self.layer_name}"
     
     def create(self) -> medm_model.Component:
         """Create an MEDM component based on specifications."""
@@ -607,8 +606,8 @@ def publish_new_asset(
 def publish_new_revision(
     asset_id: str,
     components: list[ComponentSpec] | None = None,
-    components_action: medm_model.ListAction = medm_model.ListAction.REPLACE,
     used_versions: list[str] | None = None,
+    components_action: medm_model.ListAction = medm_model.ListAction.REPLACE,
 ) -> medm_model.Asset:
     """Publish a new version of an existing asset.
 
@@ -617,9 +616,6 @@ def publish_new_revision(
         components: List of component specifications that will be converted into components
                     to be attached to asset revision.
                     (Components are used to store binaries and metadata on revisions.)
-        components_action: Whether the component list should replace existing components
-                           or append to them. Valid values are ListAction.REPLACE (default)
-                           and ListAction.ADD.
         used_versions: List of version ids of other assets used by this asset.
                        (Stored as "uses" relationships with other asset versions.)
         components_action: Should component list replace existing components or append to them?

@@ -156,12 +156,10 @@ def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
 def get_or_create_workfile_parent(
     root_folder: FlowAsset, inputs: BaseInputs
 ) -> FlowAsset:
-    """Determine (and create if necessary) the folder that will be the direct
-    parent of the workfile asset.
+    """Determine (and create if necessary) the parent container of the workfile asset.
 
     Returns:
-        The pipeline step :class:`FlowAsset` for generic assets, or the root
-        asset container under the pipeline step for DCC assets.
+        The parent asset as :class:`FlowAsset`.
     """
     logger = get_logger(__name__)
 
