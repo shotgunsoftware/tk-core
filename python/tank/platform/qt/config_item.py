@@ -8,13 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
-import shutil
-import sys
-
 from ..bundle import resolve_default_value
 from ..engine import current_engine
-from . import QtCore, QtGui
+from . import QtGui
 from .ui_item import Ui_Item
 
 
@@ -47,7 +43,7 @@ class ConfigItem(QtGui.QWidget):
         # special cases for some things:
         value_str = ""
 
-        if type(value) == str and value.startswith("hook:"):
+        if isinstance(value, str) and value.startswith("hook:"):
             # this is the generic hook override that any type can have
             value_str = "<b>Value:</b> <code>%s</code>" % value
             value_str += "<br><br>"

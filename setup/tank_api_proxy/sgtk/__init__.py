@@ -11,6 +11,7 @@
 
 # thin proxy wrapper which finds the real sgtk and replaces itself with that
 
+import importlib
 import os
 import sys
 
@@ -63,4 +64,4 @@ os.environ["TANK_CURRENT_PC"] = pipeline_config
 # prepend this to the python path and reload the module
 # this way we will load the 'real' tank!
 os.sys.path.insert(0, parent_python_path)
-reload(sys.modules["sgtk"])
+importlib.reload(sys.modules["sgtk"])

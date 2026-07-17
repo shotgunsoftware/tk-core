@@ -987,19 +987,9 @@ class TestAsTemplateFields(TestContext):
 
         # second asset with different asset type
         asset_type_2 = "Prop"
-        asset_2 = {
-            "type": "Asset",
-            "id": 2,
-            "code": "asset_code_2",
-            "name": "asset_name_2",
-            "project": self.project,
-            "asset_type": asset_type_2,
-        }
 
         alt_step_path = os.path.join(self.project_root, asset_type_2, step_short_name)
         self.add_production_path(alt_step_path, self.step)
-
-        asset_2_path = os.path.join(alt_step_path, asset_2["code"])
 
         ctx = self.tk.context_from_path(asset_path)
 

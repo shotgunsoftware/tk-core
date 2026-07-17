@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import console_utils, constants
+from . import constants
 from .action_base import Action
 
 _MESSAGE = (

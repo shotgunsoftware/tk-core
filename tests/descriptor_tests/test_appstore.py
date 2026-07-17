@@ -17,9 +17,6 @@ import os
 
 import sgtk
 from sgtk.descriptor import Descriptor, create_descriptor
-from sgtk.descriptor.io_descriptor.base import IODescriptorBase
-from tank import TankError
-from tank.platform.environment import InstalledEnvironment
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
@@ -159,7 +156,6 @@ class TestAppStoreLabels(ShotgunTestBase):
                         {"id": 1, "name": "2017.*", "type": "Tag"},
                         {"id": 2, "name": "2016.*", "type": "Tag"},
                     ],
-                    "sg_detailed_release_notes": "Test 1",
                     "sg_status_list": "prod",
                     "description": "dummy",
                     "sg_detailed_release_notes": "dummy",
@@ -174,7 +170,6 @@ class TestAppStoreLabels(ShotgunTestBase):
                     "id": 2,
                     "code": "v2.0.1",
                     "tags": [{"id": 1, "name": "2017.*", "type": "Tag"}],
-                    "sg_detailed_release_notes": "Test 2",
                     "sg_status_list": "prod",
                     "description": "dummy",
                     "sg_detailed_release_notes": "dummy",
@@ -189,7 +184,6 @@ class TestAppStoreLabels(ShotgunTestBase):
                     "id": 3,
                     "code": "v3.0.1",
                     "tags": [{"id": 3, "name": "2018.*", "type": "Tag"}],
-                    "sg_detailed_release_notes": "Test 3",
                     "sg_status_list": "prod",
                     "description": "dummy",
                     "sg_detailed_release_notes": "dummy",

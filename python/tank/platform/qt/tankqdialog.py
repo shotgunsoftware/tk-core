@@ -15,7 +15,6 @@ Default implementation for the Tank Dialog
 
 import inspect
 import os
-import sys
 
 from ...errors import TankError
 from .. import application, constants, engine
@@ -66,7 +65,7 @@ class TankQDialog(TankDialogBase):
 
                 # stop if we've previously checked this class:
                 cls_type = checked_classes.get(cls, None)
-                if cls_type != None:
+                if cls_type is not None:
                     break
                 checked_classes[cls] = ""
 
@@ -100,7 +99,7 @@ class TankQDialog(TankDialogBase):
                         # assume that this is derived from an actual tk-multi-workfiles.SaveAsForm!
                         cls_type = "SaveAsForm"
 
-                if cls_type != None:
+                if cls_type is not None:
                     checked_classes[cls] = cls_type
                     break
 
@@ -357,7 +356,7 @@ class TankQDialog(TankDialogBase):
                 context_info += "You are currently running in the %s environment." % (
                     self._bundle.engine.environment["name"]
                 )
-            except:
+            except Exception:
                 pass
 
             self.ui.app_work_area_info.setText(context_info)

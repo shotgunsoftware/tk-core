@@ -328,7 +328,7 @@ class PySide2Patcher(object):
                     # returns False or raises some error.
                     try:
                         return webbrowser.open_new_tab(url.toString().encode("utf-8"))
-                    except:
+                    except Exception:
                         return False
 
             @classmethod

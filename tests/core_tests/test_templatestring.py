@@ -84,8 +84,6 @@ class TestValidate(TestTemplateString):
         self.assertFalse(self.template_string.validate(invalid_string))
 
     def test_conflicting_values(self):
-        definition = "{Shot}-{Sequence}.{Shot}"
-        template_string = TemplateString(definition, self.keys)
         invalid_string = "shot_1-Seq_12.shot_2"
         self.assertFalse(self.template_string.validate(invalid_string))
 
@@ -93,13 +91,11 @@ class TestValidate(TestTemplateString):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
 
         input_string = "something-shot_1.seq_2"
-        expected = {"Shot": "shot_1", "Sequence": "seq_2"}
 
         self.assertTrue(template_string.validate(input_string))
 
         # without optional value
         input_string = "something-shot_1"
-        expected = {"Shot": "shot_1"}
 
         self.assertTrue(template_string.validate(input_string))
 
@@ -157,15 +153,12 @@ class TestGetFields(TestTemplateString):
         self.assertRaises(TankError, self.template_string.get_fields, input_string)
 
     def test_conflicting_values(self):
-        definition = "{Shot}.{Shot}"
         input_string = "shot_1.shot_2"
         self.assertRaises(TankError, self.template_string.get_fields, input_string)
 
     def test_definition_short_end_static(self):
         """Tests case when input string longer than definition which
         ends with non key."""
-        definition = "{Shot}.something"
-        template_string = TemplateString(definition, self.keys)
         input_string = "shot_1.something-else"
         self.assertRaises(TankError, self.template_string.get_fields, input_string)
 

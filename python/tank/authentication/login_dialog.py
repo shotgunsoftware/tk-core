@@ -43,7 +43,6 @@ from .ui.qt_abstraction import (
     QtGui,
     QtNetwork,
     QtWebEngineWidgets,
-    qt_version_tuple,
 )
 from .web_login_support import get_shotgun_authenticator_support_web_login
 

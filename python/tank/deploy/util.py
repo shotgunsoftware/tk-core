@@ -16,4 +16,4 @@ This code may be removed at some point in the future.
 
 # import methods to ensure that older version of the desktop engine
 # will function correctly - the code calls these internal methods
-from ..util.version import is_version_newer, is_version_older
+from ..util.version import is_version_newer, is_version_older  # noqa: F401

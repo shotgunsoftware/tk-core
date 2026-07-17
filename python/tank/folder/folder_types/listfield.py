@@ -105,7 +105,7 @@ class ListField(Folder):
         # list fields are only created when they are on the primary path,
         # e.g. we don't recurse down to create asset types when shots are created,
         # but only when assets are created.
-        if is_primary == False and self._create_with_parent == False:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
@@ -171,7 +171,7 @@ class ListField(Folder):
                     chunks = self._field_name.split(".")
                     entity_type = chunks[1]
                     field_name = chunks[2]
-                except:
+                except Exception:
                     msg = (
                         "Folder creation error: Cannot resolve the field expression %s."
                         % self._field_name

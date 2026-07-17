@@ -28,8 +28,6 @@ c:\foo\bar\hello.yml - absolute path, windows
 
 """
 
-import os
-
 from . import constants
 from .errors import TankError
 from .util import yaml_cache

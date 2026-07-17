@@ -607,7 +607,6 @@ def deserialize_user(payload):
         user_dict = pickle.loads(payload)
 
     # Find which user type we have
-    global __factories
     factory = __factories.get(user_dict.get("type"))
     # Unknown type, something is wrong. Maybe backward compatible code broke?
     if not factory:

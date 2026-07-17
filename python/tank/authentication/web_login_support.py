@@ -59,5 +59,4 @@ def get_shotgun_authenticator_support_web_login():
 
     :returns: Bool indicating support for the Unified Login Flow.
     """
-    global shotgun_authenticator_support_web_login
     return shotgun_authenticator_support_web_login

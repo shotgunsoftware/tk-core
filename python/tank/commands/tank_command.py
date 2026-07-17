@@ -473,7 +473,7 @@ def run_action(log, tk, ctx, command, args):
             found_action = x
             break
 
-    if found_action and found_action.wants_running_shell_engine == False:
+    if found_action and found_action.wants_running_shell_engine is False:
         log.debug("No need to load up the engine for this command.")
     else:
         # try to load the engine.

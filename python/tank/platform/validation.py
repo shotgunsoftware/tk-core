@@ -355,7 +355,7 @@ class _SchemaValidator:
                 % (settings_key, self._display_name)
             )
 
-        if not data_type in constants.TANK_SCHEMA_VALID_TYPES:
+        if data_type not in constants.TANK_SCHEMA_VALID_TYPES:
             params = (data_type, settings_key, self._display_name)
             raise TankError("Invalid type '%s' in schema '%s' for '%s'!" % params)
 
@@ -407,14 +407,14 @@ class _SchemaValidator:
 
     def __validate_schema_list(self, settings_key, schema):
         # Check that the schema contains "values"
-        if not "values" in schema or type(schema["values"]) != dict:
+        if "values" not in schema or not isinstance(schema["values"], dict):
             params = (settings_key, self._display_name)
             raise TankError(
                 "Missing or invalid 'values' dict in schema '%s' for '%s'!" % params
             )
 
         # If there's an "allows_empty" key, it should be a bool
-        if "allows_empty" in schema and type(schema["allows_empty"]) != bool:
+        if "allows_empty" in schema and not isinstance(schema["allows_empty"], bool):
             params = (settings_key, self._display_name)
             raise TankError(
                 "Invalid 'allows_empty' bool in schema '%s' for '%s'!" % params
@@ -424,13 +424,13 @@ class _SchemaValidator:
 
     def __validate_schema_dict(self, settings_key, schema):
         # Check that if the schema contains "items" then it must be a dict
-        if "items" in schema and type(schema["items"]) != dict:
+        if "items" in schema and not isinstance(schema["items"], dict):
             params = (settings_key, self._display_name)
             raise TankError("Invalid 'items' dict in schema '%s' for '%s'!" % params)
 
         for key, value_schema in schema.get("items", {}).items():
             # Check that the value is a dict, and validate it...
-            if type(value_schema) != dict:
+            if not isinstance(value_schema, dict):
                 params = (key, settings_key, self._display_name)
                 raise TankError("Invalid '%s' dict in schema '%s' for '%s'" % params)
 
@@ -439,19 +439,21 @@ class _SchemaValidator:
     def __validate_schema_template(self, settings_key, schema):
 
         # new style template def: if there is a fields key, it should be a str
-        if "fields" in schema and type(schema["fields"]) != str:
+        if "fields" in schema and not isinstance(schema["fields"], str):
             params = (settings_key, self._display_name)
             raise TankError("Invalid 'fields' string in schema '%s' for '%s'!" % params)
 
         # old-style - if there's a required_fields key, it should contain a list of strs.
-        if "required_fields" in schema and type(schema["required_fields"]) != list:
+        if "required_fields" in schema and not isinstance(
+            schema["required_fields"], list
+        ):
             params = (settings_key, self._display_name)
             raise TankError(
                 "Invalid 'required_fields' list in schema '%s' for '%s'!" % params
             )
 
         for field in schema.get("required_fields", []):
-            if type(field) != str:
+            if not isinstance(field, str):
                 params = (field, settings_key, self._display_name)
                 raise TankError(
                     "Invalid 'required_fields' value '%s' in schema '%s' for '%s'!"
@@ -459,9 +461,9 @@ class _SchemaValidator:
                 )
 
         # old-style - if there's an optional_fields key, it should contain a list of strs or be "*"
-        if "optional_fields" in schema and type(schema["optional_fields"]) == list:
+        if "optional_fields" in schema and isinstance(schema["optional_fields"], list):
             for field in schema.get("optional_fields", []):
-                if type(field) != str:
+                if not isinstance(field, str):
                     params = (field, settings_key, self._display_name)
                     raise TankError(
                         "Invalid 'optional_fields' value '%s' in schema '%s' for '%s'!"
@@ -474,7 +476,7 @@ class _SchemaValidator:
             )
 
         # If there's an "allows_empty" key, it should be a bool
-        if "allows_empty" in schema and type(schema["allows_empty"]) != bool:
+        if "allows_empty" in schema and not isinstance(schema["allows_empty"], bool):
             params = (settings_key, self._display_name)
             raise TankError(
                 "Invalid 'allows_empty' bool in schema '%s' for '%s'!" % params
@@ -543,7 +545,7 @@ class _SettingsValidator:
         data_type = schema.get("type")
 
         # functor values which refer to a hook are never validated
-        if type(value) == str and value.startswith("hook:"):
+        if isinstance(value, str) and value.startswith("hook:"):
             return
 
         # shotgun filters can be a variety of formats so assume it is
@@ -605,7 +607,7 @@ class _SettingsValidator:
         items = schema.get("items", {})
         for key, value_schema in items.items():
             # Check for required keys
-            if not key in value:
+            if key not in value:
                 params = (key, settings_key, self._display_name)
                 raise TankError(
                     "Missing required key '%s' in setting '%s' for '%s'" % params
@@ -891,7 +893,7 @@ class _SettingsValidator:
             # one or more mandatory issues. No point checking further
             return problems
 
-        if star == True:
+        if star:
             # means an open ended number of fields can be used.
             # no need to do more validation
             return problems

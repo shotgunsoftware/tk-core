@@ -11,8 +11,7 @@
 import os
 
 import sgtk
-from tank.errors import TankError
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestLegacyDescriptorSupport(TankTestBase):

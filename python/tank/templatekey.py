@@ -14,7 +14,6 @@ Classes for fields on TemplatePaths and TemplateStrings
 
 import collections.abc
 import datetime
-import sys
 
 from . import constants
 from .errors import TankError

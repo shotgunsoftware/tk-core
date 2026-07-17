@@ -13,7 +13,6 @@ Methods for downloading things from Shotgun
 """
 
 import os
-import sys
 import tempfile
 import time
 import urllib.parse

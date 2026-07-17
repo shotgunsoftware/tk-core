@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Autodesk.
 
 import importlib
-import unittest
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase

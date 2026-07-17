@@ -159,7 +159,7 @@ class ShotgunTask(Entity):
         # shot, we want all the tasks to be created at the same time.
         # however, if we have create_with_client set to False, we only want to create
         # this node if we are creating folders for a task.
-        if create_with_parent != True:
+        if create_with_parent is False:
             # do not auto-create with parent - only create when a task has been specified.
             # create an expression object to represent the current step
             current_task_id_token = CurrentTaskExpressionToken()

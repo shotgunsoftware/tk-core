@@ -14,7 +14,6 @@ zipped config can be bootstrap into without requiring to download anything from 
 """
 
 import os
-import sys
 import unittest
 
 import sgtk

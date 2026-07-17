@@ -20,7 +20,7 @@ import tank
 from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application, validation
 from tank.template import Template
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestApplication(TankTestBase):

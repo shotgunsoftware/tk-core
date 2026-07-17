@@ -15,7 +15,6 @@ This test makes sure that various tank command operations do not fail.
 import os
 import re
 import shutil
-import sys
 import unittest
 
 import sgtk

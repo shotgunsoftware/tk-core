@@ -11,14 +11,14 @@
 import os
 
 import tank
-from tank import context, errors
+from tank import context
 from tank.util import is_windows
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
     only_run_on_nix,
     only_run_on_windows,
-    setUpModule,
 )
 
 

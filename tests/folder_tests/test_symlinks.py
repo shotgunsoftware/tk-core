@@ -12,7 +12,7 @@ import os
 
 from tank import folder
 from tank.util import is_windows
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestSymlinks(TankTestBase):

@@ -28,7 +28,7 @@ from .errors import TankContextDeserializationError, TankError
 from .flowam import constants as flow_const
 from .path_cache import PathCache
 from .template import TemplatePath
-from .util import get_sg_entity_name_field, login, pickle, shotgun, shotgun_entity
+from .util import login, pickle, shotgun, shotgun_entity
 
 
 class Context(object):
@@ -178,9 +178,9 @@ class Context(object):
             :param d2:  Second entity dictionary
             :returns:   True if d1 and d2 are considered equal, otherwise False.
             """
-            if d1 == d2 == None:
+            if d1 is None and d2 is None:
                 return True
-            if d1 == None or d2 == None:
+            if d1 is None or d2 is None:
                 return False
             return d1["type"] == d2["type"] and d1["id"] == d2["id"]
 
@@ -1005,7 +1005,7 @@ class Context(object):
                 # this key is a shotgun value that needs fetching!
 
                 # ensure that the context actually provides the desired entities
-                if not key.shotgun_entity_type in entities:
+                if key.shotgun_entity_type not in entities:
                     if validate:
                         raise TankError(
                             "Key '%s' in template '%s' could not be populated by "
@@ -1487,7 +1487,6 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     }
 
     entity_type = entity_dictionary["type"]
-    entity_id = entity_dictionary["id"]
 
     # try to determine the various entities from the entity dictionary:
     project = None
@@ -1552,7 +1551,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             if "id" not in ent or "type" not in ent:
                 return None
             ent_name = _get_entity_name(ent)
-            if ent_name == None:
+            if ent_name is None:
                 return None
             # return a clean dictionary:
             return {"type": ent["type"], "id": ent["id"], "name": ent_name}
@@ -1842,7 +1841,7 @@ def _get_entity_name(entity_dictionary):
     """
     name_field = shotgun_entity.get_sg_entity_name_field(entity_dictionary["type"])
     entity_name = entity_dictionary.get(name_field)
-    if entity_name == None:
+    if entity_name is None:
         # Also check to see if entity contains 'name':
         if name_field != "name":
             entity_name = entity_dictionary.get("name")

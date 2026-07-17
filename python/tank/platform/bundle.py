@@ -1074,7 +1074,7 @@ class TankBundle(object):
         # therefore get an error.
         try:
             engine_name = self.engine.name
-        except:
+        except Exception:
             engine_name = None
 
         return engine_name

@@ -142,7 +142,6 @@ class TestEngineLauncher(TankTestBase):
                 "SHOTGUN_SITE": "http://unit_test_mock_sg",
                 "SHOTGUN_ENTITY_TYPE": entity["type"],
                 "SHOTGUN_ENTITY_ID": str(entity["id"]),
-                "SHOTGUN_ENTITY_ID": str(entity["id"]),
                 "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS": os.pathsep.join(
                     MOCKED_FALLBACKS
                 ),

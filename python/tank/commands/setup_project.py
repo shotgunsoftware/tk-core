@@ -479,7 +479,7 @@ class SetupProjectAction(Action):
             ["archived", "is_not", True],
         ]
 
-        if show_initialized_projects == False:
+        if show_initialized_projects is False:
             # not force mode. Only show non-set up projects
             filters.append(["tank_name", "is", None])
 
@@ -541,7 +541,7 @@ class SetupProjectAction(Action):
             raise TankError("Aborted by user.")
         try:
             project_id = int(answer)
-        except:
+        except Exception:
             raise TankError("Please enter a number!")
 
         if project_id not in [x["id"] for x in projs]:
@@ -720,7 +720,6 @@ class SetupProjectAction(Action):
         # location for the installed config.
         # Multi-root configurations require a storage named "primary" so we base
         # our default on that. If only a single storage is available, we just use it.
-        storage_names = params.get_required_storages()
         default_storage_name = params.default_storage_name
 
         # There is no default storage name for a config that doesn't use roots, like

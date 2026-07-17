@@ -1,12 +1,5 @@
-import os
-import shutil
-import unittest
-
-import tank
-from tank import TankError, folder, hook
+from tank import TankError
 from tank.path_cache import PathCache
-from tank_test.tank_test_base import *
-from tank_vendor import yaml
 
 ###############################################################################################
 # useful methods for folder creation tests.

@@ -70,7 +70,7 @@ class ClearCacheAction(Action):
                 log.debug("Deleting cache file %s..." % full_path)
                 try:
                     os.remove(full_path)
-                except:
+                except Exception:
                     log.warning("Could not delete cache file '%s'!" % full_path)
 
         log.info("The PTR menu cache has been cleared.")
@@ -129,7 +129,7 @@ class InteractiveShellAction(Action):
         # attempt install tab command completion
         try:
             import readline
-            import rlcompleter
+            import rlcompleter  # noqa: F401
 
             if "libedit" in readline.__doc__:
                 # macosx, some versions - see
@@ -137,7 +137,7 @@ class InteractiveShellAction(Action):
                 readline.parse_and_bind("bind ^I rl_complete")
             else:
                 readline.parse_and_bind("tab: complete")
-        except:
+        except Exception:
             pass
 
         code.interact(banner="\n".join(msg), local=tk_locals)
