@@ -9,7 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import importlib
+import os
+import pathlib
+import shutil
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -263,6 +267,107 @@ class TestShotgunAPI3CertPatch(ShotgunTestBase):
         # Should return a string path
         self.assertIsInstance(cert_path, str)
         self.assertTrue(len(cert_path) > 0)
+
+
+class TestShotgunAPI3CertPatchPrecedence(ShotgunTestBase):
+    """
+    Test SHOTGUN_API_CACERTS precedence in the shotgun_api3 certs patch (SG-44256).
+
+    Prior to this fix, _patch_shotgun_api3_certs() unconditionally returned the
+    Core-extracted cacert.pem whenever ca_certs wasn't explicitly passed, silently
+    ignoring the documented SHOTGUN_API_CACERTS environment variable. When the
+    extracted cert lives on a slow network share, this made every cold ShotGrid
+    connection pay a large one-time filesystem cost that a local cert copy avoids.
+
+    These tests call _patch_shotgun_api3_certs() directly against a throwaway
+    fake "pkgs.zip" layout so they can control both the extracted cert file and
+    the environment variable without depending on the real build-time layout.
+    """
+
+    def setUp(self):
+        super().setUp()
+
+        import shotgun_api3
+
+        from tank_vendor import _patch_shotgun_api3_certs
+
+        self._shotgun_api3 = shotgun_api3
+        self._patch_shotgun_api3_certs = _patch_shotgun_api3_certs
+
+        # Snapshot the method currently installed (already patched once at
+        # module import time) so we can restore it after each test, and so
+        # repeated patch applications in this test class don't stack.
+        self._original_get_certs_file = shotgun_api3.Shotgun._get_certs_file
+
+        # Build a fake pkgs.zip layout with an extracted cert file beside it:
+        #   <tmp_dir>/pkgs.zip
+        #   <tmp_dir>/certs/shotgun_api3/lib/certifi/cacert.pem
+        self._tmp_dir = tempfile.mkdtemp()
+        cert_dir = (
+            pathlib.Path(self._tmp_dir) / "certs" / "shotgun_api3" / "lib" / "certifi"
+        )
+        cert_dir.mkdir(parents=True)
+        self._extracted_cert_file = cert_dir / "cacert.pem"
+        self._extracted_cert_file.write_text("fake extracted core cert")
+        self._fake_zip_path = pathlib.Path(self._tmp_dir) / "pkgs.zip"
+
+        self._env_patcher = mock.patch.dict(os.environ, {}, clear=False)
+        self._env_patcher.start()
+        os.environ.pop("SHOTGUN_API_CACERTS", None)
+
+    def tearDown(self):
+        self._env_patcher.stop()
+        self._shotgun_api3.Shotgun._get_certs_file = self._original_get_certs_file
+        shutil.rmtree(self._tmp_dir, ignore_errors=True)
+        super().tearDown()
+
+    def test_environment_override_takes_precedence_over_extracted_cert(self):
+        """SHOTGUN_API_CACERTS should win over the Core-extracted cert."""
+        local_cert = os.path.join(self._tmp_dir, "local-cacert.pem")
+        os.environ["SHOTGUN_API_CACERTS"] = local_cert
+
+        self._patch_shotgun_api3_certs(self._fake_zip_path)
+
+        self.assertEqual(
+            self._shotgun_api3.Shotgun._get_certs_file(),
+            local_cert,
+        )
+
+    def test_falls_back_to_extracted_cert_when_env_var_unset(self):
+        """With no override set, behavior is unchanged: use the extracted cert."""
+        self.assertNotIn("SHOTGUN_API_CACERTS", os.environ)
+
+        self._patch_shotgun_api3_certs(self._fake_zip_path)
+
+        self.assertEqual(
+            self._shotgun_api3.Shotgun._get_certs_file(),
+            str(self._extracted_cert_file),
+        )
+
+    def test_falls_back_to_extracted_cert_when_env_var_empty(self):
+        """An empty SHOTGUN_API_CACERTS is treated the same as unset."""
+        os.environ["SHOTGUN_API_CACERTS"] = ""
+
+        self._patch_shotgun_api3_certs(self._fake_zip_path)
+
+        self.assertEqual(
+            self._shotgun_api3.Shotgun._get_certs_file(),
+            str(self._extracted_cert_file),
+        )
+
+    def test_explicit_ca_certs_argument_still_takes_top_precedence(self):
+        """An explicit ca_certs argument outranks both the env var and the extracted cert."""
+        os.environ["SHOTGUN_API_CACERTS"] = os.path.join(
+            self._tmp_dir, "local-cacert.pem"
+        )
+
+        self._patch_shotgun_api3_certs(self._fake_zip_path)
+
+        explicit_cert = "/some/explicit/cert.pem"
+        self.assertEqual(
+            self._shotgun_api3.Shotgun._get_certs_file(explicit_cert),
+            explicit_cert,
+        )
 
 
 @unittest.skipIf(
