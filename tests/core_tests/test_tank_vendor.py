@@ -294,10 +294,17 @@ class TestShotgunAPI3CertPatchPrecedence(ShotgunTestBase):
         self._shotgun_api3 = shotgun_api3
         self._patch_shotgun_api3_certs = _patch_shotgun_api3_certs
 
-        # Snapshot the method currently installed (already patched once at
-        # module import time) so we can restore it after each test, and so
-        # repeated patch applications in this test class don't stack.
-        self._original_get_certs_file = shotgun_api3.Shotgun._get_certs_file
+        # Snapshot the raw descriptor currently installed (already patched
+        # once at module import time) so we can restore it after each test.
+        # Reading via __dict__ (not attribute access) preserves the
+        # staticmethod wrapper itself, rather than the plain function it
+        # unwraps to -- restoring the unwrapped function directly would
+        # turn _get_certs_file into a bound instance method for every
+        # Shotgun() call afterward, breaking unrelated tests with a
+        # "takes 0 to 1 positional arguments but 2 were given" TypeError.
+        self._original_get_certs_file = shotgun_api3.Shotgun.__dict__[
+            "_get_certs_file"
+        ]
 
         # Build a fake pkgs.zip layout with an extracted cert file beside it:
         #   <tmp_dir>/pkgs.zip
