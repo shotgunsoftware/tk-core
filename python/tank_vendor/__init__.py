@@ -44,6 +44,7 @@ warning.
 Supported Python versions: 3.9+
 """
 
+import os
 import pathlib
 import sys
 import warnings
@@ -199,6 +200,12 @@ def _patch_shotgun_api3_certs(zip_path):
             # If ca_certs explicitly provided, use original behavior
             if ca_certs is not None:
                 return _original_get_certs_file(ca_certs)
+            # Preserve shotgun_api3's documented SHOTGUN_API_CACERTS override.
+            # Without this branch, a network-hosted extracted cert_file can be
+            # dramatically slower to open than a local override (see SG-44256).
+            environment_certs = os.environ.get("SHOTGUN_API_CACERTS")
+            if environment_certs:
+                return environment_certs
             # Otherwise return extracted certificate path instead of ZIP path
             return str(cert_file)
 
