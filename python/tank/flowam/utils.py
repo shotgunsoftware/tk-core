@@ -32,11 +32,13 @@ from tank_vendor.flow_integration_sdk.exceptions import FlowError
 from tank_vendor.flow_integration_sdk.publish import (
     ComponentSpec,
     CommentComponentSpec,
+    ReferenceComponentSpec,
     SourceComponentSpec,
     ThumbnailComponentSpec,
     TypeComponentSpec,
     FileSeqComponentSpec,
 )
+from tank_vendor.flow_integration_sdk.dependency import DependencyData, DepType
 from tank_vendor.flow_integration_sdk.objects import FlowProject
 from tank_vendor.flow_integration_sdk.schema_builder import create_pipeline_schemas
 from tank_vendor.flow_integration_sdk.utils import trace
@@ -216,6 +218,7 @@ def create_components_for_publish(
     thumbnail_path: str = "",
     comment: str = "",
     type_ids: list[str] | None = None,
+    deps: list[DependencyData] | None = None,
 ) -> list[ComponentSpec]:
     """Generate the components relevant to publish a new revision.
 
@@ -228,6 +231,11 @@ def create_components_for_publish(
         type_ids: A list of type ids to be converted into type components.
                   This is only relevant if publishing a new asset direct to remote
                   (i.e. not going through sandbox).
+        deps: Optional list of internal dependencies found in the scene.
+                  These will be recorded as ReferenceComponentSpec entries on the revision.
+
+    Raises:
+        FlowError
     """
     # Source component contains the source file
     components: list[ComponentSpec] = []
@@ -272,6 +280,28 @@ def create_components_for_publish(
         # NOTE: component names must be unique!
         type_comp = TypeComponentSpec(type_id=type_id, name=f"Type {i}")
         components.append(type_comp)
+    # Add reference components for each dependency.
+    # Callers are expected to pass only resolved asset dependencies
+    # (dep_type == ASSET with a valid version_id).
+    if deps:
+        for i, dep in enumerate(deps):
+            if dep.dep_type != DepType.ASSET:
+                raise FlowError(
+                    f"Dependency at index {i} has unexpected type "
+                    f"{dep.dep_type}. Only DepType.ASSET deps should be "
+                    "passed as reference components."
+                )
+            if not dep.version_id:
+                raise FlowError(
+                    f"Dependency at index {i} is missing a version_id. "
+                    "Cannot create a reference component without a target version."
+                )
+            components.append(
+                ReferenceComponentSpec(
+                    name=f"Reference {i}",
+                    version_id=dep.version_id,
+                )
+            )
     return components
 
 
