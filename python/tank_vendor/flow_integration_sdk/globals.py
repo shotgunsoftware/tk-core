@@ -55,6 +55,7 @@ KIND_BASE_TYPE_ID = {
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
 FILE_SEQ_TYPE = "type.fileSequence"
+REFERENCE_TYPE = "component.reference"
 DER_SOURCE_TYPE = "component.source"
 LAYER_TYPE = "component.layer"
 VARIANT_SET_TYPE = "component.variantSet"

@@ -241,6 +241,20 @@
           "data_type": "$id:autodesk.me:reference-2.0.0"
         }
       ]
+    },
+    {
+      "name": "component.reference",
+      "version": "1.0.0",
+      "display_name": "Reference",
+      "kind": "component",
+      "description": "The target asset is referenced as a dependency or included asset.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "targetVersion",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
     }
   ]
 }
