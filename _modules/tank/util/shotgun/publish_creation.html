@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -443,13 +443,13 @@
                 <span class="p">)</span>
 
                 <span class="c1"># entity</span>
-                <span class="k">if</span> <span class="n">update_entity_thumbnail</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">update_entity_thumbnail</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span>
                         <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span>
                     <span class="p">)</span>
 
                 <span class="c1"># task</span>
-                <span class="k">if</span> <span class="n">update_task_thumbnail</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">update_task_thumbnail</span> <span class="ow">and</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>

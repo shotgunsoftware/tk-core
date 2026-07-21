@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.template &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.template &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -148,11 +148,12 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">templatekey</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span><span class="p">,</span> <span class="n">templatekey</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.template_path_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplatePathParser</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span><span class="p">,</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 
 
 <div class="viewcode-block" id="Template"><a class="viewcode-back" href="../../core.html#sgtk.Template">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Template</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -606,7 +607,7 @@
 <span class="sd">        :returns:           True if the path is valid for this template</span>
 <span class="sd">        :rtype:             Bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Template.get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.get_fields">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -635,7 +636,7 @@
         <span class="k">for</span> <span class="n">ordered_keys</span><span class="p">,</span> <span class="n">static_tokens</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ordered_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span><span class="p">):</span>
             <span class="n">path_parser</span> <span class="o">=</span> <span class="n">TemplatePathParser</span><span class="p">(</span><span class="n">ordered_keys</span><span class="p">,</span> <span class="n">static_tokens</span><span class="p">)</span>
             <span class="n">fields</span> <span class="o">=</span> <span class="n">path_parser</span><span class="o">.</span><span class="n">parse_path</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">fields</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">break</span>
 
         <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

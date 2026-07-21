@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.23.9 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -97,14 +97,17 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.platform.TankEngineInitError"><code class="docutils literal notranslate"><span class="pre">TankEngineInitError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.platform.TankEngineInitError.add_note"><code class="docutils literal notranslate"><span class="pre">TankEngineInitError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.platform.TankEngineInitError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankEngineInitError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.platform.TankMissingEngineError"><code class="docutils literal notranslate"><span class="pre">TankMissingEngineError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.platform.TankMissingEngineError.add_note"><code class="docutils literal notranslate"><span class="pre">TankMissingEngineError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.platform.TankMissingEngineError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankMissingEngineError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.platform.TankContextChangeNotSupportedError"><code class="docutils literal notranslate"><span class="pre">TankContextChangeNotSupportedError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.platform.TankContextChangeNotSupportedError.add_note"><code class="docutils literal notranslate"><span class="pre">TankContextChangeNotSupportedError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.platform.TankContextChangeNotSupportedError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankContextChangeNotSupportedError.with_traceback()</span></code></a></li>
 </ul>
 </li>
@@ -180,7 +183,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -500,6 +503,10 @@ opened by the host DCC application:</p>
 derive from this class.</p>
 <p>Engine instances are constructed by the toolkit launch process
 and various factory methods such as <a class="reference internal" href="#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start_engine()</span></code></a>.</p>
+<p>For Flow-enabled contexts (<code class="docutils literal notranslate"><span class="pre">context.flow_project_id</span></code> set), this
+also runs <code class="docutils literal notranslate"><span class="pre">flow_utils.init_flow()</span></code> to set up the Flow Integration
+SDK session and provision pipeline schemas when the SG schema
+config version does not match the bundled config.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -922,6 +929,17 @@ command registered during engine initialization.</p>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.9/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="sgtk.platform.Engine.flow_host">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flow_host</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">FlowHost</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></em><a class="headerlink" href="#sgtk.platform.Engine.flow_host" title="Permalink to this definition"></a></dt>
+<dd><p>If the current context is Flow enabled, and the current
+engine supports Flow integration, this value will be an instance of FlowHost.
+The FlowHost class implements the required interface for the Flow asset management
+integration to work within a dcc/engine.</p>
+<p>If the current context is not Flow enabled, or the current engine has not had
+Flow support added, the value will be None.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3636,6 +3654,13 @@ at the root level of the app, engine or framework. Use a
 <dd><p>Bases: <a class="reference internal" href="core.html#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Exception that indicates that an engine could not start up.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.platform.TankEngineInitError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.TankEngineInitError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.platform.TankEngineInitError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.TankEngineInitError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3649,6 +3674,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.platform.</span></span><span class="sig-name descname"><span class="pre">TankMissingEngineError</span></span><a class="reference internal" href="_modules/tank/platform/errors.html#TankMissingEngineError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.platform.TankMissingEngineError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.platform.TankEngineInitError" title="tank.platform.errors.TankEngineInitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankEngineInitError</span></code></a></p>
 <p>Exception that indicates that an engine could not start up.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.platform.TankMissingEngineError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.TankMissingEngineError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.platform.TankMissingEngineError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.TankMissingEngineError.with_traceback" title="Permalink to this definition"></a></dt>
@@ -3664,6 +3696,13 @@ set self.__traceback__ to tb and return self.</p>
 <dd><p>Bases: <a class="reference internal" href="core.html#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Exception that indicates that a requested context change is not allowed
 based on a check of the current engine and all of its active apps.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.platform.TankContextChangeNotSupportedError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.TankContextChangeNotSupportedError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.platform.TankContextChangeNotSupportedError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.TankContextChangeNotSupportedError.with_traceback" title="Permalink to this definition"></a></dt>

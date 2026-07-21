@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.util &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -142,11 +142,11 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.import_stack</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImportStack</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">current_engine</span><span class="p">,</span> <span class="n">_restart_engine</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">_restart_engine</span><span class="p">,</span> <span class="n">current_engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.import_stack</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImportStack</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_current_bundle</span><span class="p">():</span>

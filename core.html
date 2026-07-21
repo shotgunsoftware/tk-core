@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core &mdash; tk-core v0.23.9 documentation</title>
+  <title>Core &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -117,12 +117,17 @@
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.task"><code class="docutils literal notranslate"><span class="pre">Context.task</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.user"><code class="docutils literal notranslate"><span class="pre">Context.user</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.additional_entities"><code class="docutils literal notranslate"><span class="pre">Context.additional_entities</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.flow_project_id"><code class="docutils literal notranslate"><span class="pre">Context.flow_project_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.flow_draft_id"><code class="docutils literal notranslate"><span class="pre">Context.flow_draft_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.flow_schema_version"><code class="docutils literal notranslate"><span class="pre">Context.flow_schema_version</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.entity_locations"><code class="docutils literal notranslate"><span class="pre">Context.entity_locations</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.shotgun_url"><code class="docutils literal notranslate"><span class="pre">Context.shotgun_url</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.filesystem_locations"><code class="docutils literal notranslate"><span class="pre">Context.filesystem_locations</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.sgtk"><code class="docutils literal notranslate"><span class="pre">Context.sgtk</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.as_template_fields"><code class="docutils literal notranslate"><span class="pre">Context.as_template_fields()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.create_copy_for_user"><code class="docutils literal notranslate"><span class="pre">Context.create_copy_for_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.set_flow_context"><code class="docutils literal notranslate"><span class="pre">Context.set_flow_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.clear_flow_context"><code class="docutils literal notranslate"><span class="pre">Context.clear_flow_context()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.serialize"><code class="docutils literal notranslate"><span class="pre">Context.serialize()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.deserialize"><code class="docutils literal notranslate"><span class="pre">Context.deserialize()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.Context.to_dict"><code class="docutils literal notranslate"><span class="pre">Context.to_dict()</span></code></a></li>
@@ -218,30 +223,37 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankError"><code class="docutils literal notranslate"><span class="pre">TankError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankError.add_note"><code class="docutils literal notranslate"><span class="pre">TankError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankErrorProjectIsSetup"><code class="docutils literal notranslate"><span class="pre">TankErrorProjectIsSetup</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankErrorProjectIsSetup.add_note"><code class="docutils literal notranslate"><span class="pre">TankErrorProjectIsSetup.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankErrorProjectIsSetup.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankErrorProjectIsSetup.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankFileDoesNotExistError"><code class="docutils literal notranslate"><span class="pre">TankFileDoesNotExistError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankFileDoesNotExistError.add_note"><code class="docutils literal notranslate"><span class="pre">TankFileDoesNotExistError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankFileDoesNotExistError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankFileDoesNotExistError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankHookMethodDoesNotExistError"><code class="docutils literal notranslate"><span class="pre">TankHookMethodDoesNotExistError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankHookMethodDoesNotExistError.add_note"><code class="docutils literal notranslate"><span class="pre">TankHookMethodDoesNotExistError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankHookMethodDoesNotExistError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankHookMethodDoesNotExistError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankUnreadableFileError"><code class="docutils literal notranslate"><span class="pre">TankUnreadableFileError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankUnreadableFileError.add_note"><code class="docutils literal notranslate"><span class="pre">TankUnreadableFileError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankUnreadableFileError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankUnreadableFileError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankInvalidCoreLocationError"><code class="docutils literal notranslate"><span class="pre">TankInvalidCoreLocationError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankInvalidCoreLocationError.add_note"><code class="docutils literal notranslate"><span class="pre">TankInvalidCoreLocationError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankInvalidCoreLocationError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankInvalidCoreLocationError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.TankNotPipelineConfigurationError"><code class="docutils literal notranslate"><span class="pre">TankNotPipelineConfigurationError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.TankNotPipelineConfigurationError.add_note"><code class="docutils literal notranslate"><span class="pre">TankNotPipelineConfigurationError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.TankNotPipelineConfigurationError.with_traceback"><code class="docutils literal notranslate"><span class="pre">TankNotPipelineConfigurationError.with_traceback()</span></code></a></li>
 </ul>
 </li>
@@ -275,7 +287,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -1079,7 +1091,7 @@ does not exist.</p></li>
 <h2>Context<a class="headerlink" href="#context" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="sgtk.Context">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_entities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Context" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_entities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flow_draft_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Context" title="Permalink to this definition"></a></dt>
 <dd><p>A context instance is used to collect a set of key fields describing the
 current Context. We sometimes refer to the context as the current work area.
 Typically this would be the current shot or asset that someone is working on.</p>
@@ -1250,6 +1262,47 @@ Will be an empty list in most cases.</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="sgtk.Context.flow_project_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flow_project_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></em><a class="headerlink" href="#sgtk.Context.flow_project_id" title="Permalink to this definition"></a></dt>
+<dd><p>The FlowAM project ID for this context, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the project is
+not FlowAM-enabled or there is no project in this context.</p>
+<p>The value is read from the <code class="docutils literal notranslate"><span class="pre">sg_flow_am_id</span></code> field on the project dict.
+It is populated by the bootstrap manager after it queries ShotGrid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A string containing the FlowAM project ID, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)">str</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="sgtk.Context.flow_draft_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flow_draft_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></em><a class="headerlink" href="#sgtk.Context.flow_draft_id" title="Permalink to this definition"></a></dt>
+<dd><p>Current Flow draft context.
+If not None, this designates the current draft being worked on within the DCC session.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="sgtk.Context.flow_schema_version">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flow_schema_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.9/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a></em><a class="headerlink" href="#sgtk.Context.flow_schema_version" title="Permalink to this definition"></a></dt>
+<dd><p>The FlowAM schema version of the project in context, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the project is
+not FlowAM-enabled or there is no schema created.</p>
+<p>The value is read from the <code class="docutils literal notranslate"><span class="pre">sg_flow_schema_config_version</span></code> field on the project dict.
+It is populated by the bootstrap manager after it queries ShotGrid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A string containing the FlowAM schema version, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)">str</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="sgtk.Context.entity_locations">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">entity_locations</span></span><a class="headerlink" href="#sgtk.Context.entity_locations" title="Permalink to this definition"></a></dt>
 <dd><p>A list of paths on disk which correspond to the <strong>entity</strong> which this context represents.
@@ -1408,6 +1461,22 @@ when copying files between different user sandboxes. Example:</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.Context.set_flow_context">
+<span class="sig-name descname"><span class="pre">set_flow_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.9/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.set_flow_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Context.set_flow_context" title="Permalink to this definition"></a></dt>
+<dd><p>Set the current flow asset context based on opened file path.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>file_path: File currently opened in DCC.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.Context.clear_flow_context">
+<span class="sig-name descname"><span class="pre">clear_flow_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.clear_flow_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Context.clear_flow_context" title="Permalink to this definition"></a></dt>
+<dd><p>Clear the current flow asset context.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.Context.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">with_user_credentials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Context.serialize" title="Permalink to this definition"></a></dt>
 <dd><p>Serializes the context into a string.</p>
@@ -1472,8 +1541,8 @@ user will be updated with these credentials.</p>
 <dt class="sig sig-object py" id="sgtk.Context.to_dict">
 <span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Context.to_dict" title="Permalink to this definition"></a></dt>
 <dd><p>Converts the context into a dictionary with keys <code class="docutils literal notranslate"><span class="pre">project</span></code>,
-<code class="docutils literal notranslate"><span class="pre">entity</span></code>, <code class="docutils literal notranslate"><span class="pre">user</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">task</span></code>, <code class="docutils literal notranslate"><span class="pre">additional_entities</span></code> and
-<code class="docutils literal notranslate"><span class="pre">source_entity</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">entity</span></code>, <code class="docutils literal notranslate"><span class="pre">user</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">task</span></code>, <code class="docutils literal notranslate"><span class="pre">additional_entities</span></code>,
+<code class="docutils literal notranslate"><span class="pre">source_entity</span></code>, <code class="docutils literal notranslate"><span class="pre">flow_project_id</span></code>, <code class="docutils literal notranslate"><span class="pre">flow_draft_id</span></code> and <code class="docutils literal notranslate"><span class="pre">flow_schema_version</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Contrary to <a class="reference internal" href="#sgtk.Context.serialize" title="sgtk.Context.serialize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Context.serialize()</span></code></a>, this method discards information
@@ -3720,6 +3789,13 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.9/library/exceptions.html#Exception" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 <p>Top level exception for all toolkit-core level runtime errors</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3735,6 +3811,13 @@ set self.__traceback__ to tb and return self.</p>
 <p>Exception that indicates that a project already has a toolkit name but no pipeline configuration.</p>
 <p>Include error message</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankErrorProjectIsSetup.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankErrorProjectIsSetup.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankErrorProjectIsSetup.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankErrorProjectIsSetup.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3748,6 +3831,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.</span></span><span class="sig-name descname"><span class="pre">TankFileDoesNotExistError</span></span><a class="reference internal" href="_modules/tank/errors.html#TankFileDoesNotExistError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.TankFileDoesNotExistError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.TankUnreadableFileError" title="tank.errors.TankUnreadableFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankUnreadableFileError</span></code></a></p>
 <p>Exception that indicates that a required file does not exist.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankFileDoesNotExistError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankFileDoesNotExistError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankFileDoesNotExistError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankFileDoesNotExistError.with_traceback" title="Permalink to this definition"></a></dt>
@@ -3763,6 +3853,13 @@ set self.__traceback__ to tb and return self.</p>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Exception that indicates that a called method does not exist in the hook.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankHookMethodDoesNotExistError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankHookMethodDoesNotExistError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankHookMethodDoesNotExistError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankHookMethodDoesNotExistError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3776,6 +3873,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.</span></span><span class="sig-name descname"><span class="pre">TankUnreadableFileError</span></span><a class="reference internal" href="_modules/tank/errors.html#TankUnreadableFileError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.TankUnreadableFileError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Exception that indicates that a required file can’t be read from disk.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankUnreadableFileError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankUnreadableFileError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankUnreadableFileError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankUnreadableFileError.with_traceback" title="Permalink to this definition"></a></dt>
@@ -3791,6 +3895,13 @@ set self.__traceback__ to tb and return self.</p>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Exception that indicates the core location file contained an invalid path.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankInvalidCoreLocationError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankInvalidCoreLocationError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankInvalidCoreLocationError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankInvalidCoreLocationError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3804,6 +3915,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.</span></span><span class="sig-name descname"><span class="pre">TankNotPipelineConfigurationError</span></span><a class="reference internal" href="_modules/tank/errors.html#TankNotPipelineConfigurationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.TankNotPipelineConfigurationError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Exception that indicates that a folder doesn’t contain a pipeline configuration.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.TankNotPipelineConfigurationError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankNotPipelineConfigurationError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.TankNotPipelineConfigurationError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.TankNotPipelineConfigurationError.with_traceback" title="Permalink to this definition"></a></dt>

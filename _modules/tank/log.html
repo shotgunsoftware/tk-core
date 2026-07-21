@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.log &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.log &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -352,15 +352,14 @@
 <span class="sd">For more information, see https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">logging.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileHandler</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileHandler</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 
@@ -435,7 +434,7 @@
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">temp_backup_name</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># It failed, so we&#39;ll simply append from now on.</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                     <span class="s2">&quot;Cannot rotate log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
@@ -450,7 +449,7 @@
             <span class="c1"># so doRollover can do its work.</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">temp_backup_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># For some reason we couldn&#39;t move the backup in its place.</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                     <span class="s2">&quot;Unexpected issue while rotating log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
@@ -470,7 +469,7 @@
             <span class="c1"># disable rollover and append to the current log.</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">RotatingFileHandler</span><span class="o">.</span><span class="n">doRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># Something probably failed trying to rollover the backups,</span>
                 <span class="c1"># since the code above proved that in theory the main log file</span>
                 <span class="c1"># should be renamable. In any case, we didn&#39;t succeed in renaming,</span>
@@ -727,7 +726,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Full path to the current log file or None if logging is not active. &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Full path to the current log file or None if logging is not active.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_file</span>
 
     <span class="nd">@property</span>
@@ -964,6 +963,8 @@
 <span class="c1"># this should not be changed, but any filtering</span>
 <span class="c1"># should happen via log handlers</span>
 <span class="n">sgtk_root_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+
 <span class="c1">#</span>
 <span class="c1"># create a &#39;nop&#39; log handler to be attached.</span>
 <span class="c1"># this is to avoid warnings being reported that</span>

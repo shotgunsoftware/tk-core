@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.23.9 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -2983,6 +2983,13 @@ If not url has been defined, <code class="docutils literal notranslate"><span cl
 <dd><p>Bases: <a class="reference internal" href="core.html#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Base class for all descriptor related errors.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankDescriptorError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankDescriptorError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankDescriptorError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankDescriptorError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -2996,6 +3003,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.descriptor.</span></span><span class="sig-name descname"><span class="pre">TankAppStoreError</span></span><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="tank.descriptor.errors.TankDescriptorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankDescriptorError</span></code></a></p>
 <p>Errors relating to the Toolkit App Store app store.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankAppStoreError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankAppStoreError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankAppStoreError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankAppStoreError.with_traceback" title="Permalink to this definition"></a></dt>
@@ -3011,6 +3025,13 @@ set self.__traceback__ to tb and return self.</p>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.descriptor.TankAppStoreError" title="tank.descriptor.errors.TankAppStoreError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankAppStoreError</span></code></a></p>
 <p>Errors indicating an error connecting to the Toolkit App Store.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankAppStoreConnectionError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankAppStoreConnectionError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankAppStoreConnectionError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankAppStoreConnectionError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3024,6 +3045,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.descriptor.</span></span><span class="sig-name descname"><span class="pre">TankInvalidAppStoreCredentialsError</span></span><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankInvalidAppStoreCredentialsError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.descriptor.TankInvalidAppStoreCredentialsError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.descriptor.TankAppStoreConnectionError" title="tank.descriptor.errors.TankAppStoreConnectionError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankAppStoreConnectionError</span></code></a></p>
 <p>Error indicating no credentials for the Toolkit App Store were found in Shotgun.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankInvalidAppStoreCredentialsError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankInvalidAppStoreCredentialsError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankInvalidAppStoreCredentialsError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankInvalidAppStoreCredentialsError.with_traceback" title="Permalink to this definition"></a></dt>
@@ -3050,6 +3078,13 @@ set self.__traceback__ to tb and return self.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankCheckVersionConstraintsError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankCheckVersionConstraintsError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankCheckVersionConstraintsError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankCheckVersionConstraintsError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3064,6 +3099,13 @@ set self.__traceback__ to tb and return self.</p>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="tank.descriptor.errors.TankDescriptorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankDescriptorError</span></code></a></p>
 <p>Exception that indicates that the interpreter specified in a file was not found.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankInvalidInterpreterLocationError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankInvalidInterpreterLocationError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankInvalidInterpreterLocationError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankInvalidInterpreterLocationError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -3077,6 +3119,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.descriptor.</span></span><span class="sig-name descname"><span class="pre">TankMissingManifestError</span></span><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankMissingManifestError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.descriptor.TankMissingManifestError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="tank.descriptor.errors.TankDescriptorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankDescriptorError</span></code></a></p>
 <p>Exception that indicates that the manifest file is missing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.descriptor.TankMissingManifestError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankMissingManifestError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.descriptor.TankMissingManifestError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.TankMissingManifestError.with_traceback" title="Permalink to this definition"></a></dt>

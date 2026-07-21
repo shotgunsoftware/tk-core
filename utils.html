@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Utilities &mdash; tk-core v0.23.9 documentation</title>
+  <title>Utilities &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -170,22 +170,27 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.EnvironmentVariableFileLookupError"><code class="docutils literal notranslate"><span class="pre">EnvironmentVariableFileLookupError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.EnvironmentVariableFileLookupError.add_note"><code class="docutils literal notranslate"><span class="pre">EnvironmentVariableFileLookupError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.EnvironmentVariableFileLookupError.with_traceback"><code class="docutils literal notranslate"><span class="pre">EnvironmentVariableFileLookupError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.ShotgunPublishError"><code class="docutils literal notranslate"><span class="pre">ShotgunPublishError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.ShotgunPublishError.add_note"><code class="docutils literal notranslate"><span class="pre">ShotgunPublishError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.ShotgunPublishError.with_traceback"><code class="docutils literal notranslate"><span class="pre">ShotgunPublishError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.PublishResolveError"><code class="docutils literal notranslate"><span class="pre">PublishResolveError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.PublishResolveError.add_note"><code class="docutils literal notranslate"><span class="pre">PublishResolveError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.PublishResolveError.with_traceback"><code class="docutils literal notranslate"><span class="pre">PublishResolveError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError"><code class="docutils literal notranslate"><span class="pre">PublishPathNotDefinedError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError.add_note"><code class="docutils literal notranslate"><span class="pre">PublishPathNotDefinedError.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError.with_traceback"><code class="docutils literal notranslate"><span class="pre">PublishPathNotDefinedError.with_traceback()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk.util.PublishPathNotSupported"><code class="docutils literal notranslate"><span class="pre">PublishPathNotSupported</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sgtk.util.PublishPathNotSupported.add_note"><code class="docutils literal notranslate"><span class="pre">PublishPathNotSupported.add_note()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sgtk.util.PublishPathNotSupported.with_traceback"><code class="docutils literal notranslate"><span class="pre">PublishPathNotSupported.with_traceback()</span></code></a></li>
 </ul>
 </li>
@@ -217,7 +222,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -2345,6 +2350,13 @@ file that doesn’t exist.</p>
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.util.EnvironmentVariableFileLookupError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.EnvironmentVariableFileLookupError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.util.EnvironmentVariableFileLookupError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.EnvironmentVariableFileLookupError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -2370,6 +2382,13 @@ available in the ‘entity’ property.</p>
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.util.ShotgunPublishError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.ShotgunPublishError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.util.ShotgunPublishError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.ShotgunPublishError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -2383,6 +2402,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.util.</span></span><span class="sig-name descname"><span class="pre">PublishResolveError</span></span><a class="reference internal" href="_modules/tank/util/errors.html#PublishResolveError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.util.PublishResolveError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="core.html#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Base class for all errors relating to resolution of paths from publishes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.util.PublishResolveError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.PublishResolveError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.util.PublishResolveError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.PublishResolveError.with_traceback" title="Permalink to this definition"></a></dt>
@@ -2401,6 +2427,13 @@ defined for the current operating system platform. It
 may or may not have publish paths defined on other
 platforms.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.util.PublishPathNotDefinedError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.PublishPathNotDefinedError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.util.PublishPathNotDefinedError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.PublishPathNotDefinedError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -2416,6 +2449,13 @@ set self.__traceback__ to tb and return self.</p>
 <p>Exception raised when a publish has a path defined but it is using a path
 definition that cannot be resolved into a local path. This includes for
 example unsupported url schemes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.util.PublishPathNotSupported.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.PublishPathNotSupported.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.util.PublishPathNotSupported.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.util.PublishPathNotSupported.with_traceback" title="Permalink to this definition"></a></dt>

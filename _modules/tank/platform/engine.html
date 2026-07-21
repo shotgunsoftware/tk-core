@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,44 +144,39 @@
 <span class="sd">Defines the base class for all Tank Engines.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>  <span class="c1"># required to support python 3.9</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util.qt_importer</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtImporter</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.flowam</span><span class="w"> </span><span class="kn">import</span> <span class="n">host</span> <span class="k">as</span> <span class="n">flow_host</span>  <span class="c1"># noqa: F401 (used in return annotation)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.flowam</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span> <span class="k">as</span> <span class="n">flow_utils</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">hook</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics_cache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventMetric</span><span class="p">,</span> <span class="n">MetricsDispatcher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util.qt_importer</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtImporter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">application</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">qt</span><span class="p">,</span> <span class="n">qt5</span><span class="p">,</span> <span class="n">qt6</span><span class="p">,</span> <span class="n">validation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankBundle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">TankEngineInitError</span><span class="p">,</span>
-    <span class="n">TankUnresolvedEnvironmentError</span><span class="p">,</span>
     <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span>
     <span class="n">TankEngineEventError</span><span class="p">,</span>
+    <span class="n">TankEngineInitError</span><span class="p">,</span>
     <span class="n">TankMissingEngineError</span><span class="p">,</span>
+    <span class="n">TankUnresolvedEnvironmentError</span><span class="p">,</span>
 <span class="p">)</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventMetric</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsDispatcher</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics_cache</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">application</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">validation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">events</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt5</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">qt6</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankBundle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_frameworks</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
 
 <span class="c1"># std core level logger</span>
 <span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -199,6 +194,11 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Engine instances are constructed by the toolkit launch process</span>
 <span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
+
+<span class="sd">        For Flow-enabled contexts (``context.flow_project_id`` set), this</span>
+<span class="sd">        also runs ``flow_utils.init_flow()`` to set up the Flow Integration</span>
+<span class="sd">        SDK session and provision pipeline schemas when the SG schema</span>
+<span class="sd">        config version does not match the bundled config.</span>
 
 <span class="sd">        :param tk: :class:`~sgtk.Sgtk` instance</span>
 <span class="sd">        :param context: A context object to define the context on disk where the engine is operating</span>
@@ -236,6 +236,10 @@
         <span class="c1"># to access the invoker don&#39;t trip on undefined variables.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Flow host object used in Flow asset management integration</span>
+        <span class="c1"># Engines that support Flow integration will initialize this value to an instance of FlowHost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_flow_host</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># get the engine settings</span>
         <span class="n">settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__env</span><span class="o">.</span><span class="n">get_engine_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__engine_instance_name</span><span class="p">)</span>
@@ -293,6 +297,18 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">init_path</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Appending to PYTHONPATH: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">python_path</span><span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">python_path</span><span class="p">)</span>
+
+        <span class="c1"># Do Flow sdk initialization if context is configured with Flow</span>
+        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">flow_project_id</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">flow_utils</span><span class="o">.</span><span class="n">init_flow</span><span class="p">(</span>
+                    <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="p">,</span>
+                    <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="p">,</span>
+                    <span class="n">context</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">&quot;Error occurred during Flow initialization!&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
 
         <span class="c1"># Note, &#39;init_engine()&#39; is now deprecated and all derived initialisation should be</span>
         <span class="c1"># done in either &#39;pre_app_init()&#39; or &#39;post_app_init()&#39;.  &#39;init_engine()&#39; is left</span>
@@ -454,7 +470,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="c1"># only import QT if we have a UI</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 
             <span class="n">url</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QUrl</span><span class="o">.</span><span class="n">fromLocalFile</span><span class="p">(</span><span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">log_folder</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDesktopServices</span><span class="o">.</span><span class="n">openUrl</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
@@ -542,10 +558,10 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="c1"># we cannot import QT until here as non-ui engines don&#39;t have QT defined.</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">.qt.busy_dialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">BusyDialog</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># QT import failed. This may be because someone has upgraded the core</span>
                 <span class="c1"># to the latest but are still running a earlier version of the</span>
                 <span class="c1"># Shotgun or Shell engine where the self.has_ui method is not</span>
@@ -816,6 +832,18 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flow_host</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">flow_host</span><span class="o">.</span><span class="n">FlowHost</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: F811</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If the current context is Flow enabled, and the current</span>
+<span class="sd">        engine supports Flow integration, this value will be an instance of FlowHost.</span>
+<span class="sd">        The FlowHost class implements the required interface for the Flow asset management</span>
+<span class="sd">        integration to work within a dcc/engine.</span>
+
+<span class="sd">        If the current context is not Flow enabled, or the current engine has not had</span>
+<span class="sd">        Flow support added, the value will be None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow_host</span>
+
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init and destroy</span>
 
@@ -906,7 +934,7 @@
         <span class="c1"># context change, it&#39;s that the target context isn&#39;t configured properly.</span>
         <span class="c1"># As such, we&#39;ll let any exceptions (mostly TankEngineInitError) bubble</span>
         <span class="c1"># up since it&#39;s a critical error case.</span>
-        <span class="p">(</span><span class="n">new_env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
+        <span class="n">new_env</span><span class="p">,</span> <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
             <span class="n">engine_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">instance_name</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">new_context</span>
         <span class="p">)</span>
 
@@ -940,7 +968,6 @@
             <span class="c1"># a context change. If one of them is not, then we remove it</span>
             <span class="c1"># from the persistent app pool, which will force it to be</span>
             <span class="c1"># rebuilt when apps are loaded later on.</span>
-            <span class="n">non_compliant_app_paths</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">install_path</span><span class="p">,</span> <span class="n">app_instances</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__application_pool</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">app_instances</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span>
@@ -1330,7 +1357,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="k">if</span> <span class="n">invoker_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SYNC_INVOKER</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">invoker</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
@@ -1379,7 +1406,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># return a dictionary grouping all the commands by instance name</span>
         <span class="n">commands_by_instance</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">app_instance</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">app_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -1816,7 +1843,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
 
             <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+
+            <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 
             <span class="c1"># A very simple widget that ensures that the exception is visible and</span>
             <span class="c1"># selectable should the user need to copy/paste it into a support</span>
@@ -2116,7 +2144,7 @@
 <span class="sd">        :returns: Stylesheet string with replacements applied</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">processed_style_sheet</span> <span class="o">=</span> <span class="n">style_sheet</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">constants</span><span class="o">.</span><span class="n">SG_STYLESHEET_CONSTANTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">constants</span><span class="o">.</span><span class="n">SG_STYLESHEET_CONSTANTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">processed_style_sheet</span> <span class="o">=</span> <span class="n">processed_style_sheet</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
                 <span class="s2">&quot;{{</span><span class="si">%s</span><span class="s2">}}&quot;</span> <span class="o">%</span> <span class="n">token</span><span class="p">,</span> <span class="n">value</span>
             <span class="p">)</span>
@@ -2260,7 +2288,12 @@
 
 <span class="sd">        :returns: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;qt_core&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;qt_gui&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;qt_web_engine_widgets&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;dialog_base&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;qt_core&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;qt_gui&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;qt_web_engine_widgets&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;dialog_base&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">importer</span> <span class="o">=</span> <span class="n">QtImporter</span><span class="p">()</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">&quot;qt_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtCore</span>
@@ -2272,7 +2305,7 @@
                 <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">binding</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">&quot;shiboken&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">shiboken</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span>
                 <span class="s2">&quot;Default engine QT definition failed to find QT. &quot;</span>
@@ -2573,7 +2606,7 @@
         <span class="n">invoker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">async_invoker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 
             <span class="c1"># Classes are defined locally since Qt might not be available.</span>
             <span class="k">if</span> <span class="n">QtGui</span> <span class="ow">and</span> <span class="n">QtCore</span><span class="p">:</span>
@@ -2995,7 +3028,6 @@
 
 <span class="sd">    :returns: :class:`Engine` instance or None if no engine is running.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">g_current_engine</span>
     <span class="k">return</span> <span class="n">g_current_engine</span></div>
 
 
@@ -3024,7 +3056,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># get environment and engine location</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
             <span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="n">TankEngineInitError</span><span class="p">:</span>
@@ -3200,7 +3232,7 @@
         <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
 
     <span class="c1"># get environment and engine location</span>
-    <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
+    <span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span>
         <span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">new_context</span>
     <span class="p">)</span>
 

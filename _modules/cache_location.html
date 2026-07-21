@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>cache_location &mdash; tk-core v0.23.9 documentation</title>
+  <title>cache_location &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -144,9 +144,10 @@
 <span class="sd">Hook to control path cache and bundle cache folder creation.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">filesystem</span><span class="p">,</span> <span class="n">LocalFileStorageManager</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalFileStorageManager</span><span class="p">,</span> <span class="n">filesystem</span>
 
 <span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>

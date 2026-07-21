@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.download &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -145,7 +145,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
@@ -313,7 +312,9 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="download_and_unpack_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_url">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">download_and_unpack_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="download_and_unpack_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_url">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">download_and_unpack_url</span><span class="p">(</span>
+    <span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the content from the provided url, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
@@ -329,7 +330,9 @@
 <span class="sd">        the bundle in a subfolder, this should be correctly unfolded.</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span></div>
+    <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span>
+        <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="p">)</span></div>
 
 
 <span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Initialization and startup &mdash; tk-core v0.23.9 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -150,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -1374,6 +1374,13 @@ bootstrapping.</p>
 <dd><p>Bases: <a class="reference internal" href="core.html#sgtk.TankError" title="tank.errors.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a></p>
 <p>Base class for all bootstrap related errors</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="sgtk.bootstrap.TankBootstrapError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.bootstrap.TankBootstrapError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="sgtk.bootstrap.TankBootstrapError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.bootstrap.TankBootstrapError.with_traceback" title="Permalink to this definition"></a></dt>
 <dd><p>Exception.with_traceback(tb) –
@@ -1387,6 +1394,13 @@ set self.__traceback__ to tb and return self.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sgtk.bootstrap.</span></span><span class="sig-name descname"><span class="pre">TankMissingTankNameError</span></span><a class="reference internal" href="_modules/tank/bootstrap/errors.html#TankMissingTankNameError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.bootstrap.TankMissingTankNameError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sgtk.bootstrap.TankBootstrapError" title="tank.bootstrap.errors.TankBootstrapError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankBootstrapError</span></code></a></p>
 <p>Raised when a project’s <code class="docutils literal notranslate"><span class="pre">tank_name</span></code> field is not set.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.bootstrap.TankMissingTankNameError.add_note">
+<span class="sig-name descname"><span class="pre">add_note</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.bootstrap.TankMissingTankNameError.add_note" title="Permalink to this definition"></a></dt>
+<dd><p>Exception.add_note(note) –
+add a note to the exception</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="sgtk.bootstrap.TankMissingTankNameError.with_traceback">
 <span class="sig-name descname"><span class="pre">with_traceback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.bootstrap.TankMissingTankNameError.with_traceback" title="Permalink to this definition"></a></dt>

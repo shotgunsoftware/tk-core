@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.23.9 documentation</title>
+  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.23.10 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.23.9.<br>
+    <b>tk-core</b> v0.23.10.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -142,14 +142,11 @@
 
 <span class="sd">&quot;&quot;&quot;PTR Authenticator.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.sso_saml2</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_sso_info_in_cookies</span><span class="p">,</span> <span class="n">has_unified_login_flow_info_in_cookies</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive_authentication</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">user</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">user_impl</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">session_cache</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncompleteCredentials</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.defaults_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultsManager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive_authentication</span><span class="p">,</span> <span class="n">session_cache</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">user_impl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.defaults_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultsManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncompleteCredentials</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sso_saml2</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_sso_info_in_cookies</span><span class="p">,</span> <span class="n">has_unified_login_flow_info_in_cookies</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
