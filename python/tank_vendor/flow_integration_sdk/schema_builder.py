@@ -27,11 +27,11 @@ from .exceptions import (
     FlowSchemaError,
     FlowSchemaLibraryError,
 )
-from .globals import BASE_TYPE_ID, get_client
+from .globals import KIND_BASE_TYPE_ID, get_client
 from .objects import FlowProject
 from . import schema
 from .schema import get_schema_id
-from .utils import cleanpath, get_logger
+from .utils import get_logger
 
 
 # Constant for Flow Toolkit Library schema library ID
@@ -90,10 +90,10 @@ class SchemaBuilder:
         }
 
         # Check for mandatory keys
-        for key in ["name", "version"]:
+        for key in ["name", "version", "kind"]:
             if key not in self.schema_dict:
                 raise KeyError(
-                    f"The custom type schema must contain a '{key}' key of type string."
+                    f"The schema definition must contain a '{key}' key of type string."
                 )
 
         # Validate keys and types
@@ -274,9 +274,7 @@ class SchemaBuilder:
         # Build property list for CreateSchemaInput
         properties = []
         for property_dict in self.schema_dict.get("properties", []):
-            properties.append(
-                self._create_properties_definition_input(property_dict)
-            )
+            properties.append(self._create_properties_definition_input(property_dict))
 
         try:
             # Create CreateSchemaInput for the mutation
@@ -296,7 +294,7 @@ class SchemaBuilder:
             )
             query_response = create_schema_query.call()
             self.schema = query_response.schema
-            logger.info("Created new schema: %s", self.schema.name)
+            logger.info(f"Created new schema: {self.schema.name}")
         except (GQLAPIError, FlowConnectionError, ValidationError) as e:
             raise FlowSchemaError(
                 details=(
@@ -323,7 +321,9 @@ class SchemaBuilder:
         """
 
         if not self.schema:
-            raise FlowSchemaBuilderError(details="Schema instance has not been built yet.")
+            raise FlowSchemaBuilderError(
+                details="Schema instance has not been built yet."
+            )
 
         client = get_client()
         schema_display_data = None
@@ -372,7 +372,9 @@ class SchemaBuilder:
         display_name = self.schema_dict.get("display_name")
 
         if not self.schema:
-            raise FlowSchemaBuilderError(details="Schema instance has not been built yet.")
+            raise FlowSchemaBuilderError(
+                details="Schema instance has not been built yet."
+            )
 
         if not display_name:
             raise FlowSchemaBuilderError(
@@ -494,9 +496,7 @@ def _create_schema_library(
             project_id=project_id,
         )
         # Create and call the schema mutation
-        schema_query = client.service_schema.create_schema_library(
-            variables=input_data
-        )
+        schema_query = client.service_schema.create_schema_library(variables=input_data)
         query_response = schema_query.call()
         # Extract the created schema library from the response
         schema_library = query_response.schema_library
@@ -542,26 +542,32 @@ def create_pipeline_schemas(project_id: str, config_path: str):
 
     config = schema._read_schema_config(config_path)
     if "schemas" not in config:
-        raise KeyError("The schema config file must contain a 'schemas' key with a list of schemas to create.")
+        raise KeyError(
+            "The schema config file must contain a 'schemas' key with a list of schemas to create."
+        )
     client = get_client()
     collection_id = FlowProject.get_collection_id(project_id)
 
-    # Retrieve all existing published schema type ids for the collection
+    # Collect distinct schema kinds present in config, then query existing
+    # schemas per kind. This avoids querying for kinds not used in the config.
+    kinds_in_config = {s["kind"] for s in config.get("schemas", []) if "kind" in s}
+
+    existing_schema_types = set()
     try:
-        # Create SchemasBySuperTypeInput for the query
-        schemas_by_supertype_input = flow_model.SchemasBySuperTypeInput(
-            collection_id=collection_id,
-            type_id=BASE_TYPE_ID,
-            include_sub_sub_classes=True,
-        )
-        # Create and call the schema query
-        schema_query = client.service_schema.schemas_by_super_type(
-            variables=schemas_by_supertype_input
-        )
-        existing_schema_types = set(schema_query.schema_types_iterator)
+        for kind in kinds_in_config:
+            base_type_id = KIND_BASE_TYPE_ID[kind]
+            schemas_by_supertype_input = flow_model.SchemasBySuperTypeInput(
+                collection_id=collection_id,
+                type_id=base_type_id,
+                include_sub_sub_classes=True,
+            )
+            schema_query = client.service_schema.schemas_by_super_type(
+                variables=schemas_by_supertype_input
+            )
+            existing_schema_types.update(schema_query.schema_types_iterator)
         logger.info(
             f"Retrieved {len(existing_schema_types)} existing schemas for "
-            f"collection {collection_id}."
+            f'collection "{collection_id}".'
         )
     except (GQLAPIError, FlowConnectionError, ValidationError) as e:
         raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
@@ -574,8 +580,7 @@ def create_pipeline_schemas(project_id: str, config_path: str):
         schema_type_id = get_schema_id(schema_dict["name"])
         if schema_type_id not in existing_schema_types:
             logger.info(
-                "Schema '%s' not found. Adding to list to be created.",
-                schema_type_id,
+                f'Schema "{schema_type_id}" not found. Adding to list to be created.'
             )
             need_to_create.append(schema_dict)
 

@@ -27,21 +27,27 @@ from . import utils
 from .exceptions import FlowError
 from .utils import get_logger
 
-# Component type ids
+# Schema type ids
 # ------------------
 # Type ids correspond to specific MEDM schemas (and versions).
 # Schemas can be created in a hierarchical fashion using inheritance.
 # The schemas below are official Autodesk supported types that are
 # commonly relevant to asset management.
 
+BASE_COMPONENT_TYPE_ID = "autodesk.me:component-1.0.0"
+BASE_PROPERTY_TYPE_ID = "autodesk.me:property-1.0.0"
 BASE_TYPE_ID = "autodesk.me:type-1.1.0"
 BINARY_TYPE_ID = "autodesk.me:component.binary-1.0.0"
 COMMENT_TYPE_ID = "autodesk.me:component.publishComment-1.0.0"
-# NOTE: This is a temporary schema being annexed for representing derivative source
-#       which should be switched for a dedicated schema later.
-DER_SOURCE_TYPE_ID = "autodesk.me:component.dynamicPlaylistSource-1.0.0"
 FOLDER_TYPE_ID = "autodesk.me:type.folder-1.0.0"
 IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
+
+# Maps schema kind name to its root base type ID
+KIND_BASE_TYPE_ID = {
+    "component": BASE_COMPONENT_TYPE_ID,
+    "property": BASE_PROPERTY_TYPE_ID,
+    "type": BASE_TYPE_ID,
+}
 
 # Component types
 # ---------------
@@ -49,6 +55,9 @@ IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
 FILE_SEQ_TYPE = "type.fileSequence"
+DER_SOURCE_TYPE = "component.source"
+LAYER_TYPE = "component.layer"
+VARIANT_SET_TYPE = "component.variantSet"
 
 
 # Component purposes
