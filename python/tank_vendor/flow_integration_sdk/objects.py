@@ -49,6 +49,7 @@ from .globals import (
     REFERENCE_TYPE,
     get_client,
     get_webapp_url,
+    LAYER_TYPE,
     VARIANT_SET_TYPE,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
@@ -449,6 +450,27 @@ class ComponentMixin:
         except KeyError as exc:
             msg = f"Malformed reference component detected. {exc}"
             raise FlowError(msg) from exc
+
+    @trace
+    def get_layers(self) -> dict[str, str]:
+        """Find any Layer components and return a dictionary of layer names
+        mapped to the asset id of each layer asset.
+
+        Returns:
+            Dictionary mapping layer name to asset id.
+        """
+        layer_type_id = get_schema_id(LAYER_TYPE)
+        layer_comps = self.find_components(type_id=layer_type_id)
+        layers = {}
+        try:
+            for comp in layer_comps:
+                layer_name = comp.properties["layerName"]
+                layer_id = comp.properties["targetAsset"]
+                layers[layer_name] = layer_id
+        except KeyError as exc:
+            msg = f"Malformed layer component detected. {exc}"
+            raise FlowError(msg) from exc
+        return layers
 
 
 class FlowProject(FlowEntity):

@@ -57,6 +57,7 @@ KIND_BASE_TYPE_ID = {
 FILE_SEQ_TYPE = "type.fileSequence"
 REFERENCE_TYPE = "component.reference"
 DER_SOURCE_TYPE = "component.source"
+LAYER_TYPE = "component.layer"
 VARIANT_SET_TYPE = "component.variantSet"
 
 

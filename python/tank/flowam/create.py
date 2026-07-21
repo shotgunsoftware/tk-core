@@ -13,12 +13,15 @@ from __future__ import annotations  # needed for python 3.9 support
 import re
 from enum import Enum
 
+from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_integration_sdk.exceptions import CreateAssetError, FlowError
 from tank_vendor.flow_integration_sdk.globals import FOLDER_TYPE_ID
 from tank_vendor.flow_integration_sdk.objects import FlowAsset, FlowProject
 from tank_vendor.flow_integration_sdk.publish import (
+    LayerComponentSpec,
     TypeComponentSpec,
     publish_new_asset,
+    publish_new_revision,
 )
 from tank_vendor.flow_integration_sdk.schema import get_schema_id
 from tank_vendor.flow_integration_sdk.utils import get_logger, trace
@@ -153,11 +156,10 @@ def get_or_create_root_folder(inputs: BaseInputs) -> FlowAsset:
 def get_or_create_workfile_parent(
     root_folder: FlowAsset, inputs: BaseInputs
 ) -> FlowAsset:
-    """Determine (and create if necessary) the task-level folder that will be
-    the direct parent of the workfile asset.
+    """Determine (and create if necessary) the parent container of the workfile asset.
 
     Returns:
-        The task-folder :class:`FlowAsset`.
+        The parent asset as :class:`FlowAsset`.
     """
     logger = get_logger(__name__)
 
@@ -193,6 +195,19 @@ def get_or_create_workfile_parent(
         )
         pipeline_step = FlowAsset(medm_asset)
 
+        logger.info(
+            f'Adding layer component for "{sg_pipeline_step}" on '
+            f'container "{container.name}"...'
+        )
+        publish_new_revision(
+            asset_id=container.id,
+            components=[
+                LayerComponentSpec(
+                    layer_name=sg_pipeline_step, asset_id=pipeline_step.id
+                )
+            ],
+            components_action=medm_model.ListAction.ADD,
+        )
     if inputs.create_mode == CreateMode.GENERIC:
         # Parent generic assets directly under pipeline step
         parent = pipeline_step

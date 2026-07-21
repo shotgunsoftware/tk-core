@@ -45,6 +45,7 @@ from .globals import (
     get_client,
     IMAGE_TYPE_ID,
     REFERENCE_TYPE,
+    LAYER_TYPE,
     SOURCE_COMP,
     SOURCE_PURPOSE,
     THUMBNAIL_COMP,
@@ -535,6 +536,38 @@ class FileSeqComponentSpec(TypeComponentSpec):
             frameEnd=self.frame_end,
             frameSet=self.frame_set,
             fileFormat=self.file_format,
+        )
+
+
+class LayerComponentSpec(ComponentSpec):
+    """Specifications for creating a layer component.
+
+    A layer component represents a named compositional relationship where the
+    target asset contributes compositionally to this asset. It carries a
+    ``targetAsset`` reference to the contributing child asset.
+    """
+
+    def __init__(self, layer_name: str, asset_id: str):
+        """
+        Args:
+            layer_name: Name identifying this layer relationship
+                        (e.g. the pipeline-step name).
+            asset_id: MEDM id of the target asset the layer points to.
+        """
+        self.layer_name = layer_name
+        self.asset_id = asset_id
+
+    @property
+    def name(self) -> str:
+        return f"Layer-{self.layer_name}"
+    
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=get_schema_id(LAYER_TYPE),
+            layerName=self.layer_name,
+            targetAsset=self.build_reference_value(self.asset_id),
         )
 
 
