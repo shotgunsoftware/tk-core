@@ -203,7 +203,9 @@ def get_or_create_workfile_parent(
             asset_id=container.id,
             components=[
                 LayerComponentSpec(
-                    layer_name=sg_pipeline_step, asset_id=pipeline_step.id
+                    layer_name=sg_pipeline_step,
+                    asset_id=pipeline_step.id,
+                    display_name=sg_pipeline_step,
                 )
             ],
             components_action=medm_model.ListAction.ADD,
