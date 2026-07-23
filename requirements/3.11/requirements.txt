@@ -4,4 +4,4 @@ packaging==25.0
 pyjwt==2.12.0
 pyyaml==6.0.2
 ruamel.yaml==0.18.14
-shotgun_api3==3.10.0
+shotgun_api3 @ git+https://github.com/shotgunsoftware/python-api.git@v3.10.3
