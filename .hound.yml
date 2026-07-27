@@ -10,9 +10,9 @@
 
 # https://houndci.com configuration file for linting and PEP8
 
+# Python linting is enforced by ruff via pre-commit and Azure CI.
 python:
-  enabled: true
-  config_file: .flake8
+  enabled: false
 
 black:
   enabled: false

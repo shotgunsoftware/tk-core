@@ -47,7 +47,6 @@ class TestVersionCompare(ShotgunTestBase):
         ("v0.12.3", "1.2.3"): OLDER,
         ("v0.12.3", "0.12.4"): OLDER,
         ("1.0.0", "1.0.0"): EQUAL,
-        ("1.2.3", "1.0.0"): NEWER,
         (git_sha, "1.0.0"): NEWER,
         ("1.0.0", git_sha): OLDER,
         (git_sha, git_sha): EQUAL,

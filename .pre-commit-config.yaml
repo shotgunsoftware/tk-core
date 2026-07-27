@@ -65,7 +65,7 @@ repos:
     - id: black
   # Lints for semantic issues (unused imports, undefined names, bare excepts,
   # etc.). Runs last so it lints the code after all formatters have run.
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
     hooks:
-    - id: flake8
+    - id: ruff-check

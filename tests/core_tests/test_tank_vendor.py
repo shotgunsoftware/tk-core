@@ -185,7 +185,7 @@ class TestTankVendorMetaFinder(ShotgunTestBase):
 
     def test_meta_finder_installed(self):
         """Test that the meta finder is installed in sys.meta_path."""
-        import tank_vendor
+        import tank_vendor  # noqa: F401
 
         # Meta finder should be installed
         self.assertTrue(hasattr(sys, "_tank_vendor_meta_finder"))
