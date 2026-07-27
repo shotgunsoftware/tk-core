@@ -9,12 +9,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import tempfile
 import json
 import os
 import sys
-
+import tempfile
 from unittest import TestCase
+
 from sgtk.util import pickle
 
 
@@ -221,7 +221,6 @@ class Impl:
 
 
 class JSONTests(Impl.SerializationTests):
-
     # Parametrizes the tests from the base class.
     filename = "json_saved_with_python_{0}.{1}.json"
     mode = "t"
@@ -231,7 +230,6 @@ class JSONTests(Impl.SerializationTests):
 
 
 class PickleTests(Impl.SerializationTests):
-
     # Parametrizes the tests from the base class.
     filename = "pickle_saved_with_python_{0}.{1}.pickle"
     mode = "b"

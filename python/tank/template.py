@@ -16,8 +16,7 @@ Management of file and directory templates.
 import os
 import sys
 
-from tank.util import is_linux, is_macos, is_windows
-from tank.util import sgre as re
+from tank.util import is_linux, is_macos, is_windows, sgre as re
 
 from . import constants, templatekey
 from .errors import TankError

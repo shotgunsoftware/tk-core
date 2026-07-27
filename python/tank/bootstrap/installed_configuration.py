@@ -57,7 +57,6 @@ class InstalledConfiguration(Configuration):
             config_path, "config", "core", "pipeline_configuration.yml"
         )
         if not os.path.exists(pipe_cfg_path):
-
             log.warning(
                 "Your centralized pipeline configuration is missing the file %s. "
                 "Pipeline configurations using the fields windows_path, mac_path "

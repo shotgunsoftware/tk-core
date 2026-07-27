@@ -622,13 +622,11 @@ class PipelineConfiguration(object):
         current_os_path_lookup = {}
 
         for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
-
             # get current os path
             local_path = sg_path.current_os
 
             # validate it
             if local_path is None:
-
                 raise TankError(
                     "Undefined storage! The local file storage '%s' is not "
                     "defined for this operating system! Please contact "
@@ -751,7 +749,6 @@ class PipelineConfiguration(object):
         project_roots_lookup = {}
 
         for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
-
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
 
@@ -779,7 +776,6 @@ class PipelineConfiguration(object):
         project_roots_lookup = {}
 
         for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
-
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
 

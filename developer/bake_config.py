@@ -328,7 +328,6 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
 if __name__ == "__main__":
-
     # set up std toolkit logging to file
     LogManager().initialize_base_file_handler("bake_config")
 

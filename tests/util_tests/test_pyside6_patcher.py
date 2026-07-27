@@ -9,9 +9,9 @@
 # not expressly granted therein are reserved by Autodesk.
 
 from tank.util import pyside6_patcher
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
+    setUpModule,  # noqa
     skip_if_pyside6,
 )
 

@@ -13,8 +13,10 @@ import os
 
 from sgtk import TankError
 from sgtk.util.yaml_cache import YamlCache
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 from tank_vendor import yaml
 
 

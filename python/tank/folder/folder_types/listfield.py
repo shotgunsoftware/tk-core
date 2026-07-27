@@ -140,7 +140,6 @@ class ListField(Folder):
             values = [sg_data[token_name]]
 
         else:
-
             # get all list field values from shotgun by querying the schema methods
             # using schema_field_read()
             #
@@ -217,7 +216,6 @@ class ListField(Folder):
         products = []
 
         for sg_value in values:
-
             # render field expression
             folder_name = self._field_expr_obj.generate_name(
                 {self._field_name: sg_value}
@@ -257,7 +255,6 @@ class ListField(Folder):
         used_values = []
 
         for value in values:
-
             # eg. sg_asset_type is prop
             filters = [[field_name, "is", value]]
             if project:

@@ -185,7 +185,6 @@ def validate_and_return_frameworks(descriptor, environment):
         min_version_satisfied = True
 
         for fw_instance_name, fw_desc in fw_descriptors.items():
-
             # We've found a matching framework.
             if fw_instance_name == desired_fw_instance:
                 # Now we need to see if there's a minimum required version
@@ -372,7 +371,6 @@ class _SchemaValidator:
         ]
 
         for default_value_key in default_value_keys:
-
             # validate the default value:
             default_value = schema[default_value_key]
 
@@ -629,7 +627,6 @@ class _SettingsValidator:
             )
 
         if "fields" in schema:
-
             #################################################################################
             # NEW SCHOOL VALIDATION USING fields: context, foo, bar, [baz]
             #
@@ -650,7 +647,6 @@ class _SettingsValidator:
                 raise TankError(msg)
 
         else:
-
             #################################################################################
             # OLD SCHOOL VALIDATION USING required_fields, optional_fields etc.
 
@@ -761,7 +757,6 @@ class _SettingsValidator:
         hook_paths_to_validate = []
 
         for hook_path in hook_value.split(":"):
-
             if hook_path.startswith("{self}"):
                 # assume that each app contains its correct hooks
                 continue

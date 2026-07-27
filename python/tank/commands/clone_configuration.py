@@ -282,7 +282,6 @@ def _do_clone(
 
     # lastly, update the pipeline_configuration.yml file
     try:
-
         sg_pc_location = os.path.join(
             target_folder, "config", "core", constants.PIPELINECONFIG_FILE
         )

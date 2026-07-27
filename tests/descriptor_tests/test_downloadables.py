@@ -22,10 +22,10 @@ from functools import reduce
 import pytest
 import sgtk
 import tank
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
     skip_if_git_missing,
     temp_env_var,
 )
@@ -204,7 +204,6 @@ class Implementation(object):
         done = False
 
         while not done and attempt < retries:
-
             zip_tmp = os.path.join(
                 tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex
             )

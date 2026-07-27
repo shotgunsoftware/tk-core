@@ -15,8 +15,10 @@ from sgtk.util import (
     is_version_older,
     is_version_older_or_equal,
 )
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 OLDER = "older"
 NEWER = "newer"

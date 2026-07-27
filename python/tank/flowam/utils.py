@@ -20,6 +20,7 @@ from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
 import fileseq
+
 from tank import LogManager
 from tank.authentication import flow_auth
 from tank.pipelineconfig import PipelineConfiguration

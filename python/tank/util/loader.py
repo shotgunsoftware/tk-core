@@ -110,7 +110,6 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
                 # we found at least one class so assume this is a match!
                 break
     except Exception as e:
-
         # log the full callstack to make sure that whatever the
         # calling code is doing, this error is logged to help
         # with troubleshooting and support

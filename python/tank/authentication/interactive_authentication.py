@@ -122,7 +122,6 @@ class SessionRenewal(object):
         """
         logger.debug("About to take the authentication lock.")
         with SessionRenewal._renew_session_internal_lock:
-
             logger.debug("Took the authentication lock.")
 
             # When authentication is cancelled, every thread who enter the authentication

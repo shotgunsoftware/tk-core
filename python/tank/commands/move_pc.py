@@ -84,7 +84,6 @@ class MovePCAction(Action):
 
         names = os.listdir(src)
         for name in names:
-
             srcname = os.path.join(src, name)
             dstname = os.path.join(dst, name)
 
@@ -216,7 +215,6 @@ class MovePCAction(Action):
         local_target_path = new_paths[sys.platform]
 
         if copy_files:
-
             # check that files exists and that we can carry out the copy etc.
             if not os.path.exists(local_source_path):
                 raise TankError(
@@ -240,7 +238,6 @@ class MovePCAction(Action):
         # first copy the data across
         old_umask = os.umask(0)
         try:
-
             # first copy the files - this is where things can go wrong so start with this
             if copy_files:
                 log.info(

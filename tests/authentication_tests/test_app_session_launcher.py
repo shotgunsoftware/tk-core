@@ -24,8 +24,11 @@ import threading
 import urllib.parse
 
 from tank.authentication import app_session_launcher
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, mock
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
+)
 
 
 class AppSessionLauncherTests(ShotgunTestBase):
@@ -318,9 +321,7 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
         )
 
         # 200 but no json
-        self.httpd.router["[POST]/internal_api/app_session_request"] = (
-            lambda request: {}
-        )
+        self.httpd.router["[POST]/internal_api/app_session_request"] = lambda request: {}
         with self.assertRaises(app_session_launcher.AuthenticationError) as cm:
             app_session_launcher.process(
                 self.api_url,

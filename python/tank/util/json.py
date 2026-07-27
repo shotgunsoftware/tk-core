@@ -30,7 +30,7 @@ def load(
     parse_float=None,
     parse_int=None,
     parse_constant=None,
-    **kw
+    **kw,
 ):
     """
     Deserialize ``fp`` (a ``.read()``-supporting file-like object containing
@@ -55,7 +55,7 @@ def load(
         parse_float=parse_float,
         parse_int=parse_int,
         parse_constant=parse_constant,
-        **kw
+        **kw,
     )
 
     return ensure_contains_str(loaded_value)
@@ -70,7 +70,7 @@ def loads(
     parse_float=None,
     parse_int=None,
     parse_constant=None,
-    **kw
+    **kw,
 ):
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
@@ -95,7 +95,7 @@ def loads(
         parse_float=parse_float,
         parse_int=parse_int,
         parse_constant=parse_constant,
-        **kw
+        **kw,
     )
 
     return ensure_contains_str(loaded_value)

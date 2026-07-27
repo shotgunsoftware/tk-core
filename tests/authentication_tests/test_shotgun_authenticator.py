@@ -18,10 +18,10 @@ from tank.authentication import (
     user,
     user_impl,
 )
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 # Create a set of valid cookies, for SSO and Web related tests.

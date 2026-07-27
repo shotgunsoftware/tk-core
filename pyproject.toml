@@ -31,8 +31,8 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-# Match flake8's default rule selection (pycodestyle and pyflakes).
-select = ["E", "F", "W"]
+# pycodestyle, pyflakes, and isort (replaces the former isort + flake8 hooks).
+select = ["E", "F", "W", "I"]
 # toolkit exceptions
 #
 # E203 whitespace before ':' (this is not PEP8 compliant)
@@ -44,6 +44,6 @@ select = ["E", "F", "W"]
 ignore = ["E203", "E221", "E261", "E402", "E501"]
 
 [tool.ruff.lint.isort]
-# Reserved for a future isort -> ruff migration. Import sorting still uses isort.
+# Match the previous isort --profile black configuration.
 combine-as-imports = true
 split-on-trailing-comma = true

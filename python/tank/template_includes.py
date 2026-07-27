@@ -265,12 +265,10 @@ def _resolve_template_r(
     template_str_parts = template_str.split("@@")
     resolved_template_str_parts = []
     for part in template_str_parts:
-
         # split to find seperate @ include parts:
         ref_parts = part.split("@")
         resolved_ref_parts = ref_parts[:1]
         for ref_part in ref_parts[1:]:
-
             if not ref_part:
                 # this would have been an @ so ignore!
                 continue

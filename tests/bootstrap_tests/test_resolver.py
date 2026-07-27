@@ -14,10 +14,10 @@ import sys
 
 import sgtk
 from sgtk.util import ShotgunPath
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 

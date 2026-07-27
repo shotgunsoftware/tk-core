@@ -58,7 +58,6 @@ def _resolve_includes(file_name, data, context):
         includes.extend(data[constants.MULTI_INCLUDE_SECTION])
 
     for include in includes:
-
         if "{" in include:
             # it's a template path
             if context is None:
@@ -207,7 +206,6 @@ def _process_includes_r(file_name, data, context):
     lookup_dict = {}
     fw_lookup = {}
     for include_file in include_files:
-
         # path exists, so try to read it
         included_data = g_yaml_cache.get(include_file) or {}
 

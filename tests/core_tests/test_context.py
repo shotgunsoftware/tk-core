@@ -22,10 +22,10 @@ from tank.authentication import ShotgunAuthenticator
 from tank.errors import TankContextDeserializationError, TankError
 from tank.template import TemplatePath
 from tank.templatekey import IntegerKey, StringKey
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 from tank_vendor import yaml
 
