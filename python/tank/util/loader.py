@@ -13,13 +13,13 @@ Methods for loading and managing plugins, e.g. Apps, Engines, Hooks etc.
 
 """
 
-import sys
-import imp
-import traceback
+import importlib.util
 import inspect
+import sys
+import traceback
 
-from ..errors import TankError
 from .. import LogManager
+from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
 
@@ -55,8 +55,10 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     module_uid = uuid.uuid4().hex
     module = None
     try:
-        imp.acquire_lock()
-        module = imp.load_source(module_uid, plugin_file)
+        plugin_spec = importlib.util.spec_from_file_location(module_uid, plugin_file)
+        module = importlib.util.module_from_spec(plugin_spec)
+        sys.modules[module.__name__] = module
+        plugin_spec.loader.exec_module(module)
     except Exception:
         # log the full callstack to make sure that whatever the
         # calling code is doing, this error is logged to help
@@ -64,7 +66,7 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
         log.exception("Cannot load plugin file '%s'" % plugin_file)
 
         # dump out the callstack for this one -- to help people get good messages when there is a plugin error
-        (exc_type, exc_value, exc_traceback) = sys.exc_info()
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         message = ""
         message += (
             "Failed to load plugin %s. The following error was reported:\n"
@@ -74,8 +76,6 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
         message += "Traceback (most recent call last):\n"
         message += "\n".join(traceback.format_tb(exc_traceback))
         raise TankLoadPluginError(message)
-    finally:
-        imp.release_lock()
 
     # cool, now validate the module
     found_classes = list()

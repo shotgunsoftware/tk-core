@@ -19,30 +19,22 @@ are not part of the public Sgtk API.
 ###############################################################################
 # imports
 
-from collections import deque
-from threading import Event, Thread, Lock
+import json
 import platform
-from tank_vendor.six.moves import urllib
-from tank_vendor import six
+import urllib.error
+import urllib.request
+from collections import deque
 from copy import deepcopy
-
-from . import constants, sgre as re
-
-# use api json to cover py 2.5
-from tank_vendor import shotgun_api3, six
-
-json = shotgun_api3.shotgun.json
+from threading import Event, Lock, Thread
 
 # From Python 3.8 and later, platform.linux_distribution has been removed,
 # so we need something else. Fortunately, the functionality was preserved
 # as the distro package on pypi.org. Given that the functionality is
 # equivalent between the two, we'll use distro for every version of Python 3.
-# As for Python 2, we need to keep using platform as distro is Python 2.7+
-# compliant only.
-if six.PY2:
-    import platform as distro
-else:
-    from tank_vendor import distro
+from tank_vendor import distro
+
+from . import constants
+from . import sgre as re
 
 ###############################################################################
 
@@ -80,7 +72,7 @@ class PlatformInfo(object):
             # For macOS / OSX we keep only the Major.minor
             os_version = re.findall(r"\d*\.\d*", raw_version_str)[0]
 
-        except:
+        except Exception:
             pass
 
         return os_version
@@ -97,14 +89,14 @@ class PlatformInfo(object):
 
         try:
             # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
-            distribution = six.ensure_str(distro.linux_distribution()[0].title())
-            raw_version_str = six.ensure_str(distro.linux_distribution()[1])
+            distribution = str(distro.linux_distribution()[0].title())
+            raw_version_str = str(distro.linux_distribution()[1])
 
             # For Linux we really just want the 'major' version component
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
             os_version = "%s %s" % (distribution, major_version_str)
 
-        except:
+        except Exception:
             pass
 
         return os_version
@@ -124,7 +116,7 @@ class PlatformInfo(object):
             # as it returns a friendly name e.g: XP, 7, 10 etc.
             os_version = platform.release()
 
-        except:
+        except Exception:
             pass
 
         return os_version
@@ -169,7 +161,7 @@ class PlatformInfo(object):
             else:
                 os_info["OS"] = "Unsupported system: (%s)" % (system)
 
-        except:
+        except Exception:
             # On any exception we fallback to default value
             pass
 
@@ -251,7 +243,7 @@ class MetricsQueueSingleton(object):
 
             # remember that we've logged this one already
             self.__logged_metrics.add(metric_identifier)
-        except:
+        except Exception:
             pass
         finally:
             self._lock.release()
@@ -283,7 +275,7 @@ class MetricsQueueSingleton(object):
 
                 # would be nice to be able to pop N from deque. oh well.
                 metrics = [self._queue.popleft() for i in range(0, count)]
-        except:
+        except Exception:
             pass
         finally:
             self._lock.release()
@@ -388,7 +380,7 @@ class MetricsDispatchWorkerThread(Thread):
     DISPATCH_BATCH_SIZE = 10
     """
     Worker will dispatch this many metrics at a time, or all if <= 0.
-    NOTE: that current SG server code reject batches larger than 10.
+    NOTE: that current PTR server code reject batches larger than 10.
     """
 
     def __init__(self, engine):
@@ -398,7 +390,7 @@ class MetricsDispatchWorkerThread(Thread):
         :params engine: Engine instance
         """
 
-        super(MetricsDispatchWorkerThread, self).__init__()
+        super().__init__()
 
         self._engine = engine
         self._endpoint_available = False
@@ -424,7 +416,7 @@ class MetricsDispatchWorkerThread(Thread):
         )
 
         # Run until halted
-        while not self._halt_event.isSet():
+        while not self._halt_event.is_set():
 
             # get the next available metric and dispatch it
             try:
@@ -442,7 +434,7 @@ class MetricsDispatchWorkerThread(Thread):
                     else:
                         break
 
-            except Exception as e:
+            except Exception:
                 pass
             finally:
                 # wait, checking for halt event before more processing
@@ -497,6 +489,26 @@ class MetricsDispatchWorkerThread(Thread):
                 data["event_properties"][
                     EventMetric.KEY_CORE_VERSION
                 ] = self._engine.sgtk.version
+
+                # If it's a desktop event...
+                # We split <desktop version> / <startup version>
+                # And store the <startup version> as the `Event Data` dict
+                if metric.is_desktop_event:
+                    host_app_version = data["event_properties"].get(
+                        EventMetric.KEY_HOST_APP_VERSION
+                    )
+                    try:
+                        desktop_version, startup_version = host_app_version.split("/")
+                    except ValueError:
+                        # host_app_version can be `unknown` on development/tests.
+                        pass
+                    else:
+                        data["event_properties"][
+                            EventMetric.KEY_HOST_APP_VERSION
+                        ] = desktop_version.strip()
+                        data["event_properties"]["Event Data"] = {
+                            "Startup Version": startup_version.strip()
+                        }
             else:
                 # Still log the event but change its name so it's easy to
                 # spot all unofficial events which are logged.
@@ -549,7 +561,7 @@ class MetricsDispatchWorkerThread(Thread):
             "auth_args": {"session_token": sg_connection.get_session_token()},
             "metrics": filtered_metrics_data,
         }
-        payload_json = six.ensure_binary(json.dumps(payload))
+        payload_json = json.dumps(payload).encode("utf-8")
 
         header = {"Content-Type": "application/json"}
         try:
@@ -605,12 +617,14 @@ class EventMetric(object):
     GROUP_MEDIA = "Media"
     GROUP_NAVIGATION = "Navigation"
     GROUP_PROJECTS = "Projects"
+    GROUP_RV = "RV"
     GROUP_TASKS = "Tasks"
     GROUP_TOOLKIT = "Toolkit"
 
     EVENT_NAME_FORMAT = "%s: %s"
 
     # List of events suported by our backend
+    # New events that use `EventMetric.log` should be added here.
     SUPPORTED_EVENTS = [
         EVENT_NAME_FORMAT % (GROUP_APP, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_APP, "Logged Out"),
@@ -620,7 +634,19 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Projects"),
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Panel"),
         EVENT_NAME_FORMAT % (GROUP_PROJECTS, "Viewed Project Commands"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Assign Presenter"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Feedback Form Opened"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Feedback Form Submitted"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Join Session"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Join Session Failed"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Leave Session"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Link Copied"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Panel Toggled"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session Created"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session ID Copied from menu"),
+        EVENT_NAME_FORMAT % (GROUP_RV, "Live Review - Session Joined"),
         EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Command"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Software"),
@@ -631,6 +657,20 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Executed websockets command"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Render & Submit Version"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Breakdown2 App"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launch Open Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launch New Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Transcode & Publish"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Connected"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Create"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Shot Export"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Data Validation App"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Collate/Cut Length"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Export"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Processed"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Collate/Clip Length"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Sequence Export"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Audio Export"),
     ]
 
     # Event property keys
@@ -692,6 +732,24 @@ class EventMetric(object):
         """
         return repr(self) in EventMetric.SUPPORTED_EVENTS
 
+    @property
+    def is_desktop_event(self):
+        """
+        Determine whether the metric is a "Launched Software" event.
+
+        :return: ``True`` if this event is a "Launched Software" event, ``False`` otherwise.
+        """
+        return any(
+            (
+                self._group == EventMetric.GROUP_TOOLKIT
+                and self._name == "Launched Software",
+                self._group == EventMetric.GROUP_NAVIGATION
+                and self._name == "Viewed Projects",
+                self._group == EventMetric.GROUP_PROJECTS
+                and self._name == "Viewed Project Commands",
+            )
+        )
+
     @classmethod
     def log(cls, group, name, properties=None, log_once=False, bundle=None):
         """
@@ -732,7 +790,7 @@ class EventMetric(object):
                 from sgtk.platform.util import current_bundle
 
                 bundle = current_bundle()
-            except:
+            except Exception:
                 pass
 
         if not bundle:
@@ -742,7 +800,7 @@ class EventMetric(object):
                 from ..platform.engine import current_engine
 
                 bundle = current_engine()
-            except:
+            except Exception:
                 # Bailing out trying to guess bundle
                 pass
 

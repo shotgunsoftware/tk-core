@@ -13,22 +13,22 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
 
-import os
+from __future__ import annotations  # needed for python 3.9 support
+
 import copy
 import json
+import os
 
 from tank_vendor import yaml
-from . import authentication
+from tank_vendor.flow_integration_sdk import sandbox
 
-from .util import login
-from .util import shotgun_entity
-from .util import shotgun
-from .util import get_sg_entity_name_field
-from .util import pickle, json as sgjson
-from . import constants
-from .errors import TankError, TankContextDeserializationError
+from . import authentication, constants
+from .authentication import flow_auth
+from .errors import TankContextDeserializationError, TankError
+from .flowam import constants as flow_const
 from .path_cache import PathCache
 from .template import TemplatePath
+from .util import login, pickle, shotgun, shotgun_entity
 
 
 class Context(object):
@@ -72,6 +72,7 @@ class Context(object):
         user=None,
         additional_entities=None,
         source_entity=None,
+        flow_draft_id=None,
     ):
         """
         Context objects are not constructed by hand but are fabricated by the
@@ -86,6 +87,7 @@ class Context(object):
         self.__user = user
         self.__additional_entities = additional_entities or []
         self.__source_entity = source_entity
+        self.__flow_draft_id = flow_draft_id
         self._entity_fields_cache = {}
 
     def __repr__(self):
@@ -96,7 +98,7 @@ class Context(object):
         msg.append("  Step: %s" % str(self.__step))
         msg.append("  Task: %s" % str(self.__task))
         msg.append("  User: %s" % str(self.__user))
-        msg.append("  SG URL: %s" % self.shotgun_url)
+        msg.append("  PTR URL: %s" % self.shotgun_url)
         msg.append("  Additional Entities: %s" % str(self.__additional_entities))
         msg.append("  Source Entity: %s" % str(self.__source_entity))
 
@@ -176,9 +178,9 @@ class Context(object):
             :param d2:  Second entity dictionary
             :returns:   True if d1 and d2 are considered equal, otherwise False.
             """
-            if d1 == d2 == None:
+            if d1 is None and d2 is None:
                 return True
-            if d1 == None or d2 == None:
+            if d1 is None or d2 is None:
                 return False
             return d1["type"] == d2["type"] and d1["id"] == d2["id"]
 
@@ -259,6 +261,7 @@ class Context(object):
         ctx_copy.__user = copy.deepcopy(self.__user, memo)
         ctx_copy.__additional_entities = copy.deepcopy(self.__additional_entities, memo)
         ctx_copy.__source_entity = copy.deepcopy(self.__source_entity, memo)
+        ctx_copy.__flow_draft_id = copy.deepcopy(self.__flow_draft_id, memo)
 
         # except:
         # ctx_copy._entity_fields_cache
@@ -402,6 +405,45 @@ class Context(object):
                   Will be an empty list in most cases.
         """
         return self.__additional_entities
+
+    @property
+    def flow_project_id(self) -> str | None:
+        """
+        The FlowAM project ID for this context, or ``None`` if the project is
+        not FlowAM-enabled or there is no project in this context.
+
+        The value is read from the ``sg_flow_am_id`` field on the project dict.
+        It is populated by the bootstrap manager after it queries ShotGrid.
+
+        :returns: A string containing the FlowAM project ID, or ``None``.
+        :rtype: str or None
+        """
+        if self.project:
+            return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
+        return None
+
+    @property
+    def flow_draft_id(self) -> str | None:
+        """Current Flow draft context.
+        If not None, this designates the current draft being worked on within the DCC session.
+        """
+        return self.__flow_draft_id
+
+    @property
+    def flow_schema_version(self) -> str | None:
+        """
+        The FlowAM schema version of the project in context, or ``None`` if the project is
+        not FlowAM-enabled or there is no schema created.
+
+        The value is read from the ``sg_flow_schema_config_version`` field on the project dict.
+        It is populated by the bootstrap manager after it queries ShotGrid.
+
+        :returns: A string containing the FlowAM schema version, or ``None``.
+        :rtype: str or None
+        """
+        if self.project:
+            return self.project.get(flow_const.FLOW_SCHEMA_VERSION_FIELD)
+        return None
 
     @property
     def entity_locations(self):
@@ -708,6 +750,19 @@ class Context(object):
         ctx_copy.__user = user
         return ctx_copy
 
+    def set_flow_context(self, file_path: str):
+        """Set the current flow asset context based on opened file path.
+
+        Args:
+            file_path: File currently opened in DCC.
+        """
+        self.__flow_draft_id = sandbox.get_draft_context(file_path)
+
+    def clear_flow_context(self):
+        """Clear the current flow asset context."""
+
+        self.__flow_draft_id = None
+
     ################################################################################################
     # serialization
 
@@ -718,7 +773,7 @@ class Context(object):
         Any Context object can be serialized to/deserialized from a string.
         This can be useful if you need to pass a Context between different processes.
         As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-        from the launch process (e.g. for example Shotgun Desktop) to the
+        from the launch process (e.g. for example PTR desktop app) to the
         Application (e.g. Maya) being launched. Example:
 
             >>> import sgtk
@@ -780,7 +835,7 @@ class Context(object):
             # If the serialized payload starts with a {, we have a
             # JSON-encoded string.
             if context_str[0] in ("{", b"{"):
-                data = sgjson.loads(context_str)
+                data = json.loads(context_str)
             else:
                 data = pickle.loads(context_str)
         except Exception as e:
@@ -815,8 +870,8 @@ class Context(object):
     def to_dict(self):
         """
         Converts the context into a dictionary with keys ``project``,
-        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
-        ``source_entity``.
+        ``entity``, ``user``, ``step``, ``task``, ``additional_entities``,
+        ``source_entity``, ``flow_project_id``, ``flow_draft_id`` and ``flow_schema_version``.
 
         .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
@@ -835,6 +890,9 @@ class Context(object):
                 self._cleanup_entity(entity) for entity in self.additional_entities
             ],
             "source_entity": self._cleanup_entity(self.source_entity),
+            "flow_project_id": self.flow_project_id,
+            "flow_draft_id": self.flow_draft_id,
+            "flow_schema_version": self.flow_schema_version,
         }
 
     def _cleanup_entity(self, entity):
@@ -894,7 +952,7 @@ class Context(object):
 
         :returns: :class:`Context`
         """
-        return Context(
+        ctx = Context(
             tk=data.get("tk"),
             project=data.get("project"),
             entity=data.get("entity"),
@@ -903,7 +961,23 @@ class Context(object):
             user=data.get("user"),
             additional_entities=data.get("additional_entities"),
             source_entity=data.get("source_entity"),
+            flow_draft_id=data.get("flow_draft_id"),
         )
+        if (
+            ctx.project is not None
+            and "flow_project_id" in data
+            and flow_auth.AM_READY_PROJECT_FIELD not in ctx.project
+        ):
+            ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = data["flow_project_id"]
+        if (
+            ctx.project is not None
+            and "flow_schema_version" in data
+            and flow_const.FLOW_SCHEMA_VERSION_FIELD not in ctx.project
+        ):
+            ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = data[
+                "flow_schema_version"
+            ]
+        return ctx
 
     ################################################################################################
     # private methods
@@ -931,12 +1005,12 @@ class Context(object):
                 # this key is a shotgun value that needs fetching!
 
                 # ensure that the context actually provides the desired entities
-                if not key.shotgun_entity_type in entities:
+                if key.shotgun_entity_type not in entities:
                     if validate:
                         raise TankError(
                             "Key '%s' in template '%s' could not be populated by "
                             "context '%s' because the context does not contain a "
-                            "SG entity of type '%s'!"
+                            "PTR entity of type '%s'!"
                             % (key, template, self, key.shotgun_entity_type)
                         )
                     else:
@@ -960,8 +1034,8 @@ class Context(object):
                     if not result:
                         # no record with that id in shotgun!
                         raise TankError(
-                            "Could not retrieve SG data for key '%s' in "
-                            "template '%s'. No records in SG are matching "
+                            "Could not retrieve PTR data for key '%s' in "
+                            "template '%s'. No records in PTR are matching "
                             "entity '%s' (Which is part of the current "
                             "context '%s')" % (key, template, entity, self)
                         )
@@ -994,7 +1068,7 @@ class Context(object):
                         if not key.validate(processed_val):
                             raise TankError(
                                 "Template validation failed for value '%s'. This "
-                                "value was retrieved from entity %s in SG to "
+                                "value was retrieved from entity %s in PTR to "
                                 "represent key '%s' in "
                                 "template '%s'."
                                 % (processed_val, entity, key, template)
@@ -1041,26 +1115,8 @@ class Context(object):
                 else:
                     cur_path = os.path.dirname(cur_path)
 
-                    # There's odd behavior on Windows in Python 2.7.14 that causes
-                    # os.path.dirname to leave the last folder on a UNC path
-                    # unchanged, including the trailing delimiter:
-                    #
-                    # Example (on Windows using Python 2.7.14):
-                    #
-                    # >>> os.path.dirname(r"\\foo\bar\")
-                    # '\\foo\bar\'
-                    #
-                    # The problem is really that the trailing slash isn't removed, when
-                    # it seems to have been in older versions of Python. The trailing slash
-                    # trips up the logic behind validate_and_get_fields, so we end up in an
-                    # infinite loop. The fix is to just remove the trailing path separator
-                    # if it's there.
-                    #
-                    # The fact that it does not consider "\\foo" to be the dirname for
-                    # "\\foo\bar\" is actually correct, as explained here:
-                    #
-                    # https://bugs.python.org/issue27403
-                    #
+                    # On some platforms, os.path.dirname might preserve a trailing slash on UNC paths,
+                    # which could interfere with field extraction logic. This ensures the path is normalized.
                     if cur_path.endswith(os.path.sep):
                         cur_path = cur_path[:-1]
 
@@ -1323,7 +1379,8 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         if sg_entity is None:
             raise TankError(
-                "Entity %s with id %s not found in ShotGrid!" % (entity_type, entity_id)
+                "Entity %s with id %s not found in Flow Production Tracking!"
+                % (entity_type, entity_id)
             )
 
         if sg_entity.get("task"):
@@ -1344,7 +1401,16 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
 
         # make sure this was actually found in the cache
         # fall back on a shotgun lookup if not found
-        if entity_context["project"] is None:
+        # Note: We also need to check if the entity name was resolved. The project
+        # might be found in the cache (from the primary data root), but the specific
+        # entity might not have folders created yet, leaving entity["name"] as None.
+        # This commonly happens when launching a DCC from the web for a newly created
+        # Asset/Shot/Task that hasn't had its filesystem structure created yet.
+        entity_name_missing = (
+            entity_type != "Project"
+            and entity_context.get("entity", {}).get("name") is None
+        )
+        if entity_context["project"] is None or entity_name_missing:
             entity_context = _entity_from_sg(tk, entity_type, entity_id)
 
         context.update(entity_context)
@@ -1421,7 +1487,6 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     }
 
     entity_type = entity_dictionary["type"]
-    entity_id = entity_dictionary["id"]
 
     # try to determine the various entities from the entity dictionary:
     project = None
@@ -1486,7 +1551,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             if "id" not in ent or "type" not in ent:
                 return None
             ent_name = _get_entity_name(ent)
-            if ent_name == None:
+            if ent_name is None:
                 return None
             # return a clean dictionary:
             return {"type": ent["type"], "id": ent["id"], "name": ent_name}
@@ -1728,7 +1793,7 @@ def context_yaml_representer(dumper, context):
     # pipeline config path as part of the dict
     context_dict["_pc_path"] = context.tank.pipeline_configuration.get_path()
 
-    return dumper.represent_mapping(u"!TankContext", context_dict)
+    return dumper.represent_mapping("!TankContext", context_dict)
 
 
 def context_yaml_constructor(loader, node):
@@ -1759,7 +1824,7 @@ def context_yaml_constructor(loader, node):
 
 
 yaml.add_representer(Context, context_yaml_representer)
-yaml.add_constructor(u"!TankContext", context_yaml_constructor)
+yaml.add_constructor("!TankContext", context_yaml_constructor)
 
 ################################################################################################
 # utility methods
@@ -1776,7 +1841,7 @@ def _get_entity_name(entity_dictionary):
     """
     name_field = shotgun_entity.get_sg_entity_name_field(entity_dictionary["type"])
     entity_name = entity_dictionary.get(name_field)
-    if entity_name == None:
+    if entity_name is None:
         # Also check to see if entity contains 'name':
         if name_field != "name":
             entity_name = entity_dictionary.get("name")
@@ -1816,7 +1881,9 @@ def _task_from_sg(tk, task_id, additional_fields=None):
         "Task", [["id", "is", task_id]], standard_fields + additional_fields
     )
     if not task:
-        raise TankError("Unable to locate Task with id %s in ShotGrid" % task_id)
+        raise TankError(
+            "Unable to locate Task with id %s in Flow Production Tracking" % task_id
+        )
 
     # add task so it can be processed with other shotgun entities
     task["task"] = {"type": "Task", "id": task_id, "name": task["content"]}
@@ -1876,7 +1943,8 @@ def _entity_from_sg(tk, entity_type, entity_id):
 
     if not data:
         raise TankError(
-            "Unable to locate %s with id %s in ShotGrid" % (entity_type, entity_id)
+            "Unable to locate %s with id %s in Flow Production Tracking"
+            % (entity_type, entity_id)
         )
 
     # create context

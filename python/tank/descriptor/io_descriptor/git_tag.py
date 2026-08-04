@@ -7,15 +7,13 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import os
 import copy
+import os
 import re
 
-from .git import IODescriptorGit
-from ..errors import TankDescriptorError
 from ... import LogManager
-
-from tank_vendor import six
+from ..errors import TankDescriptorError
+from .git import IODescriptorGit
 
 log = LogManager.get_logger(__name__)
 
@@ -53,9 +51,7 @@ class IODescriptorGitTag(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
@@ -94,7 +90,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :return: List of path strings
         """
         # get default cache paths from base class
-        paths = super(IODescriptorGitTag, self)._get_cache_paths()
+        paths = super()._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -177,7 +173,7 @@ class IODescriptorGitTag(IODescriptorGit):
             tag_name = self._get_latest_version()
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = six.ensure_str(tag_name)
+        new_loc_dict["version"] = str(tag_name)
 
         # create new descriptor to represent this tag
         desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
@@ -212,13 +208,14 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["ls-remote -q --tags %s" % self._path]
-            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split(
-                "\n"
-            )
+            output = self._tmp_clone_then_execute_git_commands(commands, depth=1)
+            if isinstance(output, bytes):
+                output = output.decode("utf-8")
+            tags = output.split("\n")
             regex = re.compile(".*refs/tags/([^^]*)$")
             git_tags = []
             for tag in tags:
-                m = regex.match(six.ensure_str(tag))
+                m = regex.match(tag)
                 if m:
                     git_tags.append(m.group(1))
 

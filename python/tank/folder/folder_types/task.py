@@ -11,11 +11,10 @@
 import os
 
 from ...errors import TankError
-
 from .entity import Entity
-from .util import translate_filter_tokens
-from .expression_tokens import FilterExpressionToken, CurrentTaskExpressionToken
+from .expression_tokens import CurrentTaskExpressionToken, FilterExpressionToken
 from .step import ShotgunStep
+from .util import translate_filter_tokens
 
 
 class ShotgunTask(Entity):
@@ -111,7 +110,7 @@ class ShotgunTask(Entity):
             elif curr_parent is None:
                 raise TankError(
                     "Error in configuration %s - node must be parented "
-                    "under a SG entity." % full_path
+                    "under a PTR entity." % full_path
                 )
 
             elif (
@@ -160,7 +159,7 @@ class ShotgunTask(Entity):
         # shot, we want all the tasks to be created at the same time.
         # however, if we have create_with_client set to False, we only want to create
         # this node if we are creating folders for a task.
-        if create_with_parent != True:
+        if create_with_parent is False:
             # do not auto-create with parent - only create when a task has been specified.
             # create an expression object to represent the current step
             current_task_id_token = CurrentTaskExpressionToken()
@@ -211,7 +210,7 @@ class ShotgunTask(Entity):
                             the configuration + the ones specified by :meth:`_get_additional_sg_fields`.
         """
         # call base class implementation
-        super(ShotgunTask, self)._register_secondary_entities(io_receiver, path, entity)
+        super()._register_secondary_entities(io_receiver, path, entity)
 
         # for tasks, the associated step is always registered as a secondary entity
         if entity.get("step"):

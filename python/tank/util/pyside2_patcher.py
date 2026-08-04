@@ -12,13 +12,12 @@
 PySide 2 backwards compatibility layer for use with PySide 1 code.
 """
 
-from __future__ import with_statement
-
-import os
-import sys
 import functools
-import imp
+import os
 import subprocess
+import sys
+import types
+import warnings
 import webbrowser
 
 from .. import constants
@@ -76,8 +75,13 @@ class PySide2Patcher(object):
         class QTextCodec(original_QTextCodec):
             @staticmethod
             def setCodecForCStrings(codec):
-                # Empty stub, doesn't exist in Qt5.
-                pass
+                warnings.warn(
+                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists since Qt5/PySide2. "
+                    "This method will be removed from Toolkit after December 2026. "
+                    "Please remove calls to this method from your code.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
         QtCore.QTextCodec = QTextCodec
 
@@ -90,15 +94,13 @@ class PySide2Patcher(object):
         wrapper_class.DefaultCodec = wrapper_class.CodecForTr
 
         @staticmethod
-        def translate(context, source_text, disambiguation=None, encoding=None, n=None):
-            # In PySide2, the encoding argument has been deprecated, so we don't
-            # pass it down. n is still supported however, but has always been optional
-            # in PySide. So if n has been set to something, let's pass it down,
-            # otherwise Qt5 has a default value for it, so we'll use that instead.
-            if n is not None:
-                return original_class.translate(context, source_text, disambiguation, n)
-            else:
-                return original_class.translate(context, source_text, disambiguation)
+        def translate(*args, **kwargs):
+            if "encoding" in kwargs:
+                # The encoding argument has been deprecated and no longer exist in
+                # PySide2 so we don't pass it down.
+                del kwargs["encoding"]
+
+            return original_class.translate(*args, **kwargs)
 
         wrapper_class.translate = translate
 
@@ -326,7 +328,7 @@ class PySide2Patcher(object):
                     # returns False or raises some error.
                     try:
                         return webbrowser.open_new_tab(url.toString().encode("utf-8"))
-                    except:
+                    except Exception:
                         return False
 
             @classmethod
@@ -363,8 +365,8 @@ class PySide2Patcher(object):
         :param QtGui: The QtGui module.
         :param QtWidgets: The QtWidgets module.
         """
-        qt_core_shim = imp.new_module("PySide.QtCore")
-        qt_gui_shim = imp.new_module("PySide.QtGui")
+        qt_core_shim = types.ModuleType("PySide.QtCore")
+        qt_gui_shim = types.ModuleType("PySide.QtGui")
 
         # Move everything from QtGui and QtWidgets unto the QtGui shim since
         # they belonged there in Qt 4.

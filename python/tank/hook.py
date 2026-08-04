@@ -11,18 +11,20 @@
 """
 Defines the base class for all Tank Hooks.
 """
+
+import inspect
+import logging
 import os
 import sys
-import logging
-import inspect
 import threading
-from .util.loader import load_plugin
+
 from . import LogManager
 from .errors import (
     TankError,
     TankFileDoesNotExistError,
     TankHookMethodDoesNotExistError,
 )
+from .util.loader import load_plugin
 
 log = LogManager.get_logger(__name__)
 
@@ -447,7 +449,7 @@ class Hook(object):
 
         try:
             engine = self.__parent.engine
-        except:
+        except Exception:
             raise TankError(
                 "Cannot load framework %s for %r - it does not have a "
                 "valid engine property!" % (framework_instance_name, self.__parent)

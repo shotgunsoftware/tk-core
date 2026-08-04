@@ -10,11 +10,11 @@
 
 import logging
 
-from .import_stack import ImportStack
 from ..errors import TankError
-from .errors import TankContextChangeNotSupportedError, TankCurrentModuleNotFoundError
-from .engine import current_engine, _restart_engine
 from ..log import LogManager
+from .engine import _restart_engine, current_engine
+from .errors import TankContextChangeNotSupportedError, TankCurrentModuleNotFoundError
+from .import_stack import ImportStack
 
 
 def _get_current_bundle():

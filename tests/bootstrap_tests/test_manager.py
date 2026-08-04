@@ -8,17 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 
 import sgtk
-from mock import patch, Mock
-
 from sgtk.bootstrap import ToolkitManager
-
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    TankTestBase,
+    mock,
+    temp_env_var,
+)
 
 
 class TestErrorHandling(ShotgunTestBase):
@@ -39,7 +39,10 @@ class TestErrorHandling(ShotgunTestBase):
 
 
 class TestFunctionality(ShotgunTestBase):
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user",
+        return_value=mock.Mock(),
+    )
     def test_pipeline_config_id_env_var(self, _):
         """
         Tests the SHOTGUN_PIPELINE_CONFIGURATION_ID being picked up at init
@@ -55,7 +58,9 @@ class TestFunctionality(ShotgunTestBase):
             mgr = ToolkitManager()
             self.assertEqual(mgr.pipeline_configuration, None)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_get_entity_from_environment(self, _):
         """
         Ensure the ToolkitManager can extract the entities from the environment
@@ -82,7 +87,9 @@ class TestFunctionality(ShotgunTestBase):
         with temp_env_var(SHOTGUN_ENTITY_TYPE="Shot", SHOTGUN_ENTITY_ID="invalid"):
             self.assertEqual(mgr.get_entity_from_environment(), None)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_shotgun_bundle_cache(self, _):
         """
         Ensures ToolkitManager deals property with bundle cache from the user and from
@@ -128,7 +135,9 @@ class TestFunctionality(ShotgunTestBase):
             set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
         )
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @mock.patch(
+        "tank.authentication.ShotgunAuthenticator.get_user", return_value=mock.Mock()
+    )
     def test_serialization(self, _):
         """
         Ensures we're serializing the manager properly.
@@ -137,13 +146,28 @@ class TestFunctionality(ShotgunTestBase):
         class_attrs = set(dir(ToolkitManager))
         instance_attrs = set(dir(ToolkitManager()))
         unserializable_attrs = set(
-            ["_sg_connection", "_sg_user", "_pre_engine_start_callback", "_progress_cb"]
+            [
+                "_pre_engine_start_callback",
+                "_progress_cb",
+                "_sg_connection",
+                "_sg_user",
+            ]
+        )
+        # Transient runtime state: queried during bootstrap and cached onto the
+        # context object afterwards. Not user-configured, so not serialized.
+        transient_attrs = set(
+            [
+                "_flow_project_id",
+                "_flow_schema_version",
+            ]
         )
         # Through this operation, we're taking all the symbols that are defined from an instance,
         # we then remove everything that is defined also in the class, which means we're left
         # with what was added during __init__, and then we remove the parameters we know can't
         # be serialized. We're left with a small list of values that can be serialized.
-        instance_data_members = instance_attrs - class_attrs - unserializable_attrs
+        instance_data_members = (
+            instance_attrs - class_attrs - unserializable_attrs - transient_attrs
+        )
         self.assertEqual(len(instance_data_members), 7)
 
         # Create a manager that hasn't been updated yet.
@@ -204,7 +228,7 @@ class _MockedShotgunUser(object):
 
 class TestPrepareEngine(ShotgunTestBase):
     def setUp(self):
-        super(TestPrepareEngine, self).setUp({"primary_root_name": "primary"})
+        super().setUp({"primary_root_name": "primary"})
 
     def test_prepare_engine(self):
         """
@@ -237,7 +261,7 @@ class TestPrepareEngine(ShotgunTestBase):
 
 class TestGetPipelineConfigs(TankTestBase):
     def setUp(self):
-        super(TestGetPipelineConfigs, self).setUp()
+        super().setUp()
 
         self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
         self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})
@@ -339,9 +363,9 @@ class TestGetPipelineConfigs(TankTestBase):
         config = configs[0]
         self.assertEqual(config["name"], "Doe Dev")
 
-    @patch(
+    @mock.patch(
         "tank.bootstrap.resolver.ConfigurationResolver._create_config_descriptor",
-        return_value=Mock(),
+        return_value=mock.Mock(),
     )
     def test_latest_tracking_descriptor(self, _):
         """
@@ -367,7 +391,7 @@ class TestGetPipelineConfigs(TankTestBase):
         configs = mgr.get_pipeline_configurations(self._project)
 
         config = configs[0]
-        self.assertTrue(isinstance(config["descriptor"], Mock))
+        self.assertTrue(isinstance(config["descriptor"], mock.Mock))
         self.assertEqual(
             config["descriptor_source_uri"],
             "sgtk:descriptor:app_store?name=tk-config-basic",

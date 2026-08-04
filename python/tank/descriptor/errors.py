@@ -12,8 +12,8 @@
 All custom exceptions that this module emits are defined here.
 """
 
-from ..errors import TankError
 from .. import errors
+from ..errors import TankError
 
 
 class TankDescriptorError(TankError):

@@ -8,12 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-
 import os
-from .action_base import Action
+
 from ..errors import TankError
-from ..platform import validation, bundle
+from ..platform import bundle, validation
+from .action_base import Action
 
 
 class ValidateConfigAction(Action):
@@ -85,7 +84,7 @@ class ValidateConfigAction(Action):
 
         log.info("")
         log.info("")
-        log.info("Welcome to the SG Pipeline Toolkit Configuration validator!")
+        log.info("Welcome to the Flow Production Tracking Configuration validator!")
         log.info("")
 
         log.info("Found the following environments:")
@@ -158,7 +157,7 @@ class ValidateConfigAction(Action):
         """
 
         # do the base class default validation
-        parameters = super(ValidateConfigAction, self)._validate_parameters(parameters)
+        parameters = super()._validate_parameters(parameters)
 
         # get a list of valid env names
         valid_env_names = self.tk.pipeline_configuration.get_environments()

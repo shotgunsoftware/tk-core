@@ -10,8 +10,8 @@
 
 from .factory import (
     create_io_descriptor,
-    descriptor_uri_to_dict,
     descriptor_dict_to_uri,
+    descriptor_uri_to_dict,
     is_descriptor_version_missing,
 )
 
@@ -22,15 +22,15 @@ def _initialize_descriptor_factory():
     This complex process for handling the IODescriptor abstract factory
     management is in order to avoid local imports in classes.
     """
-    from .base import IODescriptorBase
     from .appstore import IODescriptorAppStore
+    from .base import IODescriptorBase
     from .dev import IODescriptorDev
-    from .path import IODescriptorPath
-    from .shotgun_entity import IODescriptorShotgunEntity
-    from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
+    from .git_tag import IODescriptorGitTag
     from .github_release import IODescriptorGithubRelease
     from .manual import IODescriptorManual
+    from .path import IODescriptorPath
+    from .shotgun_entity import IODescriptorShotgunEntity
 
     IODescriptorBase.register_descriptor_factory("app_store", IODescriptorAppStore)
     IODescriptorBase.register_descriptor_factory("dev", IODescriptorDev)

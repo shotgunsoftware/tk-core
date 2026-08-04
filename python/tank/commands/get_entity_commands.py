@@ -7,16 +7,15 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
-from .action_base import Action
-from ..errors import TankError
-from ..util.process import SubprocessCalledProcessError, subprocess_check_output
-from ..util import is_linux, is_macos, is_windows
-
 import itertools
 import operator
 import os
-from tank_vendor.shotgun_api3.lib import sgsix
+import sys
+
+from ..errors import TankError
+from ..util import is_linux, is_macos, is_windows
+from ..util.process import SubprocessCalledProcessError, subprocess_check_output
+from .action_base import Action
 
 
 def execute_tank_command(pipeline_config_path, args):
@@ -150,7 +149,7 @@ class GetEntityCommandsAction(Action):
         per_entity_type = itertools.groupby(entities, operator.itemgetter(0))
 
         commands_per_entity = {}
-        for (entity_type, entities_of_type) in per_entity_type:
+        for entity_type, entities_of_type in per_entity_type:
             # make a list out of the grouped entity tuples
             entities_of_type = list(entities_of_type)
             try:
@@ -221,7 +220,7 @@ class GetEntityCommandsAction(Action):
         :param entity_type:          type of the entity we want the cache for
         :returns:                    text data contained in the cache
         """
-        cache_name = self._get_cache_name(sgsix.platform, entity_type)
+        cache_name = self._get_cache_name(sys.platform, entity_type)
         env_name = self._get_env_name(entity_type)
 
         # try to load the data right away if it is already cached
@@ -311,7 +310,7 @@ class GetEntityCommandsAction(Action):
             tokens += [""] * (NUM_EXPECTED_TOKENS - len(tokens))
 
             # extract the information from the tokens
-            (name, title, _, _, icon, description) = tuple(tokens)
+            name, title, _, _, icon, description = tuple(tokens)
 
             commands.append(
                 {"name": name, "title": title, "icon": icon, "description": description}

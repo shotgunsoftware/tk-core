@@ -9,20 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from distutils.version import StrictVersion
+import sys
 
-from .action_base import Action
-from . import core_localize
-from ..util import shotgun
-from ..util import ShotgunPath
-from ..util import is_linux, is_macos, is_windows
-from ..errors import TankError
 from .. import pipelineconfig_utils
-
+from ..errors import TankError
+from ..util import ShotgunPath, is_linux, is_macos, is_windows, shotgun, version_parse
+from . import core_localize
+from .action_base import Action
+from .interaction import YesToEverythingInteraction
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
-from .interaction import YesToEverythingInteraction
-from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class SetupProjectFactoryAction(Action):
@@ -102,12 +98,12 @@ class SetupProjectFactoryAction(Action):
 
         # now connect to shotgun
         try:
-            log.info("Connecting to ShotGrid...")
+            log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target SG server! (v%s)" % sg_version)
+            log.debug("Connected to target PTR server! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to SG server: %s" % e)
+            raise TankError("Could not connect to PTR server: %s" % e)
 
         return sg
 
@@ -197,7 +193,7 @@ class SetupProjectWizard(object):
                         "shotgun_id": 12,
                         "darwin": "/mnt/data",
                         "win32": "z:\mnt\data",
-                        "linux2": "/mnt/data"},
+                        "linux": "/mnt/data"},
 
           "textures" : { "description": "All texture are located on this storage",
                          "exists_on_disk": False,
@@ -205,14 +201,14 @@ class SetupProjectWizard(object):
                          "shotgun_id": None,
                          "darwin": None,
                          "win32": None,
-                         "linux2": None}
+                         "linux": None}
 
           "renders" : { "description": None,
                         "exists_on_disk": False,
                         "defined_in_shotgun": True,
                         "darwin": None,
                         "win32": "z:\mnt\renders",
-                        "linux2": "/mnt/renders"}
+                        "linux": "/mnt/renders"}
         }
 
         The main dictionary is keyed by storage name. It will contain one entry
@@ -321,10 +317,10 @@ class SetupProjectWizard(object):
         Return preview project paths given a project name.
 
         { "primary": { "darwin": "/foo/bar/project_name",
-                       "linux2": "/foo/bar/project_name",
+                       "linux": "/foo/bar/project_name",
                        "win32" : "c:\foo\bar\project_name"},
           "textures": { "darwin": "/textures/project_name",
-                        "linux2": "/textures/project_name",
+                        "linux": "/textures/project_name",
                         "win32" : "c:\textures\project_name"}}
 
         The operating systems are enumerated using sys.platform jargon.
@@ -348,9 +344,11 @@ class SetupProjectWizard(object):
             return_data[s]["win32"] = self._params.preview_project_path(
                 s, project_disk_name, "win32"
             )
-            return_data[s]["linux2"] = self._params.preview_project_path(
-                s, project_disk_name, "linux2"
+            return_data[s]["linux"] = self._params.preview_project_path(
+                s, project_disk_name, "linux"
             )
+            # Compat with tk-framework-adminui prior to v0.8.1
+            return_data[s]["linux2"] = return_data[s]["linux"]
 
         return return_data
 
@@ -380,7 +378,7 @@ class SetupProjectWizard(object):
 
                 # get the full path
                 proj_path = self._params.preview_project_path(
-                    s, project_disk_name, sgsix.platform
+                    s, project_disk_name, sys.platform
                 )
 
                 if not os.path.exists(proj_path):
@@ -404,10 +402,10 @@ class SetupProjectWizard(object):
     def get_default_configuration_location(self):
         r"""
         Returns default suggested install location for configurations.
-        Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
+        Returns a dictionary with sys.platform style keys linux/win32/darwin, e.g.
 
         { "darwin": "/foo/bar/project_name",
-          "linux2": None,
+          "linux": None,
           "win32" : "c:\foo\bar\project_name"}
 
         :returns: dictionary with paths or None
@@ -451,17 +449,17 @@ class SetupProjectWizard(object):
             self._log.debug(
                 "No configs available to generate preview config values. Returning None."
             )
-            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            suggested_defaults = {"darwin": None, "linux": None, "win32": None}
 
         elif data["project.Project.tank_name"] is None:
             # the project we are basing this setup on did not use storages
-            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            suggested_defaults = {"darwin": None, "linux": None, "win32": None}
 
         else:
             # now take the pipeline config paths, and try to replace the current project name
             # in these paths by the new project name
             self._log.debug(
-                "Basing config values on the following SG pipeline config: %s" % data
+                "Basing config values on the following PTR pipeline config: %s" % data
             )
 
             # get the project path for this project
@@ -473,7 +471,7 @@ class SetupProjectWizard(object):
             )  # e.g. 'foo\bar_baz'
 
             # now replace the project path in the pipeline configuration
-            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+            suggested_defaults = {"darwin": None, "linux": None, "win32": None}
 
             # go through each pipeline config path, try to find the project disk name as part of this
             # path. if that exists, replace with the new project disk name
@@ -494,7 +492,7 @@ class SetupProjectWizard(object):
                 )
 
             if data["linux_path"] and old_project_disk_name in data["linux_path"]:
-                suggested_defaults["linux2"] = data["linux_path"].replace(
+                suggested_defaults["linux"] = data["linux_path"].replace(
                     old_project_disk_name, new_proj_disk_name
                 )
 
@@ -505,6 +503,9 @@ class SetupProjectWizard(object):
                 suggested_defaults["win32"] = data["windows_path"].replace(
                     old_project_disk_name_win, new_proj_disk_name_win
                 )
+
+        # Compat with tk-framework-adminui prior to v0.8.1
+        suggested_defaults["linux2"] = suggested_defaults["linux"]
 
         return suggested_defaults
 
@@ -539,7 +540,7 @@ class SetupProjectWizard(object):
 
         { "localize": True,
           "using_runtime": False,
-          "core_path: { "linux2": "/path/to/core",
+          "core_path: { "linux": "/path/to/core",
                         "darwin": "/path/to/core",
                         "win32": None }
           "pipeline_config": { "type": "PipelineConfiguration",
@@ -609,7 +610,7 @@ class SetupProjectWizard(object):
             elif is_windows():
                 path_args = [os.path.expandvars(curr_core_path), None, None]
             else:
-                msg = "Unsupported OS detected: %s" % sgsix.platform
+                msg = "Unsupported OS detected: %s" % sys.platform
                 raise TankError(msg)
 
             core_path_object = ShotgunPath(*path_args).as_system_dict()
@@ -650,9 +651,9 @@ class SetupProjectWizard(object):
                     )
                     return_data["using_runtime"] = False
                     return_data["pipeline_config"] = data
-                    return_data[
-                        "core_path"
-                    ] = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    return_data["core_path"] = (
+                        pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    )
 
                     # finally, check the logic for localization:
                     # if this core that we have found and resolved is localized,
@@ -698,7 +699,7 @@ class SetupProjectWizard(object):
 
         # ok - we are good to go! Set the core to use
         self._params.set_associated_core_path(
-            core_settings["core_path"]["linux2"],
+            core_settings["core_path"]["linux"],
             core_settings["core_path"]["win32"],
             core_settings["core_path"]["darwin"],
         )
@@ -715,7 +716,7 @@ class SetupProjectWizard(object):
         sg_minor_ver = connection.server_info["version"][1]
         sg_patch_ver = connection.server_info["version"][2]
 
-        return StrictVersion("%d.%d.%d" % (sg_major_ver, sg_minor_ver, sg_patch_ver))
+        return version_parse(f"{sg_major_ver}.{sg_minor_ver}.{sg_patch_ver}")
 
     def _is_session_based_authentication_supported(self):
         """
@@ -727,7 +728,7 @@ class SetupProjectWizard(object):
         """
         # First version to support human based authentication for all operations was
         # 6.0.2.
-        if self._get_server_version(self._sg) >= StrictVersion("6.0.2"):
+        if self._get_server_version(self._sg) >= version_parse("6.0.2"):
             return True
         else:
             return False
@@ -760,11 +761,11 @@ class SetupProjectWizard(object):
             # the site we are configuring supports the authentication module, ie,
             # Shotgun 6.0.2 and greater.
 
-            # this is primarily targeting the Shotgun desktop, meaning that even if
-            # the shotgun desktop's site configuration contains script credentials,
+            # this is primarily targeting the PTR desktop app, meaning that even if
+            # the PTR desktop app's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
-            config_path = self._params.get_configuration_location(sgsix.platform)
+            config_path = self._params.get_configuration_location(sys.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current

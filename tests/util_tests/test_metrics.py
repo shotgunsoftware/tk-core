@@ -11,36 +11,28 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from mock import patch
+import json
+import os
+import threading
+import time
+import unittest
+import urllib.request
 
+import tank
+from tank.authentication import ShotgunAuthenticator
+from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
 from tank.util.metrics import (
-    MetricsQueueSingleton,
-    MetricsDispatchWorkerThread,
     EventMetric,
+    MetricsDispatchWorkerThread,
+    MetricsQueueSingleton,
     log_metric,
     log_user_activity_metric,
     log_user_attribute_metric,
 )
-from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
-
-import tank
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
-from tank.authentication import ShotgunAuthenticator
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
 
-import os
-import json
-import time
-import threading
-import unittest2
-from tank_vendor import six
-from tank_vendor.six.moves import urllib
-
-
-if six.PY2:
-    LINUX_DISTRIBUTION_FUNCTION = "platform.linux_distribution"
-else:
-    LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
+LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -58,13 +50,14 @@ class TestEventMetric(ShotgunTestBase):
         self.assertTrue("event_properties" in metric)
 
     def test_init_with_invalid_parameters(self):
-        """ Simply assert that the constructor is exception free and is
-            able to deal with invalid parameters and various type of extra
-            properties.
+        """
+        Simply assert that the constructor is exception free and is
+        able to deal with invalid parameters and various type of extra
+        properties.
 
-            Also tests the '_add_system_info_properties' method which
-            gets called in constructor
-            """
+        Also tests the '_add_system_info_properties' method which
+        gets called in constructor
+        """
 
         try:
             EventMetric(None, "Testing No event group"),
@@ -80,11 +73,11 @@ class TestEventMetric(ShotgunTestBase):
             )
 
     def test_init_with_valid_parameters(self):
-        """ Simply assert that the constructor is exception free.
+        """Simply assert that the constructor is exception free.
 
-            Also tests the '_add_system_info_properties' method which
-            gets called in constructor
-            """
+        Also tests the '_add_system_info_properties' method which
+        gets called in constructor
+        """
         try:
 
             EventMetric("App", "Test Log Metric without additional properties")
@@ -106,7 +99,7 @@ class TestEventMetric(ShotgunTestBase):
             )
 
     def test_usage_of_extra_properties(self):
-        """ Simply assert usage of the properties parameter is exception free. """
+        """Simply assert usage of the properties parameter is exception free."""
         EventMetric("App", "Test add_event_properties", None)
 
         EventMetric(
@@ -207,12 +200,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         tank.set_authenticated_user(None)
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch(
+            "tank_vendor.shotgun_api3.Shotgun.server_caps"
+        )
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
         # Avoids crash because we're not in a pipeline configuration.
-        self._get_api_core_config_location_mock = patch(
+        self._get_api_core_config_location_mock = mock.patch(
             "tank.util.shotgun.connection.__get_api_core_config_location",
             return_value="unused_path_location",
         )
@@ -220,7 +215,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.addCleanup(self._get_api_core_config_location_mock.stop)
 
         # Mocks app store script user credentials retrieval
-        self._get_app_store_key_from_shotgun_mock = patch(
+        self._get_app_store_key_from_shotgun_mock = mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
             return_value=("abc", "123"),
         )
@@ -231,11 +226,11 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch("tank_vendor.six.moves.urllib.request.urlopen")
+        self._urlopen_mock = mock.patch("urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
-        super(TestMetricsDispatchWorkerThread, self).setUp()
+        super().setUp()
 
         # Storing the value as it might have be changed in tests
         self._saved_dispatch_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL
@@ -257,7 +252,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         MetricsDispatchWorkerThread.DISPATCH_INTERVAL = self._saved_dispatch_interval
 
         # important to call base class so it can clean up memory
-        super(TestMetricsDispatchWorkerThread, self).tearDown()
+        super().tearDown()
 
     def _get_urllib_request_calls(self, return_only_calls_after_reset=False):
         """
@@ -282,8 +277,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                     found_reset = True
 
             # Quick sanity check to ensure that the mocked call includes a
-            # Request call.  Don't use the full module name since it varies from
-            # Python 2 to 3.  The isinstance check below will prevent any false
+            # Request call. The isinstance check below will prevent any false
             # positives.
             if found_reset and "Request" in str(mocked_call):
                 # TODO: find out what class type is 'something'
@@ -307,12 +301,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         for mocked_request in self._get_urllib_request_calls(
             return_only_calls_after_reset
         ):
-            # get_data was removed in Python 3.4. since we're testing against 3.6 and
-            # 3.7, this should be sufficient.
-            if six.PY3:
-                data = mocked_request.data
-            else:
-                data = mocked_request.get_data()
+            data = mocked_request.data
             data = json.loads(data)
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
@@ -349,7 +338,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             expected_event_name = "Unknown Event"
 
         # Make at least one metric related call!
+        props = properties.copy()
         EventMetric.log(group, name, properties)
+        # Recover overwritten properties
+        properties.update(props)
 
         TIMEOUT_SECONDS = 4 * MetricsDispatchWorkerThread.DISPATCH_INTERVAL
         timeout = time.time() + TIMEOUT_SECONDS
@@ -364,12 +356,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
             for mocked_request in self._get_urllib_request_calls():
                 found_urllib_request_call = True
-                # get_data was removed in Python 3.4. since we're testing against 3.6 and
-                # 3.7, this should be sufficient.
-                if six.PY3:
-                    data = mocked_request.data
-                else:
-                    data = mocked_request.get_data()
+                data = mocked_request.data
                 data = json.loads(data)
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
@@ -446,16 +433,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in server_received_metric["event_properties"])
         self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
-        self.assertTrue(
-            isinstance(server_received_metric["event_group"], six.text_type)
-        )
-        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_group"], str))
+        self.assertTrue(isinstance(server_received_metric["event_name"], str))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
@@ -463,19 +448,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 server_received_metric["event_properties"][
                     EventMetric.KEY_HOST_APP_VERSION
                 ],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
-                six.text_type,
+                str,
             )
         )
 
@@ -496,13 +481,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         )
 
     def helper_test_event_whitelist(
-        self, event_group, event_name, expecting_unknown=False, setup_shotgun=False
+        self,
+        event_group,
+        event_name,
+        properties=None,
+        expecting_unknown=False,
+        setup_shotgun=False,
     ):
         """
         Helper method for the 'test_event_whitelist' test
         """
+        props = properties or {}
         server_received_metric = self._helper_test_end_to_end(
-            event_group, event_name, {}, setup_shotgun
+            event_group, event_name, props, setup_shotgun
         )
 
         # Test the metric that was encoded and transmitted to the mock server
@@ -534,7 +525,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.helper_test_event_whitelist("Tasks", "Created Task")
         self.helper_test_event_whitelist("Toolkit", "Launched Action")
         self.helper_test_event_whitelist("Toolkit", "Launched Command")
-        self.helper_test_event_whitelist("Toolkit", "Launched Software")
+        self.helper_test_event_whitelist(
+            "Toolkit",
+            "Launched Software",
+            properties={
+                EventMetric.KEY_HOST_APP: "tk-desktop",
+                EventMetric.KEY_HOST_APP_VERSION: "v1.2.3 / v4.5.6",
+            },
+        )
         self.helper_test_event_whitelist("Toolkit", "Loaded Published File")
         self.helper_test_event_whitelist("Toolkit", "Published")
         self.helper_test_event_whitelist("Toolkit", "New Workfile")
@@ -542,8 +540,12 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.helper_test_event_whitelist("Toolkit", "Saved Workfile")
 
         # Testing out unknown events
-        self.helper_test_event_whitelist("CarAndDriver", "Reviewed New Car", True)
-        self.helper_test_event_whitelist("Firmwares", "Updated Router Firmware", True)
+        self.helper_test_event_whitelist(
+            "CarAndDriver", "Reviewed New Car", expecting_unknown=True
+        )
+        self.helper_test_event_whitelist(
+            "Firmwares", "Updated Router Firmware", expecting_unknown=True
+        )
 
     def test_end_to_end_unsupported_event(self):
         """
@@ -594,16 +596,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in preserved_properties)
         self.assertTrue("ListProp" in preserved_properties)
 
-        self.assertTrue(
-            isinstance(server_received_metric["event_group"], six.text_type)
-        )
-        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_group"], str))
+        self.assertTrue(isinstance(server_received_metric["event_name"], str))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
@@ -611,19 +611,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 server_received_metric["event_properties"][
                     EventMetric.KEY_HOST_APP_VERSION
                 ],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP],
-                six.text_type,
+                str,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
-                six.text_type,
+                str,
             )
         )
 
@@ -700,7 +700,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # why either value might be changed
         #
         self.assertEqual(5, MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
-        # NOTE: that current SG server code reject batches larger than 10.
+        # NOTE: that current PTR server code reject batches larger than 10.
         self.assertEqual(10, MetricsDispatchWorkerThread.DISPATCH_BATCH_SIZE)
 
     def test_maximum_queue_size(self):
@@ -780,8 +780,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+        self._urlopen_mock = mock.patch(
+            "urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -844,8 +844,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch(
-            "tank_vendor.six.moves.urllib.request.urlopen",
+        self._urlopen_mock = mock.patch(
+            "urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -885,7 +885,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue(avg_time_ms < max_interval)
 
 
-class TestMetricsQueueSingleton(unittest2.TestCase):
+class TestMetricsQueueSingleton(unittest.TestCase):
     """Cases testing tank.util.metrics.MetricsQueueSingleton class."""
 
     def test_singleton(self):
@@ -898,22 +898,22 @@ class TestMetricsQueueSingleton(unittest2.TestCase):
 
 
 class TestMetricsDeprecatedFunctions(ShotgunTestBase):
-    """ Cases testing tank.util.metrics of deprecated functions
+    """Cases testing tank.util.metrics of deprecated functions
 
-        Test that the `log_metric`, `log_user_activity_metric` and
-        `log_user_attribute_metric` methods are deprecated by creating a
-        mock of the `MetricsQueueSingleton.log` method and then
-        verifiying whether or not it was called.
+    Test that the `log_metric`, `log_user_activity_metric` and
+    `log_user_attribute_metric` methods are deprecated by creating a
+    mock of the `MetricsQueueSingleton.log` method and then
+    verifiying whether or not it was called.
 
-        Also test that method still exist for retro-compatibility although
-        there're basically empty no-op methods.
+    Also test that method still exist for retro-compatibility although
+    there're basically empty no-op methods.
     """
 
     def setUp(self):
-        super(TestMetricsDeprecatedFunctions, self).setUp()
+        super().setUp()
 
         # Setting up the mocked method
-        self._metrics_queue_singleton_log_mock = patch(
+        self._metrics_queue_singleton_log_mock = mock.patch(
             "tank.util.metrics.MetricsQueueSingleton.log"
         )
         self._mocked_method = self._metrics_queue_singleton_log_mock.start()
@@ -925,7 +925,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
             self._mocked_method.reset_mock()
             self._mocked_method = None
 
-        super(TestMetricsDeprecatedFunctions, self).tearDown()
+        super().tearDown()
 
     def test_legacy_util_import_statement(self):
         """
@@ -933,8 +933,7 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
         in util.__init__ to preserve retro compatibility and prevent
         exception in legacy engine code.
         """
-        from tank.util import log_user_activity_metric
-        from tank.util import log_user_attribute_metric
+        from tank.util import log_user_activity_metric, log_user_attribute_metric
 
         # Bogus test call to the two legacy metric methods
         log_user_activity_metric("Test Module", "Test Action")
@@ -1030,7 +1029,7 @@ class TestBundleMetrics(TankTestBase):
     """
 
     def setUp(self):
-        super(TestBundleMetrics, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -1079,7 +1078,7 @@ class TestBundleMetrics(TankTestBase):
         os.remove(self.test_resource)
         self._de_authenticate()
         # important to call base class so it can clean up memory
-        super(TestBundleMetrics, self).tearDown()
+        super().tearDown()
 
     def _authenticate(self):
         # Need to set authenticated user prior to MetricDispatcher.start below
@@ -1091,7 +1090,7 @@ class TestBundleMetrics(TankTestBase):
     def _de_authenticate(self):
         tank.set_authenticated_user(None)
 
-    @patch("tank.util.metrics.MetricsDispatcher.start")
+    @mock.patch("tank.util.metrics.MetricsDispatcher.start")
     def test_bundle_metrics(self, patched_start):
         """
         Test metrics logged by bundles.
@@ -1124,7 +1123,7 @@ class TestBundleMetrics(TankTestBase):
         # after the loops
         able_to_test_a_framework = False
         # Check metrics logged from apps
-        for app in six.itervalues(engine.apps):
+        for app in engine.apps.values():
             app.log_metric("App test")
             metrics = metrics_queue.get_metrics()
             self.assertEqual(len(metrics), 1)
@@ -1171,7 +1170,7 @@ class TestBundleMetrics(TankTestBase):
                 data["event_properties"][EventMetric.KEY_APP_VERSION], app.version
             )
             self.assertEqual(data["event_properties"][EventMetric.KEY_COMMAND], "Blah")
-            for fw in six.itervalues(app.frameworks):
+            for fw in app.frameworks.values():
                 able_to_test_a_framework = True
                 fw.log_metric("Framework test")
                 metrics = metrics_queue.get_metrics()
@@ -1203,7 +1202,7 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
 
-    @patch("urllib.open")
+    @mock.patch("urllib.open")
     def test_log_metrics_hook(self, patched):
         """
         Test the log_metric hook is fired when logging metrics
@@ -1225,7 +1224,7 @@ class TestBundleMetrics(TankTestBase):
             # Call the original hook
             return exec_core_hook(hook_name, hook_method, **kwargs)
 
-        with patch("tank.api.Sgtk.execute_core_hook_method") as mocked:
+        with mock.patch("tank.api.Sgtk.execute_core_hook_method") as mocked:
             mocked.side_effect = log_hook
             engine.log_metric("Hook test")
             # Make sure the dispatcher has some time to wake up
@@ -1242,14 +1241,14 @@ class TestBundleMetrics(TankTestBase):
 from tank.util.metrics import PlatformInfo
 
 
-class TestPlatformInfo(unittest2.TestCase):
+class TestPlatformInfo(unittest.TestCase):
     def setUp(self):
-        super(TestPlatformInfo, self).setUp()
+        super().setUp()
         # reset un-cache PlatformInfo cached value
         PlatformInfo._PlatformInfo__cached_platform_info = None
 
-    @patch("platform.system", return_value="Windows")
-    @patch("platform.release", return_value="XP")
+    @mock.patch("platform.system", return_value="Windows")
+    @mock.patch("platform.release", return_value="XP")
     def test_as_windows(self, mocked_release, mocked_system):
         """
         Tests as a Windows XP system
@@ -1261,8 +1260,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_release.called)
 
-    @patch("platform.system", return_value="Darwin")
-    @patch("platform.mac_ver", return_value=("10.7.5", ("", "", ""), "i386"))
+    @mock.patch("platform.system", return_value="Darwin")
+    @mock.patch("platform.mac_ver", return_value=("10.7.5", ("", "", ""), "i386"))
     def test_as_osx(self, mocked_mac_ver, mocked_system):
         """
         Tests as some OSX Lion system
@@ -1274,8 +1273,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_mac_ver.called)
 
-    @patch("platform.system", return_value="Linux")
-    @patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
+    @mock.patch("platform.system", return_value="Linux")
+    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
     def test_as_linux(self, mocked_system, mocked_linux_distribution):
         """
         Tests as a Linux Debian system
@@ -1287,8 +1286,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_linux_distribution.called)
 
-    @patch("platform.system", return_value="BSD")
-    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    @mock.patch("platform.system", return_value="BSD")
+    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
         """
         Tests a fake unsupported system
@@ -1301,8 +1300,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertFalse(mocked_linux_distribution.called)
 
-    @patch("platform.system", return_value="Linux")
-    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    @mock.patch("platform.system", return_value="Linux")
+    @mock.patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_linux_without_distribution(
         self, mocked_linux_distribution, mocked_system
     ):
@@ -1316,8 +1315,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_linux_distribution.called)
 
-    @patch("platform.system", return_value="Darwin")
-    @patch("platform.mac_ver", side_effect=Exception)
+    @mock.patch("platform.system", return_value="Darwin")
+    @mock.patch("platform.mac_ver", side_effect=Exception)
     def test_as_mac_without_mac_version(self, mocked_mac_ver, mocked_system):
         """
         Tests handling of an exception caused by the 'mac_ver' method.
@@ -1329,8 +1328,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_mac_ver.called)
 
-    @patch("platform.system", return_value="Windows")
-    @patch("platform.release", side_effect=Exception)
+    @mock.patch("platform.system", return_value="Windows")
+    @mock.patch("platform.release", side_effect=Exception)
     def test_as_mac_without_release(self, mocked_release, mocked_system):
         """
         Tests handling of an exception caused by the 'release' method.
@@ -1342,8 +1341,8 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_system.called)
         self.assertTrue(mocked_release.called)
 
-    @patch("platform.system", side_effect=Exception)
-    @patch("platform.release", side_effect=Exception)
+    @mock.patch("platform.system", side_effect=Exception)
+    @mock.patch("platform.release", side_effect=Exception)
     def test_system(self, mocked_release, mocked_system):
         """
         Tests handling of an exception caused by the 'system' method.

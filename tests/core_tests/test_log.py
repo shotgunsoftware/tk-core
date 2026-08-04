@@ -9,14 +9,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 import sgtk
-from mock import patch
-
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+)
 
 
 class TestLogManager(ShotgunTestBase):
@@ -61,7 +62,7 @@ class TestLogManager(ShotgunTestBase):
         unicode_str = "司狼 神威"
 
         # When a logger's emit method fails, the handleError method is called.
-        with patch.object(
+        with mock.patch.object(
             manager.base_file_handler, "handleError"
         ) as handle_error_mock:
             # This used to not log.

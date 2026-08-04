@@ -10,12 +10,10 @@
 
 import os
 
+from tank.errors import TankError
+from tank.util import ShotgunPath, StorageRoots
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
-
-from tank.errors import TankError
-from tank.util import ShotgunPath
-from tank.util import StorageRoots
 
 
 class TestStorageRoots(ShotgunTestBase):
@@ -25,7 +23,7 @@ class TestStorageRoots(ShotgunTestBase):
 
     def setUp(self):
 
-        super(TestStorageRoots, self).setUp()
+        super().setUp()
 
         # ---- mock some local storages
 
@@ -339,7 +337,7 @@ class TestStorageRoots(ShotgunTestBase):
         """Test the get_local_storages method."""
 
         single_root = StorageRoots.from_metadata(self._single_root_metadata)
-        (single_root_lookup, unmapped_roots) = single_root.get_local_storages(
+        single_root_lookup, unmapped_roots = single_root.get_local_storages(
             self.mockgun
         )
 
@@ -357,7 +355,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(unmapped_roots, [])
 
         multiple_roots = StorageRoots.from_metadata(self._multiple_roots_metadata)
-        (multiple_root_lookup, unmapped_roots) = multiple_roots.get_local_storages(
+        multiple_root_lookup, unmapped_roots = multiple_roots.get_local_storages(
             self.mockgun
         )
 

@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import glob
+import os
 import shutil
 import stat
 
-from tank.util import filesystem
-from tank.platform import environment
-from tank.descriptor import Descriptor, create_descriptor
-
 from tank import LogManager
+from tank.descriptor import Descriptor, create_descriptor
+from tank.platform import environment
+from tank.util import filesystem
 
 logger = LogManager.get_logger("utils.caching")
 
@@ -97,7 +96,7 @@ def cache_apps(
         # We should not attempt to cache descriptors that are path-based. Not only don't they
         # need to be cached, but they might be using special tokens like CONFIG_FOLDER
         # that can't be understood outside a pipeline configuration. We also skip caching
-        # app_store descriptors in sparse configs since SG Desktop will take care of downloading
+        # app_store descriptors in sparse configs since Flow Production Tracking will take care of downloading
         # these automatically from the app store at runtime.
 
         if desc["type"] in ["dev", "path"]:

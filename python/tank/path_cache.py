@@ -15,24 +15,15 @@ all Tank items in the file system are kept.
 """
 
 import collections
+import itertools
+import json
+import os
 import sqlite3
 import sys
-import os
-import itertools
 
-# use api json to cover py 2.5
-# todo - replace with proper external library
-from tank_vendor import shotgun_api3
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import range
-
-json = shotgun_api3.shotgun.json
-
-from .platform.engine import show_global_busy, clear_global_busy
-from . import constants
+from . import LogManager, constants
 from .errors import TankError
-from . import LogManager
+from .platform.engine import clear_global_busy, show_global_busy
 from .util.login import get_current_user
 
 # Shotgun field definitions to store the path cache data
@@ -65,7 +56,7 @@ class PathCache(object):
     # around this have been largely alleviated in Shotgun 7.4.x and the
     # accompanying shotgun_api3 that was released at the same time, but
     # we still want to batch at the old page length of 500 to boost
-    # performance when older SG or API versions are used. We should
+    # performance when older PTR or API versions are used. We should
     # eventually raise this to 5000 (or more) when we feel it is safe
     # to do so.
     SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
@@ -123,8 +114,7 @@ class PathCache(object):
                 # up the default page size somewhat (from 4k -> 8k) to improve
                 # performance. See https://sqlite.org/pragma.html#pragma_page_size
 
-                c.executescript(
-                    """
+                c.executescript("""
                     PRAGMA page_size=8192;
 
                     CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
@@ -142,8 +132,7 @@ class PathCache(object):
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
 
                     CREATE INDEX shotgun_status_shotgun_id ON shotgun_status(shotgun_id);
-                    """
-                )
+                    """)
                 self._connection.commit()
 
             else:
@@ -168,8 +157,7 @@ class PathCache(object):
 
                 # check for primary entity field - this was added back in 0.12.x
                 if "primary_entity" not in field_names:
-                    c.executescript(
-                        """
+                    c.executescript("""
                         ALTER TABLE path_cache ADD COLUMN primary_entity integer;
                         UPDATE path_cache SET primary_entity=1;
 
@@ -178,8 +166,7 @@ class PathCache(object):
 
                         DROP INDEX IF EXISTS path_cache_all;
                         CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
-                        """
-                    )
+                        """)
 
                     self._connection.commit()
 
@@ -312,7 +299,7 @@ class PathCache(object):
             self._connection = None
 
     ############################################################################################
-    # shotgun synchronization (SG data pushed into path cache database)
+    # shotgun synchronization (PTR data pushed into path cache database)
 
     def synchronize(self, full_sync=False):
         """
@@ -509,26 +496,38 @@ class PathCache(object):
             sg_batch_data.append(req)
 
         # push to shotgun in a single xact
-        log.debug("Uploading %s path entries to ShotGrid..." % len(sg_batch_data))
+        log.debug(
+            "Uploading %s path entries to Flow Production Tracking..."
+            % len(sg_batch_data)
+        )
 
         try:
             response = self._tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError(
-                "Critical! Could not update SG with folder "
+                "Critical! Could not update PTR with folder "
                 "data. Please contact support. Error details: %s" % e
             )
 
         # now create a dictionary where input path cache rowid (path_cache_row_id)
         # is mapped to the shotgun ids that were just created
+        def _normalize_path(p):
+            # Local cache paths use os.sep (backslashes on Windows, per
+            # _sanitize_path) while paths round-tripped through Shotgun's
+            # local_path field come back with forward slashes. normpath
+            # unifies separators and collapses redundant components;
+            # normcase lowercases on case-insensitive filesystems (Windows).
+            return os.path.normcase(os.path.normpath(p)) if p else p
+
         def _rowid_from_filesystem_entity(fsl_entity):
             path = fsl_entity[SG_PATH_FIELD]["local_path"]
+            normalized_path = _normalize_path(path)
             for d in data:
                 # We need to match not only the path but also the entity type when associating the FilesystemLocation
                 # entities with the local cache's row ids, because Task folders generate two entries with the same
                 # path, one for the Task and one for the Step.
                 if (
-                    d["path"] == path
+                    _normalize_path(d["path"]) == normalized_path
                     and d["entity"]["type"] == fsl_entity["linked_entity_type"]
                 ):
                     return d["path_cache_row_id"]
@@ -569,7 +568,7 @@ class PathCache(object):
             response = self._tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError(
-                "Critical! Could not update SG with folder data event log "
+                "Critical! Could not update PTR with folder data event log "
                 "history marker. Please contact support. Error details: %s" % e
             )
 
@@ -608,12 +607,12 @@ class PathCache(object):
         show_global_busy(
             "Hang on, Toolkit is preparing folders...",
             (
-                "Toolkit is retrieving folder listings from SG and ensuring that your "
+                "Toolkit is retrieving folder listings from PTR and ensuring that your "
                 "setup is up to date. Hang tight while data is being downloaded..."
             ),
         )
         try:
-            log.debug("Performing a complete SG folder sync...")
+            log.debug("Performing a complete PTR folder sync...")
 
             # find the max event log id. we will store this in the sync db later.
             sg_data = self._tk.shotgun.find_one(
@@ -664,7 +663,7 @@ class PathCache(object):
             tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError(
-                "SG reported an error while attempting to delete FilesystemLocation entities. "
+                "PTR reported an error while attempting to delete FilesystemLocation entities. "
                 "Please contact support. Details: %s Data: %s" % (e, sg_batch_data)
             )
 
@@ -710,7 +709,7 @@ class PathCache(object):
             tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError(
-                "SG Reported an error while trying to write a Toolkit_Folders_Delete event "
+                "PTR Reported an error while trying to write a Toolkit_Folders_Delete event "
                 "log entry after having successfully removed folders. Please contact support for "
                 "assistance. Error details: %s Data: %s" % (e, sg_event_data)
             )
@@ -904,7 +903,9 @@ class PathCache(object):
                     - path
 
         """
-        log.debug("Fetching already registered folders from ShotGrid...")
+        log.debug(
+            "Fetching already registered folders from Flow Production Tracking..."
+        )
 
         sg_data = self._get_filesystem_location_entities(folder_ids=None)
 
@@ -987,7 +988,7 @@ class PathCache(object):
         #            'url': 'file:///Volumes/xyz/proj1/sequences/aaa'},
         #   'type': 'FilesystemLocation'},
         #
-        # With a retired storage, the returned data from the SG API is
+        # With a retired storage, the returned data from the PTR API is
         #  {'id': 646,
         #   'path': {'content_type': None,
         #            'id': 2141,
@@ -1012,11 +1013,11 @@ class PathCache(object):
 
         # get the local path from our attachment entity dict
         sg_local_storage_os_map = {
-            "linux2": "local_path_linux",
+            "linux": "local_path_linux",
             "win32": "local_path_windows",
             "darwin": "local_path_mac",
         }
-        local_os_path_field = sg_local_storage_os_map[sgsix.platform]
+        local_os_path_field = sg_local_storage_os_map[sys.platform]
         local_os_path = fsl_entity[SG_PATH_FIELD].get(local_os_path_field)
 
         # if the storage is not correctly configured for an OS, it is possible
@@ -1209,7 +1210,7 @@ class PathCache(object):
                         "The path '%s' cannot be processed because it is already associated "
                         % path
                     )
-                    msg += "with %s '%s' (id %s) in ShotGrid. " % (
+                    msg += "with %s '%s' (id %s) in Flow Production Tracking. " % (
                         entity_in_db["type"],
                         entity_in_db["name"],
                         entity_in_db["id"],
@@ -1247,7 +1248,7 @@ class PathCache(object):
                         entity["type"],
                         entity["name"],
                     )
-                    msg += "This typically happens if an item in SG is renamed or "
+                    msg += "This typically happens if an item in PTR is renamed or "
                     msg += "if the path naming in the folder creation configuration "
                     msg += "is changed. In order to continue you can either change "
                     msg += (
@@ -1310,7 +1311,7 @@ class PathCache(object):
                 )
                 if new_rowid:
                     # this entry wasn't already in the db. So add it to the list to
-                    # potentially upload to SG later on
+                    # potentially upload to PTR later on
                     data_for_sg.append(d)
                     # append path cache row id to data
                     d["path_cache_row_id"] = new_rowid
@@ -1328,19 +1329,19 @@ class PathCache(object):
                 )
 
                 # now push to shotgun
-                (event_log_id, sg_id_lookup) = self._upload_cache_data_to_shotgun(
+                event_log_id, sg_id_lookup = self._upload_cache_data_to_shotgun(
                     data_for_sg, desc
                 )
                 self._update_last_event_log_synced(c, event_log_id)
                 # and indicate in the path cache that all these records have been pushed
-                for (pc_row_id, sg_id) in sg_id_lookup.items():
+                for pc_row_id, sg_id in sg_id_lookup.items():
                     c.execute(
                         "INSERT INTO shotgun_status(path_cache_id, shotgun_id) "
                         "VALUES(?, ?)",
                         (pc_row_id, sg_id),
                     )
 
-        except:
+        except Exception:
             # error processing shotgun. Make sure we roll back the sqlite path cache
             # transaction
             self._connection.rollback()
@@ -1394,7 +1395,7 @@ class PathCache(object):
                 ):
                     raise TankError(
                         "Database concurrency problems: The path '%s' is "
-                        "already associated with SG entity %s. Please re-run "
+                        "already associated with PTR entity %s. Please re-run "
                         "folder creation to try again." % (path, str(curr_entity))
                     )
 
@@ -1744,7 +1745,9 @@ class PathCache(object):
         SG_BATCH_SIZE = 50
 
         log.info("")
-        log.info("Step 1 - Downloading current path data from ShotGrid...")
+        log.info(
+            "Step 1 - Downloading current path data from Flow Production Tracking..."
+        )
 
         sg_data = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
@@ -1772,18 +1775,14 @@ class PathCache(object):
 
         try:
             # get all records and check each one against shotgun.
-            pc_data = list(
-                cursor.execute(
-                    """select pc.rowid,
+            pc_data = list(cursor.execute("""select pc.rowid,
                                                     pc.entity_type,
                                                     pc.entity_id,
                                                     pc.entity_name,
                                                     pc.root,
                                                     pc.path,
                                                     pc.primary_entity
-                                             from path_cache pc"""
-                )
-            )
+                                             from path_cache pc"""))
         finally:
             cursor.close()
 
@@ -1792,7 +1791,7 @@ class PathCache(object):
         log.info(" - %s paths loaded." % len(pc_data))
 
         log.info("")
-        log.info("Step 3 - Culling paths already in ShotGrid.")
+        log.info("Step 3 - Culling paths already in Flow Production Tracking.")
 
         sg_records = []
 
@@ -1824,7 +1823,7 @@ class PathCache(object):
             if sg_dict_key in sg_existing_data:
                 log.info(" - Skipping '%s'" % local_os_path)
                 log.debug(
-                    "Path '%s' (%s %s) is already in SG (id %s)"
+                    "Path '%s' (%s %s) is already in PTR (id %s)"
                     % (
                         local_os_path,
                         entity_type,
@@ -1848,7 +1847,7 @@ class PathCache(object):
 
         # cull out stuff where the linked entity has been retired in shogun
         log.info("")
-        log.info("Step 4 - Ensuring all SG entity links are valid.")
+        log.info("Step 4 - Ensuring all PTR entity links are valid.")
 
         ids_to_look_for = collections.defaultdict(list)
         for sg_record in sg_records:
@@ -1857,11 +1856,13 @@ class PathCache(object):
             ids_to_look_for[sg_record["entity"]["type"]].append(sg_record)
 
         # now query shotgun for each of the types
-        ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
+        for et, sg_records_for_et in ids_to_look_for.items():
 
-            log.info(" - Checking %s %ss in ShotGrid..." % (len(sg_records_for_et), et))
+            log.info(
+                " - Checking %s %ss in Flow Production Tracking..."
+                % (len(sg_records_for_et), et)
+            )
 
             # get the ids from shotgun for the current et.
             sg_ids = [x["entity"]["id"] for x in sg_records_for_et]
@@ -1875,7 +1876,7 @@ class PathCache(object):
                     sg_valid_records.append(sg_record)
                 else:
                     log.info(
-                        " - %s %s has been deleted in ShotGrid. "
+                        " - %s %s has been deleted in Flow Production Tracking. "
                         % (et, sg_record["entity"]["id"])
                     )
 
@@ -1890,12 +1891,13 @@ class PathCache(object):
             event_log_description = "Path cache migration."
             for batch_idx, curr_batch in enumerate(sg_batches):
                 log.info(
-                    "Uploading batch %d/%d to ShotGrid..."
+                    "Uploading batch %d/%d to Flow Production Tracking..."
                     % (batch_idx + 1, len(sg_batches))
                 )
                 self._upload_cache_data_to_shotgun(curr_batch, event_log_description)
 
         log.info("")
         log.info(
-            "Migration complete. %s records created in ShotGrid" % len(sg_valid_records)
+            "Migration complete. %s records created in Flow Production Tracking"
+            % len(sg_valid_records)
         )

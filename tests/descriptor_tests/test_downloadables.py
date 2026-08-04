@@ -8,27 +8,27 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-from functools import reduce
+import contextlib
 import multiprocessing
 import os
-from mock import patch
+import shutil
 import sys
 import tempfile
 import time
 import uuid
-import shutil
 import zipfile
-import contextlib
+from functools import reduce
+
 import pytest
-
-from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing, temp_env_var
-from tank_test.tank_test_base import setUpModule  # noqa
-
 import sgtk
 import tank
-from tank.util import is_windows
-from tank_vendor.six import b
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    skip_if_git_missing,
+    temp_env_var,
+)
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -63,7 +63,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Instantiate the actual test class that is are pickle-able by multiprocessing
         and pass any information required for the test to function.
         """
-        super(TestDownloadableIODescriptors, self).setUp()
+        super().setUp()
         self.imp = Implementation(
             self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
         )
@@ -240,7 +240,7 @@ class Implementation(object):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write(b("\0"))
+            f.write(b"\0")
 
         zip_file_path = os.path.join(
             tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex
@@ -293,16 +293,16 @@ class Implementation(object):
         io_descriptor_app_store = (
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
         )
-        with patch(
+        with mock.patch(
             "%s._IODescriptorAppStore__create_sg_app_store_connection"
             % io_descriptor_app_store,
             return_value=(self.mockgun, None),
         ):
-            with patch(
+            with mock.patch(
                 "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
                 return_value=self._metadata,
             ):
-                with patch(
+                with mock.patch(
                     "tank.util.shotgun.download_and_unpack_attachment",
                     side_effect=self._download_and_unpack_attachment,
                 ):
@@ -326,7 +326,7 @@ class Implementation(object):
                 desc = self._create_desc(location)
         else:
             desc = self._create_desc(location)
-        with patch(
+        with mock.patch(
             "tank.util.shotgun.download_and_unpack_attachment",
             side_effect=self._download_and_unpack_attachment,
         ):
@@ -380,10 +380,6 @@ class Implementation(object):
         :param expected_path: The expected path of the descriptor once it is downloaded locally.
         :param shared_dir: Optional shared directory to which the descriptor has to be downloaded to.
         """
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        # TODO: Test with subprocess instead of multiprocessing.
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         processes = []
         errors = []
@@ -493,7 +489,7 @@ class Implementation(object):
                     "large_binary_file",
                 )
             ),
-            "Failed to find the default bundle cache directory for the SG entity descriptor on disk.",
+            "Failed to find the default bundle cache directory for the PTR entity descriptor on disk.",
         )
 
         # now test concurrent downloads to a shared bundle cache
@@ -599,14 +595,14 @@ class Implementation(object):
 
         # ensure that an exception raised while downloading the descriptor to a
         # temporary folder will raise a TankDescriptorError
-        with patch(
+        with mock.patch(
             "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
             side_effect=_raise_exception,
         ):
             with self.assertRaises(tank.descriptor.errors.TankDescriptorIOError):
                 self._download_git_branch_bundle()
 
-    @patch("os.rename", side_effect=_raise_exception)
+    @mock.patch("os.rename", side_effect=_raise_exception)
     def test_descriptor_rename_error_fallbacks(self, *_):
         """
         Tests that an error during the rename operation kicks in various fallbacks.
@@ -644,8 +640,8 @@ class Implementation(object):
         tmp_files_after = os.listdir(tmp_location)
         self.assertEqual(tmp_files_after, tmp_files_before)
 
-    @patch("tank.util.filesystem.move_folder")
-    @patch("os.rename", side_effect=_raise_exception)
+    @mock.patch("tank.util.filesystem.move_folder")
+    @mock.patch("os.rename", side_effect=_raise_exception)
     def test_descriptor_rename_fallback_failure(self, rename_mock, move_mock):
         """
         Tests the expected behaviour when a rename fails and then 'plan B' fallback also fails.

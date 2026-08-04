@@ -8,21 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..util import filesystem
-from . import constants
+import datetime
+import os
+import shutil
+
 from ..errors import TankError
 from ..pipelineconfig import PipelineConfiguration
-
-from . import console_utils
-
+from ..util import ShotgunPath, filesystem
+from . import constants
 from .action_base import Action
-
-from ..util import ShotgunPath
-
-import os
-import datetime
-import shutil
-from tank_vendor.six.moves import input
 
 # Core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
@@ -72,7 +66,7 @@ class PushPCAction(Action):
             },
         }
 
-        # Just a cache to query SG only once.
+        # Just a cache to query PTR only once.
         self._pipeline_configs = None
 
     def run_noninteractive(self, log, parameters):
@@ -137,7 +131,7 @@ class PushPCAction(Action):
             raise TankError("Aborted by user.")
         try:
             target_pc_id = int(answer)
-        except:
+        except Exception:
             raise TankError("Please enter a number!")
 
         self._run(
@@ -178,7 +172,7 @@ class PushPCAction(Action):
             raise TankError(
                 "Only one pipeline configuration for this project! Need at least two "
                 "configurations in order to push. Please start by cloning a pipeline "
-                "configuration inside of ShotGrid."
+                "configuration inside of Flow Production Tracking."
             )
 
     def _run(self, log, target_id, use_symlink=False):

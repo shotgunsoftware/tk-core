@@ -10,22 +10,22 @@
 
 import os
 
-from mock import Mock, patch
-
-
 import tank
 from tank.api import Tank
 from tank.template import TemplatePath, TemplateString
-from tank.templatekey import StringKey, IntegerKey, SequenceKey
-
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+from tank.templatekey import IntegerKey, SequenceKey, StringKey
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
 
 
 class TestInit(TankTestBase):
     """Tests basic initialization of the sgtk API"""
 
     def setUp(self):
-        super(TestInit, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_project_from_param(self):
@@ -37,7 +37,7 @@ class TestTemplateFromPath(TankTestBase):
     """Cases testing Tank.template_from_path method"""
 
     def setUp(self):
-        super(TestTemplateFromPath, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_defined_path(self):
@@ -70,7 +70,7 @@ class TestTemplatesLoaded(TankTestBase):
     """Test case for the loading of templates from project level config."""
 
     def setUp(self):
-        super(TestTemplatesLoaded, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
         # some template names we know exist in the standard template
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
@@ -99,7 +99,7 @@ class TestPathsFromTemplate(TankTestBase):
     """Tests for tank.paths_from_template using test data based on sg_standard setup."""
 
     def setUp(self):
-        super(TestPathsFromTemplate, self).setUp()
+        super().setUp()
         self.setup_fixtures()
         # create project data
         # two sequences
@@ -230,7 +230,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
     """Tests Tank.abstract_paths_from_template method."""
 
     def setUp(self):
-        super(TestAbstractPathsFromTemplate, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         keys = {
@@ -370,7 +370,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
 
     def setUp(self):
-        super(TestPathsFromTemplateGlob, self).setUp()
+        super().setUp()
         keys = {
             "Shot": StringKey("Shot"),
             "version": IntegerKey("version", format_spec="03"),
@@ -381,7 +381,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
             "{Shot}/{version}/filename.{seq_num}", keys, root_path=self.project_root
         )
 
-    @patch("tank.api.glob.iglob")
+    @mock.patch("tank.api.glob.iglob")
     def assert_glob(self, fields, expected_glob, skip_keys, mock_glob):
         # want to ensure that value returned from glob is returned
         expected = [os.path.join(self.project_root, "shot_1", "001", "filename.00001")]
@@ -443,7 +443,7 @@ class TestPathsFromTemplateGlob(TankTestBase):
 
 class TestApiProperties(TankTestBase):
     def setUp(self):
-        super(TestApiProperties, self).setUp()
+        super().setUp()
 
     def test_version_property(self):
         """
@@ -457,7 +457,7 @@ class TestApiProperties(TankTestBase):
         """
         self.assertEqual(
             self.tk.documentation_url,
-            "https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide",
+            "https://help.autodesk.com/view/SGDEV/ENU/?contextId=SA_INTEGRATIONS_USER_GUIDE",
         )
 
     def test_shotgun_url_property(self):
@@ -511,7 +511,7 @@ class TestApiCache(TankTestBase):
     """
 
     def setUp(self):
-        super(TestApiCache, self).setUp()
+        super().setUp()
 
     def test_get_set(self):
         """

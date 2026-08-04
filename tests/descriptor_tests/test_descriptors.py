@@ -8,31 +8,31 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
+import unittest
+
 import sgtk
-
-import unittest2
-
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, SealedMock
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank.errors import TankError
 from tank.descriptor import (
     CheckVersionConstraintsError,
-    TankDescriptorError,
-    create_descriptor,
-    Descriptor,
-    TankMissingManifestError,
     ConfigDescriptor,
     CoreDescriptor,
+    Descriptor,
+    TankDescriptorError,
+    TankMissingManifestError,
+    create_descriptor,
 )
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
-
-from mock import Mock, patch
-
-from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
+from tank.errors import TankError
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    SealedMock,
+    ShotgunTestBase,
+    TankTestBase,
+    mock,
+)
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):
@@ -43,9 +43,9 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
 
         class CoreConfigDescriptorWithoutFeatures(ConfigDescriptor):
             def resolve_core_descriptor(self):
-                io_desc = Mock()
+                io_desc = mock.Mock()
                 io_desc.get_manifest.return_value = dict()
-                sg_connection = Mock()
+                sg_connection = mock.Mock()
                 bundle_cache_root_override = None
                 fallback_roots = None
                 return CoreDescriptor(
@@ -60,9 +60,9 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
 
         class CoreConfigDescriptorWithFeatures(ConfigDescriptor):
             def resolve_core_descriptor(self):
-                io_desc = Mock()
+                io_desc = mock.Mock()
                 io_desc.get_manifest.return_value = dict(features=dict(two="2"))
-                sg_connection = Mock()
+                sg_connection = mock.Mock()
                 bundle_cache_root_override = None
                 fallback_roots = None
                 return CoreDescriptor(
@@ -316,7 +316,7 @@ class TestConfigDescriptor(TankTestBase):
 class TestDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
-        super(TestDescriptorSupport, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"
@@ -475,32 +475,58 @@ class TestDescriptorSupport(TankTestBase):
         """
         Ensures that app store connection errors don't bubble up to the surface.
         """
-        # Nested patches because Python 2.5 doesn't support multiple arguments to the `with`
-        # keyword.
-        with patch(
+        with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             "._IODescriptorAppStore__create_sg_app_store_connection",
             side_effect=sgtk.descriptor.TankAppStoreError(
                 "This is my unit test exception."
             ),
         ):
-            with patch(
+            with mock.patch(
                 "tank.descriptor.io_descriptor.appstore.log.debug"
             ) as log_debug_mock:
-                descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
-                    {
-                        "name": "tk-config-basic",
-                        "version": "v1.0.0",
-                        "type": "app_store",
-                    },
-                    self.mockgun,
-                    sgtk.descriptor.Descriptor.CONFIG,
+                descriptor = (
+                    sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                        {
+                            "name": "tk-config-basic",
+                            "version": "v1.0.0",
+                            "type": "app_store",
+                        },
+                        self.mockgun,
+                        sgtk.descriptor.Descriptor.CONFIG,
+                    )
                 )
                 self.assertEqual(descriptor.has_remote_access(), False)
 
                 log_debug_mock.assert_called_with(
                     "...could not establish connection: This is my unit test exception."
                 )
+
+    def test_ssl_error(self):
+        """
+        Catches SSLError
+        """
+        with mock.patch(
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+            "._IODescriptorAppStore__create_sg_app_store_connection",
+            side_effect=httplib2.ssl.SSLError("Read operation timed out"),
+        ), mock.patch(
+            "tank.descriptor.io_descriptor.appstore.log.debug"
+        ) as log_debug_mock:
+            descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                {
+                    "name": "tk-config-basic",
+                    "version": "v1.0.0",
+                    "type": "app_store",
+                },
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+            )
+            self.assertEqual(descriptor.has_remote_access(), False)
+
+            log_debug_mock.assert_called_with(
+                "...could not establish connection: ('Read operation timed out',)"
+            )
 
     def test_git_version_logic(self):
         """
@@ -660,16 +686,24 @@ class TestDescriptorSupport(TankTestBase):
                 target_path, depth=1, ref="master"
             ),
             'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (self.git_repo_uri, "-b master", target_path,),
+            % (
+                self.git_repo_uri,
+                "-b master",
+                target_path,
+            ),
         )
         self.assertEqual(
             desc._io_descriptor._validate_git_commands(target_path, ref="master"),
             'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (self.git_repo_uri, "-b master", target_path,),
+            % (
+                self.git_repo_uri,
+                "-b master",
+                target_path,
+            ),
         )
 
 
-class TestConstraintValidation(unittest2.TestCase):
+class TestConstraintValidation(unittest.TestCase):
     """
     Tests for console utilities.
     """
@@ -678,7 +712,7 @@ class TestConstraintValidation(unittest2.TestCase):
         """
         Ensures the Shotgun version cache is cleared between tests.
         """
-        super(TestConstraintValidation, self).setUp()
+        super().setUp()
         # Set the server info on the Mockgun object.
         self._up_to_date_sg = Mockgun("https://foo.shotgunstudio.com")
         self._up_to_date_sg.server_info = {"version": (6, 6, 6)}
@@ -708,7 +742,7 @@ class TestConstraintValidation(unittest2.TestCase):
         )
 
         # Mock the get_manifest method so it uses our fake info.yml file.
-        desc._io_descriptor.get_manifest = Mock(
+        desc._io_descriptor.get_manifest = mock.Mock(
             return_value={
                 "requires_shotgun_version": version_constraints.get("min_sg"),
                 "requires_core_version": version_constraints.get("min_core"),
@@ -742,7 +776,7 @@ class TestConstraintValidation(unittest2.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least ShotGrid .* but currently installed version is .*\.",
+            r"Requires at least Flow Production Tracking .* but currently installed version is .*\.",
         )
 
     def test_min_core_constraint_pass(self):
@@ -768,7 +802,7 @@ class TestConstraintValidation(unittest2.TestCase):
             "Requires at least Core API .* but currently installed version is v6.6.5",
         )
 
-    @patch(
+    @mock.patch(
         "tank.pipelineconfig_utils.get_currently_running_api_version",
         return_value="v6.6.5",
     )
@@ -858,14 +892,14 @@ class TestConstraintValidation(unittest2.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least SG Desktop.* but currently installed version is .*\.",
+            r"Requires at least FPTR desktop app.* but currently installed version is .*\.",
         )
 
-    @patch(
+    @mock.patch(
         "tank.descriptor.descriptor_bundle.BundleDescriptor._get_sg_version",
         return_value="6.6.5",
     )
-    @patch(
+    @mock.patch(
         "tank.pipelineconfig_utils.get_currently_running_api_version",
         return_value="v5.5.4",
     )
@@ -919,16 +953,16 @@ class TestConstraintValidation(unittest2.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least SG Desktop v3.3.4 but no version was specified",
+            "Requires at least FPTR desktop app v3.3.4 but no version was specified",
         )
 
 
-class TestFeaturesApi(unittest2.TestCase):
+class TestFeaturesApi(unittest.TestCase):
     def _create_core_desc(self, io_descriptor):
         """
         Helper method which creates an io_descriptor
         """
-        sg_connection = Mock()
+        sg_connection = mock.Mock()
         bundle_cache_root_override = None
         fallback_roots = None
         return sgtk.descriptor.CoreDescriptor(
@@ -939,7 +973,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures a missing manifest is handled properly.
         """
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.side_effect = TankMissingManifestError()
         desc = self._create_core_desc(io_desc)
 
@@ -951,7 +985,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures a missing features section is handled properly.
         """
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = {}
         desc = self._create_core_desc(io_desc)
 
@@ -963,7 +997,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures a missing feature is handled properly.
         """
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = dict(features={})
         desc = self._create_core_desc(io_desc)
 
@@ -976,7 +1010,7 @@ class TestFeaturesApi(unittest2.TestCase):
         Ensures an available feature is handled properly.
         """
         features = dict(two="2", foo="bar", zero=0)
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = dict(features=features)
         desc = self._create_core_desc(io_desc)
 
@@ -1003,7 +1037,7 @@ class TestFeaturesApi(unittest2.TestCase):
         ) as fh:
             info = yaml.safe_load(fh)
 
-        io_desc = Mock()
+        io_desc = mock.Mock()
         io_desc.get_manifest.return_value = info
         desc = self._create_core_desc(io_desc)
 

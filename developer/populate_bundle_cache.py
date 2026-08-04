@@ -17,28 +17,27 @@ a primed bundle cache.
 """
 
 # system imports
-from __future__ import with_statement
 import os
-
 import sys
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
 python_folder = os.path.abspath(os.path.join(this_folder, "..", "python"))
-sys.path.append(python_folder)
+# Insert at the beginning to ensure local tk-core takes precedence over
+# any installed version in site-packages
+sys.path.insert(0, python_folder)
 
 # sgtk imports
 from sgtk import LogManager
-from sgtk.util import filesystem
 from sgtk.descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
-
+from sgtk.util import filesystem
 from utils import (
-    cache_apps,
-    authenticate,
-    add_authentication_options,
     OptionParserLineBreakingEpilog,
-    cleanup_bundle_cache,
+    add_authentication_options,
+    authenticate,
     automated_setup_documentation,
+    cache_apps,
+    cleanup_bundle_cache,
 )
 
 # set up logging
@@ -148,9 +147,7 @@ For information about the various descriptors that can be used, see
 http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
-""".format(
-        automated_setup_documentation=automated_setup_documentation
-    ).format(
+""".format(automated_setup_documentation=automated_setup_documentation).format(
         script_name="populate_bundle_cache.py"
     )
     parser = OptionParserLineBreakingEpilog(
@@ -164,7 +161,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     add_authentication_options(parser)
 
     # parse cmd line
-    (options, remaining_args) = parser.parse_args()
+    options, remaining_args = parser.parse_args()
 
     logger.info("Welcome to the Toolkit bundle cache builder.")
     logger.info("")

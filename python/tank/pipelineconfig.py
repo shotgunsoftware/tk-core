@@ -12,27 +12,20 @@
 Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
-import os
+
 import glob
+import os
+import pickle
 
 from tank_vendor import yaml
-import tank_vendor.six.moves.cPickle as pickle
 
-from .errors import TankError, TankUnreadableFileError
-from .util.version import is_version_older
-from . import constants
-from .platform.environment import InstalledEnvironment, WritableEnvironment
-from .util import shotgun, yaml_cache
-from .util import ShotgunPath
-from .util import StorageRoots
-from .util.pickle import retrieve_env_var_pickled
-from . import hook
-from . import pipelineconfig_utils
-from . import template_includes
-from . import LogManager
-
+from . import LogManager, constants, hook, pipelineconfig_utils, template_includes
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from tank_vendor import six
+from .errors import TankError, TankUnreadableFileError
+from .platform.environment import InstalledEnvironment, WritableEnvironment
+from .util import ShotgunPath, StorageRoots, shotgun, yaml_cache
+from .util.pickle import retrieve_env_var_pickled
+from .util.version import is_version_older
 
 log = LogManager.get_logger(__name__)
 
@@ -487,7 +480,7 @@ class PipelineConfiguration(object):
 
         if data is None:
             raise TankError(
-                "Cannot find a Pipeline configuration in SG "
+                "Cannot find a Pipeline configuration in PTR "
                 "that has id %s." % self.get_shotgun_id()
             )
 
@@ -600,7 +593,7 @@ class PipelineConfiguration(object):
         """
 
         if self.get_shotgun_path_cache_enabled():
-            raise TankError("SG based path cache already turned on!")
+            raise TankError("PTR based path cache already turned on!")
 
         self._update_metadata({"use_shotgun_path_cache": True})
         self._use_shotgun_path_cache = True
@@ -648,31 +641,31 @@ class PipelineConfiguration(object):
 
     def get_local_storage_for_root(self, root_name):
         """
-        Given a root name, return the associated local storage in SG.
+        Given a root name, return the associated local storage in PTR.
 
         If no local storage can be determined, ``None`` will be returned.
 
         :param root_name:
-        :return: A standard SG entity dictionary for the matching SG local
+        :return: A standard PTR entity dictionary for the matching PTR local
             storage.
         """
 
         if root_name not in self._storage_roots.required_roots:
             log.warning(
-                "Unable to identify SG local storage for root name '%s'. "
+                "Unable to identify PTR local storage for root name '%s'. "
                 "This root name is not required by the configuration." % (root_name,)
             )
             return None
 
         # get the storage data for required roots
-        (mapped_roots, unmapped_roots) = self.get_local_storage_mapping()
+        mapped_roots, unmapped_roots = self.get_local_storage_mapping()
 
         if root_name in mapped_roots:
             return mapped_roots[root_name]
         else:
             log.warning(
-                "Unable to identify SG local storage for root name '%s'. "
-                "The root is not mapped to any SG local storage. It does "
+                "Unable to identify PTR local storage for root name '%s'. "
+                "The root is not mapped to any PTR local storage. It does "
                 "not explicitly define a local storage id and does not match "
                 "the name of any known storages." % (root_name,)
             )
@@ -681,14 +674,14 @@ class PipelineConfiguration(object):
     def get_local_storage_mapping(self):
         """
         Returns a tuple of information about the required storage roots and how
-        they map to local storages in SG.
+        they map to local storages in PTR.
 
         The first item in the tuple is a dictionary of storage root names mapped
         to a corresponding dictionary of fields for a local storage defined in
         Shotgun.
 
         The second item is a list of storage roots required by the configuration
-        that can not be mapped to a SG local storage.
+        that can not be mapped to a PTR local storage.
 
         Example return value::
 
@@ -716,8 +709,8 @@ class PipelineConfiguration(object):
 
         In the example above, 4 storage roots are defined by the configuration:
         "work", "data", "data2", and "data3". The "work" and "data" roots can
-        be associated with a SG local storage. The other two roots have no
-        corresponding local storage in SG.
+        be associated with a PTR local storage. The other two roots have no
+        corresponding local storage in PTR.
 
         :param: A shotgun connection
         :returns: A tuple of information about local storages mapped to the
@@ -738,12 +731,12 @@ class PipelineConfiguration(object):
             {
                 "primary": {
                     "win32": "z:\studio\my_project",
-                    "linux2": "/studio/my_project",
+                    "linux": "/studio/my_project",
                     "darwin": "/studio/my_project"
                 },
                 "textures": {
                     "win32": "z:\textures\my_project",
-                    "linux2": None,
+                    "linux": None,
                     "darwin": "/textures/my_project"
                 },
             }
@@ -965,7 +958,7 @@ class PipelineConfiguration(object):
         # methods do not require a connection.
         sg_connection = shotgun.get_deferred_sg_connection()
 
-        if isinstance(dict_or_uri, six.string_types):
+        if isinstance(dict_or_uri, str):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
         else:
             descriptor_dict = dict_or_uri
@@ -1128,7 +1121,7 @@ class PipelineConfiguration(object):
         env_names = []
         for f in glob.glob(self.get_environment_path("*")):
             file_name = os.path.basename(f)
-            (name, _) = os.path.splitext(file_name)
+            name, _ = os.path.splitext(file_name)
             env_names.append(name)
         return env_names
 
@@ -1216,7 +1209,7 @@ class PipelineConfiguration(object):
 
         try:
             return_value = hook.execute_hook(hook_path, parent, **kwargs)
-        except:
+        except Exception:
             # log the full callstack to make sure that whatever the
             # calling code is doing, this error is logged to help
             # with troubleshooting and support
@@ -1250,9 +1243,6 @@ class PipelineConfiguration(object):
         )
         hook_paths = [os.path.join(hooks_path, file_name)]
 
-        # the hook.method display name used when logging the metric
-        hook_method_display = "%s.%s" % (hook_name, method_name)
-
         # now add a custom hook if that exists.
         hook_folder = self.get_core_hooks_location()
         hook_path = os.path.join(hook_folder, file_name)
@@ -1263,7 +1253,7 @@ class PipelineConfiguration(object):
             return_value = hook.execute_hook_method(
                 hook_paths, parent, method_name, **kwargs
             )
-        except:
+        except Exception:
             # log the full callstack to make sure that whatever the
             # calling code is doing, this error is logged to help
             # with troubleshooting and support

@@ -12,10 +12,12 @@
 Utility methods that are specific to tank commands
 """
 
+from typing import List, Tuple
+
 from . import constants
 
 
-def should_use_legacy_yaml_parser(args):
+def should_use_legacy_yaml_parser(args: List[str]) -> Tuple[bool, List[str]]:
     """
     Given a set of command line args, determine if the
     legacy yaml parser should be used.
@@ -33,3 +35,19 @@ def should_use_legacy_yaml_parser(args):
         legacy_parser = False
 
     return (legacy_parser, args)
+
+
+def is_git_repo_uri(uri: str) -> bool:
+    """
+    Checks if the given config URI is a Git repository URI.
+    """
+    return any(
+        (
+            # GitHub repo URLs end with .git
+            uri.endswith(".git"),
+            # Git SSH URLs start with git@
+            uri.startswith("git@"),
+            # Azure DevOps repo URLs contain `_git` in the HTTPS URLs
+            uri.startswith("https://") and "_git" in uri,
+        )
+    )

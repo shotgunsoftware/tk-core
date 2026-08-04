@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import code
+import os
+import sys
+
 from ..errors import TankError
 from .action_base import Action
-
-import code
-import sys
-import os
 
 
 class ClearCacheAction(Action):
@@ -27,9 +27,9 @@ class ClearCacheAction(Action):
             "clear_shotgun_menu_cache",
             Action.TK_INSTANCE,
             (
-                "Clears the SG Menu Cache associated with this Configuration. "
+                "Clears the PTR Menu Cache associated with this Configuration. "
                 "This is sometimes useful after complex configuration changes if new "
-                "or modified Toolkit menu items are not appearing inside ShotGrid."
+                "or modified Toolkit menu items are not appearing inside Flow Production Tracking."
             ),
             "Admin",
         )
@@ -70,10 +70,10 @@ class ClearCacheAction(Action):
                 log.debug("Deleting cache file %s..." % full_path)
                 try:
                     os.remove(full_path)
-                except:
+                except Exception:
                     log.warning("Could not delete cache file '%s'!" % full_path)
 
-        log.info("The SG menu cache has been cleared.")
+        log.info("The PTR menu cache has been cleared.")
 
 
 class InteractiveShellAction(Action):
@@ -99,7 +99,7 @@ class InteractiveShellAction(Action):
             raise TankError("This command takes no arguments!")
 
         msg = []
-        msg.append("Welcome to SG Pipeline Toolkit Python!")
+        msg.append("Welcome to Flow Production Tracking Toolkit Python!")
         msg.append(sys.version)
         msg.append("Running on %s" % sys.platform)
         msg.append("")
@@ -128,8 +128,8 @@ class InteractiveShellAction(Action):
 
         # attempt install tab command completion
         try:
-            import rlcompleter
             import readline
+            import rlcompleter  # noqa: F401
 
             if "libedit" in readline.__doc__:
                 # macosx, some versions - see
@@ -137,7 +137,7 @@ class InteractiveShellAction(Action):
                 readline.parse_and_bind("bind ^I rl_complete")
             else:
                 readline.parse_and_bind("tab: complete")
-        except:
+        except Exception:
             pass
 
         code.interact(banner="\n".join(msg), local=tk_locals)

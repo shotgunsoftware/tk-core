@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 # Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -9,25 +10,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from unittest2 import TestCase, skipIf
-import sgtk
-from tank_vendor import six
+from unittest import TestCase
 
-if six.PY2:
-    char = "漢字"
-    unichar = unicode(char, encoding="utf8")
+import sgtk
 
 
 class TestUnicode(TestCase):
-    @skipIf(six.PY3, "Unicode data type does not exist on Python 3.")
-    def test_convert_to_str(self):
-        """
-        Ensure all values are property converted to str with utf-8 strings
-        in Python.
-        """
-        value = {unichar: [unichar, {unichar: unichar}], "char": unichar}
-        expected = {char: [char, {char: char}], "char": char}
-        self.assertEqual(sgtk.util.unicode.ensure_contains_str(value), expected)
 
     def test_dict_back_reference_do_not_loop_forever(self):
         """
@@ -82,3 +70,32 @@ class TestUnicode(TestCase):
         self.assertEqual(id(value), id(converted_value[1][0]))
         self.assertEqual(id(value), id(converted_value[1][1]))
         self.assertEqual(id(value), id(converted_value[1][2]))
+
+    def test_convert_to_str_with_different_languages(self):
+        """
+        Ensure all values encoded with ISO-8859-1 are properly converted to str.
+        """
+        logins = [
+            "AñoVolvió",
+            "JiříVyčítal",
+            "日本のユーザー*",
+            "이사이트에서는개발자가",
+            "およびその他の教育リソース" "工作流技术总监或将要设置工作流并希望开发",
+            "Martin Tlustý",
+        ]
+
+        for login in logins:
+            expected_value = {
+                "type": "SessionUser",
+                "data": {
+                    "http_proxy": None,
+                    "host": "https://xyxyxyxyx.jjj",
+                    "login": login,
+                    "session_token": "de97e6ff868b6b2ce332",
+                    "session_metadata": "G9kZXNrLmNvbTsgcGF0aD0v",
+                },
+            }
+
+            dumps_value = sgtk.util.pickle.dumps(expected_value)
+            received_value = sgtk.util.pickle.loads(dumps_value)
+            self.assertEqual(expected_value, received_value)

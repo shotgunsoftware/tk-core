@@ -9,28 +9,38 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-# Engine management
-from .engine import start_engine, current_engine, get_engine_path, find_app_settings
-from .errors import (
-    TankEngineInitError,
-    TankUnresolvedEnvironmentError,
-    TankContextChangeNotSupportedError,
-    TankMissingEngineError,
-    TankMissingEnvironmentFile,
-)
-from .software_launcher import create_engine_launcher
+from . import events
 
 # base classes to derive from
 from .application import Application
-from .engine import Engine
-from .software_launcher import SoftwareLauncher, SoftwareVersion, LaunchInformation
+
+# Engine management
+from .engine import (
+    Engine,
+    current_engine,
+    find_app_settings,
+    get_engine_path,
+    start_engine,
+)
+from .errors import (
+    TankContextChangeNotSupportedError,
+    TankEngineInitError,
+    TankMissingEngineError,
+    TankMissingEnvironmentFile,
+    TankUnresolvedEnvironmentError,
+)
 from .framework import Framework
+from .software_launcher import (
+    LaunchInformation,
+    SoftwareLauncher,
+    SoftwareVersion,
+    create_engine_launcher,
+)
 from .util import (
     change_context,
-    get_framework,
-    import_framework,
     current_bundle,
-    restart,
+    get_framework,
     get_logger,
+    import_framework,
+    restart,
 )
-from . import events

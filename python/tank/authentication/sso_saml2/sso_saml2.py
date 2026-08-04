@@ -16,11 +16,8 @@ Integration with Shotgun API.
 # pylint: disable=too-many-arguments
 # pylint: disable=unused-import
 
-from .core import SsoSaml2Core  # noqa
-
-from .utils import (  # noqa
-    is_sso_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
+from .core.sso_saml2_core import SsoSaml2Core  # noqa
+from .core.utils import (  # noqa
     set_logger_parent,
 )
 
@@ -36,7 +33,8 @@ class SsoSaml2(object):
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
-                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
+                             For Qt5/PySide2, we require modules QtCore, QtGui,
+                             QtNetwork and QtWebEngineWidgets
 
         :returns: The SsoSaml2 oject.
         """

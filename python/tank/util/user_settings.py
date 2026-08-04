@@ -12,16 +12,14 @@
 User settings management.
 """
 
+import configparser
 import os
-from tank_vendor.six.moves import configparser
-from tank_vendor import six
 
-from .local_file_storage import LocalFileStorageManager
-from .errors import EnvironmentVariableFileLookupError, TankError
 from .. import LogManager
+from .errors import EnvironmentVariableFileLookupError, TankError
+from .local_file_storage import LocalFileStorageManager
 from .singleton import Singleton
 from .system_settings import SystemSettings
-
 
 logger = LogManager.get_logger(__name__)
 
@@ -53,7 +51,7 @@ class UserSettings(Singleton):
         logger.debug("Default login: %s", self._to_display_value(self.default_login))
 
         proxy = self._get_filtered_proxy(self.shotgun_proxy)
-        logger.debug("SG proxy: %s", self._to_display_value(proxy))
+        logger.debug("PTR proxy: %s", self._to_display_value(proxy))
 
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         logger.debug("App Store proxy: %s", self._to_display_value(proxy))
@@ -239,7 +237,7 @@ class UserSettings(Singleton):
             - The ``SGTK_PREFERENCES_LOCATION`` environment variable.
             - The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable.
             - The Shotgun folder.
-            - The Shotgun Desktop folder.
+            - The PTR desktop app folder.
 
         :returns: The location where to read the configuration file from.
         """
@@ -258,7 +256,7 @@ class UserSettings(Singleton):
             self._evaluate_env_var("SGTK_DESKTOP_CONFIG_LOCATION"),
             # Default location first
             default_location,
-            # This is the location set by users of the Shotgun Desktop in the past.
+            # This is the location set by users of the PTR desktop app in the past.
             os.path.join(
                 LocalFileStorageManager.get_global_root(
                     LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17
@@ -285,15 +283,7 @@ class UserSettings(Singleton):
 
         :returns: A ConfigParser instance with the contents from the configuration file.
         """
-        # In Python 3.2, SafeConfigParser has been renamed to ConfigParser and using the
-        # old class name generates a warning.
-        if six.PY2:
-            config = configparser.SafeConfigParser()
-        else:
-            # Technically this only appeared in Python 3.2, but we don't support
-            # less than 3.7, so we don't have to be very precise about which
-            # version of Python 3 we are running.
-            config = configparser.ConfigParser()
+        config = configparser.ConfigParser()
         if os.path.exists(path):
             config.read(path)
         return config

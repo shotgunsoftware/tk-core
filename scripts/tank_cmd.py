@@ -8,42 +8,36 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-import sys
-import os
-
-if sys.version_info >= (3, 2):
-    from html import escape
-else:
-    from cgi import escape
-import logging
-import string
-import tank
-import textwrap
 import datetime
-from tank.errors import TankError, TankInitError
-from tank.commands.tank_command import get_actions, run_action
+import logging
+import os
+import string
+import sys
+import textwrap
+from html import escape
+
+import tank
+from tank import LogManager, pipelineconfig_utils
+from tank.authentication import (
+    AuthenticationCancelled,
+    AuthenticationError,
+    CoreDefaultsManager,
+    IncompleteCredentials,
+    ShotgunAuthenticationError,
+    ShotgunAuthenticator,
+)
+from tank.commands import constants as command_constants
+from tank.commands.action_base import Action
 from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
-from tank.commands.action_base import Action
-from tank.util import shotgun
-from tank.util import shotgun_entity
+from tank.commands.tank_command import get_actions, run_action
+from tank.errors import TankError, TankInitError
+from tank.platform import constants as platform_constants
+from tank.platform import engine
 from tank.util import is_windows
 from tank.util import sgre as re
-from tank.platform import constants as platform_constants
-from tank.authentication import ShotgunAuthenticator
-from tank.authentication import AuthenticationError
-from tank.authentication import ShotgunAuthenticationError
-from tank.authentication import AuthenticationCancelled
-from tank.authentication import IncompleteCredentials
-from tank.authentication import CoreDefaultsManager
-from tank.commands import constants as command_constants
+from tank.util import shotgun, shotgun_entity
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
-from tank.platform import engine
-from tank import pipelineconfig_utils
-from tank import LogManager
-from tank_vendor import six
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")
@@ -266,18 +260,12 @@ class AltCustomFormatter(logging.Formatter):
                 # wrap other log levels on an 80 char wide boundary
                 lines = []
 
-                if sys.version_info < (2, 6):
-                    # python 2.5 doesn't support all params
-                    wrapped_lines = textwrap.wrap(
-                        record.msg, width=self._line_length, break_long_words=False
-                    )
-                else:
-                    wrapped_lines = textwrap.wrap(
-                        record.msg,
-                        width=self._line_length,
-                        break_long_words=False,
-                        break_on_hyphens=False,
-                    )
+                wrapped_lines = textwrap.wrap(
+                    record.msg,
+                    width=self._line_length,
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
 
                 for x in wrapped_lines:
                     lines.append(x)
@@ -292,7 +280,7 @@ def show_help():
     """
 
     info = """
-Welcome to the Shotgun pipeline toolkit!
+Welcome to the Flow Production Tracking Toolkit!
 
 This command lets you control Toolkit from a shell. You can start apps and
 engines via the Tank command. You can also run various admin commands.
@@ -494,13 +482,13 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
 
     # extract actions into cache file
     res = []
-    for (cmd_name, cmd_params) in engine_commands.items():
+    for cmd_name, cmd_params in engine_commands.items():
 
         # some apps provide a special deny_platforms entry
         if "deny_platforms" in cmd_params["properties"]:
             # setting can be Linux, Windows or Mac
-            curr_os = {"linux2": "Linux", "darwin": "Mac", "win32": "Windows"}[
-                normalize_platform(sys.platform)
+            curr_os = {"linux": "Linux", "darwin": "Mac", "win32": "Windows"}[
+                sys.platform
             ]
             if curr_os in cmd_params["properties"]["deny_platforms"]:
                 # deny this platform! :)
@@ -536,7 +524,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # otherwise with wt mode, \n on windows will be turned into \n\r
         # which is not interpreted correctly by the jacascript code.
         f = open(cache_path, "wb")
-        f.write(six.ensure_binary(data))
+        f.write(data.encode("utf-8"))
         f.close()
 
         # make sure cache file has proper permissions
@@ -578,7 +566,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError as e:
-        logger.error("Error writing SG cache file: %s" % e)
+        logger.error("Error writing PTR cache file: %s" % e)
     except Exception:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
@@ -822,7 +810,8 @@ def _shotgun_run_action(
         cv = installer.get_current_version_number()
         lv = installer.get_update_version_number()
         logger.info(
-            "You are currently running version %s of the SG Pipeline Toolkit." % cv
+            "You are currently running version %s of the Flow Production Tracking Toolkit."
+            % cv
         )
 
         if not is_localized:
@@ -845,12 +834,13 @@ def _shotgun_run_action(
             req_sg = installer.get_required_sg_version_for_update()
             logger.warning(
                 "<b>A new version (%s) of the core API is available however "
-                "it requires a more recent version (%s) of ShotGrid!</b>" % (lv, req_sg)
+                "it requires a more recent version (%s) of Flow Production Tracking!</b>"
+                % (lv, req_sg)
             )
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
-            (summary, url) = installer.get_release_notes()
+            summary, url = installer.get_release_notes()
 
             logger.info(
                 "<b>A new version of the Toolkit API (%s) is available!</b>" % lv
@@ -924,14 +914,15 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
     sg = shotgun.get_sg_connection()
 
     logger.debug(
-        "ShotGrid: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern)
+        "Flow Production Tracking: find(%s, %s contains %s)"
+        % (entity_type, name_field, name_pattern)
     )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     logger.debug("Got data: %r" % data)
 
     if len(data) == 0:
         raise TankError(
-            "No SG %s matching the pattern '%s'!" % (entity_type, name_pattern)
+            "No PTR %s matching the pattern '%s'!" % (entity_type, name_pattern)
         )
 
     elif len(data) > 1:
@@ -950,7 +941,7 @@ def _list_commands(tk, ctx):
     Outputs a list of commands to the logger given the current context.
     """
     # get all the action objets (commands) suitable for the current context
-    (aa, engine) = get_actions(logger, tk, ctx)
+    aa, engine = get_actions(logger, tk, ctx)
 
     logger.info("")
     logger.info("The following commands are available:")
@@ -1099,7 +1090,9 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
                 ["project", "is", {"type": "Project", "id": constrain_by_project_id}]
             )
 
-        logger.debug("ShotGrid: find(%s, %s)" % (entity_type, shotgun_filters))
+        logger.debug(
+            "Flow Production Tracking: find(%s, %s)" % (entity_type, shotgun_filters)
+        )
         entities = sg.find(
             entity_type,
             shotgun_filters,
@@ -1107,14 +1100,16 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
         )
         logger.debug("Got data: %r" % entities)
     except Exception as e:
-        raise TankError("An error occurred when searching in ShotGrid: %s" % e)
+        raise TankError(
+            "An error occurred when searching in Flow Production Tracking: %s" % e
+        )
 
     selected_entity = None
 
     if len(entities) == 0:
         logger.info("")
         logger.info(
-            "Could not find a %s with a name containing '%s' in ShotGrid!"
+            "Could not find a %s with a name containing '%s' in Flow Production Tracking!"
             % (entity_type, entity_search_token)
         )
         raise TankError(
@@ -1313,7 +1308,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             if ctx.project is None:
                 # context could not be determined based on the path
                 # revert back to the project context
-                logger.info("- The path is not associated with any SG object.")
+                logger.info("- The path is not associated with any PTR object.")
                 logger.info("- Falling back on default project settings.")
 
                 if tk.pipeline_configuration.is_site_configuration():
@@ -1335,7 +1330,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 "You are executing a project specific tank command so there is "
                 "no need to specify a Project parameter! Try running just the "
                 "tank command with no parameters to see what options are available "
-                "on the project level. Alternatively, you can pass a SG entity "
+                "on the project level. Alternatively, you can pass a PTR entity "
                 "(e.g. 'Shot abc123') or a path on disk to specify a particular "
                 "environment to see the available commands."
             )
@@ -1403,7 +1398,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
 
                 # now try to resolve this project
-                (project_id, project_name) = _resolve_shotgun_pattern(
+                project_id, project_name = _resolve_shotgun_pattern(
                     "Project", proj_token
                 )
                 logger.info("- Searching in project '%s' only" % project_name)
@@ -1430,7 +1425,9 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 # filter out all other items in other projects.
                 filters.append(["project", "is", {"type": "Project", "id": project_id}])
 
-            logger.debug("ShotGrid: find(%s, %s)" % (entity_type, filters))
+            logger.debug(
+                "Flow Production Tracking: find(%s, %s)" % (entity_type, filters)
+            )
             data = sg.find(entity_type, filters, ["id", name_field])
             logger.debug("Got data: %r" % data)
 
@@ -1482,7 +1479,8 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                     "%s If you want to unregister folders associated with this "
                     "entity, you can do so by calling the unregister_folders "
                     "command on the associated path instead: "
-                    '"tank unregister_folders /path/to/folder"' % exc.message
+                    '"tank unregister_folders /path/to/folder"'
+                    % getattr(exc, "message", "")
                 )
             raise
 

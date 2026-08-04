@@ -12,9 +12,10 @@
 Hook to control path cache and bundle cache folder creation.
 """
 
-import sgtk
 import os
-from sgtk.util import filesystem, LocalFileStorageManager
+
+import sgtk
+from sgtk.util import LocalFileStorageManager, filesystem
 
 HookBaseClass = sgtk.get_hook_baseclass()
 log = sgtk.LogManager.get_logger(__name__)

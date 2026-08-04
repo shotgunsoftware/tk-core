@@ -8,14 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 
 from tank import TankError
-from tank.util import LocalFileStorageManager
-from tank.util import is_macos, is_windows
-
+from tank.util import LocalFileStorageManager, is_macos, is_windows
 from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 
@@ -25,7 +21,7 @@ class TestLocalFileStorage(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestLocalFileStorage, self).setUp()
+        super().setUp()
 
         # We can't assume that SHOTGUN_HOME is not set, so unset it for the tests.
         self._old_value = os.environ.get(self.SHOTGUN_HOME)
@@ -37,7 +33,7 @@ class TestLocalFileStorage(ShotgunTestBase):
         if self._old_value:
             os.environ[self.SHOTGUN_HOME] = self._old_value
 
-        super(TestLocalFileStorage, self).tearDown()
+        super().tearDown()
 
     def test_global(self):
         """

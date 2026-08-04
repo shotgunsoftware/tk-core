@@ -9,15 +9,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-
-import sys
-import os
 import glob
+import os
+import sys
 import tempfile
 import traceback
 from optparse import OptionParser
-
 
 # Let the user know which Python is picked up to run the tests.
 print()
@@ -45,7 +42,7 @@ test_python_path = os.path.join(test_python_path, "third_party")
 print("Adding tests/python/third_party location to python_path: %s" % test_python_path)
 sys.path = [test_python_path] + sys.path
 
-import unittest2 as unittest
+import unittest as unittest
 
 
 class TankTestRunner(object):
@@ -255,7 +252,7 @@ def _parse_command_line():
         help="Run tests and redirect logging output to the console.",
     )
 
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
 
     test_names = args or []
 

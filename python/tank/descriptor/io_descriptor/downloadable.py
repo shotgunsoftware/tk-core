@@ -12,11 +12,10 @@ import contextlib
 import os
 import uuid
 
-from .base import IODescriptorBase
-from ..errors import TankDescriptorIOError
-from ...util import filesystem
-
 from ... import LogManager
+from ...util import filesystem
+from ..errors import TankDescriptorIOError
+from .base import IODescriptorBase
 
 log = LogManager.get_logger(__name__)
 
@@ -257,7 +256,7 @@ class IODescriptorDownloadable(IODescriptorBase):
         :param str path: Path to the bundle to test.
         :returns: True if the bundle is deemed completed, False otherwise.
         """
-        if not super(IODescriptorDownloadable, self)._exists_local(path):
+        if not super()._exists_local(path):
             return False
 
         # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity

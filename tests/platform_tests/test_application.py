@@ -8,24 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-import sys
+import inspect
+import logging
 import os
 import shutil
-import logging
 import tempfile
-import mock
-import inspect
+from io import StringIO
+from unittest import mock
 
-from tank_test.tank_test_base import *
 import tank
 from tank.errors import TankError, TankHookMethodDoesNotExistError
-from tank.platform import application, constants, validation
+from tank.platform import application, validation
 from tank.template import Template
-from tank.deploy import descriptor
-from tank_vendor import six
-from tank_vendor.six import StringIO
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestApplication(TankTestBase):
@@ -34,7 +29,7 @@ class TestApplication(TankTestBase):
     """
 
     def setUp(self):
-        super(TestApplication, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -66,7 +61,7 @@ class TestApplication(TankTestBase):
             cur_engine.destroy()
 
         # important to call base class so it can clean up memory
-        super(TestApplication, self).tearDown()
+        super().tearDown()
 
 
 class TestAppFrameworks(TestApplication):
@@ -181,7 +176,7 @@ class TestGetSetting(TestApplication):
     """
 
     def setUp(self):
-        super(TestGetSetting, self).setUp()
+        super().setUp()
         self.app = self.engine.apps["test_app"]
 
     def test_get_setting(self):
@@ -276,6 +271,20 @@ class TestGetSetting(TestApplication):
                 "test_default_syntax_with_new_style_engine_specific_hook_sparse"
             ),
         )
+
+
+class TestDataclassHook(TestApplication):
+    """
+    Test loading, executing and calling ``dataclass_hook``.
+    """
+
+    def test_execute(self):
+        app = self.engine.apps["test_app"]
+        app.execute_hook_by_name("dataclass_hook")
+
+    def test_legacy_format(self):
+        app = self.engine.apps["test_app"]
+        app.execute_hook_expression("dataclass_hook", "second_method")
 
 
 class TestExecuteHookByName(TestApplication):
@@ -457,7 +466,7 @@ class TestExecuteHook(TestApplication):
             "{config}/config_test_hook.py:{config}/more_hooks/config_test_hook.py"
         )
 
-        (disk_location_1, disk_location_2) = hook.test_inheritance_disk_location()
+        disk_location_1, disk_location_2 = hook.test_inheritance_disk_location()
 
         self.assertEqual(
             disk_location_1, os.path.join(self.project_config, "hooks", "toolkitty.png")
@@ -725,7 +734,7 @@ class TestBundleDataCache(TestApplication):
             )
         )
         # Test frameworks
-        for fw in six.itervalues(app.frameworks):
+        for fw in app.frameworks.values():
             fw_data_cache_path = fw.cache_location
             # We should have the project id in the path
             self.assertTrue(

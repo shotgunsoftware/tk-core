@@ -8,16 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import copy
 import os
-import sys
 
 from tank.errors import TankError
+from tank.platform.environment import Environment
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank_vendor import yaml
-from tank.platform.environment import Environment
-
-import copy
 
 
 class TestEnvironment(TankTestBase):
@@ -26,7 +24,7 @@ class TestEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        super(TestEnvironment, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.test_env = "test"
@@ -181,7 +179,7 @@ class TestEnvironment(TankTestBase):
 
 class TestDumpEnvironment(TankTestBase):
     def setUp(self):
-        super(TestDumpEnvironment, self).setUp()
+        super().setUp()
         # This test will write to the configuration folder, so copy it.
         self.setup_fixtures(parameters={"installed_config": True})
 
@@ -283,7 +281,7 @@ class TestUpdateEnvironment(TankTestBase):
     """
 
     def setUp(self):
-        super(TestUpdateEnvironment, self).setUp()
+        super().setUp()
         # The following tests are going to update the configuration.
         self.setup_fixtures(parameters={"installed_config": True})
 
@@ -384,7 +382,7 @@ class TestUpdateEnvironment(TankTestBase):
         prev_settings = self.env.get_engine_settings("test_engine")
 
         self.env.update_engine_settings(
-            "test_engine", {"foo": u"bar"}, {"type": "dev", "path": "foo"}
+            "test_engine", {"foo": "bar"}, {"type": "dev", "path": "foo"}
         )
 
         # get raw environment after
@@ -489,7 +487,7 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
     """
 
     def setUp(self):
-        super(TestUpdateEnvironmentRuamelYaml, self).setUp()
+        super().setUp()
         self.env.set_yaml_preserve_mode(True)
 
 
@@ -499,7 +497,7 @@ class TestRuamelParser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestRuamelParser, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
@@ -515,21 +513,13 @@ class TestRuamelParser(TankTestBase):
             updated_env = fh.readlines()
 
         # get raw environment after
-        # ruamel parser only used in py2.6+
-        if sys.version_info < (2, 6):
-            env_file = os.path.join(
-                self.project_config,
-                "env",
-                "post_update",
-                "test_post_update_old_parser.yml",
-            )
-        else:
-            env_file = os.path.join(
-                self.project_config,
-                "env",
-                "post_update",
-                "test_post_update_new_parser.yml",
-            )
+        # ruamel parser
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "post_update",
+            "test_post_update_new_parser.yml",
+        )
 
         with open(env_file) as fh:
             expected_env = fh.readlines()
@@ -537,7 +527,7 @@ class TestRuamelParser(TankTestBase):
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
-        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+        expected_env = [line.replace("FLOAT_VALUE", repr(1.1)) for line in expected_env]
         # additionally, convert the lines to sets so that the test does not
         # depend on the order of a dictionary.
         self.assertEqual(set(updated_env), set(expected_env))
@@ -549,7 +539,7 @@ class TestPyYamlParser(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPyYamlParser, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
@@ -575,5 +565,5 @@ class TestPyYamlParser(TankTestBase):
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
-        expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
+        expected_env = [line.replace("FLOAT_VALUE", repr(1.1)) for line in expected_env]
         self.assertEqual(updated_env, expected_env)

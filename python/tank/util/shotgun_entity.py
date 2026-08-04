@@ -12,9 +12,9 @@
 Utilities relating to Shotgun entities
 """
 
-from . import constants, sgre as re
 from ..errors import TankError
-from tank_vendor import six
+from . import constants
+from . import sgre as re
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.
@@ -166,7 +166,7 @@ class EntityExpression(object):
                 regex_obj = None
 
                 if ":" in field_token_expression:
-                    (full_field_name, regex) = field_token_expression.split(":", 1)
+                    full_field_name, regex = field_token_expression.split(":", 1)
 
                     try:
                         regex_obj = re.compile(regex, re.UNICODE)
@@ -278,9 +278,9 @@ class EntityExpression(object):
                 # required value was not provided!
                 raise TankError(
                     "Folder Configuration Error: "
-                    "A SG field '%s' is being requested as part of the expression "
+                    "A PTR field '%s' is being requested as part of the expression "
                     "'%s' when creating folders connected to entities of type %s, "
-                    "however no such field exists in ShotGrid. Please review your "
+                    "however no such field exists in Flow Production Tracking. Please review your "
                     "configuration!"
                     % (field_name, self._field_name_expr, self._entity_type)
                 )
@@ -309,7 +309,7 @@ class EntityExpression(object):
             raise TankError(
                 "Folder Configuration Error. Could not create folders for %s! "
                 "The expression %s refers to one or more values that are blank "
-                "in SG and a folder can therefore "
+                "in PTR and a folder can therefore "
                 "not be created." % (nice_name, self._field_name_expr)
             )
 
@@ -394,7 +394,7 @@ class EntityExpression(object):
 
         # iterate over all tokens and validate
         for folder_subgroup in name.split("/"):
-            if isinstance(folder_subgroup, six.text_type):
+            if isinstance(folder_subgroup, str):
                 u_name = folder_subgroup
             else:
                 # try decoding from utf-8:
@@ -418,7 +418,7 @@ class EntityExpression(object):
             return ""
 
         # perform the regex calculation in unicode space
-        if not isinstance(value, six.text_type):
+        if not isinstance(value, str):
             input_is_utf8 = True
             value_to_convert = value.decode("utf-8")
         else:
@@ -429,14 +429,14 @@ class EntityExpression(object):
         match = regex_obj.match(value_to_convert)
         if match is None:
             # no match. return empty string
-            resolved_value = u""
+            resolved_value = ""
         else:
             # we have a match object. concatenate the groups
             resolved_value = "".join(match.groups())
 
         # resolved value is now unicode. Convert it
         # so that it is consistent with input
-        if isinstance(resolved_value, six.text_type) and input_is_utf8:
+        if isinstance(resolved_value, str) and input_is_utf8:
             # input was utf-8, regex result is unicode, cast it back
             return resolved_value.encode("utf-8")
         else:

@@ -1,89 +1,126 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'busy_dialog.ui'
-#
-#      by: pyside-uic 0.2.15 running on PySide 1.2.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'busy_dialog.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from . import QtCore, QtGui
+from . import QtCore
+
+for name, cls in QtCore.__dict__.items():
+    if isinstance(cls, type):
+        globals()[name] = cls
+
+from . import QtGui
+
+for name, cls in QtGui.__dict__.items():
+    if isinstance(cls, type):
+        globals()[name] = cls
+
+
+from . import resources_rc
+
 
 class Ui_BusyDialog(object):
     def setupUi(self, BusyDialog):
-        BusyDialog.setObjectName("BusyDialog")
+        if not BusyDialog.objectName():
+            BusyDialog.setObjectName("BusyDialog")
         BusyDialog.resize(500, 110)
-        BusyDialog.setStyleSheet("/* Style for the window itself */\n"
-"#frame {\n"
-"border-color: #30A7E3;\n"
-"border-style: solid;\n"
-"border-width: 2px;\n"
-"}\n"
-"\n"
-"/* Style for the header text */\n"
-"#title {\n"
-"color: #30A7E3;\n"
-"margin-top: 15px;\n"
-"margin-bottom: 0px;\n"
-"margin-left: 1px;\n"
-"font-size: 16px;\n"
-"font-weight: bold;\n"
-"}\n"
-"\n"
-"/* Style for the details text */\n"
-"#details {\n"
-"margin-top: 1px;\n"
-"margin-left: 3px;\n"
-"margin-bottom: 0px;\n"
-"font-size: 11px;\n"
-"}\n"
-"")
-        self.horizontalLayout_2 = QtGui.QHBoxLayout(BusyDialog)
+        BusyDialog.setStyleSheet(
+            "/* Style for the window itself */\n"
+            "#frame {\n"
+            "border-color: #30A7E3;\n"
+            "border-style: solid;\n"
+            "border-width: 2px;\n"
+            "}\n"
+            "\n"
+            "/* Style for the header text */\n"
+            "#title {\n"
+            "color: #30A7E3;\n"
+            "margin-top: 15px;\n"
+            "margin-bottom: 0px;\n"
+            "margin-left: 1px;\n"
+            "font-size: 16px;\n"
+            "font-weight: bold;\n"
+            "}\n"
+            "\n"
+            "/* Style for the details text */\n"
+            "#details {\n"
+            "margin-top: 1px;\n"
+            "margin-left: 3px;\n"
+            "margin-bottom: 0px;\n"
+            "font-size: 11px;\n"
+            "}\n"
+            ""
+        )
+        self.horizontalLayout_2 = QHBoxLayout(BusyDialog)
         self.horizontalLayout_2.setSpacing(2)
         self.horizontalLayout_2.setContentsMargins(2, 2, 2, 2)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.frame = QtGui.QFrame(BusyDialog)
-        self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.frame.setFrameShadow(QtGui.QFrame.Raised)
+        self.frame = QFrame(BusyDialog)
         self.frame.setObjectName("frame")
-        self.horizontalLayout = QtGui.QHBoxLayout(self.frame)
+        self.frame.setFrameShape(QFrame.StyledPanel)
+        self.frame.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout = QHBoxLayout(self.frame)
         self.horizontalLayout.setSpacing(5)
         self.horizontalLayout.setContentsMargins(5, 5, 5, 5)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label = QtGui.QLabel(self.frame)
-        self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap(":/Tank.Platform.Qt/sg_logo_80px.png"))
+        self.label = QLabel(self.frame)
         self.label.setObjectName("label")
+        self.label.setPixmap(QPixmap(":/Tank.Platform.Qt/sg_logo_80px.png"))
+
         self.horizontalLayout.addWidget(self.label)
-        self.verticalLayout = QtGui.QVBoxLayout()
+
+        self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.title = QtGui.QLabel(self.frame)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        self.title = QLabel(self.frame)
+        self.title.setObjectName("title")
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.title.sizePolicy().hasHeightForWidth())
         self.title.setSizePolicy(sizePolicy)
-        self.title.setObjectName("title")
+
         self.verticalLayout.addWidget(self.title)
-        self.details = QtGui.QLabel(self.frame)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.details.sizePolicy().hasHeightForWidth())
-        self.details.setSizePolicy(sizePolicy)
-        self.details.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.details.setWordWrap(True)
+
+        self.details = QLabel(self.frame)
         self.details.setObjectName("details")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.details.sizePolicy().hasHeightForWidth())
+        self.details.setSizePolicy(sizePolicy1)
+        self.details.setAlignment(Qt.AlignLeading | Qt.AlignLeft | Qt.AlignTop)
+        self.details.setWordWrap(True)
+
         self.verticalLayout.addWidget(self.details)
+
         self.horizontalLayout.addLayout(self.verticalLayout)
+
         self.horizontalLayout_2.addWidget(self.frame)
 
         self.retranslateUi(BusyDialog)
-        QtCore.QMetaObject.connectSlotsByName(BusyDialog)
+
+        QMetaObject.connectSlotsByName(BusyDialog)
+
+    # setupUi
 
     def retranslateUi(self, BusyDialog):
-        BusyDialog.setWindowTitle(QtGui.QApplication.translate("BusyDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.title.setText(QtGui.QApplication.translate("BusyDialog", "Doing something, hang on!", None, QtGui.QApplication.UnicodeUTF8))
-        self.details.setText(QtGui.QApplication.translate("BusyDialog", "Lots of interesting details about what is going on", None, QtGui.QApplication.UnicodeUTF8))
+        BusyDialog.setWindowTitle(
+            QCoreApplication.translate("BusyDialog", "Dialog", None)
+        )
+        self.label.setText("")
+        self.title.setText(
+            QCoreApplication.translate("BusyDialog", "Doing something, hang on!", None)
+        )
+        self.details.setText(
+            QCoreApplication.translate(
+                "BusyDialog", "Lots of interesting details about what is going on", None
+            )
+        )
 
-from . import resources_rc
+    # retranslateUi

@@ -13,11 +13,11 @@ This module contains all the implementations for the different
 folder types that can be created.
 """
 
-from .errors import EntityLinkTypeMismatch
-from .static import Static
-from .listfield import ListField
 from .entity import Entity
+from .errors import EntityLinkTypeMismatch
+from .listfield import ListField
 from .project import Project
-from .user import UserWorkspace
+from .static import Static
 from .step import ShotgunStep
 from .task import ShotgunTask
+from .user import UserWorkspace

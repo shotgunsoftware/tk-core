@@ -79,7 +79,7 @@ class depending on their internal complexity. A summary of functionality include
 The typical things an engine needs to handle are:
 
 - Menu management. At engine startup, once the apps have been loaded, the engine needs to create
-  its ShotGrid menu and add the various apps to this menu.
+  its Flow Production Tracking menu and add the various apps to this menu.
 
 - Logging methods are typically overridden to write to the application log.
 
@@ -195,7 +195,7 @@ Applications
 
 Toolkit Apps are tools that can execute in multiple DCC environments.
 
-.. note:: For an introduction to App development, see https://developer.shotgridsoftware.com/2e5ed7bb/?title=Developing+apps
+.. note:: For an introduction to App development, see https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_SGTK_DEVELOPER_APP
 
 A good way to get started with App development is to clone our starter github repository
 https://github.com/shotgunsoftware/tk-multi-starterapp. Please note that there are different branches
@@ -329,14 +329,14 @@ and is always named ``info.yml``. This metadata file contains important informat
 
 - Configuration settings available for an app or engine.
 - Display name, documentation and support links for the app and other user facing metadata.
-- All custom ShotGrid fields that are required by the app or engine code.
+- All custom Flow Production Tracking fields that are required by the app or engine code.
 - Which frameworks that are required in order for this app to run. You can specify
   an exact framework version to use (e.g. ``v1.2.3``) or you can track against a subset of
   versions (e.g. ``v1.x.x`` or ``v1.2.x``).
 
 For real-world examples, see for example
-the `ShotGrid Loader <https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml>`_
-or the `ShotGrid Nuke Write Node <https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml>`_.
+the `Flow Production Tracking Loader <https://github.com/shotgunsoftware/tk-multi-loader2/blob/master/info.yml>`_
+or the `Flow Production Tracking Nuke Write Node <https://github.com/shotgunsoftware/tk-nuke-writenode/blob/master/info.yml>`_.
 
 
 Display name and Description
@@ -347,7 +347,7 @@ The optional ``description`` field is a brief one line description of what the a
 
     # More verbose description of this item
     display_name: "Write Node"
-    description: "Support for the ShotGrid Write Node in Nuke."
+    description: "Support for the Flow Production Tracking Write Node in Nuke."
 
 
 Frameworks
@@ -392,6 +392,33 @@ and (for apps only) ``requires_engine_version``::
     requires_shotgun_version:
     requires_core_version: "v0.14.37"
     requires_engine_version: "v0.2.3"
+
+.. _python_version_requirements:
+
+Python Version Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your app, engine, framework, or configuration requires a minimum version of Python,
+you can specify this using the ``minimum_python_version`` parameter. This field accepts
+a version string in the format ``major.minor`` (e.g. ``"3.8"``) or ``major.minor.patch``
+(e.g. ``"3.8.0"``)::
+
+    # Minimum Python version required for this item to run
+    minimum_python_version: "3.8"
+
+When this field is set, Toolkit's auto-update system will prevent users running older
+Python versions from automatically updating to versions that are incompatible with their
+Python environment. This ensures backward compatibility and prevents breaking changes
+for users who haven't yet upgraded their Python version.
+
+.. note::
+    The ``minimum_python_version`` field is compared using only the major and minor
+    version numbers (e.g., 3.8). The patch version (if provided) is ignored during
+    compatibility checks.
+
+.. note::
+    This field is optional. If omitted, the bundle is assumed to be compatible with
+    all Python versions currently supported by Toolkit.
 
 Supported Engines and operating systems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -439,29 +466,29 @@ Loader App may require an entity to be present in order to show a list of items 
 current Asset or Shot. The ``required_context`` settings help defining what fields are needed.
 Possible values are ``project``, ``entity``, ``step``, ``task`` and ``user``.
 
-ShotGrid fields
+Flow Production Tracking fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your app requires a particular custom field in ShotGrid to operate correctly, you can add this to the
+If your app requires a particular custom field in Flow Production Tracking to operate correctly, you can add this to the
 ``info.yml`` manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.
 
 Just create a ``requires_shotgun_fields`` in your manifest and add entries on the following form::
 
 
     requires_shotgun_fields:
-        # ShotGrid fields that this app expects
+        # Flow Production Tracking fields that this app expects
         Version:
             - { "system_name": "sg_movie_type", "type": "text" }
 
-Note how the fields are grouped by ShotGrid entity type (in the example above ``Version``). For a list of
+Note how the fields are grouped by Flow Production Tracking entity type (in the example above ``Version``). For a list of
 which field types are supported,
-see the `ShotGrid API documentation <http://developer.shotgridsoftware.com/python-api/data_types.html>`_.
+see the `Flow Production Tracking API documentation <http://developer.shotgridsoftware.com/python-api/data_types.html>`_.
 
 .. note:: For more complex field types (such as entity and multi entity links), you need to set up creation via
           the **post-install hook** instead. (The post install hook is a special hook which runs at installation time
           and allows you to execute arbitrary code as part of the app installation process.)
 
-.. warning:: This functionality requires administrative privileges in ShotGrid. Apps using this functionality
+.. warning:: This functionality requires administrative privileges in Flow Production Tracking. Apps using this functionality
              therefore requires a workflow where an admin is required to update or install such apps. For general
              purpose apps, we therefore recommend not relying on this functionality.
 
@@ -598,7 +625,7 @@ The publish_type data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use this when you want a setting which expects a **Publish Type** - these are typically used
-when publishing data to ShotGrid. Value is a string matching ``PublishedFileType.code``::
+when publishing data to Flow Production Tracking. Value is a string matching ``PublishedFileType.code``::
 
 
     published_script_type:
@@ -611,7 +638,7 @@ when publishing data to ShotGrid. Value is a string matching ``PublishedFileType
 The shotgun_entity_type data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Value is a string that represents a ShotGrid entity type like Task, Sequence, Shot::
+Value is a string that represents a Flow Production Tracking entity type like Task, Sequence, Shot::
 
     entity_type:
         type: shotgun_entity_type
@@ -621,7 +648,7 @@ Value is a string that represents a ShotGrid entity type like Task, Sequence, Sh
 The shotgun_permission_group data type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Value is a string that represents the display name of a ShotGrid permission group like Admin,
+Value is a string that represents the display name of a Flow Production Tracking permission group like Admin,
 Artist::
 
     permissions_group:
@@ -802,7 +829,7 @@ You must supply values dict that describes the data type of the list items::
         type: list
         values: {type: shotgun_entity_type}
         default_value: [Sequence, Shot, Asset, Task]
-        description: List of ShotGrid entity types where this
+        description: List of Flow Production Tracking entity types where this
                      Sgtk action should be visible on the Actions menu.
 
 Optionally you can also specify an **allows_empty** option if an empty list is a valid value::
@@ -855,10 +882,9 @@ A valid setting could look like this::
 Using QT inside your Toolkit App
 ========================================
 
-You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
-platform considerations in the background. Typically, PySide is being used for QT integration, but Sgtk
-may use PyQT in certain engines. Normally, the code is pretty portable between the two systems and it
-should be no problem writing code that works with both libraries.
+You can use QT classes inside your app code. Sgtk will handle the import andgracefully manage different
+platform considerations in the background. Typically, PySide2 or PySide6. Normally, the code is pretty
+portable between the two systems and it should be no problem writing code that works with both libraries.
 
 In order to use QT, import it from Sgtk::
 
@@ -868,18 +894,18 @@ Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many 
 may not have a functional Qt that can be imported when they run in batch mode.
 
 
-Using QT 5 inside your Toolkit App
+PySide - Qt4 emulation layer
 ========================================
 
-When running in an environment with PySide 2 , Toolkit will provide under ``sgtk.platform.qt`` an
-emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don't
+Whether running with PySide2 or PySide6, Toolkit will provide under ``sgtk.platform.qt`` an
+emulation layer that mimics the PySide 1 API on top of PySide 2/6 so that your Toolkit applications don't
 need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
 can access it through the ``sgtk.platform.qt5`` module. Detecting the availability of Qt 5 can be done
-through :meth:`Engine.has_qt5`.
+through :meth:`Engine.has_qt5`. The equivalent is available for PySide6.
 
-.. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+.. warning:: The PySide 1 emulation layer for PySide 2/6 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/contact-support
+             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/support
              so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit

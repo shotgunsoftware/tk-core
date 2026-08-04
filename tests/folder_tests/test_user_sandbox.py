@@ -9,20 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import unittest
-import shutil
-from mock import Mock, patch
-import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
-from tank import folder
-from tank_test.tank_test_base import *
+
+from tank import TankError, folder
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
 
 
 class TestHumanUser(TankTestBase):
     def setUp(self):
-        super(TestHumanUser, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/humanuser_core"})
 
@@ -52,7 +49,7 @@ class TestHumanUser(TankTestBase):
         self.user_path = os.path.join(self.project_root, "foo", "shot_code")
         self.user_path2 = os.path.join(self.project_root, "bar", "shot_code")
 
-    @patch("tank.util.login.get_current_user")
+    @mock.patch("tank.util.login.get_current_user")
     def test_not_made_default(self, get_current_user):
 
         self.assertFalse(os.path.exists(self.user_path))
@@ -62,7 +59,7 @@ class TestHumanUser(TankTestBase):
         )
         self.assertFalse(os.path.exists(self.user_path))
 
-    @patch("tank.util.login.get_current_user")
+    @mock.patch("tank.util.login.get_current_user")
     def test_made_string(self, get_current_user):
         self.assertFalse(os.path.exists(self.user_path))
 
@@ -87,7 +84,7 @@ class TestHumanUser(TankTestBase):
         self.assertEqual(ctx_foo.filesystem_locations, [self.user_path])
         self.assertEqual(ctx_bar.filesystem_locations, [self.user_path2])
 
-    @patch("tank.util.login.get_current_user")
+    @mock.patch("tank.util.login.get_current_user")
     def test_login_not_in_shotgun(self, get_current_user):
         # make sure that if there is no loncal login matching, raise
         # an error when file system folders are created

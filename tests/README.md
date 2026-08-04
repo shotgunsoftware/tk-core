@@ -3,13 +3,14 @@ Readme for Tank core tests
 
 Required packages
 -----------------
-* unittest2
-* mock
-* coverage (only if `--with-coverage` option is used)
-* pytest
+To install the required dependencies, just run the following command on the `python` directory.
 
-`unitest2` and `mock` are packaged under `tests/python/third_party`. If you intend to run the tests with
-the `--with-coverage` option, you need to `pip install coverage` first.
+```shell
+cd python
+./upgrade_third_party.sh
+```
+
+Packages will be installed under `tests/python/third_party`
 
 Running the test suite
 -----------------------
@@ -19,6 +20,7 @@ with unrestricted execution policy (`Set-ExecutionPolicy Unrestricted`).
 To run on Linux or macOS, run the script `run_tests.sh`.
 
 Add `-h` to see options.
+Add `--with-coverage` to enable coverage.
 
 To run specific test(s), specify module, or module.class or module.class.test:
 
@@ -56,7 +58,7 @@ There is a tank tests module, `tank_test.tank_test_base.py` which contains both 
 
 ShotgunTestBase
 ---------------
-This is a lighter version of the TankTestBase, which only mocks a ShotGrid connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
+This is a lighter version of the TankTestBase, which only mocks a Flow Production Tracking connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
 
 ### A partial list of features
 Among other features, this module includes:

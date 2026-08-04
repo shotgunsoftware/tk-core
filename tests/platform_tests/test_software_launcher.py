@@ -8,28 +8,26 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import logging
 import os
 
-from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule  # noqa
-
-from mock import PropertyMock, patch
-
-from tank.platform import create_engine_launcher
-from tank.platform import SoftwareLauncher
-from tank.platform import SoftwareVersion
-from tank.platform import LaunchInformation
-
 from tank.errors import TankEngineInitError
-from tank_vendor import six
+from tank.platform import (
+    LaunchInformation,
+    SoftwareLauncher,
+    SoftwareVersion,
+    create_engine_launcher,
+)
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
 
 
 class TestEngineLauncher(TankTestBase):
     def setUp(self):
-        super(TestEngineLauncher, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         # setup shot
@@ -144,7 +142,6 @@ class TestEngineLauncher(TankTestBase):
                 "SHOTGUN_SITE": "http://unit_test_mock_sg",
                 "SHOTGUN_ENTITY_TYPE": entity["type"],
                 "SHOTGUN_ENTITY_ID": str(entity["id"]),
-                "SHOTGUN_ENTITY_ID": str(entity["id"]),
                 "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS": os.pathsep.join(
                     MOCKED_FALLBACKS
                 ),
@@ -178,7 +175,9 @@ class TestEngineLauncher(TankTestBase):
         min_version_method = (
             "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
         )
-        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+        with mock.patch(
+            min_version_method, new_callable=mock.PropertyMock
+        ) as min_version_mock:
 
             min_version_mock.return_value = "2017.2"
 
@@ -225,7 +224,9 @@ class TestEngineLauncher(TankTestBase):
         min_version_method = (
             "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
         )
-        with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
+        with mock.patch(
+            min_version_method, new_callable=mock.PropertyMock
+        ) as min_version_mock:
 
             min_version_mock.return_value = "2019"
 
@@ -294,13 +295,13 @@ class TestEngineLauncher(TankTestBase):
         )
         sw_versions = launcher.scan_software()
         for sw_version in sw_versions:
-            (supported, reason) = launcher._is_supported(sw_version)
+            supported, reason = launcher._is_supported(sw_version)
             if sw_version.version in [2, 3, 4]:
                 self.assertEqual(supported, True)
                 self.assertEqual(reason, "")
             else:
                 self.assertEqual(supported, False)
-                self.assertIsInstance(reason, six.string_types)
+                self.assertIsInstance(reason, str)
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"
@@ -364,10 +365,103 @@ class TestEngineLauncher(TankTestBase):
                 ],
             )
 
+        # Test Nuke-specific patterns based on tk-nuke implementation
+        # Test simple pattern: nuke{version} (cross-platform, following Maya pattern)
+        nuke_pattern_template = os.path.join(
+            self.fixtures_root, "misc", "glob_and_match", "nuke{version}"
+        )
+
+        # Test with Nuke version pattern matching (Nuke uses complex version formats like "10.0v5")
+        for template in [
+            nuke_pattern_template.replace("/", "\\"),
+            nuke_pattern_template.replace("\\", "/"),
+        ]:
+            matches = launcher._glob_and_match(
+                template,
+                {
+                    "version": r"[\d.v]+"
+                },  # Matches patterns like "10.0v5", "13.0v9", "15.1v2"
+            )
+            # Sort alphabetically so we can more easily validate the result.
+            matches = sorted(matches, key=lambda x: x[0])
+            expected_matches = [
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke10.0v5"
+                    ),
+                    {"version": "10.0v5"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke13.0v9"
+                    ),
+                    {"version": "13.0v9"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke15.1v2"
+                    ),
+                    {"version": "15.1v2"},
+                ),
+            ]
+            self.assertEqual(matches, expected_matches)
+
+        # Test Nuke products pattern: {product}{version} to test different Nuke variants
+        nuke_product_pattern_template = os.path.join(
+            self.fixtures_root, "misc", "glob_and_match", "{product}{version}"
+        )
+
+        for template in [
+            nuke_product_pattern_template.replace("/", "\\"),
+            nuke_product_pattern_template.replace("\\", "/"),
+        ]:
+            matches = launcher._glob_and_match(
+                template,
+                {
+                    "product": r"nuke[a-z]*",  # Matches "nuke", "nukex", "nukestudio", etc.
+                    "version": r"[\d.v]+",  # Matches version patterns like "12.2v8", "14.0v1"
+                },
+            )
+            # Sort alphabetically so we can more easily validate the result.
+            matches = sorted(matches, key=lambda x: x[0])
+            expected_product_matches = [
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke10.0v5"
+                    ),
+                    {"product": "nuke", "version": "10.0v5"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke13.0v9"
+                    ),
+                    {"product": "nuke", "version": "13.0v9"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nuke15.1v2"
+                    ),
+                    {"product": "nuke", "version": "15.1v2"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nukestudio14.0v1"
+                    ),
+                    {"product": "nukestudio", "version": "14.0v1"},
+                ),
+                (
+                    os.path.join(
+                        self.fixtures_root, "misc", "glob_and_match", "nukex12.2v8"
+                    ),
+                    {"product": "nukex", "version": "12.2v8"},
+                ),
+            ]
+            self.assertEqual(matches, expected_product_matches)
+
 
 class TestSoftwareVersion(TankTestBase):
     def setUp(self):
-        super(TestSoftwareVersion, self).setUp()
+        super().setUp()
 
         self._version = "v293.49.2.dev"
         self._product = "My Custom App"
@@ -392,7 +486,7 @@ class TestSoftwareVersion(TankTestBase):
 
 class TestLaunchInformation(TankTestBase):
     def setUp(self):
-        super(TestLaunchInformation, self).setUp()
+        super().setUp()
 
         self._path = "/my/path/to/app/{version}/my_custom_app"
         self._args = "-t 1-30 --show_all -v --select ship"

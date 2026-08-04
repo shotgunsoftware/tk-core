@@ -29,14 +29,29 @@ __version__ = "HEAD"
 # configuration has its python sgtk/tank module imported directly, it will associate
 # itself with the primary config rather than with the config where the code is located.
 
+import inspect
 import os
 import sys
 import uuid
-import inspect
+import warnings
+
+if sys.version_info < (3, 9):
+    if os.environ.get("SHOTGUN_ALLOW_OLD_PYTHON", "0") != "1":
+        raise RuntimeError("This module requires Python version 3.9 or higher.")
+
+    warnings.warn(
+        "Python versions older than 3.9 are no longer supported as of March "
+        "2025. Since the SHOTGUN_ALLOW_OLD_PYTHON variable is enabled, this "
+        "module is raising a warning instead of an exception. "
+        "However, it is very likely that this module will not be able to work "
+        "on this Python version.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
 
 
 def __fix_tank_vendor():
-    # Older versions of Shotgun Desktop left copies of tank_vendor in sys.modules,
+    # Older versions of Flow Production Tracking left copies of tank_vendor in sys.modules,
     # which means we might not be importing our copy but someone else's,
     # so strip it out!
     if "tank_vendor" not in sys.modules:
@@ -104,54 +119,58 @@ if "TANK_CURRENT_PC" not in os.environ:
 ########################################################################
 
 # first import the log manager since a lot of modules require this.
-from .log import LogManager
+from .log import LogManager  # isort: skip
 
 # make sure that all sub-modules are imported at the same as the main module
-from . import authentication
-from . import descriptor
-from . import bootstrap
-from . import commands
-from . import deploy
-from . import folder
-from . import platform
-from . import util
+from . import (
+    authentication,
+    bootstrap,
+    commands,
+    deploy,
+    descriptor,
+    folder,
+    platform,
+    util,
+)
 
 # core functionality
 from .api import (
+    Sgtk,
     Tank,
-    tank_from_path,
-    tank_from_entity,
-    set_authenticated_user,
     get_authenticated_user,
+    set_authenticated_user,
+    sgtk_from_entity,
+    sgtk_from_path,
+    tank_from_entity,
+    tank_from_path,
 )
-from .api import Sgtk, sgtk_from_path, sgtk_from_entity
-from .pipelineconfig_utils import (
-    get_python_interpreter_for_config,
-    get_core_python_path_for_config,
-    get_sgtk_module_path,
-)
+from .authentication.flow_auth import get_flow_access_token, get_flow_client
+from .commands import CommandInteraction, SgtkSystemCommand, get_command, list_commands
 
+# expose the support url
+from .constants import (
+    DEFAULT_STORAGE_ROOT_HOOK_NAME,
+)
+from .constants import SUPPORT_URL as support_url
 from .context import Context
-
 from .errors import (
     TankError,
     TankErrorProjectIsSetup,
-    TankHookMethodDoesNotExistError,
     TankFileDoesNotExistError,
-    TankUnreadableFileError,
-    TankInvalidInterpreterLocationError,
+    TankHookMethodDoesNotExistError,
     TankInvalidCoreLocationError,
+    TankInvalidInterpreterLocationError,
     TankNotPipelineConfigurationError,
+    TankUnreadableFileError,
+)
+from .hook import Hook, get_hook_baseclass
+from .pipelineconfig_utils import (
+    get_core_python_path_for_config,
+    get_python_interpreter_for_config,
+    get_sgtk_module_path,
 )
 
 # note: TankEngineInitError used to reside in .errors but was moved into platform.errors
 from .platform.errors import TankEngineInitError
 from .template import Template, TemplatePath, TemplateString
-from .hook import Hook, get_hook_baseclass
-
-from .commands import list_commands, get_command, SgtkSystemCommand, CommandInteraction
-
-from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey
-
-# expose the support url
-from .constants import SUPPORT_URL as support_url
+from .templatekey import IntegerKey, SequenceKey, StringKey, TemplateKey, TimestampKey

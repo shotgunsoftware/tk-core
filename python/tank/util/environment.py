@@ -13,6 +13,7 @@ Helper methods that do environment management
 """
 
 import os
+
 from .platforms import is_windows
 
 

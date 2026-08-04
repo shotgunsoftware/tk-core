@@ -10,22 +10,20 @@
 
 
 from .descriptor import Descriptor, create_descriptor
-from .descriptor_core import CoreDescriptor
-from .descriptor_bundle import AppDescriptor, FrameworkDescriptor, EngineDescriptor
+from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
 from .descriptor_config import ConfigDescriptor
-
+from .descriptor_core import CoreDescriptor
 from .errors import (
+    CheckVersionConstraintsError,
+    InvalidAppStoreCredentialsError,
     TankAppStoreConnectionError,
     TankAppStoreError,
-    TankDescriptorError,
-    InvalidAppStoreCredentialsError,
-    TankInvalidAppStoreCredentialsError,
-    CheckVersionConstraintsError,
     TankCheckVersionConstraintsError,
+    TankDescriptorError,
+    TankInvalidAppStoreCredentialsError,
     TankInvalidInterpreterLocationError,
     TankMissingManifestError,
 )
-
 from .io_descriptor import (
     descriptor_dict_to_uri,
     descriptor_uri_to_dict,

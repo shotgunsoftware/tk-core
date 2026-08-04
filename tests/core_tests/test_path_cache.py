@@ -8,31 +8,25 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement, print_function
-
-import os
-import sys
-import time
-from tank_vendor.six.moves.queue import Empty
-from tank_vendor.six import StringIO
-import shutil
 import contextlib
 import logging
+import os
+import shutil
+import sys
+import time
+from io import StringIO
+from queue import Empty
 
-from mock import Mock, patch, call
-
-from tank_test.tank_test_base import TankTestBase, temp_env_var
-from tank_test.tank_test_base import setUpModule  # noqa
-
-from tank import path_cache
-from tank import folder
-from tank import constants
-from tank import LogManager
-from tank.util import is_windows
 import tank
-
+from tank import LogManager, folder, path_cache
 from tank.util import StorageRoots
-from tank_vendor.six.moves import range
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+    only_run_on_windows,
+    temp_env_var,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -63,10 +57,7 @@ def sync_path_cache(tk, force_full_sync=False):
     pc.synchronize(force_full_sync)
     pc.close()
 
-    # Do not close StringIO here, as on Python 2.5 this will cause some garbage to be printed
-    # when the unit tests are complete. The SteamIO object will be gc'ed anyway, so it shouldn't
-    # be too bad.
-
+    # No need to close the StringIO; it will be garbage collected.
     log_contents = stream.getvalue()
     log.removeHandler(handler)
     return log_contents
@@ -76,14 +67,14 @@ class TestPathCache(TankTestBase):
     """Base class for path cache tests."""
 
     def setUp(self):
-        super(TestPathCache, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
         self.path_cache = path_cache.PathCache(self.tk)
         self.path_cache_location = self.path_cache._get_path_cache_location()
 
     def tearDown(self):
         self.path_cache.close()
-        super(TestPathCache, self).tearDown()
+        super().tearDown()
 
 
 class TestInit(TestPathCache):
@@ -129,7 +120,7 @@ class TestInit(TestPathCache):
             self.tk.pipeline_configuration.get_project_id(),
             self.tk.pipeline_configuration.get_shotgun_id(),
         )
-        with patch.object(
+        with mock.patch.object(
             self.tk.pipeline_configuration, "get_plugin_id", return_value="basic.maya"
         ):
             self.assertEqual(
@@ -139,7 +130,7 @@ class TestInit(TestPathCache):
                 ),
             )
 
-        with patch.object(
+        with mock.patch.object(
             self.tk.pipeline_configuration, "get_plugin_id", return_value=None
         ):
             self.assertEqual(
@@ -152,7 +143,7 @@ class TestInit(TestPathCache):
 
 class TestAddMapping(TestPathCache):
     def setUp(self):
-        super(TestAddMapping, self).setUp()
+        super().setUp()
 
         # entity for testing
         self.entity = {"type": "EntityType", "id": 1, "name": "EntityName"}
@@ -392,6 +383,68 @@ class TestAddMapping(TestPathCache):
         entry = res.fetchall()[0]
         self.assertEqual(entity_name, entry[0])
 
+    @only_run_on_windows
+    def test_path_lookup_handles_separator_mismatch_in_shotgun_response(self):
+        """
+        Verifies that path-to-rowid matching in _upload_cache_data_to_shotgun
+        survives separator differences between the locally cached path and
+        the local_path returned in Shotgun's response.
+
+        On Windows, locally cached paths use backslashes (per _sanitize_path),
+        while Shotgun normalizes the local_path it stores to forward slashes.
+        Without the normalization in _rowid_from_filesystem_entity, the
+        string-equality compare fails and add_mappings raises TankError on
+        every Windows folder creation flow.
+
+        Only applicable on Windows since POSIX paths use the same separator
+        on both sides.
+        """
+        relative_path = "shot_separator_mismatch"
+        full_path = os.path.join(self.project_root, relative_path)
+
+        # Wrap Mockgun's batch so the response uses forward slashes for
+        # local_path, mirroring real Shotgun's normalization on storage.
+        original_batch = self.tk.shotgun.batch
+
+        def slash_normalizing_batch(batch_data):
+            response = original_batch(batch_data)
+            for entity in response:
+                if entity.get("path") and entity["path"].get("local_path"):
+                    entity["path"]["local_path"] = entity["path"]["local_path"].replace(
+                        "\\", "/"
+                    )
+            return response
+
+        with mock.patch.object(
+            self.tk.shotgun, "batch", side_effect=slash_normalizing_batch
+        ):
+            # Pre-fix: raises TankError("Could not resolve row id for path!")
+            # because d["path"] (backslashes) != path (forward slashes) in the
+            # equality compare inside _rowid_from_filesystem_entity.
+            # Post-fix: os.path.normpath + os.path.normcase normalize both
+            # sides before comparing, allowing the match to succeed.
+            add_item_to_cache(self.path_cache, self.entity, full_path)
+
+        # Verify the path-cache row was committed.
+        res = self.db_cursor.execute(
+            "SELECT path FROM path_cache " "WHERE entity_type = ? AND entity_id = ?",
+            (self.entity["type"], self.entity["id"]),
+        )
+        self.assertEqual(len(res.fetchall()), 1)
+
+        # Verify the shotgun_status row for our entry was also written, which
+        # only happens when _rowid_from_filesystem_entity successfully returned
+        # a rowid that add_mappings can bind to the freshly created
+        # FilesystemLocation. Scope by joining against path_cache to ignore
+        # pre-existing rows added by setup_multi_root_fixtures.
+        res = self.db_cursor.execute(
+            "SELECT ss.shotgun_id FROM shotgun_status ss "
+            "JOIN path_cache pc ON ss.path_cache_id = pc.rowid "
+            "WHERE pc.entity_type = ? AND pc.entity_id = ?",
+            (self.entity["type"], self.entity["id"]),
+        )
+        self.assertEqual(len(res.fetchall()), 1)
+
 
 class TestGetEntity(TestPathCache):
     """
@@ -400,7 +453,7 @@ class TestGetEntity(TestPathCache):
     """
 
     def setUp(self):
-        super(TestGetEntity, self).setUp()
+        super().setUp()
         self.non_project = {
             "type": "NonProjectEntity",
             "id": 999,
@@ -521,9 +574,7 @@ class TestShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunSync, self).setUp(
-            parameters={"project_tank_name": project_tank_name}
-        )
+        super().setUp(parameters={"project_tank_name": project_tank_name})
         self.setup_fixtures()
 
         self.seq = {
@@ -639,7 +690,7 @@ class TestShotgunSync(TankTestBase):
         # now clear the path cache completely. This should trigger a full flush
         os.remove(pcl)
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete SG folder sync" in log)
+        self.assertTrue("Performing a complete PTR folder sync" in log)
 
         # check that the sync happend
         self.assertEqual(
@@ -791,7 +842,7 @@ class TestShotgunSync(TankTestBase):
 
         # check that this triggers a full sync
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete SG folder sync" in log)
+        self.assertTrue("Performing a complete PTR folder sync" in log)
 
     def test_multiple_projects_eventlog(self):
         """
@@ -827,7 +878,7 @@ class TestShotgunSync(TankTestBase):
 
         # now because we deleted our path cache, we will do a full sync
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete SG folder sync" in log)
+        self.assertTrue("Performing a complete PTR folder sync" in log)
 
         # now if we sync again, this should be incremental and the sync
         # should detect that there are no new entries for this project,
@@ -847,7 +898,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestConcurrentShotgunSync, self).setUp(project_tank_name)
+        super().setUp(project_tank_name)
         self.setup_fixtures()
 
         self.seq = {
@@ -901,10 +952,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         test multiple processes doing a full sync of the path cache at the same time
         """
 
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2, 6):
-            return
-
         import multiprocessing
 
         folder.process_filesystem_structure(
@@ -950,10 +997,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
         Test multi process incremental sync as records are being inserted.
         """
-
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         import multiprocessing
 
@@ -1047,7 +1090,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPathCacheGetLocationsFullSync, self).setUp()
+        super().setUp()
 
         # Create a new project, we will assign a new Filesystemlocation entity to this
         self._project_entity_b = self.mockgun.create("Project", {"name": "Project_B"})
@@ -1070,7 +1113,7 @@ class TestPathCacheGetLocationsFullSync(TankTestBase):
 
     def tearDown(self):
         self._pc.close()
-        super(TestPathCacheGetLocationsFullSync, self).tearDown()
+        super().tearDown()
 
     def test_get_entities(self):
         """
@@ -1104,7 +1147,7 @@ class TestPathCacheDelete(TankTestBase):
         """
         Creates a bunch of entities in Mockgun and adds an entry to the FilesystemLocation.
         """
-        super(TestPathCacheDelete, self).setUp()
+        super().setUp()
 
         # Create a bunch of entities for unit testing.
         self._project_link = self.mockgun.create("Project", {"name": "MyProject"})
@@ -1128,11 +1171,11 @@ class TestPathCacheDelete(TankTestBase):
         add_item_to_cache(self._pc, self._asset_entity, self._asset_full_path)
 
         # Wrap some methods in a mock so we can track their usage.
-        self._pc._do_full_sync = Mock(wraps=self._pc._do_full_sync)
-        self._pc._import_filesystem_location_entry = Mock(
+        self._pc._do_full_sync = mock.Mock(wraps=self._pc._do_full_sync)
+        self._pc._import_filesystem_location_entry = mock.Mock(
             wraps=self._pc._import_filesystem_location_entry
         )
-        self._pc._remove_filesystem_location_entities = Mock(
+        self._pc._remove_filesystem_location_entities = mock.Mock(
             wraps=self._pc._remove_filesystem_location_entities
         )
 
@@ -1151,7 +1194,7 @@ class TestPathCacheDelete(TankTestBase):
             self.assertEqual(self._pc._do_full_sync.called, False)
         finally:
             self._pc.close()
-            super(TestPathCacheDelete, self).tearDown()
+            super().tearDown()
 
     @contextlib.contextmanager
     def mock_remote_path_cache(self):
@@ -1347,7 +1390,7 @@ class TestPathCacheBatchOperation(TankTestBase):
     """
 
     def setUp(self):
-        super(TestPathCacheBatchOperation, self).setUp()
+        super().setUp()
         self._pc = path_cache.PathCache(self.tk)
 
         # dial down batch sizes for these tests
@@ -1357,7 +1400,7 @@ class TestPathCacheBatchOperation(TankTestBase):
     def tearDown(self):
         self._pc.close()
         self._pc.SHOTGUN_ENTITY_QUERY_BATCH_SIZE = self._prev_batch_size
-        super(TestPathCacheBatchOperation, self).tearDown()
+        super().tearDown()
 
     def test_high_volume_batch_deletion(self):
         """
@@ -1432,7 +1475,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         record_count = list(cursor.execute("select count(*) from shotgun_status"))[0][0]
         self.assertEqual(record_count, 3)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_full_shotgun_retrieval(self, find_mock):
         """
         Tests that _get_filesystem_location_entities creates expected query structures
@@ -1481,7 +1524,7 @@ class TestPathCacheBatchOperation(TankTestBase):
 
         self.assertEqual(entities, find_return_payload)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_batched_shotgun_retrieval(self, find_mock):
         """
         Tests that _get_filesystem_location_entities creates expected query structures
@@ -1519,7 +1562,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         expected_calls = []
         for x in range(8):
             expected_calls.append(
-                call(
+                mock.call(
                     "FilesystemLocation",
                     expected_ids[x],
                     [

@@ -14,33 +14,38 @@ a local path.
 """
 
 # system imports
-from __future__ import with_statement
 import os
-import sys
 import shutil
+import sys
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
 python_folder = os.path.abspath(os.path.join(this_folder, "..", "python"))
-sys.path.append(python_folder)
+# Insert at the beginning to ensure local tk-core takes precedence over
+# any installed version in site-packages
+sys.path.insert(0, python_folder)
+
+import functools
 
 # sgtk imports
 from tank import LogManager
-from tank.util import filesystem
-from tank.descriptor import Descriptor, descriptor_uri_to_dict
-from tank.descriptor import create_descriptor, is_descriptor_version_missing
-from tank.descriptor.errors import TankDescriptorError
 from tank.bootstrap import constants as bootstrap_constants
-import functools
-
+from tank.descriptor import (
+    Descriptor,
+    create_descriptor,
+    descriptor_uri_to_dict,
+    is_descriptor_version_missing,
+)
+from tank.descriptor.errors import TankDescriptorError
+from tank.util import filesystem
 from utils import (
-    cache_apps,
-    authenticate,
-    add_authentication_options,
     OptionParserLineBreakingEpilog,
+    add_authentication_options,
+    authenticate,
+    automated_setup_documentation,
+    cache_apps,
     cleanup_bundle_cache,
     wipe_folder,
-    automated_setup_documentation,
 )
 
 # Set up logging
@@ -108,7 +113,7 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked.
-    :param skip_bundles: Bundle types to skip.
+    :param skip_bundles_types: Bundle types to skip.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
@@ -118,10 +123,11 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
     # configuration descriptor and version.
-    target_path = os.path.join(
-        target_path,
-        "%s-%s" % (config_descriptor.system_name, config_descriptor.version,),
+    target_path_folder_name = "%s-%s" % (
+        config_descriptor.system_name,
+        config_descriptor.version,
     )
+    target_path = os.path.join(target_path, target_path_folder_name)
 
     # Check that target path doesn't exist
     if os.path.exists(target_path):
@@ -191,7 +197,7 @@ def main():
 
     desc = "Bake a self contained Toolkit config from a descriptor"
 
-    epilog = """
+    epilog = f"""
 
 Details and Examples
 --------------------
@@ -211,17 +217,14 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
 of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
 
-{automated_setup_documentation}
+f{automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
 http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
-""".format(
-        automated_setup_documentation=automated_setup_documentation
-    ).format(
-        script_name="bake_config.py"
-    )
+"""
+
     parser = OptionParserLineBreakingEpilog(
         usage=usage, description=desc, epilog=epilog
     )
@@ -246,7 +249,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     add_authentication_options(parser)
 
     # parse cmd line
-    (options, remaining_args) = parser.parse_args()
+    options, remaining_args = parser.parse_args()
 
     logger.info("Welcome to the Toolkit config baker.")
     logger.info("")
@@ -293,7 +296,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     try:
         sg_connection.find_one("HumanUser", [])
     except Exception as e:
-        logger.error("Could not communicate with ShotGrid: %s" % e)
+        logger.error("Could not communicate with Flow Production Tracking: %s" % e)
         return 3
 
     # Strip any extra whitespaces and make sure every bundle type exists.
@@ -313,7 +316,11 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
 
     # we are all set.
     bake_config(
-        sg_connection, config_descriptor, target_path, options.zip, skip_bundle_types,
+        sg_connection,
+        config_descriptor,
+        target_path,
+        options.zip,
+        skip_bundle_types,
     )
 
     # all good!

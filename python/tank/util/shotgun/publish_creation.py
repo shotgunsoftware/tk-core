@@ -11,24 +11,22 @@
 """
 Logic for publishing files to Shotgun.
 """
-from __future__ import with_statement
 
 import os
-from tank_vendor.six.moves import urllib
 import pprint
+import urllib.parse
+import urllib.request
 
-from .publish_util import (
-    get_published_file_entity_type,
-    get_cached_local_storages,
-    find_publish,
-)
-from ..errors import ShotgunPublishError
 from ...errors import TankError, TankMultipleMatchingTemplatesError
 from ...log import LogManager
+from .. import constants, login
+from ..errors import ShotgunPublishError
 from ..shotgun_path import ShotgunPath
-from .. import constants
-from .. import login
-from tank_vendor import six
+from .publish_util import (
+    find_publish,
+    get_cached_local_storages,
+    get_published_file_entity_type,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -58,7 +56,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     and try to locate a suitable storage. Failing that, it will fall back on a
     register the path as a ``file://`` url. For more information on
     this resolution logic, see our
-    `Admin Guide <https://developer.shotgridsoftware.com/8085533c/?title=ShotGrid+Integrations+Admin+Guide#Configuring%20published%20file%20path%20resolution>`_.
+    `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
     .. note:: Shotgun follows a convention where the name passed to the register publish method is used
               to control how things are grouped together. When Shotgun and Toolkit groups things together,
@@ -254,7 +252,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, six.string_types):
+            if not isinstance(published_file_type, str):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":
@@ -285,7 +283,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                     )
 
         # create the publish
-        log.debug("Publish: Creating publish in ShotGrid")
+        log.debug("Publish: Creating publish in Flow Production Tracking")
         entity = _create_published_file(
             tk,
             context,
@@ -313,24 +311,17 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                 )
 
                 # entity
-                if update_entity_thumbnail == True and context.entity is not None:
+                if update_entity_thumbnail is True and context.entity is not None:
                     tk.shotgun.upload_thumbnail(
                         context.entity["type"], context.entity["id"], thumbnail_path
                     )
 
                 # task
-                if update_task_thumbnail == True and task is not None:
+                if update_task_thumbnail and task is not None:
                     tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
 
             else:
-                # no thumbnail found - instead use the default one
-                this_folder = os.path.abspath(os.path.dirname(__file__))
-                no_thumb = os.path.join(
-                    this_folder, os.path.pardir, "resources", "no_preview.jpg"
-                )
-                tk.shotgun.upload_thumbnail(
-                    published_file_entity_type, entity.get("id"), no_thumb
-                )
+                log.debug("Publish: No thumbnail provided, skipping thumbnail upload.")
 
             # register dependencies
             log.debug("Publish: Register dependencies")
@@ -535,7 +526,7 @@ def _create_published_file(
 
             if supports_specific_storage_syntax:
 
-                # get corresponding SG local storage for the matching root name
+                # get corresponding PTR local storage for the matching root name
                 storage = tk.pipeline_configuration.get_local_storage_for_root(
                     root_name
                 )
@@ -547,8 +538,8 @@ def _create_published_file(
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in SG to associate publish '%s' with. "
-                        "Falling back to ShotGrid's built-in storage resolution "
+                        "'%s' in PTR to associate publish '%s' with. "
+                        "Falling back to Flow Production Tracking's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
                         % (root_name, path, root_name)
@@ -569,7 +560,7 @@ def _create_published_file(
                 data["path"] = {"local_path": path}
 
             # fill in the path cache field which is used for filtering in Shotgun
-            # (because SG does not support
+            # (because PTR does not support
             data["path_cache"] = path_cache
 
         else:
@@ -578,7 +569,7 @@ def _create_published_file(
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check SG local storages to see if there is a match.")
+            log.debug("Will check PTR local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
@@ -587,7 +578,7 @@ def _create_published_file(
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
                 ):
-                    log.debug("Path matches SG local storage '%s'" % storage["code"])
+                    log.debug("Path matches PTR local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
 
@@ -622,12 +613,14 @@ def _create_published_file(
         # add the publish type to be as consistent as possible
         data["type"] = published_file_entity_type
         log.debug(
-            "Dry run. Simply returning the data that would be sent to SG: %s"
+            "Dry run. Simply returning the data that would be sent to PTR: %s"
             % pprint.pformat(data)
         )
         return data
     else:
-        log.debug("Registering publish in ShotGrid: %s" % pprint.pformat(data))
+        log.debug(
+            "Registering publish in Flow Production Tracking: %s" % pprint.pformat(data)
+        )
         return tk.shotgun.create(published_file_entity_type, data)
 
 
@@ -666,7 +659,7 @@ def _translate_abstract_fields(tk, path):
                     if abstract_key_name in cur_fields:
                         cur_fields[abstract_key_name] = template.keys[
                             abstract_key_name
-                        ]._get_default()
+                        ].default
                 path = template._apply_fields(cur_fields, skip_defaults=True)
         else:
             log.debug(
@@ -797,7 +790,7 @@ def _calc_path_cache(tk, path, project_names=None):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = six.ensure_str(norm_path.replace("\\", "/"))
+    norm_path = norm_path.replace("\\", "/")
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
@@ -817,7 +810,7 @@ def _calc_path_cache(tk, path, project_names=None):
 
             # append project and normalize
             proj_path = root_path_obj.join(project_name).current_os
-            proj_path = six.ensure_str(proj_path.replace(os.sep, "/"))
+            proj_path = str(proj_path.replace(os.sep, "/"))
 
             if norm_path.lower().startswith(proj_path.lower()):
                 # our path matches this storage!

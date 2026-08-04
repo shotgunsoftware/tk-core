@@ -11,17 +11,18 @@
 """
 Unit tests tank setup_project.
 """
-from __future__ import with_statement
 
-import os
 import logging
+import os
 
 import tank
 from tank.util import is_linux, is_macos, is_windows
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
-
 from tank_test.mock_appstore import patch_app_store
-from mock import patch
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
 
 
 class TestSetupProject(TankTestBase):
@@ -72,14 +73,14 @@ class TestSetupProject(TankTestBase):
             self.create_file(os.path.join(cfg_core, "interpreter_Linux.cfg"), "")
             self.create_file(os.path.join(cfg_core, "interpreter_Windows.cfg"), "")
 
-    @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
+    @mock.patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
     def test_setup_centralized_project(self, mocked=None):
         """
         Test setting up a Project.
         """
 
         def mocked_resolve_core_path(core_path):
-            return {"linux2": core_path, "darwin": core_path, "win32": core_path}
+            return {"linux": core_path, "darwin": core_path, "win32": core_path}
 
         mocked.side_effect = mocked_resolve_core_path
 
@@ -122,8 +123,8 @@ class TestSetupProject(TankTestBase):
             )
         )
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload")
-    @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload")
+    @mock.patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
     def test_setup_distributed_project(
         self, resolve_all_os_paths_to_core_mock, upload_mock
     ):
@@ -132,7 +133,7 @@ class TestSetupProject(TankTestBase):
         """
 
         def mocked_resolve_core_path(core_path):
-            return {"linux2": core_path, "darwin": core_path, "win32": core_path}
+            return {"linux": core_path, "darwin": core_path, "win32": core_path}
 
         self.upload_associated_pipeline_config_id = None
 
@@ -188,8 +189,8 @@ class TestSetupProject(TankTestBase):
         self.assertEqual(pc_data["mac_path"], None)
         self.assertEqual(pc_data["id"], self.upload_associated_pipeline_config_id)
 
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_install_location")
-    @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_install_location")
+    @mock.patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
     def test_setup_project_with_external_core(
         self, resolve_all_os_paths_to_core_mock, get_install_location_mock
     ):
@@ -198,7 +199,7 @@ class TestSetupProject(TankTestBase):
         """
 
         def mocked_resolve_core_path(core_path):
-            return {"linux2": core_path, "darwin": core_path, "win32": core_path}
+            return {"linux": core_path, "darwin": core_path, "win32": core_path}
 
         resolve_all_os_paths_to_core_mock.side_effect = mocked_resolve_core_path
 

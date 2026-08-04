@@ -8,19 +8,21 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-import os
 import itertools
+import os
+import sys
 
 import tank
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank.template_includes import _get_includes as get_template_includes
 from tank.platform.environment_includes import (
     _resolve_includes as get_environment_includes,
 )
-from tank_vendor.shotgun_api3.lib import sgsix
-from mock import patch
+from tank.template_includes import _get_includes as get_template_includes
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    temp_env_var,
+)
 
 
 class Includes(object):
@@ -39,7 +41,7 @@ class Includes(object):
         _file_name = os.path.join(os.getcwd(), "test.yml")
         _file_dir = os.path.dirname(_file_name)
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_env_var_only(self, _):
             """
             Validate that a lone environment variable will resolve on all platforms.
@@ -51,7 +53,7 @@ class Includes(object):
                     self._resolve_includes("$INCLUDE_ENV_VAR"), [resolved_include]
                 )
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_tilde(self, _):
             """
             Validate that a tilde will resolve on all platforms.
@@ -60,7 +62,7 @@ class Includes(object):
             resolved_include = os.path.expanduser(include)
             self.assertEqual(self._resolve_includes(include), [resolved_include])
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_relative_path(self, _):
             """
             Validate that relative path are processed correctly
@@ -71,7 +73,7 @@ class Includes(object):
                 [os.path.join(self._file_dir, "sub_folder", "include.yml")],
             )
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_relative_path_with_env_var(self, _):
             """
             Validate that relative path with env vars are processed correctly
@@ -83,7 +85,7 @@ class Includes(object):
                     [os.path.join(os.getcwd(), "include.yml")],
                 )
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_path_with_env_var_in_front(self, _):
             """
             Validate that relative path are processed correctly on all platforms.
@@ -95,7 +97,7 @@ class Includes(object):
                     [os.path.join(os.getcwd(), "include.yml")],
                 )
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_path_with_env_var_in_middle(self, _):
             """
             Validate that relative path are processed correctly on all platforms.
@@ -106,7 +108,7 @@ class Includes(object):
                     self._resolve_includes(include), [os.path.expandvars(include)]
                 )
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_path_with_multi_os_path(self, _):
             """
             Validate that relative path are processed correctly on all platforms.
@@ -114,15 +116,15 @@ class Includes(object):
             paths = {
                 "win32": "C:\\test.yml",
                 "darwin": "/test.yml",
-                "linux2": "/test.yml",
+                "linux": "/test.yml",
             }
             # Make sure that we are returning the include for the current platform.
             self.assertEqual(
                 self._resolve_includes(set(paths.values())),  # get unique values.
-                [paths[sgsix.platform]],  # get the value for the current platform
+                [paths[sys.platform]],  # get the value for the current platform
             )
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_path_with_relative_env_var(self, _):
             """
             Validate that relative path are processed correctly on all platforms.
@@ -149,7 +151,7 @@ class Includes(object):
             with self.assertRaisesRegex(tank.TankError, "Include resolve error"):
                 self._resolve_includes("dead/path/to/a/file")
 
-        @patch("os.path.exists", return_value=True)
+        @mock.patch("os.path.exists", return_value=True)
         def test_includes_ordering(self, _):
             """
             Ensure include orders is preserved.
@@ -158,8 +160,6 @@ class Includes(object):
             # always return in the same order. This is important as values found
             # in later includes override earlier ones.
 
-            # We do permutations here because Python 2 and Python 3 handle
-            # set ordering differently.
             for includes in itertools.permutations(["a.yml", "b.yml", "c.yml"]):
                 self.assertEqual(
                     self._resolve_includes(includes),

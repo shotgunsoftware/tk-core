@@ -11,10 +11,9 @@
 import os
 
 from ...errors import TankError
-
 from .base import Folder
 from .entity import Entity
-from .util import translate_filter_tokens, resolve_shotgun_filters
+from .util import resolve_shotgun_filters, translate_filter_tokens
 
 
 class Static(Folder):
@@ -79,8 +78,8 @@ class Static(Folder):
             if not isinstance(resolved_constrain_node, Entity):
                 raise TankError(
                     "Configuration error in %s: constrain_by_entity points "
-                    "at a node which is not associated with any SG data. "
-                    "You can only constrain based on nodes which have a SG "
+                    "at a node which is not associated with any PTR data. "
+                    "You can only constrain based on nodes which have a PTR "
                     "representation." % full_path
                 )
 
@@ -136,11 +135,11 @@ class Static(Folder):
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!
-        if is_primary == False and self._create_with_parent == False:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
-        return super(Static, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """

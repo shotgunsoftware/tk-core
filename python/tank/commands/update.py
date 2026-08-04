@@ -10,14 +10,12 @@
 
 import os
 
-from .action_base import Action
-from . import console_utils
-from . import util
-from ..platform.environment import WritableEnvironment
-from ..descriptor import CheckVersionConstraintsError
-from . import constants
-from ..util.version import is_version_number, is_version_newer
 from .. import pipelineconfig_utils
+from ..descriptor import CheckVersionConstraintsError
+from ..platform.environment import WritableEnvironment
+from ..util.version import is_version_newer, is_version_number
+from . import console_utils, constants, util
+from .action_base import Action
 
 
 class AppUpdatesAction(Action):
@@ -110,7 +108,7 @@ class AppUpdatesAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) == 0:
@@ -368,7 +366,7 @@ class AppUpdatesAction(Action):
                         x["new_descriptor"].version,
                     )
                 )
-                (_, url) = x["new_descriptor"].changelog
+                _, url = x["new_descriptor"].changelog
                 if url:
                     summary.append("Change Log: %s" % url)
                 summary.append("")
@@ -512,11 +510,11 @@ class AppUpdatesAction(Action):
         # ensure that all required frameworks have been installed
         # find the file where our item is being installed
         if framework_name:
-            (_, yml_file) = env.find_location_for_framework(framework_name)
+            _, yml_file = env.find_location_for_framework(framework_name)
         elif app_name:
-            (_, yml_file) = env.find_location_for_app(engine_name, app_name)
+            _, yml_file = env.find_location_for_app(engine_name, app_name)
         else:
-            (_, yml_file) = env.find_location_for_engine(engine_name)
+            _, yml_file = env.find_location_for_engine(engine_name)
 
         console_utils.ensure_frameworks_installed(
             log, tk, yml_file, new_descriptor, env, self._interaction_interface
@@ -791,7 +789,7 @@ class AppUpdatesAction(Action):
         out_of_date = latest_desc.version != curr_desc.version
 
         # check deprecation
-        (is_dep, dep_msg) = latest_desc.deprecation_status
+        is_dep, dep_msg = latest_desc.deprecation_status
 
         if is_dep:
             # we treat deprecation as an out of date that cannot be upgraded!

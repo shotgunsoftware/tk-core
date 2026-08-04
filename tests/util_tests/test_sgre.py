@@ -9,18 +9,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from unittest2 import TestCase
 import re
+import sys
+from unittest import TestCase
+
 from tank.util import sgre
 
 
 class TestSgre(TestCase):
     def test_wrap(self):
-        r"""
-        Ensure that sgre injects the re.ASCII flag appropriately, and that
-        unicode characters do not match `\w` in Python 2 or 3.
         """
-        char = u"漢字"
+        Ensure that sgre injects the re.ASCII flag appropriately, and that
+        unicode characters do not match.
+        """
+        char = "漢字"
         expr = r"\w+"
 
         # test all wrapped methods
@@ -32,12 +34,11 @@ class TestSgre(TestCase):
         self.assertEqual(sgre.sub(expr, "@", char), char)
 
     def test_wrap_positional(self):
-        r"""
-        Ensure that sgre injects the re.ASCII flag appropriately when flags are
-        also passed positonally, and that unicode characters do not match `\w`
-        in Python 2 or 3.
         """
-        char = u"a漢字"
+        Ensure that `sgre` injects the `re.ASCII` flag appropriately when flags
+        are passed positionally, and that Unicode characters do not match.
+        """
+        char = "a漢字"
         expr = r"a\w+"
 
         # test all wrapped methods
@@ -45,16 +46,22 @@ class TestSgre(TestCase):
         self.assertEqual(len(sgre.findall(expr, char, re.I)), 0)
         self.assertFalse(bool(sgre.match(expr, char, re.I)))
         self.assertFalse(bool(sgre.search(expr, char, re.I)))
-        self.assertEqual(len(sgre.split(expr, "$ %s @" % char, 0, re.I)), 1)
-        self.assertEqual(sgre.sub(expr, "@", char, 0, re.I), char)
+        if sys.version_info < (3, 13):
+            # Deprecated since version 3.13: Passing max_split, count and flags as
+            # positional arguments is deprecated.
+            # In future Python versions they will be
+            # [keyword-only parameters](https://docs.python.org/3/glossary.html#keyword-only-parameter).
+
+            self.assertEqual(len(sgre.split(expr, "$ %s @" % char, 0, re.I)), 1)
+            self.assertEqual(sgre.sub(expr, "@", char, 0, re.I), char)
 
     def test_wrap_kwarg(self):
-        r"""
+        """
         Ensure that sgre injects the re.ASCII flag appropriately when flags are
         also passed as keyword arguments, and that unicode characters do not
-        match `\w` in Python 2 or 3.
+        match.
         """
-        char = u"a漢字"
+        char = "a漢字"
         expr = r"a\w+"
 
         # test all wrapped methods
@@ -69,7 +76,7 @@ class TestSgre(TestCase):
         """
         Ensure that the unicode flag overrides the flag insertion behavior.
         """
-        char = u"a漢字"
+        char = "a漢字"
         expr = r"a\w+"
 
         # test all wrapped methods

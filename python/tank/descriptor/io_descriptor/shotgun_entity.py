@@ -9,14 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
-from .downloadable import IODescriptorDownloadable
-from ...util import filesystem, shotgun
-from ...util.shotgun_entity import get_sg_entity_name_field
-from ...util.errors import ShotgunAttachmentDownloadError
-from ..errors import TankDescriptorError
 from ... import LogManager
+from ...util import filesystem, shotgun
+from ...util.errors import ShotgunAttachmentDownloadError
+from ...util.shotgun_entity import get_sg_entity_name_field
+from ..errors import TankDescriptorError
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
@@ -64,7 +64,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     The latest version is defined as the current record available in Shotgun.
     """
 
-    (_MODE_ID_BASED, _MODE_NAME_BASED) = range(2)
+    _MODE_ID_BASED, _MODE_NAME_BASED = range(2)
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
@@ -75,9 +75,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # ensure project id is an int if specified
         self._project_link = None
@@ -102,7 +100,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "SG descriptor cannot contain both name and id tokens: %s"
+                    "PTR descriptor cannot contain both name and id tokens: %s"
                     % descriptor_dict
                 )
 
@@ -254,7 +252,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         if data is None:
             raise TankDescriptorError(
-                "Cannot resolve descriptor %s in ShotGrid!" % self
+                "Cannot resolve descriptor %s in Flow Production Tracking!" % self
             )
 
         # attachment field is on the following form in the case a file has been
@@ -343,7 +341,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         # check if we can connect to Shotgun
         can_connect = True
         try:
-            log.debug("%r: Probing if a connection to SG can be established..." % self)
+            log.debug("%r: Probing if a connection to PTR can be established..." % self)
             self._sg_connection.connect()
             log.debug("...connection established!")
         except Exception as e:

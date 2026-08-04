@@ -8,22 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import collections
+import os
 import pprint
 
-
+from . import LogManager, constants, pipelineconfig_utils
 from .errors import TankError, TankInitError
-from . import LogManager
-from .util import shotgun
-from .util import pickle
-from .util import filesystem
-from .util import ShotgunPath
-from . import constants
-from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
-from .util import LocalFileStorageManager
-from tank_vendor import six
+from .util import LocalFileStorageManager, ShotgunPath, filesystem, pickle, shotgun
 
 log = LogManager.get_logger(__name__)
 
@@ -152,7 +144,7 @@ def _from_path(path, force_reread_shotgun_cache):
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
     """
-    if not isinstance(path, six.string_types):
+    if not isinstance(path, str):
         raise ValueError(
             "Cannot create a configuration from path '%s' - path must be a string."
             % path
@@ -185,7 +177,8 @@ def _from_path(path, force_reread_shotgun_cache):
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
         log.debug(
-            "Resolved the official path registered in SG to be %s." % pc_registered_path
+            "Resolved the official path registered in PTR to be %s."
+            % pc_registered_path
         )
 
         if pc_registered_path is None:
@@ -260,7 +253,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     """
     # extract path data from the pipeline configuration shotgun data
     # this will return lists of dicts with keys ``id``, (local os) ``path`` and ``project_id``
-    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(
+    all_pc_data, primary_pc_data = _get_pipeline_configuration_data(
         associated_pipeline_configs
     )
 
@@ -319,7 +312,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
             raise TankInitError(
                 "You are loading the Toolkit platform from the pipeline configuration "
-                "located in '%s', with SG id %s. You are trying to initialize Toolkit "
+                "located in '%s', with PTR id %s. You are trying to initialize Toolkit "
                 "from %s, however that is not associated with the pipeline configuration. "
                 "Instead, it's associated with the following configurations: %s. "
                 % (config_context_path, pc_id, source, all_configs_str)
@@ -357,7 +350,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 "The project associated with %s does not have a Primary pipeline "
                 "configuration! This is required by Toolkit. It needs to be named '%s'. "
                 "Please double check the Pipeline configuration page in "
-                "SG for the project. The following pipeline configurations are "
+                "PTR for the project. The following pipeline configurations are "
                 "associated with the path: %s"
                 % (source, constants.PRIMARY_PIPELINE_CONFIG_NAME, all_configs_str)
             )
@@ -595,9 +588,9 @@ def _get_pipeline_configs_for_path(path, data):
 
     for project_path in project_paths:
 
-        # (like the SG API, this logic is case preserving, not case insensitive)
-        path_lower = six.ensure_str(path.lower())
-        proj_path_lower = six.ensure_str(project_path.lower())
+        # (like the PTR API, this logic is case preserving, not case insensitive)
+        path_lower = path.lower()
+        proj_path_lower = project_path.lower()
         # check if the path matches. Either
         # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
         # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/

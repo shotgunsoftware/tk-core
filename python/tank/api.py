@@ -12,22 +12,22 @@
 Classes for the main Sgtk API.
 """
 
-import os
 import glob
+import os
 
-from . import folder
-from . import context
-from .util import shotgun, yaml_cache
+from . import (
+    LogManager,
+    constants,
+    context,
+    folder,
+    pipelineconfig,
+    pipelineconfig_factory,
+    pipelineconfig_utils,
+)
 from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
-from . import constants
-from . import pipelineconfig
-from . import pipelineconfig_utils
-from . import pipelineconfig_factory
-from . import LogManager
-from tank_vendor import six
-from tank_vendor.six.moves import zip
+from .util import shotgun, yaml_cache
 
 log = LogManager.get_logger(__name__)
 
@@ -40,7 +40,7 @@ class Sgtk(object):
     manipulation and the Toolkit template system.
     """
 
-    (DEFAULT, CENTRALIZED, DISTRIBUTED) = range(3)
+    DEFAULT, CENTRALIZED, DISTRIBUTED = range(3)
 
     def __init__(self, project_path):
         """
@@ -59,6 +59,20 @@ class Sgtk(object):
             self.__pipeline_config = project_path
         else:
             self.__pipeline_config = pipelineconfig_factory.from_path(project_path)
+
+        # execute default_storage_root hook
+        try:
+            self.execute_core_hook_method(
+                constants.DEFAULT_STORAGE_ROOT_HOOK_NAME,
+                "execute",
+                storage_roots=self.pipeline_configuration._storage_roots,
+                project_id=self.pipeline_configuration.get_project_id(),
+            )
+        except Exception as e:
+            # Catch errors to not kill our thread, log them for debug purpose.
+            log.debug(
+                "%s hook failed with %s" % (constants.DEFAULT_STORAGE_ROOT_HOOK_NAME, e)
+            )
 
         try:
             self.__templates = read_templates(self.__pipeline_config)
@@ -529,7 +543,7 @@ class Sgtk(object):
         :rtype: List of strings.
         """
         skip_keys = skip_keys or []
-        if isinstance(skip_keys, six.string_types):
+        if isinstance(skip_keys, str):
             skip_keys = [skip_keys]
 
         # construct local fields dictionary that doesn't include any skip keys:
@@ -1020,7 +1034,6 @@ def get_authenticated_user():
     :returns: A :class:`~sgtk.authentication.ShotgunUser` derived object if set,
         None otherwise.
     """
-    global _authenticated_user
     return _authenticated_user
 
 

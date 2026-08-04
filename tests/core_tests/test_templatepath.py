@@ -8,17 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-
 import os
 
 import tank
 from tank import TankError
-
 from tank.template import TemplatePath
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
-from tank.templatekey import StringKey, IntegerKey, SequenceKey
+from tank.templatekey import IntegerKey, SequenceKey, StringKey
 from tank.util import is_windows
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 
 class TestTemplatePath(ShotgunTestBase):
@@ -27,9 +24,7 @@ class TestTemplatePath(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestTemplatePath, self).setUp(
-            parameters={"primary_root_name": "primary_with_a_different_name"}
-        )
+        super().setUp(parameters={"primary_root_name": "primary_with_a_different_name"})
         # Make various types of keys(fields)
         self.keys = {
             "Sequence": StringKey("Sequence"),
@@ -61,7 +56,7 @@ class TestTemplatePath(ShotgunTestBase):
             "linux_path",
             "mac_path",
             "win32",
-            "linux2",
+            "linux",
             "darwin",
         ]:
             self._project_roots[self.primary_root_name][os_name] = project_root
@@ -107,7 +102,7 @@ class TestValidate(TestTemplatePath):
     """Test Case for validating a path"""
 
     def setUp(self):
-        super(TestValidate, self).setUp()
+        super().setUp()
         relative_path = os.path.join(
             "shots", "seq_1", "shot_1", "Anm", "work", "shot_1.mmm.v001.002.ma"
         )
@@ -364,8 +359,8 @@ class TestApplyFields(TestTemplatePath):
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEqual(expected, result)
 
-        result = self.template_path.apply_fields(fields, "linux2")
-        root = self._project_roots[self.primary_root_name]["linux2"]
+        result = self.template_path.apply_fields(fields, "linux")
+        root = self._project_roots[self.primary_root_name]["linux"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEqual(expected, result)
 
@@ -900,6 +895,7 @@ class TestGetFields(TestTemplatePath):
         input_path = "path/to/seq.0003.ext"
         expected = {"frame": 3}
         result = self.sequence.get_fields(input_path)
+        self.assertEqual(expected, result)
 
     def test_nuke_framespec(self):
         input_path = "path/to/seq.%04d.ext"
@@ -1015,7 +1011,7 @@ class TestGetKeysSepInValue(TestTemplatePath):
     """Tests for cases where seperator used between keys is used in value for keys."""
 
     def setUp(self):
-        super(TestGetKeysSepInValue, self).setUp()
+        super().setUp()
         self.keys["Asset"] = StringKey("Asset")
 
     def assert_path_matches(self, definition, input_path, expected):

@@ -10,9 +10,9 @@
 
 import os
 
-from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank.util.shotgun.publish_creation import _translate_abstract_fields
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestShotgunPublishCreation(TankTestBase):
@@ -25,7 +25,7 @@ class TestShotgunPublishCreation(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunPublishCreation, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_translate_abstract_fields_optional_key_not_in_path(self):

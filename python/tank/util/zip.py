@@ -9,9 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import zipfile
-from . import filesystem
+
 from .. import LogManager
+from . import filesystem
 
 log = LogManager.get_logger(__name__)
 
@@ -22,9 +24,6 @@ SYSTEM_FILE_ITEMS = set(["__MACOSX", ".DS_Store"])
 def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
     """
     Unzips the given file into the given folder.
-
-    Does the following command, but in a way which works with
-    Python 2.5 and Python2.6.2::
 
         z = zipfile.ZipFile(zip_file, "r")
         z.extractall(target_folder)
@@ -104,6 +103,44 @@ def zip_file(source_folder, target_zip_file):
     log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
 
 
+def _to_extended_path(path: str) -> str:
+    """
+    On Windows, prepend the extended-length path prefix to paths >= 260
+    characters to bypass the MAX_PATH limitation.
+
+    Extended-length paths come in two flavours:
+
+    * Drive-letter paths (``C:\\...``) are prefixed with ``\\\\?\\``.
+    * UNC paths (``\\\\server\\share\\...``) require the ``\\\\?\\UNC\\``
+      prefix; naively prepending ``\\\\?\\`` produces an invalid path.
+
+    Drive-less rooted paths (``\\foo``) are not eligible for the prefix
+    because the extended-length syntax requires a fully-qualified path.
+
+    :param path: Normalised path string.
+    :returns: Path with the appropriate extended-length prefix on Windows
+        when necessary, otherwise the original path unchanged.
+    """
+    if sys.platform != "win32" or len(path) < 260:
+        return path
+
+    if path.startswith("\\\\?\\"):
+        # Already an extended-length path - don't double-prefix.
+        return path
+
+    if path.startswith("\\\\"):
+        # UNC path (\\\\server\\share\\...). The extended-length form requires
+        # \\\\?\\UNC\\ rather than \\\\?\\\\\\\\
+        return "\\\\?\\UNC\\" + path[2:]
+
+    if len(path) >= 3 and path[1] == ":" and path[2] == "\\":
+        # Fully-qualified drive-letter path (C:\\...).
+        return "\\\\?\\" + path
+
+    # Drive-less rooted paths (\\foo) or relative paths are not eligible.
+    return path
+
+
 def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     """
     Helper method used by unzip_file()
@@ -144,6 +181,10 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
         target_path = os.path.join(target_path, processed_item_path)
 
     target_path = os.path.normpath(target_path)
+
+    # On Windows, use the extended-length path prefix for paths >= 260 characters
+    # to avoid MAX_PATH limitations.
+    target_path = _to_extended_path(target_path)
 
     # Create all upper directories if necessary.
     upperdirs = os.path.dirname(target_path)

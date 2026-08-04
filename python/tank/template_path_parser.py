@@ -13,6 +13,7 @@ Parsing of template paths into values for specified keys using a list of static 
 """
 
 import os
+
 from .errors import TankError
 
 

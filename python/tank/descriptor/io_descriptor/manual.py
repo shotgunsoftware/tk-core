@@ -8,9 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-from .base import IODescriptorBase
+
 from ... import LogManager
 from ..errors import TankDescriptorError
+from .base import IODescriptorBase
 
 log = LogManager.get_logger(__name__)
 
@@ -31,9 +32,7 @@ class IODescriptorManual(IODescriptorBase):
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
-        super(IODescriptorManual, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict, required=["type", "name", "version"], optional=[]
@@ -63,7 +62,7 @@ class IODescriptorManual(IODescriptorBase):
         :return: List of path strings
         """
         # get default cache paths from base class
-        paths = super(IODescriptorManual, self)._get_cache_paths()
+        paths = super()._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,

@@ -17,10 +17,9 @@ import os
 import sys
 
 from ..util.loader import load_plugin
-from . import constants
-
-from .bundle import TankBundle
 from ..util.metrics import EventMetric
+from . import constants
+from .bundle import TankBundle
 
 
 class Application(TankBundle):

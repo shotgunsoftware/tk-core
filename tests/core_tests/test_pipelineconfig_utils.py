@@ -8,26 +8,27 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
+import importlib.metadata
 import inspect
+import os
 import sys
-
-from mock import patch
 
 import sgtk
 import tank
-
-from tank import pipelineconfig_utils
 from tank import (
-    TankInvalidInterpreterLocationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
+    TankInvalidInterpreterLocationError,
     TankNotPipelineConfigurationError,
+    pipelineconfig_utils,
 )
 from tank.util import ShotgunPath, is_windows
-
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    temp_env_var,
+)
 
 
 class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
@@ -35,7 +36,7 @@ class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
     Tests the case where a Windows config location uses double slashes.
     """
 
-    @patch("tank.pipelineconfig_utils._get_install_locations")
+    @mock.patch("tank.pipelineconfig_utils._get_install_locations")
     def test_config_path_cleanup(self, get_install_locations_mock):
         """
         Check that any glitches in the path are correctly cleaned up.
@@ -171,7 +172,7 @@ class TestPipelineConfigUtils(ShotgunTestBase):
 
         # Patch os.path.exists since /i/wish/this/was/python3 is obviously not a real
         # file name.
-        with patch("os.path.exists", return_value=True):
+        with mock.patch("os.path.exists", return_value=True):
             with temp_env_var(SGTK_TEST_INTERPRETER="/i/wish/this/was/python3"):
                 self.assertEqual(
                     pipelineconfig_utils.get_python_interpreter_for_config(config_root),
@@ -301,8 +302,8 @@ class TestPipelineConfigUtils(ShotgunTestBase):
             )
 
         # Test with a core location that is invalid.
-        config_with_invalid_core_location = self._create_unlocalized_pipeline_configuration(
-            "config_with_invalid_core"
+        config_with_invalid_core_location = (
+            self._create_unlocalized_pipeline_configuration("config_with_invalid_core")
         )
 
         self._create_core_file(
@@ -315,8 +316,8 @@ class TestPipelineConfigUtils(ShotgunTestBase):
             )
 
         # Test when the core file is missing.
-        config_with_no_core_file_location = self._create_unlocalized_pipeline_configuration(
-            "config_with_no_core_file"
+        config_with_no_core_file_location = (
+            self._create_unlocalized_pipeline_configuration("config_with_no_core_file")
         )
 
         with self.assertRaisesRegex(
@@ -358,3 +359,137 @@ class TestPipelineConfigUtils(ShotgunTestBase):
 
         self.assertEqual(sgtk.get_sgtk_module_path(), python_path)
         self.assertEqual(sgtk.get_sgtk_module_path(), tank.get_sgtk_module_path())
+
+
+class TestGetCurrentlyRunningApiVersion(ShotgunTestBase):
+    """
+    Tests get_currently_running_api_version, including the importlib.metadata
+    fallback used when info.yml is absent (e.g. flat pip install layout).
+    """
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_manifest_version_when_present(self, manifest_mock):
+        """
+        When info.yml is present, its version is returned and the dist-metadata
+        fallback is not consulted.
+        """
+        manifest_mock.return_value = "v1.2.3"
+        with mock.patch("importlib.metadata.version") as dist_mock:
+            self.assertEqual(
+                pipelineconfig_utils.get_currently_running_api_version(),
+                "v1.2.3",
+            )
+            dist_mock.assert_not_called()
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_falls_back_to_dist_metadata_when_manifest_missing(self, manifest_mock):
+        """
+        Pip install layout: info.yml is absent so the manifest yields None,
+        and the function falls back to the installed sgtk distribution version,
+        re-adding the 'v' prefix that PEP 440 normalization strips.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "importlib.metadata.version", return_value="0.23.8"
+        ) as dist_mock:
+            self.assertEqual(
+                pipelineconfig_utils.get_currently_running_api_version(),
+                "v0.23.8",
+            )
+            dist_mock.assert_called_once_with("sgtk")
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_unknown_when_manifest_and_dist_metadata_missing(
+        self, manifest_mock
+    ):
+        """
+        Neither info.yml nor an installed sgtk distribution available: preserve
+        the original "unknown" contract instead of raising.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "importlib.metadata.version",
+            side_effect=importlib.metadata.PackageNotFoundError("sgtk"),
+        ):
+            self.assertEqual(
+                pipelineconfig_utils.get_currently_running_api_version(),
+                "unknown",
+            )
+
+
+class TestGetCoreApiVersion(ShotgunTestBase):
+    """
+    Tests get_core_api_version, including the distribution-metadata fallback
+    used when the requested core is the currently-running one and info.yml is
+    absent (e.g. flat pip install layout).
+    """
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_manifest_version_when_present(self, manifest_mock):
+        """
+        When info.yml is present, its version is returned and no fallback runs.
+        """
+        manifest_mock.return_value = "v1.2.3"
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core"
+        ) as path_mock:
+            self.assertEqual(
+                pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                "v1.2.3",
+            )
+            path_mock.assert_not_called()
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_unknown_for_other_core_when_manifest_missing(self, manifest_mock):
+        """
+        When info.yml is absent and the requested core is not the currently-running
+        one, distribution metadata must not leak in as the answer.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core",
+            return_value="/different/core",
+        ):
+            with mock.patch("importlib.metadata.version") as dist_mock:
+                self.assertEqual(
+                    pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                    "unknown",
+                )
+                dist_mock.assert_not_called()
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_falls_back_to_dist_metadata_for_current_core(self, manifest_mock):
+        """
+        Pip install layout: info.yml is absent and the requested core matches the
+        currently-running one, so the function defers to dist-metadata via
+        get_currently_running_api_version.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core",
+            return_value="/some/core/root",
+        ):
+            with mock.patch(
+                "importlib.metadata.version", return_value="0.23.8"
+            ) as dist_mock:
+                self.assertEqual(
+                    pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                    "v0.23.8",
+                )
+                dist_mock.assert_called_once_with("sgtk")
+
+    @mock.patch("tank.pipelineconfig_utils._get_version_from_manifest")
+    def test_returns_unknown_when_current_core_resolution_fails(self, manifest_mock):
+        """
+        If get_path_to_current_core raises (e.g. moved/symlinked install), the
+        function preserves the "unknown" contract rather than propagating.
+        """
+        manifest_mock.return_value = None
+        with mock.patch(
+            "tank.pipelineconfig_utils.get_path_to_current_core",
+            side_effect=tank.TankError("unresolvable"),
+        ):
+            self.assertEqual(
+                pipelineconfig_utils.get_core_api_version("/some/core/root"),
+                "unknown",
+            )

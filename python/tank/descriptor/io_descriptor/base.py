@@ -8,17 +8,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import contextlib
-
-from .. import constants
-from ... import LogManager
-from ...util import filesystem, sgre as re
-from ...util.version import is_version_newer
-from ..errors import TankDescriptorError, TankMissingManifestError
+import os
+import sys
+import urllib.parse
 
 from tank_vendor import yaml
-from tank_vendor.six.moves import map, urllib
+from tank_vendor.packaging.version import InvalidVersion
+
+from ... import LogManager
+from ...util import filesystem
+from ...util import sgre as re
+from ...util.version import is_version_newer, is_version_newer_or_equal
+from .. import constants
+from ..errors import TankDescriptorError, TankMissingManifestError
 
 log = LogManager.get_logger(__name__)
 
@@ -217,6 +220,47 @@ class IODescriptorBase(object):
         return os.path.join(
             install_cache_root, legacy_dir, descriptor_name, bundle_name, bundle_version
         )
+
+    def _check_minimum_python_version(self, manifest_data):
+        """
+        Check if the bundle's minimum_python_version requirement is compatible with
+        the current Python version.
+
+        :param manifest_data: Dictionary with the bundle's info.yml contents
+        :returns: True if compatible or no requirement specified, False otherwise
+        """
+        minimum_python_version = manifest_data.get("minimum_python_version")
+
+        if not isinstance(minimum_python_version, str) or not minimum_python_version:
+            # No requirement specified or invalid type, assume compatible
+            return True
+
+        # Get current Python version as string (e.g., "3.9.13")
+        current_version_str = (
+            f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+        )
+
+        # Use tank.util.version for robust version comparison
+        # Current version must be >= minimum required version
+        is_compatible = False
+        try:
+            is_compatible = is_version_newer_or_equal(
+                current_version_str, str(minimum_python_version)
+            )
+        except (TankDescriptorError, InvalidVersion) as e:
+            # TankDescriptorError: Can't compare git commits
+            # InvalidVersion: Invalid version format
+            log.warning(
+                f"Could not compare Python versions (current: {current_version_str}, required: {minimum_python_version}): {e}. Assuming compatible."
+            )
+            return True
+
+        if not is_compatible:
+            log.debug(
+                f"Python version {current_version_str} does not meet minimum requirement {minimum_python_version}"
+            )
+
+        return is_compatible
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
         """
@@ -486,42 +530,21 @@ class IODescriptorBase(object):
 
         # example:
         #
-        # >>> urlparse.urlparse("sgtk:descriptor:app_store?foo=bar&baz=buz")
-        #
-        # ParseResult(scheme='sgtk', netloc='', path='descriptor:app_store',
-        #             params='', query='foo=bar&baz=buz', fragment='')
-        #
-        #
-        # NOTE - it seems on some versions of python the result is different.
-        #        this includes python2.5 but seems to affect other SKUs as well.
-        #
         # uri: sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle
         #
-        # python 2.6+ expected: ParseResult(
+        # expected: ParseResult(
         # scheme='sgtk',
         # netloc='',
         # path='descriptor:app_store',
         # params='',
         # query='version=v0.1.2&name=tk-bundle',
         # fragment='')
-        #
-        # python 2.5 and others: (
-        # 'sgtk',
-        # '',
-        # 'descriptor:app_store?version=v0.1.2&name=tk-bundle',
-        # '',
-        # '',
-        # '')
 
         if parsed_uri.scheme != constants.DESCRIPTOR_URI_PATH_SCHEME:
             raise TankDescriptorError("Invalid uri '%s' - must begin with 'sgtk'" % uri)
 
-        if parsed_uri.query == "":
-            # in python 2.5 and others, the querystring is part of the path (see above)
-            (path, query) = parsed_uri.path.split("?")
-        else:
-            path = parsed_uri.path
-            query = parsed_uri.query
+        path = parsed_uri.path
+        query = parsed_uri.query
 
         split_path = path.split(constants.DESCRIPTOR_URI_SEPARATOR)
         # e.g. 'descriptor:app_store' -> ('descriptor', 'app_store')
@@ -538,7 +561,7 @@ class IODescriptorBase(object):
         descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
-        for (param, value) in urllib.parse.parse_qs(query).items():
+        for param, value in urllib.parse.parse_qs(query).items():
             if len(value) > 1:
                 raise TankDescriptorError(
                     "Invalid uri '%s' - duplicate parameters" % uri

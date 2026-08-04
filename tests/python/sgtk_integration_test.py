@@ -12,29 +12,23 @@
 Provides a base class for integration tests.
 """
 
-from __future__ import print_function
-
+import atexit
+import copy
 import os
+import subprocess
 import sys
 import tempfile
-import atexit
-import subprocess
 import threading
 import time
-import copy
-import random
-
-import unittest2
+import unittest
 
 import sgtk
 from sgtk.util import sgre as re
-from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
+from sgtk.util.filesystem import safe_delete_file, safe_delete_folder
 from tank_vendor import yaml
 
 
-class SgtkIntegrationTest(unittest2.TestCase):
+class SgtkIntegrationTest(unittest.TestCase):
     """
     Base class for integration tests. Each integration test should be invoke in its own subprocess.
 
@@ -328,12 +322,12 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         # Check if this is a shared core and figure out the core location.
         core_cfg_map = {
-            "linux2": "core_Linux.cfg",
+            "linux": "core_Linux.cfg",
             "win32": "core_Windows.cfg",
             "darwin": "core_Darwin.cfg",
         }
         core_location_file = os.path.join(
-            location, "install", "core", core_cfg_map[sgsix.platform]
+            location, "install", "core", core_cfg_map[sys.platform]
         )
         if os.path.exists(core_location_file):
             with open(core_location_file, "rt") as fh:
@@ -417,9 +411,14 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
         before = time.time()
         try:
-            self._stdout, _ = proc.communicate(six.ensure_binary(user_input))
+            if isinstance(user_input, str):
+                input_bytes = user_input.encode("utf-8")
+            else:
+                input_bytes = user_input
+
+            self._stdout, _ = proc.communicate(input_bytes)
             if self._stdout:
-                self._stdout = six.ensure_str(self._stdout)
+                self._stdout = self._stdout.decode("utf-8")
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)

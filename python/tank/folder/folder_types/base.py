@@ -8,11 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 from .expression_tokens import SymlinkToken
-from tank_vendor import six
 
 
 class Folder(object):
@@ -175,9 +174,9 @@ class Folder(object):
 
             # before recursing down our specific recursion path, make sure all static content
             # has been created at this level in the folder structure
-            static_children = [ch for ch in self._children if ch.is_dynamic() == False]
+            static_children = [ch for ch in self._children if ch.is_dynamic() is False]
 
-            for (created_folder, sg_data_dict) in created_data:
+            for created_folder, sg_data_dict in created_data:
 
                 # first process the static folders
                 for cp in static_children:
@@ -209,7 +208,7 @@ class Folder(object):
             # no explicit list! instead process all children.
             # run the folder creation for all new folders created and for all
             # configuration children
-            for (created_folder, sg_data_dict) in created_data:
+            for created_folder, sg_data_dict in created_data:
                 for cp in self._children:
                     cp.create_folders(
                         io_receiver,
@@ -256,7 +255,7 @@ class Folder(object):
         dc_value = self._config_metadata.get("defer_creation")
         # if defer_creation config param not specified or None means we
         # can always go ahead with folder creation!!
-        if dc_value is None or dc_value == False:
+        if dc_value is None or dc_value is False:
             # deferred value not specified means proceed with creation!
             return True
 
@@ -267,7 +266,7 @@ class Folder(object):
             return False
 
         # now handle all cases where we have an engine_str and some sort of deferred behaviour.
-        if dc_value == True:
+        if dc_value is True:
             # defer create for all engine_strs!
             return True
 
@@ -276,7 +275,7 @@ class Folder(object):
         # then check each one for a match. If *any* of them match then return True to process!
         engine_str_list = [x.strip() for x in engine_str.split(",")]
         for engine_str_val in engine_str_list:
-            if isinstance(dc_value, six.string_types) and dc_value == engine_str_val:
+            if isinstance(dc_value, str) and dc_value == engine_str_val:
                 # defer_creation parameter is a string and this matches the engine_str_val!
                 return True
 

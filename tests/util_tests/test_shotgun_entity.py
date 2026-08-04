@@ -10,9 +10,8 @@
 
 import sgtk
 import tank
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
-from tank.util.shotgun_entity import get_sg_entity_name_field, sg_entity_to_string
-
+from tank.util.shotgun_entity import sg_entity_to_string
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, setUpModule  # noqa
 
 KNOWN_SG_ENTITIES = [
     "ActionMenuItem",
@@ -98,7 +97,7 @@ class TestShotgunEntity(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunEntity, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
     def test_entity_name_field(self):

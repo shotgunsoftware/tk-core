@@ -8,20 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 import sys
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
 
 import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
 from sgtk.util import ShotgunPath
 from tank.util import is_macos, is_windows
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+)
 from tank_vendor import yaml
-from mock import patch, MagicMock
 
 
 class TestConfigurationWriterBase(ShotgunTestBase):
@@ -156,7 +155,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def setUp(self):
         # Makes sure every unit test run in its own sandbox.
-        super(TestInterpreterFilesWriter, self).setUp()
+        super().setUp()
         self._root = os.path.join(self.tank_temp, self.short_test_name)
         os.makedirs(self._root)
         self._cw = ConfigurationWriter(
@@ -191,7 +190,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
             fh.write(path)
 
         # We're going to pretend the interpreter location exists
-        with patch("os.path.exists", return_value=True):
+        with mock.patch("os.path.exists", return_value=True):
             # Check that our descriptors sees the value we just wrote to disk
             self.assertEqual(descriptor.python_interpreter, path)
         # Copy the descriptor to its location.
@@ -203,7 +202,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def test_desktop_interpreter(self):
         """
-        Checks that if we're running in the SG Desktop we're writing the correct interpreter.
+        Checks that if we're running in the PTR desktop app we're writing the correct interpreter.
         """
         expected_interpreters = self._get_default_intepreters()
         if is_windows():

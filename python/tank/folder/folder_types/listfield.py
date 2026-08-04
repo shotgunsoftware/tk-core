@@ -8,12 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 from ...errors import TankError
 from ...util import shotgun_entity
-
 from .base import Folder
 from .expression_tokens import FilterExpressionToken
 
@@ -106,11 +105,11 @@ class ListField(Folder):
         # list fields are only created when they are on the primary path,
         # e.g. we don't recurse down to create asset types when shots are created,
         # but only when assets are created.
-        if is_primary == False and self._create_with_parent == False:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
-        return super(ListField, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def get_entity_type(self):
         """
@@ -172,7 +171,7 @@ class ListField(Folder):
                     chunks = self._field_name.split(".")
                     entity_type = chunks[1]
                     field_name = chunks[2]
-                except:
+                except Exception:
                     msg = (
                         "Folder creation error: Cannot resolve the field expression %s."
                         % self._field_name
@@ -190,7 +189,9 @@ class ListField(Folder):
                 # validate that the data type is of type list
                 field_type = resp[field_name]["data_type"]["value"]
             except Exception as e:
-                msg = "Folder creation error: Cannot retrieve values for SG list field "
+                msg = (
+                    "Folder creation error: Cannot retrieve values for PTR list field "
+                )
                 msg += "%s.%s. Error reported: %s" % (entity_type, field_name, e)
                 raise TankError(msg)
 
@@ -207,7 +208,7 @@ class ListField(Folder):
             values = resp[field_name]["properties"]["valid_values"]["value"]
 
             if self._skip_unused:
-                # cull values based on their usage - EXPENSIVE WITH ONE SG QUERY PER VALUE
+                # cull values based on their usage - EXPENSIVE WITH ONE PTR QUERY PER VALUE
                 values = self.__filter_unused_list_values(
                     entity_type, field_name, values, sg_data.get("Project")
                 )

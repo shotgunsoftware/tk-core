@@ -19,6 +19,13 @@ omit=
     *tank/authentication/ui/*
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
+    *tank/bootstrap/manager.py
+    *tank/platform/engine.py
+    *tank/flowam/create.py
+    *tank/flowam/host.py
+    *tank/flowam/open.py
+    *tank/flowam/utils.py
+
 
 [paths]
 # This allows to merge coverage from different disk locations. This is
@@ -36,5 +43,15 @@ source=
     */python/tank
 
 [report]
+omit =
+    *tank/authentication/ui/*
+    *tank/authentication/sso_saml2/*
+    *tank/platform/qt5/*
+    *tank/bootstrap/manager.py
+    *tank/flowam/create.py
+    *tank/flowam/host.py
+    *tank/flowam/open.py
+    *tank/flowam/utils.py
+    *tank/platform/engine.py
 exclude_lines =
     raise NotImplementedError

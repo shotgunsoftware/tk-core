@@ -13,21 +13,20 @@ Handles the creation of a configuration object structure based on the folder con
 
 """
 
-import os
 import fnmatch
-
-from .folder_types import (
-    Static,
-    ListField,
-    Entity,
-    Project,
-    UserWorkspace,
-    ShotgunStep,
-    ShotgunTask,
-)
+import os
 
 from ..errors import TankError, TankUnreadableFileError
 from ..util import yaml_cache
+from .folder_types import (
+    Entity,
+    ListField,
+    Project,
+    ShotgunStep,
+    ShotgunTask,
+    Static,
+    UserWorkspace,
+)
 
 
 def read_ignore_files(schema_config_path):
@@ -336,7 +335,7 @@ class FolderConfiguration(object):
             self._process_config_r(cur_node, full_path)
 
         # process symlinks
-        for (path, target, metadata) in self._get_symlinks_in_folder(parent_path):
+        for path, target, metadata in self._get_symlinks_in_folder(parent_path):
             parent_node.add_symlink(path, target, metadata)
 
         # now process all files and add them to the parent_node token

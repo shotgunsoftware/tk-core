@@ -8,9 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .path import IODescriptorPath
-
 from ... import LogManager
+from .path import IODescriptorPath
 
 log = LogManager.get_logger(__name__)
 
@@ -44,9 +43,7 @@ class IODescriptorDev(IODescriptorPath):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorDev, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
     def is_dev(self):
         """

@@ -14,11 +14,8 @@ import json
 import os
 import sys
 
-from unittest2 import TestCase
-from sgtk.util import json as tk_json
+from unittest import TestCase
 from sgtk.util import pickle
-
-from tank_vendor import six
 
 
 class Impl:
@@ -103,41 +100,21 @@ class Impl:
             """
             Ensures the unicode or bytes detection method actually works.
             """
-            if six.PY2:
-                self._assert_no_unicode({})
-                self._assert_no_unicode(1)
-                self._assert_no_unicode(False)
-                self._assert_no_unicode(None)
-                self._assert_no_unicode(self.kanji)
-                self._assert_no_unicode({"k": "v"})
+            self._assert_no_bytes({})
+            self._assert_no_bytes(1)
+            self._assert_no_bytes(False)
+            self._assert_no_bytes(None)
+            self._assert_no_bytes(self.kanji)
+            self._assert_no_bytes({"k": "v"})
 
-                with self.assertRaisesRegex(
-                    Exception, "unicode string found in u'allo'"
-                ):
-                    self._assert_no_unicode(u"allo")
-            elif six.PY3:
-                self._assert_no_bytes({})
-                self._assert_no_bytes(1)
-                self._assert_no_bytes(False)
-                self._assert_no_bytes(None)
-                self._assert_no_bytes(self.kanji)
-                self._assert_no_bytes({"k": "v"})
-
-                with self.assertRaisesRegex(Exception, "bytes found in b'allo'"):
-                    self._assert_no_bytes(b"allo")
+            with self.assertRaisesRegex(Exception, "bytes found in b'allo'"):
+                self._assert_no_bytes(b"allo")
 
         def test_scalar_values(self):
             """
             Ensures we can properly encode scalar values.
             """
-            if six.PY2:
-                # In the case of Python2, ensure that we get str instances back with
-                # no unicode after loading.
-                assertion = self._assert_no_unicode_after_load
-            else:
-                # For Python3 and above, ensure that no bytes objects are returned
-                # after loading.
-                assertion = self._assert_no_bytes_after_load
+            assertion = self._assert_no_bytes_after_load
 
             # Integer
             assertion(1)
@@ -152,7 +129,7 @@ class Impl:
             assertion(None)
             # Strings
             assertion("a")
-            assertion(u"a")
+            assertion("a")
             assertion(self.kanji)
 
         def test_array_values(self):
@@ -167,9 +144,9 @@ class Impl:
                     True,
                     False,
                     None,
-                    {"a": "b", u"c": u"d"},
+                    {"a": "b", "c": "d"},
                     "e",
-                    u"f",
+                    "f",
                 ]
             )
 
@@ -178,10 +155,10 @@ class Impl:
             Ensures we can properly encode a dictionary.
             """
             self._assert_no_unicode_after_load({})
-            self._assert_no_unicode_after_load({"a": "b", u"c": u"d"})
-            self._assert_no_unicode_after_load({"e": ["f"], u"g": [u"h"]})
+            self._assert_no_unicode_after_load({"a": "b", "c": "d"})
+            self._assert_no_unicode_after_load({"e": ["f"], "g": ["h"]})
             self._assert_no_unicode_after_load(
-                {"i": [{"j": ["k"]}], u"l": [{u"m": [u"n"]}]}
+                {"i": [{"j": ["k"]}], "l": [{"m": ["n"]}]}
             )
 
         def _assert_no_unicode_after_load(self, original_value):
@@ -219,17 +196,12 @@ class Impl:
             Ensures reloading JSON written by any version of Python works in the current
             Python version.
             """
-            with open(self.file_location(2, 7), "rb") as fh:
-                self.assertEqual(self.load(fh), self.dict_with_unicode)
 
             with open(self.file_location(3, 7), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
 
             with open(self.file_location(3, 9), "rb") as fh:
                 self.assertEqual(self.load(fh), self.dict_with_unicode)
-
-            with open(self.file_location(2, 7), "r{0}".format(self.mode)) as fh:
-                self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
             with open(self.file_location(3, 7), "r{0}".format(self.mode)) as fh:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
@@ -253,8 +225,8 @@ class JSONTests(Impl.SerializationTests):
     # Parametrizes the tests from the base class.
     filename = "json_saved_with_python_{0}.{1}.json"
     mode = "t"
-    write_mode = "wb" if six.PY2 else "wt"
-    loader_module = tk_json
+    write_mode = "wt"
+    loader_module = json
     dumper_module = json
 
 
@@ -267,25 +239,11 @@ class PickleTests(Impl.SerializationTests):
     loader_module = pickle
     dumper_module = pickle
 
-    # Derived class parameters.
-    protocol_2_file_location = os.path.join(
-        Impl.SerializationTests.fixtures_location,
-        "pickled_saved_with_python_2_protocol_0.pickle",
-    )
-
-    def test_reload_protocol_2_pickle(self):
-        with open(self.protocol_2_file_location, "rb") as fh:
-            self.assertEqual(self.load(fh), self.dict_with_unicode)
-
-        with open(self.protocol_2_file_location, "rb") as fh:
-            self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
-
 
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
 
     # PYTHONPATH=../../python python test_json_and_pickle.py
-    # with python 2 and python 3 to generate the files.
     file_path = JSONTests.file_location(sys.version_info[0], sys.version_info[1])
     with open(file_path, "wt") as fh:
         json.dump(JSONTests.dict_with_unicode, fh, sort_keys=True)
@@ -293,12 +251,3 @@ if __name__ == "__main__":
     file_path = PickleTests.file_location(sys.version_info[0], sys.version_info[1])
     with open(file_path, "wb") as fh:
         pickle.dump(PickleTests.dict_with_unicode, fh)
-
-    if six.PY2:
-        # call directly the cPickle.dump method. Older Toolkit cores
-        # would save pickles with protocol==2, so make sure we can
-        # read those as well with the pickle module wrapper.
-        import cPickle
-
-        with open(PickleTests.protocol_2_file_location, "wb") as fh:
-            cPickle.dump(PickleTests.dict_with_unicode, fh, protocol=2)

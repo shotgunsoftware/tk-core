@@ -12,12 +12,9 @@
 Utility methods related to Published Files in Shotgun
 """
 
-from __future__ import with_statement
-
 from ...log import LogManager
+from .. import constants, login
 from ..shotgun_path import ShotgunPath
-from .. import constants
-from .. import login
 
 log = LogManager.get_logger(__name__)
 
@@ -52,7 +49,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     try:
         if entity_type_code in schema_data:
             display_name = schema_data[entity_type_code]["name"]["value"]
-    except:
+    except Exception:
         pass
 
     return display_name
@@ -69,7 +66,7 @@ def get_cached_local_storages(tk):
     storage_data = tk.get_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY)
 
     if storage_data is None:
-        log.debug("Caching SG local storages...")
+        log.debug("Caching PTR local storages...")
         storage_data = tk.shotgun.find(
             "LocalStorage", [], ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
         )

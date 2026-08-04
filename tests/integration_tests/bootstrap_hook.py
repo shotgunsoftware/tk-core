@@ -13,14 +13,12 @@ Ensures the bootstrap hook can be used to download bundles in lieu of the
 default implementation.
 """
 
-from __future__ import print_function
-
 import os
 import tempfile
+import unittest
 
-import unittest2
-from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
+from sgtk_integration_test import SgtkIntegrationTest
 
 logger = sgtk.LogManager.get_logger(__name__)
 
@@ -64,7 +62,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
         # If we didn't find the record, create it. We're being fault tolerant here and assuming that
         # maybe a run might have created the record but failed at uploading the bundle.
         if not item:
-            # This field is a simple string field. Create it in ShotGrid if you get an error here.
+            # This field is a simple string field. Create it in Flow Production Tracking if you get an error here.
             item = cls.sg.create(
                 "CustomNonProjectEntity01", {"sg_descriptor": descriptor}
             )
@@ -72,7 +70,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
         for _ in range(5):
             try:
                 # Upload the bundle to Shotgun.
-                # This field is a File field. Create it in ShotGrid if you get an error here.
+                # This field is a File field. Create it in Flow Production Tracking if you get an error here.
                 cls.sg.upload(
                     "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
                 )
@@ -204,4 +202,4 @@ class BootstrapHookTests(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    unittest.main(failfast=True, verbosity=2)

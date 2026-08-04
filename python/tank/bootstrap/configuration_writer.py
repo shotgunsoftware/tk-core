@@ -8,25 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
+import datetime
 import os
 import sys
-import datetime
-
-from . import constants
-
-from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
-
-from ..util import filesystem
-from ..util import StorageRoots
-from ..util.shotgun import connection
-from ..util.move_guard import MoveGuard
-from ..util import is_macos, is_windows
 
 from tank_vendor import yaml
 
 from .. import LogManager
+from ..util import StorageRoots, filesystem, is_macos, is_windows
+from ..util.move_guard import MoveGuard
+from ..util.shotgun import connection
+from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -213,7 +205,7 @@ class ConfigurationWriter(object):
         log.debug("Installing tank command...")
 
         # First set up the interpreter_xxx files needed for the tank command
-        # default to the shotgun desktop python. We want those defaults, even with descriptor
+        # default to the PTR desktop app python. We want those defaults, even with descriptor
         # based pipeline configurations, because from a descriptor based pipeline configuration
         # we might want call setup_project, which will copy the interpreter files. So as a
         # convenience we'll pre-fill those files with an interpreter we know is available on all
@@ -228,7 +220,7 @@ class ConfigurationWriter(object):
         # Shogun Desktop and if we are then we're using the Python that is package with it.
         #
         # The reason we are doing this is because we need the interpreter files
-        # written out during bootstrapping to be using the ones from the Shotgun Desktop.
+        # written out during bootstrapping to be using the ones from the PTR desktop app.
         #
         # We could have introduced a way on the ToolkitManager to specify the interpreter
         # to use for the current platform for descriptor based configuration, but we're trying
@@ -239,9 +231,9 @@ class ConfigurationWriter(object):
         # up a bit in my mouth.
 
         # Figures out which is the current Python interpreter.
-        # If we're in the Shotgun Desktop
+        # If we're in the PTR desktop app
         if os.path.split(executable)[1].lower().startswith("shotgun"):
-            log.debug("SG Desktop process detected.")
+            log.debug("PTR desktop app process detected.")
             # We'll use the builtin Python.
             if is_macos():
                 current_interpreter = os.path.join(prefix, "bin", "python")
@@ -267,7 +259,9 @@ class ConfigurationWriter(object):
         if current_interpreter:
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
-            log.debug("Current OS interpreter will be the default SG Desktop location.")
+            log.debug(
+                "Current OS interpreter will be the default PTR desktop app location."
+            )
 
         config_root_path = self._path.current_os
 
@@ -341,7 +335,9 @@ class ConfigurationWriter(object):
 
         with filesystem.auto_created_yml(config_info_file) as fh:
             fh.write("# This file contains metadata describing what exact version\n")
-            fh.write("# Of the config that was downloaded from ShotGrid\n")
+            fh.write(
+                "# Of the config that was downloaded from Flow Production Tracking\n"
+            )
             fh.write("\n")
             fh.write("# Below follows details for the sg attachment that is\n")
             fh.write("# reflected within this local configuration.\n")
@@ -426,7 +422,7 @@ class ConfigurationWriter(object):
         """
         if project_id:
             # Look up the project name via the project id
-            log.debug("Checking project in ShotGrid...")
+            log.debug("Checking project in Flow Production Tracking...")
             sg_data = self._sg_connection.find_one(
                 "Project", [["id", "is", project_id]], ["tank_name"]
             )
@@ -445,7 +441,7 @@ class ConfigurationWriter(object):
         # resolve project name and pipeline config name from shotgun.
         if pipeline_config_id:
             # look up pipeline config name and project name via the pc
-            log.debug("Checking pipeline config in ShotGrid...")
+            log.debug("Checking pipeline config in Flow Production Tracking...")
 
             sg_data = self._sg_connection.find_one(
                 constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,

@@ -14,7 +14,6 @@ Helper methods that extracts information about the current user.
 """
 
 import os
-import sys
 
 from . import constants
 from .platforms import is_windows
@@ -34,7 +33,7 @@ def get_login_name():
 
             pwd_entry = pwd.getpwuid(os.geteuid())
             return pwd_entry[0]
-        except:
+        except Exception:
             return None
 
 

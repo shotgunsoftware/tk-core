@@ -13,20 +13,18 @@ Defines the base class for DCC application launchers all Toolkit engines
 should implement.
 """
 
-import os
-import sys
 import glob
+import os
 import pprint
+import sys
 
 from ..errors import TankError
 from ..log import LogManager
+from ..util import ShotgunPath, is_windows
+from ..util import sgre as re
 from ..util.loader import load_plugin
 from ..util.version import is_version_older
-from ..util import ShotgunPath, is_windows, sgre as re
-
-from . import constants
-from . import validation
-
+from . import constants, validation
 from .bundle import resolve_setting_value
 from .engine import get_env_and_descriptor_for_engine
 
@@ -79,9 +77,7 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
              on disk.
     """
     # Get the engine environment and descriptor using engine.py code
-    (env, engine_descriptor) = get_env_and_descriptor_for_engine(
-        engine_name, tk, context
-    )
+    env, engine_descriptor = get_env_and_descriptor_for_engine(engine_name, tk, context)
 
     # Make sure it exists locally
     if not engine_descriptor.exists_local():
@@ -317,19 +313,6 @@ class SoftwareLauncher(object):
         """
         raise NotImplementedError
 
-    def _format(self, template, tokens):
-        """
-        Limited implementation of Python 2.6-like str.format.
-
-        :param str template: String using {<name>} tokens for substitution.
-        :param dict tokens: Dictionary of <name> to substitute for <value>.
-
-        :returns: The substituted string, when "<name>" will yield "<value>".
-        """
-        for key, value in tokens.items():
-            template = template.replace("{%s}" % key, value)
-        return template
-
     def _glob_and_match(self, match_template, template_key_expressions):
         r"""
         This is a helper method that can be invoked in an implementation of :meth:`scan_software`.
@@ -381,9 +364,10 @@ class SoftwareLauncher(object):
             match_template = fixed_match_template
 
         # First start by globbing files.
-        glob_pattern = self._format(
-            match_template, dict((key, "*") for key in template_key_expressions)
+        glob_pattern = match_template.format(
+            **{key: "*" for key in template_key_expressions}
         )
+
         self.logger.debug("Globbing for executable matching: %s ..." % (glob_pattern,))
         matching_paths = glob.glob(glob_pattern)
 
@@ -403,12 +387,8 @@ class SoftwareLauncher(object):
         else:
             regex_pattern = match_template
         # Then swap the tokens into the regular template key expressions.
-        regex_pattern = self._format(
-            regex_pattern,
-            # Put () around the provided expressions so that they become capture groups.
-            dict(
-                (k, "(?P<%s>%s)" % (k, v)) for k, v in template_key_expressions.items()
-            ),
+        regex_pattern = regex_pattern.format(
+            **{k: "(?P<%s>%s)" % (k, v) for k, v in template_key_expressions.items()}
         )
 
         # accumulate the software version objects to return. this will include

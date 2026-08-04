@@ -8,13 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import fnmatch
+import os
 
-
-from .action_base import Action
 from ..errors import TankError
-from ..util import yaml_cache, pickle
+from ..util import pickle, yaml_cache
+from .action_base import Action
 
 
 class CacheYamlAction(Action):

@@ -19,21 +19,32 @@ next to it in the file system. This is what it will attempt to install.
 
 """
 
-from __future__ import print_function
-import os
-import sys
-import stat
 import datetime
+import os
 import shutil
-from distutils.version import LooseVersion
+import stat
+import sys
+
+LooseVersion = None
+try:
+    import packaging.version
+except ModuleNotFoundError:
+    try:
+        # Try importing from setuptools.
+        # If it fails, then we can't do much at the moment
+        # The DCC should have either setuptools or packaging installed.
+        from setuptools._distutils.version import LooseVersion
+    except ModuleNotFoundError:
+        # DCCs with older versions of Python 3.12
+        from distutils.version import LooseVersion
 
 SG_LOCAL_STORAGE_OS_MAP = {
-    "linux2": "linux_path",
+    "linux": "linux_path",
     "win32": "windows_path",
     "darwin": "mac_path",
 }
 CORE_CFG_OS_MAP = {
-    "linux2": "core_Linux.cfg",
+    "linux": "core_Linux.cfg",
     "win32": "core_Windows.cfg",
     "darwin": "core_Darwin.cfg",
 }
@@ -61,6 +72,22 @@ def __is_upgrade(sgtk_install_root):
     return os.path.exists(os.path.join(sgtk_install_root, "core", "info.yml"))
 
 
+def __version_parse(log, version_string):
+    if "packaging" in sys.modules:
+        try:
+            return packaging.version.parse(version_string)
+        except packaging.version.InvalidVersion:
+            log.warning(
+                f"Cannot parse version '{version_string}' using packaging.version."
+            )
+
+    if LooseVersion:
+        return LooseVersion(version_string)
+
+    log.warning("Either packaging or distutils module is not available.")
+    return version_string
+
+
 def __current_version_less_than(log, sgtk_install_root, ver):
     """
     returns true if the current API version installed is less than the
@@ -72,7 +99,7 @@ def __current_version_less_than(log, sgtk_install_root, ver):
     """
     log.debug("Checking if the currently installed version is less than %s..." % ver)
 
-    if __is_upgrade(sgtk_install_root) == False:
+    if not __is_upgrade(sgtk_install_root):
         # there is no current version. So it is definitely
         # not at least version X
         log.debug(
@@ -105,7 +132,7 @@ def __current_version_less_than(log, sgtk_install_root, ver):
     if ver.startswith("v"):
         ver = ver[1:]
 
-    return LooseVersion(current_api_version) < LooseVersion(ver)
+    return __version_parse(log, current_api_version) < __version_parse(log, ver)
 
 
 ###################################################################################################

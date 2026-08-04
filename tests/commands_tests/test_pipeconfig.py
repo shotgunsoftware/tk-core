@@ -12,21 +12,20 @@
 Unit tests tank pipeline configs.
 """
 
-from __future__ import with_statement
-
 import os
-import tempfile
 import shutil
 import stat
+import tempfile
 
 import sgtk
 from tank.errors import TankError
 from tank.util import is_windows
-
-from mock import patch
-
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 from tank_test.mock_appstore import patch_app_store
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+)
 
 
 class TestPipelineConfig(TankTestBase):
@@ -103,7 +102,7 @@ class TestPipelineConfig(TankTestBase):
                 raise OSError("os.rename is disabled")
             return unmocked_os_rename(src, dst)
 
-        with patch("os.rename", side_effect=mocked_rename):
+        with mock.patch("os.rename", side_effect=mocked_rename):
             # And push again
             push_cmd.execute({"target_id": cloned_pc_id})
             sgtk.sgtk_from_path(temp_pc_dir)
@@ -135,8 +134,7 @@ class TestPipelineConfig(TankTestBase):
         # Test pushing with symlinks.
         #
         # When the method symlink is present, it means that the current platform
-        # supports symlinks. The method was missing in Python 2 on Windows,
-        # but was added in Python 3.
+        # supports symlinks.
         #
         # Note that if you are not in Developer mode on Windows, the method will
         # still be present in Python 3, but the symlink call will fail. There is

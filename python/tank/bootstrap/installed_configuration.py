@@ -10,9 +10,9 @@
 
 import os
 
-from .errors import TankBootstrapError
-from .configuration import Configuration
 from .. import LogManager
+from .configuration import Configuration
+from .errors import TankBootstrapError
 
 log = LogManager.get_logger(__name__)
 
@@ -21,7 +21,7 @@ class InstalledConfiguration(Configuration):
     """
     Represents a Toolkit pipeline configuration that is installed at a specific location via the
     ``mac_path``, ``linux_path`` and ``windows_path`` fields that has been setup with the setup project
-    command of the pre-zero config project creation wizard in Shotgun Desktop.
+    command of the pre-zero config project creation wizard in PTR desktop app.
     """
 
     def __init__(self, path, descriptor):
@@ -29,7 +29,7 @@ class InstalledConfiguration(Configuration):
         :param str path: ShotgunPath object describing the path to this configuration
         :param descriptor: ConfigDescriptor for the associated config
         """
-        super(InstalledConfiguration, self).__init__(path, descriptor)
+        super().__init__(path, descriptor)
 
     def __str__(self):
         """

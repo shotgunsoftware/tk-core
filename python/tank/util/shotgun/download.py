@@ -11,27 +11,26 @@
 """
 Methods for downloading things from Shotgun
 """
-from __future__ import with_statement
 
 import os
-import sys
-import uuid
-from tank_vendor.six.moves import urllib
-import time
 import tempfile
+import time
+import urllib.parse
+import urllib.request
+import uuid
 import zipfile
 
-from ..errors import ShotgunAttachmentDownloadError
 from ...errors import TankError
 from ...log import LogManager
-from ..zip import unzip_file
 from .. import filesystem
+from ..errors import ShotgunAttachmentDownloadError
+from ..zip import unzip_file
 
 log = LogManager.get_logger(__name__)
 
 
 @LogManager.log_timing
-def download_url(sg, url, location, use_url_extension=False):
+def download_url(sg, url, location, use_url_extension=False, headers=None):
     """
     Convenience method that downloads a file from a given url.
     This method will take into account any proxy settings which have
@@ -83,9 +82,8 @@ def download_url(sg, url, location, use_url_extension=False):
 
     # download the given url
     try:
-        request = urllib.request.Request(url)
-        if timeout and sys.version_info >= (2, 6):
-            # timeout parameter only available in python 2.6+
+        request = urllib.request.Request(url, headers=headers or {})
+        if timeout:
             response = urllib.request.urlopen(request, timeout=timeout)
         else:
             # use system default
@@ -116,21 +114,21 @@ def download_url(sg, url, location, use_url_extension=False):
 
 def __setup_sg_auth_and_proxy(sg):
     """
-    Borrowed from the Shotgun Python API, setup urllib2 with a cookie for authentication on
+    Borrowed from the Shotgun Python API, setup urllib with a cookie for authentication on
     Shotgun instance.
 
-    Looks up session token and sets that in a cookie in the :mod:`urllib2` handler. This is
+    Looks up session token and sets that in a cookie in the :mod:`urllib` handler. This is
     used internally for downloading attachments from the Shotgun server.
 
     :param sg: Shotgun API instance
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
     # functionality gets ported back into the Shotgun API.
-    from tank_vendor.six.moves import http_cookiejar
+    import http.cookiejar
 
     sid = sg.get_session_token()
-    cj = http_cookiejar.LWPCookieJar()
-    c = http_cookiejar.Cookie(
+    cj = http.cookiejar.LWPCookieJar()
+    c = http.cookiejar.Cookie(
         "0",
         "_session_id",
         sid,
@@ -182,7 +180,9 @@ def download_and_unpack_attachment(
     )
 
 
-def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False):
+def download_and_unpack_url(
+    sg, url, target, retries=5, auto_detect_bundle=False, headers=None
+):
     """
     Downloads the content from the provided url, assumes it is a zip file
     and attempts to unpack it into the given location.
@@ -198,12 +198,14 @@ def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False
         the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    return _download_and_unpack(sg, target, retries, auto_detect_bundle, url=url)
+    return _download_and_unpack(
+        sg, target, retries, auto_detect_bundle, url=url, headers=headers or {}
+    )
 
 
 @LogManager.log_timing
 def _download_and_unpack(
-    sg, target, retries, auto_detect_bundle, attachment_id=None, url=None
+    sg, target, retries, auto_detect_bundle, attachment_id=None, url=None, headers=None
 ):
     """
     Downloads the given attachment from Shotgun if an attachment ID is provided,
@@ -222,7 +224,7 @@ def _download_and_unpack(
     :param url: The url to download from
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    # @todo: progress feedback here - when the SG api supports it!
+    # @todo: progress feedback here - when the PTR api supports it!
     # sometimes people report that this download fails (because of flaky connections etc)
     # engines can often be 30-50MiB - as a quick fix, just retry the download if it fails
 
@@ -243,7 +245,7 @@ def _download_and_unpack(
                     fh.write(bundle_content)
             elif url:
                 log.debug("Downloading content of url %s..." % url)
-                download_url(sg, url, zip_tmp)
+                download_url(sg, url, zip_tmp, headers=headers or {})
             else:
                 raise ValueError(
                     "A value is required for one of kwargs `url` or `attachment_id`"
@@ -294,7 +296,7 @@ def _download_and_unpack(
         # the attachment in shotgun could not be unpacked
         if attachment_id:
             raise ShotgunAttachmentDownloadError(
-                "SG attachment with id %s is not a zip file!" % attachment_id
+                "PTR attachment with id %s is not a zip file!" % attachment_id
             )
         else:
             raise ShotgunAttachmentDownloadError(

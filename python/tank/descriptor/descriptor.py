@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
+from .. import constants as constants2
 from ..log import LogManager
-from ..util import filesystem
-from .io_descriptor import create_io_descriptor
-from .errors import TankDescriptorError
-from ..util import LocalFileStorageManager
+from ..util import LocalFileStorageManager, filesystem
 from . import constants
-
+from .errors import TankDescriptorError
+from .io_descriptor import create_io_descriptor
 
 logger = LogManager.get_logger(__name__)
 
@@ -358,7 +357,7 @@ class Descriptor(object):
         meta = self._get_manifest()
         support_url = meta.get("support_url")
         if support_url is None:
-            support_url = "https://knowledge.autodesk.com/contact-support"
+            support_url = constants2.SUPPORT_URL
         return support_url
 
     @property

@@ -13,21 +13,15 @@ Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
 
-from __future__ import with_statement
-
+import importlib.metadata
 import os
 
 from tank_vendor import yaml
 
-from . import constants
-from . import LogManager
-
-from .util import yaml_cache
-from .util import StorageRoots
-from .util import ShotgunPath
-from .util.shotgun import get_deferred_sg_connection
-
+from . import LogManager, constants
 from .errors import TankError
+from .util import ShotgunPath, StorageRoots, yaml_cache
+from .util.shotgun import get_deferred_sg_connection
 
 logger = LogManager.get_logger(__name__)
 
@@ -337,7 +331,7 @@ def resolve_all_os_paths_to_core(core_path):
     return paths for all platforms,
     as cached in the install_locations system file
 
-    :returns: dictionary with keys linux2, darwin and win32
+    :returns: dictionary with keys linux, darwin and win32
     """
     # @todo - refactor this to return a ShotgunPath
     return _get_install_locations(core_path).as_system_dict()
@@ -441,7 +435,16 @@ def get_currently_running_api_version():
     info_yml_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "info.yml")
     )
-    return _get_version_from_manifest(info_yml_path)
+    version = _get_version_from_manifest(info_yml_path)
+    if version is not None:
+        return version
+    # In a pip install the flat site-packages layout has no info.yml.
+    # Fall back to the installed distribution metadata; PEP 440 strips the
+    # leading 'v', so re-add it to match the info.yml convention.
+    try:
+        return "v" + importlib.metadata.version("sgtk")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown"
 
 
 def get_core_api_version(core_install_root):
@@ -457,7 +460,19 @@ def get_core_api_version(core_install_root):
     """
     # now try to get to the info.yml file to get the version number
     info_yml_path = os.path.join(core_install_root, "install", "core", "info.yml")
-    return _get_version_from_manifest(info_yml_path)
+    version = _get_version_from_manifest(info_yml_path)
+    if version is not None:
+        return version
+    # In a pip install the flat site-packages layout has no install/core/info.yml.
+    # If the requested core is the currently-running one, defer to
+    # get_currently_running_api_version which falls back to distribution metadata.
+    try:
+        current_core_root = get_path_to_current_core()
+    except TankError:
+        return "unknown"
+    if os.path.realpath(core_install_root) == os.path.realpath(current_core_root):
+        return get_currently_running_api_version()
+    return "unknown"
 
 
 def _get_version_from_manifest(info_yml_path):
@@ -466,15 +481,14 @@ def _get_version_from_manifest(info_yml_path):
     Returns the version given a manifest.
 
     :param info_yml_path: path to manifest file.
-    :returns: Always a string, 'unknown' if data cannot be found
+    :returns: Version string, or None if data cannot be found.
     """
     try:
         data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False) or {}
-        data = str(data.get("version", "unknown"))
+        version = data.get("version")
+        return str(version) if version is not None else None
     except Exception:
-        data = "unknown"
-
-    return data
+        return None
 
 
 def _get_core_descriptor_file(pipeline_config_path):
