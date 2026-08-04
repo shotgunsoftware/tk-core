@@ -225,7 +225,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             )
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
-            filesystem.safe_delete_folder(clone_tmp, ignore_errors=True)
+            filesystem.safe_delete_folder(clone_tmp)
 
     def get_system_name(self):
         """
