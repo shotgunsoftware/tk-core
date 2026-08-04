@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import uuid
-import shutil
 import tempfile
 import subprocess
 
@@ -264,7 +263,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             )
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
-            filesystem.safe_delete_folder(clone_tmp)
+            shutil.rmtree(clone_tmp, ignore_errors=True)
 
     def get_system_name(self):
         """
