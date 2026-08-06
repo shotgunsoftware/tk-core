@@ -180,7 +180,7 @@ def get_or_create_workfile_parent(
             name=sg_entity_name,
             parent_id=root_folder.id,
             components=[
-                TypeComponentSpec(type_id=get_schema_id(container_type), name=f"Type")
+                TypeComponentSpec(type_id=get_schema_id(container_type), name="Type")
             ],
         )
         container = FlowAsset(medm_asset)
@@ -226,7 +226,7 @@ def get_or_create_workfile_parent(
                 description=f'Root asset for "{sg_entity_name}".',
                 components=[
                     TypeComponentSpec(
-                        type_id=get_schema_id(container_type), name=f"Type"
+                        type_id=get_schema_id(container_type), name="Type"
                     )
                 ],
             )
