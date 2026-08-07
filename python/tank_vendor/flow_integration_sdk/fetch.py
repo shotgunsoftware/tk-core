@@ -334,7 +334,6 @@ def get_thumbnail_url(revision: medm_model.AssetRevision) -> str:
         raise ThumbnailError(revision_id=revision.id, details=msg) from exc
 
 
-@cache
 @trace
 def _iterate_uses(version_id: str) -> Iterator[medm_model.AssetRevision]:
     """Query uses relationships in this asset/revision.

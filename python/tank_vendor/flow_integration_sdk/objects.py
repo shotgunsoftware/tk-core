@@ -705,7 +705,6 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         return None
 
     @property
-    @cache
     def type_ids(self) -> list[str]:
         """Return type ids explicitly assigned to asset.
         (This will not include base types.)
