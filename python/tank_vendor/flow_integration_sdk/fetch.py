@@ -338,8 +338,6 @@ def get_thumbnail_url(revision: medm_model.AssetRevision) -> str:
 def _iterate_uses(version_id: str) -> Iterator[medm_model.AssetRevision]:
     """Query uses relationships in this asset/revision.
     Pagination is handled internally within this call via the V2 sdk.
-    If this query has already been performed, the cached result will be returned.
-    If refresh=True, do a fresh query.
 
     NOTE: This implementation grabs the entire uses tree because in practice
           this is usually what we need (to fetch dependencies).
