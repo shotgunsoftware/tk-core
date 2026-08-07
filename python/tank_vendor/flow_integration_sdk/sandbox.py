@@ -514,6 +514,7 @@ def checkout_revision(
         revision,
         component_name=component_name,
         component_purpose=component_purpose,
+        fetch_dependencies=True,
     )
 
     # Create the draft folder so we can copy new files to it
