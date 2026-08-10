@@ -1199,24 +1199,24 @@ class TestDirname(TestTemplatePath):
     def test_dirname_with_word(self):
         definition = "shots/{Sequence}/{Shot}/{Step}/work"
         template = TemplatePath(definition, self.keys, root_path=self.project_root)
-        self.assertEqual("shots/{Sequence}/{Shot}/{Step}", template.dirname)
+        self.assertEqual("shots/{Sequence}/{Shot}/{Step}", template._dirname())
 
     def test_dirname_with_key(self):
         definition = "shots/{Sequence}/{Shot}/{Step}"
         template = TemplatePath(definition, self.keys, root_path=self.project_root)
-        self.assertEqual("shots/{Sequence}/{Shot}", template.dirname)
+        self.assertEqual("shots/{Sequence}/{Shot}", template._dirname())
 
     def test_dirname_with_optional(self):
         definition = "shots/{Sequence}/{Shot}[/{Step}]"
-        template = TemplatePath(definition, {}, root_path=self.project_root)
-        self.assertEqual("shots/{Sequence}/{Shot}", template.dirname)
+        template = TemplatePath(definition, self.keys, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}", template._dirname())
 
     def test_dirname_with_optional_word_and_key(self):
         definition = "shots/{Sequence}/{Shot}/[abc_{Step}]"
-        template = TemplatePath(definition, {}, root_path=self.project_root)
-        self.assertEqual("shots/{Sequence}/{Shot}", template.dirname)
+        template = TemplatePath(definition, self.keys, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}/{Shot}", template._dirname())
 
     def test_dirname_with_optional_key_and_key(self):
         definition = "shots/{Sequence}/[{Shot}]-{Step}"
-        template = TemplatePath(definition, {}, root_path=self.project_root)
-        self.assertEqual("shots/{Sequence}", template.dirname)
+        template = TemplatePath(definition, self.keys, root_path=self.project_root)
+        self.assertEqual("shots/{Sequence}", template._dirname())

@@ -558,14 +558,23 @@ class TemplatePath(Template):
 
     def _dirname(self):
         """
-        Returns the directory part of the template.
+        Returns the directory part of the template, preserving optional
+        section brackets. Finds the last path separator outside any brackets.
 
         :returns: String
         """
-        dirname, basename = os.path.split(self._repr_def)
-        if "[" in basename and "]" not in basename:
-            return dirname.split("[")[0]
-        return dirname
+        bracket_depth = 0
+        last_sep_outside = -1
+        for i, c in enumerate(self._repr_def):
+            if c == "[":
+                bracket_depth += 1
+            elif c == "]":
+                bracket_depth = max(0, bracket_depth - 1)
+            elif c == os.sep and bracket_depth == 0:
+                last_sep_outside = i
+        if last_sep_outside == -1:
+            return ""
+        return self._repr_def[:last_sep_outside]
 
     @property
     def parent(self):
@@ -577,7 +586,7 @@ class TemplatePath(Template):
         :returns: :class:`Template`
         """
         parent_definition = self._dirname()
-        if parent_definition and parent_definition != "/":
+        if parent_definition and os.path.dirname(parent_definition) != parent_definition:
             return TemplatePath(
                 parent_definition,
                 self.keys,
