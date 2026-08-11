@@ -1184,10 +1184,10 @@ class TestParent(TestTemplatePath):
     def test_parent_with_optional(self):
         definition = "shots/{Sequence}[-{seq_num}]/{Shot}/{Step}/work"
         parent_expected_definitions = [
-            "shots/{Sequence}-{seq_num}/{Shot}/{Step}",
-            "shots/{Sequence}/{Shot}/{Step}",
+            os.path.join("shots", "{Sequence}-{seq_num}", "{Shot}", "{Step}"),
+            os.path.join("shots", "{Sequence}", "{Shot}", "{Step}"),
         ]
-        parent_expected__repr_def = os.path.dirname(definition)
+        parent_expected__repr_def = "shots/{Sequence}[-{seq_num}]/{Shot}/{Step}"
 
         template = TemplatePath(definition, self.keys, root_path=self.project_root)
         parent = template.parent
