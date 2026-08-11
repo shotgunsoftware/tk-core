@@ -586,6 +586,7 @@ class TemplatePath(Template):
         :returns: :class:`Template`
         """
         parent_definition = self._dirname()
+        # Only create a parent if the definition is non-empty and not a filesystem root.
         if (
             parent_definition
             and os.path.dirname(parent_definition) != parent_definition
