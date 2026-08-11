@@ -556,7 +556,7 @@ class TemplatePath(Template):
         """
         return self._prefix
 
-    def _dirname(self):
+    def _dirname(self) -> str:
         """
         Returns the directory part of the template, preserving optional
         section brackets. Finds the last path separator outside any brackets.
@@ -570,7 +570,7 @@ class TemplatePath(Template):
                 bracket_depth += 1
             elif c == "]":
                 bracket_depth = max(0, bracket_depth - 1)
-            elif c == os.sep and bracket_depth == 0:
+            elif c == "/" and bracket_depth == 0:
                 last_sep_outside = i
         if last_sep_outside == -1:
             return ""
