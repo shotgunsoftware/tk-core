@@ -1,14 +1,11 @@
 [packaging]
 exclude=
     # Remove CI files.
-    .coveragerc
+    .travis.yml
+    appveyor.yml
     .flake8
     .hound.yml
-    .pre-commit-config.yaml
-    azure-pipelines.yml
-    build_resources.yml
-    codecov.yml
-    developer
+    .coveragerc
     # Remove unneeded files.
-    docs
     tests
+    docs
