@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>cache_location &mdash; tk-core v0.24.0 documentation</title>
+  <title>cache_location &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Hook to control path cache and bundle cache folder creation.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -155,7 +155,7 @@
 
 <div class="viewcode-block" id="CacheLocation"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CacheLocation</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 <div class="viewcode-block" id="CacheLocation.get_path_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_path_cache_path">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_path_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Establish a location for the path cache database file.</span>
 
 <span class="sd">        This hook method was introduced in Toolkit v0.18 and replaces the previous</span>
@@ -167,7 +167,7 @@
 <span class="sd">        the path cache file is located. The path cache file holds a temporary cache representation</span>
 <span class="sd">        of the ``FilesystemLocation`` entities stored in Shotgun for a project.</span>
 
-<span class="sd">        The default implementation will create a folder inside the user&#39;s home folder or</span>
+<span class="sd">        The default implementation will create a folder inside the user's home folder or</span>
 <span class="sd">        under ``SHOTGUN_HOME``.</span>
 
 <span class="sd">        :param int project_id: The Shotgun id of the project to store caches for. None if</span>
@@ -181,25 +181,25 @@
 <span class="sd">                                              will be ``None``</span>
 <span class="sd">        :returns: The path to a path cache file. This file should exist when this method returns.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"path_cache"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"path_cache"</span><span class="p">)):</span>
             <span class="c1"># there is a custom version of the legacy hook path_cache</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
-                <span class="s2">&quot;It is strongly recommended that this is upgraded.&quot;</span>
+                <span class="s2">"Detected old core cache hook implementation. "</span>
+                <span class="s2">"It is strongly recommended that this is upgraded."</span>
             <span class="p">)</span>
 
             <span class="c1"># call legacy hook to make sure we call the custom</span>
             <span class="c1"># implementation that is provided by the user.</span>
             <span class="c1"># this implementation expects project id 0 for</span>
-            <span class="c1"># the site config, so ensure that&#39;s the case too</span>
+            <span class="c1"># the site config, so ensure that's the case too</span>
             <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_cache</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">)</span>
 
-        <span class="n">cache_filename</span> <span class="o">=</span> <span class="s2">&quot;path_cache.db&quot;</span>
+        <span class="n">cache_filename</span> <span class="o">=</span> <span class="s2">"path_cache.db"</span>
 
         <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
 
@@ -217,7 +217,7 @@
             <span class="c1"># new style path cache file exists, return it</span>
             <span class="k">return</span> <span class="n">target_path</span>
 
-        <span class="c1"># The target path does not exist. This could be because it just hasn&#39;t</span>
+        <span class="c1"># The target path does not exist. This could be because it just hasn't</span>
         <span class="c1"># been created yet, or it could be because of a core upgrade where the</span>
         <span class="c1"># cache root directory structure has changed (such is the case with</span>
         <span class="c1"># v0.17.x -&gt; v0.18.x). To account for this scenario, see if the target</span>
@@ -246,7 +246,7 @@
 <div class="viewcode-block" id="CacheLocation.get_bundle_data_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_bundle_data_cache_path">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_bundle_data_cache_path</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">bundle</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Establish a cache folder for an app, engine or framework.</span>
 
 <span class="sd">        This hook method was introduced in Toolkit v0.18 and replaces the previous ``bundle_cache``</span>
@@ -267,7 +267,7 @@
 <span class="sd">        configuration, or to share data accross all projects belonging to a</span>
 <span class="sd">        common site.</span>
 
-<span class="sd">        The default implementation will create a folder inside the user&#39;s home folder or</span>
+<span class="sd">        The default implementation will create a folder inside the user's home folder or</span>
 <span class="sd">        under ``SHOTGUN_HOME``.</span>
 
 <span class="sd">        :param int project_id: The Shotgun id of the project to store caches for, or None.</span>
@@ -282,19 +282,19 @@
 <span class="sd">                      :class:`~sgtk.platform.Application`</span>
 <span class="sd">        :returns: The path to a folder which should exist on disk.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"bundle_cache"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"bundle_cache"</span><span class="p">)):</span>
             <span class="c1"># there is a custom version of the legacy hook path_cache</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
-                <span class="s2">&quot;It is strongly recommended that this is upgraded.&quot;</span>
+                <span class="s2">"Detected old core cache hook implementation. "</span>
+                <span class="s2">"It is strongly recommended that this is upgraded."</span>
             <span class="p">)</span>
 
             <span class="c1"># call legacy hook to make sure we call the custom</span>
             <span class="c1"># implementation that is provided by the user.</span>
             <span class="c1"># this implementation expects project id 0 for</span>
-            <span class="c1"># the site config, so ensure that&#39;s the case too</span>
+            <span class="c1"># the site config, so ensure that's the case too</span>
             <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -317,8 +317,8 @@
         <span class="c1"># if the bundle is a multi-app, we shorten it:</span>
         <span class="c1"># tk-multi-workfiles2 --&gt; tm-workfiles2</span>
         <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;tk-framework-&quot;</span><span class="p">,</span> <span class="s2">&quot;fw-&quot;</span><span class="p">)</span>
-        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;tk-multi-&quot;</span><span class="p">,</span> <span class="s2">&quot;tm-&quot;</span><span class="p">)</span>
+        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"tk-framework-"</span><span class="p">,</span> <span class="s2">"fw-"</span><span class="p">)</span>
+        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"tk-multi-"</span><span class="p">,</span> <span class="s2">"tm-"</span><span class="p">)</span>
 
         <span class="n">target_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_root</span><span class="p">,</span> <span class="n">bundle_name</span><span class="p">)</span>
 
@@ -326,7 +326,7 @@
             <span class="c1"># new style cache bundle folder exists, return it</span>
             <span class="k">return</span> <span class="n">target_path</span>
 
-        <span class="c1"># The target path does not exist. This could be because it just hasn&#39;t</span>
+        <span class="c1"># The target path does not exist. This could be because it just hasn't</span>
         <span class="c1"># been created yet, or it could be because of a core upgrade where the</span>
         <span class="c1"># cache root directory structure has changed (such is the case with</span>
         <span class="c1"># v0.17.x -&gt; v0.18.x). To account for this scenario, see if the target</span>

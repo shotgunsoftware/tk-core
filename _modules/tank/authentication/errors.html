@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.errors &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.authentication.errors &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,107 +134,107 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">All custom exceptions that this module emits are defined here.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="c1"># @todo - what should ShotgunAuthenticationError derive from? TankError?</span>
 
 
 <div class="viewcode-block" id="ShotgunAuthenticationError"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticationError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ShotgunAuthenticationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Base class for all exceptions coming out from this module.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    """</span></div>
 
 
 <div class="viewcode-block" id="AuthenticationError"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.AuthenticationError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">AuthenticationError</span><span class="p">(</span><span class="n">ShotgunAuthenticationError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when credentials are rejected by the server.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    """</span></div>
 
 
 <div class="viewcode-block" id="IncompleteCredentials"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.IncompleteCredentials">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">IncompleteCredentials</span><span class="p">(</span><span class="n">ShotgunAuthenticationError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when credentials are provided but are incomplete.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str msg: Reason why the credentials are incomplete.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ShotgunAuthenticationError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Incomplete credentials: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">)</span></div>
+<span class="sd">        """</span>
+        <span class="n">ShotgunAuthenticationError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"Incomplete credentials: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">msg</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="AuthenticationCancelled"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.AuthenticationCancelled">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">AuthenticationCancelled</span><span class="p">(</span><span class="n">ShotgunAuthenticationError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when the user cancels authentication or session renewal.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ShotgunAuthenticationError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Authentication was cancelled by the user.&quot;</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">"Authentication was cancelled by the user."</span>
         <span class="p">)</span></div>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">UnresolvableUser</span><span class="p">(</span><span class="n">ShotgunAuthenticationError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when Toolkit is not able to resolve a user.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nice_user_type</span><span class="p">,</span> <span class="n">user_type</span><span class="p">,</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key_value</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="s2">&quot;The </span><span class="si">{0}</span><span class="s2"> named &#39;</span><span class="si">{3}</span><span class="s2">&#39; could not be resolved. Check if the &quot;</span>
-            <span class="s2">&quot;permissions for the current user are hiding the field &#39;</span><span class="si">{1}</span><span class="s2">.</span><span class="si">{2}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">"The </span><span class="si">{0}</span><span class="s2"> named '</span><span class="si">{3}</span><span class="s2">' could not be resolved. Check if the "</span>
+            <span class="s2">"permissions for the current user are hiding the field '</span><span class="si">{1}</span><span class="s2">.</span><span class="si">{2}</span><span class="s2">'."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">nice_user_type</span><span class="p">,</span> <span class="n">user_type</span><span class="p">,</span> <span class="n">key_name</span><span class="p">,</span> <span class="n">key_value</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
 
 <div class="viewcode-block" id="UnresolvableHumanUser"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.UnresolvableHumanUser">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UnresolvableHumanUser</span><span class="p">(</span><span class="n">UnresolvableUser</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when Toolkit is not able to resolve a human user.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">login</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str login: ``login`` field value of the ``HumanUser`` that could not be resolved.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;person&quot;</span><span class="p">,</span> <span class="s2">&quot;HumanUser&quot;</span><span class="p">,</span> <span class="s2">&quot;login&quot;</span><span class="p">,</span> <span class="n">login</span><span class="p">)</span></div>
+<span class="sd">        """</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">"person"</span><span class="p">,</span> <span class="s2">"HumanUser"</span><span class="p">,</span> <span class="s2">"login"</span><span class="p">,</span> <span class="n">login</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="UnresolvableScriptUser"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.UnresolvableScriptUser">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UnresolvableScriptUser</span><span class="p">(</span><span class="n">UnresolvableUser</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when Toolkit is not able to resolve a human user.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str script_name: ``firstname`` field value of the ``ApiUser`` that could not be resolved.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;script&quot;</span><span class="p">,</span> <span class="s2">&quot;ApiUser&quot;</span><span class="p">,</span> <span class="s2">&quot;firstname&quot;</span><span class="p">,</span> <span class="n">script_name</span><span class="p">)</span></div>
+<span class="sd">        """</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">"script"</span><span class="p">,</span> <span class="s2">"ApiUser"</span><span class="p">,</span> <span class="s2">"firstname"</span><span class="p">,</span> <span class="n">script_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ConsoleLoginNotSupportedError"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ConsoleLoginNotSupportedError">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ConsoleLoginNotSupportedError</span><span class="p">(</span><span class="n">ShotgunAuthenticationError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Thrown when attempting to use Username/Password pair to login onto</span>
 <span class="sd">    an SSO-enabled site.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">site_auth_type</span><span class="o">=</span><span class="s2">&quot;Single Sign-On&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">site_auth_type</span><span class="o">=</span><span class="s2">"Single Sign-On"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str url: Url of the site where login was attempted.</span>
 <span class="sd">        :param str site_auth_type: type of authentication, e.g. SSO, Identity.</span>
 <span class="sd">                                   The default value is for backward compatibility.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="s2">&quot;Authentication using username/password is not supported on &quot;</span>
-            <span class="s2">&quot;the console </span><span class="si">%s</span><span class="s2"> for sites using </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">site_auth_type</span><span class="p">)</span>
+            <span class="s2">"Authentication using username/password is not supported on "</span>
+            <span class="s2">"the console </span><span class="si">%s</span><span class="s2"> for sites using </span><span class="si">%s</span><span class="s2">."</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">site_auth_type</span><span class="p">)</span>
         <span class="p">)</span></div>
 
 

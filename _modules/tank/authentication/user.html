@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.user &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.authentication.user &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,7 +134,7 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
@@ -155,7 +155,7 @@
 
 
 <div class="viewcode-block" id="ShotgunUser"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ShotgunUser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Represents a Shotgun user, either a script or a person and provides an entry point</span>
 <span class="sd">    into the authentication system.</span>
 
@@ -165,100 +165,100 @@
 <span class="sd">    Once you have retrieved one of the user objects below, this can be used to access</span>
 <span class="sd">    Shotgun in a seamless way. The :meth:`create_sg_connection()` will return a Shotgun API handle</span>
 <span class="sd">    which is associated with the current user. This API handle is also monitored for</span>
-<span class="sd">    authentication timeouts, so if the user&#39;s session times out (typically due to periods</span>
+<span class="sd">    authentication timeouts, so if the user's session times out (typically due to periods</span>
 <span class="sd">    of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only</span>
 <span class="sd">    console is accessible) to refresh their Shotgun session by typing in their password.</span>
 
 <span class="sd">    If you need to persist the user object, this is possible via the serialization</span>
 <span class="sd">    methods. This is particularly useful if you need to pass a user object from one</span>
 <span class="sd">    process to another, for example when launching a DCC such as Maya or Nuke.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param impl: Internal user implementation class this class proxies.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">impl</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the host for this user.</span>
 
 <span class="sd">        :returns: The host string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the HTTP proxy for this user.</span>
 
 <span class="sd">        :returns: The HTTP proxy string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_http_proxy</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The login for this current user. For Shotgun user types that don&#39;t have a concept</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        The login for this current user. For Shotgun user types that don't have a concept</span>
 <span class="sd">        of a login (like API scripts), None is returned.</span>
 
 <span class="sd">        :returns: The login string or None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_login</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ShotgunUser.resolve_entity"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.resolve_entity">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Resolves the Shotgun entity associated with this user.</span>
 
 <span class="sd">        :returns: A dictionary with ``type`` and ``id`` values.</span>
 <span class="sd">        :rtype: dict</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">resolve_entity</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ShotgunUser.create_sg_connection"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.create_sg_connection">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_sg_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Creates a Shotgun connection using the credentials for this user.</span>
 
 <span class="sd">        :returns: A Shotgun connection.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ShotgunUser.are_credentials_expired"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.are_credentials_expired">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">are_credentials_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if the credentials for the user are expired.</span>
 
 <span class="sd">        :returns: True if the credentials are expired, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">are_credentials_expired</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ShotgunUser.refresh_credentials"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser.refresh_credentials">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">refresh_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Refreshes the credentials of this user so that they don&#39;t expire.</span>
-<span class="sd">        If they are expired, you will be prompted for the user&#39;s password.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Refreshes the credentials of this user so that they don't expire.</span>
+<span class="sd">        If they are expired, you will be prompted for the user's password.</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">refresh_credentials</span><span class="p">()</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the name of the user.</span>
 
-<span class="sd">        :returns: The user&#39;s name string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        :returns: The user's name string.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns a string representation of the user.</span>
 
 <span class="sd">        :returns: A string representation of the user.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">impl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the user implementation object. Note: Retrieving the implementation</span>
 <span class="sd">        object is unsupported and should not be attempted. It is there to expose</span>
 <span class="sd">        functionality to the internals of the authentication module. We</span>
@@ -266,28 +266,28 @@
 <span class="sd">        as it needs to.</span>
 
 <span class="sd">        :returns: The ShotgunUserImpl derived object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span></div>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ShotgunWebUser</span><span class="p">(</span><span class="n">ShotgunUser</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This specialized shotgun user is needed when the Unified Login Flow is used</span>
 <span class="sd">    for authentication.</span>
 
 <span class="sd">    User objects are created via the :class:`ShotgunAuthenticator` object, which will handle</span>
 <span class="sd">    caching user objects on disk, prompting the user for their credentials etc.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param impl: Internal user implementation class this class proxies.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ShotgunSamlUser</span><span class="p">(</span><span class="n">ShotgunWebUser</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This specialized shotgun user is needed when SSO is used, as it provides</span>
 <span class="sd">    mechanisms for automatic claims renewal.</span>
 
@@ -305,12 +305,12 @@
 <span class="sd">        ...</span>
 <span class="sd">        if user.is_claims_renewal_active():</span>
 <span class="sd">            user.stop_claims_renewal()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param impl: Internal user implementation class this class proxies.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span> <span class="o">=</span> <span class="kc">False</span>
@@ -320,7 +320,7 @@
         <span class="c1"># however unlikely, that someone can stop and restart the claims renewal fast enough to</span>
         <span class="c1"># confuse the _timer and _claims_renewal_cancelled flag.</span>
         <span class="c1">#</span>
-        <span class="c1"># This lock will ensure the thread-safety of restarting the timer. Since the timer&#39;s</span>
+        <span class="c1"># This lock will ensure the thread-safety of restarting the timer. Since the timer's</span>
         <span class="c1"># thread is impacted by the update to the _claims_renewal_cancelled flag, any update</span>
         <span class="c1"># to these two will be done under a lock.</span>
         <span class="c1">#</span>
@@ -328,24 +328,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_claims_expiration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Obtains the claims expiration time for the user.</span>
 
 <span class="sd">        :returns: The claims expiration time, expressed as the number of seconds since epoch.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">sso_saml2</span><span class="o">.</span><span class="n">get_saml_claims_expiration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_session_metadata</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_do_automatic_claims_renewal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preemtive_renewal_threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Handles automatic renewal of the SAML2 claims for the user.</span>
 
 <span class="sd">        :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.</span>
 <span class="sd">                                            Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting automatic claims renewal&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Attempting automatic claims renewal"</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">previous_expiration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_claims_expiration</span><span class="p">()</span>
             <span class="c1"># A call to renew_session when SSO is used will not prompt the user for</span>
@@ -355,29 +355,29 @@
 
             <span class="k">if</span> <span class="n">new_expiration</span> <span class="o">&gt;</span> <span class="n">previous_expiration</span><span class="p">:</span>
 
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Automatic claims renewal succeeded.&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Automatic claims renewal succeeded."</span><span class="p">)</span>
                 <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_expiration</span> <span class="o">-</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">*</span> <span class="n">preemtive_renewal_threshold</span>
                 <span class="c1"># If we are debugging, we will use a shorter expiration time.</span>
                 <span class="c1"># SHOTGUN_SSO_RENEWAL_INTERVAL should be a value in seconds.</span>
-                <span class="k">if</span> <span class="s2">&quot;SHOTGUN_SSO_RENEWAL_INTERVAL&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
-                    <span class="n">delta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SHOTGUN_SSO_RENEWAL_INTERVAL&quot;</span><span class="p">])</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Next claims renewal attempt: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">delta</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">"SHOTGUN_SSO_RENEWAL_INTERVAL"</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                    <span class="n">delta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"SHOTGUN_SSO_RENEWAL_INTERVAL"</span><span class="p">])</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Next claims renewal attempt: </span><span class="si">%f</span><span class="s2">"</span> <span class="o">%</span> <span class="n">delta</span><span class="p">)</span>
 
                 <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
-                    <span class="c1"># Let&#39;s pretend &quot;stop_claims_renewal&quot; has already been called, so</span>
-                    <span class="c1"># &quot;_claims_renewal_cancelled&quot; is currently True. Thread A is the</span>
-                    <span class="c1"># main thread and B is the thread that runs &quot;_do_automatic_claims_renewal&quot;.</span>
+                    <span class="c1"># Let's pretend "stop_claims_renewal" has already been called, so</span>
+                    <span class="c1"># "_claims_renewal_cancelled" is currently True. Thread A is the</span>
+                    <span class="c1"># main thread and B is the thread that runs "_do_automatic_claims_renewal".</span>
                     <span class="c1">#</span>
-                    <span class="c1"># 1. This IF is evaluated by thread B, so the next instruction will be &quot;return&quot;</span>
-                    <span class="c1"># 2. From thread A, &quot;start_claims_renewal&quot; is called.</span>
+                    <span class="c1"># 1. This IF is evaluated by thread B, so the next instruction will be "return"</span>
+                    <span class="c1"># 2. From thread A, "start_claims_renewal" is called.</span>
                     <span class="c1"># 3. Thread A sets the flag to False and checks if the timer is active. It is,</span>
                     <span class="c1">#    because _do_automatic_claims_renewal is still executing, so the method</span>
-                    <span class="c1">#    thinks it doesn&#39;t have to restart the timer and returns.</span>
+                    <span class="c1">#    thinks it doesn't have to restart the timer and returns.</span>
                     <span class="c1"># 4. Thread B now resumes and returns.</span>
-                    <span class="c1"># 5. At some point in the future, claim renewal won&#39;t happen and the session</span>
+                    <span class="c1"># 5. At some point in the future, claim renewal won't happen and the session</span>
                     <span class="c1">#    is going to go out of date.</span>
                     <span class="c1">#</span>
-                    <span class="c1"># With the lock, this isn&#39;t an issue anymore, because the act of setting the flag</span>
+                    <span class="c1"># With the lock, this isn't an issue anymore, because the act of setting the flag</span>
                     <span class="c1"># and setting the timer, or reading the flag and setting the timer, is done in</span>
                     <span class="c1"># an atomic fashion, so there are no more race conditions.</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span><span class="p">:</span>
@@ -390,21 +390,21 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;No further attempts to auto-renew in the background will be attempted.&quot;</span>
+                    <span class="s2">"No further attempts to auto-renew in the background will be attempted."</span>
                 <span class="p">)</span>
         <span class="k">except</span> <span class="n">AuthenticationCancelled</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Automatic SSO claim renewal was cancelled while processing.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Automatic SSO claim renewal was cancelled while processing."</span><span class="p">)</span>
             <span class="k">raise</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">start_claims_renewal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preemtive_renewal_threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Start claims renewal mechanism.</span>
 
 <span class="sd">        :param preemtive_renewal_threshold: Value between 0 and 1 indicating how far into the claims</span>
 <span class="sd">            duration we will attempt a renewal. The claims duration is usually 5 minutes. For example,</span>
 <span class="sd">            a value of 0.9, which is also the default value, will indicate that the renewal should</span>
 <span class="sd">            happen after 4 minutes and 30 seconds.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__</span>
         <span class="c1"># for details.</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
@@ -414,13 +414,13 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_do_automatic_claims_renewal</span><span class="p">(</span><span class="n">preemtive_renewal_threshold</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempting to start claims renewal when it was already active.&quot;</span>
+                    <span class="s2">"Attempting to start claims renewal when it was already active."</span>
                 <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">stop_claims_renewal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Stops claims renewal mechanism.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__</span>
         <span class="c1"># for details.</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
@@ -429,15 +429,15 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempting to stop claims renewal when it was not active.&quot;</span>
+                    <span class="s2">"Attempting to stop claims renewal when it was not active."</span>
                 <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">is_claims_renewal_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Query the current state of the claims renewal mechanism.</span>
 
 <span class="sd">        :returns: A bool value on the current active state of the renewal loop.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">is_alive</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -445,7 +445,7 @@
 
 
 <div class="viewcode-block" id="serialize_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.serialize_user">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">serialize_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Serializes a user. Meant to be consumed by deserialize.</span>
 
 <span class="sd">    :param user: User object that needs to be serialized.</span>
@@ -453,19 +453,19 @@
 <span class="sd">        A pickled representation will be generated otherwise.</span>
 
 <span class="sd">    :returns: The payload representing the user.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">user_impl</span><span class="o">.</span><span class="n">serialize_user</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">impl</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="n">use_json</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="deserialize_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.deserialize_user">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">deserialize_user</span><span class="p">(</span><span class="n">payload</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Converts a payload produced by serialize into any of the ShotgunUser</span>
 <span class="sd">    derived instance.</span>
 
 <span class="sd">    :param payload: Pickled dictionary of values</span>
 
 <span class="sd">    :returns: A ShotgunUser derived instance.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">impl</span> <span class="o">=</span> <span class="n">user_impl</span><span class="o">.</span><span class="n">deserialize_user</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
 
     <span class="c1"># We use the presence of session_metadata as an indicator that we are using SSO.</span>

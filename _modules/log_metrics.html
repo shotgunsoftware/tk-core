@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>log_metrics &mdash; tk-core v0.24.0 documentation</title>
+  <title>log_metrics &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,30 +134,30 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Hook that gets executed every time Toolkit logs user metrics.&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
+<span class="sd">Hook that gets executed every time Toolkit logs user metrics."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">tank</span><span class="w"> </span><span class="kn">import</span> <span class="n">Hook</span>
 
 
 <div class="viewcode-block" id="LogMetrics"><a class="viewcode-back" href="../core.html#log_metrics.LogMetrics">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LogMetrics</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        .. warning::</span>
 <span class="sd">            This method is deprecated and is not executed anymore.</span>
 
 <span class="sd">            Please check :meth:`LogMetrics.log_metrics`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>
 
 <div class="viewcode-block" id="LogMetrics.log_metrics"><a class="viewcode-back" href="../core.html#log_metrics.LogMetrics.log_metrics">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Called when Toolkit logs a list of metrics.</span>
 
 <span class="sd">        A metric is a dictionary with three items:</span>
@@ -175,7 +175,7 @@
 <span class="sd">            worker threads and not in the main thread. Overriding this hook may</span>
 <span class="sd">            require additional care to avoid issues related to accessing shared</span>
 <span class="sd">            resources across multiple threads.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span></div></div>
 </pre></div>
 

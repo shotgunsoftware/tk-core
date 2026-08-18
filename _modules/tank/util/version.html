@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.version &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.util.version &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,7 +134,7 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
@@ -150,125 +150,125 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="n">GITHUB_HASH_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^[0-9a-fA-F]{7,40}$&quot;</span><span class="p">)</span>
+<span class="n">GITHUB_HASH_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">"^[0-9a-fA-F]{7,40}$"</span><span class="p">)</span>
 
 <span class="c1"># Normalize non-standard version formats</span>
-<span class="c1"># into PEP 440–compliant forms (&quot;1.2.3&quot;) to ensure compatibility with</span>
+<span class="c1"># into PEP 440–compliant forms ("1.2.3") to ensure compatibility with</span>
 <span class="c1"># Python’s version parsing utilities (e.g., packaging.version.parse).</span>
 <span class="c1"># Reference: https://peps.python.org/pep-0440/</span>
 <span class="n">_VERSION_PATTERNS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span>  <span class="c1"># Extract version from software names: &quot;Software Name 21.0&quot; -&gt; &quot;21.0&quot;</span>
-        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z\s]+(\d+(?:\.\d+)*(?:v\d+(?:\.\d+)*)?)$&quot;</span><span class="p">),</span>
-        <span class="sa">r</span><span class="s2">&quot;\1&quot;</span><span class="p">,</span>
+    <span class="p">(</span>  <span class="c1"># Extract version from software names: "Software Name 21.0" -&gt; "21.0"</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[a-zA-Z\s]+(\d+(?:\.\d+)*(?:v\d+(?:\.\d+)*)?)$"</span><span class="p">),</span>
+        <span class="sa">r</span><span class="s2">"\1"</span><span class="p">,</span>
     <span class="p">),</span>
-    <span class="p">(</span>  <span class="c1"># Dot-v format: &quot;6.3v6&quot; -&gt; &quot;6.3.6&quot;</span>
-        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(\d+)\.(\d+)v(\d+)$&quot;</span><span class="p">),</span>
-        <span class="sa">r</span><span class="s2">&quot;\1.\2.\3&quot;</span><span class="p">,</span>
+    <span class="p">(</span>  <span class="c1"># Dot-v format: "6.3v6" -&gt; "6.3.6"</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(\d+)\.(\d+)v(\d+)$"</span><span class="p">),</span>
+        <span class="sa">r</span><span class="s2">"\1.\2.\3"</span><span class="p">,</span>
     <span class="p">),</span>
-    <span class="p">(</span>  <span class="c1"># Simple v format: &quot;2019v0.1&quot; -&gt; &quot;2019.0.1&quot;</span>
-        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(\d+)v(\d+(?:\.\d+)*)$&quot;</span><span class="p">),</span>
-        <span class="sa">r</span><span class="s2">&quot;\1.\2&quot;</span><span class="p">,</span>
+    <span class="p">(</span>  <span class="c1"># Simple v format: "2019v0.1" -&gt; "2019.0.1"</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(\d+)v(\d+(?:\.\d+)*)$"</span><span class="p">),</span>
+        <span class="sa">r</span><span class="s2">"\1.\2"</span><span class="p">,</span>
     <span class="p">),</span>
-    <span class="p">(</span>  <span class="c1"># Service pack with/without dot: &quot;2017.2sp1&quot; or &quot;2017.2.sp1&quot; -&gt; &quot;2017.2.post1&quot;</span>
-        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(\d+(?:\.\d+)*)\.?(sp|hotfix|hf)(\d+)$&quot;</span><span class="p">),</span>
-        <span class="sa">r</span><span class="s2">&quot;\1.post\3&quot;</span><span class="p">,</span>
+    <span class="p">(</span>  <span class="c1"># Service pack with/without dot: "2017.2sp1" or "2017.2.sp1" -&gt; "2017.2.post1"</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(\d+(?:\.\d+)*)\.?(sp|hotfix|hf)(\d+)$"</span><span class="p">),</span>
+        <span class="sa">r</span><span class="s2">"\1.post\3"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">is_version_head</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns if the specified version is HEAD or MASTER. The comparison is case insensitive.</span>
 
 <span class="sd">    :param version: Version to test.</span>
 
 <span class="sd">    :returns: True if version is HEAD or MASTER, false otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">version</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="s2">&quot;master&quot;</span><span class="p">]</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">version</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"head"</span><span class="p">,</span> <span class="s2">"master"</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_is_git_commit</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns if the version looks like a git commit id.</span>
 
 <span class="sd">    :param version: Version to test.</span>
 
 <span class="sd">    :returns: True if the version is a commit id, false otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">GITHUB_HASH_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 
 <div class="viewcode-block" id="is_version_newer"><a class="viewcode-back" href="../../../utils.html#sgtk.util.is_version_newer">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_version_newer</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Is the version string ``a`` newer than ``b``?</span>
 
 <span class="sd">    If one of the version is `master`, `head`, or formatted like a git commit sha,</span>
 <span class="sd">    it is considered more recent than the other version.</span>
 
 <span class="sd">    :raises TankError: Raised if the two versions are different git commit shas, as</span>
-<span class="sd">        they can&#39;t be compared.</span>
+<span class="sd">        they can't be compared.</span>
 
 <span class="sd">    :returns: ``True`` if ``a`` is newer than ``b`` but not equal, ``False`` otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_compare_versions</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="is_version_older"><a class="viewcode-back" href="../../../utils.html#sgtk.util.is_version_older">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_version_older</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Is the version string ``a`` older than ``b``?</span>
 
 <span class="sd">    If one of the version is `master`, `head`, or formatted like a git commit sha,</span>
 <span class="sd">    it is considered more recent than the other version.</span>
 
 <span class="sd">    :raises TankError: Raised if the two versions are different git commit shas, as</span>
-<span class="sd">        they can&#39;t be compared.</span>
+<span class="sd">        they can't be compared.</span>
 
 <span class="sd">    :returns: ``True`` if ``a`` is older than ``b`` but not equal, ``False`` otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_compare_versions</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="is_version_newer_or_equal"><a class="viewcode-back" href="../../../utils.html#sgtk.util.is_version_newer_or_equal">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_version_newer_or_equal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Is the version string ``a`` newer than or equal to ``b``?</span>
 
 <span class="sd">    If one of the version is `master`, `head`, or formatted like a git commit sha,</span>
 <span class="sd">    it is considered more recent than the other version.</span>
 
 <span class="sd">    :raises TankError: Raised if the two versions are different git commit shas, as</span>
-<span class="sd">        they can&#39;t be compared.</span>
+<span class="sd">        they can't be compared.</span>
 
 <span class="sd">    :returns: ``True`` if ``a`` is newer than or equal to ``b``, ``False`` otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="is_version_older_or_equal"><a class="viewcode-back" href="../../../utils.html#sgtk.util.is_version_older_or_equal">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">is_version_older_or_equal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Is the version string ``a`` older than or equal to ``b``?</span>
 
 <span class="sd">    If one of the version is `master`, `head`, or formatted like a git commit sha,</span>
 <span class="sd">    it is considered more recent than the other version.</span>
 
 <span class="sd">    :raises TankError: Raised if the two versions are different git commit shas, as</span>
-<span class="sd">        they can&#39;t be compared.</span>
+<span class="sd">        they can't be compared.</span>
 
 <span class="sd">    :returns: ``True`` if ``a`` is older than or equal to ``b``, ``False`` otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">is_version_newer</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">is_version_number</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">    Tests whether the given string is a properly formed</span>
 <span class="sd">    version number (ex: v1.2.3). The test is made using</span>
-<span class="sd">    the pattern r&quot;v\d+.\d+.\d+$&quot;</span>
+<span class="sd">    the pattern r"v\d+.\d+.\d+$"</span>
 
 <span class="sd">    :param str version: The version string to test.</span>
 
 <span class="sd">    :rtype: bool</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;v\d+.\d+.\d+$&quot;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">"v\d+.\d+.\d+$"</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -278,36 +278,36 @@
 
 <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">suppress_known_deprecation</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Imported function from setuptools.distutils module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span>
-            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span>
             <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">,</span>
-            <span class="n">message</span><span class="o">=</span><span class="s2">&quot;distutils Version classes are deprecated.&quot;</span><span class="p">,</span>
+            <span class="n">message</span><span class="o">=</span><span class="s2">"distutils Version classes are deprecated."</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">yield</span> <span class="n">ctx</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_version_format</span><span class="p">(</span><span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Normalize version strings by applying common format transformations.</span>
 
 <span class="sd">    This function exists because packaging.version.parse() follows PEP 440</span>
-<span class="sd">    and cannot handle non-standard version formats like &quot;v1.2.3&quot; or &quot;6.3v6&quot;,</span>
-<span class="sd">    which are commonly found in various software tools and DCCs but don&#39;t</span>
+<span class="sd">    and cannot handle non-standard version formats like "v1.2.3" or "6.3v6",</span>
+<span class="sd">    which are commonly found in various software tools and DCCs but don't</span>
 <span class="sd">    conform to the PEP 440 specification.</span>
 
 <span class="sd">    Transformations applied:</span>
-<span class="sd">    - Extract version numbers from software names: &quot;Software Name 21.0&quot; -&gt; &quot;21.0&quot;</span>
-<span class="sd">    - Convert dot-v format: &quot;6.3v6&quot; -&gt; &quot;6.3.6&quot;</span>
-<span class="sd">    - Convert simple v format: &quot;2019v0.1&quot; -&gt; &quot;2019.0.1&quot;</span>
-<span class="sd">    - Convert service pack formats: &quot;2017.2sp1&quot; -&gt; &quot;2017.2.post1&quot;, &quot;2017.2.sp1&quot; -&gt; &quot;2017.2.post1&quot;</span>
+<span class="sd">    - Extract version numbers from software names: "Software Name 21.0" -&gt; "21.0"</span>
+<span class="sd">    - Convert dot-v format: "6.3v6" -&gt; "6.3.6"</span>
+<span class="sd">    - Convert simple v format: "2019v0.1" -&gt; "2019.0.1"</span>
+<span class="sd">    - Convert service pack formats: "2017.2sp1" -&gt; "2017.2.post1", "2017.2.sp1" -&gt; "2017.2.post1"</span>
 
 <span class="sd">    :param str version: Version string to normalize</span>
 <span class="sd">    :return str: Normalized version string compatible with PEP 440</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">for</span> <span class="n">compiled_pattern</span><span class="p">,</span> <span class="n">replacement</span> <span class="ow">in</span> <span class="n">_VERSION_PATTERNS</span><span class="p">:</span>
         <span class="n">version</span> <span class="o">=</span> <span class="n">compiled_pattern</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">replacement</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
@@ -316,15 +316,15 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_compare_versions</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Tests if version a is newer than version b.</span>
 
 <span class="sd">    :param str a: The first version string to compare.</span>
 <span class="sd">    :param str b: The second version string to compare.</span>
 
 <span class="sd">    :rtype: bool</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Undefined&quot;</span><span class="p">]:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"Undefined"</span><span class="p">]:</span>
         <span class="c1"># a is always newer than None or `Undefined`</span>
         <span class="k">return</span> <span class="kc">True</span>
 
@@ -336,7 +336,7 @@
         <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">b</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t compare two git commits lexicographically.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"Can't compare two git commits lexicographically."</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">is_version_head</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
         <span class="c1"># our version is latest</span>

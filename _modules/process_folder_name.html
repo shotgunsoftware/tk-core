@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>process_folder_name &mdash; tk-core v0.24.0 documentation</title>
+  <title>process_folder_name &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,13 +134,13 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Core hook which handles conversion of Shotgun field data into strings.</span>
 
 <span class="sd">This hook can be used to control how folders are named on disk given</span>
@@ -152,9 +152,9 @@
 
 <span class="sd">.. code-block:: python</span>
 
-<span class="sd">    if entity_type == &quot;Shot&quot; and str_value.startswith(&quot;AA&quot;):</span>
-<span class="sd">       raise TankError(&quot;Shot names cannot start with AA!&quot;)</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    if entity_type == "Shot" and str_value.startswith("AA"):</span>
+<span class="sd">       raise TankError("Shot names cannot start with AA!")</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
@@ -163,14 +163,14 @@
 
 <div class="viewcode-block" id="ProcessFolderName"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ProcessFolderName</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
 <div class="viewcode-block" id="ProcessFolderName.execute"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName.execute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Executed when an entity needs to be turned into a string token during folder</span>
 <span class="sd">        creation.</span>
 
 <span class="sd">        The default implementation will turn non-ascii characters into hyphens and</span>
 <span class="sd">        replace spaces with underscores.</span>
 
-<span class="sd">        For example, ``{&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;Pont de L\xc3\xa9vis&quot;}`` would</span>
+<span class="sd">        For example, ``{"type":"Shot", "id":123, "name":"Pont de L\xc3\xa9vis"}`` would</span>
 <span class="sd">        be converted to ``Pont_de_L-vis``.</span>
 
 <span class="sd">        :param str entity_type: The Shotgun entity type for which the value is taken.</span>
@@ -180,21 +180,21 @@
 
 <span class="sd">        :returns: A string representing the entity.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">dict</span> <span class="ow">and</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">dict</span> <span class="ow">and</span> <span class="s2">"name"</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
             <span class="c1"># it is a dictionary with a name key - assume this is what we want</span>
             <span class="c1"># this is normally an entity link</span>
             <span class="c1">#</span>
-            <span class="c1"># {&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;foo&quot;} ==&gt; &quot;foo&quot;</span>
+            <span class="c1"># {"type":"Shot", "id":123, "name":"foo"} ==&gt; "foo"</span>
             <span class="c1">#</span>
-            <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">"name"</span><span class="p">])</span>
 
         <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># this an empty list.</span>
             <span class="c1">#</span>
-            <span class="c1"># [] ==&gt; &quot;&quot;</span>
+            <span class="c1"># [] ==&gt; ""</span>
             <span class="c1">#</span>
-            <span class="n">str_value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">str_value</span> <span class="o">=</span> <span class="s2">""</span>
 
         <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># this is a multi entity link with at least one element</span>
@@ -202,10 +202,10 @@
             <span class="c1"># e.g. this is a multi entity link field</span>
             <span class="c1"># make a string by concatenating all names with _</span>
             <span class="c1">#</span>
-            <span class="c1"># [{&quot;name&quot;:&quot;foo&quot;}, {&quot;name&quot;:&quot;bar&quot;}] ==&gt; &quot;foo_bar&quot;</span>
+            <span class="c1"># [{"name":"foo"}, {"name":"bar"}] ==&gt; "foo_bar"</span>
             <span class="c1">#</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">str_value</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span>
+                <span class="n">str_value</span> <span class="o">=</span> <span class="s2">"_"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                 <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
@@ -220,36 +220,36 @@
 
         <span class="c1"># replace all non-alphanumeric characters with dashes,</span>
         <span class="c1"># except for the project entity, where here are special rules</span>
-        <span class="n">is_project_name</span> <span class="o">=</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span>
+        <span class="n">is_project_name</span> <span class="o">=</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">"Project"</span>
         <span class="n">str_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_non_alphanumeric</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="n">is_project_name</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">str_value</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_replace_non_alphanumeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">is_project_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Safely replace all non-alphanumeric characters</span>
 <span class="sd">        with dashes (-).</span>
 
 <span class="sd">        Note, this handles non-ascii characters correctly</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">is_project_name</span><span class="p">:</span>
             <span class="c1"># regex to find non-word characters, except slashes and periods, which are preserved</span>
-            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[^\w/\.]&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[^\w/\.]"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_]</span>
             <span class="c1"># note that we use a unicode expression, meaning that it will include other</span>
-            <span class="c1"># &quot;word&quot; characters, not just A-Z.</span>
-            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\W&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+            <span class="c1"># "word" characters, not just A-Z.</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\W"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="c1"># src is unicode so we don&#39;t need to convert!</span>
-            <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+            <span class="c1"># src is unicode so we don't need to convert!</span>
+            <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># assume utf-8 encoding so decode, replace</span>
             <span class="c1"># and re-encode the returned result</span>
-            <span class="n">u_src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">u_src</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
+            <span class="n">u_src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="n">u_src</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

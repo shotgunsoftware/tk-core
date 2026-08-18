@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>bootstrap &mdash; tk-core v0.24.0 documentation</title>
+  <title>bootstrap &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,13 +134,13 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This hook is used override some of the functionality of the :class:`~sgtk.bootstrap.ToolkitManager`.</span>
 
 <span class="sd">It will be instantiated only after a configuration has been selected by the :class:`~sgtk.bootstrap.ToolkitManager`.</span>
@@ -149,9 +149,9 @@
 
 <span class="sd">.. warning::</span>
 <span class="sd">    In order to be able to bootstrap Toolkit regardless of the installation method used, the bootstrap hook needs</span>
-<span class="sd">    to be stored within the package itself. That&#39;s why this core hook is located in ``core/python/tank/bootstrap/hook``</span>
+<span class="sd">    to be stored within the package itself. That's why this core hook is located in ``core/python/tank/bootstrap/hook``</span>
 <span class="sd">    instead of the usual core hooks location.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_hook_baseclass</span>
 
@@ -160,7 +160,7 @@
 <div class="viewcode-block" id="Bootstrap.init"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.init">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">shotgun</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">configuration_descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initializes the hook.</span>
 
 <span class="sd">        This method is called right after the bootstrap manager reads this hook and passes in</span>
@@ -172,18 +172,18 @@
 <span class="sd">        :param shotgun: Connection to the Shotgun site.</span>
 <span class="sd">        :type shotgun: :class:`~shotgun_api3.Shotgun`</span>
 
-<span class="sd">        :param int pipeline_configuration_id: Id of the pipeline configuration we&#39;re bootstrapping into.</span>
+<span class="sd">        :param int pipeline_configuration_id: Id of the pipeline configuration we're bootstrapping into.</span>
 <span class="sd">            If None, the ToolkitManager is bootstrapping into the base configuration.</span>
 
 <span class="sd">        :param configuration_descriptor: Configuration the manager is bootstrapping into.</span>
 <span class="sd">        :type configuration_descriptor: :class:`~sgtk.descriptor.ConfigDescriptor`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span> <span class="o">=</span> <span class="n">shotgun</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration_id</span> <span class="o">=</span> <span class="n">pipeline_configuration_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">configuration_descriptor</span> <span class="o">=</span> <span class="n">configuration_descriptor</span></div>
 
 <div class="viewcode-block" id="Bootstrap.can_cache_bundle"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.can_cache_bundle">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Indicates if a bundle can be cached by the :meth:`populate_bundle_cache_entry` method.</span>
 
 <span class="sd">        This method is invoked when the bootstrap manager wants to a bundle used by a configuration.</span>
@@ -195,11 +195,11 @@
 <span class="sd">        :returns: ``True`` if the bundle cache be cached with this hook, ``False``</span>
 <span class="sd">                  if not.</span>
 <span class="sd">        :rtype: bool</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Bootstrap.populate_bundle_cache_entry"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.populate_bundle_cache_entry">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Populates an entry from the bundle cache.</span>
 
 <span class="sd">        This method will be invoked for every bundle for which :meth:`can_cache_bundle`</span>
@@ -216,7 +216,7 @@
 <span class="sd">            that this is not the final destination folder inside the bundle cache.</span>
 
 <span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span></div></div>
 </pre></div>
 

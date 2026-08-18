@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.log &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.log &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,13 +134,13 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Toolkit uses the standard python logging for its</span>
 <span class="sd">log management. The :class:`LogManager` class below</span>
 <span class="sd">acts as an interface that helps make it easy to access</span>
@@ -151,9 +151,9 @@
 <span class="sd">-----------------------------------</span>
 
 <span class="sd">All Toolkit logging is written into a ``sgtk.*`` logging</span>
-<span class="sd">namespace. This has been &quot;sealed&quot; so that log messages</span>
+<span class="sd">namespace. This has been "sealed" so that log messages</span>
 <span class="sd">from Toolkit do not propagate up to the root logger. This</span>
-<span class="sd">is to ensure that Toolkit doesn&#39;t interfere with other logging</span>
+<span class="sd">is to ensure that Toolkit doesn't interfere with other logging</span>
 <span class="sd">that has been already configured.</span>
 
 <span class="sd">The following sub-hierarchies exist:</span>
@@ -192,7 +192,7 @@
 <span class="sd">     |                  |</span>
 <span class="sd">     |                  |- tkimp63c3b2d57f85          Toolkit Command Session</span>
 <span class="sd">     |                  |   |</span>
-<span class="sd">     |                  |   |- tk_multi_workfiles     Python hierarchy inside app&#39;s python folder</span>
+<span class="sd">     |                  |   |- tk_multi_workfiles     Python hierarchy inside app's python folder</span>
 <span class="sd">     |                  |       |</span>
 <span class="sd">     |                  |       |- entity_tree</span>
 <span class="sd">     |                  |</span>
@@ -224,7 +224,7 @@
 <span class="sd">a basic level of general logging.</span>
 
 <span class="sd">For code inside the ``python`` folder, which has been imported via</span>
-<span class="sd">Toolkit&#39;s :meth:`~sgtk.platform.Application.import_module()` method,</span>
+<span class="sd">Toolkit's :meth:`~sgtk.platform.Application.import_module()` method,</span>
 <span class="sd">we recommend that you access a logger using the following method::</span>
 
 <span class="sd">    # at the top of the file, include the following</span>
@@ -232,7 +232,7 @@
 <span class="sd">    logger = sgtk.platform.get_logger(__name__)</span>
 
 <span class="sd">    def my_method():</span>
-<span class="sd">        logger.debug(&quot;inside my code, i can log like this&quot;)</span>
+<span class="sd">        logger.debug("inside my code, i can log like this")</span>
 
 <span class="sd">This logger will be grouped per invocation instance,</span>
 <span class="sd">meaning that you can see for example which dialog UI</span>
@@ -258,7 +258,7 @@
 <span class="sd">    logger = sgtk.LogManager.get_logger(__name__)</span>
 
 <span class="sd">    def my_method():</span>
-<span class="sd">        logger.debug(&quot;inside my code, i can log like this&quot;)</span>
+<span class="sd">        logger.debug("inside my code, i can log like this")</span>
 
 <span class="sd">All this logging will appear below the ``sgtk.ext`` logger.</span>
 
@@ -272,7 +272,7 @@
 <span class="sd">    logger = sgtk.LogManager.get_logger(__name__)</span>
 
 <span class="sd">    def my_method():</span>
-<span class="sd">        logger.debug(&quot;inside my code, i can log like this&quot;)</span>
+<span class="sd">        logger.debug("inside my code, i can log like this")</span>
 
 
 
@@ -350,7 +350,7 @@
 
 <span class="sd">Python provides a large number of log handlers as part of its standard library.</span>
 <span class="sd">For more information, see https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -364,7 +364,7 @@
 
 
 <div class="viewcode-block" id="LogManager"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">LogManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Main interface for logging in Toolkit.</span>
 
 <span class="sd">    This class contains a series of methods to help standardize log output</span>
@@ -373,46 +373,46 @@
 
 <span class="sd">    .. note:: This is a singleton class, so every time you instantiate it,</span>
 <span class="sd">              the same object is returned.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># keeps track of the single instance of the class</span>
     <span class="n">__instance</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">_SafeRotatingFileHandler</span><span class="p">(</span><span class="n">RotatingFileHandler</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Provides all the functionality provided by Python&#39;s built-in RotatingFileHandler, but with a</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Provides all the functionality provided by Python's built-in RotatingFileHandler, but with a</span>
 <span class="sd">        failsafe when an I/O error happens when doing the rollover. In that case, the failure to</span>
 <span class="sd">        rename files will be ignored and the handler will keep writing to the current file. A message</span>
 <span class="sd">        will also be logged at the debug level so the user is aware that something really bad just</span>
 <span class="sd">        happened. Finally, the handler will not try to rollover in the future and the handler will keep</span>
 <span class="sd">        appending to the current log file.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">maxBytes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">maxBytes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span>
         <span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""</span>
 <span class="sd">            :param str filename: Name of of the log file.</span>
-<span class="sd">            :param str mode: Mode to open the file, should be  &quot;w&quot; or &quot;a&quot;. Defaults to &quot;a&quot;</span>
+<span class="sd">            :param str mode: Mode to open the file, should be  "w" or "a". Defaults to "a"</span>
 <span class="sd">            :param int maxBytes: Maximum file size before rollover. By default, rollover never happens.</span>
 <span class="sd">            :param int backupCount: Number of backups to make. Defaults to 0.</span>
 <span class="sd">            :param encoding: Encoding to use when writing to the file. Defaults to None.</span>
 <span class="sd">                File will be opened by default.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            """</span>
             <span class="n">RotatingFileHandler</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">maxBytes</span><span class="p">,</span> <span class="n">backupCount</span><span class="p">,</span> <span class="n">encoding</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_disable_rollover</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">doRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""</span>
 <span class="sd">            Rename every backups so the current log can be promoted to backup number one.</span>
 
 <span class="sd">            The new log file is empty. If this process fails due to any I/O error, rollover is</span>
 <span class="sd">            deactivated for this handler and logs will be appended to the current log file indefinitely.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            """</span>
 
-            <span class="n">temp_backup_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+            <span class="n">temp_backup_name</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
 
             <span class="c1"># We need to close the file before renaming it (windows!)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">:</span>
@@ -423,26 +423,26 @@
             <span class="c1"># If it does, then it is a good thing that we checked otherwise the last</span>
             <span class="c1"># backup would have been blown away before encountering the error.</span>
 
-            <span class="c1"># Take the scenario where there&#39;s only one backup. This means that</span>
+            <span class="c1"># Take the scenario where there's only one backup. This means that</span>
             <span class="c1"># doRollover would first delete the backup (.1) file so it can make</span>
             <span class="c1"># room for the main file to be renamed to .1. However, if the main file</span>
-            <span class="c1"># can&#39;t be renamed, we&#39;ve effectively lost 50% of the logs we had, which</span>
+            <span class="c1"># can't be renamed, we've effectively lost 50% of the logs we had, which</span>
             <span class="c1"># is not cool. Since most of the time only the first file will be locked,</span>
             <span class="c1"># we will try to rename it first. If that fails right away as expected,</span>
-            <span class="c1"># we don&#39;t try any rollover and append to the current log file.</span>
+            <span class="c1"># we don't try any rollover and append to the current log file.</span>
             <span class="c1"># and raise the _disable_rollover flag.</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="n">temp_backup_name</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="c1"># It failed, so we&#39;ll simply append from now on.</span>
+                <span class="c1"># It failed, so we'll simply append from now on.</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot rotate log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
-                    <span class="s2">&quot;exceeding the specified maximum size&quot;</span><span class="p">,</span>
+                    <span class="s2">"Cannot rotate log file '</span><span class="si">%s</span><span class="s2">'. Logging will continue to this file, "</span>
+                    <span class="s2">"exceeding the specified maximum size"</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span>
                     <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">return</span>
 
             <span class="c1"># Everything went well, so now simply move the log file back into place</span>
@@ -450,17 +450,17 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">temp_backup_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="c1"># For some reason we couldn&#39;t move the backup in its place.</span>
+                <span class="c1"># For some reason we couldn't move the backup in its place.</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Unexpected issue while rotating log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
-                    <span class="s2">&quot;exceeding the specified maximum size&quot;</span><span class="p">,</span>
+                    <span class="s2">"Unexpected issue while rotating log file '</span><span class="si">%s</span><span class="s2">'. Logging will continue to this file, "</span>
+                    <span class="s2">"exceeding the specified maximum size"</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span>
                     <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="c1"># The main log file doesn&#39;t exist anymore, so create a new file.</span>
-                <span class="c1"># Don&#39;t disable the rollover, this has nothing to do with rollover</span>
+                <span class="c1"># The main log file doesn't exist anymore, so create a new file.</span>
+                <span class="c1"># Don't disable the rollover, this has nothing to do with rollover</span>
                 <span class="c1"># failing.</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">"w"</span><span class="p">)</span>
                 <span class="k">return</span>
 
             <span class="c1"># Now, that we are back in the original state we were in,</span>
@@ -472,25 +472,25 @@
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># Something probably failed trying to rollover the backups,</span>
                 <span class="c1"># since the code above proved that in theory the main log file</span>
-                <span class="c1"># should be renamable. In any case, we didn&#39;t succeed in renaming,</span>
+                <span class="c1"># should be renamable. In any case, we didn't succeed in renaming,</span>
                 <span class="c1"># so disable rollover and reopen the main log file in append mode.</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot rotate log file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Logging will continue to this file, &quot;</span>
-                    <span class="s2">&quot;exceeding the specified maximum size&quot;</span><span class="p">,</span>
+                    <span class="s2">"Cannot rotate log file '</span><span class="si">%s</span><span class="s2">'. Logging will continue to this file, "</span>
+                    <span class="s2">"exceeding the specified maximum size"</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span>
                     <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_rename_failure</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">_handle_rename_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">disable_rollover</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""</span>
 <span class="sd">            Reopen the log file in the specific mode and optionally disable</span>
 <span class="sd">            future rollover operations.</span>
 
 <span class="sd">            :param str mode: Mode in which to reopen the main log file.</span>
-<span class="sd">            :param bool disable_rollover: If True, rollover won&#39;t be possible in the</span>
+<span class="sd">            :param bool disable_rollover: If True, rollover won't be possible in the</span>
 <span class="sd">                future. Defaults to False.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            """</span>
             <span class="c1"># Keep track that the rollover failed.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_disable_rollover</span> <span class="o">=</span> <span class="n">disable_rollover</span>
             <span class="c1"># If the file has been closed, reopen it in append mode.</span>
@@ -499,7 +499,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">()</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">shouldRollover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""</span>
 <span class="sd">            Return if the log files should rollover.</span>
 
 <span class="sd">            If a rollover operation failed in the past this method will always return False.</span>
@@ -508,16 +508,16 @@
 
 <span class="sd">            :returns: True if rollover should happen, False otherwise.</span>
 <span class="sd">            :rtype: bool</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            """</span>
             <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_disable_rollover</span> <span class="ow">and</span> <span class="n">RotatingFileHandler</span><span class="o">.</span><span class="n">shouldRollover</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span> <span class="n">record</span>
             <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1">#</span>
-        <span class="c1"># note - this init isn&#39;t currently threadsafe.</span>
+        <span class="c1"># note - this init isn't currently threadsafe.</span>
         <span class="c1">#</span>
-        <span class="c1"># create the instance if it hasn&#39;t been created already</span>
+        <span class="c1"># create the instance if it hasn't been created already</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__instance</span><span class="p">:</span>
             <span class="c1"># remember the instance so that no more are created</span>
             <span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">LogManager</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -535,11 +535,11 @@
             <span class="n">instance</span><span class="o">.</span><span class="n">_root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">)</span>
 
             <span class="c1"># check the TK_DEBUG flag at startup</span>
-            <span class="c1"># this controls the &quot;global debug&quot; state</span>
+            <span class="c1"># this controls the "global debug" state</span>
             <span class="c1"># in the log manager</span>
             <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> environment variable detected. Enabling debug logging.&quot;</span>
+                    <span class="s2">"</span><span class="si">%s</span><span class="s2"> environment variable detected. Enabling debug logging."</span>
                     <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
                 <span class="p">)</span>
                 <span class="n">instance</span><span class="o">.</span><span class="n">_global_debug</span> <span class="o">=</span> <span class="kc">True</span>
@@ -552,7 +552,7 @@
 
 <div class="viewcode-block" id="LogManager.get_logger"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.get_logger">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">(</span><span class="n">log_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generates standard logger objects for Toolkit.</span>
 
 <span class="sd">        If you want to add standard toolkit logging to your code,</span>
@@ -578,36 +578,36 @@
 <span class="sd">                         the sgtk namespace. If the name begins with ``tank.``, it will</span>
 <span class="sd">                         be automatically replaced with ``sgtk.``.</span>
 <span class="sd">        :returns: Standard python logger.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;tank.&quot;</span><span class="p">):</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"tank."</span><span class="p">):</span>
             <span class="c1"># old style import of core</span>
             <span class="c1">#</span>
             <span class="c1"># this will be parented under sgtk.core.xxx</span>
             <span class="c1">#</span>
-            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.core.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
-        <span class="k">elif</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sgtk.&quot;</span><span class="p">):</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.core.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"sgtk."</span><span class="p">):</span>
             <span class="c1"># new style import of core</span>
             <span class="c1">#</span>
             <span class="c1"># this will be parented under sgtk.core.xxx</span>
             <span class="c1">#</span>
-            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.core.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
-        <span class="k">elif</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;env.&quot;</span><span class="p">):</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.core.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">log_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"env."</span><span class="p">):</span>
             <span class="c1"># engine logging</span>
             <span class="c1">#</span>
             <span class="c1"># this will be parented under sgtk.env.xxx</span>
             <span class="c1"># for example sgtk.env.asset.tk-maya</span>
             <span class="c1">#</span>
 
-            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># some external script or tool</span>
-            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.ext.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
+            <span class="n">log_name</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.ext.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">,</span> <span class="n">log_name</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LogManager.log_timing"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.log_timing">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_timing</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Decorator that times and logs the execution of a method.</span>
 
 <span class="sd">        Sometimes it is useful to log runtime statistics about</span>
@@ -620,9 +620,9 @@
 
 <span class="sd">            @sgtk.LogManager.log_timing</span>
 <span class="sd">            def my_shotgun_publish_method():</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                '''</span>
 <span class="sd">                Publishes lots of files to Shotgun</span>
-<span class="sd">                &#39;&#39;&#39;</span>
+<span class="sd">                '''</span>
 <span class="sd">                # shotgun code here</span>
 
 <span class="sd">        In the debug logs, timings will be written to the</span>
@@ -630,7 +630,7 @@
 
 <span class="sd">            [DEBUG sgtk.stopwatch.module] my_shotgun_publish_method: 0.633s</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -641,29 +641,29 @@
                 <span class="n">time_spent</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">time_before</span>
                 <span class="c1"># log to special timing logger</span>
                 <span class="n">timing_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">PROFILING_LOG_CHANNEL</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__module__</span><span class="p">)</span>
+                    <span class="s2">"</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">PROFILING_LOG_CHANNEL</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__module__</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="n">timing_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%f</span><span class="s2">s&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">time_spent</span><span class="p">))</span>
+                <span class="n">timing_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2">: </span><span class="si">%f</span><span class="s2">s"</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">time_spent</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">response</span>
 
         <span class="k">return</span> <span class="n">wrapper</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_global_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Sets the state of the global debug in toolkit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">:</span>
             <span class="c1"># This needs to be logged before we turn off the global</span>
             <span class="c1"># debug logging.</span>
             <span class="c1">#</span>
-            <span class="c1"># We don&#39;t want subprocesses of this process to spawn with</span>
+            <span class="c1"># We don't want subprocesses of this process to spawn with</span>
             <span class="c1"># logging on. An example of where this is useful is in the</span>
             <span class="c1"># comment below, where the case of tk-desktop is outlined.</span>
             <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;Removing </span><span class="si">%s</span><span class="s2"> from the environment for this session. This &quot;</span>
-                    <span class="s2">&quot;ensures that subprocesses spawned from this process will &quot;</span>
-                    <span class="s2">&quot;inherit the global debug logging setting from this process.&quot;</span><span class="p">,</span>
+                    <span class="s2">"Removing </span><span class="si">%s</span><span class="s2"> from the environment for this session. This "</span>
+                    <span class="s2">"ensures that subprocesses spawned from this process will "</span>
+                    <span class="s2">"inherit the global debug logging setting from this process."</span><span class="p">,</span>
                     <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">del</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">]</span>
@@ -672,7 +672,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span><span class="p">:</span>
             <span class="n">new_log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Disabling debug logging.&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Disabling debug logging."</span><span class="p">)</span>
             <span class="n">new_log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
 
         <span class="c1"># process handlers</span>
@@ -688,8 +688,8 @@
         <span class="c1"># log notifications</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Debug logging enabled. To permanently enable it, &quot;</span>
-                <span class="s2">&quot;set the </span><span class="si">%s</span><span class="s2"> environment variable.&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
+                <span class="s2">"Debug logging enabled. To permanently enable it, "</span>
+                <span class="s2">"set the </span><span class="si">%s</span><span class="s2"> environment variable."</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span>
             <span class="p">)</span>
             <span class="c1"># This needs to be logged after the global debug has been</span>
             <span class="c1"># turned on, which is why it is happening last.</span>
@@ -703,15 +703,15 @@
             <span class="c1"># a user navigates to a project in the PTR desktop app, the</span>
             <span class="c1"># Python subprocess spawned will also have debug logging active.</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Setting </span><span class="si">%s</span><span class="s2"> in the environment for this session. This &quot;</span>
-                <span class="s2">&quot;ensures that subprocesses spawned from this process will &quot;</span>
-                <span class="s2">&quot;inherit the global debug logging setting from this process.&quot;</span><span class="p">,</span>
+                <span class="s2">"Setting </span><span class="si">%s</span><span class="s2"> in the environment for this session. This "</span>
+                <span class="s2">"ensures that subprocesses spawned from this process will "</span>
+                <span class="s2">"inherit the global debug logging setting from this process."</span><span class="p">,</span>
                 <span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">DEBUG_LOGGING_ENV_VAR</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_global_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Controls the global debug flag in toolkit. Toggling this</span>
 <span class="sd">        flag will affect all log handlers that have been created</span>
 <span class="sd">        via :meth:`initialize_custom_handler`.</span>
@@ -719,21 +719,21 @@
 <span class="sd">        .. note:: Debug logging is off by default.</span>
 <span class="sd">                  If you want to permanently enable debug logging,</span>
 <span class="sd">                  set the environment variable ``TK_DEBUG``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_debug</span>
 
     <span class="n">global_debug</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_global_debug</span><span class="p">,</span> <span class="n">_set_global_debug</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Full path to the current log file or None if logging is not active.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Full path to the current log file or None if logging is not active."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler_log_file</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The folder where log files generated by :meth:`initialize_base_file_handler` are stored.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># avoid cyclic references</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
 
@@ -741,7 +741,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">root_logger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the root logger for Toolkit.</span>
 
 <span class="sd">        .. note:: If you want to add a custom logging handler to the root logger,</span>
@@ -754,19 +754,19 @@
 <span class="sd">                     emitted, instead adjust the logging level of the handler.</span>
 
 <span class="sd">        :return: log object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The base file handler that is used to write log files to disk</span>
 <span class="sd">        in a default location, or None if not defined.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span>
 
 <div class="viewcode-block" id="LogManager.initialize_custom_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_custom_handler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_custom_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Convenience method that initializes a log handler</span>
 <span class="sd">        and attaches it to the toolkit logging root.</span>
 
@@ -788,7 +788,7 @@
 <span class="sd">        If you want to log to a file instead, create a log handler</span>
 <span class="sd">        and pass that to the method::</span>
 
-<span class="sd">            handler = logging.FileHandler(&quot;/tmp/toolkit.log)</span>
+<span class="sd">            handler = logging.FileHandler("/tmp/toolkit.log)</span>
 <span class="sd">            LogManager().initialize_custom_handler(handler)</span>
 
 <span class="sd">        The log handler will be configured to output its messages</span>
@@ -797,12 +797,12 @@
 <span class="sd">        :param handler: Logging handler to connect with the toolkit logger.</span>
 <span class="sd">                        If not passed, a standard stream handler will be created.</span>
 <span class="sd">        :return: The configured log handler.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
 
             <span class="c1"># example: [DEBUG tank.log] message message</span>
-            <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">"[</span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 
@@ -821,12 +821,12 @@
         <span class="k">return</span> <span class="n">handler</span></div>
 
 <div class="viewcode-block" id="LogManager.uninitialize_base_file_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.uninitialize_base_file_handler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">uninitialize_base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Uninitialize base file handler created with :meth:`initialize_base_file_handler`.</span>
 
 <span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
 <span class="sd">                  None if no base logger was previously active.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
@@ -834,7 +834,7 @@
 
         <span class="c1"># there is a log handler, so terminate it</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Tearing down existing log handler &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span>
+            <span class="s2">"Tearing down existing log handler '</span><span class="si">%s</span><span class="s2">' (</span><span class="si">%s</span><span class="s2">)"</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">base_log_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
@@ -845,7 +845,7 @@
         <span class="k">return</span> <span class="n">base_log_file</span></div>
 
 <div class="viewcode-block" id="LogManager.initialize_base_file_handler"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_base_file_handler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_base_file_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create a file handler and attach it to the stgk base logger.</span>
 <span class="sd">        This will write a rotating log file to disk in a standard</span>
 <span class="sd">        location and will capture all log messages passed through</span>
@@ -855,7 +855,7 @@
 <span class="sd">                  defined by :meth:`log_folder`.</span>
 
 <span class="sd">        When you start an engine via the :meth:`sgtk.platform.start_engine` method,</span>
-<span class="sd">        a file handler will automatically be created if one doesn&#39;t already exist.</span>
+<span class="sd">        a file handler will automatically be created if one doesn't already exist.</span>
 
 <span class="sd">        If you are manually launching toolkit, we recommend that you call</span>
 <span class="sd">        this method to initialize logging to file early on in your setup.</span>
@@ -868,28 +868,28 @@
 
 <span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
 <span class="sd">                  None if no base logger was previously active.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># avoid cyclic references</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">filesystem</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_base_file_handler_from_path</span><span class="p">(</span>
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.log&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_folder</span><span class="p">,</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.log"</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="LogManager.initialize_base_file_handler_from_path"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager.initialize_base_file_handler_from_path">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_base_file_handler_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_file</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create a file handler and attach it to the sgtk base logger.</span>
 
-<span class="sd">        This method is there for legacy Toolkit applications and shouldn&#39;t be used. Use</span>
+<span class="sd">        This method is there for legacy Toolkit applications and shouldn't be used. Use</span>
 <span class="sd">        ``initialize_base_file_handler`` instead.</span>
 
 <span class="sd">        :param log_file: Path of the file to write the logs to.</span>
 
 <span class="sd">        :returns: The path to the previous log file that is being switched away from,</span>
 <span class="sd">                  None if no base logger was previously active.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># shut down any previous logger</span>
         <span class="n">previous_log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uninitialize_base_file_handler</span><span class="p">()</span>
 
@@ -897,7 +897,7 @@
         <span class="n">log_name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">log_file_name</span><span class="p">)</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Switching file based std logger from &#39;</span><span class="si">%s</span><span class="s2">&#39; to &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span><span class="p">,</span>
+            <span class="s2">"Switching file based std logger from '</span><span class="si">%s</span><span class="s2">' to '</span><span class="si">%s</span><span class="s2">'."</span><span class="p">,</span>
             <span class="n">previous_log_file</span><span class="p">,</span>
             <span class="n">log_file</span><span class="p">,</span>
         <span class="p">)</span>
@@ -919,7 +919,7 @@
             <span class="n">maxBytes</span><span class="o">=</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
             <span class="c1"># Need at least one backup in order to rotate</span>
             <span class="n">backupCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf8"</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># set the level based on global debug flag</span>
@@ -931,14 +931,14 @@
         <span class="c1"># Set up formatter. Example:</span>
         <span class="c1"># 2016-04-25 08:56:12,413 [44862 DEBUG tank.log] message message</span>
         <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(process)d</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+            <span class="s2">"</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(process)d</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_root_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span><span class="p">)</span>
 
         <span class="c1"># log the fact that we set up the log file :)</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Writing to standard log file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">log_file</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Writing to standard log file </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">log_file</span><span class="p">)</span>
 
         <span class="c1"># return previous log name</span>
         <span class="k">return</span> <span class="n">previous_log_file</span></div></div>
@@ -951,7 +951,7 @@
 <span class="c1">#</span>
 <span class="c1"># retrieve top most logger in the sgtk hierarchy</span>
 <span class="n">sgtk_root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ROOT_LOGGER_NAME</span><span class="p">)</span>
-<span class="c1"># &#39;cap it&#39; so that log messages don&#39;t propagate</span>
+<span class="c1"># 'cap it' so that log messages don't propagate</span>
 <span class="c1"># further upwards in the hierarchy. This is to avoid</span>
 <span class="c1"># log message spilling over into other loggers; if you</span>
 <span class="c1"># want to receive toolkit log messages, you have to</span>
@@ -966,7 +966,7 @@
 
 
 <span class="c1">#</span>
-<span class="c1"># create a &#39;nop&#39; log handler to be attached.</span>
+<span class="c1"># create a 'nop' log handler to be attached.</span>
 <span class="c1"># this is to avoid warnings being reported that</span>
 <span class="c1"># logging is missing.</span>
 <span class="c1">#</span>

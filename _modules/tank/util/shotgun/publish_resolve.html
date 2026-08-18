@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Methods for resolving publish data into local representations</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
@@ -160,7 +160,7 @@
 
 
 <div class="viewcode-block" id="resolve_publish_path"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.resolve_publish_path">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">resolve_publish_path</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns a local path on disk given a dictionary of Shotgun publish data.</span>
 
 <span class="sd">    This acts as the inverse of :meth:`register_publish` and</span>
@@ -188,66 +188,66 @@
 
 <span class="sd">    :returns: A local path to file or file sequence.</span>
 
-<span class="sd">    :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn&#39;t defined.</span>
+<span class="sd">    :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if the path isn't defined.</span>
 <span class="sd">    :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">path_field</span> <span class="o">=</span> <span class="n">sg_publish_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+    <span class="n">path_field</span> <span class="o">=</span> <span class="n">sg_publish_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span>
 
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="s2">&quot;Publish id </span><span class="si">%s</span><span class="s2">: Attempting to resolve publish path &quot;</span>
-        <span class="s2">&quot;to local file on disk: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
-        <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">path_field</span><span class="p">))</span>
+        <span class="s2">"Publish id </span><span class="si">%s</span><span class="s2">: Attempting to resolve publish path "</span>
+        <span class="s2">"to local file on disk: '</span><span class="si">%s</span><span class="s2">'"</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">path_field</span><span class="p">))</span>
     <span class="p">)</span>
 
     <span class="c1"># first offer the resolve to the core hook</span>
     <span class="c1">#</span>
     <span class="c1"># note that we run this before the built-in logic because we want to be able to add support</span>
     <span class="c1"># for handling uploaded files (or something else) in the future, yet at the same time,</span>
-    <span class="c1"># by doing that we don&#39;t want to break any client integration. By putting the hook first,</span>
+    <span class="c1"># by doing that we don't want to break any client integration. By putting the hook first,</span>
     <span class="c1"># this is possible. If we put the hook last, we could affect the conditions under which</span>
     <span class="c1"># the hook is being executed by introducing new features.</span>
     <span class="n">custom_path</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
-        <span class="s2">&quot;resolve_publish&quot;</span><span class="p">,</span> <span class="s2">&quot;resolve_path&quot;</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="o">=</span><span class="n">sg_publish_data</span>
+        <span class="s2">"resolve_publish"</span><span class="p">,</span> <span class="s2">"resolve_path"</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="o">=</span><span class="n">sg_publish_data</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">custom_path</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish resolve core hook returned path &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">custom_path</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Publish resolve core hook returned path '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="n">custom_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">custom_path</span>
     <span class="c1"># core hook did not pick it up - apply default logic</span>
     <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># no path defined for publish</span>
         <span class="k">raise</span> <span class="n">PublishPathNotDefinedError</span><span class="p">(</span>
-            <span class="s2">&quot;Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) does not have a path set&quot;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="s2">"Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) does not have a path set"</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"code"</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
         <span class="p">)</span>
 
-    <span class="k">elif</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;link_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;local&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">"link_type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"local"</span><span class="p">:</span>
         <span class="c1"># local file link</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">__resolve_local_file_link</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path_field</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 
             <span class="k">raise</span> <span class="n">PublishPathNotDefinedError</span><span class="p">(</span>
-                <span class="s2">&quot;Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) has a local file link that could not be resolved &quot;</span>
-                <span class="s2">&quot;on this os platform.&quot;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+                <span class="s2">"Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) has a local file link that could not be resolved "</span>
+                <span class="s2">"on this os platform."</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"code"</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">path</span>
 
-    <span class="k">elif</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;link_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;web&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">"link_type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"web"</span><span class="p">:</span>
         <span class="c1"># url link</span>
         <span class="k">return</span> <span class="n">__resolve_url_link</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path_field</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># unknown attachment type</span>
         <span class="k">raise</span> <span class="n">PublishPathNotSupported</span><span class="p">(</span>
-            <span class="s2">&quot;Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">): Local file link type &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
-            <span class="s2">&quot;not supported.&quot;</span>
-            <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;link_type&quot;</span><span class="p">])</span>
+            <span class="s2">"Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">): Local file link type '</span><span class="si">%s</span><span class="s2">' "</span>
+            <span class="s2">"not supported."</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"code"</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">"link_type"</span><span class="p">])</span>
         <span class="p">)</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">__resolve_local_file_link</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">attachment_data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Resolves the given local path attachment into a local path.</span>
 <span class="sd">    For details, see :meth:`resolve_publish_path`.</span>
 
@@ -255,30 +255,30 @@
 <span class="sd">    :param attachment_data: Shotgun Attachment dictionary.</span>
 
 <span class="sd">    :returns: A local path to file or file sequence or None if it cannot be resolved.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># local file link data looks like this:</span>
     <span class="c1">#</span>
-    <span class="c1"># {&#39;content_type&#39;: &#39;image/png&#39;,</span>
-    <span class="c1">#  &#39;id&#39;: 25826,</span>
-    <span class="c1">#  &#39;link_type&#39;: &#39;local&#39;,</span>
-    <span class="c1">#  &#39;local_path&#39;: &#39;/Users/foo.png&#39;,</span>
-    <span class="c1">#  &#39;local_path_linux&#39;: None,</span>
-    <span class="c1">#  &#39;local_path_mac&#39;: &#39;/Users/foo.png&#39;,</span>
-    <span class="c1">#  &#39;local_path_windows&#39;: None,</span>
-    <span class="c1">#  &#39;local_storage&#39;: {&#39;id&#39;: 39,</span>
-    <span class="c1">#                    &#39;name&#39;: &#39;home&#39;,</span>
-    <span class="c1">#                    &#39;type&#39;: &#39;LocalStorage&#39;},</span>
-    <span class="c1">#  &#39;name&#39;: &#39;foo.png&#39;,</span>
-    <span class="c1">#  &#39;type&#39;: &#39;Attachment&#39;,</span>
-    <span class="c1">#  &#39;url&#39;: &#39;file:///Users/foo.png&#39;}</span>
+    <span class="c1"># {'content_type': 'image/png',</span>
+    <span class="c1">#  'id': 25826,</span>
+    <span class="c1">#  'link_type': 'local',</span>
+    <span class="c1">#  'local_path': '/Users/foo.png',</span>
+    <span class="c1">#  'local_path_linux': None,</span>
+    <span class="c1">#  'local_path_mac': '/Users/foo.png',</span>
+    <span class="c1">#  'local_path_windows': None,</span>
+    <span class="c1">#  'local_storage': {'id': 39,</span>
+    <span class="c1">#                    'name': 'home',</span>
+    <span class="c1">#                    'type': 'LocalStorage'},</span>
+    <span class="c1">#  'name': 'foo.png',</span>
+    <span class="c1">#  'type': 'Attachment',</span>
+    <span class="c1">#  'url': 'file:///Users/foo.png'}</span>
 
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="s2">&quot;Attempting to resolve local file link attachment data &quot;</span>
-        <span class="s2">&quot;into a local path: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">attachment_data</span><span class="p">)</span>
+        <span class="s2">"Attempting to resolve local file link attachment data "</span>
+        <span class="s2">"into a local path: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">attachment_data</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="c1"># see if we have a path for this storage</span>
-    <span class="n">local_path</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;local_path&quot;</span><span class="p">)</span>
+    <span class="n">local_path</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"local_path"</span><span class="p">)</span>
 
     <span class="c1"># Check override env vars:</span>
     <span class="c1">#</span>
@@ -293,24 +293,24 @@
     <span class="c1">#</span>
 
     <span class="c1"># look for override env var for our local os</span>
-    <span class="n">storage_name</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;local_storage&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-    <span class="n">storage_id</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;local_storage&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
-    <span class="n">os_name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;WINDOWS&quot;</span><span class="p">,</span> <span class="s2">&quot;linux&quot;</span><span class="p">:</span> <span class="s2">&quot;LINUX&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="s2">&quot;MAC&quot;</span><span class="p">}[</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">]</span>
-    <span class="n">env_var_name</span> <span class="o">=</span> <span class="s2">&quot;SHOTGUN_PATH_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os_name</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Looking for override env var &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">env_var_name</span><span class="p">)</span>
+    <span class="n">storage_name</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">"local_storage"</span><span class="p">][</span><span class="s2">"name"</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="n">storage_id</span> <span class="o">=</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">"local_storage"</span><span class="p">][</span><span class="s2">"id"</span><span class="p">]</span>
+    <span class="n">os_name</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"win32"</span><span class="p">:</span> <span class="s2">"WINDOWS"</span><span class="p">,</span> <span class="s2">"linux"</span><span class="p">:</span> <span class="s2">"LINUX"</span><span class="p">,</span> <span class="s2">"darwin"</span><span class="p">:</span> <span class="s2">"MAC"</span><span class="p">}[</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">]</span>
+    <span class="n">env_var_name</span> <span class="o">=</span> <span class="s2">"SHOTGUN_PATH_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">os_name</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Looking for override env var '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="n">env_var_name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">env_var_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Detected override </span><span class="si">%s</span><span class="s2">=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_var_name</span><span class="p">])</span>
+            <span class="s2">"Detected override </span><span class="si">%s</span><span class="s2">='</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_var_name</span><span class="p">])</span>
         <span class="p">)</span>
         <span class="c1"># if we already have this set in the local storage,</span>
         <span class="c1"># issue a warning</span>
         <span class="k">if</span> <span class="n">local_path</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Discovered environment variable </span><span class="si">%s</span><span class="s2">, however the operating system root is &quot;</span>
-                <span class="s2">&quot;already defined in PTR and the environment variable will &quot;</span>
-                <span class="s2">&quot;be ignored.&quot;</span> <span class="o">%</span> <span class="n">env_var_name</span>
+                <span class="s2">"Discovered environment variable </span><span class="si">%s</span><span class="s2">, however the operating system root is "</span>
+                <span class="s2">"already defined in PTR and the environment variable will "</span>
+                <span class="s2">"be ignored."</span> <span class="o">%</span> <span class="n">env_var_name</span>
             <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -321,21 +321,21 @@
             <span class="c1"># normalize path</span>
             <span class="n">override_root</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">override_root</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Applying override &#39;</span><span class="si">%s</span><span class="s2">&#39; to path &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
-                <span class="s2">&quot;(storage </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">override_root</span><span class="p">,</span> <span class="n">local_path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
+                <span class="s2">"Applying override '</span><span class="si">%s</span><span class="s2">' to path '</span><span class="si">%s</span><span class="s2">' "</span>
+                <span class="s2">"(storage </span><span class="si">%s</span><span class="s2">)"</span> <span class="o">%</span> <span class="p">(</span><span class="n">override_root</span><span class="p">,</span> <span class="n">local_path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
             <span class="p">)</span>
 
             <span class="c1"># get the local storage that we are augmenting</span>
             <span class="n">storage</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">storage_id</span>
+                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">storage_id</span>
             <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
             <span class="c1"># find a storage where the path is defined</span>
             <span class="c1"># we know that it must be defined for at least one os :)</span>
             <span class="n">storage_field_map</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;local_path_windows&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;local_path_linux&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="s2">&quot;local_path_mac&quot;</span><span class="p">,</span>
+                <span class="s2">"windows_path"</span><span class="p">:</span> <span class="s2">"local_path_windows"</span><span class="p">,</span>
+                <span class="s2">"linux_path"</span><span class="p">:</span> <span class="s2">"local_path_linux"</span><span class="p">,</span>
+                <span class="s2">"mac_path"</span><span class="p">:</span> <span class="s2">"local_path_mac"</span><span class="p">,</span>
             <span class="p">}</span>
 
             <span class="k">for</span> <span class="n">storage_field</span><span class="p">,</span> <span class="n">path_field</span> <span class="ow">in</span> <span class="n">storage_field_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -353,7 +353,7 @@
                         <span class="o">+</span> <span class="n">this_os_full_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">this_os_storage_root</span><span class="p">)</span> <span class="p">:]</span>
                     <span class="p">)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">&quot;Transforming &#39;</span><span class="si">%s</span><span class="s2">&#39; and root &#39;</span><span class="si">%s</span><span class="s2">&#39; via env var &#39;</span><span class="si">%s</span><span class="s2">&#39; into &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                        <span class="s2">"Transforming '</span><span class="si">%s</span><span class="s2">' and root '</span><span class="si">%s</span><span class="s2">' via env var '</span><span class="si">%s</span><span class="s2">' into '</span><span class="si">%s</span><span class="s2">'"</span>
                         <span class="o">%</span> <span class="p">(</span>
                             <span class="n">this_os_full_path</span><span class="p">,</span>
                             <span class="n">this_os_storage_root</span><span class="p">,</span>
@@ -365,12 +365,12 @@
 
     <span class="c1"># normalize</span>
     <span class="n">local_path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved local file link: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">local_path</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Resolved local file link: '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="n">local_path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">local_path</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">__resolve_url_link</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">attachment_data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Resolves the given url attachment into a local path.</span>
 <span class="sd">    For details, see :meth:`resolve_publish_path`.</span>
 
@@ -381,38 +381,38 @@
 <span class="sd">    :returns: A local path to file or file sequence.</span>
 
 <span class="sd">    :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="s2">&quot;Attempting to resolve url attachment data &quot;</span>
-        <span class="s2">&quot;into a local path: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">attachment_data</span><span class="p">)</span>
+        <span class="s2">"Attempting to resolve url attachment data "</span>
+        <span class="s2">"into a local path: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">attachment_data</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="c1"># url data looks like this:</span>
     <span class="c1">#</span>
-    <span class="c1"># {&#39;content_type&#39;: None,</span>
-    <span class="c1">#  &#39;id&#39;: 25828,</span>
-    <span class="c1">#  &#39;link_type&#39;: &#39;web&#39;,</span>
-    <span class="c1">#  &#39;name&#39;: &#39;toolkitty.jpg&#39;,</span>
-    <span class="c1">#  &#39;type&#39;: &#39;Attachment&#39;,</span>
-    <span class="c1">#  &#39;url&#39;: &#39;file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg&#39;},</span>
+    <span class="c1"># {'content_type': None,</span>
+    <span class="c1">#  'id': 25828,</span>
+    <span class="c1">#  'link_type': 'web',</span>
+    <span class="c1">#  'name': 'toolkitty.jpg',</span>
+    <span class="c1">#  'type': 'Attachment',</span>
+    <span class="c1">#  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},</span>
 
-    <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
+    <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">attachment_data</span><span class="p">[</span><span class="s2">"url"</span><span class="p">])</span>
 
-    <span class="c1"># url = &quot;file:///path/to/some/file.txt&quot;</span>
+    <span class="c1"># url = "file:///path/to/some/file.txt"</span>
     <span class="c1"># ParseResult(</span>
-    <span class="c1">#   scheme=&#39;file&#39;,</span>
-    <span class="c1">#   netloc=&#39;&#39;,</span>
-    <span class="c1">#   path=&#39;/path/to/some/file.txt&#39;,</span>
-    <span class="c1">#   params=&#39;&#39;,</span>
-    <span class="c1">#   query=&#39;&#39;,</span>
-    <span class="c1">#   fragment=&#39;&#39;</span>
+    <span class="c1">#   scheme='file',</span>
+    <span class="c1">#   netloc='',</span>
+    <span class="c1">#   path='/path/to/some/file.txt',</span>
+    <span class="c1">#   params='',</span>
+    <span class="c1">#   query='',</span>
+    <span class="c1">#   fragment=''</span>
     <span class="c1"># )</span>
 
-    <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s2">"file"</span><span class="p">:</span>
         <span class="c1"># we currently only support file:// style urls</span>
         <span class="k">raise</span> <span class="n">PublishPathNotSupported</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot resolve unsupported url &#39;</span><span class="si">%s</span><span class="s2">&#39; into a local path.&quot;</span>
-            <span class="o">%</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
+            <span class="s2">"Cannot resolve unsupported url '</span><span class="si">%s</span><span class="s2">' into a local path."</span>
+            <span class="o">%</span> <span class="n">attachment_data</span><span class="p">[</span><span class="s2">"url"</span><span class="p">]</span>
         <span class="p">)</span>
 
     <span class="c1"># file urls can be on the following standard form:</span>
@@ -420,20 +420,20 @@
     <span class="c1"># Std unix path</span>
     <span class="c1"># /path/to/some/file.txt -&gt; file:///path/to/some/file.txt</span>
     <span class="c1">#</span>
-    <span class="c1"># &gt;&gt;&gt; urlparse.urlparse(&quot;file:///path/to/some/file.txt&quot;)</span>
-    <span class="c1"># ParseResult(scheme=&#39;file&#39;, netloc=&#39;&#39;, path=&#39;/path/to/some/file.txt&#39;, params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+    <span class="c1"># &gt;&gt;&gt; urlparse.urlparse("file:///path/to/some/file.txt")</span>
+    <span class="c1"># ParseResult(scheme='file', netloc='', path='/path/to/some/file.txt', params='', query='', fragment='')</span>
     <span class="c1">#</span>
     <span class="c1"># Windows UNC path</span>
     <span class="c1"># \\laptop\My Documents\FileSchemeURIs.doc -&gt; file://laptop/My%20Documents/FileSchemeURIs.doc</span>
     <span class="c1">#</span>
-    <span class="c1"># &gt;&gt;&gt; urlparse.urlparse(&quot;file://laptop/My%20Documents/FileSchemeURIs.doc&quot;)</span>
-    <span class="c1"># ParseResult(scheme=&#39;file&#39;, netloc=&#39;laptop&#39;, path=&#39;/My%20Documents/FileSchemeURIs.doc&#39;, params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+    <span class="c1"># &gt;&gt;&gt; urlparse.urlparse("file://laptop/My%20Documents/FileSchemeURIs.doc")</span>
+    <span class="c1"># ParseResult(scheme='file', netloc='laptop', path='/My%20Documents/FileSchemeURIs.doc', params='', query='', fragment='')</span>
     <span class="c1">#</span>
     <span class="c1"># Windows path with drive letter</span>
     <span class="c1"># C:\Documents and Settings\davris\FileSchemeURIs.doc -&gt; file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc</span>
     <span class="c1">#</span>
-    <span class="c1"># &gt;&gt;&gt; urlparse.urlparse(&quot;file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc&quot;)</span>
-    <span class="c1"># ParseResult(scheme=&#39;file&#39;, netloc=&#39;&#39;, path=&#39;/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc&#39;, params=&#39;&#39;, query=&#39;&#39;, fragment=&#39;&#39;)</span>
+    <span class="c1"># &gt;&gt;&gt; urlparse.urlparse("file:///C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc")</span>
+    <span class="c1"># ParseResult(scheme='file', netloc='', path='/C:/Documents%20and%20Settings/davris/FileSchemeURIs.doc', params='', query='', fragment='')</span>
     <span class="c1">#</span>
     <span class="c1"># for information about Windows, see</span>
     <span class="c1"># https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/</span>
@@ -441,51 +441,51 @@
     <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">:</span>
         <span class="c1"># unc path</span>
         <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span>
-            <span class="s2">&quot;//</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">,</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="s2">"//</span><span class="si">%s%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">,</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
     <span class="c1"># python returns drive letter paths incorrectly and need adjusting.</span>
-    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;^/[A-Za-z]:/&quot;</span><span class="p">,</span> <span class="n">resolved_path</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">"^/[A-Za-z]:/"</span><span class="p">,</span> <span class="n">resolved_path</span><span class="p">):</span>
         <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">resolved_path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
     <span class="c1"># we now have one of the following three forms (with slashes):</span>
     <span class="c1"># /path/to/file.ext</span>
     <span class="c1"># d:/path/to/file.ext</span>
     <span class="c1"># //share/path/to/file.ext</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path extracted from url: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">resolved_path</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Path extracted from url: '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="n">resolved_path</span><span class="p">)</span>
 
     <span class="c1"># create a lookup table of shotgun paths,</span>
     <span class="c1"># keyed by upper case storage name</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Building cross-platform path resolution lookup table:&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Building cross-platform path resolution lookup table:"</span><span class="p">)</span>
     <span class="n">storage_lookup</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">storage</span> <span class="ow">in</span> <span class="n">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
-        <span class="n">storage_key</span> <span class="o">=</span> <span class="n">storage</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">storage_key</span> <span class="o">=</span> <span class="n">storage</span><span class="p">[</span><span class="s2">"code"</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">storage</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Added PTR Storage </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">storage_key</span><span class="p">,</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_key</span><span class="p">])</span>
+            <span class="s2">"Added PTR Storage </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">storage_key</span><span class="p">,</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_key</span><span class="p">])</span>
         <span class="p">)</span>
 
     <span class="c1"># get default environment variable set</span>
     <span class="c1"># note that this may generate a None/None/None entry</span>
-    <span class="n">storage_lookup</span><span class="p">[</span><span class="s2">&quot;_DEFAULT_ENV_VAR_OVERRIDE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="p">(</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SHOTGUN_PATH_WINDOWS&quot;</span><span class="p">),</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SHOTGUN_PATH_LINUX&quot;</span><span class="p">),</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SHOTGUN_PATH_MAC&quot;</span><span class="p">),</span>
+    <span class="n">storage_lookup</span><span class="p">[</span><span class="s2">"_DEFAULT_ENV_VAR_OVERRIDE"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"SHOTGUN_PATH_WINDOWS"</span><span class="p">),</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"SHOTGUN_PATH_LINUX"</span><span class="p">),</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"SHOTGUN_PATH_MAC"</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="s2">&quot;Added default env override: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="s2">&quot;_DEFAULT_ENV_VAR_OVERRIDE&quot;</span><span class="p">]</span>
+        <span class="s2">"Added default env override: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="s2">"_DEFAULT_ENV_VAR_OVERRIDE"</span><span class="p">]</span>
     <span class="p">)</span>
 
     <span class="c1"># look for storage overrides</span>
     <span class="k">for</span> <span class="n">env_var</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;^SHOTGUN_PATH_(WINDOWS|MAC|LINUX)_(.*)$&quot;</span><span class="p">,</span> <span class="n">env_var</span><span class="p">)</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">"^SHOTGUN_PATH_(WINDOWS|MAC|LINUX)_(.*)$"</span><span class="p">,</span> <span class="n">env_var</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">expr</span><span class="p">:</span>
             <span class="n">platform</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">storage_name</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Added </span><span class="si">%s</span><span class="s2"> environment override for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="s2">"Added </span><span class="si">%s</span><span class="s2"> environment override for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">platform</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_var</span><span class="p">])</span>
             <span class="p">)</span>
 
@@ -493,25 +493,25 @@
                 <span class="c1"># not in the lookup yet. Add it</span>
                 <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;WINDOWS&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">"WINDOWS"</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">windows</span><span class="p">:</span>
                     <span class="c1"># this path was already defined by a sg local storage</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Discovered env var </span><span class="si">%s</span><span class="s2">, however a PTR local storage already &quot;</span>
-                        <span class="s2">&quot;defines &#39;</span><span class="si">%s</span><span class="s2">&#39; to be &#39;</span><span class="si">%s</span><span class="s2">&#39;. Your environment override &quot;</span>
-                        <span class="s2">&quot;will be ignored.&quot;</span>
+                        <span class="s2">"Discovered env var </span><span class="si">%s</span><span class="s2">, however a PTR local storage already "</span>
+                        <span class="s2">"defines '</span><span class="si">%s</span><span class="s2">' to be '</span><span class="si">%s</span><span class="s2">'. Your environment override "</span>
+                        <span class="s2">"will be ignored."</span>
                         <span class="o">%</span> <span class="p">(</span><span class="n">env_var</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">,</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">windows</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">windows</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_var</span><span class="p">]</span>
 
-            <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;MAC&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">"MAC"</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">macosx</span><span class="p">:</span>
                     <span class="c1"># this path was already defined by a sg local storage</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Discovered env var </span><span class="si">%s</span><span class="s2">, however a PTR local storage already &quot;</span>
-                        <span class="s2">&quot;defines &#39;</span><span class="si">%s</span><span class="s2">&#39; to be &#39;</span><span class="si">%s</span><span class="s2">&#39;. Your environment override &quot;</span>
-                        <span class="s2">&quot;will be ignored.&quot;</span>
+                        <span class="s2">"Discovered env var </span><span class="si">%s</span><span class="s2">, however a PTR local storage already "</span>
+                        <span class="s2">"defines '</span><span class="si">%s</span><span class="s2">' to be '</span><span class="si">%s</span><span class="s2">'. Your environment override "</span>
+                        <span class="s2">"will be ignored."</span>
                         <span class="o">%</span> <span class="p">(</span><span class="n">env_var</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">,</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">macosx</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -521,9 +521,9 @@
                 <span class="k">if</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">linux</span><span class="p">:</span>
                     <span class="c1"># this path was already defined by a sg local storage</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Discovered env var </span><span class="si">%s</span><span class="s2">, however a PTR local storage already &quot;</span>
-                        <span class="s2">&quot;defines &#39;</span><span class="si">%s</span><span class="s2">&#39; to be &#39;</span><span class="si">%s</span><span class="s2">&#39;. Your environment override &quot;</span>
-                        <span class="s2">&quot;will be ignored.&quot;</span>
+                        <span class="s2">"Discovered env var </span><span class="si">%s</span><span class="s2">, however a PTR local storage already "</span>
+                        <span class="s2">"defines '</span><span class="si">%s</span><span class="s2">' to be '</span><span class="si">%s</span><span class="s2">'. Your environment override "</span>
+                        <span class="s2">"will be ignored."</span>
                         <span class="o">%</span> <span class="p">(</span><span class="n">env_var</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">,</span> <span class="n">storage_lookup</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">linux</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -536,7 +536,7 @@
         <span class="c1"># url path. Compare lower case (most file systems are case preserving).</span>
         <span class="n">adjusted_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span> <span class="ow">and</span> <span class="n">resolved_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
-            <span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="p">):</span>
             <span class="n">adjusted_path</span> <span class="o">=</span> <span class="n">sg_path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                 <span class="n">resolved_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span><span class="p">)</span> <span class="p">:]</span>
@@ -554,15 +554,15 @@
 
         <span class="k">if</span> <span class="n">adjusted_path</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;Adjusted path &#39;</span><span class="si">%s</span><span class="s2">&#39; -&gt; &#39;</span><span class="si">%s</span><span class="s2">&#39; based on override &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span>
+                <span class="s2">"Adjusted path '</span><span class="si">%s</span><span class="s2">' -&gt; '</span><span class="si">%s</span><span class="s2">' based on override '</span><span class="si">%s</span><span class="s2">' (</span><span class="si">%s</span><span class="s2">)"</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">resolved_path</span><span class="p">,</span> <span class="n">adjusted_path</span><span class="p">,</span> <span class="n">storage</span><span class="p">,</span> <span class="n">sg_path</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">adjusted_path</span>
             <span class="k">break</span>
 
     <span class="c1"># adjust native platform slashes</span>
-    <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">resolved_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Converted </span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attachment_data</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">resolved_path</span><span class="p">))</span>
+    <span class="n">resolved_path</span> <span class="o">=</span> <span class="n">resolved_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Converted </span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">attachment_data</span><span class="p">[</span><span class="s2">"url"</span><span class="p">],</span> <span class="n">resolved_path</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">resolved_path</span>
 </pre></div>
 

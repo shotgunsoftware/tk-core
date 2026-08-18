@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core &mdash; tk-core v0.24.0 documentation</title>
+  <title>Core &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -287,7 +287,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -401,8 +401,8 @@ setup to define where data should be stored on disk. This method returns
 a dictionary keyed by storage root name with the value being the path
 on the current operating system platform:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;work&quot;</span><span class="p">:</span> <span class="s2">&quot;/studio/work/my_project&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;textures&quot;</span><span class="p">:</span> <span class="s2">&quot;/studio/textures/my_project&quot;</span>
+    <span class="s2">"work"</span><span class="p">:</span> <span class="s2">"/studio/work/my_project"</span><span class="p">,</span>
+    <span class="s2">"textures"</span><span class="p">:</span> <span class="s2">"/studio/textures/my_project"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -562,8 +562,8 @@ using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.l
 <span class="sig-name descname"><span class="pre">templates_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.templates_from_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Sgtk.templates_from_path" title="Permalink to this definition"></a></dt>
 <dd><p>Finds templates that matches the given path:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj/assets/Car/Anim/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates_from_path</span><span class="p">(</span><span class="s2">"/studio/my_proj/assets/Car/Anim/work"</span><span class="p">)</span>
 <span class="go">&lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
 </pre></div>
 </div>
@@ -582,8 +582,8 @@ using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.l
 <span class="sig-name descname"><span class="pre">template_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.template_from_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Sgtk.template_from_path" title="Permalink to this definition"></a></dt>
 <dd><p>Finds a template that matches the given path:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj/assets/Car/Anim/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">template_from_path</span><span class="p">(</span><span class="s2">"/studio/my_proj/assets/Car/Anim/work"</span><span class="p">)</span>
 <span class="go">&lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
 </pre></div>
 </div>
@@ -619,13 +619,13 @@ that key as well as those that don’t will be included in the result.</p>
 </div>
 <p>Imagine you have a template <code class="docutils literal notranslate"><span class="pre">maya_work:</span> <span class="pre">sequences/{Sequence}/{Shot}/work/{name}.v{version}.ma</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">maya_work</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_work&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/my_proj"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">maya_work</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"maya_work"</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>All fields that you don’t specify will be searched for. So if we want to search for all
 names and versions for a particular sequence and shot, we can do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">paths_from_template</span><span class="p">(</span><span class="n">maya_work</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;AAA&quot;</span><span class="p">,</span> <span class="s2">&quot;Shot&quot;</span><span class="p">:</span> <span class="s2">&quot;001&quot;</span><span class="p">})</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">paths_from_template</span><span class="p">(</span><span class="n">maya_work</span><span class="p">,</span> <span class="p">{</span><span class="s2">"Sequence"</span><span class="p">:</span> <span class="s2">"AAA"</span><span class="p">,</span> <span class="s2">"Shot"</span><span class="p">:</span> <span class="s2">"001"</span><span class="p">})</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/work/background.v001.ma</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/work/background.v002.ma</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/work/background.v003.ma</span>
@@ -675,13 +675,13 @@ fields are abstract by default.</p>
 </div>
 <p>Imagine you have a template <code class="docutils literal notranslate"><span class="pre">render:</span> <span class="pre">sequences/{Sequence}/{Shot}/images/{eye}/{name}.{SEQ}.exr</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">render</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;render&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/my_proj"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">render</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"render"</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>All fields that you don’t specify will be searched for. So if we want to search for all
 names and versions for a particular sequence and shot, we can do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">abstract_paths_from_template</span><span class="p">(</span><span class="n">maya_work</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Sequence&quot;</span><span class="p">:</span> <span class="s2">&quot;AAA&quot;</span><span class="p">,</span> <span class="s2">&quot;Shot&quot;</span><span class="p">:</span> <span class="s2">&quot;001&quot;</span><span class="p">})</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">abstract_paths_from_template</span><span class="p">(</span><span class="n">maya_work</span><span class="p">,</span> <span class="p">{</span><span class="s2">"Sequence"</span><span class="p">:</span> <span class="s2">"AAA"</span><span class="p">,</span> <span class="s2">"Shot"</span><span class="p">:</span> <span class="s2">"001"</span><span class="p">})</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_1.%04d.exr</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_2.%04d.exr</span>
 <span class="go">/studio/my_proj/sequences/AAA/001/images/%V/render_3.%04d.exr</span>
@@ -829,22 +829,22 @@ created without falling back to a potential Shotgun query - each entity in the
 dictionary (including linked entities) must have the fields: ‘type’, ‘id’ and
 ‘name’ (or the name equivalent for specific entity types, e.g. ‘content’ for
 Step entities, ‘code’ for Shot entities, etc.):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"My Project"</span><span class="p">}</span>
 
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">,</span>
- <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"Shot 001"</span><span class="p">,</span>
+ <span class="s2">"project"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"My Project"</span><span class="p">}</span>
 <span class="p">}</span>
 
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Animation&quot;</span><span class="p">,</span>
- <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
- <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
- <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Step&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">101112</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Anm&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Task"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Animation"</span><span class="p">,</span>
+ <span class="s2">"project"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"My Project"</span><span class="p">}</span>
+ <span class="s2">"entity"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Shot 001"</span><span class="p">}</span>
+ <span class="s2">"step"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Step"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">101112</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Anm"</span><span class="p">}</span>
 <span class="p">}</span>
 
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;asset.ma&quot;</span><span class="p">,</span>
- <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="s2">&quot;: &quot;</span><span class="n">Task</span><span class="s2">&quot;, &quot;</span><span class="nb">id</span><span class="s2">&quot;: 789, &quot;</span><span class="n">content</span><span class="s2">&quot;: &quot;</span><span class="n">Animation</span><span class="s2">&quot;}</span>
- <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
- <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"PublishedFile"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"asset.ma"</span><span class="p">,</span>
+ <span class="s2">"task"</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="s2">": "</span><span class="n">Task</span><span class="s2">", "</span><span class="nb">id</span><span class="s2">": 789, "</span><span class="n">content</span><span class="s2">": "</span><span class="n">Animation</span><span class="s2">"}</span>
+ <span class="s2">"project"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"My Project"</span><span class="p">}</span>
+ <span class="s2">"entity"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Shot 001"</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -852,22 +852,22 @@ Step entities, ‘code’ for Shot entities, etc.):</p>
 fully form a context so the code will fall back to <a class="reference internal" href="#sgtk.Sgtk.context_from_entity" title="sgtk.Sgtk.context_from_entity"><code class="xref py py-meth docutils literal notranslate"><span class="pre">context_from_entity()</span></code></a> which
 may then result in a Shotgun query to retrieve the missing information:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># missing project name</span>
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">}</span>
 
 <span class="c1"># missing linked project</span>
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"Shot 001"</span><span class="p">}</span>
 
 <span class="c1"># missing linked project name and linked step</span>
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Animation&quot;</span><span class="p">,</span>
- <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">}}</span>
- <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Task"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Animation"</span><span class="p">,</span>
+ <span class="s2">"project"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">}}</span>
+ <span class="s2">"entity"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Shot 001"</span><span class="p">}</span>
 <span class="p">}</span>
 
 <span class="c1"># Missing publish name.</span>
-<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
- <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="s2">&quot;: &quot;</span><span class="n">Task</span><span class="s2">&quot;, &quot;</span><span class="nb">id</span><span class="s2">&quot;: 789, &quot;</span><span class="n">content</span><span class="s2">&quot;: &quot;</span><span class="n">Animation</span><span class="s2">&quot;}</span>
- <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
- <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"PublishedFile"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+ <span class="s2">"task"</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="s2">": "</span><span class="n">Task</span><span class="s2">", "</span><span class="nb">id</span><span class="s2">": 789, "</span><span class="n">content</span><span class="s2">": "</span><span class="n">Animation</span><span class="s2">"}</span>
+ <span class="s2">"project"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"My Project"</span><span class="p">}</span>
+ <span class="s2">"entity"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Shot"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Shot 001"</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1126,10 +1126,10 @@ and <a class="reference internal" href="#sgtk.Sgtk.context_from_path" title="sgt
 <dd><p>The shotgun project associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Light/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
-<span class="go">{&#39;type&#39;: &#39;Project&#39;, &#39;id&#39;: 4, &#39;name&#39;: &#39;demo_project&#39;}</span>
+<span class="go">{'type': 'Project', 'id': 4, 'name': 'demo_project'}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1145,10 +1145,10 @@ and <a class="reference internal" href="#sgtk.Sgtk.context_from_path" title="sgt
 <dd><p>The shotgun entity associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Light/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity</span>
-<span class="go">{&#39;type&#39;: &#39;Shot&#39;, &#39;id&#39;: 412, &#39;name&#39;: &#39;ABC&#39;}</span>
+<span class="go">{'type': 'Shot', 'id': 412, 'name': 'ABC'}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1189,10 +1189,10 @@ was constructured from a PublishedFile.</p>
 <dd><p>The shotgun step associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Light/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">step</span>
-<span class="go">{&#39;type&#39;: &#39;Step&#39;, &#39;id&#39;: 12, &#39;name&#39;: &#39;Light&#39;}</span>
+<span class="go">{'type': 'Step', 'id': 12, 'name': 'Light'}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1208,10 +1208,10 @@ was constructured from a PublishedFile.</p>
 <dd><p>The shotgun task associated with this context.</p>
 <p>If the context is incomplete, it is possible that the property is None. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/first_pass_lgt/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Lighting/first_pass_lgt/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">task</span>
-<span class="go">{&#39;type&#39;: &#39;Task&#39;, &#39;id&#39;: 212, &#39;name&#39;: &#39;first_pass_lgt&#39;}</span>
+<span class="go">{'type': 'Task', 'id': 212, 'name': 'first_pass_lgt'}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1229,10 +1229,10 @@ If the context is incomplete, it is possible that the property is None.</p>
 <p>The user property is special - either it represents a user value that was baked
 into a template path upon folder creation, or it represents the current user:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
-<span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;Dirk Gently&#39;}</span>
+<span class="go">{'type': 'HumanUser', 'id': 23, 'name': 'Dirk Gently'}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1308,10 +1308,10 @@ It is populated by the bootstrap manager after it queries ShotGrid.</p>
 <dd><p>A list of paths on disk which correspond to the <strong>entity</strong> which this context represents.
 If no folders have been created for this context yet, the value of this property will be an empty list:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">"Task"</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity_locations</span>
-<span class="go">[&#39;/studio.08/demo_project/sequences/AAA/ABC&#39;]</span>
+<span class="go">['/studio.08/demo_project/sequences/AAA/ABC']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1328,10 +1328,10 @@ If no folders have been created for this context yet, the value of this property
 the context, this may be a task, a shot, an asset or a project. If the context is
 completely empty, the root url of the associated shotgun installation is returned.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">"Task"</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">shotgun_url</span>
-<span class="go">&#39;https://mystudio.shotgunstudio.com/detail/Task/8&#39;</span>
+<span class="go">'https://mystudio.shotgunstudio.com/detail/Task/8'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1342,10 +1342,10 @@ completely empty, the root url of the associated shotgun installation is returne
 <dd><p>A property which holds a list of paths on disk which correspond to this context.
 If no folders have been created for this context yet, the value of this property will be an empty list:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">"Task"</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">filesystem_locations</span>
-<span class="go">[&#39;/studio.08/demo_project/sequences/AAA/ABC/light/initial_pass&#39;]</span>
+<span class="go">['/studio.08/demo_project/sequences/AAA/ABC/light/initial_pass']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1379,38 +1379,38 @@ server. The validate parameter can be used to ensure that the method returns all
 context fields required by the template and if it can’t then a <a class="reference internal" href="#sgtk.TankError" title="sgtk.TankError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code></a> will be raised.
 Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
 
 <span class="go"># Create a template based on a path on disk. Because this path has been</span>
-<span class="go"># generated through Toolkit&#39;s folder processing and there are corresponding</span>
+<span class="go"># generated through Toolkit's folder processing and there are corresponding</span>
 <span class="go"># FilesystemLocation entities stored in Shotgun, the context can resolve</span>
 <span class="go"># the path into a set of Shotgun entities.</span>
 <span class="go">#</span>
 <span class="go"># Note how the context object, once resolved, does not contain</span>
 <span class="go"># any information about the sequence associated with the Shot.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Lighting/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
-<span class="go">{&#39;type&#39;: &#39;Project&#39;, &#39;id&#39;: 4, &#39;name&#39;: &#39;demo_project&#39;}</span>
+<span class="go">{'type': 'Project', 'id': 4, 'name': 'demo_project'}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">entity</span>
-<span class="go">{&#39;type&#39;: &#39;Shot&#39;, &#39;id&#39;: 2, &#39;name&#39;: &#39;ABC&#39;}</span>
+<span class="go">{'type': 'Shot', 'id': 2, 'name': 'ABC'}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">step</span>
-<span class="go">{&#39;type&#39;: &#39;Step&#39;, &#39;id&#39;: 1, &#39;name&#39;: &#39;Light&#39;}</span>
+<span class="go">{'type': 'Step', 'id': 1, 'name': 'Light'}</span>
 
 <span class="go"># now if we have a template object that we want to turn into a path,</span>
 <span class="go"># we can request that the context object attempts to resolve as many</span>
 <span class="go"># fields as it can. These fields can then be plugged into the template</span>
 <span class="go"># object to generate a path on disk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">templ</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_shot_publish&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">templ</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"maya_shot_publish"</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">templ</span>
 <span class="go">&lt;Sgtk TemplatePath maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.ma&gt;</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">as_template_fields</span><span class="p">(</span><span class="n">templ</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span>
-<span class="go">{&#39;Step&#39;: &#39;Lighting&#39;, &#39;Shot&#39;: &#39;ABC&#39;, &#39;Sequence&#39;: &#39;AAA&#39;}</span>
+<span class="go">{'Step': 'Lighting', 'Shot': 'ABC', 'Sequence': 'AAA'}</span>
 
-<span class="go"># the fields dictionary above contains all the &#39;high level&#39; data that is necessary to realise</span>
+<span class="go"># the fields dictionary above contains all the 'high level' data that is necessary to realise</span>
 <span class="go"># the template path. An app or integration can now go ahead and populate the fields specific</span>
-<span class="go"># for the app&#39;s business logic - in this case name and version - and resolve the fields dictionary</span>
+<span class="go"># for the app's business logic - in this case name and version - and resolve the fields dictionary</span>
 <span class="go"># data into a path.</span>
 </pre></div>
 </div>
@@ -1440,14 +1440,14 @@ and any of the context fields for the template weren’t found.</p>
 <p>This is useful if you need to determine a user specific version of a path, e.g.
 when copying files between different user sandboxes. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">user</span>
-<span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;Dirk Gently&#39;}</span>
+<span class="go">{'type': 'HumanUser', 'id': 23, 'name': 'Dirk Gently'}</span>
 <span class="gp">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">create_copy_for_user</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;HumanUser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;John Snow&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">create_copy_for_user</span><span class="p">({</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'HumanUser'</span><span class="p">,</span> <span class="s1">'id'</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'John Snow'</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">copied_ctx</span><span class="o">.</span><span class="n">user</span>
-<span class="go">{&#39;type&#39;: &#39;HumanUser&#39;, &#39;id&#39;: 23, &#39;name&#39;: &#39;John Snow&#39;}</span>
+<span class="go">{'type': 'HumanUser', 'id': 23, 'name': 'John Snow'}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1486,8 +1486,8 @@ As an example, the <code class="docutils literal notranslate"><span class="pre">
 from the launch process (e.g. for example PTR desktop app) to the
 Application (e.g. Maya) being launched. Example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project/sequences/AAA/ABC/Lighting/dirk.gently/work"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context_str</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_ctx</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">Context</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">context_str</span><span class="p">)</span>
 </pre></div>
@@ -1597,7 +1597,7 @@ be present. Examples of such commands are the core upgrade
 check and the setup_project commands:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
-<span class="go">[&#39;setup_project&#39;, &#39;core&#39;]</span>
+<span class="go">['setup_project', 'core']</span>
 </pre></div>
 </div>
 <p>If you do pass in a tk API handle (or alternatively use the
@@ -1607,10 +1607,10 @@ This includes for example commands for configuration management,
 anything app or engine related and validation and overview functionality.
 In addition to these commands, the global commands will also be returned:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
-<span class="go">[&#39;setup_project&#39;, &#39;core&#39;, &#39;localize&#39;, &#39;validate&#39;, &#39;cache_apps&#39;, &#39;clear_cache&#39;,</span>
-<span class="go"> &#39;app_info&#39;, &#39;install_app&#39;, &#39;install_engine&#39;, &#39;updates&#39;, &#39;configurations&#39;, &#39;clone_configuration&#39;]</span>
+<span class="go">['setup_project', 'core', 'localize', 'validate', 'cache_apps', 'clear_cache',</span>
+<span class="go"> 'app_info', 'install_app', 'install_engine', 'updates', 'configurations', 'clone_configuration']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1662,9 +1662,9 @@ execution typically looks like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">list_commands</span><span class="p">()</span>
-<span class="go">[&#39;setup_project&#39;, &#39;core&#39;]</span>
+<span class="go">['setup_project', 'core']</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_command</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_command</span><span class="p">(</span><span class="s2">"core"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span>
 <span class="go">&lt;tank.deploy.tank_command.SgtkSystemCommand object at 0x106d9f090&gt;</span>
 
@@ -1677,14 +1677,14 @@ execution typically looks like this:</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#sgtk.SgtkSystemCommand.parameters" title="Permalink to this definition"></a></dt>
 <dd><p>The different parameters that needs to be specified and if a
 parameter has any default values. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;parameter_name&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Parameter info&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span> <span class="p">},</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">"parameter_name"</span><span class="p">:</span> <span class="p">{</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Parameter info"</span><span class="p">,</span>
+                    <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"str"</span> <span class="p">},</span>
 
  <span class="o">...</span>
 
- <span class="s2">&quot;return_value&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Return value (optional)&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span> <span class="p">}</span>
+ <span class="s2">"return_value"</span><span class="p">:</span> <span class="p">{</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Return value (optional)"</span><span class="p">,</span>
+                   <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"str"</span> <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1866,30 +1866,30 @@ so that you could even add support for a new DCC to your load app without having
 <span class="k">class</span><span class="w"> </span><span class="nc">Actions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">'''</span>
 <span class="sd">        Given some Shotgun publish data, return a list of</span>
 <span class="sd">        actions that can be performed</span>
 
 <span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
 <span class="sd">        :returns: List of action strings</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        '''</span>
         <span class="c1"># The base implementation implements an action to show</span>
         <span class="c1"># the item in Shotgun</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;show_in_sg&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">"show_in_sg"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">'''</span>
 <span class="sd">        Execute the given action</span>
 
 <span class="sd">        :param action: name of action. One of the items returned by list_actions.</span>
 <span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;show_in_sg&quot;</span><span class="p">:</span>
+<span class="sd">        '''</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"show_in_sg"</span><span class="p">:</span>
 
-            <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/detail/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">/detail/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%d</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-                <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
-                <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+                <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"type"</span><span class="p">],</span>
+                <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
                 <span class="p">)</span>
             <span class="n">QtGui</span><span class="o">.</span><span class="n">QDesktopServices</span><span class="o">.</span><span class="n">openUrl</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QUrl</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
 </pre></div>
@@ -1902,7 +1902,7 @@ we define an actions hook:</p>
 
     <span class="n">actions_hook</span><span class="p">:</span>
         <span class="nb">type</span><span class="p">:</span> <span class="n">hook</span>
-        <span class="n">default_value</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">/actions.py&quot;</span>
+        <span class="n">default_value</span><span class="p">:</span> <span class="s2">"</span><span class="si">{self}</span><span class="s2">/actions.py"</span>
         <span class="n">description</span><span class="p">:</span> <span class="n">Hook</span> <span class="n">which</span> <span class="n">contains</span> <span class="nb">all</span> <span class="n">methods</span> <span class="k">for</span> <span class="n">action</span> <span class="n">management</span><span class="o">.</span>
 </pre></div>
 </div>
@@ -1910,11 +1910,11 @@ we define an actions hook:</p>
 to call out to the hook:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># when creating a list of items in the UI for your app -</span>
 <span class="c1"># given a shotgun publish, build a menu of avaialable actions:</span>
-<span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="s2">&quot;actions_hook&quot;</span><span class="p">,</span> <span class="s2">&quot;list_actions&quot;</span><span class="p">,</span> <span class="n">sg_data</span><span class="p">)</span>
+<span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="s2">"actions_hook"</span><span class="p">,</span> <span class="s2">"list_actions"</span><span class="p">,</span> <span class="n">sg_data</span><span class="p">)</span>
 
 <span class="c1"># in a callback method once a user has selected an action -</span>
 <span class="c1"># call out to the hook to execute the action</span>
-<span class="bp">self</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="s2">&quot;actions_hook&quot;</span><span class="p">,</span> <span class="s2">&quot;run_action&quot;</span><span class="p">,</span> <span class="n">action_name</span><span class="p">,</span> <span class="n">sg_data</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span><span class="s2">"actions_hook"</span><span class="p">,</span> <span class="s2">"run_action"</span><span class="p">,</span> <span class="n">action_name</span><span class="p">,</span> <span class="n">sg_data</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In the configuration for your app, you can now ‘glue together’ different functionality
@@ -1929,31 +1929,31 @@ to the maya engine. This file looks like this:</p>
 <span class="k">class</span><span class="w"> </span><span class="nc">MayaActions</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">list_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">'''</span>
 <span class="sd">        Given some Shotgun publish data, return a list of</span>
 <span class="sd">        actions that can be performed</span>
 
 <span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
 <span class="sd">        :returns: List of action strings</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        '''</span>
         <span class="c1"># first get base class actions</span>
         <span class="n">actions</span> <span class="o">=</span> <span class="n">HookBaseClass</span><span class="o">.</span><span class="n">list_actions</span><span class="p">(</span><span class="n">sg_publish_data</span><span class="p">)</span>
 
         <span class="c1"># Add maya actions</span>
-        <span class="k">if</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;published_file_type&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Maya Scene&quot;</span><span class="p">:</span>
-            <span class="n">actions</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span> <span class="s2">&quot;import&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">"published_file_type"</span><span class="p">][</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Maya Scene"</span><span class="p">:</span>
+            <span class="n">actions</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">"reference"</span><span class="p">,</span> <span class="s2">"import"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">run_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">'''</span>
 <span class="sd">        Execute the given action</span>
 
 <span class="sd">        :param action: name of action. One of the items returned by list_actions.</span>
 <span class="sd">        :param sg_publish_data: Dictionary of publish data from Shotgun</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;reference&quot;</span><span class="p">:</span>
+<span class="sd">        '''</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"reference"</span><span class="p">:</span>
             <span class="c1"># do maya reference operation</span>
 
-        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;import&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"import"</span><span class="p">:</span>
             <span class="c1"># do maya import operation</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -1966,7 +1966,7 @@ Lastly, we need to tell the app to pick up this file. In the environment configu
 running inside of maya, we point it at our engine specific hook:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span>
     <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">myapp</span><span class="p">:</span>
-        <span class="n">actions_hook</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{engine}</span><span class="s1">/actions.py&#39;</span>
+        <span class="n">actions_hook</span><span class="p">:</span> <span class="s1">'</span><span class="si">{engine}</span><span class="s1">/actions.py'</span>
 </pre></div>
 </div>
 <p>When we are running the app configuration in maya, the actions hook will automatically
@@ -1998,7 +1998,7 @@ project specific maya hooks to this app, you could do this by creating a hook fi
 it in your configuration’s <code class="docutils literal notranslate"><span class="pre">hooks</span></code> folder and then configure it like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span>
     <span class="n">tk</span><span class="o">-</span><span class="n">multi</span><span class="o">-</span><span class="n">myapp</span><span class="p">:</span>
-        <span class="n">actions_hook</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{engine}</span><span class="s1">/actions.py:</span><span class="si">{config}</span><span class="s1">/maya_actions.py&#39;</span>
+        <span class="n">actions_hook</span><span class="p">:</span> <span class="s1">'</span><span class="si">{engine}</span><span class="s1">/actions.py:</span><span class="si">{config}</span><span class="s1">/maya_actions.py'</span>
 </pre></div>
 </div>
 <p>This would execute your <code class="docutils literal notranslate"><span class="pre">maya_actions.py</span></code> hook and make sure that that hook inherits from the
@@ -2072,7 +2072,7 @@ Each dictionary needs to at least contain a code, type, id and a path key.</p>
 <dd><p>The folder on disk where this item is located.
 This can be useful if you want to write hook code
 to retrieve a local resource:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hook_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;icon.png&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hook_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">"icon.png"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2114,11 +2114,11 @@ from inside a hook:</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="c1"># first get a framework handle. This object is similar to an app or engine object</span>
-        <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-library_v1.x.x&quot;</span><span class="p">)</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">"tk-framework-library_v1.x.x"</span><span class="p">)</span>
 
         <span class="c1"># now just like with an app or an engine, if you want to access code in the python</span>
         <span class="c1"># folder, you can do import_plugin</span>
-        <span class="n">module</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;some_module&quot;</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"some_module"</span><span class="p">)</span>
 
         <span class="n">module</span><span class="o">.</span><span class="n">do_stuff</span><span class="p">()</span>
 </pre></div>
@@ -2131,7 +2131,7 @@ This needs to be defined in the currently running environment, as part of the <c
 <span class="n">frameworks</span><span class="p">:</span>
  <span class="c1"># define the framework that we are using in the hook</span>
  <span class="n">tk</span><span class="o">-</span><span class="n">framework</span><span class="o">-</span><span class="n">library_v1</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">:</span>
-    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">&#39;https://github.com/foo/tk-framework-library.git&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="mf">.2.6</span><span class="p">}</span>
+    <span class="n">location</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="p">:</span> <span class="n">git</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s1">'https://github.com/foo/tk-framework-library.git'</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">v1</span><span class="mf">.2.6</span><span class="p">}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -2752,8 +2752,8 @@ a field in Shotgun. Should for example spaces be replaced by underscores
 or periods when folders are created?</p>
 <p>This hook can also be used to raise an exception if an invalid naming convention
 is being used, for example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Shot&quot;</span> <span class="ow">and</span> <span class="n">str_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;AA&quot;</span><span class="p">):</span>
-   <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Shot names cannot start with AA!&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">"Shot"</span> <span class="ow">and</span> <span class="n">str_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"AA"</span><span class="p">):</span>
+   <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"Shot names cannot start with AA!"</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="py class">
@@ -2849,7 +2849,7 @@ which points to one of your templates. So in the environment config, you would h
 <p>However if you want more complex behavior, it is possible to specify that a hook
 should be used to evaluate the setting at runtime rather than just set it.
 For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">template_snapshot</span><span class="p">:</span> <span class="s2">&quot;hook:example_template_hook:maya_shot_publish&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">template_snapshot</span><span class="p">:</span> <span class="s2">"hook:example_template_hook:maya_shot_publish"</span>
 </pre></div>
 </div>
 <p>This setting would look for a core hook named <code class="docutils literal notranslate"><span class="pre">example_template_hook</span></code> and execute it.
@@ -2893,7 +2893,7 @@ they need to read or write data from disk. Apps are file system structure agnost
 that they don’t know how the file system is organized. The template system handles all this for them.</p>
 <p>At the heart of the template system, there is a Templates Configuration File. This file contains
 all the important file system locations for a project. A Template looks something like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maya_shot_publish</span><span class="p">:</span> <span class="s1">&#39;shots/</span><span class="si">{Shot}</span><span class="s1">/</span><span class="si">{Step}</span><span class="s1">/pub/</span><span class="si">{name}</span><span class="s1">.v</span><span class="si">{version}</span><span class="s1">.ma&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maya_shot_publish</span><span class="p">:</span> <span class="s1">'shots/</span><span class="si">{Shot}</span><span class="s1">/</span><span class="si">{Step}</span><span class="s1">/pub/</span><span class="si">{name}</span><span class="s1">.v</span><span class="si">{version}</span><span class="s1">.ma'</span>
 </pre></div>
 </div>
 <p>It basically defines a path which contains certain dynamic fields. Each field can be
@@ -2905,21 +2905,21 @@ of one App (e.g. a publishing app) is often the input template of another app (e
 This is why all the file system locations are kept in a single file.</p>
 <p>The template API lets you jump between a list of field values and paths:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># get a template object from the API</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_shot_publish&quot;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"maya_shot_publish"</span><span class="p">]</span>
 <span class="o">&lt;</span><span class="n">Sgtk</span> <span class="n">Template</span> <span class="n">maya_asset_project</span><span class="p">:</span> <span class="n">shots</span><span class="o">/</span><span class="p">{</span><span class="n">Shot</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">Step</span><span class="p">}</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="p">{</span><span class="n">name</span><span class="p">}</span><span class="o">.</span><span class="n">v</span><span class="p">{</span><span class="n">version</span><span class="p">}</span><span class="o">.</span><span class="n">ma</span><span class="o">&gt;</span>
 
 <span class="c1"># we can use the template object to turn a path into a set of fields...</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">'/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma'</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="n">template_obj</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-<span class="p">{</span><span class="s1">&#39;Shot&#39;</span><span class="p">:</span> <span class="s1">&#39;001_002&#39;</span><span class="p">,</span>
- <span class="s1">&#39;Step&#39;</span><span class="p">:</span> <span class="s1">&#39;comp&#39;</span><span class="p">,</span>
- <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;main_scene&#39;</span><span class="p">,</span>
- <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">'Shot'</span><span class="p">:</span> <span class="s1">'001_002'</span><span class="p">,</span>
+ <span class="s1">'Step'</span><span class="p">:</span> <span class="s1">'comp'</span><span class="p">,</span>
+ <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'main_scene'</span><span class="p">,</span>
+ <span class="s1">'version'</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
 
 <span class="c1"># alternatively, we can take a fields dictionary and make a path</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
-<span class="s1">&#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+<span class="s1">'/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma'</span>
 </pre></div>
 </div>
 <p>Note how the above path and template has two different types of fields: The Shot and Step fields are
@@ -3004,11 +3004,11 @@ would return <code class="docutils literal notranslate"><span class="pre">True</
 <dd><p>Determines keys required for use of template which do not exist
 in a given fields.</p>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;max_asset_work&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">({})</span>
-<span class="go">[&#39;Step&#39;, &#39;sg_asset_type&#39;, &#39;Asset&#39;, &#39;version&#39;, &#39;name&#39;]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"max_asset_work"</span><span class="p">]</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">({})</span>
+<span class="go">['Step', 'sg_asset_type', 'Asset', 'version', 'name']</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;max_asset_work&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">})</span>
-<span class="go">[&#39;Step&#39;, &#39;sg_asset_type&#39;, &#39;Asset&#39;, &#39;version&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"max_asset_work"</span><span class="p">]</span><span class="o">.</span><span class="n">missing_keys</span><span class="p">({</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"foo"</span><span class="p">})</span>
+<span class="go">['Step', 'sg_asset_type', 'Asset', 'version']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3035,17 +3035,17 @@ values of None.</p>
 example <a class="reference internal" href="#sgtk.SequenceKey" title="sgtk.SequenceKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceKey</span></code></a> fields, which can take a <cite>FORMAT</cite> string which will intelligently
 format a image sequence specifier based on the type of data is being handled. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># get a template object from the API</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">&quot;maya_shot_publish&quot;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s2">"maya_shot_publish"</span><span class="p">]</span>
 <span class="o">&lt;</span><span class="n">Sgtk</span> <span class="n">Template</span> <span class="n">maya_asset_project</span><span class="p">:</span> <span class="n">shots</span><span class="o">/</span><span class="p">{</span><span class="n">Shot</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">Step</span><span class="p">}</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="p">{</span><span class="n">name</span><span class="p">}</span><span class="o">.</span><span class="n">v</span><span class="p">{</span><span class="n">version</span><span class="p">}</span><span class="o">.</span><span class="n">ma</span><span class="o">&gt;</span>
 
-<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Shot&#39;</span><span class="p">:</span> <span class="s1">&#39;001_002&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Step&#39;</span><span class="p">:</span> <span class="s1">&#39;comp&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;main_scene&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">3</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Shot'</span><span class="p">:</span> <span class="s1">'001_002'</span><span class="p">,</span>
+              <span class="s1">'Step'</span><span class="p">:</span> <span class="s1">'comp'</span><span class="p">,</span>
+              <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'main_scene'</span><span class="p">,</span>
+              <span class="s1">'version'</span><span class="p">:</span> <span class="mi">3</span>
               <span class="p">}</span>
 
 <span class="o">&gt;&gt;&gt;</span> <span class="n">template_obj</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
-<span class="s1">&#39;/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma&#39;</span>
+<span class="s1">'/projects/bbb/shots/001_002/comp/pub/main_scene.v003.ma'</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -3053,16 +3053,16 @@ format a image sequence specifier based on the type of data is being handled. Ex
 <p>For formatting of special values, see <a class="reference internal" href="#sgtk.SequenceKey" title="sgtk.SequenceKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceKey</span></code></a> and <a class="reference internal" href="#sgtk.TimestampKey" title="sgtk.TimestampKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimestampKey</span></code></a>.</p>
 </div>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Sequence&quot;</span><span class="p">:</span><span class="s2">&quot;seq_1&quot;</span><span class="p">,</span> <span class="s2">&quot;Shot&quot;</span><span class="p">:</span><span class="s2">&quot;shot_2&quot;</span><span class="p">,</span> <span class="s2">&quot;Step&quot;</span><span class="p">:</span><span class="s2">&quot;comp&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;henry&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Sequence"</span><span class="p">:</span><span class="s2">"seq_1"</span><span class="p">,</span> <span class="s2">"Shot"</span><span class="p">:</span><span class="s2">"shot_2"</span><span class="p">,</span> <span class="s2">"Step"</span><span class="p">:</span><span class="s2">"comp"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span><span class="s2">"henry"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span><span class="mi">3</span><span class="p">}</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
-<span class="go">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="go">'/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
-<span class="go">&#39;z:\studio_root\sgtk\demo_project_1\sequences\seq_1\shot_2\comp\publish\henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s1">'win32'</span><span class="p">)</span>
+<span class="go">'z:\studio_root\sgtk\demo_project_1\sequences\seq_1\shot_2\comp\publish\henry.v003.ma'</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_str</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
-<span class="go">&#39;Maya Scene henry, v003&#39;</span>
+<span class="go">'Maya Scene henry, v003'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3099,15 +3099,15 @@ match that platform.</p></li>
 <span class="sig-name descname"><span class="pre">validate_and_get_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.validate_and_get_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Template.validate_and_get_fields" title="Permalink to this definition"></a></dt>
 <dd><p>Takes an input string and determines whether it can be mapped to the template pattern.
 If it can then the list of matching fields is returned. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_path</span> <span class="o">=</span> <span class="s1">'/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">good_path</span><span class="p">)</span>
-<span class="go">{&#39;Sequence&#39;: &#39;seq_1&#39;,</span>
-<span class="go"> &#39;Shot&#39;: &#39;shot_2&#39;,</span>
-<span class="go"> &#39;Step&#39;: &#39;comp&#39;,</span>
-<span class="go"> &#39;name&#39;: &#39;henry&#39;,</span>
-<span class="go"> &#39;version&#39;: 3}</span>
+<span class="go">{'Sequence': 'seq_1',</span>
+<span class="go"> 'Shot': 'shot_2',</span>
+<span class="go"> 'Step': 'comp',</span>
+<span class="go"> 'name': 'henry',</span>
+<span class="go"> 'version': 3}</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bad_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bad_path</span> <span class="o">=</span> <span class="s1">'/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">bad_path</span><span class="p">)</span>
 <span class="go">None</span>
 </pre></div>
@@ -3131,11 +3131,11 @@ be present in the input path and found by the template.</p></li>
 <dt class="sig sig-object py" id="sgtk.Template.validate">
 <span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Template.validate" title="Permalink to this definition"></a></dt>
 <dd><p>Validates that a path can be mapped to the pattern given by the template. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">good_path</span> <span class="o">=</span> <span class="s1">'/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">good_path</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bad_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bad_path</span> <span class="o">=</span> <span class="s1">'/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">bad_path</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
@@ -3162,14 +3162,14 @@ be present in the input path and found by the template.</p></li>
 <dt class="sig sig-object py" id="sgtk.Template.get_fields">
 <span class="sig-name descname"><span class="pre">get_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/template.html#Template.get_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.Template.get_fields" title="Permalink to this definition"></a></dt>
 <dd><p>Extracts key name, value pairs from a string. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_path</span> <span class="o">=</span> <span class="s1">&#39;/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">input_path</span> <span class="o">=</span> <span class="s1">'/studio_root/sgtk/demo_project_1/sequences/seq_1/shot_2/comp/publish/henry.v003.ma'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
 
-<span class="go">{&#39;Sequence&#39;: &#39;seq_1&#39;,</span>
-<span class="go"> &#39;Shot&#39;: &#39;shot_2&#39;,</span>
-<span class="go"> &#39;Step&#39;: &#39;comp&#39;,</span>
-<span class="go"> &#39;name&#39;: &#39;henry&#39;,</span>
-<span class="go"> &#39;version&#39;: 3}</span>
+<span class="go">{'Sequence': 'seq_1',</span>
+<span class="go"> 'Shot': 'shot_2',</span>
+<span class="go"> 'Step': 'comp',</span>
+<span class="go"> 'name': 'henry',</span>
+<span class="go"> 'version': 3}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3276,25 +3276,25 @@ execute token specific logic.</p>
 The template keys handle the manner in which this conversion should occur. Template keys come
 in four flavors: string, integer, sequence and timestamp:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio.08/demo_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio.08/demo_project"</span><span class="p">)</span>
 
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s1">&#39;nuke_asset_render&#39;</span><span class="p">]</span>
-<span class="go"># .../{name}/v{version}/{width}x{height}/{Asset}_{name}_{output}_{render_time}.{frame}.exr&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">template_path</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">templates</span><span class="p">[</span><span class="s1">'nuke_asset_render'</span><span class="p">]</span>
+<span class="go"># .../{name}/v{version}/{width}x{height}/{Asset}_{name}_{output}_{render_time}.{frame}.exr'</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;Asset&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">'Asset'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span>
 <span class="go">&lt;Sgtk StringKey Asset&gt;</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">'height'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span>
 <span class="go">&lt;Sgtk IntegerKey height&gt;</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">'frame'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span>
 <span class="go">&lt;Sgtk SequenceKey frame&gt;</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">timestamp_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">&#39;render_time&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timestamp_key</span> <span class="o">=</span> <span class="n">template_path</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="s1">'render_time'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">timestamp_key</span>
 <span class="go">&lt;Sgtk TimestampKey render_time&gt;</span>
 </pre></div>
@@ -3416,19 +3416,19 @@ of files, for example when you want to represent a sequence of frames using a
 <dt class="sig sig-object py" id="sgtk.TemplateKey.validate">
 <span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#TemplateKey.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.TemplateKey.validate" title="Permalink to this definition"></a></dt>
 <dd><p>Test if a value is valid for this key:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">True</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">False</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
 </div>
@@ -3487,21 +3487,21 @@ for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># grabs capital letters of the two first words</span>
 <span class="n">user_initials</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">subset</span><span class="p">:</span> <span class="s1">&#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="s1">'([A-Z])[a-z]* ([A-Z])[a-z]*'</span>
 
 <span class="c1"># extracts the first three characters</span>
 <span class="n">first_three_characters</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">subset</span><span class="p">:</span> <span class="s1">&#39;(.</span><span class="si">{3}</span><span class="s1">).*&#39;</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="s1">'(.</span><span class="si">{3}</span><span class="s1">).*'</span>
 
 <span class="c1"># in code, the above expressions would compress the following input:</span>
 
 <span class="n">some_template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">&quot;user_initials&quot;</span><span class="p">:</span> <span class="s2">&quot;John Smith&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;first_three_characters&quot;</span><span class="p">:</span> <span class="s2">&quot;John Smith&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">"user_initials"</span><span class="p">:</span> <span class="s2">"John Smith"</span><span class="p">,</span>
+    <span class="s2">"first_three_characters"</span><span class="p">:</span> <span class="s2">"John Smith"</span><span class="p">}</span>
 <span class="p">)</span>
 
-<span class="c1"># into &quot;JS&quot; for the {user_initials} key and &quot;Joh&quot; for the {first_three_characters} key</span>
+<span class="c1"># into "JS" for the {user_initials} key and "Joh" for the {first_three_characters} key</span>
 </pre></div>
 </div>
 <p>If the subset expression contains more than one <code class="docutils literal notranslate"><span class="pre">(regex</span> <span class="pre">group)</span></code> to extract, the groups
@@ -3517,14 +3517,14 @@ over this, see <a class="reference internal" href="#sgtk.StringKey.subset_format
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># grabs capital letters of the two first words</span>
 <span class="n">user_initials_backwards</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">subset</span><span class="p">:</span> <span class="s1">&#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
-    <span class="n">subset_format</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{1}{0}</span><span class="s1">&#39;</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="s1">'([A-Z])[a-z]* ([A-Z])[a-z]*'</span>
+    <span class="n">subset_format</span><span class="p">:</span> <span class="s1">'</span><span class="si">{1}{0}</span><span class="s1">'</span>
 
 <span class="c1"># in code, the above expression would compress the following input:</span>
 
-<span class="n">some_template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">({</span><span class="s2">&quot;user_initials&quot;</span><span class="p">:</span> <span class="s2">&quot;John Smith&quot;</span><span class="p">})</span>
+<span class="n">some_template</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">({</span><span class="s2">"user_initials"</span><span class="p">:</span> <span class="s2">"John Smith"</span><span class="p">})</span>
 
-<span class="c1"># into &quot;SJ&quot; for the user_initials_backwards key.</span>
+<span class="c1"># into "SJ" for the user_initials_backwards key.</span>
 </pre></div>
 </div>
 <p>The formatting used for the string is standard python custom string formatting, where you can reference
@@ -3591,19 +3591,19 @@ correct padding.</p>
 </div></blockquote>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># An app in nuke generates a sequence path like this:</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Shot&quot;</span><span class="p">:</span><span class="s2">&quot;shot_2&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="s2">&quot;seq&quot;</span><span class="p">:</span> <span class="s2">&quot;FORMAT: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Shot"</span><span class="p">:</span><span class="s2">"shot_2"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span><span class="s2">"render"</span><span class="p">,</span> <span class="s2">"seq"</span><span class="p">:</span> <span class="s2">"FORMAT: </span><span class="si">%d</span><span class="s2">"</span><span class="p">}</span>
 <span class="c1"># the FORMAT field will correctly format the key regardless of</span>
 <span class="c1"># how it has been configured (e.g. for any type of padding)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
-<span class="s1">&#39;/mnt/proj/shot_2/publish/render.</span><span class="si">%04d</span><span class="s1">.exr&#39;</span>
+<span class="s1">'/mnt/proj/shot_2/publish/render.</span><span class="si">%04d</span><span class="s1">.exr'</span>
 
 
 <span class="c1"># in houdini, the code would look like this</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Shot&quot;</span><span class="p">:</span><span class="s2">&quot;shot_2&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;render&quot;</span><span class="p">,</span> <span class="s2">&quot;seq&quot;</span><span class="p">:</span> <span class="s2">&quot;FORMAT: $F&quot;</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Shot"</span><span class="p">:</span><span class="s2">"shot_2"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span><span class="s2">"render"</span><span class="p">,</span> <span class="s2">"seq"</span><span class="p">:</span> <span class="s2">"FORMAT: $F"</span><span class="p">}</span>
 <span class="c1"># the FORMAT field will correctly format the key regardless of</span>
 <span class="c1"># how it has been configured (e.g. for any type of padding)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">template_path</span><span class="o">.</span><span class="n">apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
-<span class="s1">&#39;/mnt/proj/shot_2/publish/render.$F4.exr&#39;</span>
+<span class="s1">'/mnt/proj/shot_2/publish/render.$F4.exr'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3625,19 +3625,19 @@ the value.</p></li>
 <dt class="sig sig-object py" id="sgtk.SequenceKey.validate">
 <span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#SequenceKey.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.SequenceKey.validate" title="Permalink to this definition"></a></dt>
 <dd><p>Test if a value is valid for this key:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">True</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">False</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
 </div>
@@ -3699,19 +3699,19 @@ format_spec when parsing a string.</p>
 <dt class="sig sig-object py" id="sgtk.IntegerKey.validate">
 <span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/templatekey.html#IntegerKey.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.IntegerKey.validate" title="Permalink to this definition"></a></dt>
 <dd><p>Test if a value is valid for this key:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">True</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">False</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">True</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq_key</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
 </div>

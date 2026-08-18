@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Initialization and startup &mdash; tk-core v0.24.0 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -150,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -564,30 +564,30 @@ instead of the usual core hooks location.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.util.shotgun</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_and_unpack_attachment</span>
 
 
-<span class="c1"># By using sgtk.get_hook_baseclass instead of deriving from sgtk.Hook, we&#39;ll be</span>
-<span class="c1"># getting the default hook&#39;s init method for free.</span>
+<span class="c1"># By using sgtk.get_hook_baseclass instead of deriving from sgtk.Hook, we'll be</span>
+<span class="c1"># getting the default hook's init method for free.</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Bootstrap</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This hook allows to download certain bundles from Shotgun instead of</span>
 <span class="sd">    official source for the bundle.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns true if the descriptor has been cached in Shotgun.</span>
 
 <span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
 <span class="sd">        :type descriptor: :class:`~sgtk.descriptor.Descriptor`</span>
 
 <span class="sd">        :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
-            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">]</span>
+            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()[</span><span class="s2">"type"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"app_store"</span><span class="p">,</span> <span class="s2">"git"</span><span class="p">]</span>
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_bundle_attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the attachment associated to this descriptor in Shotgun.</span>
 
 <span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
@@ -595,12 +595,12 @@ instead of the usual core hooks location.</p>
 
 <span class="sd">        :returns: The attachment entity dict.</span>
 <span class="sd">        :rtype: dict</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># This method gets invoked twice by the bootstrap hook, but will only be</span>
         <span class="c1"># invoked if the bundle is missing from disk so it is not worth putting a</span>
         <span class="c1"># caching system in place for the method.</span>
 
-        <span class="c1"># We&#39;re using the descriptor uri, i.e.</span>
+        <span class="c1"># We're using the descriptor uri, i.e.</span>
         <span class="c1"># sgtk:descriptor:app_store?name=tk-core&amp;version=v0.18.150,</span>
         <span class="c1"># as the code for the entity. If an entry is found and there is an</span>
         <span class="c1"># attachment, the bundle can be downloaded from Shotgun.</span>
@@ -611,17 +611,17 @@ instead of the usual core hooks location.</p>
         <span class="c1"># ``developer/populate_bundle_cache.py`` script, which will download</span>
         <span class="c1"># locally every single bundle for a given config.</span>
         <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
-            <span class="s2">&quot;CustomNonProjectEntity01&quot;</span><span class="p">,</span>
-            <span class="p">[[</span><span class="s2">&quot;sg_descriptor&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()]],</span>
-            <span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">],</span>
+            <span class="s2">"CustomNonProjectEntity01"</span><span class="p">,</span>
+            <span class="p">[[</span><span class="s2">"sg_descriptor"</span><span class="p">,</span> <span class="s2">"is"</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()]],</span>
+            <span class="p">[</span><span class="s2">"sg_content"</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">entity</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">entity</span><span class="p">[</span><span class="s2">"sg_content"</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This method will retrieve the bundle from the Shotgun site and unpack it</span>
 <span class="sd">        in the destination folder.</span>
 
@@ -631,11 +631,11 @@ instead of the usual core hooks location.</p>
 
 <span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
 <span class="sd">        :type descriptor: :class:`~sgtk.descriptor.Descriptor`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">attachment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
         <span class="n">download_and_unpack_attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="p">,</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;Bundle </span><span class="si">%s</span><span class="s2"> was downloaded from </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="s2">"Bundle </span><span class="si">%s</span><span class="s2"> was downloaded from </span><span class="si">%s</span><span class="s2">."</span><span class="p">,</span>
             <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">(),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
         <span class="p">)</span>
@@ -694,7 +694,7 @@ to make sure you always use the core associated with the configuration:</p>
 <span class="c1"># installed in /mnt/toolkit/configs/hidden_forest</span>
 <span class="c1"># add the tk-core of the project to the pythonpath</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/configs/hidden_forest/install/core/python&quot;</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"/mnt/toolkit/configs/hidden_forest/install/core/python"</span><span class="p">)</span>
 
 <span class="c1"># now import the API associated with config</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
@@ -702,31 +702,31 @@ to make sure you always use the core associated with the configuration:</p>
 <span class="c1"># and create a tk instance by passing in the path to the</span>
 <span class="c1"># configuration or a path to any file associated with the</span>
 <span class="c1"># project</span>
-<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/configs/hidden_forest&quot;</span><span class="p">)</span>
+<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/mnt/toolkit/configs/hidden_forest"</span><span class="p">)</span>
 
 <span class="c1"># create a context for a Flow Production Tracking entity associated with the project</span>
-<span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="mi">122</span><span class="p">)</span>
+<span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity</span><span class="p">(</span><span class="s2">"Project"</span><span class="p">,</span> <span class="mi">122</span><span class="p">)</span>
 
 <span class="c1"># finally, launch the engine</span>
-<span class="n">engine</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="s2">&quot;tk-maya&quot;</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="s2">"tk-maya"</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If you want, you can also use the bootstrap API to launch a centralized configuration:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># here, we can use any tk-core we want - it doesn&#39;t even have to be connected</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># here, we can use any tk-core we want - it doesn't even have to be connected</span>
 <span class="c1"># to a project - the bootstrap API will swap out the core for the right version</span>
 <span class="c1"># as it starts things up.</span>
 <span class="c1">#</span>
 <span class="c1"># here you could also pip install the tk-core for a fully automated workflow.</span>
 <span class="c1">#</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/my/python/stuff&quot;</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"/my/python/stuff"</span><span class="p">)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># Start up a Toolkit Manager</span>
 <span class="n">mgr</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">ToolkitManager</span><span class="p">()</span>
 
 <span class="c1"># now start up the maya engine for a given Flow Production Tracking object</span>
-<span class="n">e</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">bootstrap_engine</span><span class="p">(</span><span class="s2">&quot;tk-maya&quot;</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">122</span><span class="p">})</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">bootstrap_engine</span><span class="p">(</span><span class="s2">"tk-maya"</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Project"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">122</span><span class="p">})</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -768,13 +768,13 @@ you add this shared core to the <code class="docutils literal notranslate"><span
 project file on disk (or Shotgun entity) on your entire site easily:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># add the shared core to the pythonpath</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/shared_core&quot;</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"/mnt/toolkit/shared_core"</span><span class="p">)</span>
 
 <span class="c1"># now import the API</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
 
 <span class="c1"># request that the API produced a tk instance suitable for a given file</span>
-<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma&quot;</span><span class="p">)</span>
+<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma"</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -838,15 +838,15 @@ to launch Toolkit’s default config for a Flow Production Tracking Asset:</p>
 <span class="c1"># Set the base configuration to the default config</span>
 <span class="c1"># Note that the version token is not specified, meaning that</span>
 <span class="c1"># the latest version will be looked up and used</span>
-<span class="n">mgr</span><span class="o">.</span><span class="n">base_configuration</span> <span class="o">=</span> <span class="s2">&quot;sgtk:descriptor:app_store?name=tk-config-basic&quot;</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">base_configuration</span> <span class="o">=</span> <span class="s2">"sgtk:descriptor:app_store?name=tk-config-basic"</span>
 
 <span class="c1"># Each bootstrap session is normally defined by a plugin id. We recommend</span>
-<span class="c1"># using a &#39;basic.&#39; prefix if you want your bootstrap session to pick up the</span>
+<span class="c1"># using a 'basic.' prefix if you want your bootstrap session to pick up the</span>
 <span class="c1"># standard toolkit configurations</span>
-<span class="n">mgr</span><span class="o">.</span><span class="n">plugin_id</span> <span class="o">=</span> <span class="s2">&quot;basic.my_toolkit_plugin&quot;</span>
+<span class="n">mgr</span><span class="o">.</span><span class="n">plugin_id</span> <span class="o">=</span> <span class="s2">"basic.my_toolkit_plugin"</span>
 
 <span class="c1"># now start up the maya engine for a given Flow Production Tracking object</span>
-<span class="n">e</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">bootstrap_engine</span><span class="p">(</span><span class="s2">&quot;tk-maya&quot;</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Asset&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1234</span><span class="p">})</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">bootstrap_engine</span><span class="p">(</span><span class="s2">"tk-maya"</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Asset"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1234</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>In this example, there is no need to construct any <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.Sgtk</span></code></a>
@@ -993,13 +993,13 @@ data.</p>
 created.</p>
 <p>This function should have the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">'''</span>
 <span class="sd">    Called before the engine is started.</span>
 
-<span class="sd">    :param :class:&quot;~sgtk.Context&quot; ctx: Context into</span>
+<span class="sd">    :param :class:"~sgtk.Context" ctx: Context into</span>
 <span class="sd">        which the engine will be launched. This can also be used</span>
 <span class="sd">        to access the Toolkit instance.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1099,14 +1099,14 @@ all the config dependencies.</p>
 <dd><p>Callback that gets called whenever progress should be reported.</p>
 <p>This function should have the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">'''</span>
 <span class="sd">    Called whenever toolkit reports progress.</span>
 
 <span class="sd">    :param progress_value: The current progress value as float number.</span>
 <span class="sd">                           values will be reported in incremental order</span>
 <span class="sd">                           and always in the range 0.0 to 1.0</span>
 <span class="sd">    :param message:        Progress message string</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1165,18 +1165,18 @@ apps from the toolkit app store and installing files on disk.</p>
 <p>A callback function that handles cleanup after successful completion of the bootstrap
 with the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">'''</span>
 <span class="sd">    Called by the asynchronous bootstrap upon completion.</span>
 
 <span class="sd">    :param engine: Engine instance representing the engine</span>
 <span class="sd">                   that was launched.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 </pre></div>
 </div>
 <p>A callback function that handles cleanup after failed completion of the bootstrap
 with the following signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">'''</span>
 <span class="sd">    Called by the asynchronous bootstrap if an exception is raised.</span>
 
 <span class="sd">    :param phase: Indicates in which phase of the bootstrap the exception</span>
@@ -1191,7 +1191,7 @@ with the following signature:</p>
 <span class="sd">                  in an implementation of this callback.</span>
 
 <span class="sd">    :param exception: The python exception that was raised.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1267,12 +1267,12 @@ user and project will be retrieved. Note that this method does not support
 <p><strong>Return value</strong></p>
 <p>The data structure returned is a dictionary with several keys to
 describe the configuration, for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{&#39;descriptor&#39;: &lt;CachedConfigDescriptor &lt;IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.1.6&gt;&gt;,
- &#39;descriptor_source_uri&#39;: &#39;sgtk:descriptor:app_store?name=tk-config-basic&#39;,
- &#39;id&#39;: 500,
- &#39;name&#39;: &#39;Primary&#39;,
- &#39;project&#39;: {&#39;id&#39;: 123, &#39;name&#39;: &#39;Test Project&#39;, &#39;type&#39;: &#39;Project&#39;},
- &#39;type&#39;: &#39;PipelineConfiguration&#39;}
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{'descriptor': &lt;CachedConfigDescriptor &lt;IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.1.6&gt;&gt;,
+ 'descriptor_source_uri': 'sgtk:descriptor:app_store?name=tk-config-basic',
+ 'id': 500,
+ 'name': 'Primary',
+ 'project': {'id': 123, 'name': 'Test Project', 'type': 'Project'},
+ 'type': 'PipelineConfiguration'}
 </pre></div>
 </div>
 <p>The returned dictionary mimics the result of a Shotgun API query, including
@@ -1476,14 +1476,14 @@ required for a successful launch.</p>
 
 <span class="c1"># Create a Toolkit Core API instance based on a project path or</span>
 <span class="c1"># path that points directly at a pipeline configuration.</span>
-<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/site/project_root&quot;</span><span class="p">)</span>
+<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/site/project_root"</span><span class="p">)</span>
 
 <span class="c1"># Specify the context the DCC will be started up in.</span>
-<span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/site/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
+<span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/site/project_root/sequences/AAA/ABC/Light/work"</span><span class="p">)</span>
 
 <span class="c1"># Using a core factory method, construct a SoftwareLauncher</span>
 <span class="c1"># subclass for the desired tk engine.</span>
-<span class="n">software_launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">&quot;tk-maya&quot;</span><span class="p">)</span>
+<span class="n">software_launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">"tk-maya"</span><span class="p">)</span>
 
 <span class="c1"># Use the SoftwareLauncher instance to find a list of Maya versions installed on the</span>
 <span class="c1"># local filesystem. A list of SoftwareVersion instances is returned.</span>
@@ -1494,7 +1494,7 @@ required for a successful launch.</p>
 <span class="n">launch_info</span> <span class="o">=</span> <span class="n">software_launcher</span><span class="o">.</span><span class="n">prepare_launch</span><span class="p">(</span><span class="n">software_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
 <span class="c1"># Launch Maya!</span>
-<span class="n">launch_command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+<span class="n">launch_command</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_command</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1538,13 +1538,13 @@ DCC and startup the engine integration.</p></li>
         <span class="c1"># launch, and provide required command line args.</span>
         <span class="c1"># Return this information as a</span>
         <span class="c1"># LaunchInformation instance.</span>
-        <span class="n">correct_executable_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">command_line_args</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">correct_executable_path</span> <span class="o">=</span> <span class="s2">""</span>
+        <span class="n">command_line_args</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="n">launch_environment</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># once the software has launched, execute</span>
         <span class="c1"># startup script startup/userSetup.py</span>
-        <span class="n">launch_environment</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;startup&quot;</span><span class="p">)</span>
+        <span class="n">launch_environment</span><span class="p">[</span><span class="s2">"PYTHONPATH"</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">"startup"</span><span class="p">)</span>
 
         <span class="c1"># make sure to include some standard fields describing the current context and site</span>
         <span class="n">std_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_standard_plugin_environment</span><span class="p">()</span>
@@ -1604,16 +1604,16 @@ Toolkit is automatically started up during the DCC’s launch phase.
 A very simple example of how this works is demonstrated here:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">&quot;tk-maya&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root/sequences/AAA/ABC/Light/work"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">launcher</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="s2">"tk-maya"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">software_versions</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">scan_software</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">launch_info</span> <span class="o">=</span> <span class="n">launcher</span><span class="o">.</span><span class="n">prepare_launch</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">software_versions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">args</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma&quot;</span>
+<span class="gp">... </span>    <span class="s2">"/studio/project_root/sequences/AAA/ABC/Light/work/scene.ma"</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span> <span class="o">+</span> <span class="s2">" "</span> <span class="o">+</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">software_versions</span></code> is a list of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a>
@@ -1713,10 +1713,10 @@ for globbing files. It will then replace the tokens in the template with the reg
 that were provided.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_glob_and_match</span><span class="p">(</span>
-    <span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{full_version}</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{major_minor_version}</span><span class="s2">.exe&quot;</span><span class="p">,</span>
+    <span class="s2">"C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{full_version}</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{major_minor_version}</span><span class="s2">.exe"</span><span class="p">,</span>
     <span class="p">{</span>
-        <span class="s2">&quot;full_version&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;[\d.v]+&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;major_minor_version&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;[\d.]+&quot;</span>
+        <span class="s2">"full_version"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"[\d.v]+"</span><span class="p">,</span>
+        <span class="s2">"major_minor_version"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"[\d.]+"</span>
     <span class="p">}</span>
 <span class="p">)</span>
 </pre></div>
@@ -1725,8 +1725,8 @@ that were provided.</p>
 and then run the regular expression <code class="docutils literal notranslate"><span class="pre">C:\\Program</span> <span class="pre">Files\\Nuke([\d.v]+)\\Nuke([\d.]+).exe</span></code>
 on each match. Each match will be comprised of a path and a dictionary with they token’s value.</p>
 <p>For example, if Nuke 10.0v1 was installed, the following would have been returned:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke10.0v1</span><span class="se">\\</span><span class="s2">Nuke10.1.exe&quot;</span><span class="p">,</span>
-  <span class="p">{</span><span class="s2">&quot;full_version&quot;</span><span class="p">:</span> <span class="s2">&quot;10.0v1&quot;</span><span class="p">,</span> <span class="s2">&quot;major_minor_version&quot;</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span><span class="p">})]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">"C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke10.0v1</span><span class="se">\\</span><span class="s2">Nuke10.1.exe"</span><span class="p">,</span>
+  <span class="p">{</span><span class="s2">"full_version"</span><span class="p">:</span> <span class="s2">"10.0v1"</span><span class="p">,</span> <span class="s2">"major_minor_version"</span><span class="o">=</span><span class="s2">"10.0"</span><span class="p">})]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1762,7 +1762,7 @@ in the template. The key should be the name of the token to substitute.</p></li>
 <dd><p>The folder on disk where this item is located.
 This can be useful if you want to write app code
 to retrieve a local resource:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">,</span> <span class="s2">"font.fnt"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1809,7 +1809,7 @@ Returns <code class="docutils literal notranslate"><span class="pre">None</span>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">products</span></span><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.products" title="Permalink to this definition"></a></dt>
 <dd><p>A list of product names limiting executable discovery.</p>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;Houdini&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini Core&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini FX&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">"Houdini"</span><span class="p">,</span> <span class="s2">"Houdini Core"</span><span class="p">,</span> <span class="s2">"Houdini FX"</span><span class="p">]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1819,7 +1819,7 @@ Returns <code class="docutils literal notranslate"><span class="pre">None</span>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">versions</span></span><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.versions" title="Permalink to this definition"></a></dt>
 <dd><p>A list of versions limiting executable discovery.</p>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;15.5.324&quot;</span><span class="p">,</span> <span class="s2">&quot;16.0.1.322&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">"15.5.324"</span><span class="p">,</span> <span class="s2">"16.0.1.322"</span><span class="p">]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1859,8 +1859,8 @@ launch</p></li>
 <dt class="sig sig-object py" id="sgtk.platform.SoftwareLauncher.get_setting">
 <span class="sig-name descname"><span class="pre">get_setting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.get_setting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.get_setting" title="Permalink to this definition"></a></dt>
 <dd><p>Get a value from the item’s settings:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
-<span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">'entity_types'</span><span class="p">)</span>
+<span class="go">['Sequence', 'Shot', 'Asset', 'Task']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -2025,7 +2025,7 @@ required environment variables, the executable path, and command
 line arguments to pass when launching the DCC. For example, given
 a LaunchInformation instance <code class="docutils literal notranslate"><span class="pre">launch_info</span></code>, open a DCC using
 <code class="docutils literal notranslate"><span class="pre">subprocess</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">launch_cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">launch_cmd</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_cmd</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>

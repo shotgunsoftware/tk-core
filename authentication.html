@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Authentication &mdash; tk-core v0.24.0 documentation</title>
+  <title>Authentication &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -122,7 +122,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -222,9 +222,9 @@ a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="s
 <span class="c1"># Use the authenticator to create a user object. This object</span>
 <span class="c1"># identifies a Flow Production Tracking user or script and also wraps around</span>
 <span class="c1"># a Flow Production Tracking API instance which is associated with that user.</span>
-<span class="n">user</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">create_script_user</span><span class="p">(</span><span class="n">api_script</span><span class="o">=</span><span class="s2">&quot;myscript&quot;</span><span class="p">,</span>
-                             <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;xxxxx&quot;</span><span class="p">,</span>
-                             <span class="n">host</span><span class="o">=</span><span class="s2">&quot;https://myhost.shotgrid.autodesk.com&quot;</span><span class="p">)</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">create_script_user</span><span class="p">(</span><span class="n">api_script</span><span class="o">=</span><span class="s2">"myscript"</span><span class="p">,</span>
+                             <span class="n">api_key</span><span class="o">=</span><span class="s2">"xxxxx"</span><span class="p">,</span>
+                             <span class="n">host</span><span class="o">=</span><span class="s2">"https://myhost.shotgrid.autodesk.com"</span><span class="p">)</span>
 
 <span class="c1"># tell the Toolkit Core API which user to use</span>
 <span class="n">sgtk</span><span class="o">.</span><span class="n">set_authenticated_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.commands.interaction &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.commands.interaction &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Interfaces for prompting the user for input during tank command execution.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 
@@ -150,7 +150,7 @@
 
 
 <div class="viewcode-block" id="CommandInteraction"><a class="viewcode-back" href="../../../core.html#sgtk.CommandInteraction">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CommandInteraction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Base class interface for tank command interaction.</span>
 <span class="sd">    This can be subclassed in order to provide a custom</span>
 <span class="sd">    interaction environment when running commands in</span>
@@ -159,42 +159,42 @@
 <span class="sd">    In order to override the built-in interaction behavior,</span>
 <span class="sd">    pass an instance of a command interaction class to</span>
 <span class="sd">    the :meth:`sgtk.SgtkSystemCommand.execute` method.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">supports_interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        True if interaction is supported, false if not.</span>
 <span class="sd">        Implementations returning ``False`` here typically</span>
 <span class="sd">        implement other methods by returning default values</span>
 <span class="sd">        without prompting the user for feedback.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="CommandInteraction.request_input"><a class="viewcode-back" href="../../../core.html#sgtk.CommandInteraction.request_input">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">request_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Request general input from the user.</span>
 
 <span class="sd">        :param str message: Message to display</span>
 <span class="sd">        :returns: Information entered by user.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="CommandInteraction.ask_yn_question"><a class="viewcode-back" href="../../../core.html#sgtk.CommandInteraction.ask_yn_question">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">ask_yn_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Prompts the user with a yes/no question.</span>
 
 <span class="sd">        :param str message: Message to display</span>
 <span class="sd">        :returns: True if user selects yes, false if no.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="CommandInteraction.ask_yna_question"><a class="viewcode-back" href="../../../core.html#sgtk.CommandInteraction.ask_yna_question">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">ask_yna_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">force_prompt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Prompts the user with a yes/no/always question.</span>
 
 <span class="sd">        Always means that further calls to this method will return True.</span>
@@ -203,55 +203,55 @@
 <span class="sd">        :param bool force_prompt: Force a prompt, even if always</span>
 <span class="sd">            has been selected in the past.</span>
 <span class="sd">        :returns: True if user selects yes, false if no.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">RawInputCommandInteraction</span><span class="p">(</span><span class="n">CommandInteraction</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Interaction interface that uses stdout/stdin for prompting.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ask_questions</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">supports_interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        True if interaction is supported, false if not.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">request_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Request general input from the user.</span>
 
 <span class="sd">        :param str message: Message to display</span>
 <span class="sd">        :returns: Information entered by user.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">input</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_yn_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Prompts the user with a yes/no question.</span>
 
 <span class="sd">        :param str message: Message to display</span>
 <span class="sd">        :returns: True if user selects yes, false if no.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [yn]&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2"> [yn]"</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
         <span class="n">answer</span> <span class="o">=</span> <span class="n">answer</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">&quot;n&quot;</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Press y for YES, n for NO&quot;</span><span class="p">)</span>
-            <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [yn]&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">"n"</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">"y"</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"Press y for YES, n for NO"</span><span class="p">)</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2"> [yn]"</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">"y"</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_yna_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">force_prompt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Prompts the user with a yes/no/always question.</span>
 
 <span class="sd">        Always means that further calls to this method will return True.</span>
@@ -260,60 +260,60 @@
 <span class="sd">        :param bool force_prompt: Force a prompt, even if always</span>
 <span class="sd">            has been selected in the past.</span>
 <span class="sd">        :returns: True if user selects yes, false if no.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ask_questions</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_prompt</span><span class="p">:</span>
             <span class="c1"># auto-press YES</span>
             <span class="k">return</span> <span class="kc">True</span>
 
-        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [Yna?]&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2"> [Yna?]"</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
         <span class="n">answer</span> <span class="o">=</span> <span class="n">answer</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">&quot;n&quot;</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">&quot;a&quot;</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">&quot;y&quot;</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Press ENTER or y for YES, n for NO and a for ALWAYS.&quot;</span><span class="p">)</span>
-            <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [Yna?]&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">"n"</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">"a"</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">"y"</span> <span class="ow">and</span> <span class="n">answer</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"Press ENTER or y for YES, n for NO and a for ALWAYS."</span><span class="p">)</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2"> [Yna?]"</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">"a"</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ask_questions</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="kc">True</span>
 
-        <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span> <span class="ow">or</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">"y"</span> <span class="ow">or</span> <span class="n">answer</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">YesToEverythingInteraction</span><span class="p">(</span><span class="n">CommandInteraction</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Interaction interface that says yes to everything.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">supports_interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        True if interaction is supported, false if not.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">request_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Request general input from the user.</span>
 
 <span class="sd">        :param str message: Message to display</span>
 <span class="sd">        :returns: Information entered by user.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot prompt user for input&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Cannot prompt user for input"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_yn_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Prompts the user with a yes/no question.</span>
 
 <span class="sd">        :param str message: Message to display</span>
 <span class="sd">        :returns: True if user selects yes, false if no.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ask_yna_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">force_prompt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Prompts the user with a yes/no/always question.</span>
 
 <span class="sd">        Always means that further calls to this method will return True.</span>
@@ -322,7 +322,7 @@
 <span class="sd">        :param bool force_prompt: Force a prompt, even if always</span>
 <span class="sd">            has been selected in the past.</span>
 <span class="sd">        :returns: True if user selects yes, false if no.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 

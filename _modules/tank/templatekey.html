@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.templatekey &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.templatekey &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Classes for fields on TemplatePaths and TemplateStrings</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections.abc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
@@ -153,7 +153,7 @@
 
 
 <div class="viewcode-block" id="TemplateKey"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TemplateKey</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Base class for all template key types. Should not be used directly.</span>
 
 <span class="sd">    TemplateKeys are used by Template object to move between key values and resolved strings.</span>
@@ -161,28 +161,28 @@
 <span class="sd">    in four flavors: string, integer, sequence and timestamp::</span>
 
 <span class="sd">        &gt;&gt;&gt; import sgtk</span>
-<span class="sd">        &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio.08/demo_project&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; tk = sgtk.sgtk_from_path("/studio.08/demo_project")</span>
 
 
-<span class="sd">        &gt;&gt;&gt; template_path = tk.templates[&#39;nuke_asset_render&#39;]</span>
-<span class="sd">        # .../{name}/v{version}/{width}x{height}/{Asset}_{name}_{output}_{render_time}.{frame}.exr&#39;</span>
+<span class="sd">        &gt;&gt;&gt; template_path = tk.templates['nuke_asset_render']</span>
+<span class="sd">        # .../{name}/v{version}/{width}x{height}/{Asset}_{name}_{output}_{render_time}.{frame}.exr'</span>
 
-<span class="sd">        &gt;&gt;&gt; str_key = template_path.keys[&#39;Asset&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; str_key = template_path.keys['Asset']</span>
 <span class="sd">        &gt;&gt;&gt; str_key</span>
 <span class="sd">        &lt;Sgtk StringKey Asset&gt;</span>
 
-<span class="sd">        &gt;&gt;&gt; int_key = template_path.keys[&#39;height&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; int_key = template_path.keys['height']</span>
 <span class="sd">        &gt;&gt;&gt; int_key</span>
 <span class="sd">        &lt;Sgtk IntegerKey height&gt;</span>
 
-<span class="sd">        &gt;&gt;&gt; seq_key = template_path.keys[&#39;frame&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; seq_key = template_path.keys['frame']</span>
 <span class="sd">        &gt;&gt;&gt; seq_key</span>
 <span class="sd">        &lt;Sgtk SequenceKey frame&gt;</span>
 
-<span class="sd">        &gt;&gt;&gt; timestamp_key = template_path.keys[&#39;render_time&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; timestamp_key = template_path.keys['render_time']</span>
 <span class="sd">        &gt;&gt;&gt; timestamp_key</span>
 <span class="sd">        &lt;Sgtk TimestampKey render_time&gt;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -195,7 +195,7 @@
         <span class="n">abstract</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param default: Default value for this key. If the default is a callable, it will be invoked</span>
 <span class="sd">                        without any parameters whenever a default value is required.</span>
@@ -206,7 +206,7 @@
 <span class="sd">        :param list exclusions: List of forbidden values.</span>
 <span class="sd">        :param bool abstract: Flagging that this should be treated as an abstract key.</span>
 <span class="sd">        :param int length: If non-None, indicating that the value should be of a fixed length.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="n">default</span>
 
@@ -225,23 +225,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_shotgun_field_name</span> <span class="o">=</span> <span class="n">shotgun_field_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_abstract</span> <span class="o">=</span> <span class="n">abstract</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_length</span> <span class="o">=</span> <span class="n">length</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">""</span>
 
-        <span class="c1"># check that the key name doesn&#39;t contain invalid characters</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="c1"># check that the key name doesn't contain invalid characters</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^</span><span class="si">%s</span><span class="s2">$"</span> <span class="o">%</span> <span class="n">constants</span><span class="o">.</span><span class="n">TEMPLATE_KEY_NAME_REGEX</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Name contains invalid characters. &quot;</span>
-                <span class="s2">&quot;Valid characters are </span><span class="si">%s</span><span class="s2">.&quot;</span>
+                <span class="s2">"</span><span class="si">%s</span><span class="s2">: Name contains invalid characters. "</span>
+                <span class="s2">"Valid characters are </span><span class="si">%s</span><span class="s2">."</span>
                 <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">VALID_TEMPLATE_KEY_NAME_DESC</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="c1"># Validation</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_field_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_entity_type</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: PTR field requires a PTR entity be set.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"</span><span class="si">%s</span><span class="s2">: PTR field requires a PTR entity be set."</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_abstract</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Fields marked as abstract needs to have a default value!&quot;</span> <span class="o">%</span> <span class="bp">self</span>
+                <span class="s2">"</span><span class="si">%s</span><span class="s2">: Fields marked as abstract needs to have a default value!"</span> <span class="o">%</span> <span class="bp">self</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)):</span>
@@ -252,12 +252,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The default value for this key. If the default argument was specified</span>
 <span class="sd">        as a callable in the constructor, it is invoked and assumed to take no parameters.</span>
 
 <span class="sd">        :returns: The default value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -265,86 +265,86 @@
 
     <span class="nd">@default</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Sets the default value for this key.</span>
 
 <span class="sd">        :param value: New default value for the key. Can be None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The name that the template will use to refer to the key.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Fixed length that needs to be used for this item or None if any length is valid.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_entity_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Shotgun entity type associated with this item</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shotgun_entity_type</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_field_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Shotgun field name associated with this item</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shotgun_field_name</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">exclusions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        List of values which are not allowed for this item.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exclusions</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_abstract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        A boolean value indicating if this key is abstract. Abstract keys are</span>
 <span class="sd">        typically used in conjunction with path elements which represent clusters</span>
 <span class="sd">        of files, for example when you want to represent a sequence of frames using a</span>
 <span class="sd">        ``%04d`` syntax or a left and right eye using a ``%v`` syntax.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_abstract</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        List of choices available, e.g. ``[&#39;ma&#39;, &#39;mb&#39;]``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        List of choices available, e.g. ``['ma', 'mb']``</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_choices</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">labelled_choices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Dictionary of labelled choices, e.g. ``{&#39;ma&#39;: &#39;Maya Ascii&#39;, &#39;mb&#39;: &#39;Maya Binary&#39;}``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Dictionary of labelled choices, e.g. ``{'ma': 'Maya Ascii', 'mb': 'Maya Binary'}``</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choices</span>
 
 <div class="viewcode-block" id="TemplateKey.str_from_value"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.str_from_value">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">str_from_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_type</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a string version of a value as appropriate for the key&#39;s setting.</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns a string version of a value as appropriate for the key's setting.</span>
 
-<span class="sd">        :param value: Value to process. If None, the key&#39;s default will be used.</span>
+<span class="sd">        :param value: Value to process. If None, the key's default will be used.</span>
 <span class="sd">        :param ignore_type: If true, no validation will be carried out prior to casting.</span>
 
 <span class="sd">        :returns: String version of value as processed by the key.</span>
 <span class="sd">        :raises: :class:`TankError` if value is not valid for the key.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                    <span class="s2">&quot;No value provided and no default available for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span>
+                    <span class="s2">"No value provided and no default available for </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="bp">self</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
@@ -357,12 +357,12 @@
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TemplateKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.value_from_str">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Validates and translates a string into an appropriate value for this key.</span>
 
 <span class="sd">        :param str_value: The string to translate.</span>
 <span class="sd">        :returns: The translated value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">str_value</span><span class="p">):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_as_value</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -370,33 +370,33 @@
         <span class="k">return</span> <span class="n">value</span></div>
 
 <div class="viewcode-block" id="TemplateKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TemplateKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Test if a value is valid for this key::</span>
 
-<span class="sd">            &gt;&gt;&gt; str_key.validate(&#39;foo&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; str_key.validate('foo')</span>
 <span class="sd">            True</span>
 
 <span class="sd">            &gt;&gt;&gt; int_key.validate(2)</span>
 <span class="sd">            True</span>
 
-<span class="sd">            &gt;&gt;&gt; int_key.validate(&#39;foo&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; int_key.validate('foo')</span>
 <span class="sd">            False</span>
 
 <span class="sd">            &gt;&gt;&gt; seq_key.validate(3)</span>
 <span class="sd">            True</span>
 
-<span class="sd">            &gt;&gt;&gt; seq_key.validate(&#39;foo&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; seq_key.validate('foo')</span>
 <span class="sd">            False</span>
 
 <span class="sd">        :param value: Value to test</span>
 <span class="sd">        :returns: Bool</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="c1"># We are not case sensitive</span>
         <span class="k">if</span> <span class="n">str_value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclusions</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value: </span><span class="si">%s</span><span class="s2"> is forbidden for this key.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value: </span><span class="si">%s</span><span class="s2"> is forbidden for this key."</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span>
                 <span class="n">value</span><span class="p">,</span>
             <span class="p">)</span>
@@ -404,7 +404,7 @@
 
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">str_value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value: &#39;</span><span class="si">%s</span><span class="s2">&#39; not in choices: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value: '</span><span class="si">%s</span><span class="s2">' not in choices: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="p">,</span>
                     <span class="n">value</span><span class="p">,</span>
                     <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">),</span>
@@ -413,8 +413,8 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value: &#39;</span><span class="si">%s</span><span class="s2">&#39; does not have a length of &quot;</span>
-                <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> characters.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+                <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value: '</span><span class="si">%s</span><span class="s2">' does not have a length of "</span>
+                <span class="s2">"</span><span class="si">%d</span><span class="s2"> characters."</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
@@ -427,13 +427,13 @@
         <span class="k">return</span> <span class="n">str_value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">"&lt;Sgtk </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&gt;"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="StringKey"><a class="viewcode-back" href="../../core.html#sgtk.StringKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">StringKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    :class:`TemplateKey` representing a string value.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -449,13 +449,13 @@
         <span class="n">subset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">subset_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param str default: Default value for the key.</span>
 <span class="sd">        :param choices: List of possible values for this key. Can be either a list or a dictionary</span>
 <span class="sd">                        of choice:label pairs.</span>
 <span class="sd">        :param str filter_by: Name of filter type to limit values for string. Currently</span>
-<span class="sd">                              only accepted values are &#39;alphanumeric&#39;, &#39;alpha&#39;, None and a regex string.</span>
+<span class="sd">                              only accepted values are 'alphanumeric', 'alpha', None and a regex string.</span>
 <span class="sd">        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
 <span class="sd">        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
 <span class="sd">        :param list exclusions: List of forbidden values.</span>
@@ -463,23 +463,23 @@
 <span class="sd">        :param int length: If non-None, indicating that the value should be of a fixed length.</span>
 <span class="sd">        :param str subset: Regular expression defining a subset of the value to use.</span>
 <span class="sd">        :param str subset_format: String to express the formatting of subset tokens.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="o">=</span> <span class="n">filter_by</span>
 
         <span class="c1"># Build regexes for alpha and alphanumeric filter_by clauses</span>
         <span class="c1">#</span>
         <span class="c1"># Note that we cannot use a traditional [^a-zA-Z0-9] regex since we want</span>
-        <span class="c1"># to support unicode and not just ascii. \W covers &quot;Non-word characters&quot;,</span>
+        <span class="c1"># to support unicode and not just ascii. \W covers "Non-word characters",</span>
         <span class="c1"># which is basically the international equivalent of 7-bit ascii</span>
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_custom_regex_u</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="o">==</span> <span class="s2">&quot;alphanumeric&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[\W_]&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="o">==</span> <span class="s2">"alphanumeric"</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[\W_]"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="o">==</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[\W_0-9]&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="o">==</span> <span class="s2">"alpha"</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[\W_0-9]"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># filter_by is a regex</span>
@@ -495,7 +495,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                    <span class="s2">&quot;Template key </span><span class="si">%s</span><span class="s2">: Invalid subset regex &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="s2">"Template key </span><span class="si">%s</span><span class="s2">: Invalid subset regex '</span><span class="si">%s</span><span class="s2">': </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                 <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -514,21 +514,21 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: Cannot specify subset_format parameter without a subset parameter.&quot;</span>
+                <span class="s2">"</span><span class="si">%s</span><span class="s2">: Cannot specify subset_format parameter without a subset parameter."</span>
                 <span class="o">%</span> <span class="bp">self</span>
             <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">filter_by</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Name of filter type to limit values for string.</span>
 <span class="sd">        ``alphanumeric``, ``alpha``, ``None`` or a regex string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">subset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns a regular expression describing how values should be transformed</span>
 <span class="sd">        when they are being injected into template paths and strings.</span>
 
@@ -538,78 +538,78 @@
 <span class="sd">            # grabs capital letters of the two first words</span>
 <span class="sd">            user_initials:</span>
 <span class="sd">                type: str</span>
-<span class="sd">                subset: &#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
+<span class="sd">                subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'</span>
 
 <span class="sd">            # extracts the first three characters</span>
 <span class="sd">            first_three_characters:</span>
 <span class="sd">                type: str</span>
-<span class="sd">                subset: &#39;(.{3}).*&#39;</span>
+<span class="sd">                subset: '(.{3}).*'</span>
 
 <span class="sd">            # in code, the above expressions would compress the following input:</span>
 
 <span class="sd">            some_template.apply_fields(</span>
-<span class="sd">                {&quot;user_initials&quot;: &quot;John Smith&quot;,</span>
-<span class="sd">                &quot;first_three_characters&quot;: &quot;John Smith&quot;}</span>
+<span class="sd">                {"user_initials": "John Smith",</span>
+<span class="sd">                "first_three_characters": "John Smith"}</span>
 <span class="sd">            )</span>
 
-<span class="sd">            # into &quot;JS&quot; for the {user_initials} key and &quot;Joh&quot; for the {first_three_characters} key</span>
+<span class="sd">            # into "JS" for the {user_initials} key and "Joh" for the {first_three_characters} key</span>
 
 <span class="sd">        If the subset expression contains more than one ``(regex group)`` to extract, the groups</span>
 <span class="sd">        will be concatenated together in the order they are found. If you want greater control</span>
 <span class="sd">        over this, see :meth:`subset_format`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_str</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">subset_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the ``subset_format`` string for the given template key. This string is used in conjunction with the</span>
 <span class="sd">        :meth:`subset` parameter and allows for the formatting of the values that are being extracted::</span>
 
 <span class="sd">            # grabs capital letters of the two first words</span>
 <span class="sd">            user_initials_backwards:</span>
 <span class="sd">                type: str</span>
-<span class="sd">                subset: &#39;([A-Z])[a-z]* ([A-Z])[a-z]*&#39;</span>
-<span class="sd">                subset_format: &#39;{1}{0}&#39;</span>
+<span class="sd">                subset: '([A-Z])[a-z]* ([A-Z])[a-z]*'</span>
+<span class="sd">                subset_format: '{1}{0}'</span>
 
 <span class="sd">            # in code, the above expression would compress the following input:</span>
 
-<span class="sd">            some_template.apply_fields({&quot;user_initials&quot;: &quot;John Smith&quot;})</span>
+<span class="sd">            some_template.apply_fields({"user_initials": "John Smith"})</span>
 
-<span class="sd">            # into &quot;SJ&quot; for the user_initials_backwards key.</span>
+<span class="sd">            # into "SJ" for the user_initials_backwards key.</span>
 
 <span class="sd">        The formatting used for the string is standard python custom string formatting, where you can reference</span>
 <span class="sd">        each regex group with an integer index. Read more about standard python string formatting here:</span>
 <span class="sd">        https://docs.python.org/2/library/string.html#custom-string-formatting</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span>
 
 <div class="viewcode-block" id="StringKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Test if a value is valid for this key.</span>
 
 <span class="sd">        :param value: Value to test</span>
 <span class="sd">        :returns: True if valid, false if not.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># make sure that transforms such as a subset calculation</span>
         <span class="c1"># are valid.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__validate</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StringKey.value_from_str"><a class="viewcode-back" href="../../core.html#sgtk.StringKey.value_from_str">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">value_from_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Validates and translates a string into an appropriate value for this key.</span>
 
 <span class="sd">        :param str_value: The string to translate.</span>
 <span class="sd">        :returns: The translated value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># this is used by the parser when transforming</span>
         <span class="c1"># a path or string into an actual value.</span>
-        <span class="c1"># in this case, we don&#39;t want to validate transforms</span>
+        <span class="c1"># in this case, we don't want to validate transforms</span>
         <span class="c1"># such as the substring regext transform, since these</span>
         <span class="c1"># may not be valid in both directions.</span>
         <span class="c1">#</span>
         <span class="c1"># for example, a regex that extracts the initials from</span>
-        <span class="c1"># a &quot;Firstname Lastname&quot; string will result in a value</span>
+        <span class="c1"># a "Firstname Lastname" string will result in a value</span>
         <span class="c1"># which will not match the regex that is used to</span>
         <span class="c1"># extract it.</span>
         <span class="c1">#</span>
@@ -620,12 +620,12 @@
         <span class="k">return</span> <span class="n">value</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Converts the given value to a string representation.</span>
 
 <span class="sd">        :param value: value of any type to convert. Value is never None.</span>
 <span class="sd">        :returns: string representation for this object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span><span class="p">:</span>
@@ -635,7 +635,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
                 <span class="c1"># convert to unicode</span>
                 <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">str_value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">str_value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># already unicode</span>
                 <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="kc">False</span>
@@ -646,7 +646,7 @@
             <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># no match. return empty string</span>
                 <span class="c1"># validate should prevent this from happening</span>
-                <span class="n">resolved_value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="s2">""</span>
 
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="p">:</span>
                 <span class="c1"># we have an explicit format string we want to apply to the match.</span>
@@ -654,32 +654,32 @@
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># we have a match object. concatenate the groups</span>
-                <span class="n">resolved_value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
+                <span class="n">resolved_value</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
 
             <span class="c1"># resolved value is now unicode. Convert it</span>
             <span class="c1"># so that it is consistent with input</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_is_utf8</span><span class="p">:</span>
                 <span class="c1"># input was utf-8, regex resut is unicode, cast it back</span>
-                <span class="n">str_value</span> <span class="o">=</span> <span class="n">resolved_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                <span class="n">str_value</span> <span class="o">=</span> <span class="n">resolved_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">str_value</span> <span class="o">=</span> <span class="n">resolved_value</span>
 
         <span class="k">return</span> <span class="n">str_value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">validate_transforms</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Test if a value is valid for this key.</span>
 
 <span class="sd">        :param value: Value to test</span>
 <span class="sd">        :param validate_transforms: If true, then validate that transforms that mutate the</span>
 <span class="sd">                                    value of a key are valid and can be applied.</span>
 <span class="sd">        :returns: True if valid, false if not.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="c1"># handle non-ascii characters correctly by</span>
             <span class="c1"># decoding to unicode assuming utf-8 encoding</span>
-            <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="n">u_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span><span class="p">:</span>
             <span class="c1"># first check our std filters. These filters are negated</span>
@@ -687,7 +687,7 @@
             <span class="c1"># that pattern in the string</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_regex_u</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">u_value</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit filter_by &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                    <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">' does not fit filter_by '</span><span class="si">%s</span><span class="s2">'"</span>
                     <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_by</span><span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -696,7 +696,7 @@
             <span class="c1"># check for any user specified regexes</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_custom_regex_u</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_value</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit filter_by &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                    <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">' does not fit filter_by '</span><span class="si">%s</span><span class="s2">'"</span>
                     <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_by</span><span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -706,8 +706,8 @@
             <span class="n">regex_match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subset_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_value</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">regex_match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit &quot;</span>
-                    <span class="s2">&quot;subset expression &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">)</span>
+                    <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">' does not fit "</span>
+                    <span class="s2">"subset expression '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
@@ -717,7 +717,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_subset_format</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">regex_match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39; does not fit subset &#39;</span><span class="si">%s</span><span class="s2">&#39; with format &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                        <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">' does not fit subset '</span><span class="si">%s</span><span class="s2">' with format '</span><span class="si">%s</span><span class="s2">': </span><span class="si">%s</span><span class="s2">"</span>
                         <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset_format</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                     <span class="p">)</span>
                     <span class="k">return</span> <span class="kc">False</span>
@@ -726,17 +726,17 @@
 
 
 <div class="viewcode-block" id="TimestampKey"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TimestampKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    :class:`TemplateKey` representing a time or date string formatted with strftime.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">format_spec</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">format_spec</span><span class="o">=</span><span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M-%S"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param default: Default value for this field. Acceptable values are:</span>
 
 <span class="sd">                        - ``None``</span>
-<span class="sd">                        - a string formatted according to the format_spec, e.g. &#39;2003-01-02 12:23&#39;</span>
+<span class="sd">                        - a string formatted according to the format_spec, e.g. '2003-01-02 12:23'</span>
 <span class="sd">                        - ``utc_now``, which means the current time in the UTC timezone will be used</span>
 <span class="sd">                          as the default value.</span>
 <span class="sd">                        - ``now``, which means the current time in the local timezone will be used</span>
@@ -746,29 +746,29 @@
 <span class="sd">                                The format follows the convention of :meth:`time.strftime`. The</span>
 <span class="sd">                                default value is ``%Y-%m-%d-%H-%M-%S``. Given June 24th, 2015 at</span>
 <span class="sd">                                9:20:30 PM, this will yield ``2015-06-24-21-20-30``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="c1"># Can&#39;t use __repr__ because of a chicken and egg problem. The base class validates the</span>
+        <span class="c1"># Can't use __repr__ because of a chicken and egg problem. The base class validates the</span>
         <span class="c1"># default value, so format_spec needs to be set first. But if I am testing format_spec</span>
-        <span class="c1"># before calling the base class, then repr will crash since self.name won&#39;t have been set</span>
+        <span class="c1"># before calling the base class, then repr will crash since self.name won't have been set</span>
         <span class="c1"># yet.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">format_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;format_spec for &lt;Sgtk TimestampKey </span><span class="si">%s</span><span class="s2">&gt; is not of type string: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="s2">"format_spec for &lt;Sgtk TimestampKey </span><span class="si">%s</span><span class="s2">&gt; is not of type string: </span><span class="si">%s</span><span class="s2">"</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span> <span class="o">=</span> <span class="n">format_spec</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="c1"># if the user passes in now or utc, we&#39;ll generate the current time as the default time.</span>
-            <span class="k">if</span> <span class="n">default</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;now&quot;</span><span class="p">:</span>
+            <span class="c1"># if the user passes in now or utc, we'll generate the current time as the default time.</span>
+            <span class="k">if</span> <span class="n">default</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"now"</span><span class="p">:</span>
                 <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_current_time</span>
-            <span class="k">elif</span> <span class="n">default</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;utc_now&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">default</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"utc_now"</span><span class="p">:</span>
                 <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_current_utc_time</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Normally the base class is the one to validate, but in this case we need to</span>
                 <span class="c1"># convert the string value into an actual value because the default is expected to</span>
-                <span class="c1"># be a value and not a string, so we&#39;ll validate right away.</span>
+                <span class="c1"># be a value and not a string, so we'll validate right away.</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">default</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span>
                 <span class="c1"># If we are here everything went well, so convert the string to an actual value.</span>
@@ -776,7 +776,7 @@
             <span class="c1"># Base class will validate other values using the format specifier.</span>
         <span class="k">elif</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;default for &lt;Sgtk TimestampKey </span><span class="si">%s</span><span class="s2">&gt; is not of type string or None: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="s2">"default for &lt;Sgtk TimestampKey </span><span class="si">%s</span><span class="s2">&gt; is not of type string or None: </span><span class="si">%s</span><span class="s2">"</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
             <span class="p">)</span>
 
@@ -784,44 +784,44 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Specification for formatting when casting to/from a string.</span>
 <span class="sd">        The format follows the convention of :meth:`time.strftime`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the current time as a datetime.datetime instance.</span>
 
 <span class="sd">        Do not streamline the code so the __init__ method simply passesd the datetime.datetime.now method,</span>
-<span class="sd">        we can&#39;t mock datetime.now since it&#39;s builtin and will make unit tests more complicated to</span>
+<span class="sd">        we can't mock datetime.now since it's builtin and will make unit tests more complicated to</span>
 <span class="sd">        write.</span>
 
 <span class="sd">        :returns: A datetime object representing the current time in the local timezone.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_current_utc_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the current utc time as a datetime.datetime instance.</span>
 
 <span class="sd">        Do not streamline the code so the __init__ method simply passesd the datetime.now(timezone.utc) method,</span>
-<span class="sd">        we can&#39;t mock datetime.now(timezone.utc) since it&#39;s builtin and will make unit tests more complicated to</span>
+<span class="sd">        we can't mock datetime.now(timezone.utc) since it's builtin and will make unit tests more complicated to</span>
 <span class="sd">        write.</span>
 
 <span class="sd">        :returns: A datetime object representing time current time in the UTC timezone.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TimestampKey.validate"><a class="viewcode-back" href="../../core.html#sgtk.TimestampKey.validate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Test if a value is valid for this key.</span>
 
 <span class="sd">        :param value: Value to test.</span>
 
 <span class="sd">        :returns: Bool</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="c1"># If we have a string we have to actually try to convert the string to see it if matches</span>
             <span class="c1"># the expected format.</span>
@@ -830,51 +830,51 @@
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="c1"># Bad value, report the error to the client code.</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;Invalid string: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">"Invalid string: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="s2">&quot;Invalid type: expecting string or datetime.datetime, not </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="s2">"Invalid type: expecting string or datetime.datetime, not </span><span class="si">%s</span><span class="s2">"</span>
                 <span class="o">%</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Converts a given value as string.</span>
 
 <span class="sd">        :param value: A datetime.datetime object that will be converted to a string according to the</span>
 <span class="sd">                      format specification.</span>
 
 <span class="sd">        :returns: A string formatted according to the format_spec.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Converts a string into a datetime.datetime.</span>
 
 <span class="sd">        :param str_value: String to convert.</span>
 
 <span class="sd">        :returns: A datetime representation of str_value parsed according to the format_spec.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="IntegerKey"><a class="viewcode-back" href="../../core.html#sgtk.IntegerKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">IntegerKey</span><span class="p">(</span><span class="n">TemplateKey</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    :class:`TemplateKey` representing an integer value.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># Matches one non-zero digit follow by any number of digits.</span>
-    <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;[1-9]\d*&quot;</span>
+    <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"[1-9]\d*"</span>
     <span class="c1"># For the next two regular expressions, the ^ and $ are important to prevent partial matches.</span>
     <span class="c1"># Matches an optional 0 followed by a non zero positive integer.</span>
-    <span class="n">_FORMAT_SPEC_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^(0?)(</span><span class="si">%s</span><span class="s2">)$&quot;</span> <span class="o">%</span> <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span><span class="p">)</span>
+    <span class="n">_FORMAT_SPEC_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">"^(0?)(</span><span class="si">%s</span><span class="s2">)$"</span> <span class="o">%</span> <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span><span class="p">)</span>
     <span class="c1"># Matches a non zero positive integer.</span>
-    <span class="n">_NON_ZERO_POSITIVE_INTEGER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span><span class="p">)</span>
+    <span class="n">_NON_ZERO_POSITIVE_INTEGER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">"^</span><span class="si">%s</span><span class="s2">$"</span> <span class="o">%</span> <span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -889,7 +889,7 @@
         <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">strict_matching</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param int default: Default value for this key.</span>
 <span class="sd">        :param list choices: List of possible values for this key.</span>
@@ -904,7 +904,7 @@
 <span class="sd">        :param bool strict_matching: Indicates if the padding should be matching exactly the</span>
 <span class="sd">                                     format_spec when parsing a string. Default behavior is to match</span>
 <span class="sd">                                     exactly the padding when a format_spec is provided.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_width</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span> <span class="o">=</span> <span class="kc">None</span>
@@ -926,23 +926,23 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Specification for formatting when casting to a string.</span>
 <span class="sd">        The form is a zero followed the number of spaces to pad</span>
 <span class="sd">        the value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">strict_matching</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Indicates if the padding should be matching exactly the</span>
 <span class="sd">        format_spec when parsing a string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strict_matching</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_init_format_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Asserts that the format_spec parameter is a valid value.</span>
 
 <span class="sd">        :param name: Name of this template key.</span>
@@ -950,66 +950,66 @@
 
 <span class="sd">        :raises TankError: Raised when the parameter is not a string that maching a %d format</span>
 <span class="sd">                           option.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># No format spec means no formatting options.</span>
         <span class="k">if</span> <span class="n">format_spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">format_spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;format_spec for IntegerKey </span><span class="si">%s</span><span class="s2"> is not of type string: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"format_spec for IntegerKey </span><span class="si">%s</span><span class="s2"> is not of type string: </span><span class="si">%s</span><span class="s2">"</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">format_spec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;format_spec can&#39;t be empty.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"format_spec can't be empty."</span><span class="p">)</span>
 
         <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_FORMAT_SPEC_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">format_spec</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;format_spec for &lt;Sgtk IntegerKey </span><span class="si">%s</span><span class="s2">&gt; has to either be a number (e.g. &#39;3&#39;) or &quot;</span>
-                <span class="s2">&quot;a 0 followed by a number (e.g. &#39;03&#39;), not &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">)</span>
+                <span class="s2">"format_spec for &lt;Sgtk IntegerKey </span><span class="si">%s</span><span class="s2">&gt; has to either be a number (e.g. '3') or "</span>
+                <span class="s2">"a 0 followed by a number (e.g. '03'), not '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="n">groups</span> <span class="o">=</span> <span class="n">matches</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
-        <span class="c1"># groups[0] is either &#39;&#39; or &#39;0&#39;, in which case the padding is &#39; &#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span>
+        <span class="c1"># groups[0] is either '' or '0', in which case the padding is ' '</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"0"</span>
         <span class="c1"># groups[1] is the minimum width of the number.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span> <span class="o">=</span> <span class="n">format_spec</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_init_strict_matching</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">strict_matching</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Asserts that the strict_matching parameter is a valid value.</span>
 
 <span class="sd">        :param name: Name of this template key.</span>
 <span class="sd">        :param strict_matching: Parameter to be validated.</span>
 
 <span class="sd">        :raises TankError: Raised when the parameter is not a boolean.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># make sure that strict_matching is not set or that it is a boolean</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">strict_matching</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">strict_matching</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)):</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;strict_matching for &lt;Sgtk IntegerKey </span><span class="si">%s</span><span class="s2">&gt; is not of type boolean: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"strict_matching for &lt;Sgtk IntegerKey </span><span class="si">%s</span><span class="s2">&gt; is not of type boolean: </span><span class="si">%s</span><span class="s2">"</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">strict_matching</span><span class="p">)))</span>
 
-        <span class="c1"># If there is a format and strict_matching is set, there&#39;s an error, since there</span>
+        <span class="c1"># If there is a format and strict_matching is set, there's an error, since there</span>
         <span class="c1"># is no format to enforce or not.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">strict_matching</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;strict_matching can&#39;t be set if there is no format_spec&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"strict_matching can't be set if there is no format_spec"</span><span class="p">)</span>
 
-        <span class="c1"># By default, if strict_matching is not set but there is a format spec, we&#39;ll</span>
+        <span class="c1"># By default, if strict_matching is not set but there is a format spec, we'll</span>
         <span class="c1"># strictly match.</span>
         <span class="k">if</span> <span class="n">strict_matching</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">strict_matching</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="n">strict_matching</span><span class="p">:</span>
             <span class="c1"># This regular expression is blind to the actual length of the string for performance</span>
-            <span class="c1"># reasons. Code that uses it should test that the string&#39;s length is of</span>
+            <span class="c1"># reasons. Code that uses it should test that the string's length is of</span>
             <span class="c1"># self._minimum_width first. It first matches up to n-1 padding characters. It then</span>
-            <span class="c1"># matches either a single 0, or an actual multiple digit number that doesn&#39;t start with</span>
+            <span class="c1"># matches either a single 0, or an actual multiple digit number that doesn't start with</span>
             <span class="c1"># 0.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_strict_validation_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-                <span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">{0,</span><span class="si">%d</span><span class="s2">}((</span><span class="si">%s</span><span class="s2">)|0)$&quot;</span>
+                <span class="s2">"^</span><span class="si">%s</span><span class="s2">{0,</span><span class="si">%d</span><span class="s2">}((</span><span class="si">%s</span><span class="s2">)|0)$"</span>
                 <span class="o">%</span> <span class="p">(</span>
-                    <span class="s2">&quot;0&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span> <span class="k">else</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+                    <span class="s2">"0"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span> <span class="k">else</span> <span class="s2">" "</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_NON_ZERO_POSITIVE_INTEGER_EXP</span><span class="p">,</span>
                 <span class="p">)</span>
@@ -1028,7 +1028,7 @@
                 <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_matching</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loosely_matches</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
                     <span class="k">return</span> <span class="kc">False</span>
             <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39;, expected an Integer&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">', expected an Integer"</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="p">,</span>
                     <span class="n">value</span><span class="p">,</span>
                 <span class="p">)</span>
@@ -1037,27 +1037,27 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_loosely_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if the value loosely matches. The value loosely matches if it can be turned into an</span>
 <span class="sd">        int.</span>
 
-<span class="sd">        For a given format_spec of &quot;03&quot;, here are examples of loosely matching values:</span>
-<span class="sd">        - &#39;1&#39;        (missing padding)</span>
-<span class="sd">        - &#39;00000001&#39; (too much padding)</span>
-<span class="sd">        - &#39;       1&#39; (too much padding)</span>
+<span class="sd">        For a given format_spec of "03", here are examples of loosely matching values:</span>
+<span class="sd">        - '1'        (missing padding)</span>
+<span class="sd">        - '00000001' (too much padding)</span>
+<span class="sd">        - '       1' (too much padding)</span>
 
 <span class="sd">        :param value: String to test</span>
 
 <span class="sd">        :returns: True if it loosely matches, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># This is the extent of what was tested before strict matching. We&#39;re actually a bit more permissive,</span>
+<span class="sd">        """</span>
+        <span class="c1"># This is the extent of what was tested before strict matching. We're actually a bit more permissive,</span>
         <span class="c1"># because the user could have specified a format specifier that uses spaces for padding, but isdigit will</span>
         <span class="c1"># fail if spaces are at the beginning of a string, so strip them out.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_padded</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
-        <span class="c1"># Is digit is how we tested for a number before strict_matching was introduced, so don&#39;t change that behaviour</span>
+        <span class="c1"># Is digit is how we tested for a number before strict_matching was introduced, so don't change that behaviour</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39;, expected an Integer&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">', expected an Integer"</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span>
                 <span class="n">value</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1065,7 +1065,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_strictly_matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if the value strictly matches the format_spec. A value strictly matches the format</span>
 <span class="sd">        it is at least as wide as the minimum character length. If the string is wider, it must</span>
 <span class="sd">        be a non zero positive number. If it is as wide, is must be a padded positive integer.</span>
@@ -1073,8 +1073,8 @@
 <span class="sd">        :param value: Value to test</span>
 
 <span class="sd">        :returns: True if the value strictly matches the format spec, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39;, does not match format spec &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+<span class="sd">        """</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">', does not match format spec '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">value</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">,</span>
@@ -1091,11 +1091,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="n">error_msg</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="c1"># If there are many characters as the format_spec requires, we&#39;ll validate that things are</span>
+        <span class="c1"># If there are many characters as the format_spec requires, we'll validate that things are</span>
         <span class="c1"># padded accordingly. Example of things that will fail are.</span>
-        <span class="c1"># - &#39;01a&#39;</span>
-        <span class="c1"># - &#39;0 1&#39;</span>
-        <span class="c1"># - &#39; 01&#39;</span>
+        <span class="c1"># - '01a'</span>
+        <span class="c1"># - '0 1'</span>
+        <span class="c1"># - ' 01'</span>
         <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strict_validation_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="n">error_msg</span>
@@ -1103,27 +1103,27 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Converts value into a string.</span>
 
 <span class="sd">        :returns: String representation of the value according to the optional format_spec.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">:</span>
             <span class="c1"># insert format spec into string</span>
-            <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%%%s</span><span class="s2">d&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span> <span class="o">%</span> <span class="n">value</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="p">(</span><span class="s2">"</span><span class="si">%%%s</span><span class="s2">d"</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_spec</span><span class="p">)</span> <span class="o">%</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="si">%d</span><span class="s2">"</span> <span class="o">%</span> <span class="n">value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_as_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">str_value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Converts value into a string.</span>
 
 <span class="sd">        :returns: String representation of the value according to the optional format_spec.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SequenceKey"><a class="viewcode-back" href="../../core.html#sgtk.SequenceKey">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SequenceKey</span><span class="p">(</span><span class="n">IntegerKey</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    :class:`TemplateKey` representing an integer sequence, usually used to handle frame sequences.</span>
 
 <span class="sd">    With image sequences, there are many ways of representing a set of images. Different</span>
@@ -1133,7 +1133,7 @@
 
 <span class="sd">    In Toolkit, this can be done using a special FORMAT directive. This format directive</span>
 <span class="sd">    only works with abstract image sequence fields and supports a number of different formats.</span>
-<span class="sd">    For example, an app may need to reconstruct a path, but the app doesn&#39;t know if the user</span>
+<span class="sd">    For example, an app may need to reconstruct a path, but the app doesn't know if the user</span>
 <span class="sd">    has configured the input paths to use eight zero padded paths or four zero padded paths.</span>
 <span class="sd">    However, the app runs in Nuke, so it needs path on the form %04d (for four zero padded paths).</span>
 <span class="sd">    In order to get the correct padding, pass ``FORMAT: %d`` and Toolkit will format this with the</span>
@@ -1149,40 +1149,40 @@
 <span class="sd">    Example::</span>
 
 <span class="sd">        # An app in nuke generates a sequence path like this:</span>
-<span class="sd">        &gt;&gt;&gt; fields = {&quot;Shot&quot;:&quot;shot_2&quot;, &quot;name&quot;:&quot;render&quot;, &quot;seq&quot;: &quot;FORMAT: %d&quot;}</span>
+<span class="sd">        &gt;&gt;&gt; fields = {"Shot":"shot_2", "name":"render", "seq": "FORMAT: %d"}</span>
 <span class="sd">        # the FORMAT field will correctly format the key regardless of</span>
 <span class="sd">        # how it has been configured (e.g. for any type of padding)</span>
 <span class="sd">        &gt;&gt;&gt; template_path.apply_fields(fields)</span>
-<span class="sd">        &#39;/mnt/proj/shot_2/publish/render.%04d.exr&#39;</span>
+<span class="sd">        '/mnt/proj/shot_2/publish/render.%04d.exr'</span>
 
 
 <span class="sd">        # in houdini, the code would look like this</span>
-<span class="sd">        &gt;&gt;&gt; fields = {&quot;Shot&quot;:&quot;shot_2&quot;, &quot;name&quot;:&quot;render&quot;, &quot;seq&quot;: &quot;FORMAT: $F&quot;}</span>
+<span class="sd">        &gt;&gt;&gt; fields = {"Shot":"shot_2", "name":"render", "seq": "FORMAT: $F"}</span>
 <span class="sd">        # the FORMAT field will correctly format the key regardless of</span>
 <span class="sd">        # how it has been configured (e.g. for any type of padding)</span>
 <span class="sd">        &gt;&gt;&gt; template_path.apply_fields(fields)</span>
-<span class="sd">        &#39;/mnt/proj/shot_2/publish/render.$F4.exr&#39;</span>
+<span class="sd">        '/mnt/proj/shot_2/publish/render.$F4.exr'</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># special keywork used when format is specified directly in value</span>
-    <span class="n">FRAMESPEC_FORMAT_INDICATOR</span> <span class="o">=</span> <span class="s2">&quot;FORMAT:&quot;</span>
+    <span class="n">FRAMESPEC_FORMAT_INDICATOR</span> <span class="o">=</span> <span class="s2">"FORMAT:"</span>
     <span class="c1"># valid format strings that can be used with this Key type</span>
-    <span class="n">VALID_FORMAT_STRINGS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="s2">&quot;@&quot;</span><span class="p">,</span> <span class="s2">&quot;$F&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;UDIM&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;$UDIM&quot;</span><span class="p">]</span>
-    <span class="c1"># flame sequence pattern regex (&#39;[1234-5434]&#39;)</span>
-    <span class="n">FLAME_PATTERN_REGEX</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^\[[0-9]+-[0-9]+\]$&quot;</span>
+    <span class="n">VALID_FORMAT_STRINGS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"#"</span><span class="p">,</span> <span class="s2">"@"</span><span class="p">,</span> <span class="s2">"$F"</span><span class="p">,</span> <span class="s2">"&lt;UDIM&gt;"</span><span class="p">,</span> <span class="s2">"$UDIM"</span><span class="p">]</span>
+    <span class="c1"># flame sequence pattern regex ('[1234-5434]')</span>
+    <span class="n">FLAME_PATTERN_REGEX</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"^\[[0-9]+-[0-9]+\]$"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">choices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">format_spec</span><span class="o">=</span><span class="s2">&quot;01&quot;</span><span class="p">,</span>
+        <span class="n">format_spec</span><span class="o">=</span><span class="s2">"01"</span><span class="p">,</span>
         <span class="n">shotgun_entity_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">shotgun_field_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">exclusions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param str name: Name by which the key will be referred.</span>
 <span class="sd">        :param str default: Default value for this key.</span>
 <span class="sd">        :param list choices: List of possible values for this key.</span>
@@ -1192,7 +1192,7 @@
 <span class="sd">        :param str shotgun_entity_type: For keys directly linked to a shotgun field, the entity type.</span>
 <span class="sd">        :param str shotgun_field_name: For keys directly linked to a shotgun field, the field name.</span>
 <span class="sd">        :param str exclusions: List of forbidden values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># determine the actual frame specs given the padding (format_spec)</span>
         <span class="c1"># and the allowed formats</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frame_specs</span> <span class="o">=</span> <span class="p">[</span>
@@ -1203,7 +1203,7 @@
         <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># default value is %d form</span>
-            <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_frame_spec</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">)</span>
+            <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_frame_spec</span><span class="p">(</span><span class="s2">"</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">name</span><span class="p">,</span>
@@ -1221,15 +1221,15 @@
 
         <span class="c1"># use a std error message</span>
         <span class="n">full_format_strings</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="s2">"</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VALID_FORMAT_STRINGS</span>
         <span class="p">]</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Illegal value &#39;</span><span class="si">%s</span><span class="s2">&#39;, expected an Integer, a frame spec or format spec.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">"</span><span class="si">%s</span><span class="s2"> Illegal value '</span><span class="si">%s</span><span class="s2">', expected an Integer, a frame spec or format spec.</span><span class="se">\n</span><span class="s2">"</span>
             <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Valid frame specs: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_specs</span><span class="p">)</span>
-        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Valid format strings: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">full_format_strings</span>
+        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">"Valid frame specs: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">"</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_specs</span><span class="p">)</span>
+        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">"Valid format strings: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">"</span> <span class="o">%</span> <span class="n">full_format_strings</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">):</span>
             <span class="c1"># FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS</span>
@@ -1288,28 +1288,28 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_as_value</span><span class="p">(</span><span class="n">str_value</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_format_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns XYZ given the string &quot;FORMAT:    XYZ&quot;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns XYZ given the string "FORMAT:    XYZ"</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">):</span>
-            <span class="n">pattern</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FRAMESPEC_FORMAT_INDICATOR</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># passthrough</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">return</span> <span class="n">pattern</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_frame_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">format_string</span><span class="p">,</span> <span class="n">format_spec</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Turns a format_string %d and a format_spec &quot;03&quot; into a sequence identifier (%03d)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Turns a format_string %d and a format_spec "03" into a sequence identifier (%03d)</span>
+<span class="sd">        """</span>
 
-        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;Illegal format pattern for framespec: &#39;</span><span class="si">%s</span><span class="s2">&#39;. &quot;</span> <span class="o">%</span> <span class="n">format_string</span>
-        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Legal patterns are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VALID_FORMAT_STRINGS</span><span class="p">)</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">"Illegal format pattern for framespec: '</span><span class="si">%s</span><span class="s2">'. "</span> <span class="o">%</span> <span class="n">format_string</span>
+        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">"Legal patterns are: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VALID_FORMAT_STRINGS</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">format_string</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VALID_FORMAT_STRINGS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">format_spec</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">format_spec</span> <span class="o">!=</span> <span class="s2">&quot;01&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">format_spec</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"0"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">format_spec</span> <span class="o">!=</span> <span class="s2">"01"</span><span class="p">:</span>
             <span class="n">use_zero_padding</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">use_zero_padding</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1317,31 +1317,31 @@
         <span class="n">places</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">format_spec</span><span class="p">)</span> <span class="k">if</span> <span class="n">format_spec</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">use_zero_padding</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%%</span><span class="s2">0</span><span class="si">%d</span><span class="s2">d&quot;</span> <span class="o">%</span> <span class="n">places</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;#&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span> <span class="o">*</span> <span class="n">places</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;@&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span> <span class="o">*</span> <span class="n">places</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;$F&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;$F</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">places</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&lt;UDIM&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;$UDIM&quot;</span><span class="p">):</span>
-                <span class="c1"># UDIM&#39;s aren&#39;t padded!</span>
+            <span class="k">if</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"</span><span class="si">%d</span><span class="s2">"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%%</span><span class="s2">0</span><span class="si">%d</span><span class="s2">d"</span> <span class="o">%</span> <span class="n">places</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"#"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"#"</span> <span class="o">*</span> <span class="n">places</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"@"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"@"</span> <span class="o">*</span> <span class="n">places</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"$F"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"$F</span><span class="si">%d</span><span class="s2">"</span> <span class="o">%</span> <span class="n">places</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"&lt;UDIM&gt;"</span><span class="p">,</span> <span class="s2">"$UDIM"</span><span class="p">):</span>
+                <span class="c1"># UDIM's aren't padded!</span>
                 <span class="n">frame_spec</span> <span class="o">=</span> <span class="n">format_string</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># non zero padded rules</span>
-            <span class="k">if</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;#&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;@&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;@&quot;</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">&quot;$F&quot;</span><span class="p">:</span>
-                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">&quot;$F&quot;</span>
-            <span class="k">elif</span> <span class="n">format_string</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&lt;UDIM&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;$UDIM&quot;</span><span class="p">):</span>
-                <span class="c1"># UDIM&#39;s aren&#39;t padded!</span>
+            <span class="k">if</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"</span><span class="si">%d</span><span class="s2">"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%d</span><span class="s2">"</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"#"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"#"</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"@"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"@"</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="o">==</span> <span class="s2">"$F"</span><span class="p">:</span>
+                <span class="n">frame_spec</span> <span class="o">=</span> <span class="s2">"$F"</span>
+            <span class="k">elif</span> <span class="n">format_string</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"&lt;UDIM&gt;"</span><span class="p">,</span> <span class="s2">"$UDIM"</span><span class="p">):</span>
+                <span class="c1"># UDIM's aren't padded!</span>
                 <span class="n">frame_spec</span> <span class="o">=</span> <span class="n">format_string</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
@@ -1350,36 +1350,36 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">make_keys</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Factory method for instantiating template keys.</span>
 
 <span class="sd">    :param data: Key data.</span>
-<span class="sd">    :type data: Dictionary of the form: {&lt;key name&gt;: {&#39;type&#39;: &lt;key type&gt;, &lt;option&gt;: &lt;option value}</span>
+<span class="sd">    :type data: Dictionary of the form: {&lt;key name&gt;: {'type': &lt;key type&gt;, &lt;option&gt;: &lt;option value}</span>
 
 <span class="sd">    :returns: Dictionary of the form: {&lt;key name&gt;: &lt;TemplateKey object&gt;}</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">keys</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">names_classes</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;str&quot;</span><span class="p">:</span> <span class="n">StringKey</span><span class="p">,</span>
-        <span class="s2">&quot;int&quot;</span><span class="p">:</span> <span class="n">IntegerKey</span><span class="p">,</span>
-        <span class="s2">&quot;sequence&quot;</span><span class="p">:</span> <span class="n">SequenceKey</span><span class="p">,</span>
-        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">TimestampKey</span><span class="p">,</span>
+        <span class="s2">"str"</span><span class="p">:</span> <span class="n">StringKey</span><span class="p">,</span>
+        <span class="s2">"int"</span><span class="p">:</span> <span class="n">IntegerKey</span><span class="p">,</span>
+        <span class="s2">"sequence"</span><span class="p">:</span> <span class="n">SequenceKey</span><span class="p">,</span>
+        <span class="s2">"timestamp"</span><span class="p">:</span> <span class="n">TimestampKey</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">for</span> <span class="n">initial_key_name</span><span class="p">,</span> <span class="n">key_data</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="c1"># We need to remove data before passing in as arguments, so copy it.</span>
         <span class="n">prepped_data</span> <span class="o">=</span> <span class="n">key_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-        <span class="n">class_name</span> <span class="o">=</span> <span class="n">prepped_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+        <span class="n">class_name</span> <span class="o">=</span> <span class="n">prepped_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"type"</span><span class="p">)</span>
         <span class="n">KeyClass</span> <span class="o">=</span> <span class="n">names_classes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">KeyClass</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid type: &#39;</span><span class="si">%s</span><span class="s2">&#39;. Valid types are: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="s2">"Invalid type: '</span><span class="si">%s</span><span class="s2">'. Valid types are: </span><span class="si">%s</span><span class="s2">"</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">names_classes</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;alias&quot;</span> <span class="ow">in</span> <span class="n">prepped_data</span><span class="p">:</span>
-            <span class="c1"># The alias becomes the key&#39;s name and is used internally by Templates as the key&#39;s name</span>
-            <span class="n">key_name</span> <span class="o">=</span> <span class="n">prepped_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;alias&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"alias"</span> <span class="ow">in</span> <span class="n">prepped_data</span><span class="p">:</span>
+            <span class="c1"># The alias becomes the key's name and is used internally by Templates as the key's name</span>
+            <span class="n">key_name</span> <span class="o">=</span> <span class="n">prepped_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"alias"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">key_name</span> <span class="o">=</span> <span class="n">initial_key_name</span>
 

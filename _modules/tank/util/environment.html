@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.environment &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.util.environment &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Helper methods that do environment management</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -150,40 +150,40 @@
 
 
 <div class="viewcode-block" id="append_path_to_env_var"><a class="viewcode-back" href="../../../utils.html#sgtk.util.append_path_to_env_var">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">append_path_to_env_var</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Append the path to the given environment variable.</span>
-<span class="sd">    Creates the env var if it doesn&#39;t exist already.</span>
+<span class="sd">    Creates the env var if it doesn't exist already.</span>
 <span class="sd">    will concatenate paths using : on linux and ; on windows</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="n">_add_path_to_env_var</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">prepend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="prepend_path_to_env_var"><a class="viewcode-back" href="../../../utils.html#sgtk.util.prepend_path_to_env_var">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">prepend_path_to_env_var</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Prepend the path to the given environment variable.</span>
-<span class="sd">    Creates the env var if it doesn&#39;t exist already.</span>
+<span class="sd">    Creates the env var if it doesn't exist already.</span>
 <span class="sd">    will concatenate paths using : on linux and ; on windows</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="n">_add_path_to_env_var</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">prepend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_path_to_env_var</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">prepend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Append or prepend the path to the given environment variable.</span>
-<span class="sd">    Creates the env var if it doesn&#39;t exist already.</span>
+<span class="sd">    Creates the env var if it doesn't exist already.</span>
 <span class="sd">    will concatenate paths using : on linux and ; on windows</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
-        <span class="n">env_var_sep</span> <span class="o">=</span> <span class="s2">&quot;;&quot;</span>
+        <span class="n">env_var_sep</span> <span class="o">=</span> <span class="s2">";"</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">env_var_sep</span> <span class="o">=</span> <span class="s2">&quot;:&quot;</span>
+        <span class="n">env_var_sep</span> <span class="o">=</span> <span class="s2">":"</span>
 
-    <span class="n">paths</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">env_var_sep</span><span class="p">)</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">env_var_sep</span><span class="p">)</span>
     <span class="c1"># clean up empty entries</span>
-    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">paths</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">paths</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">]</span>
     <span class="c1"># Do not add path if it already exists in the list</span>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">prepend</span><span class="p">:</span>

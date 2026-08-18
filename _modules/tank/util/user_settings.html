@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.user_settings &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.util.user_settings &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">User settings management.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -157,7 +157,7 @@
 
 
 <div class="viewcode-block" id="UserSettings"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UserSettings</span><span class="p">(</span><span class="n">Singleton</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Handles finding and loading the user settings for Toolkit. The settings are cached in memory</span>
 <span class="sd">    so the user settings object can be instantiated multiple times without any issue.</span>
 
@@ -165,92 +165,92 @@
 <span class="sd">    be returned. If the setting is present but has no value, an empty string will be returned.</span>
 
 <span class="sd">    As of this writing, settings can only be updated by editing the ``ini`` file manually.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">_LOGIN</span> <span class="o">=</span> <span class="s2">&quot;Login&quot;</span>
+    <span class="n">_LOGIN</span> <span class="o">=</span> <span class="s2">"Login"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_init_singleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Singleton initialization.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_config_location</span><span class="p">()</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Reading user settings from </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Reading user settings from </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">)</span>
 
         <span class="c1"># Log the default settings</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default site: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_site</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default login: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_login</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Default site: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_site</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Default login: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_login</span><span class="p">))</span>
 
         <span class="n">proxy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filtered_proxy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shotgun_proxy</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;PTR proxy: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">proxy</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"PTR proxy: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">proxy</span><span class="p">))</span>
 
         <span class="n">proxy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filtered_proxy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app_store_proxy</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;App Store proxy: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">proxy</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"App Store proxy: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">proxy</span><span class="p">))</span>
 
         <span class="c1"># A small hack here, but we also want to log the system http</span>
-        <span class="c1"># proxy. We don&#39;t use the SystemSettings in this module, but</span>
+        <span class="c1"># proxy. We don't use the SystemSettings in this module, but</span>
         <span class="c1"># it is a convenient and safe place to log the proxy given that</span>
         <span class="c1"># we know it will only happen once, and we have access to the</span>
         <span class="c1"># sanitization logic here.</span>
         <span class="n">system_proxy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filtered_proxy</span><span class="p">(</span><span class="n">SystemSettings</span><span class="p">()</span><span class="o">.</span><span class="n">http_proxy</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;System proxy: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">system_proxy</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"System proxy: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_display_value</span><span class="p">(</span><span class="n">system_proxy</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shotgun_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the value from the ``http_proxy`` setting.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Return the configuration settings http proxy string when it is specified;</span>
         <span class="c1"># otherwise, return the operating system http proxy string.</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;http_proxy&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">"http_proxy"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">app_store_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the value from the ``app_store_http_proxy`` setting.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;app_store_http_proxy&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">"app_store_http_proxy"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">default_site</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the value from the ``default_site`` setting.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;default_site&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">"default_site"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">default_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the value from the ``default_login`` setting.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">&quot;default_login&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LOGIN</span><span class="p">,</span> <span class="s2">"default_login"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="UserSettings.get_section_settings"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_section_settings">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_section_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the name of the settings in a given section.</span>
 
 <span class="sd">        :param str section: Name of the section of the settings to retrieve.</span>
 
-<span class="sd">        :returns: A list of setting&#39;s name. If the section is missing, returns</span>
+<span class="sd">        :returns: A list of setting's name. If the section is missing, returns</span>
 <span class="sd">            ``None``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">section</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="UserSettings.get_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Provides access to any setting, including ones in user defined sections.</span>
 
 <span class="sd">        :param str section: Name of the section to retrieve the setting from. Do not include the brackets.</span>
 <span class="sd">        :param str name: Name of the setting under the provided section.</span>
 
-<span class="sd">        :returns: The setting&#39;s value if found, ``None`` if the setting is missing from the file or</span>
+<span class="sd">        :returns: The setting's value if found, ``None`` if the setting is missing from the file or</span>
 <span class="sd">            an empty string if the setting is present but has no value associated.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span>
             <span class="n">section</span>
         <span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -261,26 +261,26 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
 
-    <span class="c1"># Unfortunately here for get_boolean_setting and get_integer_setting we&#39;re replicating some of the</span>
-    <span class="c1"># logic from the ConfigParser class. We have to do this because ConfigParser doesn&#39;t expand environment</span>
+    <span class="c1"># Unfortunately here for get_boolean_setting and get_integer_setting we're replicating some of the</span>
+    <span class="c1"># logic from the ConfigParser class. We have to do this because ConfigParser doesn't expand environment</span>
     <span class="c1"># variables which is a requirement here, so get_setting does the job of using expandvars so everything</span>
     <span class="c1"># gets expanded and then the get_*_setting methods so the necessary casting.</span>
 
     <span class="c1"># This is taken from RawConfigParser. Values are copied in case future Python implementation</span>
     <span class="c1"># rename this. (like Python 3, not that this is going to be an issue in the foreseable future. :p)</span>
     <span class="n">_boolean_states</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s2">&quot;yes&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s2">&quot;true&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s2">&quot;on&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s2">&quot;no&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s2">&quot;false&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s2">&quot;off&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">"1"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">"yes"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">"true"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">"on"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">"0"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">"no"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">"false"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">"off"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">}</span>
 
 <div class="viewcode-block" id="UserSettings.get_boolean_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_boolean_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_boolean_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Provides access to any setting, including ones in user defined sections, and casts it</span>
 <span class="sd">        into a boolean.</span>
 
@@ -294,7 +294,7 @@
 <span class="sd">        :rtype: bool</span>
 
 <span class="sd">        :raises TankError: Raised if the value is not one of the accepted values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -303,18 +303,18 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boolean_states</span><span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid value &#39;</span><span class="si">%s</span><span class="s2">&#39; in &#39;</span><span class="si">%s</span><span class="s2">&#39; for setting &#39;</span><span class="si">%s</span><span class="s2">&#39; in section &#39;</span><span class="si">%s</span><span class="s2">&#39;: expecting one of &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span>
+                <span class="s2">"Invalid value '</span><span class="si">%s</span><span class="s2">' in '</span><span class="si">%s</span><span class="s2">' for setting '</span><span class="si">%s</span><span class="s2">' in section '</span><span class="si">%s</span><span class="s2">': expecting one of '</span><span class="si">%s</span><span class="s2">'."</span>
                 <span class="o">%</span> <span class="p">(</span>
                     <span class="n">value</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span>
                     <span class="n">name</span><span class="p">,</span>
                     <span class="n">section</span><span class="p">,</span>
-                    <span class="s2">&quot;&#39;, &#39;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_boolean_states</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                    <span class="s2">"', '"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_boolean_states</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
                 <span class="p">)</span>
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="UserSettings.get_integer_setting"><a class="viewcode-back" href="../../../utils.html#sgtk.util.UserSettings.get_integer_setting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_integer_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Provides access to any setting, including ones in user defined sections, and casts it</span>
 <span class="sd">        into an integer.</span>
 
@@ -325,7 +325,7 @@
 <span class="sd">        :rtype: bool</span>
 
 <span class="sd">        :raises TankError: Raised if the value is not one of the accepted values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -334,36 +334,36 @@
             <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid value &#39;</span><span class="si">%s</span><span class="s2">&#39; in &#39;</span><span class="si">%s</span><span class="s2">&#39; for setting &#39;</span><span class="si">%s</span><span class="s2">&#39; in section &#39;</span><span class="si">%s</span><span class="s2">&#39;: expecting integer.&quot;</span>
+                <span class="s2">"Invalid value '</span><span class="si">%s</span><span class="s2">' in '</span><span class="si">%s</span><span class="s2">' for setting '</span><span class="si">%s</span><span class="s2">' in section '</span><span class="si">%s</span><span class="s2">': expecting integer."</span>
                 <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span>
             <span class="p">)</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate_env_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Evaluates an environment variable.</span>
 
 <span class="sd">        :param var_name: Variable to evaluate.</span>
 
 <span class="sd">        :returns: Value if set, None otherwise.</span>
 
-<span class="sd">        :raises EnvironmentVariableFileLookupError: Raised if the variable is set, but the file doesn&#39;t</span>
+<span class="sd">        :raises EnvironmentVariableFileLookupError: Raised if the variable is set, but the file doesn't</span>
 <span class="sd">                                                    exist.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">var_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="c1"># If the path doesn&#39;t exist, raise an error.</span>
+        <span class="c1"># If the path doesn't exist, raise an error.</span>
         <span class="n">raw_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">raw_path</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">EnvironmentVariableFileLookupError</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">raw_path</span><span class="p">)</span>
 
-        <span class="c1"># Path is set and exist, we&#39;ve found it!</span>
+        <span class="c1"># Path is set and exist, we've found it!</span>
         <span class="k">return</span> <span class="n">path</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_compute_config_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the location of the ``config.ini`` file. It will look in multiple locations:</span>
 
 <span class="sd">            - The ``SGTK_PREFERENCES_LOCATION`` environment variable.</span>
@@ -372,20 +372,20 @@
 <span class="sd">            - The PTR desktop app folder.</span>
 
 <span class="sd">        :returns: The location where to read the configuration file from.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># This is the default location.</span>
         <span class="n">default_location</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span>
                 <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">PREFERENCES</span>
             <span class="p">),</span>
-            <span class="s2">&quot;toolkit.ini&quot;</span><span class="p">,</span>
+            <span class="s2">"toolkit.ini"</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># This is the complete list of paths we need to test.</span>
         <span class="n">file_locations</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_env_var</span><span class="p">(</span><span class="s2">&quot;SGTK_PREFERENCES_LOCATION&quot;</span><span class="p">),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_env_var</span><span class="p">(</span><span class="s2">&quot;SGTK_DESKTOP_CONFIG_LOCATION&quot;</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_env_var</span><span class="p">(</span><span class="s2">"SGTK_PREFERENCES_LOCATION"</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_env_var</span><span class="p">(</span><span class="s2">"SGTK_DESKTOP_CONFIG_LOCATION"</span><span class="p">),</span>
             <span class="c1"># Default location first</span>
             <span class="n">default_location</span><span class="p">,</span>
             <span class="c1"># This is the location set by users of the PTR desktop app in the past.</span>
@@ -393,9 +393,9 @@
                 <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span>
                     <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span><span class="p">,</span> <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CORE_V17</span>
                 <span class="p">),</span>
-                <span class="s2">&quot;desktop&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;config&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;config.ini&quot;</span><span class="p">,</span>
+                <span class="s2">"desktop"</span><span class="p">,</span>
+                <span class="s2">"config"</span><span class="p">,</span>
+                <span class="s2">"config.ini"</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">]</span>
 
@@ -404,53 +404,53 @@
             <span class="k">if</span> <span class="n">loc</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">loc</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">loc</span>
 
-        <span class="c1"># Nothing was found, just use the default location even tough it&#39;s empty.</span>
+        <span class="c1"># Nothing was found, just use the default location even tough it's empty.</span>
         <span class="k">return</span> <span class="n">default_location</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Loads the configuration at a given location and returns it.</span>
 
 <span class="sd">        :param path: Path to the configuration to load.</span>
 
 <span class="sd">        :returns: A ConfigParser instance with the contents from the configuration file.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">config</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_filtered_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proxy</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        :param proxy: Proxy server address for which we required credentials filtering.</span>
 
 <span class="sd">        :returns: Returns the proxy settings with credentials masked.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># If there is an address available</span>
         <span class="c1"># If there is a username and password in the proxy string. Proxy is None when not set</span>
         <span class="c1"># so test that first.</span>
-        <span class="k">if</span> <span class="n">proxy</span> <span class="ow">and</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">proxy</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">proxy</span> <span class="ow">and</span> <span class="s2">"@"</span> <span class="ow">in</span> <span class="n">proxy</span><span class="p">:</span>
             <span class="c1"># Filter out the username and password</span>
             <span class="c1"># Given xzy:123@localhost or xyz:12@3@locahost, this will return localhost in both cases</span>
             <span class="k">return</span> <span class="p">(</span>
-                <span class="s2">&quot;&lt;your credentials have been removed for security reasons&gt;@</span><span class="si">%s</span><span class="s2">&quot;</span>
-                <span class="o">%</span> <span class="n">proxy</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="s2">"&lt;your credentials have been removed for security reasons&gt;@</span><span class="si">%s</span><span class="s2">"</span>
+                <span class="o">%</span> <span class="n">proxy</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"@"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">proxy</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_to_display_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Converts the value into a meaningful value for the user if the setting is missing or</span>
 <span class="sd">        empty.</span>
 
 <span class="sd">        :returns: If None, returns ``&lt;missing&gt;``. If an empty string, returns ``&lt;empty&gt;`. Otherwise</span>
 <span class="sd">            returns the value as is.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;&lt;missing&gt;&quot;</span>
-        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;&lt;empty&gt;&quot;</span>
+            <span class="k">return</span> <span class="s2">"&lt;missing&gt;"</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"&lt;empty&gt;"</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">value</span></div>
 </pre></div>

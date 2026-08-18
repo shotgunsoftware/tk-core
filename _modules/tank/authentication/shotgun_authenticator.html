@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.authentication.shotgun_authenticator &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,13 +134,13 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;PTR Authenticator.&quot;&quot;&quot;</span>
+<span class="sd">"""PTR Authenticator."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">interactive_authentication</span><span class="p">,</span> <span class="n">session_cache</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">user_impl</span>
@@ -152,11 +152,11 @@
 
 
 <div class="viewcode-block" id="ShotgunAuthenticator"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ShotgunAuthenticator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    The ShotgunAuthenticator is the central object in the Shotgun authentication</span>
 <span class="sd">    module. It helps you with authentication and login and makes it easy to</span>
 <span class="sd">    create and maintain a shotgun connection so that it belongs to a given user.</span>
-<span class="sd">    It also helps store who the current user is, so that users don&#39;t have to log</span>
+<span class="sd">    It also helps store who the current user is, so that users don't have to log</span>
 <span class="sd">    in over and over again, but only when needed.</span>
 
 <span class="sd">    A simple use case scenario would look something like this::</span>
@@ -202,27 +202,27 @@
 <span class="sd">      to work in different scenarios.</span>
 
 <span class="sd">    For more information, please see the individual methods below.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaults_manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Constructor</span>
 
 <span class="sd">        :param defaults_manager: A DefaultsManager object that defines the basic</span>
 <span class="sd">                                 behavior of this authenticator. If omitted,</span>
 <span class="sd">                                 the default, built-in DefaultsManager will be</span>
 <span class="sd">                                 used.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span> <span class="o">=</span> <span class="n">defaults_manager</span> <span class="ow">or</span> <span class="n">DefaultsManager</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ShotgunAuthenticator.clear_default_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.clear_default_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">clear_default_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Removes the default user&#39;s credentials from disk for the default host. The</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Removes the default user's credentials from disk for the default host. The</span>
 <span class="sd">        next time the ShotgunAuthenticator.get_default_user() method is called,</span>
 <span class="sd">        None will be returned.</span>
 
 <span class="sd">        :returns: If a user was cleared, the user object is returned, None otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_session_user</span><span class="p">(</span>
                 <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">(),</span>
@@ -238,7 +238,7 @@
 <div class="viewcode-block" id="ShotgunAuthenticator.get_user_from_prompt"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user_from_prompt">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_user_from_prompt</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">login</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_host_fixed</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Display a UI prompt (QT based UI if possible but may fall back on console)</span>
 
 <span class="sd">        The DefaultsManager is called to pre-fill the host, login name, http_proxy and is_host_fixed if not provided.</span>
@@ -252,7 +252,7 @@
 <span class="sd">                                         an AuthenticationCancelled is thrown.</span>
 
 <span class="sd">        :returns: The SessionUser based on the login information provided.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="p">(</span>
             <span class="n">host</span><span class="p">,</span>
             <span class="n">login</span><span class="p">,</span>
@@ -281,7 +281,7 @@
         <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">session_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create a :class:`ShotgunUser` given a set of human user credentials.</span>
 <span class="sd">        Either a password or session token must be supplied. If a password is supplied,</span>
 <span class="sd">        a session token will be generated for security reasons.</span>
@@ -294,7 +294,7 @@
 <span class="sd">        :param session_metadata: When using Web/SSO, b64encoded browser cookies.</span>
 
 <span class="sd">        :returns: A :class:`ShotgunUser` instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Get the defaults is arguments were None.</span>
         <span class="n">host</span> <span class="o">=</span> <span class="n">host</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span>
         <span class="n">http_proxy</span> <span class="o">=</span> <span class="n">http_proxy</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_http_proxy</span><span class="p">()</span>
@@ -321,7 +321,7 @@
         <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">ShotgunUser</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunAuthenticator.create_script_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.create_script_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_script_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_script</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create an AuthenticatedUser given a set of script credentials.</span>
 
 <span class="sd">        :param api_script: Shotgun script user</span>
@@ -332,7 +332,7 @@
 <span class="sd">                           will be used.</span>
 
 <span class="sd">        :returns: A :class:`ShotgunUser` derived instance.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="n">ShotgunUser</span><span class="p">(</span>
             <span class="n">user_impl</span><span class="o">.</span><span class="n">ScriptUser</span><span class="p">(</span>
                 <span class="n">host</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">(),</span>
@@ -343,69 +343,69 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunAuthenticator.get_default_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_host">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the host from the defaults manager.</span>
 
 <span class="sd">        :returns: The default host string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ShotgunAuthenticator.get_default_http_proxy"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_http_proxy">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_http_proxy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the HTTP proxy from the defaults manager.</span>
 
 <span class="sd">        :returns: The default http proxy string.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_http_proxy</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ShotgunAuthenticator.get_default_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_default_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the default user from the defaults manager.</span>
 
 <span class="sd">        :returns: A :class:`ShotgunUser` derived instance if available, None otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Get the credentials</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults_manager</span><span class="o">.</span><span class="n">get_user_credentials</span><span class="p">()</span>
 
         <span class="c1"># There is no default user.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">credentials</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No default user found.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"No default user found."</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># If this looks like an api user, delegate to create_script_user.</span>
-        <span class="c1"># If some of the arguments are missing, don&#39;t worry, create_script_user</span>
+        <span class="c1"># If some of the arguments are missing, don't worry, create_script_user</span>
         <span class="c1"># will take care of it.</span>
-        <span class="k">if</span> <span class="s2">&quot;api_script&quot;</span> <span class="ow">in</span> <span class="n">credentials</span> <span class="ow">or</span> <span class="s2">&quot;api_key&quot;</span> <span class="ow">in</span> <span class="n">credentials</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"api_script"</span> <span class="ow">in</span> <span class="n">credentials</span> <span class="ow">or</span> <span class="s2">"api_key"</span> <span class="ow">in</span> <span class="n">credentials</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_script_user</span><span class="p">(</span>
-                <span class="n">api_script</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_script&quot;</span><span class="p">),</span>
-                <span class="n">api_key</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;api_key&quot;</span><span class="p">),</span>
-                <span class="n">host</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">),</span>
-                <span class="n">http_proxy</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http_proxy&quot;</span><span class="p">),</span>
+                <span class="n">api_script</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"api_script"</span><span class="p">),</span>
+                <span class="n">api_key</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"api_key"</span><span class="p">),</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"host"</span><span class="p">),</span>
+                <span class="n">http_proxy</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"http_proxy"</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="c1"># If this looks like a session user, delegate to create_session_user.</span>
-        <span class="c1"># If some of the arguments are missing, don&#39;t worry, create_session_user</span>
+        <span class="c1"># If some of the arguments are missing, don't worry, create_session_user</span>
         <span class="c1"># will take care of it.</span>
         <span class="k">elif</span> <span class="p">(</span>
-            <span class="s2">&quot;login&quot;</span> <span class="ow">in</span> <span class="n">credentials</span>
-            <span class="ow">or</span> <span class="s2">&quot;password&quot;</span> <span class="ow">in</span> <span class="n">credentials</span>
-            <span class="ow">or</span> <span class="s2">&quot;session_token&quot;</span> <span class="ow">in</span> <span class="n">credentials</span>
+            <span class="s2">"login"</span> <span class="ow">in</span> <span class="n">credentials</span>
+            <span class="ow">or</span> <span class="s2">"password"</span> <span class="ow">in</span> <span class="n">credentials</span>
+            <span class="ow">or</span> <span class="s2">"session_token"</span> <span class="ow">in</span> <span class="n">credentials</span>
         <span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_session_user</span><span class="p">(</span>
-                <span class="n">login</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;login&quot;</span><span class="p">),</span>
-                <span class="n">password</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;password&quot;</span><span class="p">),</span>
-                <span class="n">session_token</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;session_token&quot;</span><span class="p">),</span>
-                <span class="n">host</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">),</span>
-                <span class="n">http_proxy</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http_proxy&quot;</span><span class="p">),</span>
-                <span class="n">session_metadata</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;session_metadata&quot;</span><span class="p">),</span>
+                <span class="n">login</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"login"</span><span class="p">),</span>
+                <span class="n">password</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"password"</span><span class="p">),</span>
+                <span class="n">session_token</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"session_token"</span><span class="p">),</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"host"</span><span class="p">),</span>
+                <span class="n">http_proxy</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"http_proxy"</span><span class="p">),</span>
+                <span class="n">session_metadata</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"session_metadata"</span><span class="p">),</span>
             <span class="p">)</span>
-        <span class="c1"># We don&#39;t know what this is, abort!</span>
+        <span class="c1"># We don't know what this is, abort!</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">IncompleteCredentials</span><span class="p">(</span>
-                <span class="s2">&quot;unknown credentials configuration: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">credentials</span>
+                <span class="s2">"unknown credentials configuration: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">credentials</span>
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ShotgunAuthenticator.get_user"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunAuthenticator.get_user">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This method will always return a valid user. It will first ask for the</span>
 <span class="sd">        default user to the defaults manager. If none is found, the user will</span>
 <span class="sd">        be prompted on the command line or from a dialog for their credentials.</span>
@@ -417,8 +417,8 @@
 
 <span class="sd">        :raises: :class:`AuthenticationCancelled` is raised</span>
 <span class="sd">                 if the user cancelled the authentication.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Make sure we don&#39;t already have a user logged in through single</span>
+<span class="sd">        """</span>
+        <span class="c1"># Make sure we don't already have a user logged in through single</span>
         <span class="c1"># sign-on or provided by a DefaultsManager-derived instance.</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_user</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">user</span><span class="p">:</span>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>process_folder_creation &mdash; tk-core v0.24.0 documentation</title>
+  <title>process_folder_creation &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,16 +134,16 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This hook is invoked during folder creation when :meth:`sgtk.Sgtk.create_filesystem_structure` is</span>
 <span class="sd">called.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -154,7 +154,7 @@
 
 <div class="viewcode-block" id="ProcessFolderCreation"><a class="viewcode-back" href="../core.html#process_folder_creation.ProcessFolderCreation">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ProcessFolderCreation</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
 <div class="viewcode-block" id="ProcessFolderCreation.execute"><a class="viewcode-back" href="../core.html#process_folder_creation.ProcessFolderCreation.execute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">preview_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Creates a list of files and folders.</span>
 
 <span class="sd">        The default implementation creates files and folders recursively using</span>
@@ -232,7 +232,7 @@
 
 <span class="sd">        :returns: List of files and folders that have been created.</span>
 <span class="sd">        :rtype: list(str)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># set the umask so that we get true permissions</span>
         <span class="n">old_umask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -242,23 +242,23 @@
             <span class="c1"># loop through our list of items</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
 
-                <span class="n">action</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"action"</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;entity_folder&quot;</span><span class="p">,</span> <span class="s2">&quot;folder&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"entity_folder"</span><span class="p">,</span> <span class="s2">"folder"</span><span class="p">]:</span>
                     <span class="c1"># folder creation</span>
-                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
                             <span class="c1"># create the folder using open permissions</span>
                             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0o777</span><span class="p">)</span>
                         <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;remote_entity_folder&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"remote_entity_folder"</span><span class="p">:</span>
                     <span class="c1"># Remote folder creation</span>
                     <span class="c1">#</span>
                     <span class="c1"># NOTE! This action happens when another user has created</span>
                     <span class="c1"># a folder on their machine and we are syncing our local path</span>
-                    <span class="c1"># cache to be aware of this folder&#39;s existance.</span>
+                    <span class="c1"># cache to be aware of this folder's existance.</span>
                     <span class="c1">#</span>
                     <span class="c1"># For a traditional setup, where the project storage is shared,</span>
                     <span class="c1"># there is no need to do I/O for remote folders - these folders</span>
@@ -267,11 +267,11 @@
                     <span class="c1">#</span>
                     <span class="c1"># On a setup where each user or group of users is attached to</span>
                     <span class="c1"># different, independendent file storages, which are synced,</span>
-                    <span class="c1"># it may be meaningful to &quot;replay&quot; the remote folder creation</span>
+                    <span class="c1"># it may be meaningful to "replay" the remote folder creation</span>
                     <span class="c1"># on the local system. This would result in the same folder</span>
                     <span class="c1"># scaffold on each disk which is storing project data.</span>
                     <span class="c1">#</span>
-                    <span class="c1"># path = i.get(&quot;path&quot;)</span>
+                    <span class="c1"># path = i.get("path")</span>
                     <span class="c1"># if not os.path.exists(path):</span>
                     <span class="c1">#     if not preview_mode:</span>
                     <span class="c1">#         # create the folder using open permissions</span>
@@ -279,13 +279,13 @@
                     <span class="c1">#     locations.append(path)</span>
                     <span class="k">pass</span>
 
-                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;symlink&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"symlink"</span><span class="p">:</span>
                     <span class="c1"># symbolic link</span>
                     <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
                         <span class="c1"># no windows support</span>
                         <span class="k">continue</span>
-                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
-                    <span class="n">target</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span>
+                    <span class="n">target</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"target"</span><span class="p">)</span>
                     <span class="c1"># note use of lexists to check existance of symlink</span>
                     <span class="c1"># rather than what symlink is pointing at</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lexists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -293,10 +293,10 @@
                             <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
                         <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;copy&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"copy"</span><span class="p">:</span>
                     <span class="c1"># a file copy</span>
-                    <span class="n">source_path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;source_path&quot;</span><span class="p">)</span>
-                    <span class="n">target_path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_path&quot;</span><span class="p">)</span>
+                    <span class="n">source_path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_path"</span><span class="p">)</span>
+                    <span class="n">target_path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"target_path"</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">target_path</span><span class="p">):</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
                             <span class="c1"># do a standard file copy</span>
@@ -305,18 +305,18 @@
                             <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="mo">0o666</span><span class="p">)</span>
                         <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_path</span><span class="p">)</span>
 
-                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;create_file&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">"create_file"</span><span class="p">:</span>
                     <span class="c1"># create a new file based on content</span>
-                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span>
                     <span class="n">parent_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-                    <span class="n">content</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">content</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"content"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">,</span> <span class="mo">0o777</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
                             <span class="c1"># create the file</span>
-                            <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
-                            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+                            <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span>
+                            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span>
                             <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                             <span class="c1"># and set permissions to open</span>
                             <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0o666</span><span class="p">)</span>

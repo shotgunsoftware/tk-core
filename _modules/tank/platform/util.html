@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.util &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,7 +134,7 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
@@ -150,7 +150,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_current_bundle</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    The current import bundle is set by bundle.import_module() and</span>
 <span class="sd">    and is a way to defuse the chicken/egg situation which happens</span>
 <span class="sd">    when trying to do an import_framework inside a module that is being</span>
@@ -161,7 +161,7 @@
 <span class="sd">    to the current bundle.</span>
 
 <span class="sd">    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
@@ -172,23 +172,23 @@
         <span class="c1"># a ._tank_module property on the module object.</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># get the caller&#39;s stack frame</span>
+            <span class="c1"># get the caller's stack frame</span>
             <span class="n">caller</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
             <span class="c1"># get the package name from the caller</span>
             <span class="c1"># for example: 0b3d7089471e42a998027fa668adfbe4.tk_multi_about.environment_browser</span>
-            <span class="n">calling_name_str</span> <span class="o">=</span> <span class="n">caller</span><span class="o">.</span><span class="n">f_globals</span><span class="p">[</span><span class="s2">&quot;__name__&quot;</span><span class="p">]</span>
+            <span class="n">calling_name_str</span> <span class="o">=</span> <span class="n">caller</span><span class="o">.</span><span class="n">f_globals</span><span class="p">[</span><span class="s2">"__name__"</span><span class="p">]</span>
             <span class="c1"># now the module imported by Bundle.import_module is</span>
             <span class="c1"># 0b3d7089471e42a998027fa668adfbe4.tk_multi_about</span>
             <span class="c1"># e.g. always the two first items in the name</span>
-            <span class="n">chunks</span> <span class="o">=</span> <span class="n">calling_name_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
-            <span class="n">calling_package_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="c1"># get the caller&#39;s module from sys.modules</span>
+            <span class="n">chunks</span> <span class="o">=</span> <span class="n">calling_name_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+            <span class="n">calling_package_str</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="c1"># get the caller's module from sys.modules</span>
             <span class="n">parent_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">calling_package_str</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankCurrentModuleNotFoundError</span><span class="p">(</span>
-                <span class="s2">&quot;import_framework could not determine the calling module layout! &quot;</span>
-                <span class="s2">&quot;You can only use this method on items imported using the import_module() &quot;</span>
-                <span class="s2">&quot;method!&quot;</span>
+                <span class="s2">"import_framework could not determine the calling module layout! "</span>
+                <span class="s2">"You can only use this method on items imported using the import_module() "</span>
+                <span class="s2">"method!"</span>
             <span class="p">)</span>
 
         <span class="c1"># ok we got our module</span>
@@ -196,24 +196,24 @@
             <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">parent_module</span><span class="o">.</span><span class="n">_tank_bundle</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankCurrentModuleNotFoundError</span><span class="p">(</span>
-                <span class="s2">&quot;import_framework could not access current app/engine on calling module </span><span class="si">%s</span><span class="s2">. &quot;</span>
-                <span class="s2">&quot;You can only use this method on items imported using the import_module() &quot;</span>
-                <span class="s2">&quot;method!&quot;</span> <span class="o">%</span> <span class="n">parent_module</span>
+                <span class="s2">"import_framework could not access current app/engine on calling module </span><span class="si">%s</span><span class="s2">. "</span>
+                <span class="s2">"You can only use this method on items imported using the import_module() "</span>
+                <span class="s2">"method!"</span> <span class="o">%</span> <span class="n">parent_module</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">current_bundle</span>
 
 
 <div class="viewcode-block" id="change_context"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.change_context">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">change_context</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Running change_context will attempt to change the context the engine and</span>
 <span class="sd">    its apps are running in on the fly. The current engine must accept the</span>
 <span class="sd">    context change, otherwise a full restart of the engine will be run instead.</span>
 
 <span class="sd">    The determination of whether an engine supports context changing comes from</span>
-<span class="sd">    its &quot;context_change_allowed&quot; property. If that property returns True, then</span>
+<span class="sd">    its "context_change_allowed" property. If that property returns True, then</span>
 <span class="sd">    the context change will be allowed to proceed. If it returns False, then</span>
-<span class="sd">    the engine&#39;s &quot;change_context&quot; method will raise</span>
+<span class="sd">    the engine's "change_context" method will raise</span>
 <span class="sd">    :class:`TankContextChangeNotSupportedError`, which will then trigger a restart of</span>
 <span class="sd">    the engine and all of its apps.</span>
 
@@ -234,24 +234,24 @@
 
 <span class="sd">    :param new_context: The new Context to change to.</span>
 <span class="sd">    :type new_context: :class:`~sgtk.Context`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">engine</span> <span class="o">=</span> <span class="n">current_engine</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;No engine is currently running! Run start_engine instead.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"No engine is currently running! Run start_engine instead."</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Changing context to </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">new_context</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Changing context to </span><span class="si">%r</span><span class="s2">."</span> <span class="o">%</span> <span class="n">new_context</span><span class="p">)</span>
 
         <span class="n">engine</span><span class="o">.</span><span class="n">change_context</span><span class="p">(</span><span class="n">new_context</span><span class="p">)</span>
-        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Context changed successfully.&quot;</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Context changed successfully."</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">:</span>
-        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Context change not allowed by engine, restarting instead.&quot;</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Context change not allowed by engine, restarting instead."</span><span class="p">)</span>
         <span class="n">restart</span><span class="p">(</span><span class="n">new_context</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="restart"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.restart">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">(</span><span class="n">new_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Restarts the currently running Toolkit platform. This includes reloading all</span>
 <span class="sd">    configuration files as well as reloading the code for all apps and engines.</span>
 <span class="sd">    (The Core API, however, is not reloaded). The call does not take any parameters</span>
@@ -265,72 +265,72 @@
 <span class="sd">    :param new_context: The new Context to start the engine in, if desired. Default behavior</span>
 <span class="sd">                        is to restart the engine with its current context.</span>
 <span class="sd">    :type new_context: :class:`~sgtk.Context`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">engine</span> <span class="o">=</span> <span class="n">current_engine</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;No engine is currently running! Run start_engine instead.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"No engine is currently running! Run start_engine instead."</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># first, reload the template defs</span>
         <span class="n">engine</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">reload_templates</span><span class="p">()</span>
-        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Template definitions were reloaded.&quot;</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Template definitions were reloaded."</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">engine</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
     <span class="n">_restart_engine</span><span class="p">(</span><span class="n">new_context</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
 
-    <span class="n">engine</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">&quot;Toolkit platform was restarted.&quot;</span><span class="p">)</span></div>
+    <span class="n">engine</span><span class="o">.</span><span class="n">log_info</span><span class="p">(</span><span class="s2">"Toolkit platform was restarted."</span><span class="p">)</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">current_bundle</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns the bundle (app, engine or framework) instance for the</span>
 <span class="sd">    app that the calling code is associated with. This is a special method, designed to</span>
 <span class="sd">    be used inside python modules that belong to apps, engines or frameworks.</span>
 
-<span class="sd">    The calling code needs to have been imported using toolkit&#39;s standard import</span>
+<span class="sd">    The calling code needs to have been imported using toolkit's standard import</span>
 <span class="sd">    mechanism, :meth:`Application.import_module()`, otherwise an exception will be raised.</span>
 
 <span class="sd">    This special helper method can be useful when code deep inside an app needs</span>
 <span class="sd">    to reach out to for example grab a configuration value. Then you can simply do::</span>
 
 <span class="sd">        app = sgtk.platform.current_bundle()</span>
-<span class="sd">        app.get_setting(&quot;frame_range&quot;)</span>
+<span class="sd">        app.get_setting("frame_range")</span>
 
 <span class="sd">    :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="get_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.get_framework">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convenience method that returns a framework instance given a framework name.</span>
 
 <span class="sd">    This is a special method, designed to</span>
 <span class="sd">    be used inside python modules that belong to apps, engines or frameworks.</span>
 
-<span class="sd">    The calling code needs to have been imported using toolkit&#39;s standard import</span>
+<span class="sd">    The calling code needs to have been imported using toolkit's standard import</span>
 <span class="sd">    mechanism, import_module(), otherwise an exception will be raised.</span>
 
 <span class="sd">    For example, if your app code requires the tk-framework-helpers framework, and you</span>
 <span class="sd">    need to retrieve a configuration setting from this framework, then you can</span>
 <span class="sd">    simply do::</span>
 
-<span class="sd">        fw = sgtk.platform.get_framework(&quot;tk-framework-helpers&quot;)</span>
-<span class="sd">        fw.get_setting(&quot;frame_range&quot;)</span>
+<span class="sd">        fw = sgtk.platform.get_framework("tk-framework-helpers")</span>
+<span class="sd">        fw.get_setting("frame_range")</span>
 
-<span class="sd">    :param framework: name of the framework object to access, as defined in the app&#39;s</span>
+<span class="sd">    :param framework: name of the framework object to access, as defined in the app's</span>
 <span class="sd">                      info.yml manifest.</span>
 <span class="sd">    :returns: framework instance</span>
 <span class="sd">    :type: :class:`Framework`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">framework</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_bundle</span><span class="o">.</span><span class="n">frameworks</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-            <span class="s2">&quot;import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!&quot;</span>
+            <span class="s2">"import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!"</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">current_bundle</span><span class="p">,</span> <span class="n">framework</span><span class="p">)</span>
         <span class="p">)</span>
 
@@ -340,7 +340,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">import_framework</span><span class="p">(</span><span class="n">framework</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convenience method for using frameworks code inside of apps, engines and other frameworks.</span>
 
 <span class="sd">    This method is intended to replace an import statement.</span>
@@ -350,24 +350,24 @@
 
 <span class="sd">    You use the following syntax to load a framework module::</span>
 
-<span class="sd">        foo_bar = tank.platform.import_framework(&quot;tk-framework-mystuff&quot;, &quot;foo_bar&quot;)</span>
+<span class="sd">        foo_bar = tank.platform.import_framework("tk-framework-mystuff", "foo_bar")</span>
 
 <span class="sd">    This is a special method, designed to</span>
 <span class="sd">    be used inside python modules that belong to apps, engines or frameworks.</span>
 
-<span class="sd">    The calling code needs to have been imported using toolkit&#39;s standard import</span>
+<span class="sd">    The calling code needs to have been imported using toolkit's standard import</span>
 <span class="sd">    mechanism, :meth:`Bundle.import_module()`, otherwise an exception will be raised.</span>
 
-<span class="sd">    :param framework: name of the framework object to access, as defined in the app&#39;s</span>
+<span class="sd">    :param framework: name of the framework object to access, as defined in the app's</span>
 <span class="sd">                      info.yml manifest.</span>
 <span class="sd">    :param module: module to load from framework</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">framework</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_bundle</span><span class="o">.</span><span class="n">frameworks</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-            <span class="s2">&quot;import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!&quot;</span>
+            <span class="s2">"import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!"</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">current_bundle</span><span class="p">,</span> <span class="n">framework</span><span class="p">)</span>
         <span class="p">)</span>
 
@@ -379,7 +379,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">(</span><span class="n">module_name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Standard sgtk logging access for python code that runs inside apps.</span>
 
 <span class="sd">    We recommend that you use this method for all logging that takes place</span>
@@ -398,13 +398,13 @@
 
 <span class="sd">    :param module_name: Pass ``__name__`` to this parameter</span>
 <span class="sd">    :return: Standard python logger</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">curr_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
-        <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curr_bundle</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">module_name</span><span class="p">)</span>
+        <span class="n">full_log_path</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">curr_bundle</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">module_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">full_log_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">TankCurrentModuleNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;no_current_bundle.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_name</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="s2">"no_current_bundle.</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_name</span><span class="p">,))</span>
 </pre></div>
 
            </div>

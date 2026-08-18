@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.framework &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.platform.framework &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,16 +134,16 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Defines the base class for all Tank Frameworks.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -154,12 +154,12 @@
 
 
 <div class="viewcode-block" id="Framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Framework</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Base class for a Toolkit Framework</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Called by the bundle loading framework. The constructor</span>
 <span class="sd">        is not meant to be overridden by deriving classes.</span>
 
@@ -168,7 +168,7 @@
 <span class="sd">        :param app_name: The short name of this framework (e.g. tk-framework-widget)</span>
 <span class="sd">        :param settings: a settings dictionary for this fw</span>
 <span class="sd">        :param env: the environment that the framework belongs to</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span> <span class="o">=</span> <span class="n">engine</span>
 
         <span class="c1"># create logger for this app</span>
@@ -181,22 +181,22 @@
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Framework 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, engine: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">return</span> <span class="s2">"&lt;Sgtk Framework 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, engine: </span><span class="si">%s</span><span class="s2">&gt;"</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_destroy_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Called by the parent classes when it is time to destroy this framework</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># destroy all our (non-shared) frameworks</span>
         <span class="k">for</span> <span class="n">fw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameworks</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">fw</span><span class="o">.</span><span class="n">is_shared</span><span class="p">:</span>
                 <span class="n">fw</span><span class="o">.</span><span class="n">_destroy_framework</span><span class="p">()</span>
         <span class="c1"># and destroy self</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Destroying </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Destroying </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">destroy_framework</span><span class="p">()</span>
 
     <span class="c1">##########################################################################################</span>
@@ -204,13 +204,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns a Shotgun API handle associated with the currently running</span>
 <span class="sd">        environment. This method is a convenience method that calls out</span>
 <span class="sd">        to :meth:`~sgtk.Tank.shotgun`.</span>
 
 <span class="sd">        :returns: Shotgun API handle</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># pass on information to the user agent manager which bundle is returning</span>
         <span class="c1"># this sg handle. This information will be passed to the web server logs</span>
         <span class="c1"># in the shotgun data centre and makes it easy to track which app and engine versions</span>
@@ -228,14 +228,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The engine that this framework is connected to</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_shared</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Boolean indicating whether this is a shared framework.</span>
 
 <span class="sd">        Frameworks are shared by default and this is a setting that can be</span>
@@ -250,21 +250,21 @@
 <span class="sd">        If your framework manages complex global state that you want to control</span>
 <span class="sd">        precisely, it may be useful to set the framework to be not shared in</span>
 <span class="sd">        the ``info.yml`` manifest file. This will ensure that each bundle that</span>
-<span class="sd">        uses the framework will maintain it&#39;s own private version of the</span>
+<span class="sd">        uses the framework will maintain it's own private version of the</span>
 <span class="sd">        framework code.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">is_shared_framework</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Framework.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.get_metrics_properties">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns a dictionary with properties to use when emitting a metric event</span>
 <span class="sd">        for this framework in the current engine.</span>
 
-<span class="sd">        Frameworks don&#39;t have any particular properties and just return the result</span>
+<span class="sd">        Frameworks don't have any particular properties and just return the result</span>
 <span class="sd">        of :meth:`Engine.get_metrics_properties`.</span>
 
 <span class="sd">        :returns: Dictionary as per above.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Please note that before we used to log some framework information as well</span>
         <span class="c1"># Now we just add the engine information.</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_metrics_properties</span><span class="p">()</span>
@@ -274,75 +274,75 @@
     <span class="c1"># init and destroy</span>
 
 <div class="viewcode-block" id="Framework.init_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.init_framework">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">init_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Implemented by deriving classes in order to initialize the app.</span>
 <span class="sd">        Called by the engine as it loads the framework.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Framework.destroy_framework"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.destroy_framework">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">destroy_framework</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Implemented by deriving classes in order to tear down the framework.</span>
 <span class="sd">        Called by the engine as it is being destroyed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span></div>
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># logging methods</span>
 
 <div class="viewcode-block" id="Framework.log_debug"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_debug">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Logs a debug message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
 <span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
 <span class="sd">        :param msg: Message to log.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_info"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_info">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Logs an info message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
 <span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
 <span class="sd">        :param msg: Message to log.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_warning"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_warning">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Logs an warning message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
 <span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
 <span class="sd">        :param msg: Message to log.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_error"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_error">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Logs an error message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
 <span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
 <span class="sd">        :param msg: Message to log.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Framework.log_exception"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.log_exception">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Logs an exception message.</span>
 
 <span class="sd">        .. deprecated:: 0.18</span>
 <span class="sd">            Use :meth:`Engine.logger` instead.</span>
 
 <span class="sd">        :param msg: Message to log.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div></div>
 
 
@@ -353,10 +353,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">setup_frameworks</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">,</span> <span class="n">parent_obj</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">parent_descriptor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Checks if any frameworks are needed for the current item</span>
 <span class="sd">    and in that case loads them - recursively</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># look into the environment, get descriptors for all frameworks that our item needs:</span>
     <span class="n">framework_instance_names</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">validate_and_return_frameworks</span><span class="p">(</span>
@@ -373,7 +373,7 @@
         <span class="c1"># care about the instance name and want to access the framework using the</span>
         <span class="c1"># name specified in info.yml.</span>
         <span class="n">engine_obj</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Registering instance </span><span class="si">%s</span><span class="s2"> as </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fw_inst_name</span><span class="p">,</span> <span class="n">fw_name</span><span class="p">,</span> <span class="n">parent_obj</span>
+            <span class="s2">"Registering instance </span><span class="si">%s</span><span class="s2"> as </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">fw_inst_name</span><span class="p">,</span> <span class="n">fw_name</span><span class="p">,</span> <span class="n">parent_obj</span>
         <span class="p">)</span>
 
         <span class="c1"># load framework</span>
@@ -385,7 +385,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">load_framework</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">fw_instance_name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Validates, loads and initializes a framework.  If the framework is available from the list of</span>
 <span class="sd">    shared frameworks maintained by the engine then the shared framework is returned, otherwise a</span>
 <span class="sd">    new instance of the framework will be returned.</span>
@@ -394,9 +394,9 @@
 <span class="sd">    :param env:                 The environment containing the framework instance to load</span>
 <span class="sd">    :param fw_instance_name:    The instance name of the framework (e.g. tk-framework-foo_v0.x.x)</span>
 <span class="sd">    :returns:                   An initialized framework object.</span>
-<span class="sd">    :raises:                    TankError if the framework can&#39;t be found, has an invalid</span>
+<span class="sd">    :raises:                    TankError if the framework can't be found, has an invalid</span>
 <span class="sd">                                configuration or fails to initialize.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># see if we have a shared instance of the framework:</span>
     <span class="n">fw</span> <span class="o">=</span> <span class="n">engine_obj</span><span class="o">.</span><span class="n">_get_shared_framework</span><span class="p">(</span><span class="n">fw_instance_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fw</span><span class="p">:</span>
@@ -407,7 +407,7 @@
     <span class="n">descriptor</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_framework_descriptor</span><span class="p">(</span><span class="n">fw_instance_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot load Framework! </span><span class="si">%s</span><span class="s2"> does not exist on disk.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
+            <span class="s2">"Cannot load Framework! </span><span class="si">%s</span><span class="s2"> does not exist on disk."</span> <span class="o">%</span> <span class="n">descriptor</span>
         <span class="p">)</span>
 
     <span class="c1"># Load the settings for the framework and validate them</span>
@@ -433,19 +433,19 @@
     <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># validation error - probably some issue with the settings!</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-            <span class="s2">&quot;Framework configuration Error for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fw_instance_name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="s2">"Framework configuration Error for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">fw_instance_name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># code execution error in the validation.</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not validate framework </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fw_instance_name</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">"Could not validate framework </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">fw_instance_name</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
     <span class="c1"># load the framework</span>
     <span class="c1">#    try:</span>
     <span class="c1"># initialize fw class</span>
     <span class="n">fw</span> <span class="o">=</span> <span class="n">_create_framework_instance</span><span class="p">(</span><span class="n">engine_obj</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">fw_settings</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
 
-    <span class="c1"># if it&#39;s a shared framework then add it to the engine so we can re-use it</span>
+    <span class="c1"># if it's a shared framework then add it to the engine so we can re-use it</span>
     <span class="c1"># again in the future if needed:</span>
     <span class="k">if</span> <span class="n">fw</span><span class="o">.</span><span class="n">is_shared</span><span class="p">:</span>
         <span class="c1"># register this framework for reuse by other bundles</span>
@@ -458,20 +458,20 @@
     <span class="n">fw</span><span class="o">.</span><span class="n">init_framework</span><span class="p">()</span>
 
     <span class="c1">#    except Exception, e:</span>
-    <span class="c1">#        raise TankError(&quot;Framework %s failed to initialize: %s&quot; % (descriptor, e))</span>
+    <span class="c1">#        raise TankError("Framework %s failed to initialize: %s" % (descriptor, e))</span>
 
     <span class="k">return</span> <span class="n">fw</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_create_framework_instance</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Internal helper method.</span>
 <span class="sd">    Returns an framework object given an engine and fw settings.</span>
 
 <span class="sd">    :param engine: the engine this app should run in</span>
 <span class="sd">    :param descriptor: descriptor for the fw</span>
 <span class="sd">    :param settings: a settings dict to pass to the fw</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">fw_folder</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
     <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fw_folder</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">FRAMEWORK_FILE</span><span class="p">)</span>
 

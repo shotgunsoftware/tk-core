@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>get_current_login &mdash; tk-core v0.24.0 documentation</title>
+  <title>get_current_login &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,16 +134,16 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Hook that gets executed when the current user is being retrieved.</span>
 
-<span class="sd">Please note that this hook will only be called whenever Toolkit doesn&#39;t</span>
+<span class="sd">Please note that this hook will only be called whenever Toolkit doesn't</span>
 <span class="sd">have an authenticated user present. In releases prior to v0.16, this was the case</span>
 <span class="sd">for all users and projects. However, as of Core v0.16 and above, projects are set</span>
 <span class="sd">up to require users to log in by default, meaning that there already is a well</span>
@@ -151,13 +151,13 @@
 
 <span class="sd">Even with such projects, there are environments, e.g. render farms, where a user</span>
 <span class="sd">cannot easily log in, and a Shotgun script user typically is being used for</span>
-<span class="sd">&quot;headless&quot; operation of Toolkit. In these cases, Toolkit doesn&#39;t know which</span>
+<span class="sd">"headless" operation of Toolkit. In these cases, Toolkit doesn't know which</span>
 <span class="sd">Shotgun user is associated with the operation and this hook will be called.</span>
 
 <span class="sd">The return value from this hook will then be compared with the available logins</span>
 <span class="sd">for all users in Shotgun and if a match is found, this is deemed to be the</span>
 <span class="sd">current user.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -167,20 +167,20 @@
 
 <div class="viewcode-block" id="GetCurrentLogin"><a class="viewcode-back" href="../core.html#get_current_login.GetCurrentLogin">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">GetCurrentLogin</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
 <div class="viewcode-block" id="GetCurrentLogin.execute"><a class="viewcode-back" href="../core.html#get_current_login.GetCurrentLogin.execute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Retrieves the login name for the Shotgun user.</span>
 
 <span class="sd">        This is used by Toolkit to resolve against the ``login`` field in the</span>
 <span class="sd">        Shotgun users table in order to extract further metadata.</span>
 
-<span class="sd">        The default implementation will return the OS user&#39;s login name.</span>
+<span class="sd">        The default implementation will return the OS user's login name.</span>
 
-<span class="sd">        :returns: A name that matches the user&#39;s ``login`` field in Shotgun.</span>
+<span class="sd">        :returns: A name that matches the user's ``login`` field in Shotgun.</span>
 <span class="sd">        :rtype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
             <span class="c1"># http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python</span>
-            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;USERNAME&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"USERNAME"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="kn">import</span><span class="w"> </span><span class="nn">pwd</span>

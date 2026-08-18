@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.24.0 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -209,7 +209,7 @@ example shows basic usage:</p>
 <span class="n">sg</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
 
 <span class="c1"># we are fetching v1.2.3 of the default config from the app store</span>
-<span class="n">uri</span> <span class="o">=</span> <span class="s2">&quot;sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.2.3&quot;</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="s2">"sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.2.3"</span>
 
 <span class="c1"># create object</span>
 <span class="n">desc</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">create_descriptor</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
@@ -230,9 +230,9 @@ example shows basic usage:</p>
 <code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-default&amp;version=v1.2.3</span></code></p></li>
 <li><p>A descriptor dictionary contains the equivalent information in key-value pair form:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;app_store&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.2.3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-config-default&quot;</span>
+    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"app_store"</span><span class="p">,</span>
+    <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v1.2.3"</span><span class="p">,</span>
+    <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-config-default"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -655,7 +655,7 @@ following syntax can be useful:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span><span class="w"> </span><span class="nv">shotgun</span><span class="p p-Indicator">,</span>
 <span class="nt">    entity_type</span><span class="p">:</span><span class="w"> </span><span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span><span class="w">  </span><span class="c1"># entity type</span>
-<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">Primary</span><span class="p p-Indicator">,</span><span class="w">                       </span><span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
+<span class="nt">    name</span><span class="p">:</span><span class="w"> </span><span class="nv">Primary</span><span class="p p-Indicator">,</span><span class="w">                       </span><span class="c1"># name of the record in shotgun (e.g. 'code' field)</span>
 <span class="nt">    project_id</span><span class="p">:</span><span class="w"> </span><span class="nv">123</span><span class="p p-Indicator">,</span><span class="w">                     </span><span class="c1"># optional project id. If omitted, name is assumed to be unique.</span>
 <span class="nt">    field</span><span class="p">:</span><span class="w"> </span><span class="nv">uploaded_config</span><span class="p p-Indicator">,</span><span class="w">              </span><span class="c1"># attachment field where payload can be found</span>
 <span class="nt">    version</span><span class="p">:</span><span class="w"> </span><span class="nv">456</span><span class="w">                         </span><span class="c1"># attachment id of particular attachment</span>
@@ -985,7 +985,7 @@ it is possible to define a section for this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
 <span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="n">Version</span><span class="p">:</span>
-        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">"system_name"</span><span class="p">:</span> <span class="s2">"sg_movie_type"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"text"</span> <span class="p">}</span>
 </pre></div>
 </div>
 <p>This method will retrieve the metadata and ensure that any required
@@ -1193,7 +1193,7 @@ user task and step defined.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">required_frameworks</span></span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.required_frameworks" title="Permalink to this definition"></a></dt>
 <dd><p>A list of required frameworks for this item.</p>
 <p>Always returns a list - for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">'version'</span><span class="p">:</span> <span class="s1">'v0.1.0'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'tk-framework-widget'</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Each item contains a name and a version key.</p>
@@ -1439,7 +1439,7 @@ it is possible to define a section for this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
 <span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="n">Version</span><span class="p">:</span>
-        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">"system_name"</span><span class="p">:</span> <span class="s2">"sg_movie_type"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"text"</span> <span class="p">}</span>
 </pre></div>
 </div>
 <p>This method will retrieve the metadata and ensure that any required
@@ -1647,7 +1647,7 @@ user task and step defined.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">required_frameworks</span></span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.required_frameworks" title="Permalink to this definition"></a></dt>
 <dd><p>A list of required frameworks for this item.</p>
 <p>Always returns a list - for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">'version'</span><span class="p">:</span> <span class="s1">'v0.1.0'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'tk-framework-widget'</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Each item contains a name and a version key.</p>
@@ -1906,7 +1906,7 @@ it is possible to define a section for this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
 <span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="n">Version</span><span class="p">:</span>
-        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">"system_name"</span><span class="p">:</span> <span class="s2">"sg_movie_type"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"text"</span> <span class="p">}</span>
 </pre></div>
 </div>
 <p>This method will retrieve the metadata and ensure that any required
@@ -2114,7 +2114,7 @@ user task and step defined.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">required_frameworks</span></span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.required_frameworks" title="Permalink to this definition"></a></dt>
 <dd><p>A list of required frameworks for this item.</p>
 <p>Always returns a list - for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">'version'</span><span class="p">:</span> <span class="s1">'v0.1.0'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'tk-framework-widget'</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Each item contains a name and a version key.</p>

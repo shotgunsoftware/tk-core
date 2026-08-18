@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.download &mdash; tk-core v0.24.0 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -134,15 +134,15 @@
 <span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
 <span class="c1">#</span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
 <span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Methods for downloading things from Shotgun</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
@@ -163,7 +163,7 @@
 
 <div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_url">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convenience method that downloads a file from a given url.</span>
 <span class="sd">    This method will take into account any proxy settings which have</span>
 <span class="sd">    been defined in the Shotgun connection parameters.</span>
@@ -176,8 +176,8 @@
 <span class="sd">    the filename passed in via the location parameter. So for the urls given</span>
 <span class="sd">    above, you would get the following results:</span>
 
-<span class="sd">    - location=&quot;/path/to/file&quot; and use_url_extension=False would return &quot;/path/to/file&quot;</span>
-<span class="sd">    - location=&quot;/path/to/file&quot; and use_url_extension=True would return &quot;/path/to/file.png&quot;</span>
+<span class="sd">    - location="/path/to/file" and use_url_extension=False would return "/path/to/file"</span>
+<span class="sd">    - location="/path/to/file" and use_url_extension=True would return "/path/to/file.png"</span>
 
 <span class="sd">    :param sg: Shotgun API instance to get proxy connection settings from</span>
 <span class="sd">    :param url: url to download</span>
@@ -185,7 +185,7 @@
 <span class="sd">                     this path needs to exists and the current user needs</span>
 <span class="sd">                     to have write permissions</span>
 <span class="sd">    :param bool use_url_extension: Optionally append the file extension of the</span>
-<span class="sd">                                   resolved URL&#39;s path to the input ``location``</span>
+<span class="sd">                                   resolved URL's path to the input ``location``</span>
 <span class="sd">                                   to construct the full path name to the downloaded</span>
 <span class="sd">                                   contents. The newly constructed full path name</span>
 <span class="sd">                                   will be returned.</span>
@@ -194,7 +194,7 @@
 <span class="sd">              the input ``location`` if ``use_url_extension`` is True and a file extension</span>
 <span class="sd">              could be determined from the resolved url.</span>
 <span class="sd">    :raises: :class:`TankError` on failure.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># We only need to set the auth cookie for downloads from Shotgun server,</span>
     <span class="c1"># input URLs like: https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227</span>
     <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
@@ -229,23 +229,23 @@
                 <span class="o">-</span><span class="mi">1</span>
             <span class="p">]</span>
             <span class="k">if</span> <span class="n">url_ext</span><span class="p">:</span>
-                <span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">url_ext</span><span class="p">)</span>
+                <span class="n">location</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">url_ext</span><span class="p">)</span>
 
-        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-            <span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="s2">"Could not download contents of url '</span><span class="si">%s</span><span class="s2">'. Error reported: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">location</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">__setup_sg_auth_and_proxy</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Borrowed from the Shotgun Python API, setup urllib with a cookie for authentication on</span>
 <span class="sd">    Shotgun instance.</span>
 
@@ -253,7 +253,7 @@
 <span class="sd">    used internally for downloading attachments from the Shotgun server.</span>
 
 <span class="sd">    :param sg: Shotgun API instance</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Importing this module locally to reduce clutter and facilitate clean up when/if this</span>
     <span class="c1"># functionality gets ported back into the Shotgun API.</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">http.cookiejar</span>
@@ -261,15 +261,15 @@
     <span class="n">sid</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_session_token</span><span class="p">()</span>
     <span class="n">cj</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">cookiejar</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">cookiejar</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span>
-        <span class="s2">&quot;0&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;_session_id&quot;</span><span class="p">,</span>
+        <span class="s2">"0"</span><span class="p">,</span>
+        <span class="s2">"_session_id"</span><span class="p">,</span>
         <span class="n">sid</span><span class="p">,</span>
         <span class="kc">None</span><span class="p">,</span>
         <span class="kc">False</span><span class="p">,</span>
         <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span><span class="p">,</span>
         <span class="kc">False</span><span class="p">,</span>
         <span class="kc">False</span><span class="p">,</span>
-        <span class="s2">&quot;/&quot;</span><span class="p">,</span>
+        <span class="s2">"/"</span><span class="p">,</span>
         <span class="kc">True</span><span class="p">,</span>
         <span class="kc">False</span><span class="p">,</span>
         <span class="kc">None</span><span class="p">,</span>
@@ -290,7 +290,7 @@
 <div class="viewcode-block" id="download_and_unpack_attachment"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_attachment">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">download_and_unpack_attachment</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Downloads the given attachment from Shotgun, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
 
@@ -304,7 +304,7 @@
 <span class="sd">        detected and unpacked intelligently. For example, if the zip file contains</span>
 <span class="sd">        the bundle in a subfolder, this should be correctly unfolded.</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># NOTE Downloading by attachment ID is deprecated in the Shotgun API.</span>
     <span class="c1"># We should avoid using this where possible.</span>
     <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span>
@@ -315,7 +315,7 @@
 <div class="viewcode-block" id="download_and_unpack_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_url">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">download_and_unpack_url</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Downloads the content from the provided url, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
 
@@ -329,7 +329,7 @@
 <span class="sd">        detected and unpacked intelligently. For example, if the zip file contains</span>
 <span class="sd">        the bundle in a subfolder, this should be correctly unfolded.</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span>
         <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="p">)</span></div>
@@ -339,7 +339,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_download_and_unpack</span><span class="p">(</span>
     <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Downloads the given attachment from Shotgun if an attachment ID is provided,</span>
 <span class="sd">    otherwise downloads the content from the provided url.  Assumes the downloaded</span>
 <span class="sd">    file is a zip file and attempts to unpack it into the given location.</span>
@@ -355,7 +355,7 @@
 <span class="sd">    :param attachment_id: Attachment to download</span>
 <span class="sd">    :param url: The url to download from</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># @todo: progress feedback here - when the PTR api supports it!</span>
     <span class="c1"># sometimes people report that this download fails (because of flaky connections etc)</span>
     <span class="c1"># engines can often be 30-50MiB - as a quick fix, just retry the download if it fails</span>
@@ -366,21 +366,21 @@
 
     <span class="k">while</span> <span class="ow">not</span> <span class="n">invalid_zip_file</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">done</span> <span class="ow">and</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
 
-        <span class="n">zip_tmp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_tank.zip&quot;</span> <span class="o">%</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+        <span class="n">zip_tmp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">_tank.zip"</span> <span class="o">%</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">time_before</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">attachment_id</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Downloading attachment id </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">attachment_id</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Downloading attachment id </span><span class="si">%s</span><span class="s2">..."</span> <span class="o">%</span> <span class="n">attachment_id</span><span class="p">)</span>
                 <span class="n">bundle_content</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">download_attachment</span><span class="p">(</span><span class="n">attachment_id</span><span class="p">)</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Download complete. Saving into </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">zip_tmp</span><span class="p">)</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Download complete. Saving into </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">zip_tmp</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bundle_content</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">url</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Downloading content of url </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Downloading content of url </span><span class="si">%s</span><span class="s2">..."</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
                 <span class="n">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">zip_tmp</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;A value is required for one of kwargs `url` or `attachment_id`&quot;</span>
+                    <span class="s2">"A value is required for one of kwargs `url` or `attachment_id`"</span>
                 <span class="p">)</span>
 
             <span class="n">file_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">)</span>
@@ -389,13 +389,13 @@
             <span class="n">time_to_download</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">time_before</span>
             <span class="k">if</span> <span class="n">time_to_download</span><span class="p">:</span>
                 <span class="c1"># In downloads from localhost (including during unit tests)</span>
-                <span class="c1"># downloads can be immediate.  In this case, we won&#39;t try to log</span>
+                <span class="c1"># downloads can be immediate.  In this case, we won't try to log</span>
                 <span class="c1"># download speed.</span>
                 <span class="n">broadband_speed_bps</span> <span class="o">=</span> <span class="n">file_size</span> <span class="o">*</span> <span class="mf">8.0</span> <span class="o">/</span> <span class="n">time_to_download</span>
                 <span class="n">broadband_speed_mibps</span> <span class="o">=</span> <span class="n">broadband_speed_bps</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Download speed: </span><span class="si">%4f</span><span class="s2"> Mbit/s&quot;</span> <span class="o">%</span> <span class="n">broadband_speed_mibps</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Download speed: </span><span class="si">%4f</span><span class="s2"> Mbit/s"</span> <span class="o">%</span> <span class="n">broadband_speed_mibps</span><span class="p">)</span>
 
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Unpacking </span><span class="si">%s</span><span class="s2"> bytes to </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_size</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Unpacking </span><span class="si">%s</span><span class="s2"> bytes to </span><span class="si">%s</span><span class="s2">..."</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_size</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
             <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">)</span>
@@ -405,12 +405,12 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">attachment_id</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Attachment download of id </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="s2">"Attempt </span><span class="si">%s</span><span class="s2">: Attachment download of id </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">"</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">url</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Download of content of url </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="s2">"Attempt </span><span class="si">%s</span><span class="s2">: Download of content of url </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">"</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -428,21 +428,21 @@
         <span class="c1"># the attachment in shotgun could not be unpacked</span>
         <span class="k">if</span> <span class="n">attachment_id</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
-                <span class="s2">&quot;PTR attachment with id </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">attachment_id</span>
+                <span class="s2">"PTR attachment with id </span><span class="si">%s</span><span class="s2"> is not a zip file!"</span> <span class="o">%</span> <span class="n">attachment_id</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
-                <span class="s2">&quot;Content of url </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">url</span>
+                <span class="s2">"Content of url </span><span class="si">%s</span><span class="s2"> is not a zip file!"</span> <span class="o">%</span> <span class="n">url</span>
             <span class="p">)</span>
     <span class="k">elif</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
-        <span class="c1"># we couldn&#39;t download for some reason</span>
+        <span class="c1"># we couldn't download for some reason</span>
         <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to download from &#39;</span><span class="si">%s</span><span class="s2">&#39; after </span><span class="si">%s</span><span class="s2"> retries. See error log for details.&quot;</span>
+            <span class="s2">"Failed to download from '</span><span class="si">%s</span><span class="s2">' after </span><span class="si">%s</span><span class="s2"> retries. See error log for details."</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">retries</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attachment download and unpack complete.&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Attachment download and unpack complete."</span><span class="p">)</span>
 </pre></div>
 
            </div>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.24.0 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.24.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -183,7 +183,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.0.<br>
+    <b>tk-core</b> v0.24.1.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -249,9 +249,9 @@ interface for launching host applications are also provided.</p>
 <dd><p>Creates an engine and makes it the current engine.
 Returns the newly created engine object. Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">start_engine</span><span class="p">(</span><span class="s1">'tk-maya'</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span>
 <span class="go">&lt;Sgtk Engine 0x10451b690: tk-maya, env: shotgun&gt;</span>
 </pre></div>
@@ -301,9 +301,9 @@ returns the path to a suitable engine. This helper method is sometimes useful
 when initializing engines for applications that do not have a built in python interpreter.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">"/studio/project_root"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_engine_path</span><span class="p">(</span><span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_engine_path</span><span class="p">(</span><span class="s1">'tk-maya'</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
 <span class="go">/studio/sgtk/install/engines/app_store/tk-maya/v0.1.0</span>
 </pre></div>
 </div>
@@ -451,19 +451,19 @@ behavior tied to specific event types.</p>
 then emit its associated event. The example below is listening for a Qt signal from a host’s “frontend”
 handle and then emits a FileOpenEvent:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pre_app_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Runs before apps are initialized.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">frontend</span><span class="o">.</span><span class="n">file_opened</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_file_open</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_handle_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Emits a file open event that apps can listen for.</span>
 
 <span class="sd">    :param str file_path: The path of the file opened.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">event</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">FileOpenEvent</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Emitting event </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">event</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Emitting event </span><span class="si">%s</span><span class="s2">..."</span> <span class="o">%</span> <span class="n">event</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_emit_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -483,13 +483,13 @@ the appropriate logic according to the results.</p></li>
 order to execute custom logic when the parent <a class="reference internal" href="#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> has indicated that a new file has been
 opened by the host DCC application:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">event_file_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Handles event notifications from the parent engine.</span>
 
 <span class="sd">    :param event: The event object that was emitted.</span>
 <span class="sd">    :type event: :class:`~sgtk.platform.events.FileOpenEvent`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Handling event: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">event</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">"Handling event: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">event</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">set_version_entity_by_file</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">file_path</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -745,10 +745,10 @@ this engine.</p>
 and informations about the application hosting the engine: its name and
 version:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s1">&#39;Host App&#39;</span><span class="p">:</span> <span class="s1">&#39;Maya&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Host App Version&#39;</span><span class="p">:</span> <span class="s1">&#39;2017&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Engine&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Engine Version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.4.1&#39;</span><span class="p">,</span>
+    <span class="s1">'Host App'</span><span class="p">:</span> <span class="s1">'Maya'</span><span class="p">,</span>
+    <span class="s1">'Host App Version'</span><span class="p">:</span> <span class="s1">'2017'</span><span class="p">,</span>
+    <span class="s1">'Engine'</span><span class="p">:</span> <span class="s1">'tk-maya'</span><span class="p">,</span>
+    <span class="s1">'Engine Version'</span><span class="p">:</span> <span class="s1">'v0.4.1'</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1109,9 +1109,9 @@ app: <a class="reference external" href="https://github.com/shotgunsoftware/tk-m
 <p>Typical usage normally looks something like this -
 register_command is called from the <a class="reference internal" href="#sgtk.platform.Application.init_app" title="sgtk.platform.Application.init_app"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Application.init_app()</span></code></a> method of an app:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">register_command</span><span class="p">(</span>
-    <span class="s2">&quot;Work Area Info...&quot;</span><span class="p">,</span>
+    <span class="s2">"Work Area Info..."</span><span class="p">,</span>
     <span class="n">callback</span><span class="p">,</span>
-    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;context_menu&quot;</span><span class="p">,</span> <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;work_area_info&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"context_menu"</span><span class="p">,</span> <span class="s2">"short_name"</span><span class="p">:</span> <span class="s2">"work_area_info"</span><span class="p">}</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -1169,7 +1169,7 @@ and the background thread is invoking this method. Since the main thread is wait
 for the background thread to finish, Qt’s event loop won’t be able to process the request
 to execute in the main thread:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">sgtk.platform.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello from the main thread!&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"Hello"</span><span class="p">,</span> <span class="s2">"Hello from the main thread!"</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1353,7 +1353,7 @@ bar. You can do this by adding a property to the widget class you are
 displaying:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
+    <span class="s2">"Tell the system to not show the standard toolkit toolbar"</span>
     <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 </div>
@@ -1411,7 +1411,7 @@ bar. You can do this by adding a property to the widget class you are
 displaying:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
+    <span class="s2">"Tell the system to not show the standard toolkit toolbar"</span>
     <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 </div>
@@ -1451,7 +1451,7 @@ bar. You can do this by adding a property to the widget class you are
 displaying:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@property</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="s2">&quot;Tell the system to not show the standard toolkit toolbar&quot;</span>
+    <span class="s2">"Tell the system to not show the standard toolkit toolbar"</span>
     <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 </div>
@@ -1486,7 +1486,7 @@ It typically points at a path in the local filesystem, e.g on a mac:</p>
 </div>
 <p>This can be used to store cache data that the app wants to reuse across
 sessions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">"query.dat"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1523,7 +1523,7 @@ be overridden in the deriving class and forced to return True.</p>
 maintain a handle to a hook instance. Normally, hooks are stateless
 and every time a hook is called, a new instance is returned. This method
 provides a standardized way to retrieve an instance of a hook:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">"</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py"</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_x</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_y</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_z</span><span class="p">()</span>
@@ -1572,7 +1572,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dd><p>The folder on disk where this item is located.
 This can be useful if you want to write app code
 to retrieve a local resource:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">,</span> <span class="s2">"font.fnt"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1796,8 +1796,8 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dt class="sig sig-object py" id="sgtk.platform.Engine.get_setting">
 <span class="sig-name descname"><span class="pre">get_setting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_setting" title="Permalink to this definition"></a></dt>
 <dd><p>Get a value from the item’s settings:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
-<span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">'entity_types'</span><span class="p">)</span>
+<span class="go">['Sequence', 'Shot', 'Asset', 'Task']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1866,7 +1866,7 @@ this method is used whenever you want to access code in the python location.</p>
    <span class="o">|-</span> <span class="n">app</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">framework</span><span class="o">.</span><span class="n">py</span>
    <span class="o">|-</span> <span class="n">info</span><span class="o">.</span><span class="n">yml</span>
    \<span class="o">-</span> <span class="n">python</span>
-       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
+       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">'from . import tk_multi_mybundle'</span>
        \<span class="o">-</span> <span class="n">tk_multi_mybundle</span>
 </pre></div>
 </div>
@@ -1875,7 +1875,7 @@ light weight wrapper and the python module
 <code class="docutils literal notranslate"><span class="pre">tk_multi_myapp</span></code> module contains the actual code payload.
 In order to import this in a Toolkit friendly way, you need to run
 the following when you want to load the payload module inside of app.py:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;tk_multi_myapp&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"tk_multi_myapp"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1974,7 +1974,7 @@ It typically points at a path in the local filesystem, e.g on a mac:</p>
 </div>
 <p>This can be used to store cache data that the app wants to reuse across
 sessions and can be shared across a site:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">"query.dat"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1995,9 +1995,9 @@ at the root level of the app, engine or framework. Use a
 </div>
 <p>This property returns the values for all constants, for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#18A7E3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;SG_ALERT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#FC6246&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;SG_FOREGROUND_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#C8C8C8&quot;</span>
+  <span class="s2">"SG_HIGHLIGHT_COLOR"</span><span class="p">:</span> <span class="s2">"#18A7E3"</span><span class="p">,</span>
+  <span class="s2">"SG_ALERT_COLOR"</span><span class="p">:</span> <span class="s2">"#FC6246"</span><span class="p">,</span>
+  <span class="s2">"SG_FOREGROUND_COLOR"</span><span class="p">:</span> <span class="s2">"#C8C8C8"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -2106,12 +2106,12 @@ for this application in the current engine.</p>
 current engine, and about the application hosting the engine. For each of
 them, a name and a version string are available:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s1">&#39;Host App&#39;</span><span class="p">:</span> <span class="s1">&#39;Maya&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Host App Version&#39;</span><span class="p">:</span> <span class="s1">&#39;2017&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Engine&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Engine Version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.4.1&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;App&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-multi-about&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;App Version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.2.3&#39;</span>
+    <span class="s1">'Host App'</span><span class="p">:</span> <span class="s1">'Maya'</span><span class="p">,</span>
+    <span class="s1">'Host App Version'</span><span class="p">:</span> <span class="s1">'2017'</span><span class="p">,</span>
+    <span class="s1">'Engine'</span><span class="p">:</span> <span class="s1">'tk-maya'</span><span class="p">,</span>
+    <span class="s1">'Engine Version'</span><span class="p">:</span> <span class="s1">'v0.4.1'</span><span class="p">,</span>
+    <span class="s1">'App'</span><span class="p">:</span> <span class="s1">'tk-multi-about'</span><span class="p">,</span>
+    <span class="s1">'App Version'</span><span class="p">:</span> <span class="s1">'1.2.3'</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -2294,7 +2294,7 @@ It typically points at a path in the local filesystem, e.g on a mac:</p>
 </div>
 <p>This can be used to store cache data that the app wants to reuse across
 sessions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">"query.dat"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2344,7 +2344,7 @@ be overridden in the deriving class and forced to return True.</p>
 maintain a handle to a hook instance. Normally, hooks are stateless
 and every time a hook is called, a new instance is returned. This method
 provides a standardized way to retrieve an instance of a hook:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">"</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py"</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_x</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_y</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_z</span><span class="p">()</span>
@@ -2393,7 +2393,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dd><p>The folder on disk where this item is located.
 This can be useful if you want to write app code
 to retrieve a local resource:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">,</span> <span class="s2">"font.fnt"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2617,8 +2617,8 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dt class="sig sig-object py" id="sgtk.platform.Application.get_setting">
 <span class="sig-name descname"><span class="pre">get_setting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_setting" title="Permalink to this definition"></a></dt>
 <dd><p>Get a value from the item’s settings:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
-<span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">'entity_types'</span><span class="p">)</span>
+<span class="go">['Sequence', 'Shot', 'Asset', 'Task']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -2687,7 +2687,7 @@ this method is used whenever you want to access code in the python location.</p>
    <span class="o">|-</span> <span class="n">app</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">framework</span><span class="o">.</span><span class="n">py</span>
    <span class="o">|-</span> <span class="n">info</span><span class="o">.</span><span class="n">yml</span>
    \<span class="o">-</span> <span class="n">python</span>
-       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
+       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">'from . import tk_multi_mybundle'</span>
        \<span class="o">-</span> <span class="n">tk_multi_mybundle</span>
 </pre></div>
 </div>
@@ -2696,7 +2696,7 @@ light weight wrapper and the python module
 <code class="docutils literal notranslate"><span class="pre">tk_multi_myapp</span></code> module contains the actual code payload.
 In order to import this in a Toolkit friendly way, you need to run
 the following when you want to load the payload module inside of app.py:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;tk_multi_myapp&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"tk_multi_myapp"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2795,7 +2795,7 @@ It typically points at a path in the local filesystem, e.g on a mac:</p>
 </div>
 <p>This can be used to store cache data that the app wants to reuse across
 sessions and can be shared across a site:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">"query.dat"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2816,9 +2816,9 @@ at the root level of the app, engine or framework. Use a
 </div>
 <p>This property returns the values for all constants, for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#18A7E3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;SG_ALERT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#FC6246&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;SG_FOREGROUND_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#C8C8C8&quot;</span>
+  <span class="s2">"SG_HIGHLIGHT_COLOR"</span><span class="p">:</span> <span class="s2">"#18A7E3"</span><span class="p">,</span>
+  <span class="s2">"SG_ALERT_COLOR"</span><span class="p">:</span> <span class="s2">"#FC6246"</span><span class="p">,</span>
+  <span class="s2">"SG_FOREGROUND_COLOR"</span><span class="p">:</span> <span class="s2">"#C8C8C8"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -2873,14 +2873,14 @@ at the root level of the app, engine or framework. Use a
 for an app or an engine. Once imported, it will be available in the frameworks dictionary on the host object.
 For example, an app or engine (or framework) may have the following definition in its info.yml:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frameworks</span><span class="p">:</span>
-    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-widget&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.1.2&quot;</span><span class="p">}</span>
-    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-tools&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.x.x&quot;</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-framework-widget"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v0.1.2"</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-framework-tools"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v0.x.x"</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>When Toolkit loads the app, it will verify that the two frameworks are present in the environment and
 initialize them. Once initialized, the app that needs them can access them via the <code class="docutils literal notranslate"><span class="pre">self.frameworks</span></code>
 property:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">foo_bar_module</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameworks</span><span class="p">[</span><span class="s2">&quot;tk-framework-widget&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;foo_bar&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">foo_bar_module</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameworks</span><span class="p">[</span><span class="s2">"tk-framework-widget"</span><span class="p">]</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"foo_bar"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In order to import a framework module into app or engine code, use the convenience method
@@ -2889,7 +2889,7 @@ of the file, before you create any methods or classes:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="n">widgets</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">import_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-widget&quot;</span><span class="p">,</span> <span class="s2">&quot;widgets&quot;</span><span class="p">)</span>
+<span class="n">widgets</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">import_framework</span><span class="p">(</span><span class="s2">"tk-framework-widget"</span><span class="p">,</span> <span class="s2">"widgets"</span><span class="p">)</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyBrowser</span><span class="p">(</span><span class="n">widgets</span><span class="o">.</span><span class="n">BrowserWidget</span><span class="p">):</span>
     <span class="o">...</span>
@@ -2898,7 +2898,7 @@ of the file, before you create any methods or classes:</p>
 <p>If you would like to load the framework instance itself rather than a module which was imported as part of
 the framework initalization, you can use the <a class="reference internal" href="#sgtk.platform.get_framework" title="sgtk.platform.get_framework"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_framework()</span></code></a> method:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sgtk</span>
-<span class="n">fw</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-widget&quot;</span><span class="p">)</span>
+<span class="n">fw</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_framework</span><span class="p">(</span><span class="s2">"tk-framework-widget"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note that this only works inside of code which has been imported via the import_module command - e.g.
@@ -3073,7 +3073,7 @@ It typically points at a path in the local filesystem, e.g on a mac:</p>
 </div>
 <p>This can be used to store cache data that the app wants to reuse across
 sessions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_location</span><span class="p">,</span> <span class="s2">"query.dat"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3123,7 +3123,7 @@ be overridden in the deriving class and forced to return True.</p>
 maintain a handle to a hook instance. Normally, hooks are stateless
 and every time a hook is called, a new instance is returned. This method
 provides a standardized way to retrieve an instance of a hook:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">app_object</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span><span class="s2">"</span><span class="si">{config}</span><span class="s2">/path/to/my_hook.py"</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_x</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_y</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="o">.</span><span class="n">execute_method_z</span><span class="p">()</span>
@@ -3172,7 +3172,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dd><p>The folder on disk where this item is located.
 This can be useful if you want to write app code
 to retrieve a local resource:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">,</span> <span class="s2">"font.fnt"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3396,8 +3396,8 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dt class="sig sig-object py" id="sgtk.platform.Framework.get_setting">
 <span class="sig-name descname"><span class="pre">get_setting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_setting" title="Permalink to this definition"></a></dt>
 <dd><p>Get a value from the item’s settings:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
-<span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">'entity_types'</span><span class="p">)</span>
+<span class="go">['Sequence', 'Shot', 'Asset', 'Task']</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3466,7 +3466,7 @@ this method is used whenever you want to access code in the python location.</p>
    <span class="o">|-</span> <span class="n">app</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">engine</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> <span class="n">framework</span><span class="o">.</span><span class="n">py</span>
    <span class="o">|-</span> <span class="n">info</span><span class="o">.</span><span class="n">yml</span>
    \<span class="o">-</span> <span class="n">python</span>
-       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">&#39;from . import tk_multi_mybundle&#39;</span>
+       <span class="o">|-</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>   <span class="o">&lt;---</span> <span class="n">Needs</span> <span class="n">to</span> <span class="n">contain</span> <span class="s1">'from . import tk_multi_mybundle'</span>
        \<span class="o">-</span> <span class="n">tk_multi_mybundle</span>
 </pre></div>
 </div>
@@ -3475,7 +3475,7 @@ light weight wrapper and the python module
 <code class="docutils literal notranslate"><span class="pre">tk_multi_myapp</span></code> module contains the actual code payload.
 In order to import this in a Toolkit friendly way, you need to run
 the following when you want to load the payload module inside of app.py:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;tk_multi_myapp&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">module_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"tk_multi_myapp"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3574,7 +3574,7 @@ It typically points at a path in the local filesystem, e.g on a mac:</p>
 </div>
 <p>This can be used to store cache data that the app wants to reuse across
 sessions and can be shared across a site:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">"query.dat"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3595,9 +3595,9 @@ at the root level of the app, engine or framework. Use a
 </div>
 <p>This property returns the values for all constants, for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#18A7E3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;SG_ALERT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#FC6246&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;SG_FOREGROUND_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#C8C8C8&quot;</span>
+  <span class="s2">"SG_HIGHLIGHT_COLOR"</span><span class="p">:</span> <span class="s2">"#18A7E3"</span><span class="p">,</span>
+  <span class="s2">"SG_ALERT_COLOR"</span><span class="p">:</span> <span class="s2">"#FC6246"</span><span class="p">,</span>
+  <span class="s2">"SG_FOREGROUND_COLOR"</span><span class="p">:</span> <span class="s2">"#C8C8C8"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -3735,7 +3735,7 @@ mechanism, <a class="reference internal" href="#sgtk.platform.Application.import
 <p>This special helper method can be useful when code deep inside an app needs
 to reach out to for example grab a configuration value. Then you can simply do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">current_bundle</span><span class="p">()</span>
-<span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;frame_range&quot;</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">"frame_range"</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3756,8 +3756,8 @@ mechanism, import_module(), otherwise an exception will be raised.</p>
 <p>For example, if your app code requires the tk-framework-helpers framework, and you
 need to retrieve a configuration setting from this framework, then you can
 simply do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fw</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-helpers&quot;</span><span class="p">)</span>
-<span class="n">fw</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;frame_range&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fw</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_framework</span><span class="p">(</span><span class="s2">"tk-framework-helpers"</span><span class="p">)</span>
+<span class="n">fw</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">"frame_range"</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3784,7 +3784,7 @@ Instead of typing:</p>
 </pre></div>
 </div>
 <p>You use the following syntax to load a framework module:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">foo_bar</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">import_framework</span><span class="p">(</span><span class="s2">&quot;tk-framework-mystuff&quot;</span><span class="p">,</span> <span class="s2">&quot;foo_bar&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">foo_bar</span> <span class="o">=</span> <span class="n">tank</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">import_framework</span><span class="p">(</span><span class="s2">"tk-framework-mystuff"</span><span class="p">,</span> <span class="s2">"foo_bar"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This is a special method, designed to
@@ -3828,8 +3828,8 @@ or the <a class="reference external" href="https://github.com/shotgunsoftware/tk
 <p>The optional <code class="docutils literal notranslate"><span class="pre">display_name</span></code> field defines the name that the user will see for the app.
 The optional <code class="docutils literal notranslate"><span class="pre">description</span></code> field is a brief one line description of what the app does:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># More verbose description of this item</span>
-<span class="n">display_name</span><span class="p">:</span> <span class="s2">&quot;Write Node&quot;</span>
-<span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Support for the Flow Production Tracking Write Node in Nuke.&quot;</span>
+<span class="n">display_name</span><span class="p">:</span> <span class="s2">"Write Node"</span>
+<span class="n">description</span><span class="p">:</span> <span class="s2">"Support for the Flow Production Tracking Write Node in Nuke."</span>
 </pre></div>
 </div>
 </section>
@@ -3842,8 +3842,8 @@ information, see <a class="reference internal" href="#sgtk.platform.import_frame
 <p>The frameworks section is a list of dictionaries, for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the frameworks required to run this app</span>
 <span class="n">frameworks</span><span class="p">:</span>
-    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-shotgunutils&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2.x.x&quot;</span><span class="p">}</span>
-    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-qtwidgets&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.x.x&quot;</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-framework-shotgunutils"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v2.x.x"</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-framework-qtwidgets"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v1.x.x"</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>Version numbers are typically supplied on the form <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>, meaning that it will try to use
@@ -3857,8 +3857,8 @@ major version number.</p>
 <p>If there is a required minimum version for a framework, a <code class="docutils literal notranslate"><span class="pre">minimum_version</span></code> setting can be used in the <code class="docutils literal notranslate"><span class="pre">info.yml</span></code> manifest:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the frameworks required to run this app</span>
 <span class="n">frameworks</span><span class="p">:</span>
-    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-shotgunutils&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2.x.x&quot;</span><span class="p">,</span> <span class="s2">&quot;minimum_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2.3.3&quot;</span><span class="p">}</span>
-    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-qtwidgets&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.x.x&quot;</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-framework-shotgunutils"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v2.x.x"</span><span class="p">,</span> <span class="s2">"minimum_version"</span><span class="p">:</span> <span class="s2">"v2.3.3"</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"tk-framework-qtwidgets"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"v1.x.x"</span><span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -3870,8 +3870,8 @@ you can specify this using the three parameters <code class="docutils literal no
 and (for apps only) <code class="docutils literal notranslate"><span class="pre">requires_engine_version</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Required minimum versions for this item to run</span>
 <span class="n">requires_shotgun_version</span><span class="p">:</span>
-<span class="n">requires_core_version</span><span class="p">:</span> <span class="s2">&quot;v0.14.37&quot;</span>
-<span class="n">requires_engine_version</span><span class="p">:</span> <span class="s2">&quot;v0.2.3&quot;</span>
+<span class="n">requires_core_version</span><span class="p">:</span> <span class="s2">"v0.14.37"</span>
+<span class="n">requires_engine_version</span><span class="p">:</span> <span class="s2">"v0.2.3"</span>
 </pre></div>
 </div>
 </section>
@@ -3882,7 +3882,7 @@ you can specify this using the <code class="docutils literal notranslate"><span 
 a version string in the format <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;3.8&quot;</span></code>) or <code class="docutils literal notranslate"><span class="pre">major.minor.patch</span></code>
 (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;3.8.0&quot;</span></code>):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Minimum Python version required for this item to run</span>
-<span class="n">minimum_python_version</span><span class="p">:</span> <span class="s2">&quot;3.8&quot;</span>
+<span class="n">minimum_python_version</span><span class="p">:</span> <span class="s2">"3.8"</span>
 </pre></div>
 </div>
 <p>When this field is set, Toolkit’s auto-update system will prevent users running older
@@ -3920,7 +3920,7 @@ manages documentation separately! But if you are building an in-house app for yo
 it can be useful to link it up to a wiki page or similar, so that it is easy for users to
 jump straight from the app to the documentation. In this case, just add a <code class="docutils literal notranslate"><span class="pre">documentation_url</span></code>
 setting:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">documentation_url</span><span class="p">:</span> <span class="s2">&quot;http://intranet/path/to/sgtk_app_docs.html&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">documentation_url</span><span class="p">:</span> <span class="s2">"http://intranet/path/to/sgtk_app_docs.html"</span>
 </pre></div>
 </div>
 <p>This will be picked up and displayed in various locations in the Toolkit UI.</p>
@@ -3928,7 +3928,7 @@ setting:</p>
 which lets users know how to get help when they have questions. If you have a separate
 system in your studio, (like an Request Tracker setup), and you want to make it easy for
 users to reach out from the app to this system, just define a <code class="docutils literal notranslate"><span class="pre">support_url</span></code> url:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">support_url</span><span class="p">:</span> <span class="s2">&quot;http://intranet/pipeline_team/support.html&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">support_url</span><span class="p">:</span> <span class="s2">"http://intranet/pipeline_team/support.html"</span>
 </pre></div>
 </div>
 <p>This setting is optional, and if left blank, the support url will automatically
@@ -3950,7 +3950,7 @@ Possible values are <code class="docutils literal notranslate"><span class="pre"
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="c1"># Flow Production Tracking fields that this app expects</span>
     <span class="n">Version</span><span class="p">:</span>
-        <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
+        <span class="o">-</span> <span class="p">{</span> <span class="s2">"system_name"</span><span class="p">:</span> <span class="s2">"sg_movie_type"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"text"</span> <span class="p">}</span>
 </pre></div>
 </div>
 <p>Note how the fields are grouped by Flow Production Tracking entity type (in the example above <code class="docutils literal notranslate"><span class="pre">Version</span></code>). For a list of
@@ -3979,7 +3979,7 @@ launched. It will also use this metadata when performing upgrades and installati
 <p>A single configuration entry typically looks like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">setting_name</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">some_type</span>
-    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;description of the setting&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">"description of the setting"</span>
     <span class="n">default_value</span><span class="p">:</span> <span class="n">general_default</span>
     <span class="n">default_value_tk</span><span class="o">-</span><span class="n">nuke</span><span class="p">:</span> <span class="n">nuke_default</span>
     <span class="n">default_value_tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span> <span class="n">maya_default</span>
@@ -3994,7 +3994,7 @@ outlines in the following sections.</p>
 
     <span class="n">shotgun_fields_hook</span><span class="p">:</span>
         <span class="nb">type</span><span class="p">:</span> <span class="n">hook</span>
-        <span class="n">default_value</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">/shotgun_fields.py&quot;</span>
+        <span class="n">default_value</span><span class="p">:</span> <span class="s2">"</span><span class="si">{self}</span><span class="s2">/shotgun_fields.py"</span>
         <span class="n">description</span><span class="p">:</span> <span class="n">Hook</span> <span class="n">which</span> <span class="n">controls</span> <span class="n">how</span> <span class="n">values</span> <span class="n">are</span> <span class="n">presented</span>
 
     <span class="n">action_mappings</span><span class="p">:</span>
@@ -4033,7 +4033,7 @@ non-sparse, meaning that all parameters needed to be populated in the configurat
 <p>It is possible to define defaults per engine using the following syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">setting_name</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">some_type</span>
-    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;description of the setting&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">"description of the setting"</span>
     <span class="n">default_value</span><span class="p">:</span> <span class="n">general_default</span>
     <span class="n">default_value_tk</span><span class="o">-</span><span class="n">nuke</span><span class="p">:</span> <span class="n">nuke_default</span>
     <span class="n">default_value_tk</span><span class="o">-</span><span class="n">maya</span><span class="p">:</span> <span class="n">maya_default</span>
@@ -4106,7 +4106,7 @@ when publishing data to Flow Production Tracking. Value is a string matching <co
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">entity_type</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_entity_type</span>
     <span class="n">default_value</span><span class="p">:</span> <span class="n">Shot</span>
-    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;The entity type to attach to&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">"The entity type to attach to"</span>
 </pre></div>
 </div>
 </section>
@@ -4117,7 +4117,7 @@ Artist:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">permissions_group</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">shotgun_permission_group</span>
     <span class="n">default_value</span><span class="p">:</span> <span class="n">Artist</span>
-    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;Permissions group to use when performing the operation&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">"Permissions group to use when performing the operation"</span>
 </pre></div>
 </div>
 </section>
@@ -4139,7 +4139,7 @@ you specify how Toolkit should validate the template that the user specifies:</p
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_render</span><span class="p">:</span>
     <span class="n">description</span><span class="p">:</span> <span class="n">Render</span> <span class="n">output</span> <span class="n">location</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
-    <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;context, name, channel, version, [width], [height], [eye]&quot;</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="s2">"context, name, channel, version, [width], [height], [eye]"</span>
 </pre></div>
 </div>
 <p>When you specify which fields your app requires, it must be strict. Toolkit will ensure
@@ -4167,7 +4167,7 @@ use the context since this is pointing at the current Shot:</p>
                  <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">comparison</span> <span class="n">to</span> <span class="n">determine</span> <span class="n">what</span> <span class="ow">is</span> <span class="n">out</span> <span class="n">of</span> <span class="n">date</span><span class="o">.</span>
     <span class="n">values</span><span class="p">:</span>
         <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
-        <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;version, *&quot;</span>
+        <span class="n">fields</span><span class="p">:</span> <span class="s2">"version, *"</span>
 </pre></div>
 </div>
 <p><strong>Empty settings</strong></p>
@@ -4177,7 +4177,7 @@ setting that can be set to <code class="docutils literal notranslate"><span clas
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_render</span><span class="p">:</span>
     <span class="n">description</span><span class="p">:</span> <span class="n">Render</span> <span class="n">output</span> <span class="n">location</span><span class="p">,</span> <span class="n">Leave</span> <span class="n">blank</span> <span class="k">for</span> <span class="n">default</span> <span class="n">output</span><span class="o">.</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
-    <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;context, name, channel, version, [width], [height], [eye]&quot;</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="s2">"context, name, channel, version, [width], [height], [eye]"</span>
     <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
 </pre></div>
 </div>
@@ -4224,8 +4224,8 @@ and not the entire logic. So go in and strip back our custom hook in the config 
         <span class="n">HookBaseClass</span><span class="o">.</span><span class="n">validate_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
         <span class="c1"># now add our extra bit of validation</span>
-        <span class="k">if</span> <span class="s2">&quot;LOLCAT&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No lol-cats in my pipeline!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"LOLCAT"</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">"No lol-cats in my pipeline!"</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -4248,11 +4248,11 @@ level implementation defined by an environment variable and lastly a project lev
     <span class="k">def</span><span class="w"> </span><span class="nf">some_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="c1"># first get a framework handle. This object is similar to an app or engine object</span>
-        <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">&quot;my-framework-library_v123.x.x&quot;</span><span class="p">)</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="s2">"my-framework-library_v123.x.x"</span><span class="p">)</span>
 
         <span class="c1"># now just like with an app or an engine, if you want to access code in the python</span>
         <span class="c1"># folder, you can do import_plugin</span>
-        <span class="n">module</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;some_module&quot;</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">fw</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"some_module"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note how we are accessing the framework instance <cite>my-framework-library_v123.x.x</cite> above. This needs
@@ -4300,8 +4300,8 @@ You must supply values dict that describes the data type of the list items:</p>
 default values, and type info for the values which will be used for validation:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">write_nodes</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span>
-    <span class="n">description</span><span class="p">:</span> <span class="s2">&quot;A list of dictionaries in which you define the Sgtk write nodes that</span>
-                 <span class="n">are</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">configuration</span><span class="o">.</span><span class="s2">&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="s2">"A list of dictionaries in which you define the Sgtk write nodes that</span>
+                 <span class="n">are</span> <span class="n">supported</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">configuration</span><span class="o">.</span><span class="s2">"</span>
     <span class="n">allows_empty</span><span class="p">:</span> <span class="kc">True</span>
     <span class="n">values</span><span class="p">:</span>
         <span class="nb">type</span><span class="p">:</span> <span class="nb">dict</span>
@@ -4311,7 +4311,7 @@ default values, and type info for the values which will be used for validation:<
             <span class="n">publish_type</span><span class="p">:</span> <span class="p">{</span> <span class="nb">type</span><span class="p">:</span> <span class="n">tank_type</span> <span class="p">}</span>
             <span class="n">render_template</span><span class="p">:</span>
                 <span class="nb">type</span><span class="p">:</span> <span class="n">template</span>
-                <span class="n">fields</span><span class="p">:</span> <span class="s2">&quot;context, name, channel, version, SEQ, [width], [height], [eye]&quot;</span>
+                <span class="n">fields</span><span class="p">:</span> <span class="s2">"context, name, channel, version, SEQ, [width], [height], [eye]"</span>
 </pre></div>
 </div>
 <p>A valid setting could look like this:</p>
@@ -4367,13 +4367,13 @@ it to one of the UI factory methods that the engine has. For example:</p>
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 <span class="c1"># the engine is then used to correctly launch this dialog. In your app code</span>
-<span class="c1"># you can now do create a window using the engine&#39;s factory methods.</span>
+<span class="c1"># you can now do create a window using the engine's factory methods.</span>
 
 <span class="c1"># display widget in a modeless window:</span>
-<span class="n">widget_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">(</span><span class="s2">&quot;Dialog Title&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">AppDialog</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
+<span class="n">widget_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">(</span><span class="s2">"Dialog Title"</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">AppDialog</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
 
 <span class="c1"># display widget in a modal dialog - blocking call</span>
-<span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="n">widget_obj</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">show_modal</span><span class="p">(</span><span class="s2">&quot;Dialog Title&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">AppDialog</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
+<span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="n">widget_obj</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">show_modal</span><span class="p">(</span><span class="s2">"Dialog Title"</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">AppDialog</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>What happens in the above calls is that your app widget is parented inside of a Dialog window Sgtk is creating.
