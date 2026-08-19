@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import shutil
 import subprocess
 import tempfile
 import uuid
@@ -226,7 +225,7 @@ class IODescriptorGit(IODescriptorDownloadable):
             )
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
-            shutil.rmtree(clone_tmp, ignore_errors=True)
+            filesystem.safe_delete_folder(clone_tmp)
 
     def get_system_name(self):
         """

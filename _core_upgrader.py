@@ -51,11 +51,12 @@ CORE_CFG_OS_MAP = {
 
 # get yaml and our shotgun API from the local install
 # which comes with the upgrader. This is the code we are about to upgrade TO.
-vendor = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "python", "tank_vendor")
-)
-sys.path.append(vendor)
-import yaml
+python_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "python"))
+# Insert at the beginning to ensure local tk-core takes precedence over
+# any installed version in site-packages
+sys.path.insert(0, python_folder)
+
+from tank_vendor import yaml
 
 ###################################################################################################
 # migration utilities
