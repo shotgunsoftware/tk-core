@@ -22,9 +22,10 @@ import typing
 import urllib.parse
 import urllib.request
 
-from tank.util.version import is_version_newer
 from tank_vendor import shotgun_api3
 from tank_vendor.shotgun_api3.lib import httplib2
+
+from tank.util.version import is_version_newer
 
 from ... import LogManager
 from ...constants import SUPPORT_URL
@@ -818,7 +819,6 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         # and filter out based on version constraint
         if constraint_pattern:
-
             version_numbers = [x.get("code") for x in matching_records]
             version_to_use = self._find_latest_tag_by_pattern(
                 version_numbers, constraint_pattern
@@ -977,7 +977,6 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         sg_url = self._sg_connection.base_url
 
         if sg_url not in self._app_store_connections:
-
             # Connect to associated Shotgun site and retrieve the credentials to use to
             # connect to the app store site
             try:

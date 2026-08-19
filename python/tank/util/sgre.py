@@ -19,12 +19,11 @@ import re as _re
 import typing as _typing
 
 # Import constants and functions that won't be wrapped
-from re import LOCALE  # noqa import into namespace
-from re import escape  # noqa import into namespace
 from re import (  # noqa: F401 import into namespace
     DEBUG,
     DOTALL,
     IGNORECASE,
+    LOCALE,  # noqa import into namespace
     MULTILINE,
     UNICODE,
     VERBOSE,
@@ -34,6 +33,7 @@ from re import (  # noqa: F401 import into namespace
     S,
     U,
     X,
+    escape,  # noqa import into namespace
 )
 
 

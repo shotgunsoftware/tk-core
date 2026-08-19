@@ -143,7 +143,7 @@ class IODescriptorGitTag(IODescriptorGit):
             )
         except Exception as e:
             raise TankDescriptorError(
-                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
+                "Could not download %s, tag %s: %s" % (self._path, self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):

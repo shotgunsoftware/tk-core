@@ -285,7 +285,6 @@ class TankBundle(object):
         """
         # this method is memoized for performance since it is being called a lot!
         if self.__cache_location.get("site") is None:
-
             self.__cache_location["site"] = self.__tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_bundle_data_cache_path",
@@ -443,7 +442,6 @@ class TankBundle(object):
         ImportStack.push_current_bundle(self)
 
         try:
-
             # get the python folder
             python_folder = os.path.join(
                 self.disk_location, constants.BUNDLE_PYTHON_FOLDER
@@ -501,7 +499,6 @@ class TankBundle(object):
         """
         # this method is memoized for performance since it is being called a lot!
         if self.__cache_location.get(project_id) is None:
-
             self.__cache_location[project_id] = self.__tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_bundle_data_cache_path",
@@ -1014,7 +1011,6 @@ class TankBundle(object):
                 )
 
             if default_value:  # possible not to have a default value!
-
                 # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
                 # just be 'hook_name' with implicit '{self}' and no suffix!

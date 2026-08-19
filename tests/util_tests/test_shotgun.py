@@ -17,8 +17,12 @@ import urllib.parse
 import tank
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    TankTestBase,
+    mock,
+    setUpModule,  # noqa
+)
 
 
 def get_file_list(folder, prefix):

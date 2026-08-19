@@ -132,7 +132,6 @@ class ConfigurationWriter(object):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
             if os.path.exists(configuration_payload):
-
                 config_backup_root = os.path.join(
                     config_path, "install", "config.backup"
                 )
@@ -313,7 +312,6 @@ class ConfigurationWriter(object):
             )
 
         with filesystem.auto_created_yml(sg_code_location) as fh:
-
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")

@@ -17,8 +17,7 @@ from tank_vendor import yaml
 from tank_vendor.packaging.version import InvalidVersion
 
 from ... import LogManager
-from ...util import filesystem
-from ...util import sgre as re
+from ...util import filesystem, sgre as re
 from ...util.version import is_version_newer, is_version_newer_or_equal
 from .. import constants
 from ..errors import TankDescriptorError, TankMissingManifestError

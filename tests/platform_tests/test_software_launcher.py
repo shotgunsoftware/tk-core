@@ -18,10 +18,10 @@ from tank.platform import (
     SoftwareVersion,
     create_engine_launcher,
 )
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 
@@ -128,12 +128,11 @@ class TestEngineLauncher(TankTestBase):
         MOCKED_FALLBACKS = ["/a/b/c", "/d/e/f"]
 
         for entity in [self.shot, self.project, self.task]:
-
             ctx = self.tk.context_from_entity(entity["type"], entity["id"])
             # Monkey patch the pipeline configuration object to provide a set of bundle cache
             # fallback paths to serialize into environment variables.
-            self.tk.pipeline_configuration.get_bundle_cache_fallback_paths = (
-                lambda: MOCKED_FALLBACKS
+            self.tk.pipeline_configuration.get_bundle_cache_fallback_paths = lambda: (
+                MOCKED_FALLBACKS
             )
             launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
             env = launcher.get_standard_plugin_environment()
@@ -178,7 +177,6 @@ class TestEngineLauncher(TankTestBase):
         with mock.patch(
             min_version_method, new_callable=mock.PropertyMock
         ) as min_version_mock:
-
             min_version_mock.return_value = "2017.2"
 
             self.assertEqual(launcher.minimum_supported_version, "2017.2")
@@ -227,7 +225,6 @@ class TestEngineLauncher(TankTestBase):
         with mock.patch(
             min_version_method, new_callable=mock.PropertyMock
         ) as min_version_mock:
-
             min_version_mock.return_value = "2019"
 
             self.assertEqual(

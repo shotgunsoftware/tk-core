@@ -361,7 +361,6 @@ class ConfigurationResolver(object):
 
         # loop over all pipeline configs
         for pipeline_config in pipeline_configs:
-
             # see if the pipeline configuration we are looking at is relevant. Either of:
             # - Be a match against the resolver's associated plugin id
             # - Be a centralized config associated with the resolver's associated project
@@ -369,7 +368,6 @@ class ConfigurationResolver(object):
             if self._matches_current_plugin_id(
                 pipeline_config
             ) or self._is_centralized_pc_for_current_project(pipeline_config):
-
                 # extract the location information and place in special 'config_descriptor'
                 # field. Note that this may be None if for example the pipeline configuration
                 # is defined for another operating system.
@@ -454,7 +452,6 @@ class ConfigurationResolver(object):
                 )
 
         elif sg_descriptor_uri and not is_centralized_config:
-
             if sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
@@ -478,7 +475,6 @@ class ConfigurationResolver(object):
             )
 
         elif sg_uploaded_config and not is_centralized_config:
-
             if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get(
                 "sg_uploaded_config"
             ):
@@ -526,7 +522,6 @@ class ConfigurationResolver(object):
             )
 
         else:
-
             # If we have neither a uri, nor a path, raise exception
             # to indicate that config is not valid.
             if plugin_ids is None and (sg_descriptor_uri or sg_uploaded_config):

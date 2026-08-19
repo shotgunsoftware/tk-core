@@ -106,10 +106,8 @@ class ProcessFolderCreation(Hook):
         old_umask = os.umask(0)
         locations = []
         try:
-
             # loop through our list of items
             for i in items:
-
                 action = i.get("action")
 
                 if action in ["entity_folder", "folder"]:

@@ -96,7 +96,6 @@ class InstallAppAction(Action):
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 3:
-
             log.info(
                 "This command adds an app to an existing environment and engine. "
                 "You can either add apps from the Toolkit App Store, git or directly from disk."
@@ -413,7 +412,6 @@ class InstallEngineAction(Action):
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 2:
-
             log.info(
                 "This command adds an engine to an existing environment. "
                 "You can either add engines from the Toolkit App Store or from git source control."

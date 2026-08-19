@@ -140,7 +140,7 @@ class PushPCAction(Action):
                 self._validate_parameters(
                     {"target_id": target_pc_id, "use_symlink": use_symlink}
                 )
-            )
+            ),
         )
 
     def _preflight(self):
@@ -277,7 +277,6 @@ class PushPCAction(Action):
         # I/O phase
         old_umask = os.umask(0)
         try:
-
             # copy to temp location
             try:
                 # copy everything!

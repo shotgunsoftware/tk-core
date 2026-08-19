@@ -92,7 +92,7 @@ class ShotgunPath(object):
             os_name = "Linux"
         else:
             raise ValueError(
-                "Cannot resolve file name - unsupported " "os platform '%s'" % platform
+                "Cannot resolve file name - unsupported os platform '%s'" % platform
             )
         return template % os_name
 

@@ -96,7 +96,6 @@ class UserWorkspace(Entity):
         # the user folders should need to.
 
         if not self._user_initialized:
-
             # this query confirms that there is a matching HumanUser in shotgun for the local login
             user = login.get_current_user(self._tk)
 

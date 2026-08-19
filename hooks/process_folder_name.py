@@ -49,7 +49,7 @@ class ProcessFolderName(Hook):
         :returns: A string representing the entity.
         :rtype: str
         """
-        if value.__class__ == dict and "name" in value:
+        if isinstance(value, dict) and "name" in value:
             # it is a dictionary with a name key - assume this is what we want
             # this is normally an entity link
             #
@@ -57,14 +57,14 @@ class ProcessFolderName(Hook):
             #
             str_value = str(value["name"])
 
-        elif value.__class__ == list and len(value) == 0:
+        elif isinstance(value, list) and len(value) == 0:
             # this an empty list.
             #
             # [] ==> ""
             #
             str_value = ""
 
-        elif value.__class__ == list and len(value) > 0:
+        elif isinstance(value, list) and len(value) > 0:
             # this is a multi entity link with at least one element
             # that element is a dict with a name field
             # e.g. this is a multi entity link field

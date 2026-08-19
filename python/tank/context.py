@@ -668,7 +668,6 @@ class Context(object):
 
         # Try to populate fields using paths caches for entity
         if isinstance(template, TemplatePath):
-
             # first, sanity check that we actually have a path cache entry
             # this relates to ticket 22541 where it is possible to create
             # a context object purely from Shotgun without having it in the path cache
@@ -999,7 +998,6 @@ class Context(object):
         fields = {}
         # for any sg query field
         for key in template.keys.values():
-
             # check each key to see if it has shotgun query information that we should resolve
             if key.shotgun_field_name:
                 # this key is a shotgun value that needs fetching!
@@ -1051,7 +1049,6 @@ class Context(object):
                         processed_val = None
 
                     else:
-
                         # now convert the shotgun value to a string.
                         # note! This means that there is no way currently to create an int key
                         # in a tank template which matches an int field in shotgun, since we are
@@ -1372,7 +1369,6 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
         context.update(task_context)
 
     elif entity_type in ["PublishedFile", "TankPublishedFile"]:
-
         sg_entity = tk.shotgun.find_one(
             entity_type, [["id", "is", entity_id]], ["project", "entity", "task"]
         )
@@ -1721,7 +1717,6 @@ def from_path(tk, path, previous_context=None):
         and context.get("entity") == previous_context.entity
         and context.get("additional_entities") == previous_context.additional_entities
     ):
-
         # cool, everything is matching down to the step/task level.
         # if context is missing a step and a task, we try to auto populate it.
         # (note: weird edge that a context can have a task but no step)
@@ -2061,7 +2056,6 @@ def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     remove_keys = set()
 
     for path in entity_paths:
-
         # validate path and get fields:
         path_fields = cur_template.validate_and_get_fields(
             path, required_fields=required_fields

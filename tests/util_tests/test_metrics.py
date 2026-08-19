@@ -29,8 +29,12 @@ from tank.util.metrics import (
     log_user_activity_metric,
     log_user_attribute_metric,
 )
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, mock
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    TankTestBase,
+    mock,
+    setUpModule,  # noqa
+)
 
 LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
 
@@ -60,13 +64,13 @@ class TestEventMetric(ShotgunTestBase):
         """
 
         try:
-            EventMetric(None, "Testing No event group"),
-            EventMetric("No event name", None),
-            EventMetric("No event name", None, None),
-            EventMetric("No event name", None, {}),
-            EventMetric(None, None),
-            EventMetric({}, {}),
-            EventMetric([], []),
+            (EventMetric(None, "Testing No event group"),)
+            (EventMetric("No event name", None),)
+            (EventMetric("No event name", None, None),)
+            (EventMetric("No event name", None, {}),)
+            (EventMetric(None, None),)
+            (EventMetric({}, {}),)
+            (EventMetric([], []),)
         except Exception as e:
             self.fail(
                 "Creating an instance of 'EventMetric' failed unexpectedly: %s" % (e)
@@ -79,7 +83,6 @@ class TestEventMetric(ShotgunTestBase):
         gets called in constructor
         """
         try:
-
             EventMetric("App", "Test Log Metric without additional properties")
 
             EventMetric(
@@ -137,7 +140,6 @@ class TestEventMetric(ShotgunTestBase):
 
 
 class TestMetricsDispatchWorkerThread(TankTestBase):
-
     METRIC_ENDPOINT = "api3/track_metrics/"
     SLEEP_INTERVAL = 0.25
     batch_size_too_large_failure_count = 0
@@ -995,12 +997,12 @@ class TestMetricsFunctions(ShotgunTestBase):
 
         # make sure no exceptions on bad metrics
         try:
-            EventMetric.log(None, "No event group"),
-            EventMetric.log("No event name", None),
-            EventMetric.log("No event name", "Using should causes test to fail"),
-            EventMetric.log(None, None),
-            EventMetric.log({}, {}),
-            EventMetric.log([], []),
+            (EventMetric.log(None, "No event group"),)
+            (EventMetric.log("No event name", None),)
+            (EventMetric.log("No event name", "Using should causes test to fail"),)
+            (EventMetric.log(None, None),)
+            (EventMetric.log({}, {}),)
+            (EventMetric.log([], []),)
         except Exception as e:
             self.fail("log_metric() failed unexpectedly on bad metric: %s" % (e))
 

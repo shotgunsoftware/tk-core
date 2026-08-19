@@ -233,7 +233,6 @@ def _download_and_unpack(
     invalid_zip_file = False
 
     while not invalid_zip_file and not done and attempt < retries:
-
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         try:
             time_before = time.time()

@@ -98,7 +98,6 @@ class FolderConfiguration(object):
         """
         directory_paths = []
         for file_name in os.listdir(parent_path):
-
             # check our ignore list
             if any(fnmatch.fnmatch(file_name, p) for p in self._ignore_files):
                 continue
@@ -122,7 +121,6 @@ class FolderConfiguration(object):
         ]
 
         for file_name in items_in_folder:
-
             full_path = os.path.join(parent_path, file_name)
 
             if not os.path.isfile(full_path):
@@ -166,7 +164,6 @@ class FolderConfiguration(object):
         symlinks = [f for f in items_in_folder if f.endswith(SYMLINK_SUFFIX)]
 
         for file_name in symlinks:
-
             full_path = os.path.join(parent_path, file_name)
 
             try:
@@ -228,13 +225,11 @@ class FolderConfiguration(object):
         self._entity_nodes_by_type["Project"] = []
 
         for project_folder in project_folders:
-
             # read metadata to determine root path
             metadata = self._read_metadata(project_folder)
 
             if metadata is None:
                 if os.path.basename(project_folder) == "project":
-
                     # get the default root name from the config
                     default_root = (
                         self._tk.pipeline_configuration.get_primary_data_root_name()

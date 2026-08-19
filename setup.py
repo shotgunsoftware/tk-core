@@ -90,8 +90,7 @@ def get_install_requires():
     )
     if not os.path.exists(req_file):
         raise Exception(
-            f"Python {sys.version_info.major}.{sys.version_info.minor}"
-            " is not supported"
+            f"Python {sys.version_info.major}.{sys.version_info.minor} is not supported"
         )
 
     with open(req_file) as f:

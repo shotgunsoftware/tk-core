@@ -52,20 +52,10 @@ repos:
     - id: trailing-whitespace
       # Same comment as the end-of-file-fixer
       exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
-  # Sorts imports. Must run before black so black has the final say on formatting.
-  - repo: https://github.com/PyCQA/isort
-    rev: 8.0.1
+  # Sort imports and lint. Must run before ruff-format so formatting is final.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
     hooks:
-    - id: isort
-      args: ["--profile", "black", "--filter-files"]
-  # Leave black at the bottom so all touchups are done before it is run.
-  - repo: https://github.com/psf/black
-    rev: 26.5.1
-    hooks:
-    - id: black
-  # Lints for semantic issues (unused imports, undefined names, bare excepts,
-  # etc.). Runs last so it lints the code after all formatters have run.
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
-    hooks:
-    - id: flake8
+    - id: ruff-check
+      args: [--fix]
+    - id: ruff-format

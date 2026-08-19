@@ -304,7 +304,6 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             # upload thumbnails
             log.debug("Publish: Uploading thumbnails")
             if thumbnail_path and os.path.exists(thumbnail_path):
-
                 # publish
                 tk.shotgun.upload_thumbnail(
                     published_file_entity_type, entity["id"], thumbnail_path
@@ -466,7 +465,6 @@ def _create_published_file(
 
     # naming and path logic is different depending on url
     if path_is_url:
-
         # extract name from url:
         #
         # scheme://hostname.com/path/to/file.ext -> file.ext
@@ -492,7 +490,6 @@ def _create_published_file(
         }
 
     else:
-
         # normalize the path to native slashes
         norm_path = ShotgunPath.normalize(path)
         if norm_path != path:
@@ -525,7 +522,6 @@ def _create_published_file(
             )
 
             if supports_specific_storage_syntax:
-
                 # get corresponding PTR local storage for the matching root name
                 storage = tk.pipeline_configuration.get_local_storage_for_root(
                     root_name
@@ -564,7 +560,6 @@ def _create_published_file(
             data["path_cache"] = path_cache
 
         else:
-
             # path does not map to any configured root - fall back gracefully:
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
@@ -689,14 +684,12 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     sg_batch_data = []
 
     for dependency_path in dependency_paths:
-
         # did we manage to resolve this file path against
         # a publish in shotgun?
         published_file = publishes.get(dependency_path)
 
         if published_file:
             if published_file_entity_type == "PublishedFile":
-
                 req = {
                     "request_type": "create",
                     "entity_type": "PublishedFileDependency",
@@ -708,7 +701,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 sg_batch_data.append(req)
 
             else:  # == "TankPublishedFile"
-
                 req = {
                     "request_type": "create",
                     "entity_type": "TankDependency",
@@ -721,7 +713,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
 
     for dependency_id in dependency_ids:
         if published_file_entity_type == "PublishedFile":
-
             req = {
                 "request_type": "create",
                 "entity_type": "PublishedFileDependency",
@@ -736,7 +727,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
             sg_batch_data.append(req)
 
         else:  # == "TankPublishedFile"
-
             req = {
                 "request_type": "create",
                 "entity_type": "TankDependency",
@@ -801,13 +791,11 @@ def _calc_path_cache(tk, path, project_names=None):
         project_names = [tk.pipeline_configuration.get_project_disk_name()]
 
     for root_name, root_path in storage_roots.items():
-
         root_path_obj = ShotgunPath.from_current_os_path(root_path)
         # normalize the root path
         norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
 
         for project_name in project_names:
-
             # append project and normalize
             proj_path = root_path_obj.join(project_name).current_os
             proj_path = str(proj_path.replace(os.sep, "/"))
@@ -883,7 +871,6 @@ def group_by_storage(tk, list_of_paths, only_current_project=True):
         project_names = None
 
     for path in list_of_paths:
-
         # use abstracted path if path is part of a sequence
         abstract_path = _translate_abstract_fields(tk, path)
         root_name, dep_path_cache = _calc_path_cache(tk, abstract_path, project_names)

@@ -53,7 +53,6 @@ def main():
             filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
 
         for filename in filenames:
-
             # Skip the launcher. :)
             if filename.endswith(current_file):
                 continue

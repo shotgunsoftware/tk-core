@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2016 Shotgun Software Inc.
+# Copyright (c) 2016 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -268,7 +268,6 @@ class CachedConfiguration(Configuration):
         self._config_writer.ensure_project_scaffold()
         # copy the configuration into place
         try:
-
             # make sure the config is locally available.
 
             # Do not separate these three lines of code or reorder them.
@@ -331,7 +330,6 @@ class CachedConfiguration(Configuration):
             self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
-
             log.debug(
                 "An exception was raised when trying to install the config descriptor %r. "
                 "Exception traceback details: %s"

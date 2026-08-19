@@ -60,7 +60,6 @@ class FolderIOReceiver(object):
         path_cache = PathCache(tk)
 
         try:
-
             # now run the path cache synchronization and see if there are any folders which
             # should be created locally.
             remote_items = []
@@ -123,7 +122,6 @@ class FolderIOReceiver(object):
             # because the sync can make changes to the path cache, do not run in preview mode
             remote_items = []
             if not self._preview_mode:
-
                 # request that the path cache is synced against shotgun
                 # new items that were not locally available are returned
                 # as a list of dicts with keys id, type, name, configuration and path

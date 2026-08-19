@@ -169,7 +169,6 @@ class StorageRoots(object):
         roots_metadata = storage_roots.metadata
 
         for root_name, root_info in storage_roots:
-
             # get the cached PTR storage dict
             sg_local_storage = local_storage_lookup[root_name]
 
@@ -344,8 +343,7 @@ class StorageRoots(object):
         """
 
         log.debug(
-            "Attempting to associate required storage roots with PTR local "
-            "storages..."
+            "Attempting to associate required storage roots with PTR local storages..."
         )
 
         # build a lookup of storage root name to local storages PTR dicts
@@ -378,7 +376,6 @@ class StorageRoots(object):
             sg_storages_by_name[name] = sg_storage
 
         for root_name, root_info in self:
-
             # see if the shotgun storage id is specified explicitly in the
             # roots.yml file.
             root_storage_id = root_info.get("shotgun_storage_id")
@@ -430,12 +427,10 @@ class StorageRoots(object):
             # populated with the expected platform keys
             for root_name, root_info in self:
                 for platform_key in self.PLATFORM_KEYS:
-
                     if platform_key not in root_info:
                         # platform key not defined for root. add it
                         root_info[platform_key] = None
         else:
-
             # no roots required by this configuration. add a default storage
             # requirement
             root_name = self.LEGACY_DEFAULT_STORAGE_NAME
@@ -553,7 +548,6 @@ class StorageRoots(object):
         # iterate over each storage root required by the configuration. try to
         # identify the default root.
         for root_name, root_info in self:
-
             log.debug("Processing storage: %s - %s" % (root_name, root_info))
 
             # store a shotgun path for each root definition. sanitize path data
@@ -573,7 +567,6 @@ class StorageRoots(object):
         # no default storage root defined explicitly. try to identify one if
         # there are storage roots defined
         if self.required_roots and not self._default_storage_name:
-
             log.debug("No default storage explicitly defined...")
 
             # if there is only one, then that is the default

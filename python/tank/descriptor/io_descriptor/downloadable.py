@@ -141,7 +141,6 @@ class IODescriptorDownloadable(IODescriptorBase):
             )
 
         except Exception as e:
-
             # if the target path already exists, this means someone else is either
             # moving things right now or have moved it already, so we are ok.
             if not self._exists_local(target):

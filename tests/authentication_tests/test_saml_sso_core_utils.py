@@ -11,12 +11,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from tank.authentication.sso_saml2.core.utils import _encode_cookies, get_user_name
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 
 class SamlSsoCoreUtilsTests(ShotgunTestBase):
-
     def test_username_valid(self):
         login_cookies = {
             "user+name": "shotgun_current_user_login=user%2Bname; domain=shotgrid.autodesk.com; path=/",

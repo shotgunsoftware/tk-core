@@ -15,8 +15,11 @@ import time
 from tank.authentication import flow_auth
 from tank.authentication.flow_auth import _authentication as flow_auth_impl
 from tank.authentication.flow_auth.errors import FlowAuthConfigurationError
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, mock
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
+)
 
 
 def _make_jwt(payload):
