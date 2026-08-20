@@ -1,6 +1,6 @@
 {
   "name": "demo_pipeline",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Flow Toolkit pipeline schema definitions",
   "schemas": [
     {
@@ -36,12 +36,29 @@
     },
     {
       "name": "type.pipelineStep",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "display_name": "Pipeline Step",
       "kind": "type",
-      "description": "Base type for a step in a production pipeline.",
+      "description": "A Pipeline Step value with rich UI properties, referenced by work product assets.",
       "inherits": [],
-      "properties": []
+      "properties": [
+        {
+          "name": "code",
+          "data_type": "String"
+        },
+        {
+          "name": "name",
+          "data_type": "String"
+        },
+        {
+          "name": "backgroundColor",
+          "data_type": "String"
+        },
+        {
+          "name": "icon",
+          "data_type":  "$id:autodesk.me:property.binaryBlob-2.0.0"
+        }
+      ]
     },
     {
       "name": "type.workfile",
@@ -252,6 +269,184 @@
       "properties": [
         {
           "name": "targetVersion",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "type.dynamicEnumValue",
+      "version": "1.0.1",
+      "display_name": "Dynamic Enum Value",
+      "kind": "type",
+      "description": "A dynamic enum list value with rich UI properties, which may be shared by multiple type.dynamicEnum assets.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "code",
+          "data_type": "String"
+        },
+        {
+          "name": "name",
+          "data_type": "String"
+        },
+        {
+          "name": "backgroundColor",
+          "data_type": "String"
+        }
+      ]
+    },
+    {
+      "name": "type.dynamicEnum",
+      "version": "1.0.0",
+      "display_name": "Dynamic Enum",
+      "kind": "type",
+      "description": "Defines one ordered list of allowed dynamicEnumValues for a context, e.g. shot pipeline steps, or asset assetType values.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "typeScope",
+          "data_type": "String"
+        },
+        {
+          "name": "propertyScope",
+          "data_type": "String"
+        },
+        {
+          "name": "values",
+          "context": "array",
+          "data_type":  "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "property.dynamicEnumValue",
+      "version": "1.0.0",
+      "display_name": "Dynamic Enum Selection",
+      "kind": "property",
+      "description": "Selected value from a list defined by a DynamicEnum asset.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "value",
+          "data_type":  "$id:autodesk.me:reference-2.0.0"
+        },
+        {
+          "name": "enum",
+          "data_type":  "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "component.forDeliverable",
+      "version": "1.0.0",
+      "display_name": "For Deliverable",
+      "kind": "component",
+      "description": "References a production tracking deliverable asset.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "targetDeliverable",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "type.deliverable",
+      "version": "1.0.0",
+      "display_name": "Deliverable",
+      "kind": "type",
+      "description": "Types an asset as a production tracking deliverable. Subtypes distinguish Shot, Sequence, Episode, Asset, etc..",
+      "inherits": [],
+      "properties": []
+    },
+    {
+      "name": "type.deliverable.asset",
+      "version": "1.0.0",
+      "display_name": "Deliverable Asset",
+      "kind": "type",
+      "description": "Types an asset as a production tracking Asset deliverable.",
+      "inherits": [
+        "$ref:type.deliverable"
+      ],
+      "properties": [
+        {
+          "name": "assetType",
+          "data_type": "String"
+        }
+      ]
+    },
+    {
+      "name": "type.deliverable.shot",
+      "version": "1.0.0",
+      "display_name": "Deliverable Shot",
+      "kind": "type",
+      "description": "Types an asset as a production tracking Shot deliverable.",
+      "inherits": [
+        "$ref:type.deliverable"
+      ],
+      "properties": [
+        {
+          "name": "shotType",
+          "data_type": "String"
+        },
+        {
+          "name": "sequence",
+          "data_type":  "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "type.deliverable.sequence",
+      "version": "1.0.0",
+      "display_name": "Deliverable Sequence",
+      "kind": "type",
+      "description": "Types an asset as a production tracking Sequence deliverable.",
+      "inherits": [
+        "$ref:type.deliverable"
+      ],
+      "properties": [
+        {
+          "name": "episode",
+          "data_type":  "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "type.deliverable.episode",
+      "version": "1.0.0",
+      "display_name": "Deliverable Episode",
+      "kind": "type",
+      "description": "Types an asset as a production tracking Episode deliverable.",
+      "inherits": [
+        "$ref:type.deliverable"
+      ],
+      "properties": []
+    },
+    {
+      "name": "component.pipelineSteps",
+      "version": "1.0.0",
+      "display_name": "Pipeline Steps",
+      "kind": "component",
+      "description": "A list of references to Pipeline Step value assets.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "targetStep",
+          "data_type": "$id:autodesk.me:reference-2.0.0",
+          "context": "array"
+        }
+      ]
+    },
+    {
+      "name": "component.pipelineStep",
+      "version": "1.0.0",
+      "display_name": "Pipeline Step",
+      "kind": "component",
+      "description": "References a Pipeline Step value asset.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "targetStep",
           "data_type": "$id:autodesk.me:reference-2.0.0"
         }
       ]
