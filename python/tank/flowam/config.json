@@ -36,7 +36,7 @@
     },
     {
       "name": "type.pipelineStep",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "display_name": "Pipeline Step",
       "kind": "type",
       "description": "A Pipeline Step value with rich UI properties, referenced by work product assets.",
@@ -53,12 +53,30 @@
         {
           "name": "backgroundColor",
           "data_type": "String"
-        },
-        {
-          "name": "icon",
-          "data_type":  "$id:autodesk.me:property.binaryBlob-2.0.0"
         }
       ]
+    },
+    {
+      "name": "type.pipelineStep.asset",
+      "version": "1.0.0",
+      "display_name": "Asset Pipeline Step",
+      "kind": "type",
+      "description": "Pipeline Step for Asset entity.",
+      "inherits": [
+        "$ref:type.pipelineStep"
+      ],
+      "properties": []
+    },
+    {
+      "name": "type.pipelineStep.shot",
+      "version": "1.0.0",
+      "display_name": "Shot Pipeline Step",
+      "kind": "type",
+      "description": "Pipeline Step for Shot entity.",
+      "inherits": [
+        "$ref:type.pipelineStep"
+      ],
+      "properties": []
     },
     {
       "name": "type.workfile",

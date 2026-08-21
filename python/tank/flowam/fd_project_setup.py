@@ -37,7 +37,7 @@ ASSET = "FPT Asset - %s"
 ASSET_TYPE = "FPT Asset Type - %s"
 ASSET_TYPES = "FPT Asset Types"
 EPISODE = "FPT Episode - %s"
-PIPELINE_STEP = "FPT Step - %s"
+PIPELINE_STEP = "FPT %s Step - %s"
 SEQUENCE = "FPT Sequence - %s"
 SHOT = "FPT Shot - %s"
 SHOT_TYPE = "FPT Shot Type - %s"
@@ -56,6 +56,44 @@ PIPELINE_STEP_TYPE = "type.pipelineStep"
 # Asset map -> maps asset name to asset id
 # (cached for quick reference)
 ASSET_MAP = {}
+
+
+class DynEnumComponentSpec(TypeComponentSpec):
+    """Specifications for creating a dynamic enum type component.
+    This is a component used to designate an enum. It's list values point
+    to assets representing dynamic enum values.
+    """
+
+    def __init__(
+        self,
+        values: list[str],
+        type_scope: str = "",
+        property_scope: str = "",
+    ):
+        """
+        Args:
+            values: List of asset ids representing "dynamic enum values".
+                    (i.e. assets with a DYN_ENUM_VALUE_TYPE component on it)
+            type_sope: The asset or component type this enum is used for (optional).
+            property_scope: The property name this enum is used for (optional).
+            icon: Path to icon file to be stored with enum member.
+                  This will get uploaded as a binary property on the component.
+        """
+        super().__init__(get_schema_id(DYN_ENUM_TYPE), "Dynamic Enum")
+
+        self.values = values
+        self.type_scope = type_scope
+        self.property_scope = property_scope
+
+    def create(self) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=self.type_id,
+            values=[self.build_reference_value(v) for v in self.values],
+            typeScope=self.type_scope,
+            propertyScope=self.property_scope,
+        )
 
 
 class DynEnumValueComponentSpec(TypeComponentSpec):
@@ -102,42 +140,32 @@ class DynEnumValueComponentSpec(TypeComponentSpec):
         )
 
 
-class DynEnumComponentSpec(TypeComponentSpec):
-    """Specifications for creating a dynamic enum type component.
+class PipelineStepComponentSpec(DynEnumValueComponentSpec):
+    """Specifications for creating a pipeline step type component.
     This is a component used to designate an enum. It's list values point
     to assets representing dynamic enum values.
     """
 
     def __init__(
         self,
-        values: list[str],
-        type_scope: str = "",
-        property_scope: str = "",
+        value: str,
+        code: str = "",
+        background_color: str = "",
+        icon: str = "",
+        type_id: str = "",
     ):
         """
         Args:
-            values: List of asset ids representing "dynamic enum values".
-                    (i.e. assets with a DYN_ENUM_VALUE_TYPE component on it)
-            type_sope: The asset or component type this enum is used for (optional).
-            property_scope: The property name this enum is used for (optional).
+            value: The string value of the enum member.
+            code: An optional code name for the value (e.g. a short form).
+            background_color: String representing a colour value (e.g. "(0, 0, 0)").
             icon: Path to icon file to be stored with enum member.
                   This will get uploaded as a binary property on the component.
         """
-        super().__init__(get_schema_id(DYN_ENUM_TYPE), "Dynamic Enum")
+        super().__init__(value, code, background_color, icon)
 
-        self.values = values
-        self.type_scope = type_scope
-        self.property_scope = property_scope
-
-    def create(self) -> medm_model.ComponentData:
-        """Create an MEDM component based on specifications."""
-        return self.create_component(
-            name=self.name,
-            type_id=self.type_id,
-            values=[self.build_reference_value(v) for v in self.values],
-            typeScope=self.type_scope,
-            propertyScope=self.property_scope,
-        )
+        self._name = "Pipeline Step"
+        self.type_id = type_id or get_schema_id(PIPELINE_STEP_TYPE)
 
 
 def _medm_find_children(parent_id: str, q_filter: str = "") -> list[FlowAsset]:
@@ -210,9 +238,15 @@ def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
     return result
 
 
-def _create_types_list(
-    sg_project_id: str, medm_project_id: str, sg, mode: str
-) -> FlowAsset:
+def _match_name(assets: list[FlowAsset], name: str) -> FlowAsset | None:
+    """Return asset in list that matches name or None."""
+    for asset in assets:
+        if asset.name == name:
+            return asset
+    return None
+
+
+def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     """Create assets related to Asset Types or Shot Types based on mode provided.
     Valid mode values are "asset" and "shot".
     """
@@ -259,17 +293,11 @@ def _create_types_list(
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_VALUE_TYPE)}"
     dyn_enum_value_assets = _medm_search(medm_project_id, q_filter)
 
-    def find_value_asset(name):
-        for asset in dyn_enum_value_assets:
-            if asset.name == name:
-                return asset
-        return None
-
     d_types = {}  # map asset types to ids of asset representing it
     for sg_type in sg_types:
         # Check if asset already exists
         name = VALUE_NAME % sg_type
-        existing_asset = find_value_asset(name)
+        existing_asset = _match_name(dyn_enum_value_assets, name)
         if existing_asset:
             logger.info(f'Dynamic Enum Value asset "{name}" already exists.')
             d_types[sg_type] = existing_asset.id
@@ -304,6 +332,55 @@ def _create_types_list(
     return FlowAsset(medm_asset)
 
 
+def _create_pipeline_steps(
+    sg_project_id: str, medm_project_id: str, sg
+) -> list[FlowAsset]:
+    """Create pipeline step assets in MEDM to represent FPT pipeline steps."""
+    logger = get_logger(__name__)
+
+    # Query SG Pipeline Steps
+    logger.info("Querying SG pipeline steps...")
+    steps = sg.find("Step", [], ["code", "short_name", "entity_type", "color"])
+
+    # Query existing Pipeline Step assets within MEDM to avoid re-creating
+    wildcard_name = PIPELINE_STEP.replace("%s", "*")
+    logger.info(f'Checking for existing "{wildcard_name}" assets in MEDM project...')
+    q_filter = f"has.component.type=={get_schema_id(PIPELINE_STEP_TYPE)}"
+    step_assets = _medm_find_children(medm_project_id, q_filter)
+
+    for step in steps:
+        # NOTE: entity_type not used for now...
+        step_name = step["code"]
+        step_code = step["short_name"]
+        step_color = step["color"]
+        step_type = step["entity_type"]
+        if step_type not in ["Asset", "Shot"]:
+            # Ignore other types for now (e.g. "Level")
+            continue
+        # Check if asset already exists
+        name = PIPELINE_STEP % (step_type, step_name)
+        existing_asset = _match_name(step_assets, name)
+        if existing_asset:
+            logger.info(f'Pipeline Step asset "{name}" already exists.')
+            ASSET_MAP[name] = existing_asset.id
+            continue
+        logger.info(f'Creating Pipeline Step asset "{name}"...')
+        # Publish a new asset representing the asset type
+        type_comp = PipelineStepComponentSpec(
+            value=step_name,
+            code=step_code,
+            background_color=step_color,
+            type_id=get_schema_id(f"{PIPELINE_STEP_TYPE}.{step_type.lower()}"),
+        )
+        medm_asset = publish_new_asset(
+            name=name,
+            parent_id=medm_project_id,
+            description=f"{step_name} pipeline step ({step_type})",
+            components=[type_comp],
+        )
+        ASSET_MAP[name] = medm_asset.id
+
+
 def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
     """Populate MEDM project with a mirror of existing entities and other relevant
     data in FPT.
@@ -333,9 +410,12 @@ def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
     logger.info("-------- BEGIN PROJECT SET UP... ---------")
 
     # Create ASSET_TYPES and ASSET_TYPE* assets if necessary
-    asset_types_asset = _create_types_list(sg_project_id, medm_project_id, sg, "asset")
+    _create_types_list(sg_project_id, medm_project_id, sg, "asset")
 
     # Create SHOT_TYPES and SHOT_TYPE* assets if necessary
-    shot_types_asset = _create_types_list(sg_project_id, medm_project_id, sg, "shot")
+    _create_types_list(sg_project_id, medm_project_id, sg, "shot")
+
+    # Create PIPELINE_STEP* assets if necessary
+    _create_pipeline_steps(sg_project_id, medm_project_id, sg)
 
     logger.info("-------- PROJECT SET UP COMPLETE! ---------")
