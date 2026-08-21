@@ -25,6 +25,7 @@ from tank_vendor.flow_integration_sdk.exceptions import FlowError
 from tank_vendor.flow_integration_sdk.globals import get_client
 from tank_vendor.flow_integration_sdk.objects import FlowAsset
 from tank_vendor.flow_integration_sdk.publish import (
+    ComponentSpec,
     publish_new_asset,
     TypeComponentSpec,
 )
@@ -56,6 +57,102 @@ PIPELINE_STEP_TYPE = "type.pipelineStep"
 # Asset map -> maps asset name to asset id
 # (cached for quick reference)
 ASSET_MAP = {}
+
+
+class DeliverableComponentSpec(TypeComponentSpec):
+    """Specifications for creating a deliverable type component.
+    This is a component used to designate an asset as a SG deliverable entity.
+    Namely, an Asset, Shot, Sequence or Episode.
+    """
+
+    pass
+
+
+class DeliverableAssetComponentSpec(DeliverableComponentSpec):
+    """Specifications for an Asset deliverable."""
+
+    def __init__(
+        self,
+        asset_type: str = "",
+    ):
+        """
+        Args:
+            asset_type: Optional SG asset type designation.
+        """
+        super().__init__(get_schema_id(DEL_ASSET_TYPE), "Deliverable Asset")
+
+        self.asset_type = asset_type
+
+    def create(self) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        # NOTE: due to an issue on the medm side, assetType property is just
+        #       a string for now...
+        return self.create_component(
+            name=self.name,
+            type_id=self.type_id,
+            assetType=self.asset_type,
+        )
+
+
+class DeliverableEpisodeComponentSpec(DeliverableComponentSpec):
+    """Specifications for an Episode deliverable."""
+
+    def __init__(self):
+        super().__init__(get_schema_id(DEL_EPISODE_TYPE), "Deliverable Episode")
+
+
+class DeliverableSequenceComponentSpec(DeliverableComponentSpec):
+    """Specifications for an Sequence deliverable."""
+
+    def __init__(
+        self,
+        episode_id: str = "",
+    ):
+        """
+        Args:
+            episode_id: Optional MEDM id of episode this sequence belongs to.
+        """
+        super().__init__(get_schema_id(DEL_SEQUENCE_TYPE), "Deliverable Sequence")
+
+        self.episode_id = episode_id
+
+    def create(self) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=self.type_id,
+            episode=self.build_reference_value(self.episode_id),
+        )
+
+
+class DeliverableShotComponentSpec(DeliverableComponentSpec):
+    """Specifications for an Shot deliverable."""
+
+    def __init__(
+        self,
+        shot_type: str = "",
+        sequence_id: str = "",
+    ):
+        """
+        Args:
+            shot_type: Optional SG Shot Type that shot is categorized under.
+            sequence_id: Optional MEDM id of sequence this shot belongs to.
+        """
+        super().__init__(get_schema_id(DEL_SHOT_TYPE), "Deliverable Shot")
+
+        self.shot_type = shot_type
+        self.sequence_id = sequence_id
+
+    def create(self) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        # NOTE: due to an issue on the medm side, shotType property is just
+        #       a string for now...
+        return self.create_component(
+            name=self.name,
+            type_id=self.type_id,
+            sequence=self.build_reference_value(self.sequence_id),
+            shotType=self.shot_type,
+        )
 
 
 class DynEnumComponentSpec(TypeComponentSpec):
@@ -140,6 +237,34 @@ class DynEnumValueComponentSpec(TypeComponentSpec):
             data[k] = v
         return medm_model.ComponentDataInput(
             name=self.name, data=data, type_id=self.type_id
+        )
+
+
+class ExternalIdComponentSpec(ComponentSpec):
+    """Specifications for creating a external id type component.
+    This is a component used to designate the SG id of the entity an asset
+    is mirroring in MEDM.
+    """
+
+    def __init__(
+        self,
+        entity_type: str,
+        entity_id: str,
+    ):
+        """
+        Args:
+            entity_type: The SG entity type.
+            entity_id: The SG entity id.
+        """
+        self.entity_type = entity_type
+        self.entity_id = entity_id
+
+    def create(self, **kwargs) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name="sgEntityId",
+            type_id=EXTERNAL_ID_TYPE_ID,
+            id=f"{self.entity_type}:{self.entity_id}",
         )
 
 
@@ -241,7 +366,7 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     logger.info(f'Checking for existing "{LIST_NAME}" asset in MEDM project...')
     q_filter = f"attribute.name=='{LIST_NAME}';"
     q_filter += f"attribute.parentId=={medm_project_id};"
-    q_filter += f"attribute.deletionState=='NOT_DELETED';"
+    q_filter += "attribute.deletionState=='NOT_DELETED';"
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_TYPE)}"
     result = _medm_search(medm_project_id, q_filter)
     types_asset = result[0] if result else None
@@ -270,7 +395,7 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     logger.info(f'Checking for existing "{prefix_name}*" assets in MEDM project...')
     q_filter = f"attribute.name=startswith='{prefix_name}';"
     q_filter += f"attribute.parentId=={medm_project_id};"
-    q_filter += f"attribute.deletionState=='NOT_DELETED';"
+    q_filter += "attribute.deletionState=='NOT_DELETED';"
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_VALUE_TYPE)}"
     dyn_enum_value_assets = _medm_search(medm_project_id, q_filter)
 
@@ -325,12 +450,11 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
     wildcard_name = PIPELINE_STEP.replace("%s", "*")
     logger.info(f'Checking for existing "{wildcard_name}" assets in MEDM project...')
     q_filter = f"attribute.parentId=={medm_project_id};"
-    q_filter += f"attribute.deletionState=='NOT_DELETED';"
+    q_filter += "attribute.deletionState=='NOT_DELETED';"
     q_filter += f"components.typeId=={get_schema_id(PIPELINE_STEP_TYPE)}"
     step_assets = _medm_search(medm_project_id, q_filter)
 
     for step in steps:
-        # NOTE: entity_type not used for now...
         step_name = step["code"]
         step_code = step["short_name"]
         step_color = step["color"]
@@ -362,6 +486,40 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
         ASSET_MAP[name] = medm_asset.id
 
 
+def _get_deliverable_type_comp(entity_type: str, sg_entity) -> DeliverableComponentSpec:
+    """Return a component spec of the appropriate entity type."""
+
+    if entity_type == "Asset":
+        return DeliverableAssetComponentSpec(asset_type=sg_entity["sg_asset_type"])
+    elif entity_type == "Shot":
+        # Find parent sequence proxy in MEDM
+        if sg_entity["sg_sequence"]:
+            seq_name = SEQUENCE % sg_entity["sg_sequence.Sequence.code"]
+        else:
+            seq_name = "No Sequence"
+        seq_id = ASSET_MAP.get(seq_name, None)
+        if not seq_id:
+            raise RuntimeError(f'Could not find parent sequence "{seq_name}".')
+        return DeliverableShotComponentSpec(
+            shot_type=sg_entity["sg_shot_type"],
+            sequence_id=seq_id,
+        )
+    elif entity_type == "Sequence":
+        # Find parent episode proxy in MEDM
+        if sg_entity["sq_episode"]:
+            ep_name = EPISODE % sg_entity["sq_episode.Episode.code"]
+        else:
+            ep_name = "No Episode"
+        ep_id = ASSET_MAP.get(seq_id, None)
+        if not ep_id:
+            raise RuntimeError(f'Could not find parent sequence "{ep_name}".')
+        return DeliverableSequenceComponentSpec(
+            episode_id=ep_id,
+        )
+    elif entity_type == "Episode":
+        return DeliverableEpisodeComponentSpec()
+
+
 def _create_deliverables(
     sg_project_id: str, medm_project_id: str, sg, entity_type: str
 ):
@@ -377,9 +535,65 @@ def _create_deliverables(
     if entity_type not in valid_types:
         raise ValueError(f"Invalid entity_type provided.  Must be in {valid_types}.")
 
+    if entity_type == "Asset":
+        ENTITY_NAME = ASSET
+        ENTITY_TYPE = DEL_ASSET_TYPE
+    elif entity_type == "Shot":
+        ENTITY_NAME = SHOT
+        ENTITY_TYPE = DEL_SHOT_TYPE
+    elif entity_type == "Sequence":
+        ENTITY_NAME = SEQUENCE
+        ENTITY_TYPE = DEL_SEQUENCE_TYPE
+    elif entity_type == "Episode":
+        ENTITY_NAME = EPISODE
+        ENTITY_TYPE = DEL_EPISODE_TYPE
 
+    # Query entities in SG
+    fields = ["id", "code"]
+    if entity_type in ["Asset", "Shot"]:
+        sg_type_field = f"sg_{entity_type.lower()}_type"
+        fields.append(sg_type_field)
+    if entity_type == "Shot":
+        fields.append("sg_sequence", "sg_sequence.Sequence.code")
+    elif entity_type == "Sequence":
+        fields.append("sg_episode", "sg_episode.Episode.code")
+    entities = sg.find(
+        entity_type,
+        [["project", "is", {"type": "Project", "id": sg_project_id}]],
+        fields,
+    )
 
-    
+    # Search for existing entities of same type in MEDM project
+    wildcard_name = ENTITY_NAME.replace("%s", "*")
+    logger.info(f'Checking for existing "{wildcard_name}" assets in MEDM project...')
+    q_filter = f"attribute.parentId=={medm_project_id};"
+    q_filter += "attribute.deletionState=='NOT_DELETED';"
+    q_filter += f"components.typeId=={get_schema_id(ENTITY_TYPE)}"
+    memd_assets = _medm_search(medm_project_id, q_filter)
+
+    for ent in entities:
+        ent_name = ent["code"]
+        ent_id = ent["id"]
+        # Check if asset already exists
+        name = ENTITY_NAME % (ent_name)
+        existing_asset = _match_name(memd_assets, name)
+        if existing_asset:
+            logger.info(f'{entity_type} asset "{name}" already exists.')
+            ASSET_MAP[name] = existing_asset.id
+            continue
+        logger.info(f'Creating {entity_type} asset "{name}"...')
+        # Publish a new asset representing the asset type
+        type_comp = _get_deliverable_type_comp(entity_type, ent)
+        ext_id_comp = ExternalIdComponentSpec(entity_type=entity_type, entity_id=ent_id)
+        medm_asset = publish_new_asset(
+            name=name,
+            parent_id=medm_project_id,
+            description=f'{entity_type} proxy asset for "{ent_name}".',
+            components=[type_comp, ext_id_comp],
+        )
+        ASSET_MAP[name] = medm_asset.id
+        break
+
 
 def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
     """Populate MEDM project with a mirror of existing entities and other relevant
@@ -419,6 +633,6 @@ def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
     _create_pipeline_steps(sg_project_id, medm_project_id, sg)
 
     # Create ASSET* assets for each SG Asset entity
-    #_create_deliverables(sg_project_id, medm_project_id, sg, "Asset")
+    _create_deliverables(sg_project_id, medm_project_id, sg, "Asset")
 
     logger.info("-------- PROJECT SET UP COMPLETE! ---------")
