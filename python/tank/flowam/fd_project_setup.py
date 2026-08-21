@@ -125,7 +125,7 @@ class DynEnumValueComponentSpec(TypeComponentSpec):
         self.background_color = background_color
         self.icon = icon  # not used currently
 
-    def create(self) -> medm_model.ComponentData:
+    def create(self, **kwargs) -> medm_model.ComponentData:
         """Create an MEDM component based on specifications."""
         # NOTE: due to the property naming collision for "name",
         #       we cannot leverage base classes create_component() function here.
@@ -135,6 +135,9 @@ class DynEnumValueComponentSpec(TypeComponentSpec):
             "code": self.code,
             "backgroundColor": self.background_color,
         }
+        # Append any additional properties
+        for k, v in kwargs.items():
+            data[k] = v
         return medm_model.ComponentDataInput(
             name=self.name, data=data, type_id=self.type_id
         )
@@ -149,14 +152,15 @@ class PipelineStepComponentSpec(DynEnumValueComponentSpec):
     def __init__(
         self,
         value: str,
+        entity_type: str,
         code: str = "",
         background_color: str = "",
         icon: str = "",
-        type_id: str = "",
     ):
         """
         Args:
             value: The string value of the enum member.
+            entity_type: SG entity type that this pipeline step is categorized under.
             code: An optional code name for the value (e.g. a short form).
             background_color: String representing a colour value (e.g. "(0, 0, 0)").
             icon: Path to icon file to be stored with enum member.
@@ -165,44 +169,13 @@ class PipelineStepComponentSpec(DynEnumValueComponentSpec):
         super().__init__(value, code, background_color, icon)
 
         self._name = "Pipeline Step"
-        self.type_id = type_id or get_schema_id(PIPELINE_STEP_TYPE)
+        self.type_id = get_schema_id(PIPELINE_STEP_TYPE)
+        self.entity_type = entity_type
 
-
-def _medm_find_children(parent_id: str, q_filter: str = "") -> list[FlowAsset]:
-    """Query MEDM for children under the given parent using an optional filter.
-
-    Args:
-        parent_id: Id of parent asset/project.
-        q_filter: Filter criteria following MEDM api specs.
-                  See https://git.autodesk.com/learning-content/flow/blob/master/clc/AM-DevGuide/source/dg-using-filters.md
-                  (NOTE: not all filters supported)
-
-    Returns:
-        List of FlowAsset objects.
-
-    Raises:
-        FlowError
-    """
-    client = get_client()
-
-    q_input = medm_model.AssetsByTraversalInput(
-        start_at_id=parent_id,  # search under parent
-        depth=1,  # search immediate children only
-        direction=medm_model.TraverseDirectionEnum.OUTGOING.value,
-        filters=q_filter,
-    )
-    q_children = client.service_asset.assets_by_traversal(q_input)
-
-    try:
-        q_children.call()
-    except GQLAPIError as exc:
-        msg = f"Find children query failed. {exc}"
-        raise FlowError(msg) from exc
-
-    # NOTE: the starting asset (i.e. parent) will always be returned in
-    #       the asset list, so we must skip that one
-    result = [FlowAsset(a) for a in q_children.assets if a.id != parent_id]
-    return result
+    def create(self) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        # Use super class create() but send in extra property
+        return super().create(entityType=self.entity_type)
 
 
 def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
@@ -241,6 +214,8 @@ def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
 def _match_name(assets: list[FlowAsset], name: str) -> FlowAsset | None:
     """Return asset in list that matches name or None."""
     for asset in assets:
+        if asset._entity.deletion_state != medm_model.AssetDeletionState.NOT_DELETED:
+            continue  # ignore deleted assets
         if asset.name == name:
             return asset
     return None
@@ -249,6 +224,9 @@ def _match_name(assets: list[FlowAsset], name: str) -> FlowAsset | None:
 def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     """Create assets related to Asset Types or Shot Types based on mode provided.
     Valid mode values are "asset" and "shot".
+
+    Raises:
+        ValueError
     """
     logger = get_logger(__name__)
 
@@ -261,9 +239,11 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
 
     # Search for existing ASSET_TYPES asset under medm project
     logger.info(f'Checking for existing "{LIST_NAME}" asset in MEDM project...')
-    q_filter = f"has.component.type=={get_schema_id(DYN_ENUM_TYPE)};"
-    q_filter += f"components[typeId:{get_schema_id(DYN_ENUM_TYPE)}].data.propertyScope=='{ENTITY_NAME} Type'"
-    result = _medm_find_children(medm_project_id, q_filter)
+    q_filter = f"attribute.name=='{LIST_NAME}';"
+    q_filter += f"attribute.parentId=={medm_project_id};"
+    q_filter += f"attribute.deletionState=='NOT_DELETED';"
+    q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_TYPE)}"
+    result = _medm_search(medm_project_id, q_filter)
     types_asset = result[0] if result else None
 
     if types_asset:
@@ -290,6 +270,7 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     logger.info(f'Checking for existing "{prefix_name}*" assets in MEDM project...')
     q_filter = f"attribute.name=startswith='{prefix_name}';"
     q_filter += f"attribute.parentId=={medm_project_id};"
+    q_filter += f"attribute.deletionState=='NOT_DELETED';"
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_VALUE_TYPE)}"
     dyn_enum_value_assets = _medm_search(medm_project_id, q_filter)
 
@@ -332,9 +313,7 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     return FlowAsset(medm_asset)
 
 
-def _create_pipeline_steps(
-    sg_project_id: str, medm_project_id: str, sg
-) -> list[FlowAsset]:
+def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
     """Create pipeline step assets in MEDM to represent FPT pipeline steps."""
     logger = get_logger(__name__)
 
@@ -345,8 +324,10 @@ def _create_pipeline_steps(
     # Query existing Pipeline Step assets within MEDM to avoid re-creating
     wildcard_name = PIPELINE_STEP.replace("%s", "*")
     logger.info(f'Checking for existing "{wildcard_name}" assets in MEDM project...')
-    q_filter = f"has.component.type=={get_schema_id(PIPELINE_STEP_TYPE)}"
-    step_assets = _medm_find_children(medm_project_id, q_filter)
+    q_filter = f"attribute.parentId=={medm_project_id};"
+    q_filter += f"attribute.deletionState=='NOT_DELETED';"
+    q_filter += f"components.typeId=={get_schema_id(PIPELINE_STEP_TYPE)}"
+    step_assets = _medm_search(medm_project_id, q_filter)
 
     for step in steps:
         # NOTE: entity_type not used for now...
@@ -370,7 +351,7 @@ def _create_pipeline_steps(
             value=step_name,
             code=step_code,
             background_color=step_color,
-            type_id=get_schema_id(f"{PIPELINE_STEP_TYPE}.{step_type.lower()}"),
+            entity_type=step_type,
         )
         medm_asset = publish_new_asset(
             name=name,
@@ -380,6 +361,25 @@ def _create_pipeline_steps(
         )
         ASSET_MAP[name] = medm_asset.id
 
+
+def _create_deliverables(
+    sg_project_id: str, medm_project_id: str, sg, entity_type: str
+):
+    """Create assets to represent proxies of given entity types in FPT.
+    Supported entity types include "Asset", "Shot", "Sequence", and "Episode".
+
+    Raises:
+        ValueError
+    """
+    logger = get_logger(__name__)
+
+    valid_types = ["Asset", "Shot", "Sequence", "Episode"]
+    if entity_type not in valid_types:
+        raise ValueError(f"Invalid entity_type provided.  Must be in {valid_types}.")
+
+
+
+    
 
 def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
     """Populate MEDM project with a mirror of existing entities and other relevant
@@ -417,5 +417,8 @@ def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
 
     # Create PIPELINE_STEP* assets if necessary
     _create_pipeline_steps(sg_project_id, medm_project_id, sg)
+
+    # Create ASSET* assets for each SG Asset entity
+    #_create_deliverables(sg_project_id, medm_project_id, sg, "Asset")
 
     logger.info("-------- PROJECT SET UP COMPLETE! ---------")
