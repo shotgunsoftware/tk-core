@@ -253,7 +253,6 @@ class ValidateConfigAction(Action):
                 log.info("  WARNING - Parameter not needed: %s" % s)
 
         for s in manifest.keys():
-
             default = bundle.resolve_default_value(manifest[s], engine_name=engine_name)
 
             if s in settings:

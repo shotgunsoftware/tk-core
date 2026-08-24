@@ -93,7 +93,6 @@ def resolve_publish_path(tk, sg_publish_data):
         # local file link
         path = __resolve_local_file_link(tk, path_field)
         if path is None:
-
             raise PublishPathNotDefinedError(
                 "Publish %s (id %s) has a local file link that could not be resolved "
                 "on this os platform."
@@ -168,7 +167,6 @@ def __resolve_local_file_link(tk, attachment_data):
     log.debug("Looking for override env var '%s'" % env_var_name)
 
     if env_var_name in os.environ:
-
         log.debug(
             "Detected override %s='%s'" % (env_var_name, os.environ[env_var_name])
         )
@@ -182,7 +180,6 @@ def __resolve_local_file_link(tk, attachment_data):
             )
 
         else:
-
             # we have an override
             override_root = os.environ[env_var_name]
 

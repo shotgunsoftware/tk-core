@@ -244,7 +244,7 @@ class DumpConfigAction(Action):
                 fh = open(path, "w")
             except Exception as e:
                 raise TankError(
-                    "Unable to open file: %s\n" "  Error reported: %s" % (path, e)
+                    "Unable to open file: %s\n  Error reported: %s" % (path, e)
                 )
         else:
             # get an in-memory file handle

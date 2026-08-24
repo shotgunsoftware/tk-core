@@ -11,8 +11,11 @@
 import os
 
 import sgtk
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+    temp_env_var,
+)
 
 
 class TestIODescriptors(ShotgunTestBase):

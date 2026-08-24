@@ -93,7 +93,6 @@ class ShotgunTask(Entity):
         curr_parent = parent
 
         while True:
-
             if (
                 associated_entity_type is None
                 and isinstance(curr_parent, Entity)

@@ -248,8 +248,7 @@ class GetEntityCommandsAction(Action):
         except SubprocessCalledProcessError as e:
             # failed to update the cache
             raise TankError(
-                "Failed to update the cache.\n"
-                "Details: %s\nOutput: %s" % (e, e.output)
+                "Failed to update the cache.\nDetails: %s\nOutput: %s" % (e, e.output)
             )
 
         # now that the cache is updated, we can try to load the data again

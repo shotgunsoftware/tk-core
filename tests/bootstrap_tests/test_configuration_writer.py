@@ -15,10 +15,10 @@ import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
 from sgtk.util import ShotgunPath
 from tank.util import is_macos, is_windows
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
 )
 from tank_vendor import yaml
 
@@ -272,7 +272,6 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
 
 class TestWritePipelineConfigFile(ShotgunTestBase):
-
     FALLBACK_PATHS = ["/bundle/cache", "/fallback/paths"]
 
     def _create_test_data(self, create_project):

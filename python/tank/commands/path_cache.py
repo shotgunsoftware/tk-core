@@ -85,7 +85,6 @@ class SynchronizePathCache(Action):
         """
 
         if self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
-
             log.info("Ensuring that the local folder representation is up to date...")
 
             if full_sync:

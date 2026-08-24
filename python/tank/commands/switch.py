@@ -32,7 +32,6 @@ class SwitchAppAction(Action):
     def run_interactive(self, log, args):
 
         if len(args) < 4:
-
             log.info(
                 "This command allows you to easily switch an app between different "
                 "locations. A location defines where toolkit picks and synchrononizes "

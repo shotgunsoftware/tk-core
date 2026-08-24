@@ -102,7 +102,6 @@ class PathCache(object):
 
         c = self._connection.cursor()
         try:
-
             # get a list of tables in the current database
             ret = c.execute("SELECT name FROM main.sqlite_master WHERE type='table';")
             table_names = [x[0] for x in ret.fetchall()]
@@ -136,7 +135,6 @@ class PathCache(object):
                 self._connection.commit()
 
             else:
-
                 # we have an existing database! Ensure it is up to date
                 if "event_log_sync" not in table_names:
                     # this is a pre-0.15 setup where the path cache does not have event log sync
@@ -180,7 +178,6 @@ class PathCache(object):
         :returns: The path to the path cache file
         """
         if self._tk.pipeline_configuration.get_shotgun_path_cache_enabled():
-
             # 0.15+ path cache setup - call out to a core hook to determine
             # where the path cache should be located.
             path = self._tk.execute_core_hook_method(
@@ -260,7 +257,6 @@ class PathCache(object):
                 break
 
         if not root_name:
-
             storages_str = ",".join(list(self._roots.values()))
 
             raise TankError(
@@ -329,7 +325,6 @@ class PathCache(object):
         c = self._connection.cursor()
 
         try:
-
             # check if we should do a full sync
             if full_sync:
                 return self._do_full_sync(c)
@@ -469,7 +464,6 @@ class PathCache(object):
 
         sg_batch_data = []
         for d in data:
-
             # get a name for the clickable url in the path field
             # this will include the name of the storage
             root_name, relative_path = self._separate_root(d["path"])
@@ -848,7 +842,7 @@ class PathCache(object):
                 batches.append(entity_filter)
 
             log.debug(
-                "Getting FilesystemLocation entries for " "the following ids: %s",
+                "Getting FilesystemLocation entries for the following ids: %s",
                 folder_ids,
             )
         else:
@@ -1047,7 +1041,7 @@ class PathCache(object):
             # because this record came from shotgun, insert a record in the
             # shotgun_status table to indicate that this record exists in sg
             cursor.execute(
-                "INSERT INTO shotgun_status(path_cache_id, shotgun_id) " "VALUES(?, ?)",
+                "INSERT INTO shotgun_status(path_cache_id, shotgun_id) VALUES(?, ?)",
                 (new_rowid, fsl_entity["id"]),
             )
 
@@ -1195,7 +1189,6 @@ class PathCache(object):
                     entity_in_db["id"] != entity["id"]
                     or entity_in_db["type"] != entity["type"]
                 ):
-
                     # there is already a record in the database for this path,
                     # but associated with another entity! Display an error message
                     # and ask that the user investigates using special tank commands.
@@ -1320,7 +1313,6 @@ class PathCache(object):
             # create an event log entry that links back to those entries.
             # This is then used by the incremental path cache syncer.
             if self._sync_with_sg and len(data_for_sg) > 0:
-
                 # first, a summary of what we are up to for the event log description
                 entity_ids = ", ".join([str(x) for x in entity_ids])
                 desc = "Created folders on disk for %ss with id: %s" % (
@@ -1775,14 +1767,16 @@ class PathCache(object):
 
         try:
             # get all records and check each one against shotgun.
-            pc_data = list(cursor.execute("""select pc.rowid,
+            pc_data = list(
+                cursor.execute("""select pc.rowid,
                                                     pc.entity_type,
                                                     pc.entity_id,
                                                     pc.entity_name,
                                                     pc.root,
                                                     pc.path,
                                                     pc.primary_entity
-                                             from path_cache pc"""))
+                                             from path_cache pc""")
+            )
         finally:
             cursor.close()
 
@@ -1832,7 +1826,6 @@ class PathCache(object):
                     )
                 )
             else:
-
                 # ok this record needs uploading and seems valid.
                 sg_record = {}
                 sg_record["entity"] = {}
@@ -1858,7 +1851,6 @@ class PathCache(object):
         # now query shotgun for each of the types
         sg_valid_records = []
         for et, sg_records_for_et in ids_to_look_for.items():
-
             log.info(
                 " - Checking %s %ss in Flow Production Tracking..."
                 % (len(sg_records_for_et), et)

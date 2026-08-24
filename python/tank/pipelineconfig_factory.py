@@ -169,7 +169,6 @@ def _from_path(path, force_reread_shotgun_cache):
 
     # first see if someone is passing the path to an actual pipeline configuration
     if pipelineconfig_utils.is_pipeline_config(path):
-
         log.debug("The path %s points at a pipeline configuration." % path)
 
         # resolve the "real" location that is stored in Shotgun and
@@ -275,7 +274,6 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     config_context_path = _get_configuration_context()
 
     if config_context_path:
-
         # --- RUNNING THE API WITHIN A PROJECT ----
 
         # This is the localized case where the imported code has a 1:1 correspondence
@@ -293,7 +291,6 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         # we are trying to start up.
 
         if pc_id not in [x["id"] for x in all_pc_data]:
-
             log.debug(
                 "The currently running sgtk API code is not associated with "
                 "%s so a pipeline configuration cannot be initialized. "
@@ -325,7 +322,6 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             return pipeline_configuration
 
     else:
-
         # --- RUNNING THE API WITHIN A CENTRALIZED CORE ----
         #
         # When you are running the tank command or import sgtk from a shared core.
@@ -345,7 +341,6 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         primary_pc_data = [pc for pc in primary_pc_data if pc["project_id"]]
 
         if len(primary_pc_data) == 0:
-
             raise TankInitError(
                 "The project associated with %s does not have a Primary pipeline "
                 "configuration! This is required by Toolkit. It needs to be named '%s'. "
@@ -467,7 +462,6 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
     primary_data = []
 
     for pc in sg_pipeline_configs:
-
         # extract path from shotgun, sanitize and get curr os path
         pc_path = ShotgunPath.from_shotgun_dict(pc)
         curr_os_path = pc_path.current_os
@@ -551,9 +545,7 @@ def _get_pipeline_configs_for_path(path, data):
     # step 2 - build a dict of storage project paths and associate with project id
     project_paths = collections.defaultdict(list)
     for pc in data["pipeline_configurations"]:
-
         for storage in storages:
-
             # This pipeline can be associated with all projects, so add this
             # pipeline configuration to all project paths
             if pc["project"] is None:
@@ -587,7 +579,6 @@ def _get_pipeline_configs_for_path(path, data):
     all_matching_pcs = []
 
     for project_path in project_paths:
-
         # (like the PTR API, this logic is case preserving, not case insensitive)
         path_lower = path.lower()
         proj_path_lower = project_path.lower()
@@ -670,7 +661,6 @@ def _get_pipeline_configs_for_project(project_id, data):
     matching_pipeline_configs = []
 
     for pc in data["pipeline_configurations"]:
-
         # The pipeline configuration can match a project if it has no project associated or if it is
         # associated to it.
         if pc["project"] is None or pc["project"]["id"] == project_id:

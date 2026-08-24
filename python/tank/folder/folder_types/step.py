@@ -95,7 +95,6 @@ class ShotgunStep(Entity):
         #
         sg_parent = parent
         while True:
-
             if (
                 associated_entity_type is None
                 and isinstance(sg_parent, Entity)

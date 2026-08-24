@@ -4,8 +4,11 @@ import tank
 from tank.errors import TankError
 from tank.platform.validation import validate_schema, validate_settings
 from tank.templatekey import StringKey
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    TankTestBase,
+    setUpModule,  # noqa
+)
 
 
 class TestValidateSchema(ShotgunTestBase):

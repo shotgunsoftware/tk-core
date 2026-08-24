@@ -11,8 +11,10 @@
 import os
 
 from tank import TankError, folder
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import (
+    TankTestBase,
+    setUpModule,  # noqa
+)
 from tank_vendor import yaml
 
 

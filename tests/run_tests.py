@@ -143,7 +143,9 @@ def _initialize_coverage(test_root):
     if test_root:
         coveragerc_location = os.path.abspath(
             os.path.join(
-                test_root, "..", ".coveragerc"  # <root>/tests  # <root>
+                test_root,
+                "..",
+                ".coveragerc",  # <root>/tests  # <root>
             )  # <root>/.coveragerc
         )
     else:
@@ -260,7 +262,6 @@ def _parse_command_line():
 
 
 if __name__ == "__main__":
-
     exit_val = 0
 
     #

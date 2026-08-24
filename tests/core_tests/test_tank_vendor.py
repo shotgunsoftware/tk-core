@@ -17,8 +17,10 @@ import tempfile
 import unittest
 from unittest import mock
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 # Configuration: Add or remove packages here to test different third-party libraries
 # Packages from pkgs.zip are always tested. Packages from requirements/any/
@@ -185,7 +187,7 @@ class TestTankVendorMetaFinder(ShotgunTestBase):
 
     def test_meta_finder_installed(self):
         """Test that the meta finder is installed in sys.meta_path."""
-        import tank_vendor
+        import tank_vendor  # noqa: F401
 
         # Meta finder should be installed
         self.assertTrue(hasattr(sys, "_tank_vendor_meta_finder"))
@@ -288,7 +290,6 @@ class TestShotgunAPI3CertPatchPrecedence(ShotgunTestBase):
         super().setUp()
 
         import shotgun_api3
-
         from tank_vendor import _patch_shotgun_api3_certs
 
         self._shotgun_api3 = shotgun_api3
@@ -302,9 +303,7 @@ class TestShotgunAPI3CertPatchPrecedence(ShotgunTestBase):
         # turn _get_certs_file into a bound instance method for every
         # Shotgun() call afterward, breaking unrelated tests with a
         # "takes 0 to 1 positional arguments but 2 were given" TypeError.
-        self._original_get_certs_file = shotgun_api3.Shotgun.__dict__[
-            "_get_certs_file"
-        ]
+        self._original_get_certs_file = shotgun_api3.Shotgun.__dict__["_get_certs_file"]
 
         # Build a fake pkgs.zip layout with an extracted cert file beside it:
         #   <tmp_dir>/pkgs.zip

@@ -20,8 +20,7 @@ import sys
 
 from ..errors import TankError
 from ..log import LogManager
-from ..util import ShotgunPath, is_windows
-from ..util import sgre as re
+from ..util import ShotgunPath, is_windows, sgre as re
 from ..util.loader import load_plugin
 from ..util.version import is_version_older
 from . import constants, validation
@@ -404,7 +403,6 @@ class SoftwareLauncher(object):
         # matched components via the regex
         matches = []
         for matching_path in matching_paths:
-
             self.logger.debug("Processing path: %s" % (matching_path,))
 
             match = executable_regex.match(matching_path)

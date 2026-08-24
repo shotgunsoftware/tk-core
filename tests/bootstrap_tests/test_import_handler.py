@@ -15,8 +15,10 @@ import tempfile
 import types
 
 from tank.bootstrap.import_handler import CoreImportHandler
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 # creates a unique object instance that can never collide with any real value.
 _SENTINEL = object()

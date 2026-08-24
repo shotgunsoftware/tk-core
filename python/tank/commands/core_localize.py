@@ -156,7 +156,6 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
     target_install_path = os.path.join(target_config_path, "install")
 
     try:
-
         # ---- Step 1: Localize all bundles...
 
         if is_version_older(source_core_version, "v0.18.0"):
@@ -176,7 +175,6 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
             # handled explicitly later on
 
             for name in os.listdir(source_install_path):
-
                 if name in ["core", "core.backup"]:
                     # skip now and handle separately
                     continue
@@ -197,7 +195,6 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
             # Key by descriptor uri, which ensures no repetition.
             descriptors = {}
             for env_name in target_pipeline_config.get_environments():
-
                 env_obj = target_pipeline_config.get_environment(env_name)
 
                 for engine in env_obj.get_engines():
@@ -278,7 +275,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
 
     log.info("")
     log.info(
-        "Localize complete! " "This pipeline configuration now has an independent API."
+        "Localize complete! This pipeline configuration now has an independent API."
     )
     log.info("")
     log.info("")
@@ -313,7 +310,7 @@ class ShareCoreAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["core_path_mac"] = {
             "description": (
-                "The path on disk where the core API should be " "installed on Macosx."
+                "The path on disk where the core API should be installed on Macosx."
             ),
             "default": (None if sys.platform == "darwin" else ""),
             "type": "str",
@@ -321,7 +318,7 @@ class ShareCoreAction(Action):
 
         self.parameters["core_path_win"] = {
             "description": (
-                "The path on disk where the core API should be " "installed on Windows."
+                "The path on disk where the core API should be installed on Windows."
             ),
             "default": (None if sys.platform == "win32" else ""),
             "type": "str",
@@ -329,7 +326,7 @@ class ShareCoreAction(Action):
 
         self.parameters["core_path_linux"] = {
             "description": (
-                "The path on disk where the core API should be " "installed on Linux."
+                "The path on disk where the core API should be installed on Linux."
             ),
             "default": (None if sys.platform == "linux" else ""),
             "type": "str",
@@ -624,7 +621,6 @@ def _run_unlocalize(
 
     old_umask = os.umask(0)
     try:
-
         # these core config files are directly related to the core
         # and not needed by a configuration
         core_config_file_names = [

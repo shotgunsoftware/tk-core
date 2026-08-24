@@ -136,7 +136,6 @@ class Action(object):
         # pass 1 - first get both user supplied and default values
         # into target dictionary
         for name in self.parameters:
-
             if name == "return_value":
                 continue
 
@@ -151,7 +150,6 @@ class Action(object):
 
         # pass 2 - make sure all params are defined
         for name in self.parameters:
-
             if name == "return_value":
                 continue
 

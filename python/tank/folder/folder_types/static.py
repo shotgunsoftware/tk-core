@@ -148,7 +148,6 @@ class Static(Folder):
 
         # first check if we have any conditionals that need evaluating
         if self._constrain_node:
-
             # resolve our sg filter expression based on the current shotgun data
             # for the current parent objects (for example if the query expression
             # contains $shot or other dynamic tokens)

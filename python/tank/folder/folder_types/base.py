@@ -166,7 +166,6 @@ class Folder(object):
 
         # and recurse down to children
         if explicit_child_list:
-
             # we have been given a specific list to recurse down.
             # pop off the next item and process it.
             explicit_ch = copy.copy(explicit_child_list)
@@ -177,7 +176,6 @@ class Folder(object):
             static_children = [ch for ch in self._children if ch.is_dynamic() is False]
 
             for created_folder, sg_data_dict in created_data:
-
                 # first process the static folders
                 for cp in static_children:
                     # note! if the static child is on the specific recursion path,
@@ -297,7 +295,6 @@ class Folder(object):
         """
 
         for symlink in self._symlinks:
-
             full_path = os.path.join(path, symlink["name"])
 
             # resolve our symlink from the target expressions

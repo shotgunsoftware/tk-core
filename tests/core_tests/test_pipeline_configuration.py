@@ -17,10 +17,10 @@ from tank.bootstrap.configuration_writer import ConfigurationWriter
 from tank.commands import get_command
 from tank.descriptor import Descriptor, create_descriptor
 from tank.util import ShotgunPath, is_linux, is_macos, is_windows
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
+    setUpModule,  # noqa
     temp_env_var,
 )
 from tank_vendor import yaml

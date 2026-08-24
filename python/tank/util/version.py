@@ -10,8 +10,7 @@
 import contextlib
 import warnings
 
-from tank_vendor.packaging.version import InvalidVersion
-from tank_vendor.packaging.version import parse as version_parse
+from tank_vendor.packaging.version import InvalidVersion, parse as version_parse
 
 from .. import LogManager
 from ..errors import TankError

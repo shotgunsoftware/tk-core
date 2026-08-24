@@ -33,8 +33,7 @@ from threading import Event, Lock, Thread
 # equivalent between the two, we'll use distro for every version of Python 3.
 from tank_vendor import distro
 
-from . import constants
-from . import sgre as re
+from . import constants, sgre as re
 
 ###############################################################################
 
@@ -200,7 +199,6 @@ class MetricsQueueSingleton(object):
 
         # create the queue instance if it hasn't been created already
         if not cls.__instance:
-
             # remember the instance so that no more are created
             metrics_queue = super(MetricsQueueSingleton, cls).__new__(
                 cls, *args, **kwargs
@@ -268,7 +266,6 @@ class MetricsQueueSingleton(object):
 
             # there are pending metrics
             if num_pending:
-
                 # determine how many metrics to retrieve
                 if not count or count > num_pending:
                     count = num_pending
@@ -417,7 +414,6 @@ class MetricsDispatchWorkerThread(Thread):
 
         # Run until halted
         while not self._halt_event.is_set():
-
             # get the next available metric and dispatch it
             try:
                 # For each dispatch cycle, we empty the queue to prevent
@@ -486,9 +482,9 @@ class MetricsDispatchWorkerThread(Thread):
             if metric.is_supported_event:
                 # If this is a supported event, we just need to tack on the
                 # version of the core api being used.
-                data["event_properties"][
-                    EventMetric.KEY_CORE_VERSION
-                ] = self._engine.sgtk.version
+                data["event_properties"][EventMetric.KEY_CORE_VERSION] = (
+                    self._engine.sgtk.version
+                )
 
                 # If it's a desktop event...
                 # We split <desktop version> / <startup version>
@@ -503,9 +499,9 @@ class MetricsDispatchWorkerThread(Thread):
                         # host_app_version can be `unknown` on development/tests.
                         pass
                     else:
-                        data["event_properties"][
-                            EventMetric.KEY_HOST_APP_VERSION
-                        ] = desktop_version.strip()
+                        data["event_properties"][EventMetric.KEY_HOST_APP_VERSION] = (
+                            desktop_version.strip()
+                        )
                         data["event_properties"]["Event Data"] = {
                             "Startup Version": startup_version.strip()
                         }

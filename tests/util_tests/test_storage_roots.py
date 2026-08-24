@@ -12,8 +12,10 @@ import os
 
 from tank.errors import TankError
 from tank.util import ShotgunPath, StorageRoots
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 
 class TestStorageRoots(ShotgunTestBase):
@@ -180,7 +182,6 @@ class TestStorageRoots(ShotgunTestBase):
         ]
 
         for config_root_folder in config_root_folders:
-
             storage_roots_A = StorageRoots.from_config(config_root_folder)
 
             out_roots_folder = os.path.join(self._config_folder, "core")

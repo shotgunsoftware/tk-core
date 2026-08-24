@@ -8,8 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .qt_abstraction import QtGui
-from .qt_abstraction import QtCore
+from .qt_abstraction import QtCore, QtGui
 
 
 class AspectPreservingLabel(QtGui.QLabel):

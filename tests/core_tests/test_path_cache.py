@@ -20,11 +20,11 @@ from queue import Empty
 import tank
 from tank import LogManager, folder, path_cache
 from tank.util import StorageRoots
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
     only_run_on_windows,
+    setUpModule,  # noqa
     temp_env_var,
 )
 
@@ -160,8 +160,7 @@ class TestAddMapping(TestPathCache):
         add_item_to_cache(self.path_cache, self.entity, full_path)
 
         res = self.db_cursor.execute(
-            "SELECT path, root FROM path_cache "
-            "WHERE entity_type = ? AND entity_id = ?",
+            "SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?",
             (self.entity["type"], self.entity["id"]),
         )
         entry = res.fetchall()[0]
@@ -427,7 +426,7 @@ class TestAddMapping(TestPathCache):
 
         # Verify the path-cache row was committed.
         res = self.db_cursor.execute(
-            "SELECT path FROM path_cache " "WHERE entity_type = ? AND entity_id = ?",
+            "SELECT path FROM path_cache WHERE entity_type = ? AND entity_id = ?",
             (self.entity["type"], self.entity["id"]),
         )
         self.assertEqual(len(res.fetchall()), 1)
@@ -1025,7 +1024,6 @@ class TestConcurrentShotgunSync(TankTestBase):
         event_log_id = 7000
 
         while True:
-
             time.sleep(0.1)
             sys.stderr.write(".")
 

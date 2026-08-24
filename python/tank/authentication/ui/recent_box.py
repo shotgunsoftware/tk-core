@@ -18,8 +18,8 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .qt_abstraction import QtGui
 from .completion_filter_proxy import CompletionFilterProxy
+from .qt_abstraction import QtGui
 
 
 class RecentBox(QtGui.QComboBox):

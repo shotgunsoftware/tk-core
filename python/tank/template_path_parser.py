@@ -301,7 +301,6 @@ class TemplatePathParser(object):
         # using the token positions, find all possible values for the key
         possible_values = []
         for token_position in positions:
-
             # make sure that the length of the possible value substring will be valid:
             if token_position <= key_position:
                 continue

@@ -140,7 +140,6 @@ class Entity(Folder):
         items_created = []
 
         for entity in self.__get_entities(sg_data):
-
             # generate the field name
             folder_name = self._entity_expression.generate_name(entity)
 
@@ -288,7 +287,6 @@ class Entity(Folder):
         # by its children as we move upwards - for example a step.
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
         if my_sg_data_key in tokens:
-
             link_map = {}
             fields_to_retrieve = []
             additional_filters = []
@@ -358,7 +356,6 @@ class Entity(Folder):
             #   explicitly filtered out - which is not an error!
 
             if not rec:
-
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:
                     raise TankError(
@@ -380,7 +377,6 @@ class Entity(Folder):
             # link_map['sg_sequence'] = link_obj
             #
             for field in link_map:
-
                 # do some juggling to make sure we don't double process the
                 # name fields.
                 value = rec[field]

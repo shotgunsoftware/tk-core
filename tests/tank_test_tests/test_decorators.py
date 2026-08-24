@@ -11,8 +11,11 @@
 import os
 import uuid
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+    temp_env_var,
+)
 
 
 class TestDecorators(ShotgunTestBase):
@@ -46,14 +49,12 @@ class TestDecorators(ShotgunTestBase):
 
         # Temporarily set the env var.
         with temp_env_var(**{env_var_name: "test_value"}):
-
             # Make sure it is set.
             self.assertTrue(env_var_name in os.environ)
             self.assertEqual(os.environ[env_var_name], "test_value")
 
             # Override the existing variable with a new one
             with temp_env_var(**{env_var_name: "test_value_2"}):
-
                 # Make sure it was overriden
                 self.assertTrue(env_var_name in os.environ)
                 self.assertEqual(os.environ[env_var_name], "test_value_2")

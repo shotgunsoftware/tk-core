@@ -27,17 +27,22 @@ from .. import LogManager, constants
 from ..util import LocalFileStorageManager, login, metrics_cache
 from ..util.metrics import EventMetric
 from ..util.shotgun import connection
-from . import app_session_launcher
-from . import constants as auth_constants
-from . import session_cache, site_info
+from . import (
+    app_session_launcher,
+    constants as auth_constants,
+    session_cache,
+    site_info,
+)
 from .errors import AuthenticationError
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
     SsoSaml2MissingQtModuleError,
 )
 from .sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
-from .ui import resources_rc  # noqa
-from .ui import login_dialog
+from .ui import (
+    login_dialog,
+    resources_rc,  # noqa
+)
 from .ui.qt_abstraction import (
     QtCore,
     QtGui,
@@ -187,7 +192,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_selection(hostname)
 
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
-        completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
+        completer_style = self.styleSheet() + ("\n\nQWidget {font-size: 12px;}")
         self.ui.site.set_style_sheet(completer_style)
         self.ui.site.set_placeholder_text("example.shotgrid.autodesk.com")
         self.ui.login.set_style_sheet(completer_style)

@@ -21,7 +21,6 @@ from sgtk_integration_test import SgtkIntegrationTest
 
 
 class OfflineWorkflow(SgtkIntegrationTest):
-
     OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
 
     @classmethod
