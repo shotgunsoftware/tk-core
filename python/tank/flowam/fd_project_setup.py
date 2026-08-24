@@ -27,6 +27,7 @@ from tank_vendor.flow_integration_sdk.objects import FlowAsset
 from tank_vendor.flow_integration_sdk.publish import (
     ComponentSpec,
     publish_new_asset,
+    publish_new_revision,
     TypeComponentSpec,
 )
 from tank_vendor.flow_integration_sdk.schema import get_schema_id
@@ -34,13 +35,12 @@ from tank_vendor.flow_integration_sdk.utils import get_logger
 
 
 # Asset name templates
-ASSET = "FPT Asset - %s"
 ASSET_TYPE = "FPT Asset Type - %s"
 ASSET_TYPES = "FPT Asset Types"
-EPISODE = "FPT Episode - %s"
+NO_ASSET_TYPE = "Assets with no Type"
+NO_EPISODE = "Sequences with no Episode"
+NO_SEQUENCE = "Shots with no Sequence"
 PIPELINE_STEP = "FPT %s Step - %s"
-SEQUENCE = "FPT Sequence - %s"
-SHOT = "FPT Shot - %s"
 SHOT_TYPE = "FPT Shot Type - %s"
 SHOT_TYPES = "FPT Shot Types"
 
@@ -53,6 +53,7 @@ DYN_ENUM_TYPE = "type.dynamicEnum"
 DYN_ENUM_VALUE_TYPE = "type.dynamicEnumValue"
 EXTERNAL_ID_TYPE_ID = "autodesk.me:component.externalId-1.0.0"
 PIPELINE_STEP_TYPE = "type.pipelineStep"
+PIPELINE_STEPS_TYPE = "component.pipelineSteps"
 
 # Asset map -> maps asset name to asset id
 # (cached for quick reference)
@@ -118,10 +119,14 @@ class DeliverableSequenceComponentSpec(DeliverableComponentSpec):
 
     def create(self) -> medm_model.ComponentData:
         """Create an MEDM component based on specifications."""
+        if self.episode_id:
+            episode = self.build_reference_value(self.episode_id)
+        else:
+            episode = None
         return self.create_component(
             name=self.name,
             type_id=self.type_id,
-            episode=self.build_reference_value(self.episode_id),
+            episode=episode,
         )
 
 
@@ -241,7 +246,7 @@ class DynEnumValueComponentSpec(TypeComponentSpec):
 
 
 class ExternalIdComponentSpec(ComponentSpec):
-    """Specifications for creating a external id type component.
+    """Specifications for creating a external id component.
     This is a component used to designate the SG id of the entity an asset
     is mirroring in MEDM.
     """
@@ -303,7 +308,35 @@ class PipelineStepComponentSpec(DynEnumValueComponentSpec):
         return super().create(entityType=self.entity_type)
 
 
-def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
+class PipelineStepsComponentSpec(ComponentSpec):
+    """Specifications for creating a pipeline steps component.
+    This is a component used to designate the list of pipeline steps associated
+    with an Asset or Shot deliverable.
+    """
+
+    def __init__(
+        self,
+        pipeline_steps: list[str],
+    ):
+        """
+        Args:
+            pipeline_steps: List of ids to pipeline step assets in MEDM.
+        """
+        self.pipeline_steps = pipeline_steps
+
+    def create(self, **kwargs) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+
+        return self.create_component(
+            name="Pipeline Steps",
+            type_id=get_schema_id(PIPELINE_STEPS_TYPE),
+            targetStep=[self.build_reference_value(p) for p in self.pipeline_steps],
+        )
+
+
+def _medm_search(
+    project_id: str, q_filter: str, parent_id: str = ""
+) -> list[FlowAsset]:
     """Perform global search in MEDM under given project with provided
     filter criteria.
 
@@ -311,6 +344,10 @@ def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
         project_id: Id of project to search under.
         q_filter: Filter criteria following MEDM api specs.
                   See https://git.autodesk.com/learning-content/flow/blob/master/clc/AM-DevGuide/source/dg-using-filters.md
+        parent_id: Parent will default to project unless explicitly
+                   overridden by this parameter.
+                   By default only immediate children will be searched.
+                   Set parent_id = "*" for global search.
 
     Returns:
         List of FlowAsset objects.
@@ -320,9 +357,15 @@ def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
     """
     client = get_client()
 
+    # Search under parent, and only include non-deleted assets
+    parent_id = parent_id or project_id
+    q_filter_pre = "attribute.deletionState=='NOT_DELETED';"
+    if parent_id != "*":
+        q_filter_pre += f"attribute.parentId=={parent_id};"
+
     q_input = medm_model.AssetsBySearchInput(
         project_ids=[project_id],
-        filter=q_filter,
+        filter=q_filter_pre + q_filter,
     )
     q_search = client.service_asset.assets_by_search(q_input)
 
@@ -336,13 +379,25 @@ def _medm_search(project_id: str, q_filter: str) -> list[FlowAsset]:
     return result
 
 
-def _match_name(assets: list[FlowAsset], name: str) -> FlowAsset | None:
-    """Return asset in list that matches name or None."""
+def _match_name(
+    assets: list[FlowAsset], name: str, sg_id: str = ""
+) -> FlowAsset | None:
+    """Return asset in list that matches name or None.
+    If provided, also match against SG id on the ExternalId component.
+    """
     for asset in assets:
         if asset._entity.deletion_state != medm_model.AssetDeletionState.NOT_DELETED:
             continue  # ignore deleted assets
         if asset.name == name:
-            return asset
+            if sg_id:
+                ext_id_comp = asset.find_component(type_id=EXTERNAL_ID_TYPE_ID)
+                if (
+                    ext_id_comp
+                    and ext_id_comp.properties.get("id").split(":")[-1] == sg_id
+                ):
+                    return asset
+            else:
+                return asset
     return None
 
 
@@ -365,8 +420,6 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     # Search for existing ASSET_TYPES asset under medm project
     logger.info(f'Checking for existing "{LIST_NAME}" asset in MEDM project...')
     q_filter = f"attribute.name=='{LIST_NAME}';"
-    q_filter += f"attribute.parentId=={medm_project_id};"
-    q_filter += "attribute.deletionState=='NOT_DELETED';"
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_TYPE)}"
     result = _medm_search(medm_project_id, q_filter)
     types_asset = result[0] if result else None
@@ -394,10 +447,14 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     prefix_name = VALUE_NAME.replace("%s", "")
     logger.info(f'Checking for existing "{prefix_name}*" assets in MEDM project...')
     q_filter = f"attribute.name=startswith='{prefix_name}';"
-    q_filter += f"attribute.parentId=={medm_project_id};"
-    q_filter += "attribute.deletionState=='NOT_DELETED';"
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_VALUE_TYPE)}"
     dyn_enum_value_assets = _medm_search(medm_project_id, q_filter)
+
+    # Add an explicit "no type" item to host Assets with no type
+    # NOTE: not necessary for Shots because shots are organized
+    #       under sequences and not types in the hierarchy.
+    if mode == "asset":
+        sg_types.append(NO_ASSET_TYPE)
 
     d_types = {}  # map asset types to ids of asset representing it
     for sg_type in sg_types:
@@ -449,9 +506,7 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
     # Query existing Pipeline Step assets within MEDM to avoid re-creating
     wildcard_name = PIPELINE_STEP.replace("%s", "*")
     logger.info(f'Checking for existing "{wildcard_name}" assets in MEDM project...')
-    q_filter = f"attribute.parentId=={medm_project_id};"
-    q_filter += "attribute.deletionState=='NOT_DELETED';"
-    q_filter += f"components.typeId=={get_schema_id(PIPELINE_STEP_TYPE)}"
+    q_filter = f"components.typeId=={get_schema_id(PIPELINE_STEP_TYPE)}"
     step_assets = _medm_search(medm_project_id, q_filter)
 
     for step in steps:
@@ -462,21 +517,34 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
         if step_type not in ["Asset", "Shot"]:
             # Ignore other types for now (e.g. "Level")
             continue
-        # Check if asset already exists
-        name = PIPELINE_STEP % (step_type, step_name)
-        existing_asset = _match_name(step_assets, name)
-        if existing_asset:
-            logger.info(f'Pipeline Step asset "{name}" already exists.')
-            ASSET_MAP[name] = existing_asset.id
-            continue
-        logger.info(f'Creating Pipeline Step asset "{name}"...')
-        # Publish a new asset representing the asset type
         type_comp = PipelineStepComponentSpec(
             value=step_name,
             code=step_code,
             background_color=step_color,
             entity_type=step_type,
         )
+        # Check if asset already exists
+        name = PIPELINE_STEP % (step_type, step_name)
+        existing_asset = _match_name(step_assets, name)
+        if existing_asset:
+            logger.info(f'Pipeline Step asset "{name}" already exists.')
+            ASSET_MAP[name] = existing_asset.id
+            step_comp = existing_asset.find_component(
+                type_id=get_schema_id(PIPELINE_STEP_TYPE)
+            )
+            if step_comp.properties.get(
+                "code"
+            ) != step_code or step_comp.properties.get("backgroundColor") != (
+                step_color or "null"
+            ):
+                logger.info(f'Changes detected. Updating "{name}" asset...')
+                publish_new_revision(
+                    existing_asset.id,
+                    components=[type_comp],
+                )
+            continue
+        logger.info(f'Creating Pipeline Step asset "{name}"...')
+        # Publish a new asset representing the asset type
         medm_asset = publish_new_asset(
             name=name,
             parent_id=medm_project_id,
@@ -486,113 +554,276 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
         ASSET_MAP[name] = medm_asset.id
 
 
-def _get_deliverable_type_comp(entity_type: str, sg_entity) -> DeliverableComponentSpec:
-    """Return a component spec of the appropriate entity type."""
+def _get_entity_pipeline_steps(
+    entity_type: str, entity_id: str, sg
+) -> PipelineStepsComponentSpec:
+    """Query the pipeline steps that are attached to the tasks associated
+    with the given SG entity.
 
-    if entity_type == "Asset":
-        return DeliverableAssetComponentSpec(asset_type=sg_entity["sg_asset_type"])
-    elif entity_type == "Shot":
-        # Find parent sequence proxy in MEDM
-        if sg_entity["sg_sequence"]:
-            seq_name = SEQUENCE % sg_entity["sg_sequence.Sequence.code"]
-        else:
-            seq_name = "No Sequence"
-        seq_id = ASSET_MAP.get(seq_name, None)
-        if not seq_id:
-            raise RuntimeError(f'Could not find parent sequence "{seq_name}".')
-        return DeliverableShotComponentSpec(
-            shot_type=sg_entity["sg_shot_type"],
-            sequence_id=seq_id,
-        )
-    elif entity_type == "Sequence":
-        # Find parent episode proxy in MEDM
-        if sg_entity["sq_episode"]:
-            ep_name = EPISODE % sg_entity["sq_episode.Episode.code"]
-        else:
-            ep_name = "No Episode"
-        ep_id = ASSET_MAP.get(seq_id, None)
-        if not ep_id:
-            raise RuntimeError(f'Could not find parent sequence "{ep_name}".')
-        return DeliverableSequenceComponentSpec(
-            episode_id=ep_id,
-        )
-    elif entity_type == "Episode":
-        return DeliverableEpisodeComponentSpec()
-
-
-def _create_deliverables(
-    sg_project_id: str, medm_project_id: str, sg, entity_type: str
-):
-    """Create assets to represent proxies of given entity types in FPT.
-    Supported entity types include "Asset", "Shot", "Sequence", and "Episode".
+    Args:
+        entity_type: Valid values are "Asset" and "Shot".
+        entity_id: Id of SG entity.
+        sg: SG API handle.
 
     Raises:
         ValueError
+        RuntimeError
     """
+    if entity_type not in ["Asset", "Shot"]:
+        raise ValueError("Invalid entity_type provided.  Must be 'Asset' or 'Shot'.")
+
+    # Query tasks associated with entity
+    tasks = sg.find(
+        "Task",
+        [
+            ["entity", "is", {"type": entity_type, "id": entity_id}],
+        ],
+        ["step", "step.Step.entity_type"],
+    )
+    # Map pipeline step asspcoated with each task to MEDM ids of pipeline step proxy assets
+    pipeline_step_ids = []
+    for task in tasks:
+        step_name = task["step"]["name"]
+        step_type = task["step.Step.entity_type"]
+        step_asset_name = PIPELINE_STEP % (step_type, step_name)
+        if step_asset_name not in ASSET_MAP:
+            raise RuntimeError(f'Could not find MEDM proxy asset "{step_asset_name}".')
+        step_asset_id = ASSET_MAP[step_asset_name]
+        # Pipeline steps might be duplicated across tasks, keep list unique
+        if step_asset_id not in pipeline_step_ids:
+            pipeline_step_ids.append(step_asset_id)
+
+    # Generate a component spec listing the associated pipeline specs that
+    # can be added to a Shot or Asset deliverable
+    return PipelineStepsComponentSpec(pipeline_steps=pipeline_step_ids)
+
+
+def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
+    """Create assets in MEDM to represent proxies of SG Assets."""
     logger = get_logger(__name__)
 
-    valid_types = ["Asset", "Shot", "Sequence", "Episode"]
-    if entity_type not in valid_types:
-        raise ValueError(f"Invalid entity_type provided.  Must be in {valid_types}.")
-
-    if entity_type == "Asset":
-        ENTITY_NAME = ASSET
-        ENTITY_TYPE = DEL_ASSET_TYPE
-    elif entity_type == "Shot":
-        ENTITY_NAME = SHOT
-        ENTITY_TYPE = DEL_SHOT_TYPE
-    elif entity_type == "Sequence":
-        ENTITY_NAME = SEQUENCE
-        ENTITY_TYPE = DEL_SEQUENCE_TYPE
-    elif entity_type == "Episode":
-        ENTITY_NAME = EPISODE
-        ENTITY_TYPE = DEL_EPISODE_TYPE
-
-    # Query entities in SG
-    fields = ["id", "code"]
-    if entity_type in ["Asset", "Shot"]:
-        sg_type_field = f"sg_{entity_type.lower()}_type"
-        fields.append(sg_type_field)
-    if entity_type == "Shot":
-        fields.append("sg_sequence", "sg_sequence.Sequence.code")
-    elif entity_type == "Sequence":
-        fields.append("sg_episode", "sg_episode.Episode.code")
-    entities = sg.find(
-        entity_type,
+    # Query Asset entities in SG
+    sg_assets = sg.find(
+        "Asset",
         [["project", "is", {"type": "Project", "id": sg_project_id}]],
-        fields,
+        ["id", "code", "sg_asset_type"],
     )
 
     # Search for existing entities of same type in MEDM project
-    wildcard_name = ENTITY_NAME.replace("%s", "*")
-    logger.info(f'Checking for existing "{wildcard_name}" assets in MEDM project...')
-    q_filter = f"attribute.parentId=={medm_project_id};"
-    q_filter += "attribute.deletionState=='NOT_DELETED';"
-    q_filter += f"components.typeId=={get_schema_id(ENTITY_TYPE)}"
+    logger.info("Checking for existing Asset deliverable assets in MEDM project...")
+    q_filter = f"components.typeId=={get_schema_id(DEL_ASSET_TYPE)}"
     memd_assets = _medm_search(medm_project_id, q_filter)
 
-    for ent in entities:
-        ent_name = ent["code"]
-        ent_id = ent["id"]
+    for sg_asset in sg_assets:
+        sg_name = sg_asset["code"]
+        sg_id = sg_asset["id"]
+        sg_asset_type = sg_asset["sg_asset_type"]
         # Check if asset already exists
-        name = ENTITY_NAME % (ent_name)
-        existing_asset = _match_name(memd_assets, name)
+        name = sg_name
+        map_name = (
+            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
+        )
+        existing_asset = _match_name(memd_assets, name, str(sg_id))
         if existing_asset:
-            logger.info(f'{entity_type} asset "{name}" already exists.')
-            ASSET_MAP[name] = existing_asset.id
+            logger.info(f'Asset deliverable "{name}" already exists.')
+            ASSET_MAP[map_name] = existing_asset.id
             continue
-        logger.info(f'Creating {entity_type} asset "{name}"...')
+        logger.info(f'Creating Asset deliverable asset "{name}"...')
         # Publish a new asset representing the asset type
-        type_comp = _get_deliverable_type_comp(entity_type, ent)
-        ext_id_comp = ExternalIdComponentSpec(entity_type=entity_type, entity_id=ent_id)
+        type_comp = DeliverableAssetComponentSpec(asset_type=sg_asset_type)
+        ext_id_comp = ExternalIdComponentSpec(entity_type="Asset", entity_id=sg_id)
+        pipeline_steps_comp = _get_entity_pipeline_steps("Asset", sg_id, sg)
         medm_asset = publish_new_asset(
             name=name,
             parent_id=medm_project_id,
-            description=f'{entity_type} proxy asset for "{ent_name}".',
-            components=[type_comp, ext_id_comp],
+            description=f'Proxy for Asset deliverable "{sg_name}".',
+            components=[type_comp, ext_id_comp, pipeline_steps_comp],
         )
-        ASSET_MAP[name] = medm_asset.id
-        break
+        ASSET_MAP[map_name] = medm_asset.id
+
+
+def _create_episode_deliverables(sg_project_id: str, medm_project_id: str, sg):
+    """Create assets in MEDM to represent proxies of SG Episodes."""
+    logger = get_logger(__name__)
+
+    # Query Episode entities in SG
+    sg_episodes = sg.find(
+        "Episode",
+        [["project", "is", {"type": "Project", "id": sg_project_id}]],
+        ["id", "code"],
+    )
+
+    # Search for existing entities of same type in MEDM project
+    logger.info("Checking for existing Episode deliverable assets in MEDM project...")
+    q_filter = f"components.typeId=={get_schema_id(DEL_EPISODE_TYPE)}"
+    memd_assets = _medm_search(medm_project_id, q_filter)
+
+    # Add a "no episode" placeholder asset to host sequences with no episode
+    sg_episodes.append({"code": NO_EPISODE, "id": None})
+
+    for sg_episode in sg_episodes:
+        sg_name = sg_episode["code"]
+        sg_id = sg_episode["id"]
+        # Check if asset already exists
+        name = sg_name
+        map_name = (
+            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
+        )
+        existing_asset = _match_name(memd_assets, name, str(sg_id) if sg_id else "")
+        if existing_asset:
+            logger.info(f'Episode deliverable "{name}" already exists.')
+            ASSET_MAP[map_name] = existing_asset.id
+            continue
+        logger.info(f'Creating Episode deliverable asset "{name}"...')
+        # Publish a new asset representing the asset type
+        components = [DeliverableEpisodeComponentSpec()]
+        if sg_id:
+            components.append(
+                ExternalIdComponentSpec(entity_type="Episode", entity_id=sg_id)
+            )
+        medm_asset = publish_new_asset(
+            name=name,
+            parent_id=medm_project_id,
+            description=f'Proxy for Episode deliverable "{sg_name}".',
+            components=components,
+        )
+        ASSET_MAP[map_name] = medm_asset.id
+
+
+def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
+    """Create assets in MEDM to represent proxies of SG Sequences."""
+    logger = get_logger(__name__)
+
+    # Query Sequence entities in SG
+    # NOTE: depending on project configuration, episode info
+    #       could be under "episode" or "sg_episode" field, so must fetch both
+    sg_sequences = sg.find(
+        "Sequence",
+        [["project", "is", {"type": "Project", "id": sg_project_id}]],
+        [
+            "id",
+            "code",
+            "sg_episode",
+            "episode",
+        ],
+    )
+
+    # Search for existing entities of same type in MEDM project
+    logger.info("Checking for existing Sequence deliverable assets in MEDM project...")
+    q_filter = f"components.typeId=={get_schema_id(DEL_SEQUENCE_TYPE)}"
+    memd_assets = _medm_search(medm_project_id, q_filter)
+
+    # Add a "no episode" placeholder asset to host sequences with no episode
+    sg_sequences.append({"code": NO_SEQUENCE, "id": None})
+
+    for sg_sequence in sg_sequences:
+        sg_name = sg_sequence["code"]
+        sg_id = sg_sequence["id"]
+        # Check if asset already exists
+        name = sg_name
+        map_name = (
+            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
+        )
+        existing_asset = _match_name(memd_assets, name, str(sg_id) if sg_id else "")
+        if existing_asset:
+            logger.info(f'Sequence deliverable "{name}" already exists.')
+            ASSET_MAP[map_name] = existing_asset.id
+            continue
+        logger.info(f'Creating Sequence deliverable asset "{name}"...')
+        # Find episode proxy to be associated
+        ep_field = "episode" if "episode" in sg_sequence else "sg_episode"
+        if sg_name == NO_SEQUENCE:
+            ep_id = ""
+        else:
+            if sg_sequence[ep_field]:
+                ep_name = (
+                    f'{sg_sequence[ep_field]["code"]}:{sg_sequence[ep_field]["id"]}'
+                )
+            else:
+                ep_name = NO_EPISODE
+            if ep_name not in ASSET_MAP:
+                raise RuntimeError(f'Could not find MEDM proxy episode "{ep_name}".')
+            ep_id = ASSET_MAP[ep_name]
+        # Publish a new asset representing the asset type
+        components = [DeliverableSequenceComponentSpec(episode_id=ep_id)]
+        if sg_id:
+            components.append(
+                ExternalIdComponentSpec(entity_type="Sequence", entity_id=sg_id)
+            )
+        medm_asset = publish_new_asset(
+            name=name,
+            parent_id=medm_project_id,
+            description=f'Proxy for Sequence deliverable "{sg_name}".',
+            components=components,
+        )
+        ASSET_MAP[map_name] = medm_asset.id
+
+
+def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
+    """Create assets in MEDM to represent proxies of SG Sequences."""
+    logger = get_logger(__name__)
+
+    # Query Shot entities in SG
+    # NOTE: depending on project configuration, sequence info
+    #       could be under "sequence" or "sg_sequence" field, so must fetch both
+    sg_shots = sg.find(
+        "Shot",
+        [["project", "is", {"type": "Project", "id": sg_project_id}]],
+        [
+            "id",
+            "code",
+            "sg_shot_type",
+            "sequence.Sequence.code",
+            "sequence.Sequence.id",
+            "sg_sequence.Sequence.code",
+            "sg_sequence.Sequence.id",
+        ],
+    )
+
+    # Search for existing entities of same type in MEDM project
+    logger.info("Checking for existing Shot deliverable assets in MEDM project...")
+    q_filter = f"components.typeId=={get_schema_id(DEL_SHOT_TYPE)}"
+    memd_assets = _medm_search(medm_project_id, q_filter)
+
+    for sg_shot in sg_shots:
+        sg_name = sg_shot["code"]
+        sg_id = sg_shot["id"]
+        sg_shot_type = sg_shot["sg_shot_type"]
+        # Check if asset already exists
+        name = sg_name
+        map_name = (
+            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
+        )
+        existing_asset = _match_name(memd_assets, name, str(sg_id))
+        if existing_asset:
+            logger.info(f'Shot deliverable "{name}" already exists.')
+            ASSET_MAP[map_name] = existing_asset.id
+            continue
+        logger.info(f'Creating Shot deliverable asset "{name}"...')
+        # Find episode proxy to be associated
+        sq_field = "sequence" if "sequence" in sg_shot else "sg_sequence"
+        if sg_shot[f"{sq_field}.Sequence.code"]:
+            sq_sg_name = sg_shot[f"{sq_field}.Sequence.code"]
+            sq_sg_id = sg_shot[f"{sq_field}.Sequence.id"]
+            sq_name = f"{sq_sg_name}:{sq_sg_id}"
+        else:
+            sq_name = NO_SEQUENCE
+        if sq_name not in ASSET_MAP:
+            raise RuntimeError(f'Could not find MEDM proxy sequence "{sq_name}".')
+        sq_id = ASSET_MAP[sq_name]
+        # Publish a new asset representing the asset type
+        type_comp = DeliverableShotComponentSpec(
+            shot_type=sg_shot_type, sequence_id=sq_id
+        )
+        ext_id_comp = ExternalIdComponentSpec(entity_type="Shot", entity_id=sg_id)
+        pipeline_steps_comp = _get_entity_pipeline_steps("Shot", sg_id, sg)
+        medm_asset = publish_new_asset(
+            name=name,
+            parent_id=medm_project_id,
+            description=f'Proxy for Shot deliverable "{sg_name}".',
+            components=[type_comp, ext_id_comp, pipeline_steps_comp],
+        )
+        ASSET_MAP[map_name] = medm_asset.id
 
 
 def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
@@ -632,7 +863,16 @@ def run_project_setup(sg_project_id: str, medm_project_id: str, sg):
     # Create PIPELINE_STEP* assets if necessary
     _create_pipeline_steps(sg_project_id, medm_project_id, sg)
 
-    # Create ASSET* assets for each SG Asset entity
-    _create_deliverables(sg_project_id, medm_project_id, sg, "Asset")
+    # Create Asset deliverables for each SG Asset entity
+    _create_asset_deliverables(sg_project_id, medm_project_id, sg)
+
+    # Create Episode deliverables for each SG Episode entity
+    _create_episode_deliverables(sg_project_id, medm_project_id, sg)
+
+    # Create Sequence deliverables for each SG Sequence entity
+    _create_sequence_deliverables(sg_project_id, medm_project_id, sg)
+
+    # Create Shot deliverables for each SG Shot entity
+    _create_shot_deliverables(sg_project_id, medm_project_id, sg)
 
     logger.info("-------- PROJECT SET UP COMPLETE! ---------")
