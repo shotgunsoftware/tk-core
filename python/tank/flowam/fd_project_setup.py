@@ -516,6 +516,8 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
         if step_type not in ["Asset", "Shot"]:
             # Ignore other types for now (e.g. "Level")
             continue
+        # Generate components (do it early because we may need it for updating
+        # as well as creation)
         type_comp = PipelineStepComponentSpec(
             value=step_name,
             code=step_code,
@@ -633,9 +635,8 @@ def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
         pipeline_steps_comp = _get_entity_pipeline_steps("Asset", sg_id, sg)
         # Check if asset already exists
         name = sg_name
-        map_name = (
-            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
-        )
+        # for deliverables add sg id to guarantee uniqueness
+        map_name = f"{name}:{sg_id}"
         existing_asset = _match_sg_id(memd_assets, str(sg_id))
         if existing_asset:
             logger.info(f'Asset deliverable "{name}" (id = {sg_id}) already exists.')
@@ -695,9 +696,11 @@ def _create_episode_deliverables(sg_project_id: str, medm_project_id: str, sg):
         sg_id = sg_episode["id"]
         # Check if asset already exists
         name = sg_name
-        map_name = (
-            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
-        )
+        if sg_id:
+            # for deliverables add sg id to guarantee uniqueness
+            map_name = f"{name}:{sg_id}"
+        else:
+            map_name = name
         if sg_id:
             existing_asset = _match_sg_id(medm_assets, str(sg_id))
         else:
@@ -751,20 +754,6 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
     for sg_sequence in sg_sequences:
         sg_name = sg_sequence["code"]
         sg_id = sg_sequence["id"]
-        # Check if asset already exists
-        name = sg_name
-        map_name = (
-            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
-        )
-        if sg_id:
-            existing_asset = _match_sg_id(medm_assets, str(sg_id))
-        else:
-            existing_asset = _match_name(medm_assets, name)
-        if existing_asset:
-            logger.info(f'Sequence deliverable "{name}" (id = {sg_id}) already exists.')
-            ASSET_MAP[map_name] = existing_asset.id
-            continue
-        logger.info(f'Creating Sequence deliverable asset "{name}"...')
         # Find episode proxy to be associated
         ep_field = "episode" if "episode" in sg_sequence else "sg_episode"
         if sg_name == NO_SEQUENCE:
@@ -772,19 +761,50 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
         else:
             if sg_sequence[ep_field]:
                 ep_name = (
-                    f'{sg_sequence[ep_field]["code"]}:{sg_sequence[ep_field]["id"]}'
+                    f'{sg_sequence[ep_field]["name"]}:{sg_sequence[ep_field]["id"]}'
                 )
             else:
                 ep_name = NO_EPISODE
             if ep_name not in ASSET_MAP:
                 raise RuntimeError(f'Could not find MEDM proxy episode "{ep_name}".')
             ep_id = ASSET_MAP[ep_name]
-        # Publish a new asset representing the asset type
+        # Generate components (do it early because we may need it for updating
+        # as well as creation)
         components = [DeliverableSequenceComponentSpec(episode_id=ep_id)]
         if sg_id:
             components.append(
                 ExternalIdComponentSpec(entity_type="Sequence", entity_id=sg_id)
             )
+        # Check if asset already exists
+        name = sg_name
+        if sg_id:
+            # for deliverables add sg id to guarantee uniqueness
+            map_name = f"{name}:{sg_id}"
+        else:
+            map_name = name
+        if sg_id:
+            existing_asset = _match_sg_id(medm_assets, str(sg_id))
+        else:
+            existing_asset = _match_name(medm_assets, name)
+        if existing_asset:
+            logger.info(f'Sequence deliverable "{name}" (id = {sg_id}) already exists.')
+            ASSET_MAP[map_name] = existing_asset.id
+            # Check for changes that could require an update
+            # NOTE: name changes are currently not supported
+            orig_type_comp = existing_asset.find_component(
+                type_id=get_schema_id(DEL_SEQUENCE_TYPE)
+            )
+            orig_ep_id = orig_type_comp.properties.get("episode")
+            if orig_ep_id != ep_id:
+                logger.info(f'Changes detected. Updating "{name}" asset...')
+                publish_new_revision(
+                    existing_asset.id,
+                    components=components,
+                )
+            continue
+        logger.info(f'Creating Sequence deliverable asset "{name}"...')
+
+        # Publish a new asset representing the asset type
         medm_asset = publish_new_asset(
             name=name,
             parent_id=medm_project_id,
@@ -826,9 +846,8 @@ def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
         sg_shot_type = sg_shot["sg_shot_type"]
         # Check if asset already exists
         name = sg_name
-        map_name = (
-            f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
-        )
+        # for deliverables add sg id to guarantee uniqueness
+        map_name = f"{name}:{sg_id}"
         existing_asset = _match_sg_id(memd_assets, str(sg_id))
         if existing_asset:
             logger.info(f'Shot deliverable "{name}" (id = {sg_id}) already exists.')
