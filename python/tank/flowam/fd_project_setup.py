@@ -642,6 +642,7 @@ def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
             logger.info(f'Asset deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             # Check for changes that could require an update
+            # For assets, this includes asset type and pipeline steps
             # NOTE: name changes are currently not supported
             orig_type_comp = existing_asset.find_component(
                 type_id=get_schema_id(DEL_ASSET_TYPE)
@@ -790,6 +791,7 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
             logger.info(f'Sequence deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             # Check for changes that could require an update
+            # For sequences, this includes its episode
             # NOTE: name changes are currently not supported
             orig_type_comp = existing_asset.find_component(
                 type_id=get_schema_id(DEL_SEQUENCE_TYPE)
@@ -803,7 +805,6 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
                 )
             continue
         logger.info(f'Creating Sequence deliverable asset "{name}"...')
-
         # Publish a new asset representing the asset type
         medm_asset = publish_new_asset(
             name=name,
@@ -844,17 +845,7 @@ def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
         sg_name = sg_shot["code"]
         sg_id = sg_shot["id"]
         sg_shot_type = sg_shot["sg_shot_type"]
-        # Check if asset already exists
-        name = sg_name
-        # for deliverables add sg id to guarantee uniqueness
-        map_name = f"{name}:{sg_id}"
-        existing_asset = _match_sg_id(memd_assets, str(sg_id))
-        if existing_asset:
-            logger.info(f'Shot deliverable "{name}" (id = {sg_id}) already exists.')
-            ASSET_MAP[map_name] = existing_asset.id
-            continue
-        logger.info(f'Creating Shot deliverable asset "{name}"...')
-        # Find episode proxy to be associated
+        # Find sequence proxy to be associated
         sq_field = "sequence" if "sequence" in sg_shot else "sg_sequence"
         if sg_shot[f"{sq_field}.Sequence.code"]:
             sq_sg_name = sg_shot[f"{sq_field}.Sequence.code"]
@@ -865,12 +856,47 @@ def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
         if sq_name not in ASSET_MAP:
             raise RuntimeError(f'Could not find MEDM proxy sequence "{sq_name}".')
         sq_id = ASSET_MAP[sq_name]
-        # Publish a new asset representing the asset type
+        # Generate components (do it early because we may need it for updating
+        # as well as creation)
         type_comp = DeliverableShotComponentSpec(
             shot_type=sg_shot_type, sequence_id=sq_id
         )
         ext_id_comp = ExternalIdComponentSpec(entity_type="Shot", entity_id=sg_id)
         pipeline_steps_comp = _get_entity_pipeline_steps("Shot", sg_id, sg)
+        # Check if asset already exists
+        name = sg_name
+        # for deliverables add sg id to guarantee uniqueness
+        map_name = f"{name}:{sg_id}"
+        existing_asset = _match_sg_id(memd_assets, str(sg_id))
+        if existing_asset:
+            logger.info(f'Shot deliverable "{name}" (id = {sg_id}) already exists.')
+            ASSET_MAP[map_name] = existing_asset.id
+            # Check for changes that could require an update
+            # For shots, this includes shot type, sequence and pipeline steps
+            # NOTE: name changes are currently not supported
+            orig_type_comp = existing_asset.find_component(
+                type_id=get_schema_id(DEL_SHOT_TYPE)
+            )
+            orig_shot_type = orig_type_comp.properties.get("shotType")
+            orig_pipeline_steps_comp = existing_asset.find_component(
+                type_id=get_schema_id(PIPELINE_STEPS_TYPE)
+            )
+            orig_sq_id = orig_type_comp.properties.get("sequence")
+            if (
+                orig_shot_type != (sg_shot_type or "null")
+                or not _compare_pipeline_steps(
+                    pipeline_steps_comp, orig_pipeline_steps_comp
+                )
+                or orig_sq_id != sq_id
+            ):
+                logger.info(f'Changes detected. Updating "{name}" asset...')
+                publish_new_revision(
+                    existing_asset.id,
+                    components=[type_comp, ext_id_comp, pipeline_steps_comp],
+                )
+            continue
+        logger.info(f'Creating Shot deliverable asset "{name}"...')
+        # Publish a new asset representing the asset type
         medm_asset = publish_new_asset(
             name=name,
             parent_id=medm_project_id,
