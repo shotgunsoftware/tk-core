@@ -532,11 +532,9 @@ def _create_pipeline_steps(sg_project_id: str, medm_project_id: str, sg):
             step_comp = existing_asset.find_component(
                 type_id=get_schema_id(PIPELINE_STEP_TYPE)
             )
-            if step_comp.properties.get(
-                "code"
-            ) != step_code or step_comp.properties.get("backgroundColor") != (
-                step_color or "null"
-            ):
+            orig_step_code = step_comp.properties.get("code")
+            orig_step_color = step_comp.properties.get("backgroundColor")
+            if orig_step_code != step_code or orig_step_color != (step_color or "null"):
                 logger.info(f'Changes detected. Updating "{name}" asset...')
                 publish_new_revision(
                     existing_asset.id,
@@ -598,6 +596,17 @@ def _get_entity_pipeline_steps(
     return PipelineStepsComponentSpec(pipeline_steps=pipeline_step_ids)
 
 
+def _compare_pipeline_steps(pipesteps_comp_spec, pipesteps_comp) -> bool:
+    """Compare the pipeline steps in component specs vs. in component list.
+    Return True if they are equivalent, otherwise False.
+    """
+    new_pipestep_ids = pipesteps_comp_spec.pipeline_steps
+    # this will be an array of data blocks
+    target_step_data = pipesteps_comp.properties["targetStep"]
+    old_pipestep_ids = [data["objectId"]["id"] for data in target_step_data]
+    return set(new_pipestep_ids) == set(old_pipestep_ids)
+
+
 def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
     """Create assets in MEDM to represent proxies of SG Assets."""
     logger = get_logger(__name__)
@@ -618,6 +627,11 @@ def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
         sg_name = sg_asset["code"]
         sg_id = sg_asset["id"]
         sg_asset_type = sg_asset["sg_asset_type"]
+        # Generate components (do it early because we may need it for updating
+        # as well as creation)
+        type_comp = DeliverableAssetComponentSpec(asset_type=sg_asset_type)
+        ext_id_comp = ExternalIdComponentSpec(entity_type="Asset", entity_id=sg_id)
+        pipeline_steps_comp = _get_entity_pipeline_steps("Asset", sg_id, sg)
         # Check if asset already exists
         name = sg_name
         map_name = (
@@ -627,12 +641,27 @@ def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
         if existing_asset:
             logger.info(f'Asset deliverable "{name}" already exists.')
             ASSET_MAP[map_name] = existing_asset.id
+            # Check for changes that could require an update
+            orig_type_comp = existing_asset.find_component(
+                type_id=get_schema_id(DEL_ASSET_TYPE)
+            )
+            orig_asset_type = orig_type_comp.properties.get("assetType")
+            orig_pipeline_steps_comp = existing_asset.find_component(
+                type_id=get_schema_id(PIPELINE_STEPS_TYPE)
+            )
+            if orig_asset_type != (
+                sg_asset_type or "null"
+            ) or not _compare_pipeline_steps(
+                pipeline_steps_comp, orig_pipeline_steps_comp
+            ):
+                logger.info(f'Changes detected. Updating "{name}" asset...')
+                publish_new_revision(
+                    existing_asset.id,
+                    components=[type_comp, ext_id_comp, pipeline_steps_comp],
+                )
             continue
         logger.info(f'Creating Asset deliverable asset "{name}"...')
         # Publish a new asset representing the asset type
-        type_comp = DeliverableAssetComponentSpec(asset_type=sg_asset_type)
-        ext_id_comp = ExternalIdComponentSpec(entity_type="Asset", entity_id=sg_id)
-        pipeline_steps_comp = _get_entity_pipeline_steps("Asset", sg_id, sg)
         medm_asset = publish_new_asset(
             name=name,
             parent_id=medm_project_id,
