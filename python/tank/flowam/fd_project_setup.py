@@ -379,25 +379,24 @@ def _medm_search(
     return result
 
 
-def _match_name(
-    assets: list[FlowAsset], name: str, sg_id: str = ""
-) -> FlowAsset | None:
-    """Return asset in list that matches name or None.
-    If provided, also match against SG id on the ExternalId component.
-    """
+def _match_name(assets: list[FlowAsset], name: str) -> FlowAsset | None:
+    """Return asset in list that matches name or None."""
     for asset in assets:
         if asset._entity.deletion_state != medm_model.AssetDeletionState.NOT_DELETED:
             continue  # ignore deleted assets
         if asset.name == name:
-            if sg_id:
-                ext_id_comp = asset.find_component(type_id=EXTERNAL_ID_TYPE_ID)
-                if (
-                    ext_id_comp
-                    and ext_id_comp.properties.get("id").split(":")[-1] == sg_id
-                ):
-                    return asset
-            else:
-                return asset
+            return asset
+    return None
+
+
+def _match_sg_id(assets: list[FlowAsset], sg_id: str = "") -> FlowAsset | None:
+    """Return asset in list that matches an external SG id or None."""
+    for asset in assets:
+        if asset._entity.deletion_state != medm_model.AssetDeletionState.NOT_DELETED:
+            continue  # ignore deleted assets
+        ext_id_comp = asset.find_component(type_id=EXTERNAL_ID_TYPE_ID)
+        if ext_id_comp and ext_id_comp.properties.get("id").split(":")[-1] == sg_id:
+            return asset
     return None
 
 
@@ -637,11 +636,12 @@ def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
         map_name = (
             f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
         )
-        existing_asset = _match_name(memd_assets, name, str(sg_id))
+        existing_asset = _match_sg_id(memd_assets, str(sg_id))
         if existing_asset:
-            logger.info(f'Asset deliverable "{name}" already exists.')
+            logger.info(f'Asset deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             # Check for changes that could require an update
+            # NOTE: name changes are currently not supported
             orig_type_comp = existing_asset.find_component(
                 type_id=get_schema_id(DEL_ASSET_TYPE)
             )
@@ -685,7 +685,7 @@ def _create_episode_deliverables(sg_project_id: str, medm_project_id: str, sg):
     # Search for existing entities of same type in MEDM project
     logger.info("Checking for existing Episode deliverable assets in MEDM project...")
     q_filter = f"components.typeId=={get_schema_id(DEL_EPISODE_TYPE)}"
-    memd_assets = _medm_search(medm_project_id, q_filter)
+    medm_assets = _medm_search(medm_project_id, q_filter)
 
     # Add a "no episode" placeholder asset to host sequences with no episode
     sg_episodes.append({"code": NO_EPISODE, "id": None})
@@ -698,9 +698,12 @@ def _create_episode_deliverables(sg_project_id: str, medm_project_id: str, sg):
         map_name = (
             f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
         )
-        existing_asset = _match_name(memd_assets, name, str(sg_id) if sg_id else "")
+        if sg_id:
+            existing_asset = _match_sg_id(medm_assets, str(sg_id))
+        else:
+            existing_asset = _match_name(medm_assets, name)
         if existing_asset:
-            logger.info(f'Episode deliverable "{name}" already exists.')
+            logger.info(f'Episode deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             continue
         logger.info(f'Creating Episode deliverable asset "{name}"...')
@@ -740,7 +743,7 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
     # Search for existing entities of same type in MEDM project
     logger.info("Checking for existing Sequence deliverable assets in MEDM project...")
     q_filter = f"components.typeId=={get_schema_id(DEL_SEQUENCE_TYPE)}"
-    memd_assets = _medm_search(medm_project_id, q_filter)
+    medm_assets = _medm_search(medm_project_id, q_filter)
 
     # Add a "no episode" placeholder asset to host sequences with no episode
     sg_sequences.append({"code": NO_SEQUENCE, "id": None})
@@ -753,9 +756,12 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
         map_name = (
             f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
         )
-        existing_asset = _match_name(memd_assets, name, str(sg_id) if sg_id else "")
+        if sg_id:
+            existing_asset = _match_sg_id(medm_assets, str(sg_id))
+        else:
+            existing_asset = _match_name(medm_assets, name)
         if existing_asset:
-            logger.info(f'Sequence deliverable "{name}" already exists.')
+            logger.info(f'Sequence deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             continue
         logger.info(f'Creating Sequence deliverable asset "{name}"...')
@@ -823,9 +829,9 @@ def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
         map_name = (
             f"{name}:{sg_id}"  # for deliverables add sg id to guarantee uniqueness
         )
-        existing_asset = _match_name(memd_assets, name, str(sg_id))
+        existing_asset = _match_sg_id(memd_assets, str(sg_id))
         if existing_asset:
-            logger.info(f'Shot deliverable "{name}" already exists.')
+            logger.info(f'Shot deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             continue
         logger.info(f'Creating Shot deliverable asset "{name}"...')
