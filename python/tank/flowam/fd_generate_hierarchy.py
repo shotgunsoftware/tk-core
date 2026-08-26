@@ -29,71 +29,111 @@ with open(f"{os.path.dirname(__file__)}/fd_query_config.json") as f:
 # Store project id globally for convenience
 PROJECT_ID = None
 
-# Cache asset objects to avoid redundant querying
-# key = asset id, value = FlowAsset
-ASSET_CACHE = {}
-
 
 class TreeItem:
+    """A node in a federated hierarchy tree.
+
+    Instances contain
+        - UI specifications for the tree item
+        - The ability to query its children
+    """
 
     def __init__(
         self,
         label: str,
-        asset: FlowAsset | None = None,
         icon: str | None = None,
         color: str | None = None,
-        children: list | None = None,
+        asset: FlowAsset | None = None,
     ):
 
+        # UI attributes
         self.label = label
-        self.asset = asset
         self.icon = icon
         self.color = color
-        self.children = children or []
 
-    def add_child(self, item):
-        """Add child tree item to list of children."""
-        self.children.append(item)
+        # Asset association (medm)
+        self.asset = asset
+
+        # Sub-query context
+        self._child_filters = {}
+        self._child_path_tokens = []
+
+        # Child items
+        self.children = []
+
+    def get_children(self):
+        """Retrieve list of children under this tree item."""
+        if self._child_path_tokens:
+            self.children = _generate_items(
+                parent=self,
+                path_tokens=self._child_path_tokens,
+                parent_filters=self._child_filters,
+                recursive=False,
+            )
+        else:
+            self.children = []
 
     def pprint(self, filestream=None, recurse=True, num_tabs=0):
         """Print tree item to standard out of filestream if provided.
         Recurse on children if recurse = True.
         """
-        strs = [num_tabs*"\t" + "----------------------------------------------------"]
+        strs = [
+            num_tabs * "\t" + "----------------------------------------------------"
+        ]
         if self.asset:
-            strs.append(num_tabs*"\t" + f"{self.label} - {self.asset.type_ids[0]}")
+            strs.append(num_tabs * "\t" + f"{self.label} - {self.asset.type_ids[0]}")
         else:
-            strs.append(num_tabs*"\t" + self.label)
+            strs.append(num_tabs * "\t" + self.label)
         if self.icon:
-            strs.append(num_tabs*"\t" + f"icon: {self.icon}")
+            strs.append(num_tabs * "\t" + f"icon: {self.icon}")
         if self.color:
-            strs.append(num_tabs*"\t" + f"color: {self.color}")
-        strs.append(num_tabs*"\t" + "----------------------------------------------------")
+            strs.append(num_tabs * "\t" + f"color: {self.color}")
+        strs.append(
+            num_tabs * "\t" + "----------------------------------------------------"
+        )
 
         if filestream:
             for s in strs:
-                filestream.write(s+"\n")
+                filestream.write(s + "\n")
         else:
             for s in strs:
                 print(s)
 
         if recurse:
             for child in self.children:
-                child.pprint(filestream, recurse, num_tabs+1)
+                child.pprint(filestream, recurse, num_tabs + 1)
 
 
-def _resolve_item_value(item_entity, item_resolution: str | None) -> Any:
-    """Given some kind of item entity, resolve it based on the item
-    resolution guidance provided.
+def _resolve_filter(data_obj, resolver: str | None) -> Any:
+    """Given some kind of data object, resolve it based on
+    resolution specifications provided.
+
+    The following notation is supported:
+        * COMPONENT(name=<component name>) -> resolves to component of matching name
+        * PROPERTY(<property_name>) -> resolves to the value of the property of a component
+        * ATTRIBUTE(<attribute_name>) -> resolves to the value of the attribute of any object
+        * DATA -> the original data object
+
+    NOTE: A property may be a reference property, indicated with a "$id:" prefix
+          i.e. PROPERTY($id:targetAsset) -> will resolve to the target asset
+          If the property is an "array" type, an array of asset ids will be returned.
+
+    The above resolution steps can be chained together using ".".
+    Resolution tokens should be surrounded by {}.
+
+    Example:
+        Input string = "Hello {DATA.COMPONENT(name=Employee Info).PROPERTY(firstName)}!"
+
+        For an employee named "Bob" should give the result "Hello Bob!".
     """
-    if item_resolution:
-        item_resolution = item_resolution.split(".")
+    if resolver:
+        resolver = resolver.split(".")
     else:
-        item_resolution = []
+        resolver = []
 
-    result = item_entity
+    result = data_obj
 
-    for resolution_step in item_resolution:
+    for resolution_step in resolver:
         m = re.match(r"(?P<res_type>.+)\((?P<res_condition>.+)\)", resolution_step)
         if m:
             res_type = m.group("res_type")
@@ -101,47 +141,52 @@ def _resolve_item_value(item_entity, item_resolution: str | None) -> Any:
         else:
             res_type = resolution_step
             res_condition = None
-        print('res_type:', res_type)
-        print('res_condition:', res_condition)
 
         if res_type == "COMPONENT":
+            # Search for component matching name
+            # (input source should be an asset)
             prop, value = res_condition.split("=")
             cmd = f"result.find_component({prop}='{value}')"
             result = eval(cmd)
+
         elif res_type == "PROPERTY":
-            print('property...')
+            # Get the value of the property
+            # NOTE: Properties refer specifically to properties
+            #       on a component, while attributes refer to member
+            #       variables of any object.
             prop_name = res_condition
             if prop_name.startswith("$id:"):
-                print('ref property...')
+                # If the property is a reference, convert the id into an asset object
                 prop_name = res_condition[4:]
                 ref_id = eval(f"result.properties.get('{prop_name}')")
+                # Handle lists automatically
                 if isinstance(ref_id, list):
-                    print('list ref')
                     result = []
                     for r_id in ref_id:
                         result.append(FlowAsset(r_id["objectId"]["id"]))
                 else:
-                    print('single ref')
                     ref_asset = FlowAsset(ref_id)
                     result = ref_asset
             else:
                 result = eval(f"result.properties.get('{prop_name}')")
+
         elif res_type == "ATTRIBUTE":
+            # Get the value of the attribute on an object
             attr_name = res_condition
             result = eval(f"result.{attr_name}")
-        elif res_type == "ITEM":
+
+        elif res_type == "DATA":
             continue
 
     return result
 
 
-def _resolve_string_tokens(item_entity, string):
- 
+def _resolve_string_tokens(data_obj, string):
+    """Resolve any nested tokens within a string value."""
+
     result = ""
     token = ""
     in_token = False
-
-    print('resolving string:', string)
 
     for c in string:
         if c == "{":
@@ -149,69 +194,93 @@ def _resolve_string_tokens(item_entity, string):
             in_token = True
         elif c == "}":
             in_token = False
-            resolved_value = _resolve_item_value(item_entity, token)
-            print('token:', token, '->', resolved_value)
+            resolved_value = _resolve_filter(data_obj, token)
             result += resolved_value
         elif in_token:
             token += c
         else:
             result += c
 
-    print('resolved value:', result)
     return result
 
 
 def _resolve_items(config: dict, parent: TreeItem, parent_filters: dict):
-    """Resolve the current item based on resolution criteria
-    provided by config dictionary.
+    """Use the resolution criteria provided by the config dictionary to
+    generate a list of TreeItems.
     """
     from .fd_project_setup import _medm_search
 
-    res_config = config.get("resolution")
-    q_filter = res_config.get("search_filter")
+    # UI configuration - may contain tokens to be resolved
     label_config = config.get("label")
     icon_config = config.get("icon")
     color_config = config.get("color")
-    item_resolution = res_config.get("item")
-    items_resolution = res_config.get("items")
 
-    print(config)
-    print(res_config)
+    # Data resolution
+    # When resolving items, the final data object that we end up with
+    # may be of different types (e.g. asset, component, literal value)
+    # depending on the resolution criteria, which may be multi-tiered.
+    res_config = config.get("resolution")
+    # A search filter indicates that a search query should be made
+    # using this filter
+    q_filter = res_config.get("search_filter")
+    # The presence of an additional "assets resolver" indicates that
+    # the first asset of the search result should be further
+    # resolved using this resolution method to establish a new list of assets.
+    # NOTE: the result of an "assets resolver" should be a new list of assets.
+    assets_resolver = res_config.get("assets_resolver")
+    # A data resolver further refines an asset result to drill down to
+    # the piece of data that is relevant for the tree item.
+    # It is from this object's standpoint that 'DATA' variables are resolved.
+    data_resolver = res_config.get("data_resolver")
 
+    # Parent items can pass on additional filters
+    # Append any search filters passed down from the parent
     if parent_filters and parent_filters.get("search_filter"):
-        q_filter += ';' + parent_filters.get("search_filter")
-    print('q_filter:', q_filter)
+        q_filter += ";" + parent_filters.get("search_filter")
 
-    if parent_filters and parent_filters.get("asset_filter"):
-        assets_resolution = parent_filters.get("asset_filter")
-        assets = _resolve_item_value(parent.asset, assets_resolution)
+    # Intial filter pass
+    # ------------------
+    # If a parent passes along an "assets_resolver", this means that
+    # we can use the parent's asset to provide an asset list using the given
+    # resolution method.
+    # In this case, there is no need to perform a search query,
+    # even if a search filter is provided in our resolution config.
+    if parent_filters and parent_filters.get("assets_resolver"):
+        parent_assets_resolver = parent_filters.get("assets_resolver")
+        assets = _resolve_filter(parent.asset, parent_assets_resolver)
     elif q_filter:
         assets = _medm_search(PROJECT_ID, q_filter)
     else:
         raise RuntimeError("Asset filter criteria is missing.")
 
-    print('assets 1:', assets)
-    if items_resolution:
+    # Secondary filter pass
+    # ---------------------
+    # Perform a secondary "assets resolver" if specified.
+    # This will give us a new list of assets using the first
+    # asset from the initial filter pass.
+    if assets_resolver:
         if not assets:
-            raise RuntimeError("No assets in initial filter.")
-        assets = _resolve_item_value(assets[0], items_resolution)
-        print('assets 2:', assets)
+            raise RuntimeError(
+                "Cannot run secondary 'assets_resolver'. Initial filter result is empty."
+            )
+        assets = _resolve_filter(assets[0], assets_resolver)
 
+    # Now that we have a list of assets, build a tree item
+    # to represent each.
     items = []
     for asset in assets:
-        item_value = _resolve_item_value(asset, item_resolution)
-        
-        print('label value...')
-        label_value = _resolve_string_tokens(item_value, label_config)
-        
-        print('icon value...')
-        icon_value = None
+        # Distill down to the data source we need
+        # Remember, this could be resolved to any type
+        data_obj = _resolve_filter(asset, data_resolver)
+
+        icon_value = color_value = None
+        # The data object becomes the focal point for resolving
+        # any variables within UI properties and child filters
+        label_value = _resolve_string_tokens(data_obj, label_config)
         if icon_config:
-            icon_value = _resolve_string_tokens(item_value, icon_config)
-        print('color value...')
-        color_value = None
+            icon_value = _resolve_string_tokens(data_obj, icon_config)
         if color_config:
-            color_value = _resolve_string_tokens(item_value, color_config)
+            color_value = _resolve_string_tokens(data_obj, color_config)
 
         items.append(
             TreeItem(
@@ -225,50 +294,107 @@ def _resolve_items(config: dict, parent: TreeItem, parent_filters: dict):
     return items
 
 
-def _generate_items(parent: TreeItem, path_tokens: list[str], parent_filters: dict | None = None):
+def _generate_items(
+    parent: TreeItem,
+    path_tokens: list[str],
+    parent_filters: dict | None = None,
+    recursive=False,
+):
     """Generate the list of items that is the result of querying
     MEDM based on the next token in the token list provided.
 
     Raises:
         RuntimeError
     """
+    logger = get_logger(__name__)
+
+    if not path_tokens:
+        return []
+
     token = path_tokens.pop(0)
-    print('in generate items:', token)
-    
+    logger.info(f"Generating items for token: {token}...")
+
     config = QUERY_CONFIG.get(token)
     if config is None:
-        raise RuntimeError(f'Invalid query token provided: "{token}".')
+        msg = f'Invalid query token provided: "{token}".'
+        logger.error(msg)
+        raise RuntimeError(msg)
 
-    kind = config.get("kind")
-    label = config.get("label")
-    icon = config.get("icon")
+    kind = config.get("kind")  # static or dynamic?
 
     if kind == "static":
-        print('creating static item')
+        # For static tokens, all values should be literal
+        label = config.get("label")
+        icon = config.get("icon")
         items = [TreeItem(label=label, icon=icon)]
+
     elif not config.get("resolution"):
-        raise RuntimeError(f'Non-static token "{token}" missing "resolution" configuration.')
+        # All dyanmic tokens are expected to have a resolution config
+        raise RuntimeError(
+            f'Non-static token "{token}" missing "resolution" configuration.'
+        )
+
     else:
-        print('am i here?')
+        # Resolve dynamic tokens into a list of new tree items
         items = _resolve_items(config, parent, parent_filters)
-    
+
+    items_list = "\n\t".join([item.label for item in items])
+    logger.info(f"Generated {len(items)} items for token: {token}\n\t{items_list}")
+
     if len(path_tokens) == 0:
         return items
 
-    forward_filters = config.get("forward_filters") or {}
+    # If there are still path tokens left, must prepare the tree items
+    # for being able to find their children (either now or later).
+
+    # Child filters are filters that must be passed on to the resolution
+    # criteria of my children. An item may have different child filters for
+    # different entity types.
+    child_filters = config.get("child_filters") or {}
+    # The next token in the path is the token that determines what my children are
+    # Strip this value down to its basic state in order to match it to the
+    # applicable "child filter" if found.
     next_token = path_tokens[0].strip("{}").lower()
+
     for item in items:
-        print('generate items under:', item.label)
-        forward_filter = None
-        for ent_type, ent_filters in forward_filters.items():
+        child_filter = {}
+        for ent_type, ent_filters in child_filters.items():
             if ent_type == next_token:
-                forward_filter = {}
+                # For each entity type, there may be multiple filters
+                # Each one may have variables that need to be resolved using
+                # the current item's information.
                 for filter_type, filter_str in ent_filters.items():
-                    forward_filter[filter_type] = _resolve_string_tokens(item.asset, filter_str)
-        item.children = _generate_items(item, list(path_tokens), forward_filter)
-        print('generated', len(item.children), 'items')
+                    child_filter[filter_type] = _resolve_string_tokens(
+                        item.asset, filter_str
+                    )
+        # Once we've resolved the filters, make sure to save it for future reference
+        # (The tree nodes may be expanded on demand, so we may not get the next level of
+        # children until later.)
+        item._child_filters = child_filter
+        item._child_path_tokens = list(path_tokens)
+        # Only query the next level if requested
+        if recursive:
+            item.children = _generate_items(
+                item, list(path_tokens), child_filter, recursive=True
+            )
 
     return items
+
+
+def get_tree_root(project_id: str, hierarchy_path: str) -> TreeItem:
+    """Return root of federated hierarchy tree."""
+    global PROJECT_ID
+
+    PROJECT_ID = project_id
+
+    # Create a root tree item representing the project
+    project = FlowProject(project_id)
+    root = TreeItem(label=f"PROJECT: {project.name}")
+
+    path_tokens = hierarchy_path.split("/")
+    root._child_path_tokens = path_tokens
+
+    return root
 
 
 def generate_hierarchy(project_id: str, hierarchy_path: str) -> TreeItem:
@@ -295,8 +421,9 @@ def generate_hierarchy(project_id: str, hierarchy_path: str) -> TreeItem:
         A root TreeItem.
     """
     global PROJECT_ID
-    
+
     PROJECT_ID = project_id
+    logger = get_logger(__name__)
 
     # Create a root tree item representing the project
     project = FlowProject(project_id)
@@ -306,9 +433,11 @@ def generate_hierarchy(project_id: str, hierarchy_path: str) -> TreeItem:
     path_tokens = hierarchy_path.split("/")
 
     # Recursively generate the tree
-    items = _generate_items(root, path_tokens)
+    logger.info("====================================")
+    logger.info("GENERATE FEDERATED HIERARCHY...")
+    items = _generate_items(root, path_tokens, recursive=True)
     root.children = items
-
-    print('hello again?')
+    logger.info("HIERARCHY GENERATION COMPLETE!")
+    logger.info("====================================")
 
     return root

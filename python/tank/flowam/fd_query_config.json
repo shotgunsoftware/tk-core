@@ -3,7 +3,7 @@
         "kind": "static",
         "label": "Assets",
         "icon": "folder",
-        "forward_filters": {
+        "child_filters": {
             "deliverable": {
                 "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.asset-1.0.0'"
             },
@@ -16,7 +16,7 @@
         "kind": "static",
         "label": "Shots",
         "icon": "folder",
-        "forward_filters": {
+        "child_filters": {
             "deliverable": {
                 "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.shot-1.0.0'"
             },
@@ -29,7 +29,7 @@
         "kind": "static",
         "label": "Sequences",
         "icon": "folder",
-        "forward_filters": {
+        "child_filters": {
             "deliverable": {
                 "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.sequence-1.0.0'"
             }
@@ -37,16 +37,16 @@
     },
     "{sg_asset_type}": {
         "kind": "token",
-        "label": "{ITEM.PROPERTY(name)}",
+        "label": "{DATA.PROPERTY(name)}",
         "icon": "folder",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.dynamicEnum-1.0.0';components[medm21619349.shared:type.dynamicEnum-1.0.0].propertyScope=='Asset Type'",
-            "items": "COMPONENT(name=Dynamic Enum).PROPERTY($id:values)",
-            "item": "COMPONENT(name=Dynamic Enum Value)"
+            "assets_resolver": "COMPONENT(name=Dynamic Enum).PROPERTY($id:values)",
+            "data_resolver": "COMPONENT(name=Dynamic Enum Value)"
         },
-        "forward_filters": {
+        "child_filters": {
             "asset": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.asset-1.0.0].assetType=='{ITEM.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
+                "search_filter": "components[medm21619349.shared:type.deliverable.asset-1.0.0].assetType=='{DATA.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
             },
             "step": {
                 "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Asset'"
@@ -55,16 +55,16 @@
     },
     "{sg_shot_type}": {
         "kind": "token",
-        "label": "{ITEM.PROPERTY(name)}",
+        "label": "{DATA.PROPERTY(name)}",
         "icon": "folder",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.dynamicEnum-1.0.0';components[medm21619349.shared:type.dynamicEnum-1.0.0].propertyScope=='Shot Type'",
-            "items": "COMPONENT(name=Dynamic Enum).PROPERTY($id:values)",
-            "item": "COMPONENT(name=Dynamic Enum Value)"
+            "assets_resolver": "COMPONENT(name=Dynamic Enum).PROPERTY($id:values)",
+            "data_resolver": "COMPONENT(name=Dynamic Enum Value)"
         },
-        "forward_filters": {
+        "child_filters": {
             "shot": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].shotType=='{ITEM.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
+                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].shotType=='{DATA.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
             },
             "step": {
                 "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Shot'"
@@ -73,63 +73,63 @@
     },
     "{Asset}": {
         "kind": "token",
-        "label": "{ITEM.ATTRIBUTE(name)}",
+        "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.asset-1.0.0'"
         },
-        "forward_filters": {
+        "child_filters": {
             "step": {
-                "asset_filter": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
+                "assets_resolver": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
             }
         }
     },
     "{Step}": {
         "kind": "token",
-        "label": "{ITEM.PROPERTY(name)}",
-        "icon": "color:{ITEM.PROPERTY(backgroundColor)}",
-        "color": "{ITEM.PROPERTY(backgroundColor)}",
+        "label": "{DATA.PROPERTY(name)}",
+        "icon": "color:{DATA.PROPERTY(backgroundColor)}",
+        "color": "{DATA.PROPERTY(backgroundColor)}",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.pipelineStep-1.0.3'",
-            "item": "COMPONENT(name=Pipeline Step)"
+            "data_resolver": "COMPONENT(name=Pipeline Step)"
         }
     },
     "{Episode}": {
         "kind": "token",
-        "label": "{ITEM.ATTRIBUTE(name)}",
+        "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.episode-1.0.0'"
         },
-        "forward_filters": {
+        "child_filters": {
             "sequence": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=={ITEM.ATTRIBUTE(id)}"
+                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=={DATA.ATTRIBUTE(id)}"
             }
         }
     },
     "{Sequence}": {
         "kind": "token",
-        "label": "{ITEM.ATTRIBUTE(name)}",
+        "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.sequence-1.0.0'"
         },
-        "forward_filters": {
+        "child_filters": {
             "shot": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=={ITEM.ATTRIBUTE(id)}"
+                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=={DATA.ATTRIBUTE(id)}"
             }
         }
     },
     "{Shot}": {
         "kind": "token",
-        "label": "{ITEM.ATTRIBUTE(name)}",
+        "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.shot-1.0.0'"
         },
-        "forward_filters": {
+        "child_filters": {
             "step": {
-                "asset_filter": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
+                "assets_resolver": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
             }
         }
     }
