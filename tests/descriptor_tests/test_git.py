@@ -517,8 +517,9 @@ class TestGitIODescriptor(ShotgunTestBase):
         desc = IODescriptorGitTag(location_dict, None, None)
 
         # Mock _tmp_clone_then_execute_git_commands to raise an error
-        from tank.util.process import SubprocessCalledProcessError
         from unittest.mock import patch
+
+        from tank.util.process import SubprocessCalledProcessError
 
         cmd_with_creds = [
             "git",
