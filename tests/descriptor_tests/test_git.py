@@ -322,9 +322,15 @@ class TestGitIODescriptor(ShotgunTestBase):
         )
 
         # Check that str doesn't contain the token
+        # Note: str(desc) uses Descriptor.__str__() which returns "system_name version"
+        # and doesn't include the URL, so we just verify no credentials leak
         desc_str = str(desc)
         self.assertNotIn("ghp_secret123", desc_str)
-        self.assertIn("***", desc_str)
+
+        # Check that the IO descriptor's str representation sanitizes credentials
+        io_desc_str = str(desc._io_descriptor)
+        self.assertNotIn("ghp_secret123", io_desc_str)
+        self.assertIn("***", io_desc_str)
 
         # Test git descriptor (tag-based) with credentials
         location_dict_git = {
@@ -344,6 +350,12 @@ class TestGitIODescriptor(ShotgunTestBase):
             "***" in desc_repr or "%2A%2A%2A" in desc_repr,
             "Sanitization marker not found in repr",
         )
+
+        # Check that the IO descriptor's str representation sanitizes credentials
+        io_desc_str_git = str(desc_git._io_descriptor)
+        self.assertNotIn("user", io_desc_str_git)
+        self.assertNotIn("pass", io_desc_str_git)
+        self.assertIn("***", io_desc_str_git)
 
     def test_exception_sanitization(self):
         """
@@ -526,4 +538,3 @@ class TestGitIODescriptor(ShotgunTestBase):
                 error_msg = str(e)
                 self.assertNotIn("token123", error_msg)
                 self.assertIn("***", error_msg)
-
