@@ -1,6 +1,6 @@
 """MEDM URN helpers (parsing and composition)."""
 
-from adsk.flow.local.storage_manager.exceptions import StorageManagerError
+from ..exceptions import StorageManagerError
 
 
 def project_id_from_revision_urn(revision_id: str) -> str:

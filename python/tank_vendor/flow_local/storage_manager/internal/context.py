@@ -26,7 +26,7 @@ import functools
 from contextvars import ContextVar
 from typing import TYPE_CHECKING, Any, Callable, Generator, Optional, Protocol, TypeVar
 
-from adsk.flow.local.storage_manager.config import Config
+from ..config import Config
 
 if TYPE_CHECKING:
     from typing import Concatenate, ParamSpec

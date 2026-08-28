@@ -6,7 +6,7 @@ import shutil
 import zipfile
 from typing import Any, List, Optional, Tuple
 
-from adsk.flow.local.storage_manager.exceptions import StorageError
+from ..exceptions import StorageError
 
 HASH_ALGORITHM = "sha256"
 

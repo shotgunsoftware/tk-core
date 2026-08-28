@@ -7,10 +7,10 @@ import urllib.parse
 from collections import Counter
 from typing import Dict, List, Optional, Tuple
 
-from adsk.flow.data.base.model_g import AssetRevision
-from adsk.flow.local.storage_manager.exceptions import StorageManagerError
-from adsk.flow.local.storage_manager.internal.fs import is_zip_path
-from adsk.flow.local.storage_manager.models import BlobRef
+from tank_vendor.flow_data_sdk.base.model_g import AssetRevision
+from ..exceptions import StorageManagerError
+from .fs import is_zip_path
+from ..models import BlobRef
 
 # Basename.ext extracted from colon-delimited blob URNs (no path separators or spaces).
 # Matches: H264_5994_Light_Version2.mpd, H264_5994_Light_Version2_fmp4.m3u8,

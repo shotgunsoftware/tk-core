@@ -5,9 +5,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
-from adsk.flow.local.storage_manager.config import Config
-from adsk.flow.local.storage_manager.internal.context import get_active_config
-from adsk.flow.local.storage_manager.internal.fs import HASH_ALGORITHM, atomic_write_json, cleanpath, ensure_dir
+from ..config import Config
+from .context import get_active_config
+from .fs import HASH_ALGORITHM, atomic_write_json, cleanpath, ensure_dir
 
 logger = logging.getLogger(__name__)
 

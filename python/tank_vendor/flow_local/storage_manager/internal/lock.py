@@ -54,8 +54,8 @@ import time
 from abc import ABC, abstractmethod
 from typing import Callable, Generator, List, Optional
 
-from adsk.flow.local.storage_manager.exceptions import TransferInProgressError
-from adsk.flow.local.storage_manager.internal.fs import ensure_dir
+from ..exceptions import TransferInProgressError
+from .fs import ensure_dir
 
 logger = logging.getLogger(__name__)
 

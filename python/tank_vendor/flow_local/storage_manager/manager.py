@@ -14,11 +14,11 @@ from concurrent.futures import Future, ThreadPoolExecutor, wait
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Set, cast
 
-from adsk.flow.data import GQLClient
-from adsk.flow.data.base.model_g import Asset, ComponentDataInput
-from adsk.flow.local.storage_manager.component import BinaryComponentSpec, ComponentSpec, GenericComponentSpec
-from adsk.flow.local.storage_manager.config import Config
-from adsk.flow.local.storage_manager.exceptions import (
+from tank_vendor.flow_data_sdk import GQLClient
+from tank_vendor.flow_data_sdk.base.model_g import Asset, ComponentDataInput
+from .component import BinaryComponentSpec, ComponentSpec, GenericComponentSpec
+from .config import Config
+from .exceptions import (
     BinaryComponentDropError,
     ConflictError,
     DraftExistsError,
@@ -31,22 +31,22 @@ from adsk.flow.local.storage_manager.exceptions import (
     TransferInProgressError,
     UploadError,
 )
-from adsk.flow.local.storage_manager.internal.context import with_active_config
-from adsk.flow.local.storage_manager.internal.discovery import (
+from .internal.context import with_active_config
+from .internal.discovery import (
     blob_path_from_component_item,
     extract_blobs_from_revision,
     group_blobs_by_version,
     parse_component_data,
 )
-from adsk.flow.local.storage_manager.internal.draft import discard_asset_draft as _discard_asset_draft
-from adsk.flow.local.storage_manager.internal.draft import (
+from .internal.draft import discard_asset_draft as _discard_asset_draft
+from .internal.draft import (
     draft_dir,
     read_draft_info,
     rename_draft_folder,
     sandbox_draft_dir,
     write_draft_info,
 )
-from adsk.flow.local.storage_manager.internal.fs import (
+from .internal.fs import (
     HASH_ALGORITHM,
     cleanpath,
     copy_file,
@@ -59,9 +59,9 @@ from adsk.flow.local.storage_manager.internal.fs import (
     unzip_into,
     zip_entry_paths,
 )
-from adsk.flow.local.storage_manager.internal.jobs import JobStore, make_job_key
-from adsk.flow.local.storage_manager.internal.lock import FileTransferLock
-from adsk.flow.local.storage_manager.internal.remote import (
+from .internal.jobs import JobStore, make_job_key
+from .internal.lock import FileTransferLock
+from .internal.remote import (
     DownloadedBlob,
     create_asset,
     download_blob,
@@ -74,7 +74,7 @@ from adsk.flow.local.storage_manager.internal.remote import (
     update_asset,
     upload_blob,
 )
-from adsk.flow.local.storage_manager.internal.storage import (
+from .internal.storage import (
     ManifestEntry,
     VersionManifest,
     blob_cache_root,
@@ -85,8 +85,8 @@ from adsk.flow.local.storage_manager.internal.storage import (
     storage_version_dir,
     write_version_manifest,
 )
-from adsk.flow.local.storage_manager.internal.urn import compose_revision_urn, project_id_from_revision_urn
-from adsk.flow.local.storage_manager.models import (
+from .internal.urn import compose_revision_urn, project_id_from_revision_urn
+from .models import (
     AsyncTask,
     BlobRef,
     CheckoutDraftInfo,

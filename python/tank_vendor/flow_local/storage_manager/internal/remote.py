@@ -21,9 +21,9 @@ from dataclasses import dataclass
 from typing import BinaryIO, Callable, List, Optional, TypeVar, cast
 
 import certifi
-from adsk.flow.data import FlowConnectionError, GQLAPIError, GQLClient
-from adsk.flow.data.base.exceptions import GQLErrorCode
-from adsk.flow.data.base.model_g import (
+from tank_vendor.flow_data_sdk import FlowConnectionError, GQLAPIError, GQLClient
+from tank_vendor.flow_data_sdk.base.exceptions import GQLErrorCode
+from tank_vendor.flow_data_sdk.base.model_g import (
     Asset,
     AssetRevision,
     AssetRevisionsByAssetIdInput,
@@ -48,7 +48,7 @@ from adsk.flow.data.base.model_g import (
     UploadFileJob,
     UsesTargetInput,
 )
-from adsk.flow.local.storage_manager.exceptions import (
+from ..exceptions import (
     ConflictError,
     CreateAssetError,
     DependencyError,
@@ -58,10 +58,10 @@ from adsk.flow.local.storage_manager.exceptions import (
     UpdateAssetError,
     UploadError,
 )
-from adsk.flow.local.storage_manager.internal.discovery import extract_blobs_from_revision
-from adsk.flow.local.storage_manager.internal.fs import HASH_ALGORITHM, ensure_dir, new_hasher
-from adsk.flow.local.storage_manager.internal.urn import compose_revision_urn, compose_version_urn
-from adsk.flow.local.storage_manager.models import BlobRef
+from .discovery import extract_blobs_from_revision
+from .fs import HASH_ALGORITHM, ensure_dir, new_hasher
+from .urn import compose_revision_urn, compose_version_urn
+from ..models import BlobRef
 
 _MIN_PART_SIZE = 5 * 1024 * 1024  # 5 MB — S3 multipart minimum
 # 10,000 parts is the binary service's real ceiling (schema.graphql's GetUploadFilePartInput
@@ -77,7 +77,7 @@ _GQL_RETRYABLE_ERROR_CODES = frozenset(
         GQLErrorCode.QUOTA_LIMIT_REACHED.value,  # 429
         # Blob upload finished but the binary service is still processing it
         # server-side (e.g. media duplication); the data becomes available shortly.
-        GQLErrorCode.DATA_NOT_READY.value,
+        #GQLErrorCode.DATA_NOT_READY.value,
     }
 )
 

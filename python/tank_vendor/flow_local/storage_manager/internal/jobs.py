@@ -9,9 +9,9 @@ import os
 import threading
 from typing import Callable, Dict, Optional, Set
 
-from adsk.flow.local.storage_manager.exceptions import JobOwnershipError
-from adsk.flow.local.storage_manager.internal.fs import atomic_write_json, ensure_dir
-from adsk.flow.local.storage_manager.models import DownloadJobInfo, JobKind, JobStatus, TransferJobInfo, UploadJobInfo
+from ..exceptions import JobOwnershipError
+from .fs import atomic_write_json, ensure_dir
+from ..models import DownloadJobInfo, JobKind, JobStatus, TransferJobInfo, UploadJobInfo
 
 logger = logging.getLogger(__name__)
 

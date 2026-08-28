@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
-from adsk.flow.data.base.model_g import ComponentDataInput
-from adsk.flow.local.storage_manager.exceptions import ComponentSpecError
-from adsk.flow.local.storage_manager.internal.fs import cleanpath, get_mimetype_from_ext
+from tank_vendor.flow_data_sdk.base.model_g import ComponentDataInput
+from .exceptions import ComponentSpecError
+from .internal.fs import cleanpath, get_mimetype_from_ext
 
 _MAX_BLOBS_PER_COMPONENT = 10
 

@@ -3,12 +3,12 @@ import json
 import os
 import shutil
 
-from adsk.flow.local.storage_manager.config import Config
-from adsk.flow.local.storage_manager.exceptions import DraftError, StorageError
-from adsk.flow.local.storage_manager.internal.context import get_active_config
-from adsk.flow.local.storage_manager.internal.fs import atomic_write_json, cleanpath, ensure_dir
-from adsk.flow.local.storage_manager.internal.storage import CACHE_FORMAT_VERSION, storage_key
-from adsk.flow.local.storage_manager.models import BlobRef, CheckoutDraftInfo, DraftInfo, NewDraftInfo
+from ..config import Config
+from ..exceptions import DraftError, StorageError
+from .context import get_active_config
+from .fs import atomic_write_json, cleanpath, ensure_dir
+from .storage import CACHE_FORMAT_VERSION, storage_key
+from ..models import BlobRef, CheckoutDraftInfo, DraftInfo, NewDraftInfo
 
 _DRAFT_FILE = ".draft"
 

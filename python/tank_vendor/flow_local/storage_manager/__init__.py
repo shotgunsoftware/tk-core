@@ -77,15 +77,15 @@ for programmatic recovery::
 
 import logging
 
-from adsk.flow.local.storage_manager.component import (
+from .component import (
     BinaryComponentSpec,
     ComponentSpec,
     GenericComponentSpec,
     ImageSequenceComponentSpec,
     KnownBinaryTypes,
 )
-from adsk.flow.local.storage_manager.config import Config
-from adsk.flow.local.storage_manager.exceptions import (
+from .config import Config
+from .exceptions import (
     BinaryComponentDropError,
     ComponentSpecError,
     ConflictError,
@@ -104,8 +104,8 @@ from adsk.flow.local.storage_manager.exceptions import (
     UpdateAssetError,
     UploadError,
 )
-from adsk.flow.local.storage_manager.manager import StorageManager
-from adsk.flow.local.storage_manager.models import (
+from .manager import StorageManager
+from .models import (
     AsyncTask,
     BlobRef,
     CheckoutDraftInfo,
