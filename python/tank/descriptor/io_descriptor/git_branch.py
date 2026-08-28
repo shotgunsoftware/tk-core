@@ -11,8 +11,15 @@ import copy
 import os
 
 from ... import LogManager
+from ...util.process import SubprocessCalledProcessError
 from ..errors import TankDescriptorError
-from .git import IODescriptorGit, TankGitError, _check_output
+from .git import (
+    IODescriptorGit,
+    TankGitError,
+    _check_output,
+    _sanitize_exception,
+    _sanitize_url,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -77,7 +84,11 @@ class IODescriptorGitBranch(IODescriptorGit):
         Human readable representation
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git, branch master, commit 12313123
-        return "%s, Branch %s, Commit %s" % (self._path, self._branch, self._version)
+        return "%s, Branch %s, Commit %s" % (
+            _sanitize_url(self._path),
+            self._branch,
+            self._version,
+        )
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
@@ -115,8 +126,28 @@ class IODescriptorGitBranch(IODescriptorGit):
         log.debug("Checking if the version is pointing to the latest commit...")
         try:
             output = _check_output(["git", "ls-remote", self._path, branch])
-        except Exception:
-            log.exception("Unexpected error:")
+        except SubprocessCalledProcessError as e:
+            # Sanitize the exception to remove credentials from the command
+            sanitized_exc = _sanitize_exception(e, self._path)
+            # Log the sanitized exception manually (don't use log.exception() as it logs
+            # the original exception from the context)
+            log.error(
+                "Unexpected error:\n%s: %s",
+                sanitized_exc.__class__.__name__,
+                sanitized_exc,
+            )
+            # Create the error with sanitized exception as cause
+            new_error = TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            )
+            # Set both __cause__ and __context__ to the sanitized exception to prevent
+            # the original exception from appearing in tracebacks
+            new_error.__cause__ = sanitized_exc
+            new_error.__context__ = sanitized_exc
+            raise new_error
+        except Exception as e:
+            log.error("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
