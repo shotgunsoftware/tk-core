@@ -137,7 +137,7 @@ def _sanitize_exception(
         return exc
 
     sanitized_cmd = _sanitize_command(exc.cmd)
-    
+
     # Sanitize the output as well, as it may contain URLs with credentials
     sanitized_output = exc.output
     if exc.output:
@@ -146,13 +146,16 @@ def _sanitize_exception(
                 output_str = exc.output.decode("utf-8")
                 # Sanitize any URLs in the output
                 if url_to_sanitize:
-                    output_str = output_str.replace(url_to_sanitize, _sanitize_url(url_to_sanitize))
+                    output_str = output_str.replace(
+                        url_to_sanitize, _sanitize_url(url_to_sanitize)
+                    )
                 # Also try to find and sanitize any URL patterns
                 import re
+
                 output_str = re.sub(
-                    r'https?://[^@\s]+@[^\s]+',
+                    r"https?://[^@\s]+@[^\s]+",
                     lambda m: _sanitize_url(m.group(0)),
-                    output_str
+                    output_str,
                 )
                 sanitized_output = output_str.encode("utf-8")
             except (UnicodeDecodeError, AttributeError):
@@ -160,16 +163,19 @@ def _sanitize_exception(
         elif isinstance(exc.output, str):
             output_str = exc.output
             if url_to_sanitize:
-                output_str = output_str.replace(url_to_sanitize, _sanitize_url(url_to_sanitize))
+                output_str = output_str.replace(
+                    url_to_sanitize, _sanitize_url(url_to_sanitize)
+                )
             # Also try to find and sanitize any URL patterns
             import re
+
             output_str = re.sub(
-                r'https?://[^@\s]+@[^\s]+',
+                r"https?://[^@\s]+@[^\s]+",
                 lambda m: _sanitize_url(m.group(0)),
-                output_str
+                output_str,
             )
             sanitized_output = output_str
-    
+
     # Create a new exception with the sanitized command and output
     new_exc = SubprocessCalledProcessError(
         exc.returncode, sanitized_cmd, output=sanitized_output
