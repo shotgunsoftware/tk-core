@@ -12,6 +12,7 @@ import os
 import re
 
 from ... import LogManager
+from ...util.process import SubprocessCalledProcessError
 from ..errors import TankDescriptorError
 from .git import IODescriptorGit, _sanitize_exception, _sanitize_url
 
@@ -143,8 +144,6 @@ class IODescriptorGitTag(IODescriptorGit):
             )
         except Exception as e:
             # Sanitize any credentials that might be in the exception or path
-            from ...util.process import SubprocessCalledProcessError
-
             if isinstance(e, SubprocessCalledProcessError):
                 e = _sanitize_exception(e)
             raise TankDescriptorError(

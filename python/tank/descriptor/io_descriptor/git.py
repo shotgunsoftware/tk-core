@@ -8,8 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
+import shlex
 import subprocess
 import tempfile
+from typing import Optional
 import urllib.parse
 import uuid
 
@@ -35,7 +37,7 @@ def _check_output(*args, **kwargs):
     return subprocess_check_output(*args, **kwargs)
 
 
-def _sanitize_url(url):
+def _sanitize_url(url: str) -> str:
     """
     Sanitizes a git URL by removing embedded credentials (username, password, or token).
 
@@ -97,7 +99,6 @@ def _sanitize_command(cmd):
     elif isinstance(cmd, str):
         # For string commands, we need to be more careful
         # Split on spaces but preserve quoted strings
-        import shlex
 
         try:
             # Try to parse as shell command
@@ -115,7 +116,9 @@ def _sanitize_command(cmd):
     return cmd
 
 
-def _sanitize_exception(exc, url_to_sanitize=None):
+def _sanitize_exception(
+    exc: SubprocessCalledProcessError, url_to_sanitize: Optional[str] = None
+) -> SubprocessCalledProcessError:
     """
     Sanitizes a SubprocessCalledProcessError by replacing credentials in the command.
 
@@ -123,16 +126,17 @@ def _sanitize_exception(exc, url_to_sanitize=None):
     :param url_to_sanitize: Optional URL to specifically sanitize (if known)
     :return: New exception with sanitized command
     """
-    if isinstance(exc, SubprocessCalledProcessError):
-        sanitized_cmd = _sanitize_command(exc.cmd)
-        # Create a new exception with the sanitized command
-        new_exc = SubprocessCalledProcessError(
-            exc.returncode, sanitized_cmd, output=exc.output
-        )
-        # Preserve the original traceback
-        return new_exc
-    return exc
+    if not isinstance(exc, SubprocessCalledProcessError):
+        return exc
 
+    sanitized_cmd = _sanitize_command(exc.cmd)
+    # Create a new exception with the sanitized command
+    new_exc = SubprocessCalledProcessError(
+        exc.returncode, sanitized_cmd, output=exc.output
+    )
+    # Preserve the original traceback
+    return new_exc
+    
 
 class TankGitError(TankError):
     """
