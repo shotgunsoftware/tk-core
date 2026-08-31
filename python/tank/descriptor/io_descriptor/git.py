@@ -11,9 +11,9 @@ import os
 import shlex
 import subprocess
 import tempfile
-from typing import Optional
 import urllib.parse
 import uuid
+from typing import Optional
 
 from ... import LogManager
 from ...util import filesystem, is_windows
@@ -136,7 +136,7 @@ def _sanitize_exception(
     )
     # Preserve the original traceback
     return new_exc
-    
+
 
 class TankGitError(TankError):
     """
