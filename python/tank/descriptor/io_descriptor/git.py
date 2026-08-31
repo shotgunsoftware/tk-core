@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import urllib.parse
 import uuid
-from typing import Optional
+from typing import Optional, Union
 
 from ... import LogManager
 from ...util import filesystem, is_windows
@@ -94,7 +94,7 @@ def _sanitize_url(url: Optional[str]) -> Optional[str]:
     return url
 
 
-def _sanitize_command(cmd: str | list) -> str | list:
+def _sanitize_command(cmd: Union[str, list]) -> Union[str, list]:
     """
     Sanitizes a git command (string or list) by replacing credentials in any URLs.
 
