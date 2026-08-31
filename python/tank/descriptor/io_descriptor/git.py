@@ -37,7 +37,7 @@ def _check_output(*args, **kwargs):
     return subprocess_check_output(*args, **kwargs)
 
 
-def _sanitize_url(url: str) -> str:
+def _sanitize_url(url: Optional[str]) -> Optional[str]:
     """
     Sanitizes a git URL by removing embedded credentials (username, password, or token).
 
@@ -87,7 +87,7 @@ def _sanitize_url(url: str) -> str:
     return url
 
 
-def _sanitize_command(cmd):
+def _sanitize_command(cmd: str | list) -> str | list:
     """
     Sanitizes a git command (string or list) by replacing credentials in any URLs.
 
@@ -229,7 +229,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         try:
             output = _check_output(["git", "--version"])
         except Exception as e:
-            log.error("Unexpected error: %s: %s", e.__class__.__name__, e)
+            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
