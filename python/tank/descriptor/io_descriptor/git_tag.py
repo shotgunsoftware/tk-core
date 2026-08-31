@@ -145,7 +145,7 @@ class IODescriptorGitTag(IODescriptorGit):
         except Exception as e:
             # Sanitize any credentials that might be in the exception or path
             if isinstance(e, SubprocessCalledProcessError):
-                e = _sanitize_exception(e)
+                e = _sanitize_exception(e, self._path)
             raise TankDescriptorError(
                 "Could not download %s, tag %s: %s"
                 % (_sanitize_url(self._path), self._version, e)
@@ -226,10 +226,8 @@ class IODescriptorGitTag(IODescriptorGit):
 
         except Exception as e:
             # Sanitize any credentials that might be in the exception
-            from ...util.process import SubprocessCalledProcessError
-
             if isinstance(e, SubprocessCalledProcessError):
-                e = _sanitize_exception(e)
+                e = _sanitize_exception(e, self._path)
             raise TankDescriptorError(
                 "Could not get list of tags for %s: %s" % (_sanitize_url(self._path), e)
             )

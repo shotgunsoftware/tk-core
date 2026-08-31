@@ -131,23 +131,18 @@ class IODescriptorGitBranch(IODescriptorGit):
             sanitized_exc = _sanitize_exception(e, self._path)
             # Log the sanitized exception manually (don't use log.exception() as it logs
             # the original exception from the context)
-            log.exception(
+            log.error(
                 "Unexpected error:\n%s: %s",
                 sanitized_exc.__class__.__name__,
                 sanitized_exc,
             )
-            # Create the error with sanitized exception as cause
-            new_error = TankGitError(
+            # Use exception chaining to attach the sanitized exception
+            raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
-            )
-            # Set both __cause__ and __context__ to the sanitized exception to prevent
-            # the original exception from appearing in tracebacks
-            new_error.__cause__ = sanitized_exc
-            new_error.__context__ = sanitized_exc
-            raise new_error
+            ) from sanitized_exc
         except Exception as e:
-            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
+            log.error("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."

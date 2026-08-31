@@ -80,9 +80,16 @@ def _sanitize_url(url: Optional[str]) -> Optional[str]:
             )
             return sanitized_url
     except Exception:
-        # If parsing fails for any reason, return the original URL
-        # (better to show the URL than to fail silently)
-        pass
+        # Best-effort sanitization for malformed URLs that still contain userinfo
+        if "://" in url:
+            scheme, rest = url.split("://", 1)
+            if "@" in rest:
+                # Only sanitize if '@' appears before any '/'
+                at_pos = rest.find("@")
+                slash_pos = rest.find("/")
+                if slash_pos == -1 or at_pos < slash_pos:
+                    after_at = rest.split("@", 1)[1]
+                    return "%s://***@%s" % (scheme, after_at)
 
     return url
 
@@ -120,21 +127,53 @@ def _sanitize_exception(
     exc: SubprocessCalledProcessError, url_to_sanitize: Optional[str] = None
 ) -> SubprocessCalledProcessError:
     """
-    Sanitizes a SubprocessCalledProcessError by replacing credentials in the command.
+    Sanitizes a SubprocessCalledProcessError by replacing credentials in the command and output.
 
     :param exc: SubprocessCalledProcessError exception
     :param url_to_sanitize: Optional URL to specifically sanitize (if known)
-    :return: New exception with sanitized command
+    :return: New exception with sanitized command and output
     """
     if not isinstance(exc, SubprocessCalledProcessError):
         return exc
 
     sanitized_cmd = _sanitize_command(exc.cmd)
-    # Create a new exception with the sanitized command
+    
+    # Sanitize the output as well, as it may contain URLs with credentials
+    sanitized_output = exc.output
+    if exc.output:
+        if isinstance(exc.output, bytes):
+            try:
+                output_str = exc.output.decode("utf-8")
+                # Sanitize any URLs in the output
+                if url_to_sanitize:
+                    output_str = output_str.replace(url_to_sanitize, _sanitize_url(url_to_sanitize))
+                # Also try to find and sanitize any URL patterns
+                import re
+                output_str = re.sub(
+                    r'https?://[^@\s]+@[^\s]+',
+                    lambda m: _sanitize_url(m.group(0)),
+                    output_str
+                )
+                sanitized_output = output_str.encode("utf-8")
+            except (UnicodeDecodeError, AttributeError):
+                sanitized_output = exc.output
+        elif isinstance(exc.output, str):
+            output_str = exc.output
+            if url_to_sanitize:
+                output_str = output_str.replace(url_to_sanitize, _sanitize_url(url_to_sanitize))
+            # Also try to find and sanitize any URL patterns
+            import re
+            output_str = re.sub(
+                r'https?://[^@\s]+@[^\s]+',
+                lambda m: _sanitize_url(m.group(0)),
+                output_str
+            )
+            sanitized_output = output_str
+    
+    # Create a new exception with the sanitized command and output
     new_exc = SubprocessCalledProcessError(
-        exc.returncode, sanitized_cmd, output=exc.output
+        exc.returncode, sanitized_cmd, output=sanitized_output
     )
-    # Preserve the original traceback
     return new_exc
 
 
@@ -229,7 +268,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         try:
             output = _check_output(["git", "--version"])
         except Exception as e:
-            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
+            log.error("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
@@ -279,7 +318,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                 status = 0
             except SubprocessCalledProcessError as e:
                 # Sanitize the exception to remove credentials
-                sanitized_exc = _sanitize_exception(e)
+                sanitized_exc = _sanitize_exception(e, self._path)
                 log.debug("Subprocess call failed: %s" % sanitized_exc)
 
         if run_with_os_system:
@@ -317,7 +356,7 @@ class IODescriptorGit(IODescriptorDownloadable):
 
             except SubprocessCalledProcessError as e:
                 # Sanitize the exception to remove any potential credentials
-                sanitized_exc = _sanitize_exception(e)
+                sanitized_exc = _sanitize_exception(e, self._path)
                 raise TankGitError(
                     f"Error executing GIT operation '{_sanitize_command(full_command)}': {sanitized_exc.output}"
                     f" (Return code {sanitized_exc.returncode}). "
@@ -378,7 +417,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         except Exception as e:
             # Sanitize any credentials that might be in the exception
             if isinstance(e, SubprocessCalledProcessError):
-                e = _sanitize_exception(e)
+                e = _sanitize_exception(e, self._path)
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
