@@ -103,7 +103,20 @@
         },
         "child_filters": {
             "sequence": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=={DATA.ATTRIBUTE(id)}"
+                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=={DATA.ATTRIBUTE(id)}",
+                "disable_tokens": [
+                    "{Sequence}+No Sequence"
+                ]
+            }
+        }
+    },
+    "{Episode}+No Episode": {
+        "kind": "static",
+        "label": "Sequences with no Episode",
+        "icon": "asset",
+        "child_filters": {
+            "sequence": {
+                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=notstartswith='urn:medm:'"
             }
         }
     },
@@ -117,6 +130,16 @@
         "child_filters": {
             "shot": {
                 "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=={DATA.ATTRIBUTE(id)}"
+            }
+        }
+    },
+    "{Sequence}+No Sequence": {
+        "kind": "static",
+        "label": "Shots with no Sequence",
+        "icon": "asset",
+        "child_filters": {
+            "shot": {
+                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=notstartswith='urn:medm:'"
             }
         }
     },

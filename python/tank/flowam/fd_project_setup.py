@@ -38,8 +38,6 @@ from tank_vendor.flow_integration_sdk.utils import get_logger
 ASSET_TYPE = "FPT Asset Type - %s"
 ASSET_TYPES = "FPT Asset Types"
 NO_ASSET_TYPE = "Assets with no Type"
-NO_EPISODE = "Sequences with no Episode"
-NO_SEQUENCE = "Shots with no Sequence"
 PIPELINE_STEP = "FPT %s Step - %s"
 SHOT_TYPE = "FPT Shot Type - %s"
 SHOT_TYPES = "FPT Shot Types"
@@ -689,39 +687,27 @@ def _create_episode_deliverables(sg_project_id: str, medm_project_id: str, sg):
     q_filter = f"components.typeId=={get_schema_id(DEL_EPISODE_TYPE)}"
     medm_assets = _medm_search(medm_project_id, q_filter)
 
-    # Add a "no episode" placeholder asset to host sequences with no episode
-    sg_episodes.append({"code": NO_EPISODE, "id": None})
-
     for sg_episode in sg_episodes:
         sg_name = sg_episode["code"]
         sg_id = sg_episode["id"]
         # Check if asset already exists
         name = sg_name
-        if sg_id:
-            # for deliverables add sg id to guarantee uniqueness
-            map_name = f"{name}:{sg_id}"
-        else:
-            map_name = name
-        if sg_id:
-            existing_asset = _match_sg_id(medm_assets, str(sg_id))
-        else:
-            existing_asset = _match_name(medm_assets, name)
+        # for deliverables add sg id to guarantee uniqueness
+        map_name = f"{name}:{sg_id}"
+        existing_asset = _match_sg_id(medm_assets, str(sg_id))
         if existing_asset:
             logger.info(f'Episode deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
             continue
         logger.info(f'Creating Episode deliverable asset "{name}"...')
         # Publish a new asset representing the asset type
-        components = [DeliverableEpisodeComponentSpec()]
-        if sg_id:
-            components.append(
-                ExternalIdComponentSpec(entity_type="Episode", entity_id=sg_id)
-            )
+        type_comp = DeliverableEpisodeComponentSpec()
+        ext_id_comp = ExternalIdComponentSpec(entity_type="Episode", entity_id=sg_id)
         medm_asset = publish_new_asset(
             name=name,
             parent_id=medm_project_id,
             description=f'Proxy for Episode deliverable "{sg_name}".',
-            components=components,
+            components=[type_comp, ext_id_comp],
         )
         ASSET_MAP[map_name] = medm_asset.id
 
@@ -749,44 +735,27 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
     q_filter = f"components.typeId=={get_schema_id(DEL_SEQUENCE_TYPE)}"
     medm_assets = _medm_search(medm_project_id, q_filter)
 
-    # Add a "no episode" placeholder asset to host sequences with no episode
-    sg_sequences.append({"code": NO_SEQUENCE, "id": None})
-
     for sg_sequence in sg_sequences:
         sg_name = sg_sequence["code"]
         sg_id = sg_sequence["id"]
         # Find episode proxy to be associated
         ep_field = "episode" if "episode" in sg_sequence else "sg_episode"
-        if sg_name == NO_SEQUENCE:
-            ep_id = ""
-        else:
-            if sg_sequence[ep_field]:
-                ep_name = (
-                    f'{sg_sequence[ep_field]["name"]}:{sg_sequence[ep_field]["id"]}'
-                )
-            else:
-                ep_name = NO_EPISODE
+        if sg_sequence[ep_field]:
+            ep_name = f'{sg_sequence[ep_field]["name"]}:{sg_sequence[ep_field]["id"]}'
             if ep_name not in ASSET_MAP:
                 raise RuntimeError(f'Could not find MEDM proxy episode "{ep_name}".')
             ep_id = ASSET_MAP[ep_name]
+        else:
+            ep_id = ""  # sequence doesn't have an episode associated
         # Generate components (do it early because we may need it for updating
         # as well as creation)
-        components = [DeliverableSequenceComponentSpec(episode_id=ep_id)]
-        if sg_id:
-            components.append(
-                ExternalIdComponentSpec(entity_type="Sequence", entity_id=sg_id)
-            )
+        type_comp = DeliverableSequenceComponentSpec(episode_id=ep_id)
+        ext_id_comp = ExternalIdComponentSpec(entity_type="Sequence", entity_id=sg_id)
         # Check if asset already exists
         name = sg_name
-        if sg_id:
-            # for deliverables add sg id to guarantee uniqueness
-            map_name = f"{name}:{sg_id}"
-        else:
-            map_name = name
-        if sg_id:
-            existing_asset = _match_sg_id(medm_assets, str(sg_id))
-        else:
-            existing_asset = _match_name(medm_assets, name)
+        # for deliverables add sg id to guarantee uniqueness
+        map_name = f"{name}:{sg_id}"
+        existing_asset = _match_sg_id(medm_assets, str(sg_id))
         if existing_asset:
             logger.info(f'Sequence deliverable "{name}" (id = {sg_id}) already exists.')
             ASSET_MAP[map_name] = existing_asset.id
@@ -801,7 +770,7 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
                 logger.info(f'Changes detected. Updating "{name}" asset...')
                 publish_new_revision(
                     existing_asset.id,
-                    components=components,
+                    components=[type_comp, ext_id_comp],
                 )
             continue
         logger.info(f'Creating Sequence deliverable asset "{name}"...')
@@ -810,7 +779,7 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
             name=name,
             parent_id=medm_project_id,
             description=f'Proxy for Sequence deliverable "{sg_name}".',
-            components=components,
+            components=[type_comp, ext_id_comp],
         )
         ASSET_MAP[map_name] = medm_asset.id
 
@@ -851,11 +820,11 @@ def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
             sq_sg_name = sg_shot[f"{sq_field}.Sequence.code"]
             sq_sg_id = sg_shot[f"{sq_field}.Sequence.id"]
             sq_name = f"{sq_sg_name}:{sq_sg_id}"
+            if sq_name not in ASSET_MAP:
+                raise RuntimeError(f'Could not find MEDM proxy sequence "{sq_name}".')
+            sq_id = ASSET_MAP[sq_name]
         else:
-            sq_name = NO_SEQUENCE
-        if sq_name not in ASSET_MAP:
-            raise RuntimeError(f'Could not find MEDM proxy sequence "{sq_name}".')
-        sq_id = ASSET_MAP[sq_name]
+            sq_id = ""  # shot doesn't have a sequence associated
         # Generate components (do it early because we may need it for updating
         # as well as creation)
         type_comp = DeliverableShotComponentSpec(

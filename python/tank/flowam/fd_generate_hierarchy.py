@@ -178,6 +178,10 @@ def _resolve_filter(data_obj, resolver: str | None) -> Any:
         elif res_type == "DATA":
             continue
 
+        else:
+            # Not a recognizable token, leave unchanged
+            result = resolution_step
+
     return result
 
 
@@ -195,7 +199,12 @@ def _resolve_string_tokens(data_obj, string):
         elif c == "}":
             in_token = False
             resolved_value = _resolve_filter(data_obj, token)
-            result += resolved_value
+            if resolved_value == token:
+                # No change indicates this was not a resolvable
+                # token, but a literal - leave value unchanged
+                result += "{" + resolved_value + "}"
+            else:
+                result += resolved_value
         elif in_token:
             token += c
         else:
@@ -294,25 +303,20 @@ def _resolve_items(config: dict, parent: TreeItem, parent_filters: dict):
     return items
 
 
-def _generate_items(
+def _generate_items_for_token(
+    token: str,
     parent: TreeItem,
     path_tokens: list[str],
     parent_filters: dict | None = None,
     recursive=False,
 ):
-    """Generate the list of items that is the result of querying
-    MEDM based on the next token in the token list provided.
+    """Generate the list of items that is the result of performing
+    the resolution designated by the given query config.
 
     Raises:
         RuntimeError
     """
     logger = get_logger(__name__)
-
-    if not path_tokens:
-        return []
-
-    token = path_tokens.pop(0)
-    logger.info(f"Generating items for token: {token}...")
 
     config = QUERY_CONFIG.get(token)
     if config is None:
@@ -364,9 +368,15 @@ def _generate_items(
                 # Each one may have variables that need to be resolved using
                 # the current item's information.
                 for filter_type, filter_str in ent_filters.items():
-                    child_filter[filter_type] = _resolve_string_tokens(
-                        item.asset, filter_str
-                    )
+                    if isinstance(filter_str, list):
+                        new_filter = []
+                        for f in filter_str:
+                            new_filter.append(_resolve_string_tokens(item.asset, f))
+                        child_filter[filter_type] = new_filter
+                    else:
+                        child_filter[filter_type] = _resolve_string_tokens(
+                            item.asset, filter_str
+                        )
         # Once we've resolved the filters, make sure to save it for future reference
         # (The tree nodes may be expanded on demand, so we may not get the next level of
         # children until later.)
@@ -378,6 +388,47 @@ def _generate_items(
                 item, list(path_tokens), child_filter, recursive=True
             )
 
+    return items
+
+
+def _generate_items(
+    parent: TreeItem,
+    path_tokens: list[str],
+    parent_filters: dict | None = None,
+    recursive=False,
+):
+    """Generate the list of items that is the result of querying
+    MEDM based on the next token in the token list provided.
+    """
+    logger = get_logger(__name__)
+
+    if not path_tokens:
+        return []
+
+    token = path_tokens.pop(0)
+    logger.info(f"Generating items for token: {token}...")
+
+    # A single token may have multiple related queries that should
+    # be concatenated together
+    # The family of tokens will denoted by "<TOKEN>" or "<TOKEN>+<some name>"
+    items = []
+    # Parent configs can specify certain tokens to be ignored among its
+    # child config family.
+    parent_filters = parent_filters or {}
+    disabled_tokens = parent_filters.get("disable_tokens", [])
+    for key in QUERY_CONFIG:
+        if key in disabled_tokens:
+            continue  # skip disabled tokens
+        if key == token or key.startswith(token + "+"):
+            items.extend(
+                _generate_items_for_token(
+                    token=key,
+                    parent=parent,
+                    path_tokens=list(path_tokens),
+                    parent_filters=parent_filters,
+                    recursive=recursive,
+                )
+            )
     return items
 
 
