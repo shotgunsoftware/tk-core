@@ -53,6 +53,19 @@
             }
         }
     },
+    "{sg_asset_type}+No Type": {
+        "kind": "static",
+        "label": "Assets with no Type",
+        "icon": "folder",
+        "child_filters": {
+            "asset": {
+                "search_filter": "components[medm21619349.shared:type.deliverable.asset-1.0.0].assetType=='No Type'"
+            },
+            "step": {
+                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Asset'"
+            }
+        }
+    },
     "{sg_shot_type}": {
         "kind": "token",
         "label": "{DATA.PROPERTY(name)}",
@@ -65,6 +78,19 @@
         "child_filters": {
             "shot": {
                 "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].shotType=='{DATA.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
+            },
+            "step": {
+                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Shot'"
+            }
+        }
+    },
+    "{sg_shot_type}+No Type": {
+        "kind": "static",
+        "label": "Shots with no Type",
+        "icon": "folder",
+        "child_filters": {
+            "shot": {
+                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].shotType=='No Type'"
             },
             "step": {
                 "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Shot'"

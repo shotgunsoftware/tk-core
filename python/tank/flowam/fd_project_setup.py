@@ -37,7 +37,6 @@ from tank_vendor.flow_integration_sdk.utils import get_logger
 # Asset name templates
 ASSET_TYPE = "FPT Asset Type - %s"
 ASSET_TYPES = "FPT Asset Types"
-NO_ASSET_TYPE = "Assets with no Type"
 PIPELINE_STEP = "FPT %s Step - %s"
 SHOT_TYPE = "FPT Shot Type - %s"
 SHOT_TYPES = "FPT Shot Types"
@@ -447,12 +446,6 @@ def _create_types_list(sg_project_id: str, medm_project_id: str, sg, mode: str):
     q_filter += f"components.typeId=={get_schema_id(DYN_ENUM_VALUE_TYPE)}"
     dyn_enum_value_assets = _medm_search(medm_project_id, q_filter)
 
-    # Add an explicit "no type" item to host Assets with no type
-    # NOTE: not necessary for Shots because shots are organized
-    #       under sequences and not types in the hierarchy.
-    if mode == "asset":
-        sg_types.append(NO_ASSET_TYPE)
-
     d_types = {}  # map asset types to ids of asset representing it
     for sg_type in sg_types:
         # Check if asset already exists
@@ -626,6 +619,12 @@ def _create_asset_deliverables(sg_project_id: str, medm_project_id: str, sg):
         sg_name = sg_asset["code"]
         sg_id = sg_asset["id"]
         sg_asset_type = sg_asset["sg_asset_type"]
+        # This is a hack to support another hack
+        # Currently, the assetType property on the component is a string
+        # instead of a reference property.
+        # We can't match on a blank string to find assets with no type
+        # so we have to give this a specific value.
+        sg_asset_type = sg_asset_type or "No Type"
         # Generate components (do it early because we may need it for updating
         # as well as creation)
         type_comp = DeliverableAssetComponentSpec(asset_type=sg_asset_type)
@@ -814,6 +813,12 @@ def _create_shot_deliverables(sg_project_id: str, medm_project_id: str, sg):
         sg_name = sg_shot["code"]
         sg_id = sg_shot["id"]
         sg_shot_type = sg_shot["sg_shot_type"]
+        # This is a hack to support another hack
+        # Currently, the assetType property on the component is a string
+        # instead of a reference property.
+        # We can't match on a blank string to find assets with no type
+        # so we have to give this a specific value.
+        sg_shot_type = sg_shot_type or "No Type"
         # Find sequence proxy to be associated
         sq_field = "sequence" if "sequence" in sg_shot else "sg_sequence"
         if sg_shot[f"{sq_field}.Sequence.code"]:
