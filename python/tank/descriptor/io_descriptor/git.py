@@ -274,7 +274,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         try:
             output = _check_output(["git", "--version"])
         except Exception as e:
-            log.error("Unexpected error: %s: %s", e.__class__.__name__, e)
+            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
