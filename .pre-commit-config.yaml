@@ -54,7 +54,7 @@ repos:
       exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
   # Sort imports and lint. Must run before ruff-format so formatting is final.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.0
+    rev: v0.16.5
     hooks:
     - id: ruff-check
       args: [--fix]
