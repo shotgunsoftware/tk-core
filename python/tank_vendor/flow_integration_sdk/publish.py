@@ -42,6 +42,8 @@ from .globals import (
     DER_SOURCE_COMP,
     DER_SOURCE_TYPE,
     FILE_SEQ_TYPE,
+    FOR_DELIVERABLE_TYPE,
+    FOR_PIPELINE_STEP_TYPE,
     get_client,
     IMAGE_TYPE_ID,
     REFERENCE_TYPE,
@@ -290,6 +292,64 @@ class DerivativeSourceComponentSpec(ComponentSpec):
             name=self.name,
             type_id=get_schema_id(DER_SOURCE_TYPE),
             targetVersion=self.build_reference_value(self.version_id),
+        )
+
+
+class ForDeliverableComponentSpec(ComponentSpec):
+    """Specifications for a "for deliverable" component which connects
+    an MEDM asset with a "virtual" FPT deliverable asset.
+    """
+
+    def __init__(self, deliverable_id: str):
+        """
+        Args:
+            deliverable_id: Id of virtual FPT deliverable asset.
+        """
+        self.deliverable_id = deliverable_id
+
+    @property
+    def name(self) -> str:
+        return "For Deliverable"
+
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name=self.name,
+            type_id=get_schema_id(FOR_DELIVERABLE_TYPE),
+            targetDeliverable=self.build_reference_value(self.deliverable_id),
+        )
+
+
+class ForPipelineStepComponentSpec(ComponentSpec):
+    """Specifications for a "for pipeline step" component which connects
+    an MEDM asset with a "virtual" FPT pipeline step asset. You can also
+    specify a FPT deliverable asset in this component to associate
+    the MEDM asset with both an SG entity and pipeline step.
+    """
+
+    def __init__(self, pipeline_step_id: str, deliverable_id: str = ""):
+        """
+        Args:
+            pipeline_step_id: Id of virutal FPT pipeline step asset.
+            deliverable_id: Optional id of virtual FPT deliverable asset.
+        """
+        self.pipeline_step_id = pipeline_step_id
+        self.deliverable_id = deliverable_id
+
+    @property
+    def name(self) -> str:
+        return "For Pipeline Step"
+
+    def create(self) -> medm_model.Component:
+        """Create an MEDM component based on specifications."""
+        deliverable_id = ""
+        if self.deliverable_id:
+            deliverable_id = self.build_reference_value(self.deliverable_id)
+        return self.create_component(
+            name=self.name,
+            type_id=get_schema_id(FOR_PIPELINE_STEP_TYPE),
+            targetStep=self.build_reference_value(self.pipeline_step_id),
+            targetDeliverable=deliverable_id,
         )
 
 
@@ -562,7 +622,7 @@ class LayerComponentSpec(ComponentSpec):
     @property
     def name(self) -> str:
         return f"Layer-{self.layer_name}"
-    
+
     def create(self) -> medm_model.Component:
         """Create an MEDM component based on specifications."""
         return self.create_component(

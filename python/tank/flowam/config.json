@@ -438,15 +438,19 @@
       ]
     },
     {
-      "name": "component.pipelineStep",
-      "version": "1.0.0",
-      "display_name": "Pipeline Step",
+      "name": "component.forPipelineStep",
+      "version": "1.0.1",
+      "display_name": "For Pipeline Step",
       "kind": "component",
       "description": "References a Pipeline Step value asset.",
       "inherits": [],
       "properties": [
         {
           "name": "targetStep",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        },
+        {
+          "name": "targetDeliverable",
           "data_type": "$id:autodesk.me:reference-2.0.0"
         }
       ]

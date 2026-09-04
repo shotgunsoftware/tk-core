@@ -23,7 +23,6 @@ import datetime
 import re
 import urllib
 from collections.abc import Iterator
-from functools import cache
 from typing import Any
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
@@ -591,6 +590,24 @@ class FlowProject(FlowEntity):
         """
         return self._entity.schema_registry_info.group_id
 
+    @trace
+    def search_children(
+        self,
+        q_filter: str,
+        include_deleted: bool = False,
+    ) -> list[FlowAsset]:
+        """Search direct children under this project using given
+        filter criteria.
+        """
+        from .query import medm_search
+
+        return medm_search(
+            project_id=self.id,
+            q_filter=q_filter,
+            parent_id=self.id,
+            include_deleted=include_deleted,
+        )
+
     def __str__(self):
         """Readable string representation of project object."""
         s = "------------------------------\n"
@@ -848,6 +865,23 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
     def get_latest_revision(self) -> FlowRevision:
         """Return an object representing the latest revision of this asset."""
         return FlowRevision.get_revision(self.revision_id)
+
+    @trace
+    def search_children(
+        self,
+        q_filter: str,
+        include_deleted: bool = False,
+    ) -> list[FlowAsset]:
+        """Do global search under this asset using given filter criteria."""
+        from .query import medm_search
+
+        project_id = FlowProject.get_project_id(self.id)
+        return medm_search(
+            project_id=project_id,
+            q_filter=q_filter,
+            parent_id=self.id,
+            include_deleted=include_deleted,
+        )
 
     @trace
     def iterate_revisions(self, refresh: bool = False) -> Iterator[FlowRevision]:

@@ -38,7 +38,10 @@ BASE_COMPONENT_TYPE_ID = "autodesk.me:component-1.0.0"
 BASE_PROPERTY_TYPE_ID = "autodesk.me:property-1.0.0"
 BASE_TYPE_ID = "autodesk.me:type-1.1.0"
 BINARY_TYPE_ID = "autodesk.me:component.binary-1.0.0"
+CG_ASSET_TYPE_ID = "autodesk.me:type.cgAsset-1.0.0"
+CG_SHOT_TYPE_ID = "autodesk.me:type.shot-1.1.0"
 COMMENT_TYPE_ID = "autodesk.me:component.publishComment-1.0.0"
+EXTERNAL_ID_TYPE_ID = "autodesk.me:component.externalId-1.0.0"
 FOLDER_TYPE_ID = "autodesk.me:type.folder-1.0.0"
 IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
 
@@ -54,10 +57,15 @@ KIND_BASE_TYPE_ID = {
 # Component base type names without full ids.
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
-FILE_SEQ_TYPE = "type.fileSequence"
-REFERENCE_TYPE = "component.reference"
+DELIVERABLE_ASSET_TYPE = "type.deliverable.asset"
+DELIVERABLE_SHOT_TYPE = "type.deliverable.shot"
 DER_SOURCE_TYPE = "component.source"
+FOR_DELIVERABLE_TYPE = "component.forDeliverable"
+FOR_PIPELINE_STEP_TYPE = "component.forPipelineStep"
+FILE_SEQ_TYPE = "type.fileSequence"
 LAYER_TYPE = "component.layer"
+PIPELINE_STEP_TYPE = "type.pipelineStep"
+REFERENCE_TYPE = "component.reference"
 VARIANT_SET_TYPE = "component.variantSet"
 
 
