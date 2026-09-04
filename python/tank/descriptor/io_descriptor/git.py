@@ -7,6 +7,7 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import json
 import os
 import subprocess
 import tempfile
@@ -202,8 +203,55 @@ class IODescriptorGit(IODescriptorDownloadable):
                 )
             log.debug("Execution successful. stderr/stdout: '%s'" % output)
 
+        self._validate_lfs_content(target_path)
+
         # return the last returned stdout/stderr
         return output
+
+    def _validate_lfs_content(self, repo_path):
+        """
+        Checks that Git LFS tracked files in the checked out repo were
+        actually resolved to their real content, rather than left as
+        literal pointer text. This happens silently when git-lfs isn't
+        installed/registered on this machine - git checks out the pointer
+        text with no error of its own.
+
+        :param repo_path: path to a checked out git repository.
+        :raises TankGitError: if the repo uses Git LFS but git-lfs isn't
+            available, or some LFS content wasn't downloaded.
+        """
+        gitattributes_path = os.path.join(repo_path, ".gitattributes")
+        try:
+            with open(gitattributes_path, "r") as fh:
+                uses_lfs = "filter=lfs" in fh.read()
+        except OSError:
+            uses_lfs = False
+
+        if not uses_lfs:
+            return
+
+        try:
+            output = _check_output(
+                'git -C "%s" lfs ls-files --json' % repo_path, shell=True
+            )
+        except Exception:
+            raise TankGitError(
+                "%s uses Git LFS to store some of its files, but git-lfs "
+                "does not appear to be installed on this machine. Install "
+                "it from https://git-lfs.com, run `git lfs install`, and "
+                "try again." % self
+            )
+
+        files = json.loads(output).get("files") or []
+        missing = [f["name"] for f in files if not f.get("checkout")]
+        if missing:
+            raise TankGitError(
+                "Git LFS content for the following file(s) in %s was not "
+                "downloaded correctly - they still contain pointer text "
+                "instead of their real content: %s. Make sure git-lfs is "
+                "installed (https://git-lfs.com) and run `git lfs install`, "
+                "then try again." % (self, ", ".join(missing))
+            )
 
     def _tmp_clone_then_execute_git_commands(self, commands, depth=None, ref=None):
         """
