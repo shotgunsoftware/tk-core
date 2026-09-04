@@ -23,10 +23,10 @@ from tank import (
     pipelineconfig_utils,
 )
 from tank.util import ShotgunPath, is_windows
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
     temp_env_var,
 )
 
@@ -43,7 +43,6 @@ class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
         """
         # only run this test on windows
         if is_windows():
-
             # This path has multiple issues we've encountered in the wild
             # It without any escaping sequence, it reads as
             # "   C:/configs\\site//project   "

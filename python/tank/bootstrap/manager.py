@@ -14,8 +14,7 @@ import os
 from .. import LogManager
 from ..authentication import ShotgunAuthenticator, flow_auth
 from ..errors import TankError
-from ..flowam import constants as flow_const
-from ..flowam import utils as flow_utils
+from ..flowam import constants as flow_const, utils as flow_utils
 from ..pipelineconfig import PipelineConfiguration
 from ..util import ShotgunPath
 from . import constants
@@ -593,7 +592,6 @@ class ToolkitManager(object):
             )
 
         if AsyncBootstrapWrapper:
-
             # Bootstrap an Sgtk instance asynchronously in a background thread,
             # followed by launching the engine synchronously in the main application thread.
 
@@ -603,28 +601,23 @@ class ToolkitManager(object):
             self._bootstrapper.bootstrap()
 
         else:
-
             # Since Qt is not available, fall back on synchronous bootstrapping.
             # Execute the whole engine bootstrap logic synchronously in the main application thread,
             # while still calling the provided callbacks in order for the caller to work as expected.
 
             try:
-
                 tk = self._bootstrap_sgtk(engine_name, entity)
 
             except Exception as exception:
-
                 # Handle cleanup after failed completion of the toolkit bootstrap.
                 failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
 
                 return
 
             try:
-
                 engine = self._start_engine(tk, engine_name, entity)
 
             except Exception as exception:
-
                 # Handle cleanup after failed completion of the engine startup.
                 failed_callback(self.ENGINE_STARTUP_PHASE, exception)
 

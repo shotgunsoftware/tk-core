@@ -168,7 +168,6 @@ def _get_configuration_recursive(
             param_values[param_name] = child_params
 
         else:
-
             # leaf param so need to get value:
             param_path = list(parent_path) + [param_name]
 
@@ -260,7 +259,6 @@ def ensure_frameworks_installed(
 
     # first pass: install all frameworks that are required by this descriptor
     for fw_dict in missing_fws:
-
         name = fw_dict["name"]
         version_pattern = fw_dict["version"]
 
@@ -437,7 +435,6 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
     new_params = {}
 
     for param_name, new_param_definition_dict in new_schema.items():
-
         param_type = new_param_definition_dict.get("type", "Unknown")
         param_desc = new_param_definition_dict.get("description", "No description.")
 

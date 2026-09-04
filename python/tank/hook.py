@@ -684,7 +684,6 @@ def create_hook_instance(hook_paths, parent, base_class=None):
     _current_hook_baseclass.value = base_class
 
     for hook_path in hook_paths:
-
         if not os.path.exists(hook_path):
             raise TankFileDoesNotExistError(
                 "Cannot execute hook '%s' - this file does not exist on disk!"

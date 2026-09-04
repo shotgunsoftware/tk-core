@@ -15,8 +15,7 @@ Methods for handling of the tank command
 
 import logging
 
-from .. import LogManager
-from .. import constants as constants_global
+from .. import LogManager, constants as constants_global
 from ..errors import TankError
 from ..platform.engine import get_environment_from_context, start_engine
 from . import (
@@ -121,7 +120,6 @@ def get_shell_engine_actions(engine_obj):
 
     actions = []
     for c in engine_obj.commands:
-
         # custom properties dict
         props = engine_obj.commands[c]["properties"]
 
@@ -190,10 +188,8 @@ def list_commands(tk=None):
     """
     action_names = []
     for a in _get_built_in_actions():
-
         # check if this tank command has API support
         if a.supports_api:
-
             # if we don't have a tk API instance, we can only access GLOBAL commands
             if tk is None and a.mode != Action.GLOBAL:
                 continue
@@ -426,7 +422,6 @@ def get_actions(log, tk, ctx):
 
     # now only pick the ones that are working with our current state
     for a in all_actions:
-
         if not a.supports_tank_command:
             # this action does not support tank command mode
             continue
@@ -516,7 +511,6 @@ def run_action(log, tk, ctx, command, args):
         log.info("")
 
     else:
-
         # seed the action object with all the handles it may need
         found_action.tk = tk
         found_action.context = ctx

@@ -14,8 +14,10 @@ Unit tests tank updates.
 
 from sgtk.descriptor import Descriptor, create_descriptor
 from tank_test.mock_appstore import MockStore, TankMockStoreDescriptor, patch_app_store
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 
 class TestMockStore(ShotgunTestBase):

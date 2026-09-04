@@ -128,7 +128,6 @@ class UnregisterFoldersAction(Action):
                 log.info("")
 
             elif len(args) == 1 and args[0] == "--all":
-
                 if self.context.project is None:
                     log.error("You need to specify a project for the --all parameter.")
                     return []
@@ -137,7 +136,6 @@ class UnregisterFoldersAction(Action):
                 self._unregister_entity(self.context.project, log, prompt=True)
 
             elif len(args) == 1 and args[0].startswith("--filter="):
-
                 # from '--filter=john.smith' get 'john.smith'
                 filter_str = args[0][len("--filter=") :]
 
@@ -233,7 +231,6 @@ class UnregisterFoldersAction(Action):
 
         pc = path_cache.PathCache(self.tk)
         try:
-
             # first of all, make sure we are up to date
             pc.synchronize()
 

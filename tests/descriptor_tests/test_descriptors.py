@@ -23,12 +23,12 @@ from tank.descriptor import (
 )
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 from tank.errors import TankError
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     SealedMock,
     ShotgunTestBase,
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import httplib2
@@ -506,13 +506,16 @@ class TestDescriptorSupport(TankTestBase):
         """
         Catches SSLError
         """
-        with mock.patch(
-            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
-            "._IODescriptorAppStore__create_sg_app_store_connection",
-            side_effect=httplib2.ssl.SSLError("Read operation timed out"),
-        ), mock.patch(
-            "tank.descriptor.io_descriptor.appstore.log.debug"
-        ) as log_debug_mock:
+        with (
+            mock.patch(
+                "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+                "._IODescriptorAppStore__create_sg_app_store_connection",
+                side_effect=httplib2.ssl.SSLError("Read operation timed out"),
+            ),
+            mock.patch(
+                "tank.descriptor.io_descriptor.appstore.log.debug"
+            ) as log_debug_mock,
+        ):
             descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
                 {
                     "name": "tk-config-basic",

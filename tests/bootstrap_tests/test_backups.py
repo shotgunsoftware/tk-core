@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -16,10 +16,10 @@ from shutil import copytree
 import sgtk
 from sgtk.pipelineconfig_utils import get_metadata
 from tank.util import is_windows
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
     temp_env_var,
 )
 
@@ -249,7 +249,6 @@ class TestBackups(ShotgunTestBase):
             plugin_id="backup_tests"
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
-
             config = resolver.resolve_configuration(
                 {"type": "dev", "name": "backup_tests", "path": self._temp_test_path},
                 self.mockgun,

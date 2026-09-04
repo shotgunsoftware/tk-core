@@ -172,7 +172,6 @@ class TestLocalFileStorage(ShotgunTestBase):
         ]
 
         for path_type in old_path_types:
-
             for site_name in hosted_sg_sites:
                 cache_path = LocalFileStorageManager.get_site_root(
                     "https://{}".format(site_name),
@@ -276,7 +275,6 @@ class TestLocalFileStorage(ShotgunTestBase):
             "http://test.shotgunstudio.com",
             "http://test.shotgrid.autodesk.com",
         ]:
-
             path_types = [
                 LocalFileStorageManager.CACHE,
                 LocalFileStorageManager.PERSISTENT,

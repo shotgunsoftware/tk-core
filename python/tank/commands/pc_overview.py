@@ -89,7 +89,6 @@ class PCBreakdownAction(Action):
             ["code", "users", "mac_path", "windows_path", "linux_path"],
         )
         for d in data:
-
             if len(d.get("users")) == 0:
                 log.info("Configuration '%s' (Public)" % d.get("code"))
             else:
@@ -146,7 +145,6 @@ class PCBreakdownAction(Action):
                     log.info("")
 
                 else:
-
                     log.info(
                         "This configuration is using a shared version of the Toolkit API."
                         "If you want it to run its own independent version "

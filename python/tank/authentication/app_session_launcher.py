@@ -20,11 +20,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import tank
 from tank_vendor import shotgun_api3
 
-from .. import LogManager
-from .. import platform as sgtk_platform
+import tank
+
+from .. import LogManager, platform as sgtk_platform
 from ..util.shotgun import connection
 from . import errors
 

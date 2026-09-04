@@ -15,10 +15,10 @@ import subprocess  # noqa
 
 import tank.util.filesystem as fs
 from tank.util import is_linux, is_macos, is_windows
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 

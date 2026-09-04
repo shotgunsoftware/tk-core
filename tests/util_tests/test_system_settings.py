@@ -11,10 +11,10 @@
 import os
 
 from tank.util.system_settings import SystemSettings
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 

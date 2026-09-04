@@ -10,8 +10,10 @@
 
 import importlib
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 
 class TestVersionImport(ShotgunTestBase):

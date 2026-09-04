@@ -195,7 +195,6 @@ class CoreUpdateAction(Action):
             return_status = {"status": "update_blocked", "reason": msg}
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
-
             summary, url = installer.get_release_notes()
 
             log.info("")
@@ -363,7 +362,6 @@ class TankCoreUpdater(object):
             # The config is immutable so we should not try updating it.
             return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
         else:
-
             # FIXME: We should cache info.yml on the appstore so we don't have
             #  to download the whole bundle just to see the file.
             if not self._new_core_descriptor.exists_local():

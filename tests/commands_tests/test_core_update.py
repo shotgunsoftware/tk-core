@@ -16,10 +16,10 @@ import logging
 
 from sgtk.pipelineconfig_utils import get_core_descriptor
 from tank_test.mock_appstore import patch_app_store
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 

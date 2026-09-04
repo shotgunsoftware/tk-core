@@ -279,7 +279,6 @@ class PySide2Patcher(object):
         original_QMessageBox = QtGui.QMessageBox
 
         class QMessageBox(original_QMessageBox):
-
             critical = _method_factory(
                 QtGui.QMessageBox.Critical, QtGui.QMessageBox.critical
             )

@@ -130,14 +130,12 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         """
 
         try:
-
             # Ladies and Gentlemen, start your engines!
             engine = self._toolkit_manager._start_engine(
                 self._worker.get_sgtk(), self._engine_name, self._entity
             )
 
         except Exception as exception:
-
             # Handle cleanup after failed completion of the engine startup.
             self._failed_callback(self._toolkit_manager.ENGINE_STARTUP_PHASE, exception)
 
@@ -226,7 +224,6 @@ class _BootstrapToolkitWorker(QtCore.QObject):
         """
 
         try:
-
             # Bootstrap a toolkit instance for the given engine and entity,
             # using a local thread-safe progress reporting callback.
             self._sgtk = self._toolkit_manager._bootstrap_sgtk(
@@ -237,7 +234,6 @@ class _BootstrapToolkitWorker(QtCore.QObject):
             self.completed.emit()
 
         except Exception as exception:
-
             # Signal failure of the toolkit bootstrap.
             self.failed.emit(exception)
 

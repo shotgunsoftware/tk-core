@@ -369,15 +369,11 @@ class PySide6Patcher(PySide2Patcher):
                 self.indexIn = lambda *args, **kwargs: QRegularExpression.indexIn(
                     self, *args, **kwargs
                 )
-                self.matchedLength = (
-                    lambda *args, **kwargs: QRegularExpression.matchedLength(
-                        self, *args, **kwargs
-                    )
+                self.matchedLength = lambda *args, **kwargs: (
+                    QRegularExpression.matchedLength(self, *args, **kwargs)
                 )
-                self.setCaseSensitivity = (
-                    lambda *args, **kwargs: QRegularExpression.setCaseSensitivity(
-                        self, *args, **kwargs
-                    )
+                self.setCaseSensitivity = lambda *args, **kwargs: (
+                    QRegularExpression.setCaseSensitivity(self, *args, **kwargs)
                 )
                 self.pos = lambda *args, **kwargs: QRegularExpression.pos(
                     self, *args, **kwargs
@@ -615,8 +611,8 @@ class PySide6Patcher(PySide2Patcher):
         # The default timeout parameter removed. This param, if given, will be ignored. It will
         # always timeout after 100 ms
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#the-qabstractbutton-class
-        qt_gui_shim.QAbstractButton.animateClick = (
-            lambda self, msec=0: self.animateClick()
+        qt_gui_shim.QAbstractButton.animateClick = lambda self, msec=0: (
+            self.animateClick()
         )
 
         # Changes to QFont

@@ -18,10 +18,10 @@ from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
 from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 from tank.util.shotgun.connection import sanitize_url
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
     temp_env_var,
 )
 

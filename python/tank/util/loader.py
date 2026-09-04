@@ -82,10 +82,9 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     try:
         # first, find all classes in the module, being careful to only find classes that
         # are actually from this module and not from any other imports!
-        search_predicate = (
-            lambda member: inspect.isclass(member)
-            and member.__module__ == module.__name__
-        )
+        def search_predicate(member):
+            return inspect.isclass(member) and member.__module__ == module.__name__
+
         all_classes = [cls for _, cls in inspect.getmembers(module, search_predicate)]
 
         # Now look for classes in the module that are derived from the specified base
@@ -111,7 +110,6 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
                 # we found at least one class so assume this is a match!
                 break
     except Exception as e:
-
         # log the full callstack to make sure that whatever the
         # calling code is doing, this error is logged to help
         # with troubleshooting and support

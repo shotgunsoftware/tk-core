@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from tank.authentication import ShotgunAuthenticationError, user_impl
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
 )
 from tank_vendor.shotgun_api3 import AuthenticationFault
 

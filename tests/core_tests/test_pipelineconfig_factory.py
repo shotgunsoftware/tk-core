@@ -18,11 +18,11 @@ from sgtk.util import ShotgunPath
 from tank.api import Tank
 from tank.errors import TankInitError
 from tank.util import is_windows
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     TankTestBase,
     mock,
+    setUpModule,  # noqa
 )
 from tank_vendor import yaml
 
@@ -646,7 +646,6 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
         """
         # only run this test on windows
         if is_windows():
-
             self.sg_pc_entity["windows_path"] = self.pipeline_config_root.replace(
                 "\\", "/"
             )
@@ -710,7 +709,6 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         """
         # only run this test on windows
         if is_windows():
-
             # probe a path inside of project
             test_path = "%s\\%s\\toolkit_test_path" % (
                 self.STORAGE_ROOT,

@@ -17,10 +17,10 @@ import os
 
 import sgtk
 from sgtk.descriptor import Descriptor, create_descriptor
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     mock,
+    setUpModule,  # noqa
 )
 
 

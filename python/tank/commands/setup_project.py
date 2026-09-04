@@ -127,8 +127,7 @@ class SetupProjectAction(Action):
 
         self.parameters["config_path_linux"] = {
             "description": (
-                "The path on disk where the configuration should be "
-                "installed on Linux."
+                "The path on disk where the configuration should be installed on Linux."
             ),
             "default": (None if is_linux() else ""),
             "type": "str",
@@ -213,7 +212,6 @@ class SetupProjectAction(Action):
         run_project_setup(log, sg, params)
 
         if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
-
             config_path = params.get_configuration_location(sys.platform)
 
             # if the new project's config has a core descriptor, then we should
@@ -222,7 +220,6 @@ class SetupProjectAction(Action):
             if pipelineconfig_utils.has_core_descriptor(
                 config_path
             ) or pipelineconfig_utils.is_localized(curr_core_path):
-
                 log.info("Localizing Core...")
                 core_localize.do_localize(
                     log,
@@ -317,7 +314,6 @@ class SetupProjectAction(Action):
         if pipelineconfig_utils.has_core_descriptor(
             config_path
         ) or pipelineconfig_utils.is_localized(curr_core_path):
-
             log.info("Localizing Core...")
             core_localize.do_localize(
                 log,
@@ -620,7 +616,6 @@ class SetupProjectAction(Action):
             log.info("")
             storages_valid = True
             for storage_name in params.get_required_storages():
-
                 proj_path = params.preview_project_path(
                     storage_name, proj_name, sys.platform
                 )
@@ -628,10 +623,8 @@ class SetupProjectAction(Action):
                 if os.path.exists(proj_path):
                     log.info(" - %s: %s [OK]" % (storage_name, proj_path))
                 else:
-
                     # try to create the folders
                     try:
-
                         old_umask = os.umask(0)
                         try:
                             os.makedirs(proj_path, 0o777)
@@ -944,7 +937,6 @@ class SetupProjectAction(Action):
 
         # loop over required storage roots
         for root_name, root_info in required_roots.items():
-
             log.info("%s" % (root_name,))
             log.info("-" * len(root_name))
 
@@ -975,7 +967,7 @@ class SetupProjectAction(Action):
             # does name match an existing storage?
             elif root_name.lower() in storage_by_name:
                 log.info(
-                    "Press ENTER to use the storage wth the same name as the " "root."
+                    "Press ENTER to use the storage wth the same name as the root."
                 )
                 log.info("")
                 # get the actual name by indexing into the storage dict
@@ -1051,7 +1043,6 @@ class SetupProjectAction(Action):
         #      update the root information on the core wizard
 
         for root_name, storage_name in mapped_roots:
-
             root_info = required_roots[root_name]
             storage_data = storage_by_name[storage_name.lower()]
 

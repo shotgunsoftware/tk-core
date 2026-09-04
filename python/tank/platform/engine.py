@@ -23,14 +23,15 @@ import threading
 import traceback
 import weakref
 
-from tank.flowam import host as flow_host  # noqa: F401 (used in return annotation)
-from tank.flowam import utils as flow_utils
+from tank.flowam import (
+    host as flow_host,  # noqa: F401 (used in return annotation)
+    utils as flow_utils,
+)
 
 from .. import hook
 from ..errors import TankError
 from ..log import LogManager
-from ..util import metrics_cache
-from ..util import sgre as re
+from ..util import metrics_cache, sgre as re
 from ..util.loader import load_plugin
 from ..util.metrics import EventMetric, MetricsDispatcher
 from ..util.qt_importer import QtImporter
@@ -272,7 +273,6 @@ class Engine(TankBundle):
         # note: we make an exception for the shotgun engine which is a
         # special case.
         if self.name != constants.SHOTGUN_ENGINE_NAME:
-
             self.register_command(
                 "Open Log Folder",
                 self.__open_log_folder,
@@ -440,7 +440,6 @@ class Engine(TankBundle):
             else:
                 # our qt import worked!
                 if not self.__global_progress_widget:
-
                     # no window exists - create one!
                     (
                         window,
@@ -467,7 +466,6 @@ class Engine(TankBundle):
                     window.show()
 
                 else:
-
                     # just update the message for the existing window
                     self.__global_progress_widget.set_contents(title, details)
 
@@ -1051,9 +1049,9 @@ class Engine(TankBundle):
                 new_name_for_existing = "%s:%s" % (command_prefix, name)
                 self.__commands[new_name_for_existing] = existing_item
                 # Record the command prefix in the properties dictionary for future reference.
-                self.__commands[new_name_for_existing]["properties"][
-                    "prefix"
-                ] = command_prefix
+                self.__commands[new_name_for_existing]["properties"]["prefix"] = (
+                    command_prefix
+                )
                 del self.__commands[name]
                 # Record the original command name to make sure any additional commands
                 # registered with this name are treated as duplicates and fully prefixed.
@@ -1581,12 +1579,10 @@ class Engine(TankBundle):
 
         # in the parent directly, get all the font-specific directories
         for font_dir_name in os.listdir(fonts_parent_dir):
-
             # the specific font directory
             font_dir = os.path.join(fonts_parent_dir, font_dir_name)
 
             if os.path.isdir(font_dir):
-
                 # iterate over the font files and attempt to load them
                 #
                 # NOTE: We're loading the ttf files in reverse order to work around
@@ -1597,7 +1593,6 @@ class Engine(TankBundle):
                 # instead of the regular style. So...we're going to install these in
                 # reverse order so that the regular light style is preferred.
                 for font_file_name in reversed(list(os.listdir(font_dir))):
-
                     # only process actual font files. It appears as though .ttf
                     # is the most common extension for use on win/mac/linux so
                     # for now limit to those files.
@@ -2174,7 +2169,6 @@ class Engine(TankBundle):
             base["wrapper"] = importer.binding
             base["shiboken"] = importer.shiboken
         except Exception:
-
             self.log_exception(
                 "Default engine QT definition failed to find QT. "
                 "This may need to be subclassed."
