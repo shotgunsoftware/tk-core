@@ -208,7 +208,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # return the last returned stdout/stderr
         return output
 
-    def _validate_lfs_content(self, repo_path):
+    def _validate_lfs_content(self, repo_path: str) -> None:
         """
         Checks that Git LFS tracked files in the checked out repo were
         actually resolved to their real content, rather than left as
@@ -232,15 +232,17 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         try:
             output = _check_output(
-                'git -C "%s" lfs ls-files --json' % repo_path, shell=True
+                "git lfs ls-files --json",
+                cwd=repo_path,
+                shell=True,
             )
-        except Exception:
+        except Exception as err:
             raise TankGitError(
-                "%s uses Git LFS to store some of its files, but git-lfs "
+                f"{self} uses Git LFS to store some of its files, but git-lfs "
                 "does not appear to be installed on this machine. Install "
                 "it from https://git-lfs.com, run `git lfs install`, and "
-                "try again." % self
-            )
+                "try again."
+            ) from err
 
         files = json.loads(output).get("files") or []
         missing = [f["name"] for f in files if not f.get("checkout")]
