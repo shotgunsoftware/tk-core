@@ -143,14 +143,14 @@ def _resolve_filter(
         For an employee named "Bob" should give the result "Hello Bob!".
     """
     if resolver:
-        resolver = resolver.split(".")
+        resolution_steps = resolver.split(".")
     else:
-        resolver = []
+        resolution_steps = []
 
     result = data_obj
     ancestors = ancestors or {}
 
-    for resolution_step in resolver:
+    for resolution_step in resolution_steps:
         m = re.match(r"(?P<res_type>.+)\((?P<res_condition>.+)\)", resolution_step)
         if m:
             res_type = m.group("res_type")
@@ -201,8 +201,26 @@ def _resolve_filter(
             result = ancestors[res_type]
 
         else:
-            # Not a recognizable token, leave unchanged
-            result = resolution_step
+            # Not a recognizable token, return early with value of current step
+            #
+            # This is hacky but it works.
+            # There are two situations in which we might encounter an unrecognizable token:
+            #   1. The token is actually not meant to be resolved and should remain
+            #      unchanged.
+            #           - Will happen in the case of the 'disable_tokens' config attibute
+            #             which will include names of existing path tokens (e.g. "{Sequence}")
+            #   2. The token is an ancestor tag which does not exist in the current
+            #      ancestor map.
+            #           - May happen within a search filter where multiple ancestor types
+            #             are used with an "or" operator. Only one of the ancestor types
+            #             will resolve and the others might not exist.
+            #           - In this case, we need to return _some_ string, and it should not
+            #             be blank or contain any illegal characters (such as '.') that will
+            #             break the search query. Returning just the current resolution step is safe because
+            #             will ensure there are no illegal characters. And since this
+            #             condition can't be resolved anyway, we know it is irrelevant to
+            #             the query result so which string value we use really doesn't matter.
+            return resolution_step
 
     return result
 
