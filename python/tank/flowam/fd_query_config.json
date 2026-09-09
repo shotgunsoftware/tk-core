@@ -124,7 +124,7 @@
         },
         "child_filters": {
             "for_step": {
-                "search_filter": "components[medm21619349.shared:component.forPipelineStep-1.0.1].targetStep.objectId.id=='{DATA.ATTRIBUTE(id)}';components[medm21619349.shared:component.forPipelineStep-1.0.1].targetDeliverable.objectId.id=='{ASSET.ATTRIBUTE(id)}'"
+                "search_filter": "components[medm21619349.shared:component.forPipelineStep-1.0.1].targetStep.objectId.id=='{DATA.ATTRIBUTE(id)}';components[medm21619349.shared:component.forPipelineStep-1.0.1].targetDeliverable.objectId.id=='{ASSET.ATTRIBUTE(id)}' or components[medm21619349.shared:component.forPipelineStep-1.0.1].targetDeliverable.objectId.id=='{SHOT.ATTRIBUTE(id)}'"
             }
         }
     },
