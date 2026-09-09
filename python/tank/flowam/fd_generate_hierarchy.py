@@ -57,14 +57,6 @@ class TreeItem:
         # Sub-query context
         self._child_filters = {}
         self._child_path_tokens = []
-        # Map of ancestor tags to FlowAsset objects
-        # An ancestor tag is derived from an upstream token
-        # within the token path.
-        # Example: with a path like "{Asset}/{Step} you can create
-        # ancestor tags like "ASSET", "STEP".  These tags can be used
-        # as string tokens within the config that can then be resolved
-        # at runtime with the value of the associated ancestor asset.
-        self._ancestors = {}
 
         # Child items
         self.children = []
@@ -77,7 +69,6 @@ class TreeItem:
                 path_tokens=self._child_path_tokens,
                 parent_filters=self._child_filters,
                 recursive=False,
-                ancestors=self._ancestors,
             )
         else:
             self.children = []
@@ -113,9 +104,7 @@ class TreeItem:
                 child.pprint(filestream, recurse, num_tabs + 1)
 
 
-def _resolve_filter(
-    data_obj, resolver: str | None, ancestors: dict | None = None
-) -> Any:
+def _resolve_filter(data_obj, resolver: str | None) -> Any:
     """Given some kind of data object, resolve it based on
     resolution specifications provided.
 
@@ -124,11 +113,6 @@ def _resolve_filter(
         * PROPERTY(<property_name>) -> resolves to the value of the property of a component
         * ATTRIBUTE(<attribute_name>) -> resolves to the value of the attribute of any object
         * DATA -> the original data object
-
-    As well, arbitrary ancestor tags can be used provided that it exists in
-    the provided `ancestor` dictionary. (e.g. ASSET, STEP, etc.)
-    Within the dictionary, these tags should map to a FlowAsset object which can then
-    be used to resolve any remaining tokens.
 
     NOTE: A property may be a reference property, indicated with a "$id:" prefix
           i.e. PROPERTY($id:targetAsset) -> will resolve to the target asset
@@ -148,7 +132,6 @@ def _resolve_filter(
         resolver = []
 
     result = data_obj
-    ancestors = ancestors or {}
 
     for resolution_step in resolver:
         m = re.match(r"(?P<res_type>.+)\((?P<res_condition>.+)\)", resolution_step)
@@ -195,11 +178,6 @@ def _resolve_filter(
         elif res_type == "DATA":
             continue
 
-        elif res_type in ancestors:
-            # Grab the object associated with the ancestor tag
-            # (e.g. ASSET, SHOT, etc.)
-            result = ancestors[res_type]
-
         else:
             # Not a recognizable token, leave unchanged
             result = resolution_step
@@ -207,7 +185,7 @@ def _resolve_filter(
     return result
 
 
-def _resolve_string_tokens(data_obj, string, ancestors):
+def _resolve_string_tokens(data_obj, string):
     """Resolve any nested tokens within a string value."""
 
     result = ""
@@ -220,7 +198,7 @@ def _resolve_string_tokens(data_obj, string, ancestors):
             in_token = True
         elif c == "}":
             in_token = False
-            resolved_value = _resolve_filter(data_obj, token, ancestors)
+            resolved_value = _resolve_filter(data_obj, token)
             if resolved_value == token:
                 # No change indicates this was not a resolvable
                 # token, but a literal - leave value unchanged
@@ -235,17 +213,11 @@ def _resolve_string_tokens(data_obj, string, ancestors):
     return result
 
 
-def _resolve_items(
-    config: dict, parent: TreeItem, parent_filters: dict, ancestors: dict
-) -> list[TreeItem]:
+def _resolve_items(config: dict, parent: TreeItem, parent_filters: dict):
     """Use the resolution criteria provided by the config dictionary to
     generate a list of TreeItems.
-
-    (See `_generate_items_for_token` for argument info.)
     """
     from .fd_project_setup import _medm_search
-
-    logger = get_logger(__name__)
 
     # UI configuration - may contain tokens to be resolved
     label_config = config.get("label")
@@ -256,10 +228,10 @@ def _resolve_items(
     # When resolving items, the final data object that we end up with
     # may be of different types (e.g. asset, component, literal value)
     # depending on the resolution criteria, which may be multi-tiered.
-    res_config = config.get("resolution", {})
+    res_config = config.get("resolution")
     # A search filter indicates that a search query should be made
     # using this filter
-    q_filter = res_config.get("search_filter", "")
+    q_filter = res_config.get("search_filter")
     # The presence of an additional "assets resolver" indicates that
     # the first asset of the search result should be further
     # resolved using this resolution method to establish a new list of assets.
@@ -284,22 +256,11 @@ def _resolve_items(
     # even if a search filter is provided in our resolution config.
     if parent_filters and parent_filters.get("assets_resolver"):
         parent_assets_resolver = parent_filters.get("assets_resolver")
-        assets = _resolve_filter(parent.asset, parent_assets_resolver, ancestors)
+        assets = _resolve_filter(parent.asset, parent_assets_resolver)
     elif q_filter:
-        # De-duplicate filters here before querying
-        # Since we accumulate filters down a token path, conditions could
-        # very well be repeated along the way
-        # Also remove any empty conditions which will cause an error
-        unique_filter_list = list(dict.fromkeys(q_filter.split(";")))
-        if "" in unique_filter_list:
-            unique_filter_list.remove("")
-        q_filter = ";".join(unique_filter_list)
         assets = _medm_search(PROJECT_ID, q_filter)
     else:
-        # Not every branch of a token path may end up with legitimate filter criteria
-        # This is ok - provide a warning and move on.
-        logger.warning("Asset filter criteria is missing - skipping item resolution...")
-        return []
+        raise RuntimeError("Asset filter criteria is missing.")
 
     # Secondary filter pass
     # ---------------------
@@ -311,7 +272,7 @@ def _resolve_items(
             raise RuntimeError(
                 "Cannot run secondary 'assets_resolver'. Initial filter result is empty."
             )
-        assets = _resolve_filter(assets[0], assets_resolver, ancestors)
+        assets = _resolve_filter(assets[0], assets_resolver)
 
     # Now that we have a list of assets, build a tree item
     # to represent each.
@@ -319,16 +280,16 @@ def _resolve_items(
     for asset in assets:
         # Distill down to the data source we need
         # Remember, this could be resolved to any type
-        data_obj = _resolve_filter(asset, data_resolver, ancestors)
+        data_obj = _resolve_filter(asset, data_resolver)
 
         icon_value = color_value = None
         # The data object becomes the focal point for resolving
         # any variables within UI properties and child filters
-        label_value = _resolve_string_tokens(data_obj, label_config, ancestors)
+        label_value = _resolve_string_tokens(data_obj, label_config)
         if icon_config:
-            icon_value = _resolve_string_tokens(data_obj, icon_config, ancestors)
+            icon_value = _resolve_string_tokens(data_obj, icon_config)
         if color_config:
-            color_value = _resolve_string_tokens(data_obj, color_config, ancestors)
+            color_value = _resolve_string_tokens(data_obj, color_config)
 
         items.append(
             TreeItem(
@@ -346,26 +307,11 @@ def _generate_items_for_token(
     token: str,
     parent: TreeItem,
     path_tokens: list[str],
-    parent_filters: dict,
-    recursive: bool = False,
-    ancestors: dict | None = None,
+    parent_filters: dict | None = None,
+    recursive=False,
 ):
     """Generate the list of items that is the result of performing
     the resolution designated by the given query config.
-
-    Args:
-        token: The current token being processed.
-        parent: The TreeItem that the generated items should be parented under.
-        path_tokens: The rest of the path tokens to be processed by children.
-        parent_filters: An accumulated dictionary of fully resolved 'child_filters'
-                        coming from all previous ancestors / resolution steps.
-        recursive: If True, generate the entire tree.
-                   Otherwise, generate only the next level of items.
-        ancestors: A dictionary of previously processed tokens and their
-                   associated FlowAsset object within the context of the current
-                   location within the hierarchy tree.
-                        * key = ASSET TAG -> capitalized token name
-                        * value = FlowAsset object
 
     Raises:
         RuntimeError
@@ -386,20 +332,15 @@ def _generate_items_for_token(
         icon = config.get("icon")
         items = [TreeItem(label=label, icon=icon)]
 
-    elif not config.get("resolution") and not parent_filters:
-        # All dyanmic tokens are expected to have some resolution criteria
-        # whether via it's own resolution config, or some parent filters
+    elif not config.get("resolution"):
+        # All dyanmic tokens are expected to have a resolution config
         raise RuntimeError(
             f'Non-static token "{token}" missing "resolution" configuration.'
         )
 
     else:
         # Resolve dynamic tokens into a list of new tree items
-        # For the resolution, grab only the parent filters that are relevant
-        # to the current token
-        filter_type = token.lower().strip("{}")
-        parent_filters_for_type = parent_filters.get(filter_type, {})
-        items = _resolve_items(config, parent, parent_filters_for_type, ancestors)
+        items = _resolve_items(config, parent, parent_filters)
 
     items_list = "\n\t".join([item.label for item in items])
     logger.info(f"Generated {len(items)} items for token: {token}\n\t{items_list}")
@@ -414,69 +355,37 @@ def _generate_items_for_token(
     # criteria of my children. An item may have different child filters for
     # different entity types.
     child_filters = config.get("child_filters") or {}
-    # Translate the current token to an "ancestor tag" which will be used
-    # as a key for the ancestor map passed to our children.
-    ancestor_tag = token.upper().strip("{}")
+    # The next token in the path is the token that determines what my children are
+    # Strip this value down to its basic state in order to match it to the
+    # applicable "child filter" if found.
+    next_token = path_tokens[0].strip("{}").lower()
 
     for item in items:
-        # We will create a copy of the child filters with resolved values
-        # based on the current item context
-        resolved_child_filters = {}
+        child_filter = {}
         for ent_type, ent_filters in child_filters.items():
-            # For each entity type, there may be multiple filters
-            # Each one may have variables that need to be resolved using
-            # the current item's information.
-            resolved_child_filters[ent_type] = {}
-            for filter_type, filter_str in ent_filters.items():
-                if isinstance(filter_str, list):
-                    # Some filters may be lists, so resolve each list item
-                    new_filter = []
-                    for f in filter_str:
-                        new_filter.append(
-                            _resolve_string_tokens(item.asset, f, ancestors)
-                        )
-                    resolved_child_filters[ent_type][filter_type] = new_filter
-                else:
-                    resolved_child_filters[ent_type][filter_type] = (
-                        _resolve_string_tokens(item.asset, filter_str, ancestors)
-                    )
-
-        # We will also carry forward any filters from our parent
-        # Merge into the same dictionary
-        for ent_type, ent_filters in parent_filters.items():
-            if ent_type not in resolved_child_filters:
-                resolved_child_filters[ent_type] = {}
-            for filter_type, filter_str in ent_filters.items():
-                if filter_type in resolved_child_filters[ent_type]:
+            if ent_type == next_token:
+                # For each entity type, there may be multiple filters
+                # Each one may have variables that need to be resolved using
+                # the current item's information.
+                for filter_type, filter_str in ent_filters.items():
                     if isinstance(filter_str, list):
-                        resolved_child_filters[ent_type][filter_type].append(filter_str)
+                        new_filter = []
+                        for f in filter_str:
+                            new_filter.append(_resolve_string_tokens(item.asset, f))
+                        child_filter[filter_type] = new_filter
                     else:
-                        resolved_child_filters[ent_type][filter_type] += (
-                            ";" + filter_str
+                        child_filter[filter_type] = _resolve_string_tokens(
+                            item.asset, filter_str
                         )
-                else:
-                    resolved_child_filters[ent_type][filter_type] = filter_str
-
         # Once we've resolved the filters, make sure to save it for future reference
         # (The tree nodes may be expanded on demand, so we may not get the next level of
         # children until later.)
-        item._child_filters = resolved_child_filters
+        item._child_filters = child_filter
         item._child_path_tokens = list(path_tokens)
-        # Also create a copy of the current ancestor map and add myself to it
-        # so my children can resolve any ancestor tags pointing to me in their config
-        child_ancestors = ancestors.copy() if ancestors else {}
-        if item.asset:
-            child_ancestors[ancestor_tag] = item.asset
-        item._ancestors = child_ancestors
-
         # Only query the next level if requested
         if recursive:
             item.children = _generate_items(
-                item,
-                list(path_tokens),
-                resolved_child_filters,
-                recursive=True,
-                ancestors=child_ancestors,
+                item, list(path_tokens), child_filter, recursive=True
             )
 
     return items
@@ -486,13 +395,10 @@ def _generate_items(
     parent: TreeItem,
     path_tokens: list[str],
     parent_filters: dict | None = None,
-    recursive: bool = False,
-    ancestors: dict | None = None,
+    recursive=False,
 ):
     """Generate the list of items that is the result of querying
     MEDM based on the next token in the token list provided.
-
-    (See `_generate_items_for_token` for argument info.)
     """
     logger = get_logger(__name__)
 
@@ -500,39 +406,29 @@ def _generate_items(
         return []
 
     token = path_tokens.pop(0)
-    logger.info(f"Processing path token: {token}...")
-    # The token itself may be a concatenation of multiple tokens
-    # Process each one and concatenate the results
-    tokens = token.split("+")
+    logger.info(f"Generating items for token: {token}...")
 
+    # A single token may have multiple related queries that should
+    # be concatenated together
+    # The family of tokens will denoted by "<TOKEN>" or "<TOKEN>+<some name>"
     items = []
-    for tk in tokens:
-        logger.info(f"Processing sub-token: {token}...")
-
-        # A single token may have multiple related queries that should
-        # be concatenated together
-        # The family of tokens will denoted by "<TOKEN>" or "<TOKEN>+<some name>"
-
-        # Parent configs can specify certain tokens to be ignored among its
-        # child config family.
-        parent_filters = parent_filters or {}
-        disabled_tokens = parent_filters.get("disable_tokens", [])
-        for key in QUERY_CONFIG:
-            if key in disabled_tokens:
-                continue  # skip disabled tokens
-            if key == tk or key.startswith(tk + "+"):
-                logger.info(f"Generating items for related token: {key}...")
-                items.extend(
-                    _generate_items_for_token(
-                        token=key,
-                        parent=parent,
-                        path_tokens=list(path_tokens),
-                        parent_filters=parent_filters,
-                        recursive=recursive,
-                        ancestors=ancestors,
-                    )
+    # Parent configs can specify certain tokens to be ignored among its
+    # child config family.
+    parent_filters = parent_filters or {}
+    disabled_tokens = parent_filters.get("disable_tokens", [])
+    for key in QUERY_CONFIG:
+        if key in disabled_tokens:
+            continue  # skip disabled tokens
+        if key == token or key.startswith(token + "+"):
+            items.extend(
+                _generate_items_for_token(
+                    token=key,
+                    parent=parent,
+                    path_tokens=list(path_tokens),
+                    parent_filters=parent_filters,
+                    recursive=recursive,
                 )
-
+            )
     return items
 
 

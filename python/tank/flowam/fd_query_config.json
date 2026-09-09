@@ -107,9 +107,6 @@
         "child_filters": {
             "step": {
                 "assets_resolver": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
-            },
-            "for_deliverable": {
-                "search_filter": "components[medm21619349.shared:component.forDeliverable-1.0.0].targetDeliverable.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             }
         }
     },
@@ -121,11 +118,6 @@
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.pipelineStep-1.0.3'",
             "data_resolver": "COMPONENT(name=Pipeline Step)"
-        },
-        "child_filters": {
-            "for_step": {
-                "search_filter": "components[medm21619349.shared:component.forPipelineStep-1.0.1].targetStep.objectId.id=='{DATA.ATTRIBUTE(id)}';components[medm21619349.shared:component.forPipelineStep-1.0.1].targetDeliverable.objectId.id=='{ASSET.ATTRIBUTE(id)}'"
-            }
         }
     },
     "{Episode}": {
@@ -187,20 +179,7 @@
         "child_filters": {
             "step": {
                 "assets_resolver": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
-            },
-            "for_deliverable": {
-                "search_filter": "components[medm21619349.shared:component.forDeliverable-1.0.0].targetDeliverable.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             }
         }
-    },
-    "{For_Deliverable}": {
-        "kind": "token",
-        "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset"
-    },
-    "{For_Step}": {
-        "kind": "token",
-        "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset"
     }
 }
