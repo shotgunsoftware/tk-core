@@ -31,6 +31,49 @@ log = LogManager.get_logger(__name__)
 SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
 
 
+def _to_extended_path(path, force=False):
+    """
+    On Windows, prepend the extended-length path prefix to paths >= 260
+    characters to bypass the MAX_PATH limitation.
+
+    Extended-length paths come in two flavours:
+
+    * Drive-letter paths (``C:\\...``) are prefixed with ``\\\\?\\``.
+    * UNC paths (``\\\\server\\share\\...``) require the ``\\\\?\\UNC\\``
+      prefix; naively prepending ``\\\\?\\`` produces an invalid path.
+
+    Drive-less rooted paths (``\\foo``) are not eligible for the prefix
+    because the extended-length syntax requires a fully-qualified path.
+
+    :param path: Normalised path string.
+    :param force: If ``True``, apply the prefix regardless of the path
+        length. This is needed when handing a (potentially short) root to an
+        API that walks into it internally - e.g. ``shutil.rmtree`` or
+        ``os.walk`` - so that the deeply-nested children it generates inherit
+        the extended-length prefix and stay under the limit.
+    :returns: Path with the appropriate extended-length prefix on Windows
+        when necessary, otherwise the original path unchanged.
+    """
+    if sys.platform != "win32" or (not force and len(path) < 260):
+        return path
+
+    if path.startswith("\\\\?\\"):
+        # Already an extended-length path - don't double-prefix.
+        return path
+
+    if path.startswith("\\\\"):
+        # UNC path (\\\\server\\share\\...). The extended-length form requires
+        # \\\\?\\UNC\\ rather than \\\\?\\\\\\\\
+        return "\\\\?\\UNC\\" + path[2:]
+
+    if len(path) >= 3 and path[1] == ":" and path[2] == "\\":
+        # Fully-qualified drive-letter path (C:\\...).
+        return "\\\\?\\" + path
+
+    # Drive-less rooted paths (\\foo) or relative paths are not eligible.
+    return path
+
+
 def with_cleared_umask(func):
     """
     Decorator which clears the umask for a method.
@@ -88,7 +131,10 @@ def compute_folder_size(path):
     :return: size in bytes
     """
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(path):
+    # os.walk descends into the tree internally, so we hand it a force-extended
+    # root: the deep dirpaths it yields inherit the \\?\ prefix and stay under
+    # MAX_PATH even when the root itself is short.
+    for dirpath, dirnames, filenames in os.walk(_to_extended_path(path, force=True)):
         for f in filenames:
             fp = os.path.join(dirpath, f)
             total_size += os.path.getsize(fp)
@@ -106,6 +152,7 @@ def touch_file(path, permissions=0o666):
 
     :raises: OSError - if there was a problem reading/writing the file
     """
+    path = _to_extended_path(path)
     if not os.path.exists(path):
         try:
             fh = open(path, "wb")
@@ -130,6 +177,9 @@ def ensure_folder_exists(path, permissions=0o775, create_placeholder_file=False)
 
     :raises: OSError - if there was a problem creating the folder
     """
+    # force-extend: os.makedirs *creates* directories, which Windows caps at
+    # MAX_PATH - 12 (248) rather than 260, so the length guard is not enough.
+    path = _to_extended_path(path, force=True)
     if not os.path.exists(path):
         try:
             os.makedirs(path, permissions)
@@ -175,19 +225,20 @@ def copy_file(src, dst, permissions=0o666):
     if is_windows():
         src = os.path.realpath(src)
         # Check if the dst is a directory and change it to a filename if it is
-        if os.path.isdir(dst):
+        if os.path.isdir(_to_extended_path(dst)):
             basename = os.path.basename(src)
             dst = os.path.join(dst, basename)
 
         dst = os.path.realpath(dst)
-        # Use larger copy buffer in the shutil.copyfileobj operation
-        with open(src, mode="rb") as windows_src:
-            with open(dst, mode="wb") as windows_dst:
+        # Use larger copy buffer in the shutil.copyfileobj operation.
+        # Extend both paths so deeply-nested files stay under MAX_PATH.
+        with open(_to_extended_path(src), mode="rb") as windows_src:
+            with open(_to_extended_path(dst), mode="wb") as windows_dst:
                 shutil.copyfileobj(windows_src, windows_dst, length=16 * 1024 * 1024)
         log.debug("Used shutil override on Windows")
     else:
         shutil.copy(src, dst)
-    os.chmod(dst, permissions)
+    os.chmod(_to_extended_path(dst), permissions)
 
 
 def safe_delete_file(path):
@@ -252,10 +303,20 @@ def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
 
     files = []
 
-    if not os.path.exists(dst):
-        os.mkdir(dst, folder_permissions)
+    # This function drives the recursion itself, so we extend each individual
+    # path right before the filesystem call. The length guard in
+    # _to_extended_path means only paths that actually exceed the limit get the
+    # \\?\ prefix, which covers the common case of a short bundle root with
+    # deeply-nested files/dirs that blow past MAX_PATH.
+    #
+    # Directory *creation* is special: Windows caps a new directory path at
+    # MAX_PATH - 12 (248), not 260, to leave room for 8.3 children. So os.mkdir
+    # is force-extended - a 248-260 char dir would be missed by the length
+    # guard yet still rejected by CreateDirectory.
+    if not os.path.exists(_to_extended_path(dst)):
+        os.mkdir(_to_extended_path(dst, force=True), folder_permissions)
 
-    names = os.listdir(src)
+    names = os.listdir(_to_extended_path(src))
     for name in names:
         # get rid of system files
         if name in actual_skip_list:
@@ -265,10 +326,12 @@ def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
         dstname = os.path.join(dst, name)
 
         try:
-            if os.path.isdir(srcname):
+            if os.path.isdir(_to_extended_path(srcname)):
                 files.extend(copy_folder(srcname, dstname, folder_permissions))
             else:
-                shutil.copy(srcname, dstname)
+                shutil.copy(_to_extended_path(srcname), _to_extended_path(dstname))
+                # Return the plain path; callers (e.g. move_folder) re-extend
+                # as needed when operating on it.
                 files.append(srcname)
                 # if the file extension is sh, set executable permissions
                 if (
@@ -278,7 +341,7 @@ def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
                 ):
                     try:
                         # make it readable and executable for everybody
-                        os.chmod(dstname, 0o775)
+                        os.chmod(_to_extended_path(dstname), 0o775)
                     except Exception as e:
                         log.error(
                             "Can't set executable permissions on %s: %s" % (dstname, e)
@@ -319,14 +382,17 @@ def move_folder(src, dst, folder_permissions=0o775):
         # now clear out the install location
         log.debug("Clearing out source location...")
         for f in src_files:
+            # f may be a deeply-nested path returned by copy_folder; extend it
+            # so os.stat/os.chmod/os.remove stay under MAX_PATH on Windows.
+            ext_f = _to_extended_path(f)
             try:
                 # on windows, ensure all files are writable
                 if is_windows():
-                    attr = os.stat(f)[0]
+                    attr = os.stat(ext_f)[0]
                     if not attr & stat.S_IWRITE:
                         # file is readonly! - turn off this attribute
-                        os.chmod(f, stat.S_IWRITE)
-                os.remove(f)
+                        os.chmod(ext_f, stat.S_IWRITE)
+                os.remove(ext_f)
             except Exception as e:
                 log.warning("Could not delete file %s: %s" % (f, e))
 
@@ -438,12 +504,16 @@ def safe_delete_folder(path):
         else:
             log.warning("Could not delete %s. Skipping." % path)
 
-    if os.path.exists(path):
+    # shutil.rmtree walks the tree internally, so we force-extend the (possibly
+    # short) root: every deeply-nested child rmtree generates inherits the \\?\
+    # prefix and stays under MAX_PATH on Windows.
+    ext_path = _to_extended_path(path, force=True)
+    if os.path.exists(ext_path):
         try:
             # On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,
             # remove the flag.
             # Inspired by http://stackoverflow.com/a/4829285/1074536
-            shutil.rmtree(path, onerror=_on_rm_error)
+            shutil.rmtree(ext_path, onerror=_on_rm_error)
         except Exception as e:
             log.warning("Could not delete %s: %s" % (path, e))
     else:
