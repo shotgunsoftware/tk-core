@@ -391,14 +391,8 @@ class QtImporter(object):
                 pyside6 = self._import_pyside6_as_pyside()
                 logger.debug("Imported PySide6 as PySide.")
                 return pyside6
-            except ImportError:
-                # TEMPORARY (SG-45110): this exception is normally swallowed silently, print
-                # the real traceback so we can diagnose why it still fails on Rundeck. Revert
-                # once root-caused.
-                import traceback
-
-                print("SG-45110 DEBUG: PySide6-as-PySide import failed:")
-                traceback.print_exc()
+            except ImportError as e:
+                logger.debug("Unable to import PySide6 as PySide: %s", e, exc_info=True)
 
         elif interface_version_requested == self.QT5:
             try:
