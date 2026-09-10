@@ -12,10 +12,14 @@ import os
 import shutil
 import stat
 import subprocess  # noqa
+import sys
+import tempfile
+import unittest
 
 import tank.util.filesystem as fs
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import (
+    ShotgunTestBase,
     TankTestBase,
     mock,
     setUpModule,  # noqa
@@ -320,3 +324,132 @@ class TestOpenInFileBrowser(TankTestBase):
             self.assertEqual(
                 args[0], ["cmd.exe", "/C", "start", os.path.dirname(self.test_sequence)]
             )
+
+
+class TestToExtendedPath(ShotgunTestBase):
+    """
+    Tests the tank.util.filesystem._to_extended_path() helper.
+    """
+
+    _LONG_ABS_PATH = "C:\\" + "a" * 257  # 260 chars, drive-letter absolute
+    _LONG_UNC_PATH = "\\\\server\\share\\" + "a" * 245  # 260 chars, UNC
+
+    def test_short_path_unchanged(self):
+        """A path under 260 characters is returned unchanged on all platforms."""
+        path = "C:\\short\\path\\file.txt"
+        self.assertEqual(fs._to_extended_path(path), path)
+
+    def test_relative_path_unchanged(self):
+        """A relative path >= 260 characters must NOT receive the prefix."""
+        path = "relative\\" + "a" * 257  # long but relative
+        self.assertFalse(os.path.isabs(path))
+        self.assertEqual(fs._to_extended_path(path), path)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_long_absolute_path_prefixed_on_windows(self):
+        """A long drive-letter path on Windows receives the \\\\?\\ prefix."""
+        result = fs._to_extended_path(self._LONG_ABS_PATH)
+        self.assertTrue(result.startswith("\\\\?\\"))
+        self.assertEqual(result, "\\\\?\\" + self._LONG_ABS_PATH)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_already_prefixed_path_unchanged(self):
+        """A path that already has the \\\\?\\ prefix is not double-prefixed."""
+        prefixed = "\\\\?\\" + self._LONG_ABS_PATH
+        self.assertEqual(fs._to_extended_path(prefixed), prefixed)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_long_unc_path_prefixed_with_unc_prefix(self):
+        """A long UNC path receives \\\\?\\UNC\\ prefix, not \\\\?\\\\\\\\."""
+        result = fs._to_extended_path(self._LONG_UNC_PATH)
+        self.assertTrue(result.startswith("\\\\?\\UNC\\"))
+        self.assertEqual(result, "\\\\?\\UNC\\" + self._LONG_UNC_PATH[2:])
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_already_extended_unc_path_unchanged(self):
+        """A path already using \\\\?\\UNC\\ is not double-prefixed."""
+        prefixed = "\\\\?\\UNC\\" + self._LONG_UNC_PATH[2:]
+        self.assertEqual(fs._to_extended_path(prefixed), prefixed)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_drive_less_rooted_path_unchanged(self):
+        """A drive-less rooted path (\\foo) must NOT receive the prefix."""
+        path = "\\" + "a" * 259  # rooted but no drive letter, >= 260 chars
+        self.assertEqual(fs._to_extended_path(path), path)
+
+    @unittest.skipIf(sys.platform == "win32", "Non-Windows behaviour")
+    def test_long_absolute_path_unchanged_on_non_windows(self):
+        """A long absolute path on non-Windows platforms is returned unchanged."""
+        path = "/" + "a" * 260
+        self.assertEqual(fs._to_extended_path(path), path)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_force_prefixes_short_absolute_path_on_windows(self):
+        """force=True adds the prefix even to a short absolute path on Windows."""
+        path = "C:\\short\\path"
+        self.assertEqual(fs._to_extended_path(path, force=True), "\\\\?\\" + path)
+
+    @unittest.skipIf(sys.platform == "win32", "Non-Windows behaviour")
+    def test_force_is_noop_on_non_windows(self):
+        """force=True is still a no-op on non-Windows platforms."""
+        path = "/short/path"
+        self.assertEqual(fs._to_extended_path(path, force=True), path)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_dotdot_is_normalized_before_prefixing(self):
+        """
+        The \\?\\ prefix disables '..' resolution, so a path containing '..'
+        must be normalized before the prefix is applied - otherwise the
+        resulting path is invalid (regression test for the safe_delete_folder
+        os.pardir case).
+        """
+        path = "C:\\some\\folder\\..\\" + "a" * 255
+        result = fs._to_extended_path(path, force=True)
+        self.assertEqual(result, "\\\\?\\" + os.path.normpath(path))
+        self.assertNotIn("\\..\\", result)
+
+
+class TestCopyFolderLongPaths(ShotgunTestBase):
+    """
+    Tests that copy_folder (and the safe_delete_folder cleanup) cope with files
+    nested deeper than the Windows MAX_PATH limit - the SG-45189 scenario.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # A short-rooted temp dir; the test grows a deep tree beneath it.
+        self._tmp_root = tempfile.mkdtemp(prefix="sg45189_")
+
+    def tearDown(self):
+        fs.safe_delete_folder(self._tmp_root)
+        super().tearDown()
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
+    def test_copy_folder_with_leaf_exceeding_max_path(self):
+        """
+        A source tree with a short root but a leaf path >= 260 chars is copied
+        successfully. Without the extended-path handling this raises IOError.
+        """
+        src_root = os.path.join(self._tmp_root, "deep_src")
+
+        # Build a nested directory whose leaf file path exceeds MAX_PATH.
+        deep = src_root
+        while len(os.path.join(deep, "leaf.txt")) < 275:
+            deep = os.path.join(deep, "d" * 20)
+        os.makedirs(fs._to_extended_path(deep, force=True))
+
+        leaf = os.path.join(deep, "leaf.txt")
+        self.assertGreaterEqual(len(leaf), 260)
+        with open(fs._to_extended_path(leaf), "w") as fh:
+            fh.write("hello long path")
+
+        dst_root = os.path.join(self._tmp_root, "deep_dst")
+        copied = fs.copy_folder(src_root, dst_root)
+
+        dst_leaf = leaf.replace(src_root, dst_root, 1)
+        self.assertTrue(os.path.exists(fs._to_extended_path(dst_leaf)))
+        self.assertIn(leaf, copied)
+
+        # safe_delete_folder must also cope with the deep tree (force-extended root).
+        fs.safe_delete_folder(src_root)
+        self.assertFalse(os.path.exists(fs._to_extended_path(src_root, force=True)))
