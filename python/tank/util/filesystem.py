@@ -45,7 +45,8 @@ def _to_extended_path(path, force=False):
     Drive-less rooted paths (``\\foo``) are not eligible for the prefix
     because the extended-length syntax requires a fully-qualified path.
 
-    :param path: Normalised path string.
+    :param path: Path string. It is normalised internally before the prefix is
+        applied (see note below), so callers need not pre-normalise it.
     :param force: If ``True``, apply the prefix regardless of the path
         length. This is needed when handing a (potentially short) root to an
         API that walks into it internally - e.g. ``shutil.rmtree`` or
@@ -54,21 +55,34 @@ def _to_extended_path(path, force=False):
     :returns: Path with the appropriate extended-length prefix on Windows
         when necessary, otherwise the original path unchanged.
     """
-    if sys.platform != "win32" or (not force and len(path) < 260):
+    if sys.platform != "win32":
         return path
 
     if path.startswith("\\\\?\\"):
-        # Already an extended-length path - don't double-prefix.
+        # Already an extended-length path - don't double-prefix (and don't
+        # normalise, which would corrupt the \\?\ prefix).
         return path
 
-    if path.startswith("\\\\"):
+    # The \\?\ prefix disables the automatic normalisation Windows applies to
+    # normal paths, so any ".", ".." or "/" left in the path would produce an
+    # invalid extended-length path (e.g. "...\\foo\\.." would no longer resolve
+    # to its parent). Normalise first - normpath collapses these without
+    # resolving relative paths against the current working directory.
+    normalized = os.path.normpath(path)
+
+    if not force and len(normalized) < 260:
+        # Short enough that the normal API - which normalises for us - is fine.
+        # Return the caller's original path untouched.
+        return path
+
+    if normalized.startswith("\\\\"):
         # UNC path (\\\\server\\share\\...). The extended-length form requires
         # \\\\?\\UNC\\ rather than \\\\?\\\\\\\\
-        return "\\\\?\\UNC\\" + path[2:]
+        return "\\\\?\\UNC\\" + normalized[2:]
 
-    if len(path) >= 3 and path[1] == ":" and path[2] == "\\":
+    if len(normalized) >= 3 and normalized[1] == ":" and normalized[2] == "\\":
         # Fully-qualified drive-letter path (C:\\...).
-        return "\\\\?\\" + path
+        return "\\\\?\\" + normalized
 
     # Drive-less rooted paths (\\foo) or relative paths are not eligible.
     return path
