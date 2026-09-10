@@ -398,7 +398,7 @@ class TestToExtendedPath(ShotgunTestBase):
     @unittest.skipUnless(sys.platform == "win32", "Windows-only behaviour")
     def test_dotdot_is_normalized_before_prefixing(self):
         """
-        The \\?\ prefix disables '..' resolution, so a path containing '..'
+        The \\?\\ prefix disables '..' resolution, so a path containing '..'
         must be normalized before the prefix is applied - otherwise the
         resulting path is invalid (regression test for the safe_delete_folder
         os.pardir case).
