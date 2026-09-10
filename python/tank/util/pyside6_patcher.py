@@ -474,6 +474,7 @@ class PySide6Patcher(PySide2Patcher):
         cls,
         QtWebEngineWidgets,
         QtWebEngineCore,
+        QtOpenGL=None,
     ):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
@@ -485,6 +486,10 @@ class PySide6Patcher(PySide2Patcher):
         :param QtCore: The QtCore module for PySide6.
         :param QtGui: The QtGui module for PySide6.
         :param QtWidgets: The QtWidgets module for PySide6.
+        :param QtOpenGL: The QtOpenGL module for PySide6, or None if it could not be
+            imported (e.g. missing OpenGL/EGL shared libraries on a headless server). When
+            None, the Qt4-compatibility classes normally moved back from QtOpenGL to QtGui
+            simply won't be available.
 
         :return: The PySide6 modules QtCore and QtGui patched as PySide modules.
         :rtype: tuple
@@ -494,7 +499,6 @@ class PySide6Patcher(PySide2Patcher):
         from PySide6 import (
             QtCore,
             QtGui,
-            QtOpenGL,
             QtWidgets,
         )
 
@@ -523,7 +527,15 @@ class PySide6Patcher(PySide2Patcher):
         # Some classes from QtGui have been moved to QtOpenGL, so put them back into QtGui for
         # compatibility with Qt4
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
-        cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
+        if QtOpenGL:
+            cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
+        else:
+            warnings.warn(
+                "Unable to import QtOpenGL from PySide6. Qt4-compatibility classes normally "
+                "moved back from QtOpenGL to QtGui (e.g. QOpenGLBuffer, QOpenGLShader) will "
+                "not be available.",
+                RuntimeWarning,
+            )
 
         if qt_web_engine_widgets_shim:
             # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim

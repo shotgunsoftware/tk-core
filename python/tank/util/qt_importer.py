@@ -279,9 +279,15 @@ class QtImporter(object):
             )
             QtWebEngineCore = self._import_module_by_name("PySide6", "QtWebEngineCore")
 
+        # QtOpenGL requires OpenGL/EGL shared libraries that may be missing on headless
+        # servers, so import it separately rather than letting it take down the whole
+        # PySide6 import.
+        QtOpenGL = self._import_module_by_name("PySide6", "QtOpenGL")
+
         QtCore, QtGui, QtWebEngineWidgets = PySide6Patcher.patch(
             QtWebEngineWidgets,
             QtWebEngineCore,
+            QtOpenGL,
         )
 
         QtNetwork = self._import_module_by_name("PySide6", "QtNetwork")
@@ -385,8 +391,8 @@ class QtImporter(object):
                 pyside6 = self._import_pyside6_as_pyside()
                 logger.debug("Imported PySide6 as PySide.")
                 return pyside6
-            except ImportError:
-                pass
+            except ImportError as e:
+                logger.debug("Unable to import PySide6 as PySide: %s", e, exc_info=True)
 
         elif interface_version_requested == self.QT5:
             try:
