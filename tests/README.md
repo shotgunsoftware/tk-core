@@ -1,17 +1,6 @@
 Readme for Tank core tests
 ==========================
 
-Required packages
------------------
-To install the required dependencies, just run the following command on the `python` directory.
-
-```shell
-cd python
-./upgrade_third_party.sh
-```
-
-Packages will be installed under `tests/python/third_party`
-
 Running the test suite
 -----------------------
 To run the tests on Windows run the `run_tests.bat`. Also you need to run it as `admin` in `powershell`

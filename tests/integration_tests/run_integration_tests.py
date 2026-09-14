@@ -33,7 +33,6 @@ def main():
     environ["PYTHONPATH"] = os.path.pathsep.join(
         [
             os.path.join(current_folder, "..", "python"),
-            os.path.join(current_folder, "..", "python", "third_party"),
             os.path.join(current_folder, "..", "..", "python"),
         ]
     )
