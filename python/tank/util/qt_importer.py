@@ -352,13 +352,11 @@ class QtImporter(object):
 
     def _import_modules(self, interface_version_requested):
         """
-        Tries to import different Qt binding implementation in the following order:
-            - PySide2
-            - PySide6
+        Tries to import a Qt binding compatible with the requested interface.
 
-        PySide6 is attempted to be imported last at the moment because it is is not yet fully
-        supported. If a DCC requires PySide6, it can run with the current level of support,
-        but be warned that you may encounter issues.
+        For the QT4 interface, PySide2 and PySide6 are tried in whichever order is
+        most likely to succeed for the running Python version, falling back to the
+        other one if the first attempt fails.
 
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
             no binding is avaialble.
@@ -372,31 +370,29 @@ class QtImporter(object):
         logger.debug("Requesting %s-like interface", interface)
 
         if interface_version_requested == self.QT4:
-            # Toolkit ships PySide2 for Python <= 3.10 and PySide6 for Python > 3.10
-            # (see tk-internal/app_store/requirements.txt), so only one of them is
-            # normally expected to be installed. Try that one first so a normal
-            # bootstrap doesn't log a doomed import attempt for the other binding.
-            if sys.version_info >= (3, 11):
+            # PySide2 has no published wheels for Python 3.11+, while ShotGrid
+            # Desktop still ships PySide2 for Python 3.9/3.10. Try the binding most
+            # likely to succeed first, based on the running Python version, so a
+            # normal bootstrap doesn't log a doomed import attempt for the other one.
+            if sys.version_info < (3, 11):
                 attempts = (
-                    ("PySide6", self._import_pyside6_as_pyside),
                     ("PySide2", self._import_pyside2_as_pyside),
+                    ("PySide6", self._import_pyside6_as_pyside),
                 )
             else:
                 attempts = (
-                    ("PySide2", self._import_pyside2_as_pyside),
                     ("PySide6", self._import_pyside6_as_pyside),
+                    ("PySide2", self._import_pyside2_as_pyside),
                 )
 
             for binding_name, import_as_pyside in attempts:
                 try:
                     result = import_as_pyside()
-                    logger.debug("Imported %s as PySide.", binding_name)
+                    logger.debug(f"Imported {binding_name} as PySide.")
                     return result
                 except ImportError as e:
                     logger.debug(
-                        "Unable to import %s as PySide: %s",
-                        binding_name,
-                        e,
+                        f"Unable to import {binding_name} as PySide: {e}",
                         exc_info=True,
                     )
 
