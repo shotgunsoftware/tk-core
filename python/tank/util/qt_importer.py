@@ -371,19 +371,18 @@ class QtImporter(object):
 
         if interface_version_requested == self.QT4:
             # Try the binding most likely to succeed first, based on the running
-            # Python version.
+            # Python version and the VFX Reference Platform's Python/Qt pairing for
+            # that year. This is only a heuristic: individual DCCs don't always
+            # track the reference platform exactly (e.g. Houdini only moved to
+            # Qt6 this year, despite already being on Python 3.11 with PySide2).
             if sys.version_info < (3, 11):
-                # PySide6 wasn't a viable option yet on these Python versions, and
-                # ShotGrid Desktop still ships PySide2 for Python 3.9/3.10.
+                # VFX Reference Platform CY2022/CY2023: Python 3.9/3.10, PySide2/Qt5.
                 attempts = (
                     ("PySide2", self._import_pyside2_as_pyside),
                     ("PySide6", self._import_pyside6_as_pyside),
                 )
             else:
-                # Qt6/PySide6 has been the VFX Reference Platform default for a few
-                # years now, and Python 3.11/3.13 have been running PySide6
-                # successfully. ShotGrid Desktop and Flow PT Desktop have also
-                # shipped with Qt6 for a couple of years.
+                # VFX Reference Platform CY2024+: Python 3.11+, PySide6/Qt6.
                 attempts = (
                     ("PySide6", self._import_pyside6_as_pyside),
                     ("PySide2", self._import_pyside2_as_pyside),
