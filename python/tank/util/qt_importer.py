@@ -14,6 +14,7 @@ Qt version abstraction layer.
 
 import os
 import pkgutil
+import sys
 
 from ..log import LogManager
 
@@ -371,22 +372,33 @@ class QtImporter(object):
         logger.debug("Requesting %s-like interface", interface)
 
         if interface_version_requested == self.QT4:
-            # First, try PySide 2 since Toolkit ships with PySide2.
-            try:
-                pyside2 = self._import_pyside2_as_pyside()
-                logger.debug("Imported PySide2 as PySide.")
-                return pyside2
-            except ImportError as e:
-                logger.debug("Unable to import PySide2 as PySide: %s", e, exc_info=True)
+            # Toolkit ships PySide2 for Python <= 3.10 and PySide6 for Python > 3.10
+            # (see tk-internal/app_store/requirements.txt), so only one of them is
+            # normally expected to be installed. Try that one first so a normal
+            # bootstrap doesn't log a doomed import attempt for the other binding.
+            if sys.version_info >= (3, 11):
+                attempts = (
+                    ("PySide6", self._import_pyside6_as_pyside),
+                    ("PySide2", self._import_pyside2_as_pyside),
+                )
+            else:
+                attempts = (
+                    ("PySide2", self._import_pyside2_as_pyside),
+                    ("PySide6", self._import_pyside6_as_pyside),
+                )
 
-            # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
-            # require PySide6 to run with the current support
-            try:
-                pyside6 = self._import_pyside6_as_pyside()
-                logger.debug("Imported PySide6 as PySide.")
-                return pyside6
-            except ImportError as e:
-                logger.debug("Unable to import PySide6 as PySide: %s", e, exc_info=True)
+            for binding_name, import_as_pyside in attempts:
+                try:
+                    result = import_as_pyside()
+                    logger.debug("Imported %s as PySide.", binding_name)
+                    return result
+                except ImportError as e:
+                    logger.debug(
+                        "Unable to import %s as PySide: %s",
+                        binding_name,
+                        e,
+                        exc_info=True,
+                    )
 
         elif interface_version_requested == self.QT5:
             try:
