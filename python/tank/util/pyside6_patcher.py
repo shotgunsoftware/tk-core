@@ -494,7 +494,7 @@ class PySide6Patcher(PySide2Patcher):
         from PySide6 import (
             QtCore,
             QtGui,
-            # QtOpenGL,
+            QtOpenGL,
             QtWidgets,
         )
 
@@ -520,10 +520,10 @@ class PySide6Patcher(PySide2Patcher):
             qt_core_shim, QtCore, set(dir(QtCore)) - cls._core_to_qtgui
         )
 
-        # # Some classes from QtGui have been moved to QtOpenGL, so put them back into QtGui for
-        # # compatibility with Qt4
-        # # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
-        # cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
+        # Some classes from QtGui have been moved to QtOpenGL, so put them back into QtGui for
+        # compatibility with Qt4
+        # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
+        cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
 
         if qt_web_engine_widgets_shim:
             # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
