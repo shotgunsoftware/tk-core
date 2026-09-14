@@ -368,28 +368,26 @@ class QtImporter(object):
             self.QT6: "Qt6",
         }.get(interface_version_requested)
         logger.debug("Requesting %s-like interface", interface)
+        failures = []
 
         if interface_version_requested == self.QT4:
             # Try the binding most likely to succeed first, based on the running
-            # Python version and the VFX Reference Platform's Python/Qt pairing
-            # for that year. This is only a heuristic: individual DCCs don't
-            # always track the reference platform exactly (e.g. Houdini only
-            # moved to Qt6 this year, despite already being on Python 3.11 with
-            # PySide2).
+            # Python version and the VFX Reference Platform's Python/Qt pairing.
+            # This is only a heuristic: individual DCCs don't always track the
+            # reference platform exactly.
             if sys.version_info < (3, 11):
-                # VFX Reference Platform CY2022/CY2023: Python 3.9/3.10, PySide2/Qt5.
+                # VFX Reference Platform CY2023 and earlier: PySide2/Qt5
                 attempts = (
                     ("PySide2", self._import_pyside2_as_pyside),
                     ("PySide6", self._import_pyside6_as_pyside),
                 )
             else:
-                # VFX Reference Platform CY2024+: Python 3.11+, PySide6/Qt6.
+                # VFX Reference Platform CY2024+: PySide6/Qt6
                 attempts = (
                     ("PySide6", self._import_pyside6_as_pyside),
                     ("PySide2", self._import_pyside2_as_pyside),
                 )
 
-            failures = []
             for binding_name, import_as_pyside in attempts:
                 try:
                     result = import_as_pyside()
@@ -401,9 +399,6 @@ class QtImporter(object):
                         exc_info=True,
                     )
                     failures.append(f"{binding_name}: {e}")
-
-            logger.warning(f"Could not import a Qt binding: {'; '.join(failures)}")
-            return (None, None, None, None, None)
 
         elif interface_version_requested == self.QT5:
             try:
@@ -426,6 +421,14 @@ class QtImporter(object):
             # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
             logger.debug("Qt6 interface not implemented for Qt5")
 
-        logger.warning("No Qt matching that interface was found.")
+        if failures:
+            logger.warning(
+                f"Unable to import a Qt binding for the {interface} interface: "
+                f"{'; '.join(failures)}"
+            )
+        else:
+            logger.warning(
+                f"Unable to import a Qt binding for the {interface} interface."
+            )
 
         return (None, None, None, None, None)
