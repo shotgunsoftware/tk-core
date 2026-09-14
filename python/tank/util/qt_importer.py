@@ -376,8 +376,8 @@ class QtImporter(object):
                 pyside2 = self._import_pyside2_as_pyside()
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
-            except ImportError:
-                pass
+            except ImportError as e:
+                logger.debug("Unable to import PySide2 as PySide: %s", e, exc_info=True)
 
             # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
             # require PySide6 to run with the current support
@@ -385,8 +385,8 @@ class QtImporter(object):
                 pyside6 = self._import_pyside6_as_pyside()
                 logger.debug("Imported PySide6 as PySide.")
                 return pyside6
-            except ImportError:
-                pass
+            except ImportError as e:
+                logger.debug("Unable to import PySide6 as PySide: %s", e, exc_info=True)
 
         elif interface_version_requested == self.QT5:
             try:
