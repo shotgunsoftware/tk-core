@@ -3,34 +3,23 @@ Readme for Tank core tests
 
 Running the test suite
 -----------------------
-To run the tests on Windows run the `run_tests.bat`. Also you need to run it as `admin` in `powershell`
-with unrestricted execution policy (`Set-ExecutionPolicy Unrestricted`).
-
-To run on Linux or macOS, run the script `run_tests.sh`.
-
-Add `-h` to see options.
-Add `--with-coverage` to enable coverage.
-
-To run specific test(s), specify module, or module.class or module.class.test:
+The tests run with [pytest](https://docs.pytest.org/) through
+[tk-toolchain](https://github.com/shotgunsoftware/tk-toolchain). Install
+`tk-toolchain` and run `pytest` from the repository root:
 
 ```shell
-run_tests.sh test_tank_content.TestValidate.test_valid_path
+pip install git+https://github.com/shotgunsoftware/tk-toolchain.git
+pytest
 ```
 
-To run all the tests from a specific file, you can specify both the module or file path:
+To run a specific test file, class, or test:
 
 ```shell
-./run_tests.sh tank_module_test.test_module
+pytest tests/core_tests/test_api.py
+pytest tests/core_tests/test_api.py::TestApi::test_something
 ```
 
-```shell
-./run_tests.sh tank_module_test/test_module.py
-```
-
-Compile sources with Python 3
------------------------------
-To make sure the tank source code can be compiled with Python 3, run the `compile_python3.*` scripts. Note that the unit tests cannot
-be executed right now with Python 3.
+Add `--cov` to enable coverage.
 
 Test suite layout
 -----------------
