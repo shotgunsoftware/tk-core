@@ -14,6 +14,7 @@ Qt version abstraction layer.
 
 import os
 import pkgutil
+import sys
 
 from ..log import LogManager
 
@@ -351,13 +352,11 @@ class QtImporter(object):
 
     def _import_modules(self, interface_version_requested):
         """
-        Tries to import different Qt binding implementation in the following order:
-            - PySide2
-            - PySide6
+        Tries to import a Qt binding compatible with the requested interface.
 
-        PySide6 is attempted to be imported last at the moment because it is is not yet fully
-        supported. If a DCC requires PySide6, it can run with the current level of support,
-        but be warned that you may encounter issues.
+        For the QT4 interface, PySide2 and PySide6 are tried in whichever order is
+        most likely to succeed for the running Python version, falling back to the
+        other one if the first attempt fails.
 
         :returns: The (binding name, binding version, modules) tuple or (None, None, None) if
             no binding is avaialble.
@@ -369,24 +368,37 @@ class QtImporter(object):
             self.QT6: "Qt6",
         }.get(interface_version_requested)
         logger.debug("Requesting %s-like interface", interface)
+        failures = []
 
         if interface_version_requested == self.QT4:
-            # First, try PySide 2 since Toolkit ships with PySide2.
-            try:
-                pyside2 = self._import_pyside2_as_pyside()
-                logger.debug("Imported PySide2 as PySide.")
-                return pyside2
-            except ImportError:
-                pass
+            # Try the binding most likely to succeed first, based on the running
+            # Python version and the VFX Reference Platform's Python/Qt pairing.
+            # This is only a heuristic: individual DCCs don't always track the
+            # reference platform exactly.
+            if sys.version_info < (3, 11):
+                # VFX Reference Platform CY2023 and earlier: PySide2/Qt5
+                attempts = (
+                    ("PySide2", self._import_pyside2_as_pyside),
+                    ("PySide6", self._import_pyside6_as_pyside),
+                )
+            else:
+                # VFX Reference Platform CY2024+: PySide6/Qt6
+                attempts = (
+                    ("PySide6", self._import_pyside6_as_pyside),
+                    ("PySide2", self._import_pyside2_as_pyside),
+                )
 
-            # Last attempt, try PySide6. PySide6 is not yet fully supported but allow DCCs that
-            # require PySide6 to run with the current support
-            try:
-                pyside6 = self._import_pyside6_as_pyside()
-                logger.debug("Imported PySide6 as PySide.")
-                return pyside6
-            except ImportError:
-                pass
+            for binding_name, import_as_pyside in attempts:
+                try:
+                    result = import_as_pyside()
+                    logger.debug(f"Imported {binding_name} as PySide.")
+                    return result
+                except ImportError as e:
+                    logger.debug(
+                        f"Unable to import {binding_name} as PySide: {e}",
+                        exc_info=True,
+                    )
+                    failures.append(f"{binding_name}: {e}")
 
         elif interface_version_requested == self.QT5:
             try:
@@ -409,6 +421,14 @@ class QtImporter(object):
             # TODO migrate qt base from Qt4 interface to Qt6 will require patching Qt5 as Qt6
             logger.debug("Qt6 interface not implemented for Qt5")
 
-        logger.debug("No Qt matching that interface was found.")
+        if failures:
+            logger.warning(
+                f"Unable to import a Qt binding for the {interface} interface: "
+                f"{'; '.join(failures)}"
+            )
+        else:
+            logger.warning(
+                f"Unable to import a Qt binding for the {interface} interface."
+            )
 
         return (None, None, None, None, None)
