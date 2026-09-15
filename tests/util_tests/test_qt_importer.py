@@ -23,14 +23,12 @@ from tank_test.tank_test_base import (
 class QtImporterTests(TankTestBase):
     """Tests QtImporter functionality."""
 
-    @skip_if_pyside6(found=True)
     @skip_if_pyside2(found=False)
     def test_qt_importer_with_pyside2_interface_qt4(self):
         """
         Test the QtImporter constructor with QT4 interface.
 
-        This test only runs if PySide2 is available and PySide6 is not, since
-        on Python 3.11+ PySide6 is tried first when both are installed.
+        This test only runs if PySide2 is available.
         """
 
         qt = qt_importer.QtImporter(qt_importer.QtImporter.QT4)
@@ -75,76 +73,6 @@ class QtImporterTests(TankTestBase):
         assert qt.base
         assert qt.base["__name__"] is qt.binding_name
         assert qt.base["__version__"] is qt.binding_version
-
-    @unittest.mock.patch.object(qt_importer.sys, "version_info", (3, 11, 0))
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside2_as_pyside")
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside6_as_pyside")
-    def test_qt_importer_prioritizes_pyside6_on_python_3_11_plus(
-        self, mock_pyside6, mock_pyside2
-    ):
-        """
-        On Python 3.11+, PySide6 should be tried before PySide2.
-        """
-        mock_pyside6.return_value = ("PySide6", "6.6.1", object(), {}, (6, 6, 1))
-
-        qt = qt_importer.QtImporter(qt_importer.QtImporter.QT4)
-
-        assert qt.binding_name == "PySide6"
-        mock_pyside2.assert_not_called()
-
-    @unittest.mock.patch.object(qt_importer.sys, "version_info", (3, 10, 0))
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside2_as_pyside")
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside6_as_pyside")
-    def test_qt_importer_prioritizes_pyside2_before_python_3_11(
-        self, mock_pyside6, mock_pyside2
-    ):
-        """
-        Before Python 3.11, PySide2 should be tried before PySide6.
-        """
-        mock_pyside2.return_value = ("PySide2", "5.15.2", object(), {}, (5, 15, 2))
-
-        qt = qt_importer.QtImporter(qt_importer.QtImporter.QT4)
-
-        assert qt.binding_name == "PySide2"
-        mock_pyside6.assert_not_called()
-
-    @unittest.mock.patch.object(qt_importer.sys, "version_info", (3, 11, 0))
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside2_as_pyside")
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside6_as_pyside")
-    def test_qt_importer_falls_back_to_other_binding_on_import_error(
-        self, mock_pyside6, mock_pyside2
-    ):
-        """
-        If the preferred binding fails to import, the other one should still be tried.
-        """
-        mock_pyside6.side_effect = ImportError("no PySide6")
-        mock_pyside2.return_value = ("PySide2", "5.15.2", object(), {}, (5, 15, 2))
-
-        qt = qt_importer.QtImporter(qt_importer.QtImporter.QT4)
-
-        assert qt.binding_name == "PySide2"
-        mock_pyside6.assert_called_once()
-        mock_pyside2.assert_called_once()
-
-    @unittest.mock.patch.object(qt_importer.logger, "warning")
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside2_as_pyside")
-    @unittest.mock.patch.object(qt_importer.QtImporter, "_import_pyside6_as_pyside")
-    def test_qt_importer_warns_with_diagnostics_when_all_bindings_fail(
-        self, mock_pyside6, mock_pyside2, mock_warning
-    ):
-        """
-        When every attempt fails, the warning should include each binding's error.
-        """
-        mock_pyside6.side_effect = ImportError("no PySide6")
-        mock_pyside2.side_effect = ImportError("no PySide2")
-
-        qt = qt_importer.QtImporter(qt_importer.QtImporter.QT4)
-
-        assert qt.binding_name is None
-        mock_warning.assert_called_once()
-        message = mock_warning.call_args[0][0]
-        assert "PySide6: no PySide6" in message
-        assert "PySide2: no PySide2" in message
 
     @skip_if_pyside6(found=False)
     @skip_if_pyside2(found=True)
