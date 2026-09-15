@@ -236,7 +236,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                 cwd=repo_path,
                 shell=True,
             )
-        except Exception as err:
+        except SubprocessCalledProcessError as err:
             raise TankGitError(
                 f"{self} uses Git LFS to store some of its files, but git-lfs "
                 "does not appear to be installed on this machine. Install "
