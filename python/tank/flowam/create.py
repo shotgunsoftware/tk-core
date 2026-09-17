@@ -155,7 +155,7 @@ def create_federated_hierarchy(inputs: BaseInputs):
     We must create:
         -> a container asset with a FOR_DELIVERABLE_TYPE component
            which points to the SG deliverable asset (parented to project)
-        -> a root asset with a PIPELINE_STEP_TYPE component
+        -> a root asset with a FOR_PIPELINE_STEP_TYPE component
            pointing to the SG pipeline step and SG deliverable asset
            (parented to the project)
 

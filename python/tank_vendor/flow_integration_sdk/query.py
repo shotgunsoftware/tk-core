@@ -103,7 +103,7 @@ def medm_search(
 
     q_input = medm_model.AssetsBySearchInput(
         project_ids=[project_id],
-        filter=q_filter_pre + q_filter,
+        filter=(q_filter_pre + q_filter).strip(";"),
     )
     q_search = client.service_asset.assets_by_search(q_input)
 
