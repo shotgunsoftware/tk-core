@@ -131,7 +131,7 @@
     "{Episode}": {
         "kind": "token",
         "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset",
+        "icon": "episode",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.episode-1.0.0'"
         },
@@ -147,7 +147,7 @@
     "{Episode}+No Episode": {
         "kind": "static",
         "label": "Sequences with no Episode",
-        "icon": "asset",
+        "icon": "episode",
         "child_filters": {
             "sequence": {
                 "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=notstartswith='urn:medm:'"
@@ -157,7 +157,7 @@
     "{Sequence}": {
         "kind": "token",
         "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset",
+        "icon": "sequence",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.sequence-1.0.0'"
         },
@@ -170,7 +170,7 @@
     "{Sequence}+No Sequence": {
         "kind": "static",
         "label": "Shots with no Sequence",
-        "icon": "asset",
+        "icon": "sequence",
         "child_filters": {
             "shot": {
                 "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=notstartswith='urn:medm:'"
@@ -180,7 +180,7 @@
     "{Shot}": {
         "kind": "token",
         "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset",
+        "icon": "shot",
         "resolution": {
             "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.shot-1.0.0'"
         },
@@ -194,12 +194,12 @@
         }
     },
     "{For_Deliverable}": {
-        "kind": "token",
+        "kind": "binary",
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset"
     },
     "{For_Step}": {
-        "kind": "token",
+        "kind": "binary",
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset"
     }
