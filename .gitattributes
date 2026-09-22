@@ -18,8 +18,5 @@
 # Windows.
 **/packed-refs text eol=lf
 
-# We don't want CRLF conversion or any automatic change in there
-tests/python/third_party/** binary
-
 # LFS
 requirements/**/*.zip filter=lfs diff=lfs merge=lfs -text
