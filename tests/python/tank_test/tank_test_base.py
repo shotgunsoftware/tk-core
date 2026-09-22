@@ -119,6 +119,30 @@ def skip_if_git_missing(func):
     return unittest.skipIf(_is_git_missing(), "git is missing from PATH")(func)
 
 
+def _is_git_lfs_missing():
+    """
+    Tests is git-lfs is available in PATH
+    :returns: True is git-lfs is available, False otherwise.
+    """
+    git_lfs_missing = True
+    try:
+        sgtk.util.process.subprocess_check_output(["git", "lfs", "version"])
+        git_lfs_missing = False
+    except Exception:
+        # no git-lfs!
+        pass
+    return git_lfs_missing
+
+
+def skip_if_git_lfs_missing(func):
+    """
+    Decorator that allows to skip a test if git-lfs is missing.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    return unittest.skipIf(_is_git_lfs_missing(), "git-lfs is missing from PATH")(func)
+
+
 def _is_pyside_missing():
     """
     Tests is PySide is available.

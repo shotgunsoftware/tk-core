@@ -17,3 +17,6 @@
 # The git executable expects packed-refs to always have LF line endings, even on
 # Windows.
 **/packed-refs text eol=lf
+
+# LFS
+requirements/**/*.zip filter=lfs diff=lfs merge=lfs -text
