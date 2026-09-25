@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.context &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.context &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -800,7 +800,6 @@
 
         <span class="c1"># Try to populate fields using paths caches for entity</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">TemplatePath</span><span class="p">):</span>
-
             <span class="c1"># first, sanity check that we actually have a path cache entry</span>
             <span class="c1"># this relates to ticket 22541 where it is possible to create</span>
             <span class="c1"># a context object purely from Shotgun without having it in the path cache</span>
@@ -1131,7 +1130,6 @@
         <span class="n">fields</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># for any sg query field</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-
             <span class="c1"># check each key to see if it has shotgun query information that we should resolve</span>
             <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">shotgun_field_name</span><span class="p">:</span>
                 <span class="c1"># this key is a shotgun value that needs fetching!</span>
@@ -1183,7 +1181,6 @@
                         <span class="n">processed_val</span> <span class="o">=</span> <span class="kc">None</span>
 
                     <span class="k">else</span><span class="p">:</span>
-
                         <span class="c1"># now convert the shotgun value to a string.</span>
                         <span class="c1"># note! This means that there is no way currently to create an int key</span>
                         <span class="c1"># in a tank template which matches an int field in shotgun, since we are</span>
@@ -1504,7 +1501,6 @@
         <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">task_context</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"PublishedFile"</span><span class="p">,</span> <span class="s2">"TankPublishedFile"</span><span class="p">]:</span>
-
         <span class="n">sg_entity</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
             <span class="n">entity_type</span><span class="p">,</span> <span class="p">[[</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"is"</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">]],</span> <span class="p">[</span><span class="s2">"project"</span><span class="p">,</span> <span class="s2">"entity"</span><span class="p">,</span> <span class="s2">"task"</span><span class="p">]</span>
         <span class="p">)</span>
@@ -1853,7 +1849,6 @@
         <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"entity"</span><span class="p">)</span> <span class="o">==</span> <span class="n">previous_context</span><span class="o">.</span><span class="n">entity</span>
         <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"additional_entities"</span><span class="p">)</span> <span class="o">==</span> <span class="n">previous_context</span><span class="o">.</span><span class="n">additional_entities</span>
     <span class="p">):</span>
-
         <span class="c1"># cool, everything is matching down to the step/task level.</span>
         <span class="c1"># if context is missing a step and a task, we try to auto populate it.</span>
         <span class="c1"># (note: weird edge that a context can have a task but no step)</span>
@@ -2193,7 +2188,6 @@
     <span class="n">remove_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">entity_paths</span><span class="p">:</span>
-
         <span class="c1"># validate path and get fields:</span>
         <span class="n">path_fields</span> <span class="o">=</span> <span class="n">cur_template</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span>
             <span class="n">path</span><span class="p">,</span> <span class="n">required_fields</span><span class="o">=</span><span class="n">required_fields</span>

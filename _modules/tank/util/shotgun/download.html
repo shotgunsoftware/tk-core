@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.download &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -365,7 +365,6 @@
     <span class="n">invalid_zip_file</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">while</span> <span class="ow">not</span> <span class="n">invalid_zip_file</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">done</span> <span class="ow">and</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
-
         <span class="n">zip_tmp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">_tank.zip"</span> <span class="o">%</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">time_before</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>

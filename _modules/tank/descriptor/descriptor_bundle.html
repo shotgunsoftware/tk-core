@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -458,13 +458,10 @@
         <span class="n">sg_fields_def</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"requires_shotgun_fields"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sg_fields_def</span><span class="p">:</span>  <span class="c1"># can be defined as None from yml file</span>
-
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Processing requires_shotgun_fields manifest directive"</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">sg_entity_type</span> <span class="ow">in</span> <span class="n">sg_fields_def</span><span class="p">:</span>
-
                 <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">sg_fields_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="p">[]):</span>
-
                     <span class="c1"># attempt to create field!</span>
                     <span class="n">sg_data_type</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span>
                     <span class="n">sg_field_name</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">"system_name"</span><span class="p">]</span>
@@ -477,7 +474,6 @@
                     <span class="c1"># now check that the field exists</span>
                     <span class="n">sg_field_schema</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_field_read</span><span class="p">(</span><span class="n">sg_entity_type</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">sg_field_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sg_field_schema</span><span class="p">:</span>
-
                         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Field does not exist - attempting to create it."</span><span class="p">)</span>
 
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">sg_field_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"sg_"</span><span class="p">):</span>

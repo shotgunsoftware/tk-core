@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -155,14 +155,15 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank.flowam</span><span class="w"> </span><span class="kn">import</span> <span class="n">host</span> <span class="k">as</span> <span class="n">flow_host</span>  <span class="c1"># noqa: F401 (used in return annotation)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tank.flowam</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span> <span class="k">as</span> <span class="n">flow_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.flowam</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">host</span> <span class="k">as</span> <span class="n">flow_host</span><span class="p">,</span>  <span class="c1"># noqa: F401 (used in return annotation)</span>
+    <span class="n">utils</span> <span class="k">as</span> <span class="n">flow_utils</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">hook</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics_cache</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..util</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics_cache</span><span class="p">,</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..util.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_plugin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..util.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventMetric</span><span class="p">,</span> <span class="n">MetricsDispatcher</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..util.qt_importer</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtImporter</span>
@@ -404,7 +405,6 @@
         <span class="c1"># note: we make an exception for the shotgun engine which is a</span>
         <span class="c1"># special case.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">:</span>
-
             <span class="bp">self</span><span class="o">.</span><span class="n">register_command</span><span class="p">(</span>
                 <span class="s2">"Open Log Folder"</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__open_log_folder</span><span class="p">,</span>
@@ -572,7 +572,6 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># our qt import worked!</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="p">:</span>
-
                     <span class="c1"># no window exists - create one!</span>
                     <span class="p">(</span>
                         <span class="n">window</span><span class="p">,</span>
@@ -599,7 +598,6 @@
                     <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
                 <span class="k">else</span><span class="p">:</span>
-
                     <span class="c1"># just update the message for the existing window</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="o">.</span><span class="n">set_contents</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span>
 
@@ -1183,9 +1181,9 @@
                 <span class="n">new_name_for_existing</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">command_prefix</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">new_name_for_existing</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing_item</span>
                 <span class="c1"># Record the command prefix in the properties dictionary for future reference.</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">new_name_for_existing</span><span class="p">][</span><span class="s2">"properties"</span><span class="p">][</span>
-                    <span class="s2">"prefix"</span>
-                <span class="p">]</span> <span class="o">=</span> <span class="n">command_prefix</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">new_name_for_existing</span><span class="p">][</span><span class="s2">"properties"</span><span class="p">][</span><span class="s2">"prefix"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">command_prefix</span>
+                <span class="p">)</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                 <span class="c1"># Record the original command name to make sure any additional commands</span>
                 <span class="c1"># registered with this name are treated as duplicates and fully prefixed.</span>
@@ -1713,12 +1711,10 @@
 
         <span class="c1"># in the parent directly, get all the font-specific directories</span>
         <span class="k">for</span> <span class="n">font_dir_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">fonts_parent_dir</span><span class="p">):</span>
-
             <span class="c1"># the specific font directory</span>
             <span class="n">font_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fonts_parent_dir</span><span class="p">,</span> <span class="n">font_dir_name</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">font_dir</span><span class="p">):</span>
-
                 <span class="c1"># iterate over the font files and attempt to load them</span>
                 <span class="c1">#</span>
                 <span class="c1"># NOTE: We're loading the ttf files in reverse order to work around</span>
@@ -1729,7 +1725,6 @@
                 <span class="c1"># instead of the regular style. So...we're going to install these in</span>
                 <span class="c1"># reverse order so that the regular light style is preferred.</span>
                 <span class="k">for</span> <span class="n">font_file_name</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">font_dir</span><span class="p">))):</span>
-
                     <span class="c1"># only process actual font files. It appears as though .ttf</span>
                     <span class="c1"># is the most common extension for use on win/mac/linux so</span>
                     <span class="c1"># for now limit to those files.</span>
@@ -2306,7 +2301,6 @@
             <span class="n">base</span><span class="p">[</span><span class="s2">"wrapper"</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">binding</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">"shiboken"</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">shiboken</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-
             <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span>
                 <span class="s2">"Default engine QT definition failed to find QT. "</span>
                 <span class="s2">"This may need to be subclassed."</span>

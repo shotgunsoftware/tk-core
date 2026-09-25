@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.util.shotgun.publish_resolve &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -225,7 +225,6 @@
         <span class="c1"># local file link</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">__resolve_local_file_link</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path_field</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-
             <span class="k">raise</span> <span class="n">PublishPathNotDefinedError</span><span class="p">(</span>
                 <span class="s2">"Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) has a local file link that could not be resolved "</span>
                 <span class="s2">"on this os platform."</span>
@@ -300,7 +299,6 @@
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Looking for override env var '</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="n">env_var_name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">env_var_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
-
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s2">"Detected override </span><span class="si">%s</span><span class="s2">='</span><span class="si">%s</span><span class="s2">'"</span> <span class="o">%</span> <span class="p">(</span><span class="n">env_var_name</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_var_name</span><span class="p">])</span>
         <span class="p">)</span>
@@ -314,7 +312,6 @@
             <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-
             <span class="c1"># we have an override</span>
             <span class="n">override_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_var_name</span><span class="p">]</span>
 

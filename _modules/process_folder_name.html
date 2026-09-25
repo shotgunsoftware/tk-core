@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>process_folder_name &mdash; tk-core v0.24.1 documentation</title>
+  <title>process_folder_name &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -181,7 +181,7 @@
 <span class="sd">        :returns: A string representing the entity.</span>
 <span class="sd">        :rtype: str</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">dict</span> <span class="ow">and</span> <span class="s2">"name"</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"name"</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
             <span class="c1"># it is a dictionary with a name key - assume this is what we want</span>
             <span class="c1"># this is normally an entity link</span>
             <span class="c1">#</span>
@@ -189,14 +189,14 @@
             <span class="c1">#</span>
             <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">"name"</span><span class="p">])</span>
 
-        <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># this an empty list.</span>
             <span class="c1">#</span>
             <span class="c1"># [] ==&gt; ""</span>
             <span class="c1">#</span>
             <span class="n">str_value</span> <span class="o">=</span> <span class="s2">""</span>
 
-        <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># this is a multi entity link with at least one element</span>
             <span class="c1"># that element is a dict with a name field</span>
             <span class="c1"># e.g. this is a multi entity link field</span>

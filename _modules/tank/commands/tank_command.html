@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.commands.tank_command &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.commands.tank_command &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -147,8 +147,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">constants_global</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span><span class="p">,</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">constants_global</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..platform.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_environment_from_context</span><span class="p">,</span> <span class="n">start_engine</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -253,7 +252,6 @@
 
     <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">engine_obj</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
-
         <span class="c1"># custom properties dict</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">engine_obj</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">"properties"</span><span class="p">]</span>
 
@@ -322,10 +320,8 @@
 <span class="sd">    """</span>
     <span class="n">action_names</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">_get_built_in_actions</span><span class="p">():</span>
-
         <span class="c1"># check if this tank command has API support</span>
         <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">supports_api</span><span class="p">:</span>
-
             <span class="c1"># if we don't have a tk API instance, we can only access GLOBAL commands</span>
             <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="n">Action</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -558,7 +554,6 @@
 
     <span class="c1"># now only pick the ones that are working with our current state</span>
     <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">all_actions</span><span class="p">:</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="o">.</span><span class="n">supports_tank_command</span><span class="p">:</span>
             <span class="c1"># this action does not support tank command mode</span>
             <span class="k">continue</span>
@@ -648,7 +643,6 @@
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
-
         <span class="c1"># seed the action object with all the handles it may need</span>
         <span class="n">found_action</span><span class="o">.</span><span class="n">tk</span> <span class="o">=</span> <span class="n">tk</span>
         <span class="n">found_action</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">ctx</span>

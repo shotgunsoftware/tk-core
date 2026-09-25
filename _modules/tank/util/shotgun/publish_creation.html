@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -436,7 +436,6 @@
             <span class="c1"># upload thumbnails</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Publish: Uploading thumbnails"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">thumbnail_path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">thumbnail_path</span><span class="p">):</span>
-
                 <span class="c1"># publish</span>
                 <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span>
                     <span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">entity</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">thumbnail_path</span>
@@ -598,7 +597,6 @@
 
     <span class="c1"># naming and path logic is different depending on url</span>
     <span class="k">if</span> <span class="n">path_is_url</span><span class="p">:</span>
-
         <span class="c1"># extract name from url:</span>
         <span class="c1">#</span>
         <span class="c1"># scheme://hostname.com/path/to/file.ext -&gt; file.ext</span>
@@ -624,7 +622,6 @@
         <span class="p">}</span>
 
     <span class="k">else</span><span class="p">:</span>
-
         <span class="c1"># normalize the path to native slashes</span>
         <span class="n">norm_path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">norm_path</span> <span class="o">!=</span> <span class="n">path</span><span class="p">:</span>
@@ -657,7 +654,6 @@
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">supports_specific_storage_syntax</span><span class="p">:</span>
-
                 <span class="c1"># get corresponding PTR local storage for the matching root name</span>
                 <span class="n">storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_local_storage_for_root</span><span class="p">(</span>
                     <span class="n">root_name</span>
@@ -696,7 +692,6 @@
             <span class="n">data</span><span class="p">[</span><span class="s2">"path_cache"</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_cache</span>
 
         <span class="k">else</span><span class="p">:</span>
-
             <span class="c1"># path does not map to any configured root - fall back gracefully:</span>
             <span class="c1"># 1. look for storages in Shotgun and see if we can create a local path</span>
             <span class="c1"># 2. failing that, just register the entry as a file:// resource.</span>
@@ -821,14 +816,12 @@
     <span class="n">sg_batch_data</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">dependency_path</span> <span class="ow">in</span> <span class="n">dependency_paths</span><span class="p">:</span>
-
         <span class="c1"># did we manage to resolve this file path against</span>
         <span class="c1"># a publish in shotgun?</span>
         <span class="n">published_file</span> <span class="o">=</span> <span class="n">publishes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dependency_path</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">published_file</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">"PublishedFile"</span><span class="p">:</span>
-
                 <span class="n">req</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s2">"request_type"</span><span class="p">:</span> <span class="s2">"create"</span><span class="p">,</span>
                     <span class="s2">"entity_type"</span><span class="p">:</span> <span class="s2">"PublishedFileDependency"</span><span class="p">,</span>
@@ -840,7 +833,6 @@
                 <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># == "TankPublishedFile"</span>
-
                 <span class="n">req</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s2">"request_type"</span><span class="p">:</span> <span class="s2">"create"</span><span class="p">,</span>
                     <span class="s2">"entity_type"</span><span class="p">:</span> <span class="s2">"TankDependency"</span><span class="p">,</span>
@@ -853,7 +845,6 @@
 
     <span class="k">for</span> <span class="n">dependency_id</span> <span class="ow">in</span> <span class="n">dependency_ids</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">published_file_entity_type</span> <span class="o">==</span> <span class="s2">"PublishedFile"</span><span class="p">:</span>
-
             <span class="n">req</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">"request_type"</span><span class="p">:</span> <span class="s2">"create"</span><span class="p">,</span>
                 <span class="s2">"entity_type"</span><span class="p">:</span> <span class="s2">"PublishedFileDependency"</span><span class="p">,</span>
@@ -868,7 +859,6 @@
             <span class="n">sg_batch_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>  <span class="c1"># == "TankPublishedFile"</span>
-
             <span class="n">req</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">"request_type"</span><span class="p">:</span> <span class="s2">"create"</span><span class="p">,</span>
                 <span class="s2">"entity_type"</span><span class="p">:</span> <span class="s2">"TankDependency"</span><span class="p">,</span>
@@ -933,13 +923,11 @@
         <span class="n">project_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_disk_name</span><span class="p">()]</span>
 
     <span class="k">for</span> <span class="n">root_name</span><span class="p">,</span> <span class="n">root_path</span> <span class="ow">in</span> <span class="n">storage_roots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
         <span class="n">root_path_obj</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_current_os_path</span><span class="p">(</span><span class="n">root_path</span><span class="p">)</span>
         <span class="c1"># normalize the root path</span>
         <span class="n">norm_root_path</span> <span class="o">=</span> <span class="n">root_path_obj</span><span class="o">.</span><span class="n">current_os</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">project_name</span> <span class="ow">in</span> <span class="n">project_names</span><span class="p">:</span>
-
             <span class="c1"># append project and normalize</span>
             <span class="n">proj_path</span> <span class="o">=</span> <span class="n">root_path_obj</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span><span class="o">.</span><span class="n">current_os</span>
             <span class="n">proj_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">proj_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">))</span>
@@ -1015,7 +1003,6 @@
         <span class="n">project_names</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">list_of_paths</span><span class="p">:</span>
-
         <span class="c1"># use abstracted path if path is part of a sequence</span>
         <span class="n">abstract_path</span> <span class="o">=</span> <span class="n">_translate_abstract_fields</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
         <span class="n">root_name</span><span class="p">,</span> <span class="n">dep_path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">abstract_path</span><span class="p">,</span> <span class="n">project_names</span><span class="p">)</span>

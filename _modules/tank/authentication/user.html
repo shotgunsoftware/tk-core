@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.authentication.user &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.authentication.user &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -354,7 +354,6 @@
             <span class="n">new_expiration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_claims_expiration</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">new_expiration</span> <span class="o">&gt;</span> <span class="n">previous_expiration</span><span class="p">:</span>
-
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Automatic claims renewal succeeded."</span><span class="p">)</span>
                 <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_expiration</span> <span class="o">-</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">*</span> <span class="n">preemtive_renewal_threshold</span>
                 <span class="c1"># If we are debugging, we will use a shorter expiration time.</span>
@@ -410,7 +409,6 @@
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_claims_renewal_active</span><span class="p">():</span>
-
                 <span class="bp">self</span><span class="o">.</span><span class="n">_do_automatic_claims_renewal</span><span class="p">(</span><span class="n">preemtive_renewal_threshold</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>

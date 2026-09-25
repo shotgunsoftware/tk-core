@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -292,7 +292,6 @@
 
     <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">root_name</span> <span class="ow">in</span> <span class="n">root_names</span><span class="p">:</span>
-
         <span class="n">local_storage</span> <span class="o">=</span> <span class="n">mapped_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">local_storage</span><span class="p">:</span>
             <span class="c1"># fail gracefully here - it may be a storage which has been deleted</span>
@@ -332,7 +331,6 @@
     <span class="n">matches</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">for</span> <span class="n">local_storage_name</span><span class="p">,</span> <span class="n">publishes</span> <span class="ow">in</span> <span class="n">published_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
         <span class="c1"># get a dictionary which maps shotgun paths to file system paths</span>
         <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">"Tank"</span><span class="p">:</span>
             <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storage_root_to_paths</span><span class="p">[</span>
@@ -343,12 +341,10 @@
 
         <span class="c1"># now go through all publish entities found for current storage</span>
         <span class="k">for</span> <span class="n">publish</span> <span class="ow">in</span> <span class="n">publishes</span><span class="p">:</span>
-
             <span class="n">path_cache</span> <span class="o">=</span> <span class="n">publish</span><span class="p">[</span><span class="s2">"path_cache"</span><span class="p">]</span>
 
             <span class="c1"># get the list of real paths matching this entry</span>
             <span class="k">for</span> <span class="n">full_path</span> <span class="ow">in</span> <span class="n">normalized_path_lookup_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path_cache</span><span class="p">,</span> <span class="p">[]):</span>
-
                 <span class="k">if</span> <span class="n">full_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
                     <span class="c1"># this path not yet in the list of matching publish entity data</span>
                     <span class="n">matches</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">publish</span>

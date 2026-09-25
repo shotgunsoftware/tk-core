@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.hook &mdash; tk-core v0.24.1 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.24.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.1.<br>
+    <b>tk-core</b> v0.24.2.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -816,7 +816,6 @@
     <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">base_class</span>
 
     <span class="k">for</span> <span class="n">hook_path</span> <span class="ow">in</span> <span class="n">hook_paths</span><span class="p">:</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">hook_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span>
                 <span class="s2">"Cannot execute hook '</span><span class="si">%s</span><span class="s2">' - this file does not exist on disk!"</span>
