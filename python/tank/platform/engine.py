@@ -25,9 +25,11 @@ import weakref
 from typing import TYPE_CHECKING
 
 from tank.authentication import flow_auth
-from tank.flowam import constants as flow_const
-from tank.flowam import host as flow_host  # noqa: F401 (used in return annotation)
-from tank.flowam import utils as flow_utils
+from tank.flowam import (
+    constants as flow_const,
+    host as flow_host,  # noqa: F401 (used in return annotation)
+    utils as flow_utils,
+)
 
 from .. import hook
 from ..errors import TankError
@@ -3071,27 +3073,26 @@ class _CoreContextChangeHookGuard(object):
         )
 
 
-# Project-level cache for FlowAM projects: {project_id -> {AM_READY_PROJECT_FIELD: ..., FLOW_SCHEMA_VERSION_FIELD: ...}}
-# Avoids repeated ShotGrid queries when multiple fresh context objects share the same project.
-# None means "queried and not a FlowAM project"; missing key means "not yet queried".
+# Cache of FlowAM fields keyed by (sg_base_url, project_id), to avoid repeat queries.
+# Value is None for a non-FlowAM project; a missing key means "not yet queried".
 _flow_project_fields_cache = {}
 
 
-def _ensure_flow_project_id(tk: Sgtk, context: Context) -> None:
+def _inject_flow_project_fields_into_context(tk: Sgtk, context: Context) -> None:
     """
     Ensures ``sg_flow_am_id`` is set on ``context.project`` for FlowAM-enabled projects.
 
     For advanced (non-bootstrap) configs the bootstrap manager never runs, so
     ``sg_flow_am_id`` is not queried during context construction.  This helper
-    fills the gap with a single ShotGrid query per project per process.  Results
-    are cached at the project-id level so any number of fresh context objects for
+    fills the gap with a single ShotGrid query per (site, project) per process.  Results
+    are cached per (site, project id) so any number of fresh context objects for
     the same project are filled without additional network calls.
 
     Bootstrap configs already have the field populated; the ``not context.flow_project_id``
     gate makes those a no-op.
 
     Args:
-        tk: Toolkit instance.
+        tk: `sgtk.Sgtk` instance.
         context: Context to ensure FlowAM fields on.
     """
     if not context.project:
@@ -3100,9 +3101,11 @@ def _ensure_flow_project_id(tk: Sgtk, context: Context) -> None:
         # Already populated (bootstrap path or previously injected).
         return
 
+    # Keyed by site and project id, since project ids are only unique within a site.
     project_id = context.project["id"]
+    flow_project_cache_key = (tk.shotgun.base_url, project_id)
 
-    if project_id not in _flow_project_fields_cache:
+    if flow_project_cache_key not in _flow_project_fields_cache:
         sg_project = tk.shotgun.find_one(
             "Project",
             [["id", "is", project_id]],
@@ -3112,11 +3115,11 @@ def _ensure_flow_project_id(tk: Sgtk, context: Context) -> None:
             ],
         )
         core_logger.debug(
-            "_ensure_flow_project_id: query result for project %r: %r"
+            "_inject_flow_project_fields_into_context: query result for project %r: %r"
             % (project_id, sg_project)
         )
         if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
-            _flow_project_fields_cache[project_id] = {
+            _flow_project_fields_cache[flow_project_cache_key] = {
                 flow_auth.AM_READY_PROJECT_FIELD: sg_project[
                     flow_auth.AM_READY_PROJECT_FIELD
                 ],
@@ -3125,18 +3128,18 @@ def _ensure_flow_project_id(tk: Sgtk, context: Context) -> None:
                 ),
             }
         else:
-            _flow_project_fields_cache[project_id] = None
+            _flow_project_fields_cache[flow_project_cache_key] = None
 
-    cached = _flow_project_fields_cache.get(project_id)
-    if cached:
-        context.project[flow_auth.AM_READY_PROJECT_FIELD] = cached[
+    cached_flow_project = _flow_project_fields_cache.get(flow_project_cache_key)
+    if cached_flow_project:
+        context.project[flow_auth.AM_READY_PROJECT_FIELD] = cached_flow_project[
             flow_auth.AM_READY_PROJECT_FIELD
         ]
-        context.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = cached[
+        context.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = cached_flow_project[
             flow_const.FLOW_SCHEMA_VERSION_FIELD
         ]
         core_logger.debug(
-            "_ensure_flow_project_id: injected flow_project_id=%r into context"
+            "_inject_flow_project_fields_into_context: injected flow_project_id=%r into context"
             % context.flow_project_id
         )
 
@@ -3424,7 +3427,7 @@ def __pick_environment(engine_name, tk, context):
     :param context: :class:`~sgtk.Context` object to use when picking environment
     :returns: name of environment.
     """
-    _ensure_flow_project_id(tk, context)
+    _inject_flow_project_fields_into_context(tk, context)
 
     try:
         env_name = tk.execute_core_hook(
