@@ -31,7 +31,7 @@ trigger:
 pr:
   branches:
     include:
-    - "*"
+    - nothing
 
 # This pulls in a variable group from Azure. Variables can be encrypted or not.
 variables:
