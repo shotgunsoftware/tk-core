@@ -12,3 +12,4 @@ Flow Production Tracking core platform, |release|
     descriptor
     authentication
     environment_variables
+    contributing
