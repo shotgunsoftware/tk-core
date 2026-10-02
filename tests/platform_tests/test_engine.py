@@ -689,3 +689,32 @@ class TestShowDialog(TestEngineBase):
         self.engine.apps["test_app"].dismiss_button.click()
         # Process the remaining events.
         self._app.processEvents()
+
+    @suppress_generated_code_qt_warnings
+    def test_destroy_qt_dialogs(self):
+        """
+        Ensures _destroy_qt_dialogs closes the open dialogs and deletes the widgets
+        of closed dialogs, including widgets with a reference cycle.
+        """
+        from sgtk.platform.qt import QtGui, shiboken
+
+        class CyclicWidget(QtGui.QWidget):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                # Keeps the widget in the widget trash after its dialog is closed.
+                self.cycle = self
+
+        app = self.engine.apps["test_app"]
+        closed = self.engine.show_dialog("Closed", app, CyclicWidget)
+        opened = self.engine.show_dialog("Opened", app, CyclicWidget)
+        self._app.processEvents()
+        closed.close()
+        self._app.processEvents()
+        self.assertEqual(len(self.engine.created_qt_dialogs), 1)
+        self.assertTrue(shiboken.isValid(closed))
+
+        self.engine._destroy_qt_dialogs()
+
+        self.assertEqual(self.engine.created_qt_dialogs, [])
+        self.assertFalse(shiboken.isValid(closed))
+        self.assertFalse(shiboken.isValid(opened))

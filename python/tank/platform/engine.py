@@ -1816,6 +1816,9 @@ class Engine(TankBundle):
 
         Better to be safe though as deleting/releasing a widget that
         still has events in the event queue will cause a hard crash!
+
+        Widgets that are never released here can crash some hosts when
+        they quit: see :meth:`_destroy_qt_dialogs`.
         """
         still_trash = []
         for widget in self.__qt_widget_trash:
@@ -1843,6 +1846,61 @@ class Engine(TankBundle):
         self.log_debug(
             "Widget trash contains %d widgets" % (len(self.__qt_widget_trash))
         )
+
+    def _destroy_qt_dialogs(self):
+        """
+        Close every dialog created by this engine that is still open, then
+        immediately delete the Qt widgets of all closed dialogs.
+
+        When a dialog is closed, its widgets are kept in a widget trash and only
+        deleted once nothing else references them. Widgets with reference
+        cycles, which most app dialogs have, are never deleted that way: they
+        stay alive as parentless top-level widgets until the host application
+        quits. Some hosts destroy these widgets natively as part of their own
+        shutdown, which can crash PySide. For example, release builds of Maya
+        2027.2 (PySide6) crash on quit after a Toolkit dialog was opened and
+        closed.
+
+        Call this method from an engine when the host application starts to
+        quit, while the host and the Qt event loop are still fully alive, for
+        example from a ``kMayaExiting`` callback in Maya. It is not called by
+        :meth:`destroy`, and the engine should not show dialogs afterwards.
+
+        Each dialog still open is closed first, so its app shuts down as if the
+        user had closed it. A dialog whose widget refuses to close is left
+        alone. Then the C++ object of every widget in the trash is deleted right
+        away, rather than with ``deleteLater()``, because deferred deletions
+        might never be processed while the host quits. Python references to
+        these widgets raise ``RuntimeError`` if they are used afterwards.
+        """
+        for dialog in self.__created_qt_dialogs[:]:
+            try:
+                # The dialog_closed signal moves the dialog and its widget to
+                # the widget trash, see _on_dialog_closed.
+                dialog.close()
+            except Exception:
+                self.logger.exception("Could not close dialog %r" % dialog)
+
+        if not self.__qt_widget_trash:
+            return
+
+        from .qt import shiboken
+
+        if shiboken is None:
+            self.logger.debug("Cannot delete the widget trash: no shiboken.")
+            return
+
+        trash = self.__qt_widget_trash
+        self.__qt_widget_trash = []
+        self.logger.debug("Deleting %d widgets in the widget trash." % len(trash))
+        for widget in trash:
+            # detach_widget returns None for a dialog without a widget.
+            if widget is None or not shiboken.isValid(widget):
+                continue
+            try:
+                shiboken.delete(widget)
+            except Exception:
+                self.logger.exception("Could not delete widget %r" % widget)
 
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
