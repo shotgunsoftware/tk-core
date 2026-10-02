@@ -1,4 +1,4 @@
-# Contributing to Flow Toolkit
+# Contributing to Toolkit
 
 This file is the canonical source of coding norms for all Flow Toolkit (`tk-*`)
 repositories. It is written for human contributors and AI coding agents alike.
