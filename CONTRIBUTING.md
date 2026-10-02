@@ -6,8 +6,6 @@ Other repositories link here instead of duplicating it.
 
 ## Workflow
 
-- Fork or branch, make focused changes, and open a pull request against `master` or
- `main`.
 - Keep pull requests small and limited to one concern. Do not reformat or refactor
   code unrelated to the change.
 - CI must pass before a pull request is merged: linting, formatting, and the test
@@ -49,12 +47,14 @@ annotate untouched code as a standalone change.
 
 - All new functions and methods must have inline type annotations.
 - When you modify the signature of an existing function, annotate it in the same change.
-- Use annotation syntax supported by the oldest Python version the repository targets.
+- Use annotation syntax supported/compatible by the oldest Python version the repository
+  targets.
 - Public functions, methods, and classes need docstrings written in
   [reStructuredText](https://docutils.sourceforge.io/rst.html) using Sphinx field
   lists (`:param:`, `:returns:`, `:raises:`). [Sphinx](https://www.sphinx-doc.org/)
   generates the published documentation site from them. Annotations and docstrings
-  coexist; do not repeat types in `:param:` lines.
+  coexist; do not repeat types in `:param:` lines. Let's take a look at the following
+  example:
 
 ```python
 def resolve_path(template: Template, fields: dict, validate: bool = True) -> str:
@@ -81,8 +81,6 @@ Static type checking (for example mypy) is not enforced in CI _yet_.
   `resources_rc.py`). Regenerate them with the repository's build tooling.
 - Do not add new dependencies without discussing them in the pull request.
 - Never include credentials, tokens, or site URLs in code, tests, or logs.
-- Public GitHub content must not reference Autodesk-internal resources (internal
-  wiki or ticket URLs). A bare ticket ID such as `SG-1234` is fine.
 
 ## Pre-commit hooks
 
@@ -94,12 +92,6 @@ pip install pre-commit
 pre-commit install
 ```
 
-Run them on the whole repository before pushing:
-
-```shell
-pre-commit run --all-files
-```
-
 ## Commits and pull requests
 
 - Commit and pull request titles and descriptions may be reused verbatim as release
@@ -108,6 +100,7 @@ pre-commit run --all-files
 - Title format: `SG-1234 Concise description` (omit the ticket ID if you have none).
   Use the imperative mood and describe the user-visible change, not the
   implementation (for example `SG-1234 Fix crash when a template has no fields`).
+  The title limit is 70 characters.
 - Description: state what changed and why in a few sentences. Add how you tested it
   and mention any breaking change explicitly.
 
@@ -116,4 +109,3 @@ pre-commit run --all-files
 - Read this file and the repository's `.pre-commit-config.yaml` before writing code.
 - Match the style of the surrounding code; make the smallest change that solves the task.
 - Run `pre-commit run --all-files` and the tests, and fix failures before finishing.
-- Do not push, force push, or merge unless explicitly asked.
