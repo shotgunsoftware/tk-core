@@ -705,8 +705,11 @@ class TestShowDialog(TestEngineBase):
                 self.cycle = self
 
         app = self.engine.apps["test_app"]
-        closed = self.engine.show_dialog("Closed", app, CyclicWidget)
-        opened = self.engine.show_dialog("Opened", app, CyclicWidget)
+        # No parent: otherwise, the second dialog can be parented to the first one
+        # (the active window on some platforms) and deleted with it.
+        with mock.patch.object(self.engine, "_get_dialog_parent", return_value=None):
+            closed = self.engine.show_dialog("Closed", app, CyclicWidget)
+            opened = self.engine.show_dialog("Opened", app, CyclicWidget)
         self._app.processEvents()
         closed.close()
         self._app.processEvents()
@@ -718,3 +721,20 @@ class TestShowDialog(TestEngineBase):
         self.assertEqual(self.engine.created_qt_dialogs, [])
         self.assertFalse(shiboken.isValid(closed))
         self.assertFalse(shiboken.isValid(opened))
+
+    @suppress_generated_code_qt_warnings
+    def test_destroy_qt_dialogs_deleted_dialog(self):
+        """
+        Ensures _destroy_qt_dialogs skips an open dialog that was already deleted,
+        for example with a parent dialog.
+        """
+        from sgtk.platform.qt import QtGui, shiboken
+
+        app = self.engine.apps["test_app"]
+        self.engine.show_dialog("Deleted", app, QtGui.QWidget)
+        self._app.processEvents()
+        shiboken.delete(self.engine.created_qt_dialogs[0])
+
+        self.engine._destroy_qt_dialogs()
+
+        self.assertEqual(self.engine.created_qt_dialogs, [])

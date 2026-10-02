@@ -1873,18 +1873,22 @@ class Engine(TankBundle):
         might never be processed while the host quits. Python references to
         these widgets raise ``RuntimeError`` if they are used afterwards.
         """
+        from .qt import shiboken
+
         for dialog in self.__created_qt_dialogs[:]:
+            if shiboken is not None and not shiboken.isValid(dialog):
+                # Already deleted, for example with a parent dialog.
+                self.__created_qt_dialogs.remove(dialog)
+                continue
             try:
                 # The dialog_closed signal moves the dialog and its widget to
                 # the widget trash, see _on_dialog_closed.
                 dialog.close()
             except Exception:
-                self.logger.exception("Could not close dialog %r" % dialog)
+                self.logger.exception("Could not close a dialog.")
 
         if not self.__qt_widget_trash:
             return
-
-        from .qt import shiboken
 
         if shiboken is None:
             self.logger.debug("Cannot delete the widget trash: no shiboken.")
@@ -1900,7 +1904,7 @@ class Engine(TankBundle):
             try:
                 shiboken.delete(widget)
             except Exception:
-                self.logger.exception("Could not delete widget %r" % widget)
+                self.logger.exception("Could not delete a widget.")
 
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
