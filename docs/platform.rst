@@ -181,6 +181,7 @@ Engine
     .. automethod:: _create_dialog_with_widget
     .. automethod:: _create_widget
     .. automethod:: _define_qt_base
+    .. automethod:: _destroy_qt_dialogs
     .. automethod:: _emit_event
     .. automethod:: _emit_log_message
     .. automethod:: _ensure_core_fonts_loaded
