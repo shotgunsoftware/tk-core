@@ -19,7 +19,7 @@ Other repositories link here instead of duplicating it.
 - Target every Python version the repository currently supports. Check the CI
   configuration and package metadata rather than assuming one.
 - Do not use syntax or standard library features unavailable in the oldest supported
-  version.
+  Python version.
 - Code must work on every operating system Toolkit supports. See the
   [supported operating systems](https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_si_integrations_engine_supported_os_html).
 - Code that runs inside a DCC must work with every DCC version Toolkit supports. See
