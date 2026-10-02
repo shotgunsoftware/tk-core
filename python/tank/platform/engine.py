@@ -22,8 +22,11 @@ import sys
 import threading
 import traceback
 import weakref
+from typing import TYPE_CHECKING
 
+from tank.authentication import flow_auth
 from tank.flowam import (
+    constants as flow_const,
     host as flow_host,  # noqa: F401 (used in return annotation)
     utils as flow_utils,
 )
@@ -46,6 +49,10 @@ from .errors import (
     TankUnresolvedEnvironmentError,
 )
 from .framework import setup_frameworks
+
+if TYPE_CHECKING:
+    from ..api import Sgtk
+    from ..context import Context
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
@@ -3066,6 +3073,77 @@ class _CoreContextChangeHookGuard(object):
         )
 
 
+# Cache of FlowAM fields keyed by (sg_base_url, project_id), to avoid repeat queries.
+# Value is None for a non-FlowAM project; a missing key means "not yet queried".
+_flow_project_fields_cache = {}
+
+
+def _inject_flow_project_fields_into_context(tk: Sgtk, context: Context) -> None:
+    """
+    Ensures ``sg_flow_am_id`` is set on ``context.project`` for FlowAM-enabled projects.
+
+    For advanced (non-bootstrap) configs the bootstrap manager never runs, so
+    ``sg_flow_am_id`` is not queried during context construction.  This helper
+    fills the gap with a single ShotGrid query per (site, project) per process.  Results
+    are cached per (site, project id) so any number of fresh context objects for
+    the same project are filled without additional network calls.
+
+    Bootstrap configs already have the field populated; the ``not context.flow_project_id``
+    gate makes those a no-op.
+
+    Args:
+        tk: `sgtk.Sgtk` instance.
+        context: Context to ensure FlowAM fields on.
+    """
+    if not context.project:
+        return
+    if context.flow_project_id:
+        # Already populated (bootstrap path or previously injected).
+        return
+
+    # Keyed by site and project id, since project ids are only unique within a site.
+    project_id = context.project["id"]
+    flow_project_cache_key = (tk.shotgun.base_url, project_id)
+
+    if flow_project_cache_key not in _flow_project_fields_cache:
+        sg_project = tk.shotgun.find_one(
+            "Project",
+            [["id", "is", project_id]],
+            [
+                flow_auth.AM_READY_PROJECT_FIELD,
+                flow_const.FLOW_SCHEMA_VERSION_FIELD,
+            ],
+        )
+        core_logger.debug(
+            "_inject_flow_project_fields_into_context: query result for project %r: %r"
+            % (project_id, sg_project)
+        )
+        if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
+            _flow_project_fields_cache[flow_project_cache_key] = {
+                flow_auth.AM_READY_PROJECT_FIELD: sg_project[
+                    flow_auth.AM_READY_PROJECT_FIELD
+                ],
+                flow_const.FLOW_SCHEMA_VERSION_FIELD: sg_project.get(
+                    flow_const.FLOW_SCHEMA_VERSION_FIELD
+                ),
+            }
+        else:
+            _flow_project_fields_cache[flow_project_cache_key] = None
+
+    cached_flow_project = _flow_project_fields_cache.get(flow_project_cache_key)
+    if cached_flow_project:
+        context.project[flow_auth.AM_READY_PROJECT_FIELD] = cached_flow_project[
+            flow_auth.AM_READY_PROJECT_FIELD
+        ]
+        context.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = cached_flow_project[
+            flow_const.FLOW_SCHEMA_VERSION_FIELD
+        ]
+        core_logger.debug(
+            "_inject_flow_project_fields_into_context: injected flow_project_id=%r into context"
+            % context.flow_project_id
+        )
+
+
 def _start_engine(engine_name, tk, old_context, new_context):
     """
     Starts an engine for a given Toolkit instance and context.
@@ -3349,6 +3427,7 @@ def __pick_environment(engine_name, tk, context):
     :param context: :class:`~sgtk.Context` object to use when picking environment
     :returns: name of environment.
     """
+    _inject_flow_project_fields_into_context(tk, context)
 
     try:
         env_name = tk.execute_core_hook(
