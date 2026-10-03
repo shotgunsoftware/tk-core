@@ -19,15 +19,22 @@ import os
 from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as flow_model
-from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
+from tank_vendor.flow_data_sdk.base.exceptions import (
+    FlowConnectionError,
+    GQLAPIError,
+    GQLErrorCode,
+    ValidationError,
+)
 
 from .exceptions import FlowError
 from .globals import (
-    BASE_COMPONENT_TYPE_ID,
+    BASE_COMPONENT_V1_TYPE_ID,
+    BASE_COMPONENT_V2_TYPE_ID,
     BASE_PROPERTY_TYPE_ID,
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
+    FLOW_TOOLKIT_LIBRARY_ID,
     FOLDER_TYPE_ID,
     get_client,
     get_session_collection,
@@ -45,20 +52,22 @@ from .utils import get_logger, trace
 _schema_tree: dict[str, list[str]] = {}
 
 # Hardcode some well known relationships and root types
-_schema_tree[BASE_COMPONENT_TYPE_ID] = []
 _schema_tree[BASE_PROPERTY_TYPE_ID] = []
 _schema_tree[BASE_TYPE_ID] = []
-_schema_tree[BINARY_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
-_schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
+_schema_tree[BINARY_TYPE_ID] = [BASE_COMPONENT_V1_TYPE_ID]
+_schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_V2_TYPE_ID]
 _schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
 _schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
 
 
 # Schema type ids cache
 # ---------------------
-# This maps custom type names to full type ids
-# Format: key = type name (e.g. "type.maya.workfile"), value = full type id
-_schema_ids: dict[str, str] = {}
+# This maps custom type names to the full type ids of all their versions.
+# The first id is always the version configured in the schema config file
+# (see `cache_schema_config()`), followed by any other version found in the
+# Flow Toolkit schema library (see `cache_existing_schema_ids()`).
+# Format: key = type name (e.g. "type.maya.workfile"), value = list of full type ids
+_schema_ids: dict[str, list[str]] = {}
 
 
 # Schema display name cache
@@ -117,7 +126,7 @@ def cache_schema_config(config_path: str):
         display_name = schema.get("display_name", "")
         if type_name and type_version:
             type_id = _compose_schema_id(type_name, type_version)
-            _schema_ids[type_name] = type_id
+            _schema_ids[type_name] = [type_id]
         if display_name:
             _schema_display_names[type_id] = display_name
 
@@ -127,18 +136,20 @@ def cache_schema_config(config_path: str):
         kind = schema.get("kind")
         if not kind:
             raise ValueError(f"Schema '{type_name}' is missing required 'kind' field.")
-        parent_types = schema.get("inherits", [])
-        # strip "$ref:" prefix
-        parent_types = [pt[5:] for pt in parent_types]
-        # convert to full ids
-        parent_types = [get_schema_id(pt) for pt in parent_types]
-        # always include the kind-appropriate base type
+        # resolve "$ref:" entries to full ids, pass full type ids through as-is
+        parent_types = [
+            get_schema_id(pt[5:]) if pt.startswith("$ref:") else pt
+            for pt in schema.get("inherits", [])
+        ]
         if kind not in KIND_BASE_TYPE_ID:
             raise ValueError(
                 f"Unknown schema kind '{kind}' for '{type_name}'. "
                 f"Must be one of: {', '.join(KIND_BASE_TYPE_ID)}"
             )
-        parent_types.append(KIND_BASE_TYPE_ID[kind])
+        # mirror SchemaBuilder.build(): the kind base type is only sent when
+        # inherits is omitted, otherwise it is reached through the inherited types
+        if not parent_types:
+            parent_types.append(KIND_BASE_TYPE_ID[kind])
         type_id = get_schema_id(type_name)
         # store ancestral relationship
         if type_id:
@@ -146,7 +157,10 @@ def cache_schema_config(config_path: str):
 
 
 def get_schema_id(type_name: str) -> str | None:
-    """Return full type id of type name if cached.
+    """Return full type id of the configured version of type name if cached.
+
+    Use this when creating schemas or data, which must use the configured
+    version.
 
     Args:
         type_name: Base name of schema type (e.g. "type.template").
@@ -154,7 +168,81 @@ def get_schema_id(type_name: str) -> str | None:
     Returns:
         Full id of type, or None if type is not cached.
     """
-    return _schema_ids.get(type_name, None)
+    type_ids = _schema_ids.get(type_name)
+    return type_ids[0] if type_ids else None
+
+
+def get_schema_ids(type_name: str) -> list[str]:
+    """Return the full type ids of every version of type name if cached.
+
+    Use this rather than `get_schema_id()` when searching for existing data,
+    which may have been created with another version of the schema (e.g. one
+    created before its base type was updated).
+
+    Args:
+        type_name: Base name of schema type (e.g. "component.layer").
+
+    Returns:
+        List of full type ids, the configured version first. Empty if type is
+        not cached.
+    """
+    return list(_schema_ids.get(type_name, []))
+
+
+@trace
+def cache_existing_schema_ids(project_id: str) -> set[str]:
+    """Query every schema in the Flow Toolkit schema library, and add the other
+    versions of each configured type to the schema type ids cache.
+
+    Previously added versions are replaced, the configured version is kept
+    first. A library that does not exist yet is treated as containing no
+    schemas.
+
+    ..note:: `cache_schema_config()` must be called first, only types it
+             cached are updated.
+
+    Args:
+        project_id: Flow AM project ID.
+
+    Returns:
+        Set of full type ids of every schema in the library.
+
+    Raises:
+        FlowError
+    """
+    logger = get_logger(__name__)
+    client = get_client()
+
+    q_input = flow_model.SchemasByLibraryIdInput(
+        library_id=FLOW_TOOLKIT_LIBRARY_ID,
+        project_id=project_id,
+    )
+    try:
+        q_schemas = client.service_schema.schemas_by_library_id(variables=q_input)
+        type_ids = {s.type_id for s in q_schemas.schemas_iterator}
+    except GQLAPIError as exc:
+        if exc.error_code != GQLErrorCode.NOT_FOUND.value:
+            msg = f'Failed to retrieve schemas in "{FLOW_TOOLKIT_LIBRARY_ID}": {exc}'
+            raise FlowError(msg) from exc
+        logger.info(f'Schema library "{FLOW_TOOLKIT_LIBRARY_ID}" not found.')
+        type_ids = set()
+    except (FlowConnectionError, ValidationError) as exc:
+        msg = f'Failed to retrieve schemas in "{FLOW_TOOLKIT_LIBRARY_ID}": {exc}'
+        raise FlowError(msg) from exc
+
+    for type_name, cached_ids in _schema_ids.items():
+        configured_id = cached_ids[0]
+        # type ids are "<namespace>:<type name>-<version>"
+        prefix = f"{configured_id.rsplit('-', 1)[0]}-"
+        other_ids = sorted(
+            type_id
+            for type_id in type_ids
+            if type_id.startswith(prefix) and type_id != configured_id
+        )
+        _schema_ids[type_name] = [configured_id] + other_ids
+
+    logger.info(f'Found {len(type_ids)} schemas in "{FLOW_TOOLKIT_LIBRARY_ID}".')
+    return type_ids
 
 
 @trace
