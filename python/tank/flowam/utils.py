@@ -193,7 +193,7 @@ def init_flow(
             # Provisioning caches existing schemas itself; cache them here
             # so data created with earlier schema versions can still be found.
             try:
-                schema.cache_existing_schema_ids(flow_project_id)
+                schema.cache_existing_schema_ids(session_collection.id)
             except FlowError as exc:
                 logger.warning(
                     "Could not cache existing schemas, data created with "

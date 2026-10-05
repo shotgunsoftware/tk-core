@@ -28,11 +28,15 @@ from .exceptions import (
     FlowSchemaError,
     FlowSchemaLibraryError,
 )
-from .globals import FLOW_TOOLKIT_LIBRARY_ID, KIND_BASE_TYPE_ID, get_client
+from .globals import KIND_BASE_TYPE_ID, get_client
 from .objects import FlowProject
 from . import schema
 from .schema import get_schema_id
 from .utils import get_logger
+
+
+# Constant for Flow Toolkit Library schema library ID
+FLOW_TOOLKIT_LIBRARY_ID = "FlowToolkitLibrary"
 
 
 class SchemaBuilder:
@@ -547,10 +551,10 @@ def create_pipeline_schemas(project_id: str, config_path: str):
         )
     collection_id = FlowProject.get_collection_id(project_id)
 
-    # Query every schema in the library, regardless of the base type it was
-    # created under. This also caches other versions for schema.get_schema_ids().
+    # Query every schema version of the collection. This also caches other
+    # versions for schema.get_schema_ids().
     try:
-        existing_schema_types = schema.cache_existing_schema_ids(project_id)
+        existing_schema_types = schema.cache_existing_schema_ids(collection_id)
     except FlowError as e:
         raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
 

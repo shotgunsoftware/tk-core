@@ -34,12 +34,12 @@ from .globals import (
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
     COMMENT_TYPE_ID,
-    FLOW_TOOLKIT_LIBRARY_ID,
     FOLDER_TYPE_ID,
     get_client,
     get_session_collection,
     IMAGE_TYPE_ID,
     KIND_BASE_TYPE_ID,
+    KIND_RETIRED_BASE_TYPE_IDS,
 )
 from .utils import get_logger, trace
 
@@ -190,22 +190,22 @@ def get_schema_ids(type_name: str) -> list[str]:
 
 
 @trace
-def cache_existing_schema_ids(project_id: str) -> set[str]:
-    """Query every schema in the Flow Toolkit schema library, and add the other
-    versions of each configured type to the schema type ids cache.
+def cache_existing_schema_ids(collection_id: str) -> set[str]:
+    """Query every schema of the collection, and add the other versions of each
+    configured type to the schema type ids cache.
 
     Previously added versions are replaced, the configured version is kept
-    first. A library that does not exist yet is treated as containing no
-    schemas.
+    first.
 
     ..note:: `cache_schema_config()` must be called first, only types it
              cached are updated.
 
     Args:
-        project_id: Flow AM project ID.
+        collection_id: Flow AM collection ID.
 
     Returns:
-        Set of full type ids of every schema in the library.
+        Set of full type ids of every schema of the collection that derives
+        from one of the queried base types.
 
     Raises:
         FlowError
@@ -213,22 +213,29 @@ def cache_existing_schema_ids(project_id: str) -> set[str]:
     logger = get_logger(__name__)
     client = get_client()
 
-    q_input = flow_model.SchemasByLibraryIdInput(
-        library_id=FLOW_TOOLKIT_LIBRARY_ID,
-        project_id=project_id,
-    )
-    try:
-        q_schemas = client.service_schema.schemas_by_library_id(variables=q_input)
-        type_ids = {s.type_id for s in q_schemas.schemas_iterator}
-    except GQLAPIError as exc:
-        if exc.error_code != GQLErrorCode.NOT_FOUND.value:
-            msg = f'Failed to retrieve schemas in "{FLOW_TOOLKIT_LIBRARY_ID}": {exc}'
+    # Query subtypes of each current and retired base type rather than the
+    # schema library, which only returns the latest version of each schema.
+    base_type_ids = set(KIND_BASE_TYPE_ID.values())
+    for retired_ids in KIND_RETIRED_BASE_TYPE_IDS.values():
+        base_type_ids.update(retired_ids)
+    type_ids = set()
+    for base_type_id in sorted(base_type_ids):
+        q_input = flow_model.SchemasBySuperTypeInput(
+            collection_id=collection_id,
+            type_id=base_type_id,
+            include_sub_sub_classes=True,
+        )
+        try:
+            q_schemas = client.service_schema.schemas_by_super_type(variables=q_input)
+            type_ids.update(q_schemas.schema_types_iterator)
+        except GQLAPIError as exc:
+            if exc.error_code != GQLErrorCode.NOT_FOUND.value:
+                msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
+                raise FlowError(msg) from exc
+            logger.info(f'Base type "{base_type_id}" not found.')
+        except (FlowConnectionError, ValidationError) as exc:
+            msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
             raise FlowError(msg) from exc
-        logger.info(f'Schema library "{FLOW_TOOLKIT_LIBRARY_ID}" not found.')
-        type_ids = set()
-    except (FlowConnectionError, ValidationError) as exc:
-        msg = f'Failed to retrieve schemas in "{FLOW_TOOLKIT_LIBRARY_ID}": {exc}'
-        raise FlowError(msg) from exc
 
     for type_name, cached_ids in _schema_ids.items():
         configured_id = cached_ids[0]
@@ -241,7 +248,7 @@ def cache_existing_schema_ids(project_id: str) -> set[str]:
         )
         _schema_ids[type_name] = [configured_id] + other_ids
 
-    logger.info(f'Found {len(type_ids)} schemas in "{FLOW_TOOLKIT_LIBRARY_ID}".')
+    logger.info(f'Found {len(type_ids)} schemas in collection "{collection_id}".')
     return type_ids
 
 

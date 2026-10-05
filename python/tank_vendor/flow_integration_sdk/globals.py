@@ -50,8 +50,14 @@ KIND_BASE_TYPE_ID = {
     "type": BASE_TYPE_ID,
 }
 
-# Schema library that holds the custom pipeline schemas
-FLOW_TOOLKIT_LIBRARY_ID = "FlowToolkitLibrary"
+# Maps schema kind name to the base type IDs it used before. When a base in
+# KIND_BASE_TYPE_ID is replaced, add the previous one here, so schemas created
+# under it are still found and their data can still be read.
+KIND_RETIRED_BASE_TYPE_IDS = {
+    "component": [BASE_COMPONENT_V1_TYPE_ID],
+    "property": [],
+    "type": [],
+}
 
 # Component types
 # ---------------
