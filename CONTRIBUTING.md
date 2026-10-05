@@ -38,7 +38,8 @@ Other repositories link here instead of duplicating it.
 - Naming: `snake_case` for functions, methods, and variables; `PascalCase` for
   classes; a leading underscore for private members. Qt overrides keep Qt's
   `camelCase` names.
-- Use American English (en-US) and regular hyphens (`-`), never typographic em dashes.
+- Use American English (en-US) for documentation and code coments.
+- Use regular hyphens (`-`), never typographic em dashes.
 
 ## Type annotations and docstrings
 
