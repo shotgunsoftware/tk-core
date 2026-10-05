@@ -78,7 +78,7 @@ Static type checking (for example mypy) is not enforced in CI _yet_.
   never from PySide directly.
 - Start every new source file with the copyright header used by neighboring files.
 - Do not edit bundled third-party code (`tank_vendor`) or generated files (`ui/*.py`,
-  `resources_rc.py`). Regenerate them with the repository's build tooling.
+  `resources_rc.py`). Regenerate them with the repository's [build tooling](https://github.com/shotgunsoftware/tk-toolchain/blob/master/README.md#tk-build-qt-resources).
 - Do not add new dependencies without discussing them in the pull request.
 - Never include credentials, tokens, or site URLs in code, tests, or logs.
 
