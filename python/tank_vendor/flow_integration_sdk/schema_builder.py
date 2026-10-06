@@ -22,7 +22,6 @@ from tank_vendor.flow_data_sdk.base.exceptions import (
 )
 
 from .exceptions import (
-    FlowError,
     FlowSchemaBuilderError,
     FlowSchemaDisplayDataError,
     FlowSchemaError,
@@ -549,13 +548,31 @@ def create_pipeline_schemas(project_id: str, config_path: str):
         raise KeyError(
             "The schema config file must contain a 'schemas' key with a list of schemas to create."
         )
+    client = get_client()
     collection_id = FlowProject.get_collection_id(project_id)
 
-    # Query every schema version of the collection. This also caches other
-    # versions for schema.get_schema_ids().
+    # Collect distinct schema kinds present in config, then query existing
+    # schemas per kind. This avoids querying for kinds not used in the config.
+    kinds_in_config = {s["kind"] for s in config.get("schemas", []) if "kind" in s}
+
+    existing_schema_types = set()
     try:
-        existing_schema_types = schema.cache_existing_schema_ids(collection_id)
-    except FlowError as e:
+        for kind in kinds_in_config:
+            base_type_id = KIND_BASE_TYPE_ID[kind]
+            schemas_by_supertype_input = flow_model.SchemasBySuperTypeInput(
+                collection_id=collection_id,
+                type_id=base_type_id,
+                include_sub_sub_classes=True,
+            )
+            schema_query = client.service_schema.schemas_by_super_type(
+                variables=schemas_by_supertype_input
+            )
+            existing_schema_types.update(schema_query.schema_types_iterator)
+        logger.info(
+            f"Retrieved {len(existing_schema_types)} existing schemas for "
+            f'collection "{collection_id}".'
+        )
+    except (GQLAPIError, FlowConnectionError, ValidationError) as e:
         raise RuntimeError(f"Failed to retrieve existing schemas: {e}") from e
 
     # Check if schema listed in config.json already exists

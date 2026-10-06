@@ -53,7 +53,7 @@ from .globals import (
     VARIANT_SET_TYPE,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
-from .schema import get_schema_ids
+from .schema import get_schema_family
 from .storage import (
     _cache_asset_info,
     get_storage_asset_dir,
@@ -341,7 +341,7 @@ class ComponentMixin:
                   If blank ignore this filter.
             purpose: Match this purpose on component. If blank ignore this filter.
             type_ids: Match any of these type ids on component (e.g. every
-                      version of a schema from `schema.get_schema_ids()`).
+                      version of a schema from `schema.get_schema_family()`).
                       If None ignore this filter, if empty match nothing.
 
         Returns:
@@ -398,7 +398,7 @@ class ComponentMixin:
         Raises:
             FlowError
         """
-        source_type_ids = get_schema_ids(DER_SOURCE_TYPE)
+        source_type_ids = get_schema_family(DER_SOURCE_TYPE)
         source_comps = self.find_components(type_ids=source_type_ids)
         try:
             return [c.properties["targetVersion"] for c in source_comps]
@@ -418,7 +418,7 @@ class ComponentMixin:
         Returns:
             Dictionary of variant set names to lists of variants.
         """
-        varset_type_ids = get_schema_ids(VARIANT_SET_TYPE)
+        varset_type_ids = get_schema_family(VARIANT_SET_TYPE)
         varset_comps = self.find_components(type_ids=varset_type_ids)
         varsets = {}
         try:
@@ -448,7 +448,7 @@ class ComponentMixin:
         Raises:
             FlowError
         """
-        ref_type_ids = get_schema_ids(REFERENCE_TYPE)
+        ref_type_ids = get_schema_family(REFERENCE_TYPE)
         ref_comps = self.find_components(type_ids=ref_type_ids)
         try:
             return [c.properties["targetVersion"] for c in ref_comps]
@@ -464,7 +464,7 @@ class ComponentMixin:
         Returns:
             Dictionary mapping layer name to asset id.
         """
-        layer_type_ids = get_schema_ids(LAYER_TYPE)
+        layer_type_ids = get_schema_family(LAYER_TYPE)
         layer_comps = self.find_components(type_ids=layer_type_ids)
         layers = {}
         try:
@@ -933,7 +933,7 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
 
         # This target id should match the beginning of any version id belonging to this asset
         target_id = self.id.replace(self.MEDM_ENTITY, FlowVersion.MEDM_ENTITY)
-        der_source_type_ids = get_schema_ids(DER_SOURCE_TYPE)
+        der_source_type_ids = get_schema_family(DER_SOURCE_TYPE)
 
         # Generate a query to find assets which contain a Source component with a matching target id
         # Since we know derivative assets will be siblings of the current asset

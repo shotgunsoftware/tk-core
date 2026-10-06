@@ -62,12 +62,9 @@ _schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
 
 # Schema type ids cache
 # ---------------------
-# This maps custom type names to the full type ids of all their versions.
-# The first id is always the version configured in the schema config file
-# (see `cache_schema_config()`), followed by any other version found in the
-# Flow Toolkit schema library (see `cache_existing_schema_ids()`).
-# Format: key = type name (e.g. "type.maya.workfile"), value = list of full type ids
-_schema_ids: dict[str, list[str]] = {}
+# This maps custom type names to full type ids
+# Format: key = type name (e.g. "type.maya.workfile"), value = full type id
+_schema_ids: dict[str, str] = {}
 
 
 # Schema display name cache
@@ -126,7 +123,7 @@ def cache_schema_config(config_path: str):
         display_name = schema.get("display_name", "")
         if type_name and type_version:
             type_id = _compose_schema_id(type_name, type_version)
-            _schema_ids[type_name] = [type_id]
+            _schema_ids[type_name] = type_id
         if display_name:
             _schema_display_names[type_id] = display_name
 
@@ -157,10 +154,7 @@ def cache_schema_config(config_path: str):
 
 
 def get_schema_id(type_name: str) -> str | None:
-    """Return full type id of the configured version of type name if cached.
-
-    Use this when creating schemas or data, which must use the configured
-    version.
+    """Return full type id of type name if cached.
 
     Args:
         type_name: Base name of schema type (e.g. "type.template").
@@ -168,44 +162,26 @@ def get_schema_id(type_name: str) -> str | None:
     Returns:
         Full id of type, or None if type is not cached.
     """
-    type_ids = _schema_ids.get(type_name)
-    return type_ids[0] if type_ids else None
+    return _schema_ids.get(type_name, None)
 
 
-def get_schema_ids(type_name: str) -> list[str]:
-    """Return the full type ids of every version of type name if cached.
+@cache
+def _query_schema_ids_by_base_type(
+    base_type_id: str, collection_id: str
+) -> frozenset[str]:
+    """Query and cache the type ids of every schema of a collection that derives
+    from the given base type, at any depth.
 
-    Use this rather than `get_schema_id()` when searching for existing data,
-    which may have been created with another version of the schema (e.g. one
-    created before its base type was updated).
-
-    Args:
-        type_name: Base name of schema type (e.g. "component.layer").
-
-    Returns:
-        List of full type ids, the configured version first. Empty if type is
-        not cached.
-    """
-    return list(_schema_ids.get(type_name, []))
-
-
-@trace
-def cache_existing_schema_ids(collection_id: str) -> set[str]:
-    """Query every schema of the collection, and add the other versions of each
-    configured type to the schema type ids cache.
-
-    Previously added versions are replaced, the configured version is kept
-    first.
-
-    ..note:: `cache_schema_config()` must be called first, only types it
-             cached are updated.
+    Results are cached per base type and collection, so each base is queried at
+    most once per collection. A base type that does not exist is treated as
+    having no subtypes. Errors are not cached.
 
     Args:
+        base_type_id: Full type id of the base type.
         collection_id: Flow AM collection ID.
 
     Returns:
-        Set of full type ids of every schema of the collection that derives
-        from one of the queried base types.
+        Frozen set of full type ids.
 
     Raises:
         FlowError
@@ -213,43 +189,74 @@ def cache_existing_schema_ids(collection_id: str) -> set[str]:
     logger = get_logger(__name__)
     client = get_client()
 
-    # Query subtypes of each current and retired base type rather than the
-    # schema library, which only returns the latest version of each schema.
-    base_type_ids = set(KIND_BASE_TYPE_ID.values())
-    for retired_ids in KIND_RETIRED_BASE_TYPE_IDS.values():
-        base_type_ids.update(retired_ids)
-    type_ids = set()
-    for base_type_id in sorted(base_type_ids):
-        q_input = flow_model.SchemasBySuperTypeInput(
-            collection_id=collection_id,
-            type_id=base_type_id,
-            include_sub_sub_classes=True,
-        )
-        try:
-            q_schemas = client.service_schema.schemas_by_super_type(variables=q_input)
-            type_ids.update(q_schemas.schema_types_iterator)
-        except GQLAPIError as exc:
-            if exc.error_code != GQLErrorCode.NOT_FOUND.value:
-                msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
-                raise FlowError(msg) from exc
-            logger.info(f'Base type "{base_type_id}" not found.')
-        except (FlowConnectionError, ValidationError) as exc:
+    q_input = flow_model.SchemasBySuperTypeInput(
+        collection_id=collection_id,
+        type_id=base_type_id,
+        include_sub_sub_classes=True,
+    )
+    try:
+        q_schemas = client.service_schema.schemas_by_super_type(variables=q_input)
+        return frozenset(q_schemas.schema_types_iterator)
+    except GQLAPIError as exc:
+        if exc.error_code != GQLErrorCode.NOT_FOUND.value:
             msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
             raise FlowError(msg) from exc
+        logger.info(f'Base type "{base_type_id}" not found.')
+        return frozenset()
+    except (FlowConnectionError, ValidationError) as exc:
+        msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
+        raise FlowError(msg) from exc
 
-    for type_name, cached_ids in _schema_ids.items():
-        configured_id = cached_ids[0]
-        # type ids are "<namespace>:<type name>-<version>"
-        prefix = f"{configured_id.rsplit('-', 1)[0]}-"
-        other_ids = sorted(
-            type_id
-            for type_id in type_ids
-            if type_id.startswith(prefix) and type_id != configured_id
+
+@trace
+def get_schema_family(type_name: str) -> list[str]:
+    """Return the full type ids of every version of type name in the session
+    collection.
+
+    Use this rather than `get_schema_id()` when searching for existing data,
+    which may have been created with another version of the schema (e.g. one
+    created before its base type was updated). Subtypes are not included.
+
+    The kind is derived from the type name prefix (e.g. "component.layer" is a
+    component), and schemas are searched under the current and retired base
+    types of that kind.
+
+    ..note:: `cache_schema_config()` and `globals.init_session_collection()`
+             must be called first.
+
+    Args:
+        type_name: Base name of schema type, without namespace or version
+                   (e.g. "component.layer").
+
+    Returns:
+        List of full type ids, the configured version first. Empty if type is
+        not cached.
+
+    Raises:
+        FlowError
+        ValueError
+    """
+    configured_schema_id = get_schema_id(type_name)
+    if not configured_schema_id:
+        return []
+
+    kind = type_name.split(".", 1)[0]
+    if kind not in KIND_BASE_TYPE_ID:
+        raise ValueError(
+            f"Unknown schema kind '{kind}' for '{type_name}'. "
+            f"Must be one of: {', '.join(KIND_BASE_TYPE_ID)}"
         )
-        _schema_ids[type_name] = [configured_id] + other_ids
+    base_type_ids = [KIND_BASE_TYPE_ID[kind]] + KIND_RETIRED_BASE_TYPE_IDS[kind]
+    collection_id = get_session_collection().id
 
-    logger.info(f'Found {len(type_ids)} schemas in collection "{collection_id}".')
-    return type_ids
+    # type ids are "<namespace>:<type name>-<version>"
+    version_prefix = f"{configured_schema_id.rsplit('-', 1)[0]}-"
+    other_version_ids = set()
+    for base_type_id in base_type_ids:
+        for schema_id in _query_schema_ids_by_base_type(base_type_id, collection_id):
+            if schema_id.startswith(version_prefix) and schema_id != configured_schema_id:
+                other_version_ids.add(schema_id)
+    return [configured_schema_id] + sorted(other_version_ids)
 
 
 @trace

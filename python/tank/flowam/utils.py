@@ -190,15 +190,6 @@ def init_flow(
                 f"Schema config version {current_version} matches. "
                 "Skipping schema provisioning."
             )
-            # Provisioning caches existing schemas itself; cache them here
-            # so data created with earlier schema versions can still be found.
-            try:
-                schema.cache_existing_schema_ids(session_collection.id)
-            except FlowError as exc:
-                logger.warning(
-                    "Could not cache existing schemas, data created with "
-                    f"earlier schema versions will not be found: {exc}"
-                )
         else:
             try:
                 create_pipeline_schemas(
