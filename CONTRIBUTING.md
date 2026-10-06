@@ -50,25 +50,11 @@ annotate untouched code as a standalone change.
 - When you modify the signature of an existing function, annotate it in the same change.
 - Use annotation syntax supported/compatible by the oldest Python version the repository
   targets.
-- Public functions, methods, and classes need docstrings written in
-  [reStructuredText](https://docutils.sourceforge.io/rst.html) using Sphinx field
-  lists (`:param:`, `:returns:`, `:raises:`). [Sphinx](https://www.sphinx-doc.org/)
-  generates the published documentation site from them. Annotations and docstrings
-  coexist; do not repeat types in `:param:` lines. Let's take a look at the following
-  example:
-
-```python
-def resolve_path(template: Template, fields: dict, validate: bool = True) -> str:
-    """
-    Resolve a template path from the given fields.
-
-    :param template: The template to resolve.
-    :param fields: A mapping of token names to values.
-    :param validate: Whether to validate the resolved path.
-    :returns: The resolved filesystem path.
-    :raises TankError: If a required field is missing.
-    """
-```
+- Public functions, methods, and classes need docstrings.
+  [Sphinx](https://www.sphinx-doc.org/) builds the published documentation site from
+  them. Annotations and docstrings coexist; do not repeat types in the docstring.
+- Match the style already used in the file you are editing, and never mix styles
+  within a file. For a new file, follow the neighboring files in the same package.
 
 Static type checking (for example mypy) is not enforced in CI _yet_.
 
