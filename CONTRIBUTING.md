@@ -2,7 +2,7 @@
 
 This file is the canonical source of coding norms for all Toolkit (`tk-*`)
 repositories. It is written for human contributors and AI coding agents alike.
-Other repositories link here instead of duplicating it.
+Other repositories should link to this guide rather than duplicating it.
 
 ## Workflow
 
@@ -12,7 +12,7 @@ Other repositories link here instead of duplicating it.
   suite.
 - Add or update tests for every behavior change. See [tests/README.md](tests/README.md).
 
-## Python version
+## Compatibility
 
 - Target every Python version the repository currently supports. Check the CI
   configuration and package metadata rather than assuming one.
@@ -38,7 +38,7 @@ Other repositories link here instead of duplicating it.
 - Naming: `snake_case` for functions, methods, and variables; `PascalCase` for
   classes; a leading underscore for private members. Qt overrides keep Qt's
   `camelCase` names.
-- Use American English (en-US) for documentation and code coments.
+- Use American English (en-US) for documentation and code comments.
 - Use regular hyphens (`-`), never typographic em dashes.
 
 ## Type annotations and docstrings
