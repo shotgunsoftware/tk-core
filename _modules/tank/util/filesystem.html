@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.filesystem &mdash; tk-core v0.24.2 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.24.3 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -86,7 +86,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.2.<br>
+    <b>tk-core</b> v0.24.3.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -163,6 +163,63 @@
 <span class="n">SKIP_LIST_DEFAULT</span> <span class="o">=</span> <span class="p">[</span><span class="s2">".svn"</span><span class="p">,</span> <span class="s2">".git"</span><span class="p">,</span> <span class="s2">".gitignore"</span><span class="p">,</span> <span class="s2">".hg"</span><span class="p">,</span> <span class="s2">".hgignore"</span><span class="p">]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_extended_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    On Windows, prepend the extended-length path prefix to paths &gt;= 260</span>
+<span class="sd">    characters to bypass the MAX_PATH limitation.</span>
+
+<span class="sd">    Extended-length paths come in two flavours:</span>
+
+<span class="sd">    * Drive-letter paths (``C:\\...``) are prefixed with ``\\\\?\\``.</span>
+<span class="sd">    * UNC paths (``\\\\server\\share\\...``) require the ``\\\\?\\UNC\\``</span>
+<span class="sd">      prefix; naively prepending ``\\\\?\\`` produces an invalid path.</span>
+
+<span class="sd">    Drive-less rooted paths (``\\foo``) are not eligible for the prefix</span>
+<span class="sd">    because the extended-length syntax requires a fully-qualified path.</span>
+
+<span class="sd">    :param path: Path string. It is normalised internally before the prefix is</span>
+<span class="sd">        applied (see note below), so callers need not pre-normalise it.</span>
+<span class="sd">    :param force: If ``True``, apply the prefix regardless of the path</span>
+<span class="sd">        length. This is needed when handing a (potentially short) root to an</span>
+<span class="sd">        API that walks into it internally - e.g. ``shutil.rmtree`` or</span>
+<span class="sd">        ``os.walk`` - so that the deeply-nested children it generates inherit</span>
+<span class="sd">        the extended-length prefix and stay under the limit.</span>
+<span class="sd">    :returns: Path with the appropriate extended-length prefix on Windows</span>
+<span class="sd">        when necessary, otherwise the original path unchanged.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s2">"win32"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"</span><span class="se">\\\\</span><span class="s2">?</span><span class="se">\\</span><span class="s2">"</span><span class="p">):</span>
+        <span class="c1"># Already an extended-length path - don't double-prefix (and don't</span>
+        <span class="c1"># normalise, which would corrupt the \\?\ prefix).</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+    <span class="c1"># The \\?\ prefix disables the automatic normalisation Windows applies to</span>
+    <span class="c1"># normal paths, so any ".", ".." or "/" left in the path would produce an</span>
+    <span class="c1"># invalid extended-length path (e.g. "...\\foo\\.." would no longer resolve</span>
+    <span class="c1"># to its parent). Normalise first - normpath collapses these without</span>
+    <span class="c1"># resolving relative paths against the current working directory.</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">260</span><span class="p">:</span>
+        <span class="c1"># Short enough that the normal API - which normalises for us - is fine.</span>
+        <span class="c1"># Return the caller's original path untouched.</span>
+        <span class="k">return</span> <span class="n">path</span>
+
+    <span class="k">if</span> <span class="n">normalized</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"</span><span class="se">\\\\</span><span class="s2">"</span><span class="p">):</span>
+        <span class="c1"># UNC path (\\\\server\\share\\...). The extended-length form requires</span>
+        <span class="c1"># \\\\?\\UNC\\ rather than \\\\?\\\\\\\\</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\\\\</span><span class="s2">?</span><span class="se">\\</span><span class="s2">UNC</span><span class="se">\\</span><span class="s2">"</span> <span class="o">+</span> <span class="n">normalized</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">normalized</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">":"</span> <span class="ow">and</span> <span class="n">normalized</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">:</span>
+        <span class="c1"># Fully-qualified drive-letter path (C:\\...).</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\\\\</span><span class="s2">?</span><span class="se">\\</span><span class="s2">"</span> <span class="o">+</span> <span class="n">normalized</span>
+
+    <span class="c1"># Drive-less rooted paths (\\foo) or relative paths are not eligible.</span>
+    <span class="k">return</span> <span class="n">path</span>
+
+
 <div class="viewcode-block" id="with_cleared_umask"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.with_cleared_umask">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">with_cleared_umask</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Decorator which clears the umask for a method.</span>
@@ -220,7 +277,10 @@
 <span class="sd">    :return: size in bytes</span>
 <span class="sd">    """</span>
     <span class="n">total_size</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="c1"># os.walk descends into the tree internally, so we hand it a force-extended</span>
+    <span class="c1"># root: the deep dirpaths it yields inherit the \\?\ prefix and stay under</span>
+    <span class="c1"># MAX_PATH even when the root itself is short.</span>
+    <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
             <span class="n">fp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
             <span class="n">total_size</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
@@ -238,6 +298,7 @@
 
 <span class="sd">    :raises: OSError - if there was a problem reading/writing the file</span>
 <span class="sd">    """</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span>
@@ -262,6 +323,9 @@
 
 <span class="sd">    :raises: OSError - if there was a problem creating the folder</span>
 <span class="sd">    """</span>
+    <span class="c1"># force-extend: os.makedirs *creates* directories, which Windows caps at</span>
+    <span class="c1"># MAX_PATH - 12 (248) rather than 260, so the length guard is not enough.</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
@@ -307,19 +371,20 @@
     <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
         <span class="n">src</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
         <span class="c1"># Check if the dst is a directory and change it to a filename if it is</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dst</span><span class="p">)):</span>
             <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
             <span class="n">dst</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
 
         <span class="n">dst</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
-        <span class="c1"># Use larger copy buffer in the shutil.copyfileobj operation</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">windows_src</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">windows_dst</span><span class="p">:</span>
+        <span class="c1"># Use larger copy buffer in the shutil.copyfileobj operation.</span>
+        <span class="c1"># Extend both paths so deeply-nested files stay under MAX_PATH.</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">src</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">windows_src</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dst</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">windows_dst</span><span class="p">:</span>
                 <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">windows_src</span><span class="p">,</span> <span class="n">windows_dst</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Used shutil override on Windows"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span></div>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dst</span><span class="p">),</span> <span class="n">permissions</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="safe_delete_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.safe_delete_file">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">safe_delete_file</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -384,10 +449,20 @@
 
     <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="p">)</span>
+    <span class="c1"># This function drives the recursion itself, so we extend each individual</span>
+    <span class="c1"># path right before the filesystem call. The length guard in</span>
+    <span class="c1"># _to_extended_path means only paths that actually exceed the limit get the</span>
+    <span class="c1"># \\?\ prefix, which covers the common case of a short bundle root with</span>
+    <span class="c1"># deeply-nested files/dirs that blow past MAX_PATH.</span>
+    <span class="c1">#</span>
+    <span class="c1"># Directory *creation* is special: Windows caps a new directory path at</span>
+    <span class="c1"># MAX_PATH - 12 (248), not 260, to leave room for 8.3 children. So os.mkdir</span>
+    <span class="c1"># is force-extended - a 248-260 char dir would be missed by the length</span>
+    <span class="c1"># guard yet still rejected by CreateDirectory.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dst</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">folder_permissions</span><span class="p">)</span>
 
-    <span class="n">names</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">src</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
         <span class="c1"># get rid of system files</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">actual_skip_list</span><span class="p">:</span>
@@ -397,10 +472,12 @@
         <span class="n">dstname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">srcname</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">srcname</span><span class="p">)):</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">copy_folder</span><span class="p">(</span><span class="n">srcname</span><span class="p">,</span> <span class="n">dstname</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">srcname</span><span class="p">,</span> <span class="n">dstname</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">srcname</span><span class="p">),</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dstname</span><span class="p">))</span>
+                <span class="c1"># Return the plain path; callers (e.g. move_folder) re-extend</span>
+                <span class="c1"># as needed when operating on it.</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">srcname</span><span class="p">)</span>
                 <span class="c1"># if the file extension is sh, set executable permissions</span>
                 <span class="k">if</span> <span class="p">(</span>
@@ -410,7 +487,7 @@
                 <span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="c1"># make it readable and executable for everybody</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="mo">0o775</span><span class="p">)</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dstname</span><span class="p">),</span> <span class="mo">0o775</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                             <span class="s2">"Can't set executable permissions on </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
@@ -451,14 +528,17 @@
         <span class="c1"># now clear out the install location</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Clearing out source location..."</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">src_files</span><span class="p">:</span>
+            <span class="c1"># f may be a deeply-nested path returned by copy_folder; extend it</span>
+            <span class="c1"># so os.stat/os.chmod/os.remove stay under MAX_PATH on Windows.</span>
+            <span class="n">ext_f</span> <span class="o">=</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="c1"># on windows, ensure all files are writable</span>
                 <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
-                    <span class="n">attr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">attr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">ext_f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span><span class="p">:</span>
                         <span class="c1"># file is readonly! - turn off this attribute</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span><span class="p">)</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">ext_f</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWRITE</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ext_f</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Could not delete file </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
 
@@ -570,12 +650,16 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Could not delete </span><span class="si">%s</span><span class="s2">. Skipping."</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="c1"># shutil.rmtree walks the tree internally, so we force-extend the (possibly</span>
+    <span class="c1"># short) root: every deeply-nested child rmtree generates inherits the \\?\</span>
+    <span class="c1"># prefix and stays under MAX_PATH on Windows.</span>
+    <span class="n">ext_path</span> <span class="o">=</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ext_path</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># On Windows, Python's shutil can't delete read-only files, so if we were trying to delete one,</span>
             <span class="c1"># remove the flag.</span>
             <span class="c1"># Inspired by http://stackoverflow.com/a/4829285/1074536</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">onerror</span><span class="o">=</span><span class="n">_on_rm_error</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">ext_path</span><span class="p">,</span> <span class="n">onerror</span><span class="o">=</span><span class="n">_on_rm_error</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Could not delete </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
