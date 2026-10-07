@@ -620,6 +620,8 @@ class TankTestBase(unittest.TestCase):
 
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
+            # clear the process-wide FlowAM fields cache
+            tank.context._flowam_fields_cache.clear()
         finally:
             if self._old_shotgun_home is not None:
                 os.environ[self.SHOTGUN_HOME] = self._old_shotgun_home

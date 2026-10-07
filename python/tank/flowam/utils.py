@@ -201,6 +201,8 @@ def init_flow(
                     sg_project_id,
                     {FLOW_SCHEMA_VERSION_FIELD: current_version},
                 )
+                # Keep this context and later ones in this process up to date.
+                context._set_flowam_schema_version(current_version)
             except (
                 FlowError,
                 RuntimeError,

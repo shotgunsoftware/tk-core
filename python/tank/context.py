@@ -26,9 +26,16 @@ from . import authentication, constants
 from .authentication import flow_auth
 from .errors import TankContextDeserializationError, TankError
 from .flowam import constants as flow_const
+from .log import LogManager
 from .path_cache import PathCache
 from .template import TemplatePath
 from .util import login, pickle, shotgun, shotgun_entity
+
+log = LogManager.get_logger(__name__)
+
+# FlowAM fields per (site url, project id), so each project is only queried once
+# per process. Only successful queries are stored.
+_flowam_fields_cache = {}
 
 
 class Context(object):
@@ -413,14 +420,14 @@ class Context(object):
         not FlowAM-enabled or there is no project in this context.
 
         The value is read from the ``sg_flow_am_id`` field on the project dict.
-        It is populated by the bootstrap manager after it queries ShotGrid.
+        If the project dict doesn't have it yet, it is queried from Flow
+        Production Tracking the first time it is read, and stored on the
+        project dict.
 
         :returns: A string containing the FlowAM project ID, or ``None``.
         :rtype: str or None
         """
-        if self.project:
-            return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
-        return None
+        return self._get_flowam_fields().get(flow_auth.AM_READY_PROJECT_FIELD)
 
     @property
     def flow_draft_id(self) -> str | None:
@@ -436,14 +443,14 @@ class Context(object):
         not FlowAM-enabled or there is no schema created.
 
         The value is read from the ``sg_flow_schema_config_version`` field on the project dict.
-        It is populated by the bootstrap manager after it queries ShotGrid.
+        If the project dict doesn't have the FlowAM fields yet, they are queried from
+        Flow Production Tracking the first time they are read, and stored on the
+        project dict.
 
         :returns: A string containing the FlowAM schema version, or ``None``.
         :rtype: str or None
         """
-        if self.project:
-            return self.project.get(flow_const.FLOW_SCHEMA_VERSION_FIELD)
-        return None
+        return self._get_flowam_fields().get(flow_const.FLOW_SCHEMA_VERSION_FIELD)
 
     @property
     def entity_locations(self):
@@ -1279,6 +1286,34 @@ class Context(object):
 
         return found_fields
 
+    def _get_flowam_fields(self) -> dict:
+        """
+        Returns the project dict with the FlowAM fields resolved.
+
+        The FlowAM fields are already on the project dict when the context was
+        deserialized. Otherwise, they are read from the process-wide cache, or
+        queried from Flow Production Tracking and cached, the first time this is
+        called, and stored on the project dict so later calls don't look them up
+        again. A non-FlowAM project, or a failed query, stores ``None``.
+
+        :returns: The project dict, or an empty dict if there is no project.
+        """
+        if not self.project:
+            return {}
+
+        if flow_auth.AM_READY_PROJECT_FIELD not in self.project:
+            flowam_fields = {}
+            if self.__tk is not None:
+                flowam_fields = _get_cached_flowam_fields(self.__tk, self.project["id"])
+            self.project[flow_auth.AM_READY_PROJECT_FIELD] = flowam_fields.get(
+                flow_auth.AM_READY_PROJECT_FIELD
+            )
+            self.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = flowam_fields.get(
+                flow_const.FLOW_SCHEMA_VERSION_FIELD
+            )
+
+        return self.project
+
     def _get_project_roots(self):
         """
         Gets the project root paths for the current pipeline configuration.
@@ -1287,6 +1322,23 @@ class Context(object):
         :rtype: list
         """
         return list(self.__tk.pipeline_configuration.get_data_roots().values())
+
+    def _set_flowam_schema_version(self, schema_version: str) -> None:
+        """
+        Updates the FlowAM schema version on this context and in the process-wide
+        cache, after it has been written back to Flow Production Tracking.
+
+        :param schema_version: The new FlowAM schema version.
+        """
+        if not self.project:
+            return
+
+        self.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = schema_version
+        if self.__tk is not None:
+            cache_key = (self.__tk.shotgun.base_url, self.project["id"])
+            cached = _flowam_fields_cache.get(cache_key)
+            if cached is not None:
+                cached[flow_const.FLOW_SCHEMA_VERSION_FIELD] = schema_version
 
 
 ################################################################################################
@@ -2104,3 +2156,48 @@ def _get_template_ancestors(template):
         templates.insert(0, next_template)
         cur_template = next_template
     return templates
+
+
+def _get_cached_flowam_fields(tk, project_id: int) -> dict:
+    """
+    Returns the FlowAM fields of a project, querying Flow Production Tracking only
+    the first time a project is requested in this process.
+
+    A failed query is logged and not cached, so it is retried for the next context.
+
+    :param tk: :class:`~sgtk.Sgtk` instance used to query.
+    :param project_id: Id of the project.
+    :returns: A dict with the ``sg_flow_am_id`` and ``sg_flow_schema_config_version``
+        values, ``None`` for a non-FlowAM project. An empty dict if the query failed.
+    """
+    # Project ids are only unique within a site.
+    cache_key = (tk.shotgun.base_url, project_id)
+    if cache_key in _flowam_fields_cache:
+        return _flowam_fields_cache[cache_key]
+
+    try:
+        sg_project = tk.shotgun.find_one(
+            "Project",
+            [["id", "is", project_id]],
+            [
+                flow_auth.AM_READY_PROJECT_FIELD,
+                flow_const.FLOW_SCHEMA_VERSION_FIELD,
+            ],
+        )
+    except Exception as e:
+        log.warning(
+            "Could not query the FlowAM fields for project %s: %s" % (project_id, e)
+        )
+        return {}
+
+    sg_project = sg_project or {}
+    flowam_fields = {
+        flow_auth.AM_READY_PROJECT_FIELD: sg_project.get(
+            flow_auth.AM_READY_PROJECT_FIELD
+        ),
+        flow_const.FLOW_SCHEMA_VERSION_FIELD: sg_project.get(
+            flow_const.FLOW_SCHEMA_VERSION_FIELD
+        ),
+    }
+    _flowam_fields_cache[cache_key] = flowam_fields
+    return flowam_fields

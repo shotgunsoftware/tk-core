@@ -24,9 +24,7 @@ from unittest import mock
 import sgtk
 import tank
 from sgtk.platform import engine
-from tank.authentication import flow_auth
 from tank.errors import TankError
-from tank.flowam import constants as flow_const
 from tank_test.tank_test_base import (
     TankTestBase,
     setUpModule,  # noqa
@@ -648,137 +646,6 @@ class TestCompatibility(TankTestBase):
         Ensures the API is backwards compatible as we've moved TankEngineInitErrorto a new location.
         """
         self.assertEqual(sgtk.platform.TankEngineInitError, sgtk.TankEngineInitError)
-
-
-class _FakeContext:
-    """Minimal Context stand-in for _inject_flow_project_fields_into_context tests.
-
-    Mirrors the real Context.flow_project_id property, which reads the
-    ``sg_flow_am_id`` field off the project dict.
-    """
-
-    def __init__(self, project):
-        self.project = project
-
-    @property
-    def flow_project_id(self):
-        if self.project:
-            return self.project.get(flow_auth.AM_READY_PROJECT_FIELD)
-        return None
-
-
-class TestEnsureFlowProjectId(TankTestBase):
-    """
-    Tests for engine._inject_flow_project_fields_into_context, which delivers the FlowAM project
-    fields to the context for advanced/installed configs (no bootstrap manager).
-
-    Uses the real TankTestBase tk instance and mocks only its ShotGrid find_one
-    so the query result can be controlled without hitting a real site.
-    """
-
-    def setUp(self):
-        super().setUp()
-
-        # The cache is process-global; clear it so tests do not leak into each other.
-        engine._flow_project_fields_cache.clear()
-        self.addCleanup(engine._flow_project_fields_cache.clear)
-
-        # Mock the ShotGrid find_one so query results are controllable in-test.
-        find_one_patch = mock.patch.object(self.tk.shotgun, "find_one")
-        self.mock_find_one = find_one_patch.start()
-        self.addCleanup(find_one_patch.stop)
-
-        self.site = self.tk.shotgun.base_url
-
-    def test_flowam_project_sets_flow_fields_on_context(self):
-        """A FlowAM project's fields are injected into the context and cached."""
-        self.mock_find_one.return_value = {
-            flow_auth.AM_READY_PROJECT_FIELD: "abc",
-            flow_const.FLOW_SCHEMA_VERSION_FIELD: "v1",
-        }
-        ctx = _FakeContext({"type": "Project", "id": 42})
-
-        engine._inject_flow_project_fields_into_context(self.tk, ctx)
-
-        self.assertEqual(ctx.flow_project_id, "abc")
-        self.assertEqual(ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD], "v1")
-        self.assertEqual(self.mock_find_one.call_count, 1)
-        # Cached under the (site, project id) key.
-        self.assertIn((self.site, 42), engine._flow_project_fields_cache)
-
-    def test_non_flowam_project_sets_no_fields(self):
-        """A non-FlowAM project injects nothing and is cached as None."""
-        self.mock_find_one.return_value = {}
-        ctx = _FakeContext({"type": "Project", "id": 42})
-
-        engine._inject_flow_project_fields_into_context(self.tk, ctx)
-
-        self.assertIsNone(ctx.flow_project_id)
-        self.assertIsNone(engine._flow_project_fields_cache[(self.site, 42)])
-        self.assertEqual(self.mock_find_one.call_count, 1)
-
-    def test_repeated_lookup_queries_shotgun_once(self):
-        """A second call for the same (site, project) does not re-query ShotGrid."""
-        self.mock_find_one.return_value = {
-            flow_auth.AM_READY_PROJECT_FIELD: "abc",
-            flow_const.FLOW_SCHEMA_VERSION_FIELD: "v1",
-        }
-
-        engine._inject_flow_project_fields_into_context(
-            self.tk, _FakeContext({"type": "Project", "id": 42})
-        )
-        engine._inject_flow_project_fields_into_context(
-            self.tk, _FakeContext({"type": "Project", "id": 42})
-        )
-
-        self.assertEqual(self.mock_find_one.call_count, 1)
-
-    def test_same_project_id_on_two_sites_stays_separate(self):
-        """The same project id on two sites does not share a cache entry."""
-        self.mock_find_one.return_value = {
-            flow_auth.AM_READY_PROJECT_FIELD: "site-a-id",
-            flow_const.FLOW_SCHEMA_VERSION_FIELD: "v1",
-        }
-        ctx_a = _FakeContext({"type": "Project", "id": 42})
-        engine._inject_flow_project_fields_into_context(self.tk, ctx_a)
-
-        # Second site, same numeric project id, different FlowAM id.
-        tk_b = mock.Mock()
-        tk_b.shotgun.base_url = "https://other.shotgunstudio.com"
-        tk_b.shotgun.find_one.return_value = {
-            flow_auth.AM_READY_PROJECT_FIELD: "site-b-id",
-            flow_const.FLOW_SCHEMA_VERSION_FIELD: "v2",
-        }
-        ctx_b = _FakeContext({"type": "Project", "id": 42})
-        engine._inject_flow_project_fields_into_context(tk_b, ctx_b)
-
-        self.assertEqual(ctx_a.flow_project_id, "site-a-id")
-        self.assertEqual(ctx_b.flow_project_id, "site-b-id")
-        # Site B must have queried its own site, not reused site A's cache entry.
-        self.assertEqual(tk_b.shotgun.find_one.call_count, 1)
-
-    def test_context_with_flow_id_already_set_skips_query(self):
-        """A context that already has the FlowAM id never queries ShotGrid."""
-        ctx = _FakeContext(
-            {
-                "type": "Project",
-                "id": 42,
-                flow_auth.AM_READY_PROJECT_FIELD: "already-set",
-            }
-        )
-
-        engine._inject_flow_project_fields_into_context(self.tk, ctx)
-
-        self.mock_find_one.assert_not_called()
-        self.assertEqual(ctx.flow_project_id, "already-set")
-
-    def test_context_without_project_skips_query(self):
-        """A context with no project never queries ShotGrid."""
-        ctx = _FakeContext(None)
-
-        engine._inject_flow_project_fields_into_context(self.tk, ctx)
-
-        self.mock_find_one.assert_not_called()
 
 
 @skip_if_pyside_missing
