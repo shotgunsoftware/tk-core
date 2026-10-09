@@ -132,11 +132,12 @@ def cache_schema_config(config_path: str):
         kind = schema.get("kind")
         if not kind:
             raise ValueError(f"Schema '{type_name}' is missing required 'kind' field.")
-        # resolve "$ref:" entries to full ids, pass full type ids through as-is
-        parent_types = [
-            get_schema_id(pt[5:]) if pt.startswith("$ref:") else pt
-            for pt in schema.get("inherits", [])
-        ]
+        parent_types = schema.get("inherits", [])
+        # strip "$ref:" prefix
+        parent_types = [pt.removeprefix("$ref:") for pt in parent_types]
+        # convert to full ids, full type ids (e.g. "autodesk.me:component-2.0.0")
+        # are not in the cache and are kept as-is
+        parent_types = [get_schema_id(pt) or pt for pt in parent_types]
         if kind not in KIND_BASE_TYPE_ID:
             raise ValueError(
                 f"Unknown schema kind '{kind}' for '{type_name}'. "
