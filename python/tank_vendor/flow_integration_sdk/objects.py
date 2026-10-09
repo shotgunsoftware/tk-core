@@ -68,6 +68,27 @@ from .utils import (
 )
 
 
+def _get_schema_wildcard(type_name: str) -> str | None:
+    """Return a wildcard type id matching every version of type name.
+
+    The namespace of the configured schema is kept and only the version is
+    replaced by a wildcard (e.g. "component.reference" ->
+    "autodesk.me:component.reference-*").
+
+    Args:
+        type_name: Base name of schema type, without namespace or version
+                   (e.g. "component.reference").
+
+    Returns:
+        Wildcard type id, or None if type is not cached.
+    """
+    configured_schema_id = get_schema_id(type_name)
+    if not configured_schema_id:
+        return None
+    # type ids are "<namespace>:<type name>-<version>"
+    return f"{configured_schema_id.rsplit('-', 1)[0]}-*"
+
+
 class FlowEntity:
     """Base class with functionality pertinent to MEDM entities.
     This includes Assets and Projects, and basically entails having containership
@@ -331,7 +352,10 @@ class ComponentMixin:
         purpose: str = "",
         type_id: str = "",
     ) -> list[FlowComponent]:
-        """Search for component with matching name in given revision.
+        """Search for components matching the given filters in given revision.
+
+        Each filter is a full, case-sensitive match where '*' matches any sequence
+        of characters, and every other character is matched literally.
 
         ..note:: Filters, if defined, are treated as an intersection, meaning
                  results will conform to all filters.
@@ -339,20 +363,27 @@ class ComponentMixin:
         Args:
             name: Component name to match. '*' wild card supported.
                   If blank ignore this filter.
-            purpose: Match this purpose on component. If blank ignore this filter.
-            type_id: Match this type id on component. If blank ignore this filter.
+            purpose: Component purpose to match. '*' wild card supported.
+                     If blank ignore this filter.
+            type_id: Type id to match on the component type or any of its
+                     ancestors. '*' wild card supported. 
+                     If blank ignore this filter.
 
         Returns:
-            Component object or None if not found.
+            List of matching components, in revision order. Empty if none match.
         """
-        regex = "^{}$".format(to_regex_safe_wildcard_string(name))
+        name_regex = "^{}$".format(to_regex_safe_wildcard_string(name))
+        purpose_regex = "^{}$".format(to_regex_safe_wildcard_string(purpose))
+        type_regex = "^{}$".format(to_regex_safe_wildcard_string(type_id))
         matches = []
         for comp in self.components:
-            if name and not re.match(regex, comp.name):
+            if name and not re.match(name_regex, comp.name):
                 continue
-            if purpose and purpose != comp.purpose:
+            if purpose and not re.match(purpose_regex, comp.purpose):
                 continue
-            if type_id and type_id not in comp.parent_type_ids:
+            if type_id and not any(
+                re.match(type_regex, t) for t in comp.parent_type_ids
+            ):
                 continue
             matches.append(comp)
         return matches
@@ -373,7 +404,7 @@ class ComponentMixin:
         Returns:
             Component object or None if not found.
         """
-        matches = self.find_components(name, purpose, type_id)
+        matches = self.find_components(name=name, purpose=purpose, type_id=type_id)
         if matches:
             return matches[0]
         return None
@@ -393,7 +424,7 @@ class ComponentMixin:
         Raises:
             FlowError
         """
-        source_type_id = get_schema_id(DER_SOURCE_TYPE)
+        source_type_id = _get_schema_wildcard(DER_SOURCE_TYPE)
         source_comps = self.find_components(type_id=source_type_id)
         try:
             return [c.properties["targetVersion"] for c in source_comps]
@@ -413,7 +444,7 @@ class ComponentMixin:
         Returns:
             Dictionary of variant set names to lists of variants.
         """
-        varset_type_id = get_schema_id(VARIANT_SET_TYPE)
+        varset_type_id = _get_schema_wildcard(VARIANT_SET_TYPE)
         varset_comps = self.find_components(type_id=varset_type_id)
         varsets = {}
         try:
@@ -443,7 +474,7 @@ class ComponentMixin:
         Raises:
             FlowError
         """
-        ref_type_id = get_schema_id(REFERENCE_TYPE)
+        ref_type_id = _get_schema_wildcard(REFERENCE_TYPE)
         ref_comps = self.find_components(type_id=ref_type_id)
         try:
             return [c.properties["targetVersion"] for c in ref_comps]
@@ -459,7 +490,7 @@ class ComponentMixin:
         Returns:
             Dictionary mapping layer name to asset id.
         """
-        layer_type_id = get_schema_id(LAYER_TYPE)
+        layer_type_id = _get_schema_wildcard(LAYER_TYPE)
         layer_comps = self.find_components(type_id=layer_type_id)
         layers = {}
         try:
@@ -928,15 +959,18 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
 
         # This target id should match the beginning of any version id belonging to this asset
         target_id = self.id.replace(self.MEDM_ENTITY, FlowVersion.MEDM_ENTITY)
-        der_source_type_id = get_schema_id(DER_SOURCE_TYPE)
+        # Wildcard type id matching every version of the Source component schema
+        der_source_type_id = _get_schema_wildcard(DER_SOURCE_TYPE)
 
         # Generate a query to find assets which contain a Source component with a matching target id
         # Since we know derivative assets will be siblings of the current asset
         # we can safely scope this query to the parent asset with depth of 1.
         client = get_client()
-        q_filter = f"has.component.type=={der_source_type_id};"
-        q_filter += f"components[typeId:{der_source_type_id}].data.targetVersion.objectId.id=like={target_id}*;"
-        q_filter += f"components[typeId:{der_source_type_id}].name=='{DER_SOURCE_COMP}'"
+        q_filter = (
+            f"components[typeId:{der_source_type_id}]"
+            f".data.targetVersion.objectId.id=like={target_id}*;"
+            f"components[typeId:{der_source_type_id}].name=='{DER_SOURCE_COMP}'"
+        )
         q_input = medm_model.AssetsByTraversalInput(
             start_at_id=self.parent_id,  # search under parent
             depth=1,  # search immediate children only

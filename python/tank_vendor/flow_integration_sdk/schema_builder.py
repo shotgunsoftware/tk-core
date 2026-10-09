@@ -270,6 +270,9 @@ class SchemaBuilder:
                     inherits.append(inherited_schema_id)
                 else:
                     inherits.append(inherited_schema)
+        else:
+            # Inherit the kind base type
+            inherits.append(KIND_BASE_TYPE_ID[self.schema_kind.value])
 
         # Build property list for CreateSchemaInput
         properties = []
@@ -285,7 +288,7 @@ class SchemaBuilder:
                 schema_library_id=self.schema_library_id,
                 version=self.schema_dict["version"],
                 description=self.schema_dict.get("description", ""),
-                inherits=inherits if inherits else None,
+                inherits=inherits,
                 properties=properties if properties else None,
             )
             # Create and call the schema mutation
