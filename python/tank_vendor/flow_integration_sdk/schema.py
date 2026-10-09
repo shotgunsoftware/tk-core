@@ -23,8 +23,7 @@ from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
 from .exceptions import FlowError
 from .globals import (
-    BASE_COMPONENT_V1_TYPE_ID,
-    BASE_COMPONENT_V2_TYPE_ID,
+    BASE_COMPONENT_TYPE_ID,
     BASE_PROPERTY_TYPE_ID,
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
@@ -45,11 +44,17 @@ from .utils import get_logger, trace
 # Format:  key = schema type id, value = list of parent types
 _schema_tree: dict[str, list[str]] = {}
 
+# The BINARY_TYPE_ID schema still inherits from v1 of the base component type
+# Track this in order to ensure accuracy of this schema cache
+_BASE_COMPONENT_TYPE_ID_V1 = "autodesk.me:component-1.0.0"
+
 # Hardcode some well known relationships and root types
 _schema_tree[BASE_PROPERTY_TYPE_ID] = []
 _schema_tree[BASE_TYPE_ID] = []
-_schema_tree[BINARY_TYPE_ID] = [BASE_COMPONENT_V1_TYPE_ID]
-_schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_V2_TYPE_ID]
+_schema_tree[BASE_COMPONENT_TYPE_ID] = []
+_schema_tree[_BASE_COMPONENT_TYPE_ID_V1] = []
+_schema_tree[BINARY_TYPE_ID] = [_BASE_COMPONENT_TYPE_ID_V1]
+_schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
 _schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
 _schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
 
@@ -157,27 +162,6 @@ def get_schema_id(type_name: str) -> str | None:
         Full id of type, or None if type is not cached.
     """
     return _schema_ids.get(type_name, None)
-
-
-def get_schema_wildcard(type_name: str) -> str | None:
-    """Return a wildcard type id matching every version of type name.
-
-    The namespace of the configured schema is kept and only the version is
-    replaced by a wildcard (e.g. "component.reference" ->
-    "autodesk.me:component.reference-*").
-
-    Args:
-        type_name: Base name of schema type, without namespace or version
-                   (e.g. "component.reference").
-
-    Returns:
-        Wildcard type id, or None if type is not cached.
-    """
-    configured_schema_id = get_schema_id(type_name)
-    if not configured_schema_id:
-        return None
-    # type ids are "<namespace>:<type name>-<version>"
-    return f"{configured_schema_id.rsplit('-', 1)[0]}-*"
 
 
 @trace
