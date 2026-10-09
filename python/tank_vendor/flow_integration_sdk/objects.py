@@ -371,9 +371,7 @@ class ComponentMixin:
         `find_components()`, but return only the first match.
 
         Args:
-            name: See `find_components()` documentation.
-            purpose: See `find_components()` documentation.
-            type_id: See `find_components()` documentation.
+            See `find_components()` documentation.
 
         Returns:
             Component object or None if not found.
