@@ -19,12 +19,7 @@ import os
 from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as flow_model
-from tank_vendor.flow_data_sdk.base.exceptions import (
-    FlowConnectionError,
-    GQLAPIError,
-    GQLErrorCode,
-    ValidationError,
-)
+from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
 
 from .exceptions import FlowError
 from .globals import (
@@ -39,7 +34,6 @@ from .globals import (
     get_session_collection,
     IMAGE_TYPE_ID,
     KIND_BASE_TYPE_ID,
-    KIND_RETIRED_BASE_TYPE_IDS,
 )
 from .utils import get_logger, trace
 
@@ -165,98 +159,25 @@ def get_schema_id(type_name: str) -> str | None:
     return _schema_ids.get(type_name, None)
 
 
-@cache
-def _query_schema_ids_by_base_type(
-    base_type_id: str, collection_id: str
-) -> frozenset[str]:
-    """Query and cache the type ids of every schema of a collection that derives
-    from the given base type, at any depth.
+def get_schema_wildcard(type_name: str) -> str | None:
+    """Return a wildcard type id matching every version of type name.
 
-    Results are cached per base type and collection, so each base is queried at
-    most once per collection. A base type that does not exist is treated as
-    having no subtypes. Errors are not cached.
-
-    Args:
-        base_type_id: Full type id of the base type.
-        collection_id: Flow AM collection ID.
-
-    Returns:
-        Frozen set of full type ids.
-
-    Raises:
-        FlowError
-    """
-    logger = get_logger(__name__)
-    client = get_client()
-
-    q_input = flow_model.SchemasBySuperTypeInput(
-        collection_id=collection_id,
-        type_id=base_type_id,
-        include_sub_sub_classes=True,
-    )
-    try:
-        q_schemas = client.service_schema.schemas_by_super_type(variables=q_input)
-        return frozenset(q_schemas.schema_types_iterator)
-    except GQLAPIError as exc:
-        if exc.error_code != GQLErrorCode.NOT_FOUND.value:
-            msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
-            raise FlowError(msg) from exc
-        logger.info(f'Base type "{base_type_id}" not found.')
-        return frozenset()
-    except (FlowConnectionError, ValidationError) as exc:
-        msg = f'Failed to retrieve subtypes of "{base_type_id}": {exc}'
-        raise FlowError(msg) from exc
-
-
-@trace
-def get_schema_family(type_name: str) -> list[str]:
-    """Return the full type ids of every version of type name in the session
-    collection.
-
-    Use this rather than `get_schema_id()` when searching for existing data,
-    which may have been created with another version of the schema (e.g. one
-    created before its base type was updated). Subtypes are not included.
-
-    The kind is derived from the type name prefix (e.g. "component.layer" is a
-    component), and schemas are searched under the current and retired base
-    types of that kind.
-
-    ..note:: `cache_schema_config()` and `globals.init_session_collection()`
-             must be called first.
+    The namespace of the configured schema is kept and only the version is
+    replaced by a wildcard (e.g. "component.reference" ->
+    "autodesk.me:component.reference-*").
 
     Args:
         type_name: Base name of schema type, without namespace or version
-                   (e.g. "component.layer").
+                   (e.g. "component.reference").
 
     Returns:
-        List of full type ids, the configured version first. Empty if type is
-        not cached.
-
-    Raises:
-        FlowError
-        ValueError
+        Wildcard type id, or None if type is not cached.
     """
     configured_schema_id = get_schema_id(type_name)
     if not configured_schema_id:
-        return []
-
-    kind = type_name.split(".", 1)[0]
-    if kind not in KIND_BASE_TYPE_ID:
-        raise ValueError(
-            f"Unknown schema kind '{kind}' for '{type_name}'. "
-            f"Must be one of: {', '.join(KIND_BASE_TYPE_ID)}"
-        )
-    base_type_ids = [KIND_BASE_TYPE_ID[kind]] + KIND_RETIRED_BASE_TYPE_IDS[kind]
-    collection_id = get_session_collection().id
-
+        return None
     # type ids are "<namespace>:<type name>-<version>"
-    version_prefix = f"{configured_schema_id.rsplit('-', 1)[0]}-"
-    other_version_ids = set()
-    for base_type_id in base_type_ids:
-        for schema_id in _query_schema_ids_by_base_type(base_type_id, collection_id):
-            if schema_id.startswith(version_prefix) and schema_id != configured_schema_id:
-                other_version_ids.add(schema_id)
-    return [configured_schema_id] + sorted(other_version_ids)
+    return f"{configured_schema_id.rsplit('-', 1)[0]}-*"
 
 
 @trace

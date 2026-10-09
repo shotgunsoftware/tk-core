@@ -1,6 +1,6 @@
 {
   "name": "demo_pipeline",
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "Flow Toolkit pipeline schema definitions",
   "schemas": [
     {
@@ -186,7 +186,7 @@
     },
     {
       "name": "component.layer",
-      "version": "2.0.0",
+      "version": "1.0.0",
       "display_name": "Layer",
       "kind": "component",
       "description": "A named compositional relationship. The target asset contributes compositionally to this asset.",
@@ -204,7 +204,7 @@
     },
     {
       "name": "component.variantSet",
-      "version": "2.0.0",
+      "version": "1.0.0",
       "display_name": "Variant Set",
       "kind": "component",
       "description": "The target asset is a selectable realization of this asset for setName=variantName.",
@@ -230,7 +230,7 @@
     },
     {
       "name": "component.source",
-      "version": "2.0.0",
+      "version": "1.0.0",
       "display_name": "Source",
       "kind": "component",
       "description": "The target asset represents provenance or derivation lineage.",
@@ -244,7 +244,7 @@
     },
     {
       "name": "component.reference",
-      "version": "2.0.0",
+      "version": "1.0.0",
       "display_name": "Reference",
       "kind": "component",
       "description": "The target asset is referenced as a dependency or included asset.",
