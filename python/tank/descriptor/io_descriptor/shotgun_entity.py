@@ -131,13 +131,16 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         self._entity_type = descriptor_dict.get("entity_type")
         self._field = descriptor_dict.get("field")
 
-        # ensure version is an int if specified
+        # Ensure version is an int if specified. create_descriptor() sets the
+        # string "latest" when resolve_latest is requested without a version,
+        # so accept it as well.
         try:
-            self._version = (
-                int(descriptor_dict["version"])
-                if "version" in descriptor_dict
-                else None
-            )
+            if "version" not in descriptor_dict:
+                self._version = None
+            elif descriptor_dict["version"] == "latest":
+                self._version = "latest"
+            else:
+                self._version = int(descriptor_dict["version"])
         except ValueError:
             raise TankDescriptorError(
                 "Invalid version in descriptor %s" % descriptor_dict
