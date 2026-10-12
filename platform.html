@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.24.3 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.24.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -162,6 +162,7 @@
 <li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 
 
@@ -183,7 +184,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.3.<br>
+    <b>tk-core</b> v0.24.4.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -600,6 +601,31 @@ of specific keys, outlined below.</p>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="sgtk.platform.Engine._destroy_qt_dialogs">
+<span class="sig-name descname"><span class="pre">_destroy_qt_dialogs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._destroy_qt_dialogs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#sgtk.platform.Engine._destroy_qt_dialogs" title="Permalink to this definition"></a></dt>
+<dd><p>Close every dialog created by this engine that is still open, then
+immediately delete the Qt widgets of all closed dialogs.</p>
+<p>When a dialog is closed, its widgets are kept in a widget trash and only
+deleted once nothing else references them. Widgets with reference
+cycles, which most app dialogs have, are never deleted that way: they
+stay alive as parentless top-level widgets until the host application
+quits. Some hosts destroy these widgets natively as part of their own
+shutdown, which can crash PySide. For example, release builds of Maya
+2027.2 (PySide6) crash on quit after a Toolkit dialog was opened and
+closed.</p>
+<p>Call this method from an engine when the host application starts to
+quit, while the host and the Qt event loop are still fully alive, for
+example from a <code class="docutils literal notranslate"><span class="pre">kMayaExiting</span></code> callback in Maya. It is not called by
+<a class="reference internal" href="#sgtk.platform.Engine.destroy" title="sgtk.platform.Engine.destroy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">destroy()</span></code></a>, and the engine should not show dialogs afterwards.</p>
+<p>Each dialog still open is closed first, so its app shuts down as if the
+user had closed it. A dialog whose widget refuses to close is left
+alone. Then the C++ object of every widget in the trash is deleted right
+away, rather than with <code class="docutils literal notranslate"><span class="pre">deleteLater()</span></code>, because deferred deletions
+might never be processed while the host quits. Python references to
+these widgets raise <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code> if they are used afterwards.</p>
 </dd></dl>
 
 <dl class="py method">

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.24.3 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.24.4 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -65,6 +65,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../environment_variables.html">Environment Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 </ul>
 
 
@@ -86,7 +87,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.3.<br>
+    <b>tk-core</b> v0.24.4.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -1948,6 +1949,9 @@
 
 <span class="sd">        Better to be safe though as deleting/releasing a widget that</span>
 <span class="sd">        still has events in the event queue will cause a hard crash!</span>
+
+<span class="sd">        Widgets that are never released here can crash some hosts when</span>
+<span class="sd">        they quit: see :meth:`_destroy_qt_dialogs`.</span>
 <span class="sd">        """</span>
         <span class="n">still_trash</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span><span class="p">:</span>
@@ -1975,6 +1979,65 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span>
             <span class="s2">"Widget trash contains </span><span class="si">%d</span><span class="s2"> widgets"</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span><span class="p">))</span>
         <span class="p">)</span>
+
+<div class="viewcode-block" id="Engine._destroy_qt_dialogs"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._destroy_qt_dialogs">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">_destroy_qt_dialogs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Close every dialog created by this engine that is still open, then</span>
+<span class="sd">        immediately delete the Qt widgets of all closed dialogs.</span>
+
+<span class="sd">        When a dialog is closed, its widgets are kept in a widget trash and only</span>
+<span class="sd">        deleted once nothing else references them. Widgets with reference</span>
+<span class="sd">        cycles, which most app dialogs have, are never deleted that way: they</span>
+<span class="sd">        stay alive as parentless top-level widgets until the host application</span>
+<span class="sd">        quits. Some hosts destroy these widgets natively as part of their own</span>
+<span class="sd">        shutdown, which can crash PySide. For example, release builds of Maya</span>
+<span class="sd">        2027.2 (PySide6) crash on quit after a Toolkit dialog was opened and</span>
+<span class="sd">        closed.</span>
+
+<span class="sd">        Call this method from an engine when the host application starts to</span>
+<span class="sd">        quit, while the host and the Qt event loop are still fully alive, for</span>
+<span class="sd">        example from a ``kMayaExiting`` callback in Maya. It is not called by</span>
+<span class="sd">        :meth:`destroy`, and the engine should not show dialogs afterwards.</span>
+
+<span class="sd">        Each dialog still open is closed first, so its app shuts down as if the</span>
+<span class="sd">        user had closed it. A dialog whose widget refuses to close is left</span>
+<span class="sd">        alone. Then the C++ object of every widget in the trash is deleted right</span>
+<span class="sd">        away, rather than with ``deleteLater()``, because deferred deletions</span>
+<span class="sd">        might never be processed while the host quits. Python references to</span>
+<span class="sd">        these widgets raise ``RuntimeError`` if they are used afterwards.</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.qt</span><span class="w"> </span><span class="kn">import</span> <span class="n">shiboken</span>
+
+        <span class="k">for</span> <span class="n">dialog</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__created_qt_dialogs</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">shiboken</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">shiboken</span><span class="o">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">dialog</span><span class="p">):</span>
+                <span class="c1"># Already deleted, for example with a parent dialog.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__created_qt_dialogs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># The dialog_closed signal moves the dialog and its widget to</span>
+                <span class="c1"># the widget trash, see _on_dialog_closed.</span>
+                <span class="n">dialog</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">"Could not close a dialog."</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">shiboken</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Cannot delete the widget trash: no shiboken."</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">trash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Deleting </span><span class="si">%d</span><span class="s2"> widgets in the widget trash."</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">trash</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="n">trash</span><span class="p">:</span>
+            <span class="c1"># detach_widget returns None for a dialog without a widget.</span>
+            <span class="k">if</span> <span class="n">widget</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">shiboken</span><span class="o">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">shiboken</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">"Could not delete a widget."</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Engine.show_dialog"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.show_dialog">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">show_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
