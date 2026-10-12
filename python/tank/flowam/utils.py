@@ -45,7 +45,7 @@ from tank_vendor.flow_integration_sdk.publish import (
 from tank_vendor.flow_integration_sdk.schema_builder import create_pipeline_schemas
 from tank_vendor.flow_integration_sdk.utils import trace
 
-from .constants import FLOW_SCHEMA_CONFIG_PATH
+from .constants import FLOW_ENVIRONMENT_FOLDER, FLOW_SCHEMA_CONFIG_PATH
 
 logger = LogManager.get_logger(__name__)
 
@@ -76,6 +76,39 @@ class BaseInputs:
 {self.format_str(tab=3)}
     --------------------------------------"""
         logger.info(msg)
+
+
+def get_flowam_environment_name(env_path: str) -> str | None:
+    """
+    Returns the name of a FlowAM environment from its file path.
+
+    The FlowAM environments are in their own env subfolder, and their name is
+    prefixed with it, e.g. env/flowam/project.yml is the "flowam/project"
+    environment.
+
+    :param env_path: Path to an environment file.
+    :returns: The FlowAM environment name, or None if it isn't a FlowAM environment.
+    """
+    folder = os.path.basename(os.path.dirname(env_path))
+    if folder != FLOW_ENVIRONMENT_FOLDER:
+        return None
+    name = os.path.splitext(os.path.basename(env_path))[0]
+    return "%s/%s" % (folder, name)
+
+
+def get_flowam_environment_files(env_root: str) -> dict:
+    """
+    Returns the FlowAM environment files of a config env folder, keyed by name.
+
+    :param env_root: Path to the config env folder.
+    :returns: Dictionary of FlowAM environment file paths, keyed by environment
+        name, e.g. {"flowam/project": ".../env/flowam/project.yml"}.
+    """
+    env_files = {}
+    pattern = os.path.join(env_root, FLOW_ENVIRONMENT_FOLDER, "*.yml")
+    for env_path in glob.glob(pattern):
+        env_files[get_flowam_environment_name(env_path)] = env_path
+    return env_files
 
 
 def get_config_flow_settings(pipeline_config: PipelineConfiguration) -> dict:
