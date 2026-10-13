@@ -8,8 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import annotations  # needed for python 3.9 support
+
 from ... import LogManager
-from ...util import process
+from ...util.process import SubprocessCalledProcessError
+from .git import _check_output
 from .path import IODescriptorPath
 
 log = LogManager.get_logger(__name__)
@@ -52,25 +55,68 @@ class IODescriptorDev(IODescriptorPath):
         """
         return True
 
-    def get_version(self):
+    def get_version(self) -> str:
+        """
+        Returns the version number string for this item.
+
+        Like any path descriptor, this normally returns the version defined
+        in the descriptor, or ``Undefined`` if no version is defined.
+
+        As a special case, when a version is defined and the path is a git
+        clone, the version is "improved" with information from git, to
+        identify exactly which code is in use. See :meth:`_get_git_version`.
+
+        :returns: Version string.
+        """
         v = super().get_version()
-        log.info(f"{self} - get_version() returned {v} - {type(v)}")
-        if v not in ("HEAD", "Undefined"):  # TODO constant
+        if v != self.UNDEFINED_VERSION:
             return v
 
-        desc = self.get_git_output("describe", "--tags", "--first-parent")
-        if not desc:
-            return v
+        return self._get_git_version() or v
 
-        return desc.replace("-alpha1-", "+git+", 1)
+    def _get_git_version(self) -> str | None:
+        """
+        Returns a PEP 440 compliant version derived from git for this item's path.
 
-    def get_git_output(self, *args):
-        cmd_args = ["git", "-C", self._path]
-        cmd_args.extend(args)
+        The version is derived from ``git describe --tags --long``, based on
+        the closest tag:
+
+        - ``--tags`` also matches lightweight tags, which releases use.
+        - ``--long`` always yields ``<tag>-<distance>-g<sha>``, even when
+          the clone is exactly on the tag.
+
+        That output is converted to a PEP 440 compliant version:
+
+        - ``v1.2.3+g1a2b3c4`` when the clone is exactly on tag ``v1.2.3``.
+        - ``v1.2.3.post5+g1a2b3c4`` when the clone is 5 commits past it,
+          i.e. a post-release of the tag.
+
+        The ``+g<sha>`` local label distinguishes a git clone from a released
+        version.
+
+        :returns: Version string, or ``None`` if git cannot describe the path,
+            for example because it is not a git clone, has no tags, or git is
+            not installed.
+        """
         try:
-            output = process.subprocess_check_output(cmd_args)
-        except process.SubprocessCalledProcessError:
-            log.debug("Unable to run git command - {e}")
-        else:
-            # note: it seems on windows, the result is sometimes wrapped in single quotes.
-            return output.strip().strip("'")
+            output = _check_output(
+                ["git", "-C", self._path, "describe", "--tags", "--long"]
+            )
+        except (SubprocessCalledProcessError, OSError):
+            return
+
+        desc = output.strip()
+        if not desc:
+            return
+
+        try:
+            tag, distance, sha = desc.rsplit("-", 2)
+        except ValueError:
+            # Not the "<tag>-<distance>-g<sha>" format --long should produce.
+            # Be defensive in case a git version or setting changes it.
+            return
+
+        if distance == "0":
+            return f"{tag}+{sha}"
+
+        return f"{tag}.post{distance}+{sha}"
