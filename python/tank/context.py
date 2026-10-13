@@ -33,7 +33,7 @@ from .util import login, pickle, shotgun, shotgun_entity
 
 log = LogManager.get_logger(__name__)
 
-# FlowAM fields of the project, so it is only queried once per process. 
+# FlowAM fields of the project, so it is only queried once per process.
 # A session only deals with one site and one project. Only a successful query is stored.
 _flowam_fields_cache = {}
 
