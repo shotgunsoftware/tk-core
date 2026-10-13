@@ -8,18 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 
 import sgtk
-
 from sgtk.bootstrap import ToolkitManager
-
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
     TankTestBase,
+    mock,
+    setUpModule,  # noqa
     temp_env_var,
 )
 
@@ -149,13 +146,28 @@ class TestFunctionality(ShotgunTestBase):
         class_attrs = set(dir(ToolkitManager))
         instance_attrs = set(dir(ToolkitManager()))
         unserializable_attrs = set(
-            ["_sg_connection", "_sg_user", "_pre_engine_start_callback", "_progress_cb"]
+            [
+                "_pre_engine_start_callback",
+                "_progress_cb",
+                "_sg_connection",
+                "_sg_user",
+            ]
+        )
+        # Transient runtime state: queried during bootstrap and cached onto the
+        # context object afterwards. Not user-configured, so not serialized.
+        transient_attrs = set(
+            [
+                "_flow_project_id",
+                "_flow_schema_version",
+            ]
         )
         # Through this operation, we're taking all the symbols that are defined from an instance,
         # we then remove everything that is defined also in the class, which means we're left
         # with what was added during __init__, and then we remove the parameters we know can't
         # be serialized. We're left with a small list of values that can be serialized.
-        instance_data_members = instance_attrs - class_attrs - unserializable_attrs
+        instance_data_members = (
+            instance_attrs - class_attrs - unserializable_attrs - transient_attrs
+        )
         self.assertEqual(len(instance_data_members), 7)
 
         # Create a manager that hasn't been updated yet.
@@ -168,7 +180,7 @@ class TestFunctionality(ShotgunTestBase):
         modified_mgr.caching_policy = ToolkitManager.CACHE_FULL
         modified_mgr.pipeline_configuration = "Primary"
         modified_mgr.base_configuration = (
-            "sgtk:descriptor:app_store?" "version=v0.18.91&name=tk-config-basic"
+            "sgtk:descriptor:app_store?version=v0.18.91&name=tk-config-basic"
         )
         modified_mgr.do_shotgun_config_lookup = False
         modified_mgr.plugin_id = "basic.default"
@@ -216,7 +228,7 @@ class _MockedShotgunUser(object):
 
 class TestPrepareEngine(ShotgunTestBase):
     def setUp(self):
-        super(TestPrepareEngine, self).setUp({"primary_root_name": "primary"})
+        super().setUp({"primary_root_name": "primary"})
 
     def test_prepare_engine(self):
         """
@@ -249,7 +261,7 @@ class TestPrepareEngine(ShotgunTestBase):
 
 class TestGetPipelineConfigs(TankTestBase):
     def setUp(self):
-        super(TestGetPipelineConfigs, self).setUp()
+        super().setUp()
 
         self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
         self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})

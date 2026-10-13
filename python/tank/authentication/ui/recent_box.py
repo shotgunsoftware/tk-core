@@ -18,8 +18,8 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .qt_abstraction import QtGui
 from .completion_filter_proxy import CompletionFilterProxy
+from .qt_abstraction import QtGui
 
 
 class RecentBox(QtGui.QComboBox):
@@ -30,7 +30,7 @@ class RecentBox(QtGui.QComboBox):
     """
 
     def __init__(self, parent):
-        super(RecentBox, self).__init__(parent)
+        super().__init__(parent)
 
         self.setEditable(True)
 

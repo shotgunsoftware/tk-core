@@ -14,15 +14,13 @@ Management of file and directory templates.
 """
 
 import os
+import sys
 
-from . import templatekey
-from .errors import TankError
-from . import constants
-from .template_path_parser import TemplatePathParser
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import zip
 from tank.util import is_linux, is_macos, is_windows, sgre as re
+
+from . import constants, templatekey
+from .errors import TankError
+from .template_path_parser import TemplatePathParser
 
 
 class Template(object):
@@ -252,7 +250,7 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to
+                         (e.g. ``win32``, ``linux`` or ``darwin``), paths will be generated to
                          match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
@@ -272,7 +270,7 @@ class Template(object):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
+                         (e.g. 'win32', 'linux' or 'darwin'), paths will be generated to
                          match that platform.
         :param skip_defaults: Optional. If set to True, if a key has a default value and no
                               corresponding value in the fields argument, its default value
@@ -476,7 +474,7 @@ class Template(object):
         :returns:           True if the path is valid for this template
         :rtype:             Bool
         """
-        return self.validate_and_get_fields(path, fields, skip_keys) != None
+        return self.validate_and_get_fields(path, fields, skip_keys) is not None
 
     def get_fields(self, input_path, skip_keys=None):
         """
@@ -505,7 +503,7 @@ class Template(object):
         for ordered_keys, static_tokens in zip(self._ordered_keys, self._static_tokens):
             path_parser = TemplatePathParser(ordered_keys, static_tokens)
             fields = path_parser.parse_path(input_path, skip_keys)
-            if fields != None:
+            if fields is not None:
                 break
 
         if fields is None:
@@ -532,7 +530,7 @@ class TemplatePath(Template):
         :param per_platform_roots: Root paths for all supported operating systems.
                                    This is a dictionary with sys.platform-style keys
         """
-        super(TemplatePath, self).__init__(definition, keys, name=name)
+        super().__init__(definition, keys, name=name)
         self._prefix = root_path
         self._per_platform_roots = per_platform_roots
 
@@ -557,6 +555,26 @@ class TemplatePath(Template):
         """
         return self._prefix
 
+    def _dirname(self) -> str:
+        """
+        Returns the directory part of the template, preserving optional
+        section brackets. Finds the last path separator outside any brackets.
+
+        :returns: String
+        """
+        bracket_depth = 0
+        last_sep_outside = -1
+        for i, c in enumerate(self._repr_def):
+            if c == "[":
+                bracket_depth += 1
+            elif c == "]":
+                bracket_depth = max(0, bracket_depth - 1)
+            elif c == "/" and bracket_depth == 0:
+                last_sep_outside = i
+        if last_sep_outside == -1:
+            return ""
+        return self._repr_def[:last_sep_outside]
+
     @property
     def parent(self):
         """
@@ -566,8 +584,12 @@ class TemplatePath(Template):
 
         :returns: :class:`Template`
         """
-        parent_definition = os.path.dirname(self.definition)
-        if parent_definition:
+        parent_definition = self._dirname()
+        # Only create a parent if the definition is non-empty and not a filesystem root.
+        if (
+            parent_definition
+            and os.path.dirname(parent_definition) != parent_definition
+        ):
             return TemplatePath(
                 parent_definition,
                 self.keys,
@@ -590,7 +612,7 @@ class TemplatePath(Template):
         :param platform: Optional operating system platform. If you leave it at the
                          default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
+                         (e.g. 'win32', 'linux' or 'darwin'), paths will be generated to
                          match that platform.
         :param skip_defaults: Optional. If set to True, if a key has a default value and no
                               corresponding value in the fields argument, its default value
@@ -600,7 +622,7 @@ class TemplatePath(Template):
 
         :returns: Full path, matching the template with the given fields inserted.
         """
-        relative_path = super(TemplatePath, self)._apply_fields(
+        relative_path = super()._apply_fields(
             fields, ignore_types, platform, skip_defaults=skip_defaults
         )
 
@@ -613,7 +635,6 @@ class TemplatePath(Template):
             )
 
         else:
-            platform = sgsix.normalize_platform(platform)
             # caller has requested a path for another OS
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
@@ -626,6 +647,10 @@ class TemplatePath(Template):
                 )
 
             platform_root_path = self._per_platform_roots.get(platform)
+
+            if platform == "linux2" and platform not in self._per_platform_roots:
+                # Compat with tk-nuke prior to TODO
+                platform = "linux"
 
             if platform_root_path is None:
                 # either the platform is undefined or unknown
@@ -681,7 +706,7 @@ class TemplateString(Template):
         :param name: Optional name for this template.
         :param validate_with: Optional :class:`Template` to use for validation
         """
-        super(TemplateString, self).__init__(definition, keys, name=name)
+        super().__init__(definition, keys, name=name)
         self.validate_with = validate_with
         self._prefix = "@"
 
@@ -717,7 +742,7 @@ class TemplateString(Template):
         """
         # add path prefix as original design was to require project root
         adj_path = os.path.join(self._prefix, input_path)
-        return super(TemplateString, self).get_fields(adj_path, skip_keys=skip_keys)
+        return super().get_fields(adj_path, skip_keys=skip_keys)
 
 
 def split_path(input_path):
@@ -829,7 +854,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
                 "instead?" % (template_name, definition)
             )
 
-        root_path = all_per_platform_roots.get(root_name, {}).get(sgsix.platform)
+        root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
         if root_path is None:
             raise TankError(
                 "Undefined PTR storage! The local file storage '%s' is not defined for this "
@@ -886,7 +911,7 @@ def _conform_template_data(template_data, template_name):
     """
     Takes data for single template and conforms it expected data structure.
     """
-    if isinstance(template_data, six.string_types):
+    if isinstance(template_data, str):
         template_data = {"definition": template_data}
     elif not isinstance(template_data, dict):
         raise TankError(

@@ -13,27 +13,25 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
-import sys
-import os
 import fnmatch
+import os
 import pprint
+import sys
 
+from .. import LogManager
 from ..descriptor import (
     Descriptor,
     create_descriptor,
     descriptor_uri_to_dict,
     is_descriptor_version_missing,
 )
-from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
+from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
+from ..util import LocalFileStorageManager, ShotgunPath, filesystem
+from . import constants
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
+from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
 from .installed_configuration import InstalledConfiguration
-from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
-from ..util import filesystem
-from ..util import ShotgunPath
-from ..util import LocalFileStorageManager
-from .. import LogManager
-from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -203,57 +201,7 @@ class ConfigurationResolver(object):
         if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
             return self.resolve_configuration(config_descriptor, sg_connection)
 
-        # Validate if descriptor version token is omitted
-        resolve_latest = is_descriptor_version_missing(config_descriptor)
-        if (
-                sys.version_info[0] < 3
-                and self._plugin_id == "basic.desktop"
-                and resolve_latest
-        ):
-            # This will avoid auto update your tk-config-basic configuration to the
-            # latest available version when running Python 2.
-            # This cover the following case:
-            #
-            # * PTR desktop app is launched using Python 2 by setting 'SHOTGUN_PYTHON_VERSION'
-            #   environment variable to '2'and it will startup the tk-desktop engine for
-            #   the Site configuration.
-            #
-            # In this case this will initialize the tk-desktop for the 'Site' environment and
-            # resolve a configuration object using a descriptor pointing to the maximum config
-            # version supporting Python 2 which is maintained in the variable
-            # 'MAX_CONFIG_BASIC_PYTHON2_SUPPORTED' in the bootstrap constants.
-            log.info(
-                "Using Python version '%s'" % ".".join(str(i) for i in sys.version_info[0:3])
-            )
-            log.debug(
-                "Base configuration descriptor does not have a "
-                "version token defined."
-            )
-
-            # Disable resolve latest
-            resolve_latest = False
-            # Make sure the configuration version points to the latest
-            # supporting Python2
-            config_descriptor["version"] = constants.MAX_CONFIG_BASIC_PYTHON2_SUPPORTED
-            log.debug(
-                "%s Resolving configuration for latest version supporting Python 2 descriptor %s" % (self, config_descriptor)
-            )
-            # create config descriptor
-            cfg_descriptor = create_descriptor(
-                sg_connection,
-                Descriptor.CONFIG,
-                config_descriptor,
-                fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=resolve_latest,
-            )
-
-        else:
-            # Resolve config normally
-            return self.resolve_configuration(config_descriptor, sg_connection)
-
-        return self._create_configuration_from_descriptor(
-            cfg_descriptor, sg_connection, pc_id=None
-        )
+        return self.resolve_configuration(config_descriptor, sg_connection)
 
     def _create_configuration_from_descriptor(
         self, cfg_descriptor, sg_connection, pc_id
@@ -413,7 +361,6 @@ class ConfigurationResolver(object):
 
         # loop over all pipeline configs
         for pipeline_config in pipeline_configs:
-
             # see if the pipeline configuration we are looking at is relevant. Either of:
             # - Be a match against the resolver's associated plugin id
             # - Be a centralized config associated with the resolver's associated project
@@ -421,14 +368,13 @@ class ConfigurationResolver(object):
             if self._matches_current_plugin_id(
                 pipeline_config
             ) or self._is_centralized_pc_for_current_project(pipeline_config):
-
                 # extract the location information and place in special 'config_descriptor'
                 # field. Note that this may be None if for example the pipeline configuration
                 # is defined for another operating system.
                 try:
-                    pipeline_config[
-                        "config_descriptor"
-                    ] = self._create_config_descriptor(sg_connection, pipeline_config)
+                    pipeline_config["config_descriptor"] = (
+                        self._create_config_descriptor(sg_connection, pipeline_config)
+                    )
                     yield pipeline_config
 
                 except TankBootstrapInvalidPipelineConfigurationError as e:
@@ -506,7 +452,6 @@ class ConfigurationResolver(object):
                 )
 
         elif sg_descriptor_uri and not is_centralized_config:
-
             if sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
@@ -530,7 +475,6 @@ class ConfigurationResolver(object):
             )
 
         elif sg_uploaded_config and not is_centralized_config:
-
             if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get(
                 "sg_uploaded_config"
             ):
@@ -578,7 +522,6 @@ class ConfigurationResolver(object):
             )
 
         else:
-
             # If we have neither a uri, nor a path, raise exception
             # to indicate that config is not valid.
             if plugin_ids is None and (sg_descriptor_uri or sg_uploaded_config):
@@ -891,7 +834,9 @@ class ConfigurationResolver(object):
                 "Will use pipeline configuration id '%s'" % pipeline_config_identifier
             )
 
-            log.debug("Requesting pipeline configuration data from Flow Production Tracking...")
+            log.debug(
+                "Requesting pipeline configuration data from Flow Production Tracking..."
+            )
 
             # Fetch the one and only config that matches this id.
             pipeline_config = sg_connection.find_one(
@@ -919,7 +864,9 @@ class ConfigurationResolver(object):
 
             # We couldn't resolve anything from Shotgun, so we'll resolve the configuration using
             # an offline resolve.
-            return self.resolve_not_found_sg_configuration(fallback_config_descriptor, sg_connection)
+            return self.resolve_not_found_sg_configuration(
+                fallback_config_descriptor, sg_connection
+            )
 
         else:
             # Something was found in Shotgun, which means we've also potentially resolved its

@@ -12,22 +12,22 @@
 Classes for the main Sgtk API.
 """
 
-import os
 import glob
+import os
 
-from . import folder
-from . import context
-from .util import shotgun, yaml_cache
+from . import (
+    LogManager,
+    constants,
+    context,
+    folder,
+    pipelineconfig,
+    pipelineconfig_factory,
+    pipelineconfig_utils,
+)
 from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
-from . import constants
-from . import pipelineconfig
-from . import pipelineconfig_utils
-from . import pipelineconfig_factory
-from . import LogManager
-from tank_vendor import six
-from tank_vendor.six.moves import zip
+from .util import shotgun, yaml_cache
 
 log = LogManager.get_logger(__name__)
 
@@ -40,7 +40,7 @@ class Sgtk(object):
     manipulation and the Toolkit template system.
     """
 
-    (DEFAULT, CENTRALIZED, DISTRIBUTED) = range(3)
+    DEFAULT, CENTRALIZED, DISTRIBUTED = range(3)
 
     def __init__(self, project_path):
         """
@@ -543,7 +543,7 @@ class Sgtk(object):
         :rtype: List of strings.
         """
         skip_keys = skip_keys or []
-        if isinstance(skip_keys, six.string_types):
+        if isinstance(skip_keys, str):
             skip_keys = [skip_keys]
 
         # construct local fields dictionary that doesn't include any skip keys:
@@ -706,7 +706,6 @@ class Sgtk(object):
         # and add the leaf level if necessary
         abstract_paths = set()
         for found_file in found_files:
-
             cur_fields = search_template.get_fields(found_file)
 
             # pass 1 - go through the fields for this file and
@@ -1034,7 +1033,6 @@ def get_authenticated_user():
     :returns: A :class:`~sgtk.authentication.ShotgunUser` derived object if set,
         None otherwise.
     """
-    global _authenticated_user
     return _authenticated_user
 
 

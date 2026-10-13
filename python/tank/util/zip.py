@@ -10,8 +10,9 @@
 
 import os
 import zipfile
-from . import filesystem
+
 from .. import LogManager
+from . import filesystem
 
 log = LogManager.get_logger(__name__)
 
@@ -22,9 +23,6 @@ SYSTEM_FILE_ITEMS = set(["__MACOSX", ".DS_Store"])
 def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
     """
     Unzips the given file into the given folder.
-
-    Does the following command, but in a way which works with
-    Python 2.5 and Python2.6.2::
 
         z = zipfile.ZipFile(zip_file, "r")
         z.extractall(target_folder)
@@ -144,6 +142,10 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
         target_path = os.path.join(target_path, processed_item_path)
 
     target_path = os.path.normpath(target_path)
+
+    # On Windows, use the extended-length path prefix for paths >= 260 characters
+    # to avoid MAX_PATH limitations.
+    target_path = filesystem._to_extended_path(target_path)
 
     # Create all upper directories if necessary.
     upperdirs = os.path.dirname(target_path)

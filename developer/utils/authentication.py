@@ -14,7 +14,6 @@ import os
 from tank import LogManager
 from tank.authentication import ShotgunAuthenticator
 
-
 logger = LogManager.get_logger("utils.authentication")
 
 automated_setup_documentation = """For automated build setups, you can provide a specific shotgun API script name and

@@ -29,7 +29,7 @@ engines:
     location:
       type: app_store
       name: tk-shell
-      version: v0.8.0
+      version: v0.10.2
 
 frameworks:
   tk-framework-shotgunutils_v5.x.x:

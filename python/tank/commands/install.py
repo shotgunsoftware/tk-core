@@ -9,10 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import TankError
-from . import console_utils
+from . import console_utils, constants, util
 from .action_base import Action
-from . import util
-from . import constants
 
 
 class InstallAppAction(Action):
@@ -94,11 +92,10 @@ class InstallAppAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 3:
-
             log.info(
                 "This command adds an app to an existing environment and engine. "
                 "You can either add apps from the Toolkit App Store, git or directly from disk."
@@ -239,7 +236,7 @@ class InstallAppAction(Action):
                 % (env_name, engine_instance_name)
             )
 
-        if app_name.endswith(".git"):
+        if util.is_git_repo_uri(app_name):
             # this is a git location!
             # run descriptor factory method
             log.info("Connecting to git...")
@@ -411,11 +408,10 @@ class InstallEngineAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 2:
-
             log.info(
                 "This command adds an engine to an existing environment. "
                 "You can either add engines from the Toolkit App Store or from git source control."
@@ -534,13 +530,13 @@ class InstallEngineAction(Action):
                 % (env_name, e)
             )
 
-        if engine_name.endswith(".git"):
+        if util.is_git_repo_uri(engine_name):
             # this is a git location!
             # run descriptor factory method
             log.info("Connecting to git...")
             location = {"type": "git", "path": engine_name}
-            engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(
-                location
+            engine_descriptor = (
+                self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
             )
             log.info(
                 "Latest tag in repository '%s' is %s."
@@ -559,8 +555,8 @@ class InstallEngineAction(Action):
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
             location = {"type": "app_store", "name": engine_name}
-            engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(
-                location
+            engine_descriptor = (
+                self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
             )
             log.info(
                 "Latest approved App Store Version is %s." % engine_descriptor.version

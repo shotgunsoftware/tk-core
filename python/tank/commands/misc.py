@@ -8,12 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import code
+import os
+import sys
+
 from ..errors import TankError
 from .action_base import Action
-
-import code
-import sys
-import os
 
 
 class ClearCacheAction(Action):
@@ -70,7 +70,7 @@ class ClearCacheAction(Action):
                 log.debug("Deleting cache file %s..." % full_path)
                 try:
                     os.remove(full_path)
-                except:
+                except Exception:
                     log.warning("Could not delete cache file '%s'!" % full_path)
 
         log.info("The PTR menu cache has been cleared.")
@@ -128,8 +128,8 @@ class InteractiveShellAction(Action):
 
         # attempt install tab command completion
         try:
-            import rlcompleter
             import readline
+            import rlcompleter  # noqa: F401
 
             if "libedit" in readline.__doc__:
                 # macosx, some versions - see
@@ -137,7 +137,7 @@ class InteractiveShellAction(Action):
                 readline.parse_and_bind("bind ^I rl_complete")
             else:
                 readline.parse_and_bind("tab: complete")
-        except:
+        except Exception:
             pass
 
         code.interact(banner="\n".join(msg), local=tk_locals)

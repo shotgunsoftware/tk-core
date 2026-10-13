@@ -8,10 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ...errors import TankError
-from .entity import Entity
 from ... import constants
+from ...errors import TankError
 from ...log import LogManager
+from .entity import Entity
 
 log = LogManager.get_logger(__name__)
 

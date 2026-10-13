@@ -8,31 +8,27 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-from functools import reduce
+import contextlib
 import multiprocessing
 import os
+import shutil
 import sys
 import tempfile
 import time
 import uuid
-import shutil
 import zipfile
-import contextlib
-import pytest
+from functools import reduce
 
-from tank_test.tank_test_base import setUpModule  # noqa
+import pytest
+import sgtk
+import tank
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
     skip_if_git_missing,
     temp_env_var,
 )
-
-import sgtk
-import tank
-from tank.util import is_windows
-from tank_vendor.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -67,7 +63,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Instantiate the actual test class that is are pickle-able by multiprocessing
         and pass any information required for the test to function.
         """
-        super(TestDownloadableIODescriptors, self).setUp()
+        super().setUp()
         self.imp = Implementation(
             self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
         )
@@ -208,7 +204,6 @@ class Implementation(object):
         done = False
 
         while not done and attempt < retries:
-
             zip_tmp = os.path.join(
                 tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex
             )
@@ -244,7 +239,7 @@ class Implementation(object):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write(b("\0"))
+            f.write(b"\0")
 
         zip_file_path = os.path.join(
             tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex
@@ -384,10 +379,6 @@ class Implementation(object):
         :param expected_path: The expected path of the descriptor once it is downloaded locally.
         :param shared_dir: Optional shared directory to which the descriptor has to be downloaded to.
         """
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        # TODO: Test with subprocess instead of multiprocessing.
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         processes = []
         errors = []

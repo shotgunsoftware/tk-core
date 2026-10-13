@@ -16,36 +16,42 @@ and create a plugin scaffold, complete with standard helpers and
 a primed bundle cache.
 """
 
-# system imports
-from __future__ import with_statement
-import os
-import sys
-import shutil
 import datetime
+
+# system imports
+import os
+import shutil
+import sys
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
 python_folder = os.path.abspath(os.path.join(this_folder, "..", "python"))
-sys.path.append(python_folder)
+# Insert at the beginning to ensure local tk-core takes precedence over
+# any installed version in site-packages
+sys.path.insert(0, python_folder)
 
 # sgtk imports
 from tank import LogManager
-from tank.util import filesystem, sgre as re
-from tank.errors import TankError
-from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
-from tank.descriptor import create_descriptor, is_descriptor_version_missing
-from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
+from tank.bootstrap.baked_configuration import BakedConfiguration
+from tank.descriptor import (
+    Descriptor,
+    create_descriptor,
+    descriptor_dict_to_uri,
+    descriptor_uri_to_dict,
+    is_descriptor_version_missing,
+)
+from tank.errors import TankError
+from tank.util import filesystem, sgre as re
 from tank_vendor import yaml
-
 from utils import (
-    cache_apps,
-    authenticate,
-    add_authentication_options,
     OptionParserLineBreakingEpilog,
+    add_authentication_options,
+    authenticate,
+    automated_setup_documentation,
+    cache_apps,
     cleanup_bundle_cache,
     wipe_folder,
-    automated_setup_documentation,
 )
 
 # set up logging
@@ -239,7 +245,6 @@ def _process_configuration(
                 with open(shotgun_yaml_path, "w") as pf:
                     pf.write("# Workaround for tk-core bootstrap\nhost: unspecified")
     else:
-
         # if the descriptor in the config contains a version number
         # we will go into a fixed update mode.
         using_latest_config = is_descriptor_version_missing(base_config_uri_dict)
@@ -341,15 +346,12 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     params_path = os.path.join(full_module_path, "manifest.py")
 
     try:
-
         with open(params_path, "wt") as fh:
-
             fh.write("# this file was auto generated.\n\n\n")
 
             fh.write('base_configuration="%s"\n' % config_uri)
 
-            for (parameter, value) in manifest_data.items():
-
+            for parameter, value in manifest_data.items():
                 if parameter == "base_configuration":
                     continue
 
@@ -560,7 +562,7 @@ def build_plugin(
     # uri to use at runtime - in the case of baked descriptors, the config_uri_str
     # contains a manual descriptor uri and install_path is set with the baked
     # folder.
-    (cfg_descriptor, config_uri_str, install_path) = _process_configuration(
+    cfg_descriptor, config_uri_str, install_path = _process_configuration(
         sg_connection,
         source_path,
         target_path,
@@ -729,9 +731,7 @@ For information about the various descriptors that can be used, see
 http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
-""".format(
-        automated_setup_documentation=automated_setup_documentation
-    ).format(
+""".format(automated_setup_documentation=automated_setup_documentation).format(
         script_name="build_plugin.py"
     )
     parser = OptionParserLineBreakingEpilog(
@@ -770,7 +770,7 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
     add_authentication_options(parser)
 
     # parse cmd line
-    (options, remaining_args) = parser.parse_args()
+    options, remaining_args = parser.parse_args()
 
     logger.info("Welcome to the Toolkit plugin builder.")
     logger.info("")
@@ -833,7 +833,6 @@ http://developer.shotgridsoftware.com/tk-core/descriptor
 
 
 if __name__ == "__main__":
-
     # set up std toolkit logging to file
     LogManager().initialize_base_file_handler("build_plugin")
 

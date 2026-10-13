@@ -36,7 +36,7 @@ class FileCloseEvent(EngineEvent):
 
         :param str file_path: The path to the file closed.
         """
-        super(FileCloseEvent, self).__init__()
+        super().__init__()
         self._file_path = file_path
 
     @property

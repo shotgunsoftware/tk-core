@@ -8,16 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 from ...errors import TankError
 from ...util import shotgun_entity
-
-from .errors import EntityLinkTypeMismatch
 from .base import Folder
+from .errors import EntityLinkTypeMismatch
 from .expression_tokens import FilterExpressionToken
-from .util import translate_filter_tokens, resolve_shotgun_filters
+from .util import resolve_shotgun_filters, translate_filter_tokens
 
 
 class Entity(Folder):
@@ -117,11 +116,11 @@ class Entity(Folder):
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!
-        if is_primary == False and self._create_with_parent == False:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
-        return super(Entity, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def _get_additional_sg_fields(self):
         """
@@ -141,7 +140,6 @@ class Entity(Folder):
         items_created = []
 
         for entity in self.__get_entities(sg_data):
-
             # generate the field name
             folder_name = self._entity_expression.generate_name(entity)
 
@@ -289,7 +287,6 @@ class Entity(Folder):
         # by its children as we move upwards - for example a step.
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
         if my_sg_data_key in tokens:
-
             link_map = {}
             fields_to_retrieve = []
             additional_filters = []
@@ -359,7 +356,6 @@ class Entity(Folder):
             #   explicitly filtered out - which is not an error!
 
             if not rec:
-
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:
                     raise TankError(
@@ -381,7 +377,6 @@ class Entity(Folder):
             # link_map['sg_sequence'] = link_obj
             #
             for field in link_map:
-
                 # do some juggling to make sure we don't double process the
                 # name fields.
                 value = rec[field]

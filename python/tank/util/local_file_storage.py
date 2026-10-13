@@ -9,12 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
-from . import filesystem
-from .platforms import is_linux, is_macos, is_windows
+import sys
+import urllib.parse
+
 from .. import LogManager
 from ..errors import TankError
-from tank_vendor.shotgun_api3.lib import sgsix
+from . import filesystem
+from .platforms import is_linux, is_macos, is_windows
 
 log = LogManager.get_logger(__name__)
 
@@ -56,10 +57,10 @@ class LocalFileStorageManager(object):
     """
 
     # generation of path structures
-    (CORE_V17, CORE_V18) = range(2)
+    CORE_V17, CORE_V18 = range(2)
 
     # supported types of paths
-    (LOGGING, CACHE, PERSISTENT, PREFERENCES) = range(4)
+    LOGGING, CACHE, PERSISTENT, PREFERENCES = range(4)
 
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
@@ -154,10 +155,9 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sgsix.platform)
+                raise ValueError("Unknown platform: %s" % sys.platform)
 
         if generation == cls.CORE_V17:
-
             # previous generation of paths
             if is_macos():
                 if path_type == cls.CACHE:
@@ -196,7 +196,7 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sgsix.platform)
+                raise ValueError("Unknown platform: %s" % sys.platform)
 
     @classmethod
     def get_site_root(cls, hostname, path_type, generation=CORE_V18):
@@ -308,7 +308,6 @@ class LocalFileStorageManager(object):
             )
 
         else:
-
             # new paths are on the form
             # project 123, config 33:       root/mysite/p123c33
             # project 123 with plugin id:   root/mysite/p123.review.rv

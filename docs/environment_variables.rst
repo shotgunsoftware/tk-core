@@ -10,9 +10,26 @@ A number of different environment variables exist to help control the behavior o
 General
 =======
 
+``SHOTGUN_API_CACERTS``
+-----------------------
+Use this variable to override the default Trusted Root Certification Authorities
+Certificate Store bundled with Toolkit.
+By default, Toolkit relies on `certifi <https://pypi.org/project/certifi/>`_ as
+its Root CA store.
+
+For an example about using ``SHOTGUN_API_CACERTS`` to fix a certificate issue,
+see the `SSLHandshakeError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_qa_troubleshooting_qa_sslhandshakeerror_ssl_certificate_verify_failed_html>`_
+article.
+
 ``SHOTGUN_HOME``
 ----------------
 Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.
+
+``SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT``
+------------------------------------------
+Use this variable to prevent Toolkit from importing the QtWebEngine modules when
+importing the PySide2/PySide6 modules.
+This variable is useful when a DCC deadlocks while importing the module.
 
 ``SGTK_PREFERENCES_LOCATION``
 -----------------------------
@@ -27,6 +44,20 @@ Low level bypass to set the configuration desciptor URI that the bootstrap API s
 Controls debug logging.
 
 .. _environment_variables_authentication:
+
+``SHOTGUN_ALLOW_OLD_PYTHON``
+----------------------------
+
+When set to ``1``, Toolkit will allow being imported from Python versions that are no longer supported.
+Otherwise, when unset (or set to any other value), attempting to import Toolkit from old unsupported Python version will
+raise an exception.
+
+This is not recommended and should only be used for testing purposes.
+
+.. important::
+    The ability to import the module does not guarantee that Toolkit will work properly on the unsupported Python
+    version. In fact, it is very likely that it will not work properly.
+
 
 Authentication
 ==============

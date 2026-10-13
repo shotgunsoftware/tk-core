@@ -9,16 +9,15 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sgtk
 
-from tank_test.tank_test_base import *
-from tank.errors import TankError
+import sgtk
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestLegacyDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
-        super(TestLegacyDescriptorSupport, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"

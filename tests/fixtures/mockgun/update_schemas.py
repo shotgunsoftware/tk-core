@@ -12,7 +12,6 @@
 This script will update the Shotgun schema for Mockgun.
 """
 
-from __future__ import print_function
 import sys
 
 sys.path.insert(0, "../../../python")

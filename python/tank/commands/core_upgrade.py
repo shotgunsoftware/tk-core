@@ -12,23 +12,19 @@
 Tank command allowing to do core updates.
 """
 
-from __future__ import with_statement
-
-from ..errors import TankError
-from .action_base import Action
-
+import copy
+import optparse
 import os
 import sys
 import textwrap
-import optparse
-import copy
-
-from ..util import shotgun
-from .. import pipelineconfig_utils
-from . import console_utils
-from ..util.version import is_version_newer, is_version_head
 
 from tank_vendor import yaml
+
+from .. import pipelineconfig_utils
+from ..errors import TankError
+from ..util import shotgun
+from ..util.version import is_version_head, is_version_newer
+from .action_base import Action
 
 
 # FIXME: This should be refactored into something that can be used by other commands.
@@ -199,8 +195,7 @@ class CoreUpdateAction(Action):
             return_status = {"status": "update_blocked", "reason": msg}
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
-
-            (summary, url) = installer.get_release_notes()
+            summary, url = installer.get_release_notes()
 
             log.info("")
             log.info("Newer version %s is available." % new_version)
@@ -367,7 +362,6 @@ class TankCoreUpdater(object):
             # The config is immutable so we should not try updating it.
             return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
         else:
-
             # FIXME: We should cache info.yml on the appstore so we don't have
             #  to download the whole bundle just to see the file.
             if not self._new_core_descriptor.exists_local():

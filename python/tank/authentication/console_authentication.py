@@ -18,26 +18,22 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-from __future__ import print_function
 
-from . import constants
-from . import session_cache
-from .. import LogManager
-from .errors import (
-    AuthenticationError,
-    AuthenticationCancelled,
-    ConsoleLoginNotSupportedError,
-)
+import webbrowser
+from getpass import getpass
+
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from . import site_info
-from . import app_session_launcher
+
+from .. import LogManager
 from ..util import metrics_cache
 from ..util.metrics import EventMetric
 from ..util.shotgun.connection import sanitize_url
-
-from getpass import getpass
-import webbrowser
-from tank_vendor.six.moves import input
+from . import app_session_launcher, constants, session_cache, site_info
+from .errors import (
+    AuthenticationCancelled,
+    AuthenticationError,
+    ConsoleLoginNotSupportedError,
+)
 
 logger = LogManager.get_logger(__name__)
 
@@ -181,7 +177,7 @@ class ConsoleAuthenticationHandlerBase(object):
         print()
         session_info = app_session_launcher.process(
             hostname,
-            webbrowser.open,  # browser_open_callback
+            browser_open_callback=webbrowser.open,
             http_proxy=http_proxy,
         )
 
@@ -353,7 +349,7 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         """
         Constructor.
         """
-        super(ConsoleLoginHandler, self).__init__()
+        super().__init__()
         self._fixed_host = fixed_host
 
     def _get_sg_url(self, hostname, http_proxy):

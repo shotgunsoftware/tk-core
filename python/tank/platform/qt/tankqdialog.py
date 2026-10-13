@@ -13,19 +13,13 @@ Default implementation for the Tank Dialog
 
 """
 
-from . import QtCore, QtGui
-from . import ui_tank_dialog
-from . import TankDialogBase
-from .config_item import ConfigItem
-from .. import engine
-from .. import application
-from .. import constants
-from ...errors import TankError
-
-import sys
-import os
 import inspect
-from tank_vendor import six
+import os
+
+from ...errors import TankError
+from .. import application, constants, engine
+from . import QtCore, QtGui, TankDialogBase, ui_tank_dialog
+from .config_item import ConfigItem
 
 
 class TankQDialog(TankDialogBase):
@@ -62,16 +56,14 @@ class TankQDialog(TankDialogBase):
 
         widgets = [widget]
         for w in widgets:
-
             # look through class hierarchy - can't use isinstance here
             # because we don't know which module the BrowserWidget would
             # be from!
             cls_type = None
             for cls in inspect.getmro(type(w)):
-
                 # stop if we've previously checked this class:
                 cls_type = checked_classes.get(cls, None)
-                if cls_type != None:
+                if cls_type is not None:
                     break
                 checked_classes[cls] = ""
 
@@ -105,7 +97,7 @@ class TankQDialog(TankDialogBase):
                         # assume that this is derived from an actual tk-multi-workfiles.SaveAsForm!
                         cls_type = "SaveAsForm"
 
-                if cls_type != None:
+                if cls_type is not None:
                     checked_classes[cls] = cls_type
                     break
 
@@ -225,7 +217,6 @@ class TankQDialog(TankDialogBase):
         self.ui.top_group.setVisible(show_tk_title_bar)
 
         if show_tk_title_bar:
-
             ########################################################################################
             # set up the title bar and configuration panel
 
@@ -332,7 +323,8 @@ class TankQDialog(TankDialogBase):
             tooltip += "<b>System Information</b>"
             tooltip += "<hr>"
             tooltip += (
-                "<b>Flow Production Tracking Toolkit Version: </b>%s<br>" % self._bundle.tank.version
+                "<b>Flow Production Tracking Toolkit Version: </b>%s<br>"
+                % self._bundle.tank.version
             )
             tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
             tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()
@@ -358,10 +350,11 @@ class TankQDialog(TankDialogBase):
             context_info = "Your current work area is %s. " % self._bundle.context
             # try get the environment - may not work - not all bundle classes have a .engine method
             try:
-                context_info += "You are currently running in the %s environment." % (
-                    self._bundle.engine.environment["name"]
+                context_info += (
+                    "You are currently running in the %s environment."
+                    % (self._bundle.engine.environment["name"])
                 )
-            except:
+            except Exception:
                 pass
 
             self.ui.app_work_area_info.setText(context_info)
@@ -763,7 +756,6 @@ class TankQDialog(TankDialogBase):
         # launch one window for each location on disk
         paths = self._bundle.context.filesystem_locations
         for disk_location in paths:
-
             url = QtCore.QUrl.fromLocalFile(disk_location)
             status = QtGui.QDesktopServices.openUrl(url)
 
@@ -788,7 +780,6 @@ class TankQDialog(TankDialogBase):
             self._bundle.log_error(e)
 
         try:
-
             # now restart the engine
             current_context = self._bundle.context
             current_engine_name = self._bundle.engine.name

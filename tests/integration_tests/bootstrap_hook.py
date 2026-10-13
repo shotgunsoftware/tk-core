@@ -13,14 +13,12 @@ Ensures the bootstrap hook can be used to download bundles in lieu of the
 default implementation.
 """
 
-from __future__ import print_function
-
 import os
 import tempfile
-
 import unittest
-from sgtk_integration_test import SgtkIntegrationTest
+
 import sgtk
+from sgtk_integration_test import SgtkIntegrationTest
 
 logger = sgtk.LogManager.get_logger(__name__)
 
@@ -204,4 +202,4 @@ class BootstrapHookTests(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest.main(failfast=True, verbosity=2)
+    unittest.main(failfast=True, verbosity=2)

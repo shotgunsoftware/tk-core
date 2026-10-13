@@ -8,22 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# make sure that py25 has access to with statement
-from __future__ import with_statement
-
-import os
-import sys
-import shutil
 import datetime
+import os
+import shutil
+import sys
 
+from .. import pipelineconfig_factory, pipelineconfig_utils
 from ..errors import TankError
 from ..util import filesystem
 from ..util.version import is_version_older
 from .action_base import Action
-from .. import pipelineconfig_utils
-from .. import pipelineconfig_factory
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
@@ -162,7 +156,6 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
     target_install_path = os.path.join(target_config_path, "install")
 
     try:
-
         # ---- Step 1: Localize all bundles...
 
         if is_version_older(source_core_version, "v0.18.0"):
@@ -182,7 +175,6 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
             # handled explicitly later on
 
             for name in os.listdir(source_install_path):
-
                 if name in ["core", "core.backup"]:
                     # skip now and handle separately
                     continue
@@ -203,7 +195,6 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
             # Key by descriptor uri, which ensures no repetition.
             descriptors = {}
             for env_name in target_pipeline_config.get_environments():
-
                 env_obj = target_pipeline_config.get_environment(env_name)
 
                 for engine in env_obj.get_engines():
@@ -218,7 +209,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
                     descriptor = env_obj.get_framework_descriptor(framework)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            for idx, descriptor in enumerate(six.itervalues(descriptors)):
+            for idx, descriptor in enumerate(descriptors.values()):
                 # print one based indices for more human friendly output
                 log.info(
                     "%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor)
@@ -284,7 +275,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
 
     log.info("")
     log.info(
-        "Localize complete! " "This pipeline configuration now has an independent API."
+        "Localize complete! This pipeline configuration now has an independent API."
     )
     log.info("")
     log.info("")
@@ -319,25 +310,25 @@ class ShareCoreAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["core_path_mac"] = {
             "description": (
-                "The path on disk where the core API should be " "installed on Macosx."
+                "The path on disk where the core API should be installed on Macosx."
             ),
-            "default": (None if sgsix.platform == "darwin" else ""),
+            "default": (None if sys.platform == "darwin" else ""),
             "type": "str",
         }
 
         self.parameters["core_path_win"] = {
             "description": (
-                "The path on disk where the core API should be " "installed on Windows."
+                "The path on disk where the core API should be installed on Windows."
             ),
-            "default": (None if sgsix.platform == "win32" else ""),
+            "default": (None if sys.platform == "win32" else ""),
             "type": "str",
         }
 
         self.parameters["core_path_linux"] = {
             "description": (
-                "The path on disk where the core API should be " "installed on Linux."
+                "The path on disk where the core API should be installed on Linux."
             ),
-            "default": (None if sgsix.platform == "linux2" else ""),
+            "default": (None if sys.platform == "linux" else ""),
             "type": "str",
         }
 
@@ -512,7 +503,7 @@ class AttachToCoreAction(Action):
             log,
             core_locations["darwin"],
             core_locations["win32"],
-            core_locations["linux2"],
+            core_locations["linux"],
             self._interaction_interface,
             copy_core=False,
         )
@@ -557,8 +548,8 @@ def _run_unlocalize(
         )
 
     # we need to have at least a path for the current os, otherwise we cannot introspect the API
-    lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
-    new_core_path_local = lookup[sgsix.platform]
+    lookup = {"win32": windows_path, "linux": linux_path, "darwin": mac_path}
+    new_core_path_local = lookup[sys.platform]
 
     if not new_core_path_local:
         raise TankError(
@@ -630,7 +621,6 @@ def _run_unlocalize(
 
     old_umask = os.umask(0)
     try:
-
         # these core config files are directly related to the core
         # and not needed by a configuration
         core_config_file_names = [

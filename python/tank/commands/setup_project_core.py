@@ -8,18 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
 import os
 import shutil
-
-from . import constants
-from ..errors import TankError
-from ..util import StorageRoots
-from ..util import filesystem
-from ..api import sgtk_from_path
+import sys
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib import sgsix
+
+from ..api import sgtk_from_path
+from ..errors import TankError
+from ..util import StorageRoots, filesystem
+from . import constants
 
 
 @filesystem.with_cleared_umask
@@ -149,9 +147,9 @@ def _run_centralized_project_setup(log, sg, setup_params):
     :param setup_params: Parameters object which holds gathered project settings
     """
     # get the location of the configuration
-    config_location_curr_os = setup_params.get_configuration_location(sgsix.platform)
+    config_location_curr_os = setup_params.get_configuration_location(sys.platform)
     config_location_mac = setup_params.get_configuration_location("darwin")
-    config_location_linux = setup_params.get_configuration_location("linux2")
+    config_location_linux = setup_params.get_configuration_location("linux")
     config_location_win = setup_params.get_configuration_location("win32")
 
     # first do disk structure setup, this is most likely to fail.
@@ -229,7 +227,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     core_path = os.path.join(
         config_location_curr_os, "install", "core", "core_Linux.cfg"
     )
-    core_location = setup_params.get_associated_core_path("linux2")
+    core_location = setup_params.get_associated_core_path("linux")
     fh = open(core_path, "wt")
     fh.write(core_location if core_location else "undefined")
     fh.close()
@@ -268,10 +266,9 @@ def _run_centralized_project_setup(log, sg, setup_params):
     roots_data = {}
     default_storage_name = setup_params.default_storage_name
     for storage_name in setup_params.get_required_storages():
-
         roots_data[storage_name] = {
             "windows_path": setup_params.get_storage_path(storage_name, "win32"),
-            "linux_path": setup_params.get_storage_path(storage_name, "linux2"),
+            "linux_path": setup_params.get_storage_path(storage_name, "linux"),
             "mac_path": setup_params.get_storage_path(storage_name, "darwin"),
         }
 
@@ -448,7 +445,6 @@ def _run_centralized_project_setup(log, sg, setup_params):
     # pass 1 - populate list of all descriptors
     descriptors = []
     for env_name in pc.get_environments():
-
         env_obj = pc.get_environment(env_name)
 
         for engine in env_obj.get_engines():
@@ -463,7 +459,6 @@ def _run_centralized_project_setup(log, sg, setup_params):
     # pass 2 - download all apps
     num_descriptors = len(descriptors)
     for idx, descriptor in enumerate(descriptors):
-
         # note that we push percentages here to the progress bar callback
         # going from 0 to 100
         progress = (int)((float)(idx) / (float)(num_descriptors) * 100)
@@ -534,8 +529,7 @@ def _get_published_file_entity_type(log, sg):
               been enabled, otherwise returns 'TankPublishedFile'
     """
     log.debug(
-        "Retrieving schema from PTR to determine entity type "
-        "to use for published files"
+        "Retrieving schema from PTR to determine entity type to use for published files"
     )
 
     pf_entity_type = "TankPublishedFile"

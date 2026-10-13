@@ -8,13 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import setUpModule  # noqa
-
 import sgtk
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+    temp_env_var,
+)
 
 
 class TestIODescriptors(ShotgunTestBase):
@@ -232,7 +233,9 @@ class TestIODescriptors(ShotgunTestBase):
             "path": self.git_repo_uri,
         }
         d = sgtk.descriptor.create_descriptor(
-            sg, sgtk.descriptor.Descriptor.APP, location,
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            location,
         )
 
         self.assertEqual(

@@ -8,25 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
+import datetime
 import os
 import sys
-import datetime
-
-from . import constants
-
-from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
-
-from ..util import filesystem
-from ..util import StorageRoots
-from ..util.shotgun import connection
-from ..util.move_guard import MoveGuard
-from ..util import is_macos, is_windows
 
 from tank_vendor import yaml
 
 from .. import LogManager
+from ..util import StorageRoots, filesystem, is_macos, is_windows
+from ..util.move_guard import MoveGuard
+from ..util.shotgun import connection
+from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -140,7 +132,6 @@ class ConfigurationWriter(object):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
             if os.path.exists(configuration_payload):
-
                 config_backup_root = os.path.join(
                     config_path, "install", "config.backup"
                 )
@@ -267,7 +258,9 @@ class ConfigurationWriter(object):
         if current_interpreter:
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
-            log.debug("Current OS interpreter will be the default PTR desktop app location.")
+            log.debug(
+                "Current OS interpreter will be the default PTR desktop app location."
+            )
 
         config_root_path = self._path.current_os
 
@@ -319,7 +312,6 @@ class ConfigurationWriter(object):
             )
 
         with filesystem.auto_created_yml(sg_code_location) as fh:
-
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
             fh.write("\n")
@@ -341,7 +333,9 @@ class ConfigurationWriter(object):
 
         with filesystem.auto_created_yml(config_info_file) as fh:
             fh.write("# This file contains metadata describing what exact version\n")
-            fh.write("# Of the config that was downloaded from Flow Production Tracking\n")
+            fh.write(
+                "# Of the config that was downloaded from Flow Production Tracking\n"
+            )
             fh.write("\n")
             fh.write("# Below follows details for the sg attachment that is\n")
             fh.write("# reflected within this local configuration.\n")

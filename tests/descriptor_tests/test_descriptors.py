@@ -8,36 +8,31 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
-import sgtk
-
 import unittest
 
-from tank_test.tank_test_base import setUpModule  # noqa
+import sgtk
+from tank.descriptor import (
+    CheckVersionConstraintsError,
+    ConfigDescriptor,
+    CoreDescriptor,
+    Descriptor,
+    TankDescriptorError,
+    TankMissingManifestError,
+    create_descriptor,
+)
+from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
+from tank.errors import TankError
 from tank_test.tank_test_base import (
-    mock,
     SealedMock,
     ShotgunTestBase,
     TankTestBase,
+    mock,
+    setUpModule,  # noqa
 )
-
-
-from tank.errors import TankError
-from tank.descriptor import (
-    CheckVersionConstraintsError,
-    TankDescriptorError,
-    create_descriptor,
-    Descriptor,
-    TankMissingManifestError,
-    ConfigDescriptor,
-    CoreDescriptor,
-)
-from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
-
-from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import httplib2
+from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):
@@ -321,7 +316,7 @@ class TestConfigDescriptor(TankTestBase):
 class TestDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
-        super(TestDescriptorSupport, self).setUp()
+        super().setUp()
 
         self.install_root = os.path.join(
             self.tk.pipeline_configuration.get_install_location(), "install"
@@ -480,8 +475,6 @@ class TestDescriptorSupport(TankTestBase):
         """
         Ensures that app store connection errors don't bubble up to the surface.
         """
-        # Nested patches because Python 2.5 doesn't support multiple arguments to the `with`
-        # keyword.
         with mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
             "._IODescriptorAppStore__create_sg_app_store_connection",
@@ -492,14 +485,16 @@ class TestDescriptorSupport(TankTestBase):
             with mock.patch(
                 "tank.descriptor.io_descriptor.appstore.log.debug"
             ) as log_debug_mock:
-                descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
-                    {
-                        "name": "tk-config-basic",
-                        "version": "v1.0.0",
-                        "type": "app_store",
-                    },
-                    self.mockgun,
-                    sgtk.descriptor.Descriptor.CONFIG,
+                descriptor = (
+                    sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
+                        {
+                            "name": "tk-config-basic",
+                            "version": "v1.0.0",
+                            "type": "app_store",
+                        },
+                        self.mockgun,
+                        sgtk.descriptor.Descriptor.CONFIG,
+                    )
                 )
                 self.assertEqual(descriptor.has_remote_access(), False)
 
@@ -511,13 +506,16 @@ class TestDescriptorSupport(TankTestBase):
         """
         Catches SSLError
         """
-        with mock.patch(
-            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
-            "._IODescriptorAppStore__create_sg_app_store_connection",
-            side_effect=httplib2.ssl.SSLError("Read operation timed out"),
-        ), mock.patch(
-            "tank.descriptor.io_descriptor.appstore.log.debug"
-        ) as log_debug_mock:
+        with (
+            mock.patch(
+                "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+                "._IODescriptorAppStore__create_sg_app_store_connection",
+                side_effect=httplib2.ssl.SSLError("Read operation timed out"),
+            ),
+            mock.patch(
+                "tank.descriptor.io_descriptor.appstore.log.debug"
+            ) as log_debug_mock,
+        ):
             descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
                 {
                     "name": "tk-config-basic",
@@ -691,12 +689,20 @@ class TestDescriptorSupport(TankTestBase):
                 target_path, depth=1, ref="master"
             ),
             'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (self.git_repo_uri, "-b master", target_path,),
+            % (
+                self.git_repo_uri,
+                "-b master",
+                target_path,
+            ),
         )
         self.assertEqual(
             desc._io_descriptor._validate_git_commands(target_path, ref="master"),
             'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (self.git_repo_uri, "-b master", target_path,),
+            % (
+                self.git_repo_uri,
+                "-b master",
+                target_path,
+            ),
         )
 
 
@@ -709,7 +715,7 @@ class TestConstraintValidation(unittest.TestCase):
         """
         Ensures the Shotgun version cache is cleared between tests.
         """
-        super(TestConstraintValidation, self).setUp()
+        super().setUp()
         # Set the server info on the Mockgun object.
         self._up_to_date_sg = Mockgun("https://foo.shotgunstudio.com")
         self._up_to_date_sg.server_info = {"version": (6, 6, 6)}

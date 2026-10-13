@@ -13,16 +13,11 @@ This hook is invoked during folder creation when :meth:`sgtk.Sgtk.create_filesys
 called.
 """
 
-from tank import Hook
 import os
-import sys
 import shutil
-from tank.util import is_windows
 
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
+from tank import Hook
+from tank.util import is_windows
 
 
 class ProcessFolderCreation(Hook):
@@ -111,10 +106,8 @@ class ProcessFolderCreation(Hook):
         old_umask = os.umask(0)
         locations = []
         try:
-
             # loop through our list of items
             for i in items:
-
                 action = i.get("action")
 
                 if action in ["entity_folder", "folder"]:
@@ -182,14 +175,14 @@ class ProcessFolderCreation(Hook):
                     # create a new file based on content
                     path = i.get("path")
                     parent_folder = os.path.dirname(path)
-                    content = i.get("content")
+                    content = i.get("content", "")
                     if not os.path.exists(parent_folder) and not preview_mode:
                         os.makedirs(parent_folder, 0o777)
                     if not os.path.exists(path):
                         if not preview_mode:
                             # create the file
                             fp = open(path, "wb")
-                            fp.write(sgutils.ensure_binary(content))
+                            fp.write(content.encode("utf-8"))
                             fp.close()
                             # and set permissions to open
                             os.chmod(path, 0o666)

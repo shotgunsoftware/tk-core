@@ -8,21 +8,15 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..util import filesystem
-from . import constants
+import datetime
+import os
+import shutil
+
 from ..errors import TankError
 from ..pipelineconfig import PipelineConfiguration
-
-from . import console_utils
-
+from ..util import ShotgunPath, filesystem
+from . import constants
 from .action_base import Action
-
-from ..util import ShotgunPath
-
-import os
-import datetime
-import shutil
-from tank_vendor.six.moves import input
 
 # Core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
@@ -137,7 +131,7 @@ class PushPCAction(Action):
             raise TankError("Aborted by user.")
         try:
             target_pc_id = int(answer)
-        except:
+        except Exception:
             raise TankError("Please enter a number!")
 
         self._run(
@@ -146,7 +140,7 @@ class PushPCAction(Action):
                 self._validate_parameters(
                     {"target_id": target_pc_id, "use_symlink": use_symlink}
                 )
-            )
+            ),
         )
 
     def _preflight(self):
@@ -283,7 +277,6 @@ class PushPCAction(Action):
         # I/O phase
         old_umask = os.umask(0)
         try:
-
             # copy to temp location
             try:
                 # copy everything!

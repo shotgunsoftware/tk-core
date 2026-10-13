@@ -8,13 +8,12 @@
 # agreement to the ShotGrid Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk.
 
-from tank_test.tank_test_base import setUpModule  # noqa
+from tank.util import pyside6_patcher
 from tank_test.tank_test_base import (
     TankTestBase,
+    setUpModule,  # noqa
     skip_if_pyside6,
 )
-
-from tank.util import pyside6_patcher
 
 
 @skip_if_pyside6(found=False)
@@ -24,7 +23,7 @@ class PySide6PatcherTests(TankTestBase):
     def test_patch(self):
         """Test the PySide6Patcher patch method that patches PySide6 as PySide."""
 
-        core, gui, _ = pyside6_patcher.PySide6Patcher.patch()
+        core, gui, _ = pyside6_patcher.PySide6Patcher.patch(None, None)
         # Assert the core ang gui modules are created and returned
         assert core
         assert gui
@@ -34,8 +33,14 @@ class PySide6PatcherTests(TankTestBase):
         # Assert QtGui attributes
         assert gui.QApplication.desktop
         assert gui.QAbstractButton.animateClick
-        assert gui.QSortFilterProxyModel.filterRegExp == gui.QSortFilterProxyModel.filterRegularExpression
-        assert gui.QSortFilterProxyModel.setFilterRegExp == gui.QSortFilterProxyModel.setFilterRegularExpression
+        assert (
+            gui.QSortFilterProxyModel.filterRegExp
+            == gui.QSortFilterProxyModel.filterRegularExpression
+        )
+        assert (
+            gui.QSortFilterProxyModel.setFilterRegExp
+            == gui.QSortFilterProxyModel.setFilterRegularExpression
+        )
         assert gui.QDesktopWidget == gui.QScreen
         assert gui.QFontMetrics.width == gui.QFontMetrics.horizontalAdvance
         assert gui.QFont.setWeight == gui.QFont.setLegacyWeight

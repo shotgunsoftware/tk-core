@@ -8,9 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from . import constants
 from .descriptor import Descriptor
 from .errors import TankMissingManifestError
-from . import constants
 
 
 class CoreDescriptor(Descriptor):
@@ -32,7 +32,7 @@ class CoreDescriptor(Descriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(CoreDescriptor, self).__init__(io_descriptor)
+        super().__init__(io_descriptor)
 
     @property
     def version_constraints(self):

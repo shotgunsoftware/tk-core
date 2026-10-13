@@ -8,12 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import copy
+import os
 
 from ...errors import TankError
 from ...util import shotgun_entity
-
 from .base import Folder
 from .expression_tokens import FilterExpressionToken
 
@@ -106,11 +105,11 @@ class ListField(Folder):
         # list fields are only created when they are on the primary path,
         # e.g. we don't recurse down to create asset types when shots are created,
         # but only when assets are created.
-        if is_primary == False and self._create_with_parent == False:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
-        return super(ListField, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def get_entity_type(self):
         """
@@ -141,7 +140,6 @@ class ListField(Folder):
             values = [sg_data[token_name]]
 
         else:
-
             # get all list field values from shotgun by querying the schema methods
             # using schema_field_read()
             #
@@ -172,7 +170,7 @@ class ListField(Folder):
                     chunks = self._field_name.split(".")
                     entity_type = chunks[1]
                     field_name = chunks[2]
-                except:
+                except Exception:
                     msg = (
                         "Folder creation error: Cannot resolve the field expression %s."
                         % self._field_name
@@ -190,7 +188,9 @@ class ListField(Folder):
                 # validate that the data type is of type list
                 field_type = resp[field_name]["data_type"]["value"]
             except Exception as e:
-                msg = "Folder creation error: Cannot retrieve values for PTR list field "
+                msg = (
+                    "Folder creation error: Cannot retrieve values for PTR list field "
+                )
                 msg += "%s.%s. Error reported: %s" % (entity_type, field_name, e)
                 raise TankError(msg)
 
@@ -216,7 +216,6 @@ class ListField(Folder):
         products = []
 
         for sg_value in values:
-
             # render field expression
             folder_name = self._field_expr_obj.generate_name(
                 {self._field_name: sg_value}
@@ -256,7 +255,6 @@ class ListField(Folder):
         used_values = []
 
         for value in values:
-
             # eg. sg_asset_type is prop
             filters = [[field_name, "is", value]]
             if project:

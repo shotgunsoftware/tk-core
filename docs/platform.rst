@@ -181,6 +181,7 @@ Engine
     .. automethod:: _create_dialog_with_widget
     .. automethod:: _create_widget
     .. automethod:: _define_qt_base
+    .. automethod:: _destroy_qt_dialogs
     .. automethod:: _emit_event
     .. automethod:: _emit_log_message
     .. automethod:: _ensure_core_fonts_loaded
@@ -392,6 +393,33 @@ and (for apps only) ``requires_engine_version``::
     requires_shotgun_version:
     requires_core_version: "v0.14.37"
     requires_engine_version: "v0.2.3"
+
+.. _python_version_requirements:
+
+Python Version Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your app, engine, framework, or configuration requires a minimum version of Python,
+you can specify this using the ``minimum_python_version`` parameter. This field accepts
+a version string in the format ``major.minor`` (e.g. ``"3.8"``) or ``major.minor.patch``
+(e.g. ``"3.8.0"``)::
+
+    # Minimum Python version required for this item to run
+    minimum_python_version: "3.8"
+
+When this field is set, Toolkit's auto-update system will prevent users running older
+Python versions from automatically updating to versions that are incompatible with their
+Python environment. This ensures backward compatibility and prevents breaking changes
+for users who haven't yet upgraded their Python version.
+
+.. note::
+    The ``minimum_python_version`` field is compared using only the major and minor
+    version numbers (e.g., 3.8). The patch version (if provided) is ignored during
+    compatibility checks.
+
+.. note::
+    This field is optional. If omitted, the bundle is assumed to be compatible with
+    all Python versions currently supported by Toolkit.
 
 Supported Engines and operating systems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -855,10 +883,9 @@ A valid setting could look like this::
 Using QT inside your Toolkit App
 ========================================
 
-You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
-platform considerations in the background. Typically, PySide is being used for QT integration, but Sgtk
-may use PyQT in certain engines. Normally, the code is pretty portable between the two systems and it
-should be no problem writing code that works with both libraries.
+You can use QT classes inside your app code. Sgtk will handle the import andgracefully manage different
+platform considerations in the background. Typically, PySide2 or PySide6. Normally, the code is pretty
+portable between the two systems and it should be no problem writing code that works with both libraries.
 
 In order to use QT, import it from Sgtk::
 
@@ -868,18 +895,18 @@ Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many 
 may not have a functional Qt that can be imported when they run in batch mode.
 
 
-Using QT 5 inside your Toolkit App
+PySide - Qt4 emulation layer
 ========================================
 
-When running in an environment with PySide 2 , Toolkit will provide under ``sgtk.platform.qt`` an
-emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don't
+Whether running with PySide2 or PySide6, Toolkit will provide under ``sgtk.platform.qt`` an
+emulation layer that mimics the PySide 1 API on top of PySide 2/6 so that your Toolkit applications don't
 need to be updated to work in those environments. If you need straight access to the PySide 2 API, you
 can access it through the ``sgtk.platform.qt5`` module. Detecting the availability of Qt 5 can be done
-through :meth:`Engine.has_qt5`.
+through :meth:`Engine.has_qt5`. The equivalent is available for PySide6.
 
-.. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
+.. warning:: The PySide 1 emulation layer for PySide 2/6 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/contact-support
+             in the PySide 1 emulation layer is not working or missing, please contact https://knowledge.autodesk.com/support
              so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit

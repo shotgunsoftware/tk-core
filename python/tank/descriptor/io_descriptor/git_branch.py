@@ -7,17 +7,19 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import os
 import copy
+import os
 
-from .git import IODescriptorGit, TankGitError, _check_output
-from ..errors import TankDescriptorError
 from ... import LogManager
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
+from ...util.process import SubprocessCalledProcessError
+from ..errors import TankDescriptorError
+from .git import (
+    IODescriptorGit,
+    TankGitError,
+    _check_output,
+    _sanitize_exception,
+    _sanitize_url,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -68,23 +70,25 @@ class IODescriptorGitBranch(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitBranch, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
         self._version = descriptor_dict.get("version")
-        self._branch = sgutils.ensure_str(descriptor_dict.get("branch"))
+        self._branch = str(descriptor_dict.get("branch"))
 
     def __str__(self):
         """
         Human readable representation
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git, branch master, commit 12313123
-        return "%s, Branch %s, Commit %s" % (self._path, self._branch, self._version)
+        return "%s, Branch %s, Commit %s" % (
+            _sanitize_url(self._path),
+            self._branch,
+            self._version,
+        )
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
@@ -122,8 +126,23 @@ class IODescriptorGitBranch(IODescriptorGit):
         log.debug("Checking if the version is pointing to the latest commit...")
         try:
             output = _check_output(["git", "ls-remote", self._path, branch])
-        except:
-            log.exception("Unexpected error:")
+        except SubprocessCalledProcessError as e:
+            # Sanitize the exception to remove credentials from the command
+            sanitized_exc = _sanitize_exception(e, self._path)
+            # Log the sanitized exception manually (don't use log.exception() as it logs
+            # the original exception from the context)
+            log.exception(
+                "Unexpected error:\n%s: %s",
+                sanitized_exc.__class__.__name__,
+                sanitized_exc,
+            )
+            # Use exception chaining to attach the sanitized exception
+            raise TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            ) from sanitized_exc
+        except Exception as e:
+            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
@@ -226,7 +245,7 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = sgutils.ensure_str(git_hash)
+        new_loc_dict["version"] = str(git_hash)
         desc = IODescriptorGitBranch(
             new_loc_dict, self._sg_connection, self._bundle_type
         )

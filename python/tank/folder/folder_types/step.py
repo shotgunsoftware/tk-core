@@ -11,10 +11,9 @@
 import os
 
 from ...errors import TankError
-
 from .entity import Entity
+from .expression_tokens import CurrentStepExpressionToken, FilterExpressionToken
 from .util import translate_filter_tokens
-from .expression_tokens import FilterExpressionToken, CurrentStepExpressionToken
 
 
 class ShotgunStep(Entity):
@@ -96,7 +95,6 @@ class ShotgunStep(Entity):
         #
         sg_parent = parent
         while True:
-
             if (
                 associated_entity_type is None
                 and isinstance(sg_parent, Entity)
@@ -148,7 +146,7 @@ class ShotgunStep(Entity):
         # shot, we want all the steps to be created at the same time.
         # however, if we have create_with_parent set to False, we only want to create
         # this node if we are creating folders for a task.
-        if create_with_parent != True:
+        if create_with_parent is False:
             # do not auto-create with parent - only create when a task has been specified.
             # create an expression object to represent the current step.
             # we pass in the field which is the connection between the task and the step field

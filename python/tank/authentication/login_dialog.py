@@ -17,43 +17,39 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+
 import os
 import sys
+
 from tank_vendor import shotgun_api3
-from .. import constants
-from .web_login_support import get_shotgun_authenticator_support_web_login
-from .ui import resources_rc  # noqa
-from .ui import login_dialog
-from . import constants as auth_constants
-from . import session_cache
+
+from .. import LogManager, constants
+from ..util import LocalFileStorageManager, login, metrics_cache
 from ..util.metrics import EventMetric
 from ..util.shotgun import connection
-from ..util import login
-from ..util import LocalFileStorageManager
-from ..util import metrics_cache
-from .errors import AuthenticationError
-from .ui.qt_abstraction import (
-    QtGui,
-    QtCore,
-    QtNetwork,
-    QtWebKit,
-    QtWebEngineWidgets,
-    qt_version_tuple,
+from . import (
+    app_session_launcher,
+    constants as auth_constants,
+    session_cache,
+    site_info,
 )
-from . import app_session_launcher
-from . import site_info
+from .errors import AuthenticationError
 from .sso_saml2 import (
     SsoSaml2IncompletePySide2,
-    SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
 )
-
-from .. import LogManager
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
+from .sso_saml2.sso_saml2_toolkit import SsoSaml2Toolkit
+from .ui import (
+    login_dialog,
+    resources_rc,  # noqa
+)
+from .ui.qt_abstraction import (
+    QtCore,
+    QtGui,
+    QtNetwork,
+    QtWebEngineWidgets,
+)
+from .web_login_support import get_shotgun_authenticator_support_web_login
 
 logger = LogManager.get_logger(__name__)
 
@@ -115,6 +111,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         self._site_info.reload(self._url_to_test, self._http_proxy)
 
+
 class LoginDialog(QtGui.QDialog):
     """
     Dialog for getting user credentials.
@@ -151,7 +148,6 @@ class LoginDialog(QtGui.QDialog):
             "QtCore": QtCore,
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
-            "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
@@ -196,7 +192,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_selection(hostname)
 
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
-        completer_style = self.styleSheet() + ("\n\nQWidget {" "font-size: 12px;" "}")
+        completer_style = self.styleSheet() + ("\n\nQWidget {font-size: 12px;}")
         self.ui.site.set_style_sheet(completer_style)
         self.ui.site.set_placeholder_text("example.shotgrid.autodesk.com")
         self.ui.login.set_style_sheet(completer_style)
@@ -322,6 +318,16 @@ class LoginDialog(QtGui.QDialog):
                 % self._get_current_site()
             )
 
+        # QThread.finished is delivered through the Qt event queue and requires
+        # the event loop to be running. Since we are still in the constructor,
+        # the _toggle_web slot has not been called yet even though wait()
+        # returned and the thread is done. Call it directly here so the dialog
+        # opens with the correct UI (e.g. Identity/SSO sites must not flash the
+        # 3-fields credentials form before switching to the web-login view).
+        # The guard inside _toggle_web makes the subsequent signal delivery a
+        # no-op, so this is safe.
+        self._toggle_web()
+
         # Initialize exit confirm message box
         self.confirm_box = QtGui.QMessageBox(
             QtGui.QMessageBox.Question,
@@ -370,7 +376,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).closeEvent(event)
+        return super().closeEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
@@ -384,7 +390,7 @@ class LoginDialog(QtGui.QDialog):
             self._asl_task.wait()
             self._asl_task = None
 
-        return super(LoginDialog, self).keyPressEvent(event)
+        return super().keyPressEvent(event)
 
     def _get_current_site(self):
         """
@@ -392,9 +398,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return sgutils.ensure_str(
-            connection.sanitize_url(self.ui.site.currentText().strip())
-        )
+        return str(connection.sanitize_url(self.ui.site.currentText().strip()))
 
     def _get_current_user(self):
         """
@@ -402,7 +406,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The login to use for authentication.
         """
-        return sgutils.ensure_str(self.ui.login.currentText().strip())
+        return self.ui.login.currentText().strip()
 
     def _update_ui_according_to_site_support(self):
         """
@@ -481,24 +485,33 @@ class LoginDialog(QtGui.QDialog):
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
 
-        # With a SSO site, we have no choice but to use the web to login.
-        can_use_web = self.site_info.sso_enabled
+        can_use_web = self._sso_saml2 is not None
         can_use_asl = self.site_info.app_session_launcher_enabled
 
-        # The user may decide to force the use of the old dialog:
-        # - due to graphical issues with Qt and its WebEngine
-        # - they need to use the legacy login / passphrase to use a PAT with
-        #   Autodesk Identity authentication
-        if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
-            logger.info("Using the standard login dialog with the Flow Production Tracking")
-        else:
-            if _is_running_in_desktop():
-                can_use_web = can_use_web or self.site_info.autodesk_identity_enabled
+        if can_use_web:
+            # With a SSO site, we have no choice but to use the web to login.
+            can_use_web = self.site_info.sso_enabled
 
-            # If we have full support for Web-based login, or if we enable it in our
-            # environment, use the Unified Login Flow for all authentication modes.
-            if get_shotgun_authenticator_support_web_login():
-                can_use_web = can_use_web or self.site_info.unified_login_flow_enabled
+            # The user may decide to force the use of the old dialog:
+            # - due to graphical issues with Qt and its WebEngine
+            # - they need to use the legacy login / passphrase to use a PAT with
+            #   Autodesk Identity authentication
+            if os.environ.get("SGTK_FORCE_STANDARD_LOGIN_DIALOG"):
+                logger.info(
+                    "Using the standard login dialog with the Flow Production Tracking"
+                )
+            else:
+                if _is_running_in_desktop():
+                    can_use_web = (
+                        can_use_web or self.site_info.autodesk_identity_enabled
+                    )
+
+                # If we have full support for Web-based login, or if we enable it in our
+                # environment, use the Unified Login Flow for all authentication modes.
+                if get_shotgun_authenticator_support_web_login():
+                    can_use_web = (
+                        can_use_web or self.site_info.unified_login_flow_enabled
+                    )
 
         if method_selected:
             # Selecting requested mode (credentials, qt_web_login or app_session_launcher)
@@ -510,9 +523,7 @@ class LoginDialog(QtGui.QDialog):
             method_selected = session_cache.get_preferred_method(site)
 
         # Make sure that the method_selected is currently supported
-        if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
-        ) or (
+        if (method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
@@ -524,9 +535,7 @@ class LoginDialog(QtGui.QDialog):
             )
 
         # Make sure that the method_selected is currently supported
-        if (
-            method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web
-        ) or (
+        if (method_selected == auth_constants.METHOD_WEB_LOGIN and not can_use_web) or (
             method_selected == auth_constants.METHOD_ASL and not can_use_asl
         ):
             method_selected = None
@@ -590,6 +599,7 @@ class LoginDialog(QtGui.QDialog):
 
         self.ui.forgot_password_link.setVisible(
             method_selected == auth_constants.METHOD_BASIC
+            and self.site_info.user_authentication_method in ["default", "ldap"]
         )
 
         self.ui.button_options.setVisible(can_use_web or can_use_asl)
@@ -651,10 +661,6 @@ class LoginDialog(QtGui.QDialog):
         # application. (Require a `pkill -9 applicationName`). The fix in our case
         # is pretty simple, we just have to not call show() before the call to
         # exec_() since it implicitly call exec_().
-        #
-        # This bug is described here: https://bugreports.qt.io/browse/QTBUG-48248
-        if QtCore.__version__.startswith("4."):
-            self.show()
 
         self.raise_()
         self.activateWindow()
@@ -700,7 +706,9 @@ class LoginDialog(QtGui.QDialog):
             "Logged In",
             properties={
                 "authentication_method": self.site_info.user_authentication_method,
-                "authentication_experience": auth_constants.method_resolve.get(self.method_selected),
+                "authentication_experience": auth_constants.method_resolve.get(
+                    self.method_selected
+                ),
                 "authentication_interface": "qt_dialog",
                 "authentication_renewal": self._is_session_renewal,
             },
@@ -769,7 +777,10 @@ class LoginDialog(QtGui.QDialog):
 
         # Cleanup the URL and update the GUI.
         if self.method_selected != auth_constants.METHOD_BASIC:
-            if site.startswith("http://") and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ:
+            if (
+                site.startswith("http://")
+                and "SGTK_AUTH_ALLOW_NO_HTTPS" not in os.environ
+            ):
                 site = "https" + site[4:]
             self.ui.site.setEditText(site)
 
@@ -952,7 +963,7 @@ class ASL_AuthTask(QtCore.QThread):
     progressing = QtCore.Signal(str)
 
     def __init__(self, parent, sg_url, http_proxy=None):
-        super(ASL_AuthTask, self).__init__(parent)
+        super().__init__(parent)
         self.should_stop = False
 
         self._sg_url = sg_url
@@ -974,7 +985,7 @@ class ASL_AuthTask(QtCore.QThread):
         try:
             self.session_info = app_session_launcher.process(
                 self._sg_url,
-                lambda u: QtGui.QDesktopServices.openUrl(u),  # browser_open_callback
+                browser_open_callback=lambda u: QtGui.QDesktopServices.openUrl(u),
                 http_proxy=self._http_proxy,
                 product=self._product,
                 keep_waiting_callback=self.should_continue,

@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,25 +8,22 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-import os
 import fnmatch
+import os
 import stat
+from shutil import copytree
+
 import sgtk
 from sgtk.pipelineconfig_utils import get_metadata
 from tank.util import is_windows
-from shutil import copytree
-
-from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
     temp_env_var,
 )
 
 
-# Copied from Python 2.7's source code.
 def ignore_patterns(*patterns):
     """Function that can be used as copytree() ignore parameter.
 
@@ -44,7 +41,7 @@ def ignore_patterns(*patterns):
 
 class TestBackups(ShotgunTestBase):
     def setUp(self):
-        super(TestBackups, self).setUp()
+        super().setUp()
 
         pathHead, pathTail = os.path.split(__file__)
         self._core_repo_path = os.path.join(pathHead, "..", "..")
@@ -252,7 +249,6 @@ class TestBackups(ShotgunTestBase):
             plugin_id="backup_tests"
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
-
             config = resolver.resolve_configuration(
                 {"type": "dev", "name": "backup_tests", "path": self._temp_test_path},
                 self.mockgun,

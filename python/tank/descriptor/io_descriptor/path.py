@@ -10,10 +10,10 @@
 
 import os
 
-from .base import IODescriptorBase
-from ..errors import TankDescriptorError
-from ...util import ShotgunPath
 from ... import LogManager
+from ...util import ShotgunPath
+from ..errors import TankDescriptorError
+from .base import IODescriptorBase
 
 log = LogManager.get_logger(__name__)
 
@@ -48,9 +48,7 @@ class IODescriptorPath(IODescriptorBase):
         :return: Descriptor instance
         """
 
-        super(IODescriptorPath, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict,

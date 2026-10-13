@@ -8,9 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import types
+import warnings
+
 from .pyside2_patcher import PySide2Patcher
 
-import imp
 
 class PySide6Patcher(PySide2Patcher):
     """
@@ -49,6 +51,22 @@ class PySide6Patcher(PySide2Patcher):
     )
 
     @classmethod
+    def _patch_QApplication(cls, QtGui):
+        """Patch QApplication."""
+
+        def desktop(*args):
+            """
+            QDesktopWidget removed along with QApplication.desktop, in favor or QScreen.
+            """
+            return QtGui.QApplication.primaryScreen()
+
+        # First apply the patch from PySide2 patcher
+        super()._patch_QApplication(QtGui)
+
+        # Now apply any PySide6 specific patches
+        QtGui.QApplication.desktop = desktop
+
+    @classmethod
     def _patch_QAbstractItemView(cls, QtGui):
         """Patch QAbstractItemView."""
 
@@ -73,14 +91,20 @@ class PySide6Patcher(PySide2Patcher):
         QTextCodec has been removed in Qt6. Using this class will do nothing.
         """
 
-        class QTextCodec():
+        class QTextCodec:
             @staticmethod
             def codecForName(name):
                 return None
 
             @staticmethod
             def setCodecForCStrings(codec):
-                pass
+                warnings.warn(
+                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists since Qt6/PySide6. "
+                    "This method will be removed from Toolkit after December 2026. "
+                    "Please remove calls to this method from your code.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
         QtCore.QTextCodec = QTextCodec
 
@@ -111,7 +135,6 @@ class PySide6Patcher(PySide2Patcher):
                 screen = QtGui.QApplication.primaryScreen()
                 return screen.grabWindow(window, x, y, width, height)
 
-
         QtGui.QPixmap = QPixmap
 
     @classmethod
@@ -128,7 +151,6 @@ class PySide6Patcher(PySide2Patcher):
             return QtGui.QPixmap(original_QIcon_pixmap(self, *args, **kwargs))
 
         QtGui.QIcon.pixmap = pixmap
-
 
     @classmethod
     def _patch_QLabel(cls, QtGui):
@@ -205,34 +227,40 @@ class PySide6Patcher(PySide2Patcher):
                     screens = QtGui.QGuiApplication.screens()
                     screen = screens[screen_index]
                     screen.geometryChanged.emit()
-                except:
+                except Exception:
                     pass
 
-
         original_QScreen_availableGeometry = QtGui.QScreen.availableGeometry
-        def availableGeometry(self, widget=None):
-            """Patch QScreen to also act as QDesktopWidget."""
-            if widget is None:
+
+        def availableGeometry(self, arg__1=None):
+            """
+            Patch QScreen to also act as QDesktopWidget.
+
+            :param arg__1 Union(int, QtGui.QWidget, QtCore.QPoint): A widget, screen index or point.
+            """
+            if arg__1 is None:
                 return original_QScreen_availableGeometry(self)
 
-            if isinstance(widget, int):
+            if isinstance(arg__1, int):
                 screens = QtGui.QGuiApplication.screens()
                 try:
-                    screen = screens[widget]
+                    screen = screens[arg__1]
                 except IndexError:
                     return QtCore.QRect()
+            elif isinstance(arg__1, QtCore.QPoint):
+                return original_QScreen_availableGeometry(self)
             else:
-                screen = widget.screen()
+                screen = arg__1.screen()
 
             return screen.availableGeometry()
 
         def screenNumber(self, widget):
             """Provide QDesktopWidget method through QScreen."""
 
-            screen = widget.screen()
             try:
+                screen = widget.screen()
                 return QtGui.QGuiApplication.screens().index(screen)
-            except IndexError:
+            except (IndexError, AttributeError):
                 return -1
 
         def screenCount(self):
@@ -268,7 +296,9 @@ class PySide6Patcher(PySide2Patcher):
 
         def versionFunctions(self, version_profile=None):
             if version_profile:
-                return QtGui.QOpenGLVersionFunctionsFactory.get(versionProfile=version_profile, context=self)
+                return QtGui.QOpenGLVersionFunctionsFactory.get(
+                    versionProfile=version_profile, context=self
+                )
             return QtGui.QOpenGLVersionFunctionsFactory.get(context=self)
 
         QtGui.QOpenGLContext.versionFunctions = versionFunctions
@@ -322,18 +352,35 @@ class PySide6Patcher(PySide2Patcher):
                     if case_sensitivity is None:
                         original_QRegularExpression.__init__(self, args[0])
                     else:
-                        if case_sensitivity == original_QRegularExpression.CaseInsensitiveOption:
+                        if (
+                            case_sensitivity
+                            == original_QRegularExpression.CaseInsensitiveOption
+                        ):
                             opts = original_QRegularExpression.CaseInsensitiveOption
                         else:
                             opts = original_QRegularExpression.NoPatternOption
-                        original_QRegularExpression.__init__(self, args[0], options=opts)
+                        original_QRegularExpression.__init__(
+                            self, args[0], options=opts
+                        )
 
-                self.isEmpty = lambda *args, **kwargs: QRegularExpression.isEmpty(self, *args, **kwargs)
-                self.indexIn = lambda *args, **kwargs: QRegularExpression.indexIn(self, *args, **kwargs)
-                self.matchedLength = lambda *args, **kwargs: QRegularExpression.matchedLength(self, *args, **kwargs)
-                self.setCaseSensitivity = lambda *args, **kwargs: QRegularExpression.setCaseSensitivity(self, *args, **kwargs)
-                self.pos = lambda *args, **kwargs: QRegularExpression.pos(self, *args, **kwargs)
-                self.cap = lambda *args, **kwargs: QRegularExpression.cap(self, *args, **kwargs)
+                self.isEmpty = lambda *args, **kwargs: QRegularExpression.isEmpty(
+                    self, *args, **kwargs
+                )
+                self.indexIn = lambda *args, **kwargs: QRegularExpression.indexIn(
+                    self, *args, **kwargs
+                )
+                self.matchedLength = lambda *args, **kwargs: (
+                    QRegularExpression.matchedLength(self, *args, **kwargs)
+                )
+                self.setCaseSensitivity = lambda *args, **kwargs: (
+                    QRegularExpression.setCaseSensitivity(self, *args, **kwargs)
+                )
+                self.pos = lambda *args, **kwargs: QRegularExpression.pos(
+                    self, *args, **kwargs
+                )
+                self.cap = lambda *args, **kwargs: QRegularExpression.cap(
+                    self, *args, **kwargs
+                )
 
             @staticmethod
             def isEmpty(re):
@@ -396,7 +443,9 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QRegularExpression.isEmpty = QRegularExpression.isEmpty
         QtCore.QRegularExpression.indexIn = QRegularExpression.indexIn
         QtCore.QRegularExpression.matchedLength = QRegularExpression.matchedLength
-        QtCore.QRegularExpression.setCaseSensitivity = QRegularExpression.setCaseSensitivity
+        QtCore.QRegularExpression.setCaseSensitivity = (
+            QRegularExpression.setCaseSensitivity
+        )
         QtCore.QRegularExpression.pos = QRegularExpression.pos
 
         # This pattern matching flag is obsolete now.
@@ -421,7 +470,11 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QCoreApplication.flush = flush
 
     @classmethod
-    def patch(cls):
+    def patch(
+        cls,
+        QtWebEngineWidgets,
+        QtWebEngineCore,
+    ):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
 
@@ -441,16 +494,19 @@ class PySide6Patcher(PySide2Patcher):
         from PySide6 import (
             QtCore,
             QtGui,
-            QtWidgets,
             QtOpenGL,
-            QtWebEngineWidgets,
-            QtWebEngineCore,
+            QtWidgets,
         )
 
         # First create new modules to act as the PySide modules
-        qt_core_shim = imp.new_module("PySide.QtCore")
-        qt_gui_shim = imp.new_module("PySide.QtGui")
-        qt_web_engine_widgets_shim = imp.new_module("PySide.QtWebEnginWidgets")
+        qt_core_shim = types.ModuleType("PySide.QtCore")
+        qt_gui_shim = types.ModuleType("PySide.QtGui")
+
+        qt_web_engine_widgets_shim = None
+        if QtWebEngineWidgets:
+            qt_web_engine_widgets_shim = types.ModuleType(
+                "PySide.QtWebEngineWidgets",
+            )
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
         # in PySide.
@@ -469,8 +525,13 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
         cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
 
-        # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
-        cls._move_attributes(qt_web_engine_widgets_shim, QtWebEngineWidgets, dir(QtWebEngineWidgets))
+        if qt_web_engine_widgets_shim:
+            # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
+            cls._move_attributes(
+                qt_web_engine_widgets_shim,
+                QtWebEngineWidgets,
+                dir(QtWebEngineWidgets),
+            )
 
         # Patch classes from PySide6 to PySide, as done for PySide2 (these will call the
         # PySide2 patcher methods.)
@@ -504,8 +565,12 @@ class PySide6Patcher(PySide2Patcher):
         cls._patch_QRegularExpression(qt_core_shim)
         qt_core_shim.QRegExp = qt_core_shim.QRegularExpression
         # Rename RegExp functions to RegularExpression
-        qt_gui_shim.QSortFilterProxyModel.filterRegExp = qt_gui_shim.QSortFilterProxyModel.filterRegularExpression
-        qt_gui_shim.QSortFilterProxyModel.setFilterRegExp = qt_gui_shim.QSortFilterProxyModel.setFilterRegularExpression
+        qt_gui_shim.QSortFilterProxyModel.filterRegExp = (
+            qt_gui_shim.QSortFilterProxyModel.filterRegularExpression
+        )
+        qt_gui_shim.QSortFilterProxyModel.setFilterRegExp = (
+            qt_gui_shim.QSortFilterProxyModel.setFilterRegularExpression
+        )
 
         # Patch the QCoreApplication.flush() method to ensure compatibility with code
         # that expects this method, which is marked as obsolete.
@@ -514,6 +579,10 @@ class PySide6Patcher(PySide2Patcher):
 
         # QtGui
         # ------------------------------------------------------------------------------------
+
+        # Prevent warnings log with exec_ - TODO FUTURE remove this once done with PySide2
+        qt_gui_shim.QApplication.exec_ = qt_gui_shim.QApplication.exec
+        qt_gui_shim.QDialog.exec_ = qt_gui_shim.QDialog.exec
 
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
@@ -534,17 +603,17 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#the-qabstractitemview-class
         cls._patch_QAbstractItemView(qt_gui_shim)
 
-        # QDesktopWidget removed along with QApplication.desktop, in favor or QScreen. Patch
-        # QScreen such that it can be used as if it were a QDesktopWidget instance
+        # Patch QScreen such that it can be used as if it were a QDesktopWidget instance
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#qdesktopwidget-and-qapplication-desktop
         cls._patch_QScreen(qt_core_shim, qt_gui_shim)
         qt_gui_shim.QDesktopWidget = qt_gui_shim.QScreen
-        qt_gui_shim.QApplication.desktop = lambda: qt_gui_shim.QApplication.primaryScreen()
 
         # The default timeout parameter removed. This param, if given, will be ignored. It will
         # always timeout after 100 ms
         # https://doc.qt.io/qt-6/widgets-changes-qt6.html#the-qabstractbutton-class
-        qt_gui_shim.QAbstractButton.animateClick = lambda self, msec=0: self.animateClick()
+        qt_gui_shim.QAbstractButton.animateClick = lambda self, msec=0: (
+            self.animateClick()
+        )
 
         # Changes to QFont
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#the-qfont-class
@@ -552,7 +621,9 @@ class PySide6Patcher(PySide2Patcher):
         qt_gui_shim.QFont.setWeight = qt_gui_shim.QFont.setLegacyWeight
 
         # QHeaderView method rename
-        qt_gui_shim.QHeaderView.setResizeMode = qt_gui_shim.QHeaderView.setSectionResizeMode
+        qt_gui_shim.QHeaderView.setResizeMode = (
+            qt_gui_shim.QHeaderView.setSectionResizeMode
+        )
 
         # QPainter HighQualityAntialiasing is obsolete. Use Antiasliasing instead.
         # https://doc.qt.io/qt-5/qpainter.html#RenderHint-enum
@@ -562,9 +633,11 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-5/qpalette.html#ColorRole-enum
         qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
 
-        # QtWwebEngineWidgets
-        # ----------------------------------------------------------------------
-        qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
-        qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+        if qt_web_engine_widgets_shim:
+            # QtWwebEngineWidgets
+            qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
+            qt_web_engine_widgets_shim.QWebEngineProfile = (
+                QtWebEngineCore.QWebEngineProfile
+            )
 
         return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim

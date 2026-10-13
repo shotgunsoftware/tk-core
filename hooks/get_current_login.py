@@ -27,8 +27,9 @@ for all users in Shotgun and if a match is found, this is deemed to be the
 current user.
 """
 
-from tank import Hook
 import os
+
+from tank import Hook
 from tank.util import is_windows
 
 
@@ -54,5 +55,5 @@ class GetCurrentLogin(Hook):
 
                 pwd_entry = pwd.getpwuid(os.geteuid())
                 return pwd_entry[0]
-            except:
+            except Exception:
                 return None

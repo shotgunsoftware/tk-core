@@ -11,15 +11,14 @@
 
 # thin proxy wrapper which finds the real tank and replaces itself with that
 
-from __future__ import absolute_import
+import importlib
 import os
 import sys
-
 
 # first look for our parent file
 current_folder = os.path.abspath(os.path.dirname(__file__))
 file_name_lookup = {
-    "linux2": "core_Linux.cfg",
+    "linux": "core_Linux.cfg",
     "win32": "core_Windows.cfg",
     "darwin": "core_Darwin.cfg",
 }
@@ -64,4 +63,4 @@ os.environ["TANK_CURRENT_PC"] = pipeline_config
 # prepend this to the python path and reload the module
 # this way we will load the 'real' tank!
 os.sys.path.insert(0, parent_python_path)
-reload(sys.modules["tank"])
+importlib.reload(sys.modules["tank"])

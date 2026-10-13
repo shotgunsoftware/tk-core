@@ -9,14 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import json
 import os
+import urllib.error
+import urllib.request
 
-from tank_vendor.six.moves import urllib
-
-from .downloadable import IODescriptorDownloadable
-from ..errors import TankError, TankDescriptorError
 from ... import LogManager
 from ...util import sgre as re
 from ...util.shotgun import download
+from ..errors import TankDescriptorError, TankError
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
@@ -35,9 +35,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGithubRelease, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "organization", "repository", "version"],
@@ -307,7 +305,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             # @todo Perhaps deal with redirects (which may occur in the case of a
             # renamed repo) here. The HTTPRedirectHandler may be a good option
             # for this.
-            # (https://docs.python.org/2/library/urllib2.html#urllib2.HTTPRedirectHandler)
+            # (https://docs.python.org/3.11/library/urllib.request.html#urllib.request.HTTPRedirectHandler)
             if can_connect:
                 log.debug("...connection established!")
             else:

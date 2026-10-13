@@ -1,14 +1,5 @@
-import os
-import unittest
-import shutil
-
-import tank
-from tank_vendor import yaml
 from tank import TankError
-from tank import hook
-from tank import folder
 from tank.path_cache import PathCache
-from tank_test.tank_test_base import *
 
 ###############################################################################################
 # useful methods for folder creation tests.
@@ -56,7 +47,6 @@ def execute_folder_creation_proxy(self):
         # because the sync can make changes to the path cache, do not run in preview mode
         remote_items = []
         if not self._preview_mode:
-
             # request that the path cache is synced against shotgun
             # new items that were not locally available are returned
             # as a list of dicts with keys id, type, name, configuration and path

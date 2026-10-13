@@ -9,8 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
+
 import tank
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 
 def get_file_list(folder, prefix):
@@ -44,7 +45,7 @@ class TestUnzipping(ShotgunTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestUnzipping, self).setUp()
+        super().setUp()
 
         # fixtures location for zips
         self.zip_file_location = os.path.join(self.fixtures_root, "misc", "zip")

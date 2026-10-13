@@ -12,12 +12,9 @@
 Utility methods related to Published Files in Shotgun
 """
 
-from __future__ import with_statement
-
 from ...log import LogManager
+from .. import constants, login
 from ..shotgun_path import ShotgunPath
-from .. import constants
-from .. import login
 
 log = LogManager.get_logger(__name__)
 
@@ -52,7 +49,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     try:
         if entity_type_code in schema_data:
             display_name = schema_data[entity_type_code]["name"]["value"]
-    except:
+    except Exception:
         pass
 
     return display_name
@@ -163,7 +160,6 @@ def find_publish(
 
     published_file_entity_type = get_published_file_entity_type(tk)
     for root_name in root_names:
-
         local_storage = mapped_roots.get(root_name)
         if not local_storage:
             # fail gracefully here - it may be a storage which has been deleted
@@ -203,7 +199,6 @@ def find_publish(
     matches = {}
 
     for local_storage_name, publishes in published_files.items():
-
         # get a dictionary which maps shotgun paths to file system paths
         if local_storage_name == "Tank":
             normalized_path_lookup_dict = storage_root_to_paths[
@@ -214,12 +209,10 @@ def find_publish(
 
         # now go through all publish entities found for current storage
         for publish in publishes:
-
             path_cache = publish["path_cache"]
 
             # get the list of real paths matching this entry
             for full_path in normalized_path_lookup_dict.get(path_cache, []):
-
                 if full_path not in matches:
                     # this path not yet in the list of matching publish entity data
                     matches[full_path] = publish

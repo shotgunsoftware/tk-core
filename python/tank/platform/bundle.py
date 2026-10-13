@@ -13,20 +13,20 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 
 """
 
+import importlib.machinery
+import importlib.util
 import os
 import sys
-import imp
 import uuid
 
 from .. import hook
+from ..errors import TankError, TankNoDefaultValueError
+from ..log import LogManager
 from ..util import sgre as re
 from ..util.metrics import EventMetric
-from ..log import LogManager
-from ..errors import TankError, TankNoDefaultValueError
-from .errors import TankContextChangeNotSupportedError
 from . import constants
+from .errors import TankContextChangeNotSupportedError
 from .import_stack import ImportStack
-from tank_vendor import six
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -285,7 +285,6 @@ class TankBundle(object):
         """
         # this method is memoized for performance since it is being called a lot!
         if self.__cache_location.get("site") is None:
-
             self.__cache_location["site"] = self.__tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_bundle_data_cache_path",
@@ -443,7 +442,6 @@ class TankBundle(object):
         ImportStack.push_current_bundle(self)
 
         try:
-
             # get the python folder
             python_folder = os.path.join(
                 self.disk_location, constants.BUNDLE_PYTHON_FOLDER
@@ -458,9 +456,18 @@ class TankBundle(object):
                 self.log_debug("Importing python modules in %s..." % python_folder)
                 # alias the python folder with a UID to ensure it is unique every time it is imported
                 self.__module_uid = "tkimp%s" % uuid.uuid4().hex
-                imp.load_module(
-                    self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY)
+                sys.path.insert(0, python_folder)
+                module_init_file = os.path.join(python_folder, "__init__.py")
+                spec = importlib.util.spec_from_loader(
+                    self.__module_uid,
+                    importlib.machinery.SourceFileLoader(
+                        self.__module_uid, os.path.join(python_folder, module_init_file)
+                    ),
                 )
+                package = importlib.util.module_from_spec(spec)
+                sys.modules[self.__module_uid] = package
+                spec.loader.exec_module(package)
+                sys.path.pop(0)
 
             # we can now find our actual module in sys.modules as GUID.module_name
             mod_name = "%s.%s" % (self.__module_uid, module_name)
@@ -492,7 +499,6 @@ class TankBundle(object):
         """
         # this method is memoized for performance since it is being called a lot!
         if self.__cache_location.get(project_id) is None:
-
             self.__cache_location[project_id] = self.__tk.execute_core_hook_method(
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_bundle_data_cache_path",
@@ -818,7 +824,7 @@ class TankBundle(object):
             # Entries are on the following form
             #
             # hook_publish_file:
-            #    type: hook
+            # type: hook
             #    description: Called when a file is published, e.g. copied from a work area to a publish area.
             #    default_value: maya_publish_file
             #
@@ -1005,7 +1011,6 @@ class TankBundle(object):
                 )
 
             if default_value:  # possible not to have a default value!
-
                 # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
                 # just be 'hook_name' with implicit '{self}' and no suffix!
@@ -1065,7 +1070,7 @@ class TankBundle(object):
         # therefore get an error.
         try:
             engine_name = self.engine.name
-        except:
+        except Exception:
             engine_name = None
 
         return engine_name
@@ -1090,7 +1095,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     # first check for procedural overrides where instead of getting a value,
     # directly from the config, we call a hook to evaluate a config value
     # at runtime:
-    if isinstance(value, six.string_types) and value.startswith("hook:"):
+    if isinstance(value, str) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
         # if the template parameter is on the form
@@ -1124,7 +1129,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
-        for (key, value_schema) in items.items():
+        for key, value_schema in items.items():
             processed_val[key] = _post_process_settings_r(
                 tk=tk, key=key, value=value[key], schema=value_schema, bundle=bundle
             )

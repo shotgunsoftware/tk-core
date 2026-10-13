@@ -10,13 +10,11 @@
 
 import os
 import unittest
-
 from unittest.mock import patch
 
 from tank.platform import (
     engine,
 )
-
 from tank.util import (
     metrics,
     metrics_cache,
@@ -29,7 +27,7 @@ class MetricsCacheTests(unittest.TestCase):
             if k.startswith("sgtk_metric_cache_"):
                 del os.environ[k]
 
-        super(MetricsCacheTests, self).tearDown()
+        super().tearDown()
 
     def test_log(self, *mocks):
         # not json_serializable

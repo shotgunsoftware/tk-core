@@ -7,18 +7,14 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-import os
 import copy
+import os
 import re
 
-from .git import IODescriptorGit
-from ..errors import TankDescriptorError
 from ... import LogManager
-
-try:
-    from tank_vendor import sgutils
-except ImportError:
-    from tank_vendor import six as sgutils
+from ...util.process import SubprocessCalledProcessError
+from ..errors import TankDescriptorError
+from .git import IODescriptorGit, _sanitize_exception, _sanitize_url
 
 log = LogManager.get_logger(__name__)
 
@@ -56,9 +52,7 @@ class IODescriptorGitTag(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
@@ -71,7 +65,7 @@ class IODescriptorGitTag(IODescriptorGit):
         Human readable representation
         """
         # git@github.com:manneohrstrom/tk-hiero-publish.git, tag v1.2.3
-        return "%s, Tag %s" % (self._path, self._version)
+        return "%s, Tag %s" % (_sanitize_url(self._path), self._version)
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
@@ -97,7 +91,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :return: List of path strings
         """
         # get default cache paths from base class
-        paths = super(IODescriptorGitTag, self)._get_cache_paths()
+        paths = super()._get_cache_paths()
 
         # for compatibility with older versions of core, prior to v0.18.x,
         # add the old-style bundle cache path as a fallback. As of v0.18.x,
@@ -149,8 +143,12 @@ class IODescriptorGitTag(IODescriptorGit):
                 destination_path, [], depth=1, ref=self._version
             )
         except Exception as e:
+            # Sanitize any credentials that might be in the exception or path
+            if isinstance(e, SubprocessCalledProcessError):
+                e = _sanitize_exception(e, self._path)
             raise TankDescriptorError(
-                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
+                "Could not download %s, tag %s: %s"
+                % (_sanitize_url(self._path), self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -180,7 +178,7 @@ class IODescriptorGitTag(IODescriptorGit):
             tag_name = self._get_latest_version()
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = sgutils.ensure_str(tag_name)
+        new_loc_dict["version"] = str(tag_name)
 
         # create new descriptor to represent this tag
         desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
@@ -215,24 +213,28 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["ls-remote -q --tags %s" % self._path]
-            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split(
-                "\n"
-            )
+            output = self._tmp_clone_then_execute_git_commands(commands, depth=1)
+            if isinstance(output, bytes):
+                output = output.decode("utf-8")
+            tags = output.split("\n")
             regex = re.compile(".*refs/tags/([^^]*)$")
             git_tags = []
             for tag in tags:
-                m = regex.match(sgutils.ensure_str(tag))
+                m = regex.match(tag)
                 if m:
                     git_tags.append(m.group(1))
 
         except Exception as e:
+            # Sanitize any credentials that might be in the exception
+            if isinstance(e, SubprocessCalledProcessError):
+                e = _sanitize_exception(e, self._path)
             raise TankDescriptorError(
-                "Could not get list of tags for %s: %s" % (self._path, e)
+                "Could not get list of tags for %s: %s" % (_sanitize_url(self._path), e)
             )
 
         if len(git_tags) == 0:
             raise TankDescriptorError(
-                "Git repository %s doesn't have any tags!" % self._path
+                "Git repository %s doesn't have any tags!" % _sanitize_url(self._path)
             )
 
         return git_tags
@@ -246,7 +248,7 @@ class IODescriptorGitTag(IODescriptorGit):
         latest_tag = self._find_latest_tag_by_pattern(tags, pattern=None)
         if latest_tag is None:
             raise TankDescriptorError(
-                "Git repository %s doesn't have any tags!" % self._path
+                "Git repository %s doesn't have any tags!" % _sanitize_url(self._path)
             )
 
         return latest_tag

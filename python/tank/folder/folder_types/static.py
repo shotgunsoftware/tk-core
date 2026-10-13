@@ -11,10 +11,9 @@
 import os
 
 from ...errors import TankError
-
 from .base import Folder
 from .entity import Entity
-from .util import translate_filter_tokens, resolve_shotgun_filters
+from .util import resolve_shotgun_filters, translate_filter_tokens
 
 
 class Static(Folder):
@@ -136,11 +135,11 @@ class Static(Folder):
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!
-        if is_primary == False and self._create_with_parent == False:
+        if is_primary is False and self._create_with_parent is False:
             return False
 
         # base class implementation
-        return super(Static, self)._should_item_be_processed(engine_str, is_primary)
+        return super()._should_item_be_processed(engine_str, is_primary)
 
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
@@ -149,7 +148,6 @@ class Static(Folder):
 
         # first check if we have any conditionals that need evaluating
         if self._constrain_node:
-
             # resolve our sg filter expression based on the current shotgun data
             # for the current parent objects (for example if the query expression
             # contains $shot or other dynamic tokens)

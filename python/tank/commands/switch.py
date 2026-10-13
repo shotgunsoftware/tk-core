@@ -8,13 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ..errors import TankError
-from . import constants
-from . import util
-from . import console_utils
-from .action_base import Action
-
 import os
+
+from ..errors import TankError
+from . import console_utils, constants, util
+from .action_base import Action
 
 
 class SwitchAppAction(Action):
@@ -34,7 +32,6 @@ class SwitchAppAction(Action):
     def run_interactive(self, log, args):
 
         if len(args) < 4:
-
             log.info(
                 "This command allows you to easily switch an app between different "
                 "locations. A location defines where toolkit picks and synchrononizes "
@@ -116,7 +113,7 @@ class SwitchAppAction(Action):
             log.info("")
             return
 
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         # get parameters
@@ -130,7 +127,7 @@ class SwitchAppAction(Action):
 
         if fourth_param == "app_store":
             mode = "app_store"
-        elif fourth_param.endswith(".git"):
+        elif util.is_git_repo_uri(fourth_param):
             mode = "git"
             path = fourth_param
         else:
@@ -203,13 +200,13 @@ class SwitchAppAction(Action):
         log.info("")
         log.info("Current version")
         log.info("------------------------------------")
-        for (k, v) in descriptor.get_dict().items():
+        for k, v in descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
 
         log.info("")
         log.info("New version")
         log.info("------------------------------------")
-        for (k, v) in new_descriptor.get_dict().items():
+        for k, v in new_descriptor.get_dict().items():
             log.info(" - %s: %s" % (k.capitalize(), v))
 
         log.info("")
@@ -229,9 +226,7 @@ class SwitchAppAction(Action):
 
         # ensure that all required frameworks have been installed
         # find the file where our item is being installed
-        (_, yml_file) = env.find_location_for_app(
-            engine_instance_name, app_instance_name
-        )
+        _, yml_file = env.find_location_for_app(engine_instance_name, app_instance_name)
 
         console_utils.ensure_frameworks_installed(
             log, self.tk, yml_file, new_descriptor, env, self._interaction_interface

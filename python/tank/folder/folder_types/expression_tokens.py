@@ -18,7 +18,6 @@ dynamic tokens such as $something.
 import os
 
 from ...errors import TankError
-from tank_vendor import six
 
 
 class SymlinkToken(object):
@@ -45,7 +44,6 @@ class SymlinkToken(object):
         :param sg_data: Shotgun data dictionary.
         """
         if self._name.startswith("$"):
-
             # strip the dollar sign
             token = self._name[1:]
 
@@ -60,14 +58,13 @@ class SymlinkToken(object):
             # - listfield tokens contain the value
             # - sg entity values contain the value in a compute_name key
             name_value = None
-            for (field_name, field_value) in sg_data.items():
-
+            for field_name, field_value in sg_data.items():
                 if token == field_name:
                     if isinstance(field_value, dict):
                         # entity data is contained in a computed_name key (see above)
                         name_value = field_value.get("computed_name")
                         break
-                    elif isinstance(field_value, six.string_types):
+                    elif isinstance(field_value, str):
                         # listfields contain their values as a string
                         name_value = field_value
                         break

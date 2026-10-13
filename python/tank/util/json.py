@@ -14,8 +14,9 @@ Utility methods for unserializing JSON documents.
 # We need to add this to the file or the import json will reimport this
 # module instead of importing the global json module.
 from __future__ import absolute_import
-import sys
+
 import json
+import sys
 
 from .unicode import ensure_contains_str
 
@@ -29,7 +30,7 @@ def load(
     parse_float=None,
     parse_int=None,
     parse_constant=None,
-    **kw
+    **kw,
 ):
     """
     Deserialize ``fp`` (a ``.read()``-supporting file-like object containing
@@ -54,7 +55,7 @@ def load(
         parse_float=parse_float,
         parse_int=parse_int,
         parse_constant=parse_constant,
-        **kw
+        **kw,
     )
 
     return ensure_contains_str(loaded_value)
@@ -69,7 +70,7 @@ def loads(
     parse_float=None,
     parse_int=None,
     parse_constant=None,
-    **kw
+    **kw,
 ):
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
@@ -94,7 +95,7 @@ def loads(
         parse_float=parse_float,
         parse_int=parse_int,
         parse_constant=parse_constant,
-        **kw
+        **kw,
     )
 
     return ensure_contains_str(loaded_value)

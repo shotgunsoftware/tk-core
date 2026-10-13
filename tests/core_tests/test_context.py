@@ -10,35 +10,31 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-import os
 import copy
 import datetime
-from sgtk.util import pickle
 import json
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    TankTestBase,
-)
+import os
 
 import tank
+from sgtk.util import pickle
 from tank import context
-from tank.errors import TankError, TankContextDeserializationError
-from tank.template import TemplatePath
-from tank.templatekey import StringKey, IntegerKey
-from tank_vendor import yaml
-from tank_vendor import six
 from tank.authentication import ShotgunAuthenticator
+from tank.errors import TankContextDeserializationError, TankError
+from tank.template import TemplatePath
+from tank.templatekey import IntegerKey, StringKey
+from tank_test.tank_test_base import (
+    TankTestBase,
+    mock,
+    setUpModule,  # noqa
+)
+from tank_vendor import yaml
 
 USER_NAME = "Üser Ñâme AñoVolvió JiříVyčítal"
 
 
 class TestContext(TankTestBase):
     def setUp(self):
-        super(TestContext, self).setUp()
+        super().setUp()
 
         self.keys = {
             "Sequence": StringKey("Sequence"),
@@ -107,7 +103,7 @@ class TestContext(TankTestBase):
 
 class TestEq(TestContext):
     def setUp(self):
-        super(TestEq, self).setUp()
+        super().setUp()
         # params used in creating contexts
         self.kws = {}
         self.kws["project"] = self.project
@@ -213,7 +209,7 @@ class TestEq(TestContext):
 
 class TestUser(TestContext):
     def setUp(self):
-        super(TestUser, self).setUp()
+        super().setUp()
         kws1 = {}
         kws1["tk"] = self.tk
         kws1["project"] = self.project
@@ -328,7 +324,7 @@ class TestFromPathWithPrevious(TestContext):
 
 class TestUrl(TestContext):
     def setUp(self):
-        super(TestUrl, self).setUp()
+        super().setUp()
 
         # Add task data to mocked shotgun
         self.task = {
@@ -376,7 +372,7 @@ class TestStringRepresentation(TestContext):
     """
 
     def setUp(self):
-        super(TestStringRepresentation, self).setUp()
+        super().setUp()
 
         # Add task data to mocked shotgun
         self.task = {
@@ -430,7 +426,7 @@ class TestStringRepresentation(TestContext):
 
 class TestFromEntity(TestContext):
     def setUp(self):
-        super(TestFromEntity, self).setUp()
+        super().setUp()
 
         # Add task data to mocked shotgun
         self.task = {
@@ -569,22 +565,19 @@ class TestFromEntity(TestContext):
     @mock.patch("tank.util.login.get_current_user")
     def test_data_missing_non_task(self, get_current_user):
         """
-        Case that entity does not exist on local cache or in shotgun
+        Case that entity does not exist on local cache or in shotgun.
+
+        When an entity is not found in the path cache, we now fall back
+        to querying Flow Production Tracking. If the entity doesn't exist
+        there either, a TankError should be raised.
         """
         get_current_user.return_value = self.current_user
 
         # Use entity we have not setup in path cache not in mocked sg
         shot = {"type": "Shot", "id": 13, "name": "never_seen_me_before"}
-        result = context.from_entity(self.tk, shot["type"], shot["id"])
-
-        self.assertEqual(shot["id"], result.entity["id"])
-        self.assertEqual(shot["type"], result.entity["type"])
-        self.check_entity(self.project, result.project)
-        self.assertEqual(self.current_user["id"], result.user["id"])
-        self.assertEqual(self.current_user["type"], result.user["type"])
-        # Everything else should be none
-        self.assertIsNone(result.step)
-        self.assertIsNone(result.task)
+        self.assertRaises(
+            TankError, context.from_entity, self.tk, shot["type"], shot["id"]
+        )
 
     def test_data_missing_task(self):
         """
@@ -708,14 +701,15 @@ class TestFromEntity(TestContext):
             context.from_entity(self.tk, "Task", -1)
         # PublishedFiles go through some dedicated code.
         with self.assertRaisesRegex(
-            TankError, "Entity PublishedFile with id -1 not found in Flow Production Tracking!"
+            TankError,
+            "Entity PublishedFile with id -1 not found in Flow Production Tracking!",
         ):
             context.from_entity(self.tk, "PublishedFile", -1)
 
 
 class TestAsTemplateFields(TestContext):
     def setUp(self):
-        super(TestAsTemplateFields, self).setUp()
+        super().setUp()
         # create a context obj using predefined data
         kws = {}
         kws["tk"] = self.tk
@@ -855,9 +849,6 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
 
-    # It seems like Python 2.7.16+ is a bit less comfortable with paths with the wrong orientation
-    # for the slashes, so we'll generate test data that is more conforming to the current platform.
-    # This isn't an issue in the real world, as we always sanitize our inputs.
     @mock.patch(
         "tank.context.Context._get_project_roots",
         return_value=["{0}{0}foo{0}bar".format(os.path.sep)],
@@ -996,19 +987,9 @@ class TestAsTemplateFields(TestContext):
 
         # second asset with different asset type
         asset_type_2 = "Prop"
-        asset_2 = {
-            "type": "Asset",
-            "id": 2,
-            "code": "asset_code_2",
-            "name": "asset_name_2",
-            "project": self.project,
-            "asset_type": asset_type_2,
-        }
 
         alt_step_path = os.path.join(self.project_root, asset_type_2, step_short_name)
         self.add_production_path(alt_step_path, self.step)
-
-        asset_2_path = os.path.join(alt_step_path, asset_2["code"])
 
         ctx = self.tk.context_from_path(asset_path)
 
@@ -1183,7 +1164,7 @@ class TestAsTemplateFields(TestContext):
 
 class TestSerialize(TestContext):
     def setUp(self):
-        super(TestSerialize, self).setUp()
+        super().setUp()
         # params used in creating contexts
         # Add data to mocked shotgun
         self.task = self.mockgun.create(
@@ -1270,6 +1251,9 @@ class TestSerialize(TestContext):
                 {"type": "Sequence", "name": "seq_name", "id": self.seq["id"]}
             ],
             "user": {"type": "HumanUser", "id": self.user["id"], "name": USER_NAME},
+            "flow_project_id": None,
+            "flow_draft_id": None,
+            "flow_schema_version": None,
         }
 
         ctx = context.Context(**self.kws)
@@ -1288,7 +1272,7 @@ class TestSerialize(TestContext):
         context_1 = context.Context(**self.kws)
         serialized = context_1.serialize()
         # Ensure the serialized context is a string
-        self.assertIsInstance(serialized, six.string_types)
+        self.assertIsInstance(serialized, str)
         context_2 = tank.Context.deserialize(serialized)
         self._assert_equal_contexts(context_1, context_2)
 
@@ -1312,7 +1296,7 @@ class TestSerialize(TestContext):
         pickle.loads(unserialized_pickle["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1335,7 +1319,7 @@ class TestSerialize(TestContext):
         json.loads(unserialized_json["_current_user"])
 
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
@@ -1352,7 +1336,7 @@ class TestSerialize(TestContext):
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
-        self.assertIsInstance(ctx_str, six.string_types)
+        self.assertIsInstance(ctx_str, str)
 
         # Change the current user to make sure that the deserialize operation doesn't
         # change it back to the original user.
@@ -1382,12 +1366,9 @@ class TestSerialize(TestContext):
         property we'll add the value there.
         """
         self.assertEqual(ctx_1, ctx_2)
-        # Only compare type and id, serialized contexts are lossy due the fields
-        # being dropped in order to ensure there are no unrealizable characters
-        # sent from Python 3 to Python 2 when pickling.
-        # Interestingly, as you can see from the comparison above, the __eq__
-        # operator on context already compares only the type and id,
-        # which is why we don't have to compare all the fields manually.
+        # Context equality (__eq__) only considers the entity type and id.
+        # However, source_entity is not included in that check,
+        # so we explicitly compare it to ensure full fidelity after serialization.
         self.assertEqual(ctx_1.source_entity["type"], ctx_2.source_entity["type"])
         self.assertEqual(ctx_1.source_entity["id"], ctx_2.source_entity["id"])
 
@@ -1401,7 +1382,7 @@ class TestSerialize(TestContext):
 
 class TestMultiRoot(TestContext):
     def setUp(self):
-        super(TestMultiRoot, self).setUp()
+        super().setUp()
 
         self.setup_multi_root_fixtures()
 
@@ -1450,3 +1431,152 @@ class TestMultiRoot(TestContext):
 
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
+
+
+class TestContextFlowAmProjectId(TankTestBase):
+    """Tests for Context.flow_project_id."""
+
+    def setUp(self):
+        super().setUp()
+        self.setup_fixtures()
+
+    def test_returns_none_for_non_am_project(self):
+        """flow_project_id is None when sg_flow_am_id is not set on the project."""
+        ctx = context.Context(self.tk, project=self.project)
+        self.assertIsNone(ctx.flow_project_id)
+
+    def test_returns_none_for_empty_context(self):
+        """flow_project_id is None when the context has no project."""
+        ctx = context.create_empty(self.tk)
+        self.assertIsNone(ctx.flow_project_id)
+
+    def test_returns_value_when_set(self):
+        """flow_project_id returns sg_flow_am_id when set on the project dict."""
+        project = dict(self.project, sg_flow_am_id="am-project-abc")
+        ctx = context.Context(self.tk, project=project)
+        self.assertEqual(ctx.flow_project_id, "am-project-abc")
+
+    def test_survives_serialization_roundtrip(self):
+        """flow_project_id is preserved through serialize/deserialize."""
+        project = dict(self.project, sg_flow_am_id="am-project-abc")
+        ctx = context.Context(self.tk, project=project)
+        serialized = ctx.serialize()
+        restored = context.deserialize(serialized)
+        self.assertEqual(restored.flow_project_id, "am-project-abc")
+
+    def test_set_on_project_dict(self):
+        """flow_project_id can be set by writing sg_flow_am_id onto the project dict."""
+        ctx = context.Context(self.tk, project=dict(self.project))
+        ctx.project["sg_flow_am_id"] = "explicit-am-id"
+        self.assertEqual(ctx.flow_project_id, "explicit-am-id")
+
+    def test_included_in_to_dict(self):
+        """flow_project_id appears in the dict returned by to_dict()."""
+        project = dict(self.project, sg_flow_am_id="explicit-am-id")
+        ctx = context.Context(self.tk, project=project)
+        d = ctx.to_dict()
+        self.assertIn("flow_project_id", d)
+        self.assertEqual(d["flow_project_id"], "explicit-am-id")
+
+    def test_deepcopy_preserves_value(self):
+        """Deepcopying a context preserves flow_project_id."""
+        project = dict(self.project, sg_flow_am_id="am-project-abc")
+        ctx = context.Context(self.tk, project=project)
+        ctx_copy = copy.deepcopy(ctx)
+        self.assertEqual(ctx_copy.flow_project_id, "am-project-abc")
+
+    def test_from_dict_preserves_existing_project_value(self):
+        """from_dict does not overwrite sg_flow_am_id already on the project dict."""
+        project = dict(self.project, sg_flow_am_id="existing-am-id")
+        data = context.Context(self.tk, project=project).to_dict()
+        data["project"] = dict(project)
+        data["flow_project_id"] = None
+
+        restored = context.Context.from_dict(self.tk, data)
+        self.assertEqual(restored.flow_project_id, "existing-am-id")
+
+
+class TestContextFlowDraftId(TankTestBase):
+    """Tests for Context.flow_draft_id."""
+
+    def setUp(self):
+        super().setUp()
+        self.setup_fixtures()
+
+    def test_defaults_to_none(self):
+        """flow_draft_id is None by default."""
+        ctx = context.Context(self.tk)
+        self.assertIsNone(ctx.flow_draft_id)
+
+    def test_returns_constructor_value(self):
+        """flow_draft_id returns the value passed to the constructor."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+        self.assertEqual(ctx.flow_draft_id, "draft-abc")
+
+    def test_included_in_to_dict(self):
+        """flow_draft_id appears in the dict returned by to_dict()."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+
+        data = ctx.to_dict()
+
+        self.assertIn("flow_draft_id", data)
+        self.assertEqual(data["flow_draft_id"], "draft-abc")
+
+    def test_from_dict_preserves_value(self):
+        """flow_draft_id is restored by from_dict."""
+        data = {
+            "project": self.project,
+            "flow_draft_id": "draft-abc",
+        }
+
+        restored = context.Context.from_dict(self.tk, data)
+
+        self.assertEqual(restored.flow_draft_id, "draft-abc")
+
+    def test_pickle_serialization_roundtrip_preserves_value(self):
+        """flow_draft_id is preserved through pickle serialize/deserialize."""
+        ctx = context.Context(
+            self.tk,
+            project=self.project,
+            flow_draft_id="draft-abc",
+        )
+
+        restored = context.deserialize(ctx.serialize())
+
+        self.assertEqual(restored.flow_draft_id, "draft-abc")
+
+    def test_deepcopy_preserves_value(self):
+        """Deepcopying a context preserves flow_draft_id."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+
+        ctx_copy = copy.deepcopy(ctx)
+
+        self.assertEqual(ctx_copy.flow_draft_id, "draft-abc")
+
+    def test_create_copy_for_user_preserves_value(self):
+        """create_copy_for_user preserves flow_draft_id."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+        user = {"type": "HumanUser", "id": 123, "name": "Copied User"}
+
+        copied_ctx = ctx.create_copy_for_user(user)
+
+        self.assertEqual(copied_ctx.flow_draft_id, "draft-abc")
+
+    @mock.patch("tank.context.sandbox.get_draft_context")
+    def test_set_flow_context_sets_value_from_sandbox(self, get_draft_context):
+        """set_flow_context stores the draft id returned by sandbox."""
+        get_draft_context.return_value = "draft-abc"
+        ctx = context.Context(self.tk)
+
+        ctx.set_flow_context("/path/to/file.ma")
+
+        get_draft_context.assert_called_once_with("/path/to/file.ma")
+        self.assertEqual(ctx.flow_draft_id, "draft-abc")
+
+    def test_clear_flow_context_clears_value(self):
+        """clear_flow_context resets flow_draft_id to None."""
+        ctx = context.Context(self.tk, flow_draft_id="draft-abc")
+
+        ctx.clear_flow_context()
+
+        self.assertIsNone(ctx.flow_draft_id)

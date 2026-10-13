@@ -12,8 +12,9 @@
 A simple engine to support unit tests.
 """
 
-from tank.platform import Engine
 import sys
+
+from tank.platform import Engine
 
 
 class TestEngine(Engine):

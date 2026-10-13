@@ -8,9 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from ...util import login
 from ...errors import TankError
-
+from ...util import login
 from .entity import Entity
 from .util import translate_filter_tokens
 
@@ -97,7 +96,6 @@ class UserWorkspace(Entity):
         # the user folders should need to.
 
         if not self._user_initialized:
-
             # this query confirms that there is a matching HumanUser in shotgun for the local login
             user = login.get_current_user(self._tk)
 

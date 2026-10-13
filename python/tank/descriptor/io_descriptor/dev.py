@@ -8,10 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .path import IODescriptorPath
-
-from ...util import process
 from ... import LogManager
+from ...util import process
+from .path import IODescriptorPath
 
 log = LogManager.get_logger(__name__)
 
@@ -45,9 +44,7 @@ class IODescriptorDev(IODescriptorPath):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorDev, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
     def is_dev(self):
         """
@@ -57,7 +54,7 @@ class IODescriptorDev(IODescriptorPath):
 
     def get_version(self):
         v = super().get_version()
-        if v.lower() != "undefined": # TODO constant
+        if v.lower() != "undefined":  # TODO constant
             return v
 
         desc = self.get_git_output("describe", "--tags", "--first-parent")
@@ -71,7 +68,7 @@ class IODescriptorDev(IODescriptorPath):
         cmd_args.extend(args)
         try:
             output = process.subprocess_check_output(cmd_args)
-        except process.SubprocessCalledProcessError as e:
+        except process.SubprocessCalledProcessError:
             log.debug("Unable to run git command - {e}")
         else:
             # note: it seems on windows, the result is sometimes wrapped in single quotes.

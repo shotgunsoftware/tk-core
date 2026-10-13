@@ -27,22 +27,17 @@ relative paths are always required and context based paths are always optional.
 
 """
 
-
-import os
-import sys
 import copy
+import os
 
 from ..errors import TankError
+from ..log import LogManager
 from ..template import TemplatePath
 from ..templatekey import StringKey
-from ..log import LogManager
-
-from . import constants
-
 from ..util import sgre as re
-from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
-from tank_vendor import six
+from ..util.yaml_cache import g_yaml_cache
+from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -63,7 +58,6 @@ def _resolve_includes(file_name, data, context):
         includes.extend(data[constants.MULTI_INCLUDE_SECTION])
 
     for include in includes:
-
         if "{" in include:
             # it's a template path
             if context is None:
@@ -107,7 +101,7 @@ def _resolve_includes(file_name, data, context):
             try:
                 f = context.as_template_fields(template)
                 full_path = template.apply_fields(f)
-            except TankError as e:
+            except TankError:
                 # if this path could not be resolved, that's ok! These paths are always optional.
                 continue
 
@@ -137,10 +131,10 @@ def _resolve_refs_r(lookup_dict, data):
 
     elif isinstance(data, dict):
         processed_val = {}
-        for (k, v) in data.items():
+        for k, v in data.items():
             processed_val[k] = _resolve_refs_r(lookup_dict, v)
 
-    elif isinstance(data, six.string_types) and data.startswith("@"):
+    elif isinstance(data, str) and data.startswith("@"):
         # this is a reference!
 
         ref_token = data[1:]
@@ -212,7 +206,6 @@ def _process_includes_r(file_name, data, context):
     lookup_dict = {}
     fw_lookup = {}
     for include_file in include_files:
-
         # path exists, so try to read it
         included_data = g_yaml_cache.get(include_file) or {}
 
@@ -351,9 +344,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                 # If the value of the token is an include, then we can
                 # recurse up, directly referencing the include name as
                 # the new token.
-                if isinstance(token_data, six.string_types) and token_data.startswith(
-                    "@"
-                ):
+                if isinstance(token_data, str) and token_data.startswith("@"):
                     include_token = token_data
                 else:
                     # In the case where the data isn't itself an include,
@@ -370,7 +361,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                         ]
                         if (
                             location
-                            and isinstance(location, six.string_types)
+                            and isinstance(location, str)
                             and location.startswith("@")
                         ):
                             include_token = location

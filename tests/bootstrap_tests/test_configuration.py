@@ -8,26 +8,22 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-import uuid
 import os
 import sys
+import uuid
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import (
-    mock,
-    ShotgunTestBase,
-    TankTestBase,
-)
-
-from tank.bootstrap import constants
-from sgtk.bootstrap.cached_configuration import CachedConfiguration
-from sgtk.bootstrap.configuration import Configuration
-from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
-from sgtk.authentication.user_impl import SessionUser
 import sgtk
 import tank_vendor
+from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
+from sgtk.authentication.user_impl import SessionUser
+from sgtk.bootstrap.cached_configuration import CachedConfiguration
+from sgtk.bootstrap.configuration import Configuration
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    TankTestBase,
+    mock,
+    setUpModule,  # noqa
+)
 from tank_vendor import yaml
 
 REPO_ROOT = os.path.normpath(
@@ -109,7 +105,6 @@ class TestConfiguration(TestConfigurationBase):
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=default_user,
         ):
-            # Python 2.6 doesn't support multi-expression with statement, so nest the calls instead.
             with mock.patch(
                 "tank_vendor.shotgun_authentication.deserialize_user",
                 wraps=tank_vendor.shotgun_authentication.deserialize_user,
@@ -238,7 +233,7 @@ class TestConfiguration(TestConfigurationBase):
 
 class TestSSOClaims(TestConfigurationBase):
     def setUp(self):
-        super(TestSSOClaims, self).setUp()
+        super().setUp()
 
         config_folder = sgtk.util.ShotgunPath.from_current_os_path(
             os.path.join(self.tank_temp, str(uuid.uuid4()))
@@ -360,7 +355,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestInvalidInstalledConfiguration, self).setUp()
+        super().setUp()
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
@@ -408,7 +403,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
 
 class TestBakedConfiguration(TestConfigurationBase):
     def setUp(self):
-        super(TestBakedConfiguration, self).setUp()
+        super().setUp()
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._build_plugin_path = os.path.abspath(
             os.path.join(
@@ -418,7 +413,7 @@ class TestBakedConfiguration(TestConfigurationBase):
         sys.path.append(os.path.dirname(self._build_plugin_path))
 
     def tearDown(self):
-        super(TestBakedConfiguration, self).tearDown()
+        super().tearDown()
         if os.path.dirname(self._build_plugin_path) in sys.path:
             sys.path.remove(os.path.dirname(self._build_plugin_path))
         # Tear down the running engine, if any
@@ -465,7 +460,7 @@ class TestBakedConfiguration(TestConfigurationBase):
 
 class TestCachedConfiguration(ShotgunTestBase):
     def setUp(self):
-        super(TestCachedConfiguration, self).setUp()
+        super().setUp()
 
         # Reset the tank_name and create a storage named after the one in the config.
         self.mockgun.update("Project", self.project["id"], {"tank_name": None})

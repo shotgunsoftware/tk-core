@@ -8,9 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import session_cache
-from ..util.user_settings import UserSettings
 from ..util.system_settings import SystemSettings
+from ..util.user_settings import UserSettings
+from . import session_cache
 
 
 class DefaultsManager(object):

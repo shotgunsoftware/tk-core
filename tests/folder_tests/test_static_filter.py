@@ -9,11 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import shutil
-import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
+
 from tank import folder
 from tank_test.tank_test_base import TankTestBase
 
@@ -23,7 +19,7 @@ class TestStaticFolderFilters(TankTestBase):
 
     def setUp(self):
 
-        super(TestStaticFolderFilters, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"core": "core.override/static_filters_core"})
 
         self.shot_aaa = {

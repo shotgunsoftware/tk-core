@@ -8,16 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 
 from tank_vendor import yaml
 
-from . import constants
-from .errors import TankDescriptorError
-from .descriptor_config import ConfigDescriptor
 from .. import LogManager
+from . import constants
+from .descriptor_config import ConfigDescriptor
+from .errors import TankDescriptorError
 
 log = LogManager.get_logger(__name__)
 
@@ -71,7 +69,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
             #
             # location:
             #    name: tk-core
-            #    type: app_store
+            # type: app_store
             #    version: v0.16.34
 
             log.debug("Detected core descriptor file '%s'" % core_descriptor_path)

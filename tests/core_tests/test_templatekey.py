@@ -12,21 +12,16 @@
 Tests for templatefield module.
 """
 
-from __future__ import with_statement, print_function
-
-from tank import TankError
 import copy
-import sys
 import datetime
 
-from tank_test.tank_test_base import setUpModule  # noqa
+from tank import TankError
+from tank.templatekey import IntegerKey, SequenceKey, StringKey, TimestampKey, make_keys
 from tank_test.tank_test_base import (
-    mock,
     ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
 )
-
-from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
-from tank_vendor import six
 
 
 class TestTemplateKey(ShotgunTestBase):
@@ -46,7 +41,7 @@ class TestTemplateKey(ShotgunTestBase):
 
 class TestStringKey(ShotgunTestBase):
     def setUp(self):
-        super(TestStringKey, self).setUp()
+        super().setUp()
         self.str_field = StringKey("field_name")
         self.alphanum_field = StringKey("field_name", filter_by="alphanumeric")
         self.alpha_field = StringKey("field_name", filter_by="alpha")
@@ -323,8 +318,8 @@ class TestStringKey(ShotgunTestBase):
         )
         tests.append(
             {
-                "short": u"foo",
-                "full": u"foobar",
+                "short": "foo",
+                "full": "foobar",
                 "template": StringKey("field_name", subset="(.{3}).*"),
             }
         )
@@ -332,8 +327,8 @@ class TestStringKey(ShotgunTestBase):
         # unicode
         tests.append(
             {
-                "short": u"\u3042\u308a\u304c",
-                "full": u"\u3042\u308a\u304c\u3068",
+                "short": "\u3042\u308a\u304c",
+                "full": "\u3042\u308a\u304c\u3068",
                 "template": StringKey("field_name", subset="(.{3}).*"),
             }
         )
@@ -350,7 +345,6 @@ class TestStringKey(ShotgunTestBase):
         )
 
         for test in tests:
-
             short = test["short"]
             full = test["full"]
             template_field = test["template"]
@@ -369,17 +363,6 @@ class TestStringKey(ShotgunTestBase):
         """
         Test subset_format parameter
         """
-
-        if sys.version_info < (2, 6):
-            # subset format not supported in py25
-            self.assertRaises(
-                TankError,
-                StringKey,
-                "field_name",
-                subset="(.{3}).*",
-                subset_format="{0} FOO",
-            )
-            return
 
         # test properties
         template_field = StringKey(
@@ -406,8 +389,8 @@ class TestStringKey(ShotgunTestBase):
         # unicode
         tests.append(
             {
-                "short": u"\u3042\u308a\u304c ",
-                "full": u"\u3042\u308a\u304c\u3068",
+                "short": "\u3042\u308a\u304c ",
+                "full": "\u3042\u308a\u304c\u3068",
                 "template": StringKey(
                     "field_name", subset="(.{3}).*", subset_format="{0} "
                 ),
@@ -445,7 +428,7 @@ class TestStringKey(ShotgunTestBase):
 
 class TestIntegerKey(ShotgunTestBase):
     def setUp(self):
-        super(TestIntegerKey, self).setUp()
+        super().setUp()
         self.int_field = IntegerKey("field_name")
 
     def test_bad_default(self):
@@ -737,7 +720,7 @@ class TestIntegerKey(ShotgunTestBase):
 
 class TestSequenceKey(ShotgunTestBase):
     def setUp(self):
-        super(TestSequenceKey, self).setUp()
+        super().setUp()
         self.seq_field = SequenceKey("field_name")
 
     def test_framespec_no_format(self):
@@ -859,7 +842,6 @@ class TestSequenceKey(ShotgunTestBase):
         default frame spec value can be returned, frame spec with
         one place has special cases.
         """
-        value = None
         seq_field = SequenceKey("field_name")
         expected = "%d"
         result = seq_field.str_from_value(value="FORMAT:%d")
@@ -1129,7 +1111,7 @@ class TestEyeKey(ShotgunTestBase):
     """
 
     def setUp(self):
-        super(TestEyeKey, self).setUp()
+        super().setUp()
         self.eye_key = StringKey("eye", default="%V", choices=["%V", "L", "R"])
         self.default_value = "%V"
 
@@ -1142,7 +1124,6 @@ class TestEyeKey(ShotgunTestBase):
         self.assertEqual(self.default_value, self.eye_key.str_from_value())
 
     def test_set_choices(self):
-        eye_key = StringKey("eye", default="%V", choices=["l", "r", "%V"])
         self.assertTrue(self.eye_key.validate(self.default_value))
         self.assertTrue(self.eye_key.validate("l"))
         self.assertTrue(self.eye_key.validate("r"))
@@ -1157,7 +1138,7 @@ class TestTimestampKey(ShotgunTestBase):
         """
         Creates a bunch of dates and strings for testing.
         """
-        super(TestTimestampKey, self).setUp()
+        super().setUp()
         self._datetime = datetime.datetime(2015, 6, 24, 21, 20, 30)
         self._datetime_string = "2015-06-24-21-20-30"
 
@@ -1222,9 +1203,7 @@ class TestTimestampKey(ShotgunTestBase):
         """
         key = TimestampKey("test")
         self.assertEqual(key.value_from_str(self._datetime_string), self._datetime)
-        self.assertEqual(
-            key.value_from_str(six.text_type(self._datetime_string)), self._datetime
-        )
+        self.assertEqual(key.value_from_str(str(self._datetime_string)), self._datetime)
 
     def test_bad_str(self):
         """

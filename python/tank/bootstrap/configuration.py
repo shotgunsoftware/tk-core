@@ -11,16 +11,14 @@
 import inspect
 import os
 
-from .import_handler import CoreImportHandler
-
-from ..log import LogManager
-from .. import pipelineconfig_utils
-from .. import constants
+from .. import constants, pipelineconfig_utils
 from ..authentication import (
+    ShotgunSamlUser,
     get_shotgun_authenticator_support_web_login,
     serialize_user,
-    ShotgunSamlUser,
 )
+from ..log import LogManager
+from .import_handler import CoreImportHandler
 
 log = LogManager.get_logger(__name__)
 
@@ -178,8 +176,7 @@ class Configuration(object):
         """
         # Perform a local import here to make sure we are getting
         # the newly swapped in core code, if it was swapped
-        from .. import api
-        from .. import pipelineconfig
+        from .. import api, pipelineconfig
 
         log.debug("Executing tank_from_path('%s')" % path)
 
@@ -267,6 +264,7 @@ class Configuration(object):
                 ShotgunAuthenticator,
                 deserialize_user,
             )
+
             from ..util import CoreDefaultsManager
         except ImportError:
             log.debug("Using pre-0.16 core, no authenticated user will be set.")

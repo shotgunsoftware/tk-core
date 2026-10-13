@@ -8,18 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import os
 import inspect
+import os
 
-from . import constants
-from .errors import TankBootstrapError
-from .configuration import Configuration
-from .resolver import ConfigurationResolver
-from ..authentication import ShotgunAuthenticator
-from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
+from ..authentication import ShotgunAuthenticator, flow_auth
 from ..errors import TankError
+from ..flowam import constants as flow_const, utils as flow_utils
+from ..pipelineconfig import PipelineConfiguration
 from ..util import ShotgunPath
+from . import constants
+from .configuration import Configuration
+from .errors import TankBootstrapError
+from .resolver import ConfigurationResolver
 
 log = LogManager.get_logger(__name__)
 
@@ -33,12 +34,12 @@ class ToolkitManager(object):
     # Constants used to make the manager bootstrapping:
     # - download and cache the config dependencies needed to run the engine being started in a specific environment.
     # - download and cache all the config dependencies needed to run the engine in any environment.
-    (CACHE_SPARSE, CACHE_FULL) = range(2)
+    CACHE_SPARSE, CACHE_FULL = range(2)
 
     # Constants used to indicate that the manager is:
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
-    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
+    TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE = range(2)
 
     # List of constants representing the status of the progress bar when these event occurs during bootstrap.
     _RESOLVING_PROJECT_RATE = 0.0
@@ -83,6 +84,10 @@ class ToolkitManager(object):
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
         self._allow_config_overrides = True
+
+        # flow fields
+        self._flow_project_id = None
+        self._flow_schema_version = None
 
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
         # and in case this is set, use it as a default
@@ -210,9 +215,6 @@ class ToolkitManager(object):
                 % (constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR, fallback_str)
             )
             toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
-
-            # Python' sets do not preserve insertion order and Python 2.5 doesn't support
-            # OrderedDicts, which would have been perfect for this, so we will...
 
             # First build the complete list of paths with possible duplicates.
             concatenated_lists = (
@@ -590,7 +592,6 @@ class ToolkitManager(object):
             )
 
         if AsyncBootstrapWrapper:
-
             # Bootstrap an Sgtk instance asynchronously in a background thread,
             # followed by launching the engine synchronously in the main application thread.
 
@@ -600,28 +601,23 @@ class ToolkitManager(object):
             self._bootstrapper.bootstrap()
 
         else:
-
             # Since Qt is not available, fall back on synchronous bootstrapping.
             # Execute the whole engine bootstrap logic synchronously in the main application thread,
             # while still calling the provided callbacks in order for the caller to work as expected.
 
             try:
-
                 tk = self._bootstrap_sgtk(engine_name, entity)
 
             except Exception as exception:
-
                 # Handle cleanup after failed completion of the toolkit bootstrap.
                 failed_callback(self.TOOLKIT_BOOTSTRAP_PHASE, exception)
 
                 return
 
             try:
-
                 engine = self._start_engine(tk, engine_name, entity)
 
             except Exception as exception:
-
                 # Handle cleanup after failed completion of the engine startup.
                 failed_callback(self.ENGINE_STARTUP_PHASE, exception)
 
@@ -917,6 +913,84 @@ class ToolkitManager(object):
         log.debug("Bootstrapping engine %s." % engine_name)
         log.debug("-----------------------------------------------------------------")
 
+    def _resolve_project_id(self, entity):
+        """
+        Resolve a Shotgun project id from a target entity.
+
+        :param entity: ``None``, a Project dict, an entity with a ``project``
+                       link, or any entity that can be looked up in Shotgun
+                       to find its parent project.
+        :type entity: dict or None
+        :returns: Integer project id, or ``None`` for the site context.
+        :rtype: int or None
+        """
+        if entity is None:
+            return None
+
+        if entity.get("type") == "Project":
+            return entity["id"]
+
+        if "project" in entity and entity["project"].get("type") == "Project":
+            return entity["project"]["id"]
+
+        data = self._sg_connection.find_one(
+            entity["type"], [["id", "is", entity["id"]]], ["project"]
+        )
+        if not data or not data.get("project"):
+            raise TankBootstrapError("Cannot resolve project for %s" % entity)
+        return data["project"]["id"]
+
+    def _trigger_am_auth(self, pipeline_config, entity, progress_callback):
+        """
+        Proactively obtain a Flow/MEDM access token.
+        Silent path (file store -> refresh) is tried first; falls
+        back to opening a browser for PKCE if no usable cached/refresh token
+        exists.
+
+        Configuration errors raise ``TankBootstrapError`` (deployment bug).
+        Runtime auth failures are logged and swallowed unless the
+        ``TK_FLOW_AUTH_REQUIRED`` env var is set to ``"1"``, in which case
+        they raise ``TankBootstrapError``.
+
+        :param pipeline_config: PipelineConfiguration object.
+        :param entity: Shotgun entity used to resolve a project context.
+        :type entity: dict or None
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+                                  Set to ``None`` to use the default callback function.
+        :rtype: None
+        """
+        if entity is None:
+            return
+
+        try:
+            log.info("Triggering Flow authentication...")
+            overrides = flow_utils.get_config_flow_settings(pipeline_config)
+            # Set authentication overrides in reserved env vars so they will persist
+            # across toolkit engine sessions
+            if flow_const.FLOW_AUTH_APP_ID in overrides:
+                os.environ["TK_FLOW_AUTH_APPLICATION_ID"] = overrides[
+                    flow_const.FLOW_AUTH_APP_ID
+                ]
+            if flow_const.FLOW_AUTH_BASE_URL in overrides:
+                os.environ["TK_FLOW_AUTH_BASE_URL"] = overrides[
+                    flow_const.FLOW_AUTH_BASE_URL
+                ]
+            if flow_const.FLOW_AUTH_CALLBACK_URL in overrides:
+                os.environ["TK_FLOW_AUTH_CALLBACK_URL"] = overrides[
+                    flow_const.FLOW_AUTH_CALLBACK_URL
+                ]
+            settings = flow_auth.resolve_flow_auth_settings()
+            flow_auth.init_authentication(settings)
+            # Token is intentionally discarded here; it now sits in the file
+            # store and adsk_auth's in-memory cache for the next consumer.
+            flow_auth.get_access_token()
+        except flow_auth.FlowAuthConfigurationError as e:
+            raise TankBootstrapError(
+                "MEDM auth misconfigured for AM-ready project: %s" % e
+            )
+        except Exception as e:
+            raise TankBootstrapError("MEDM auth failed for AM-ready project: %s" % e)
+
     def _get_configuration(self, entity, progress_callback):
         """
         Resolves the configuration to use without creating it on disk.
@@ -931,25 +1005,7 @@ class ToolkitManager(object):
         self._report_progress(
             progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project..."
         )
-        if entity is None:
-            project_id = None
-
-        elif entity.get("type") == "Project":
-            project_id = entity["id"]
-
-        elif "project" in entity and entity["project"].get("type") == "Project":
-            # user passed a project link
-            project_id = entity["project"]["id"]
-
-        else:
-            # resolve from shotgun
-            data = self._sg_connection.find_one(
-                entity["type"], [["id", "is", entity["id"]]], ["project"]
-            )
-
-            if not data or not data.get("project"):
-                raise TankBootstrapError("Cannot resolve project for %s" % entity)
-            project_id = data["project"]["id"]
+        project_id = self._resolve_project_id(entity)
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
@@ -1000,7 +1056,9 @@ class ToolkitManager(object):
 
         elif self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
-            log.debug("Checking for pipeline configuration overrides in Flow Production Tracking.")
+            log.debug(
+                "Checking for pipeline configuration overrides in Flow Production Tracking."
+            )
             log.debug(
                 "In order to turn this off, set do_shotgun_config_lookup to False"
             )
@@ -1066,6 +1124,36 @@ class ToolkitManager(object):
         else:
             raise TankBootstrapError("Unknown configuration update status!")
 
+        if entity is not None:
+            project_id = self._resolve_project_id(entity)
+            if project_id:
+                sg_project = self._sg_connection.find_one(
+                    "Project",
+                    [["id", "is", project_id]],
+                    [
+                        flow_auth.AM_READY_PROJECT_FIELD,
+                        flow_const.FLOW_SCHEMA_VERSION_FIELD,
+                    ],
+                )
+                if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
+                    # Store flow fields temporarily to avoid re-querying.
+                    # They will be cached on the context object after the context object has been rebuilt.
+                    self._flow_project_id = sg_project.get(
+                        flow_auth.AM_READY_PROJECT_FIELD
+                    )
+                    self._flow_schema_version = sg_project.get(
+                        flow_const.FLOW_SCHEMA_VERSION_FIELD
+                    )
+                    log.info(
+                        f"Current SG project is associated with a Flow project: {self._flow_project_id} with schema version {self._flow_schema_version}."
+                    )
+
+                    tk, _ = config.get_tk_instance(self._sg_user)
+                    # Authenticate into Flow AM
+                    self._trigger_am_auth(
+                        tk.pipeline_configuration, entity, progress_callback
+                    )
+
         return config
 
     def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
@@ -1117,6 +1205,11 @@ class ToolkitManager(object):
 
         If entity is None, the method will bootstrap into the site config.
 
+        For Flow-enabled projects, the Flow project id and schema version
+        cached during ``_get_updated_configuration()`` are injected onto
+        ``ctx.project`` so the engine can read them via
+        ``context.flow_project_id`` and ``context.flow_schema_version``.
+
         Please note that the API version of the tk instance that hosts
         the engine may not be the same as the API version that was
         executed during the bootstrap.
@@ -1142,6 +1235,13 @@ class ToolkitManager(object):
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
+
+            # Inject flow fields to context if current project is related to a Flow project.
+            if ctx.project and self._flow_project_id is not None:
+                ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = self._flow_project_id
+                ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = (
+                    self._flow_schema_version
+                )
 
         self._report_progress(
             progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine..."

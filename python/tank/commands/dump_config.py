@@ -8,14 +8,12 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-
 import os
-from tank_vendor.six import StringIO
+from io import StringIO
 
 from ..errors import TankError
-from .action_base import Action
 from ..util import filesystem
+from .action_base import Action
 
 
 class DumpConfigAction(Action):
@@ -246,7 +244,7 @@ class DumpConfigAction(Action):
                 fh = open(path, "w")
             except Exception as e:
                 raise TankError(
-                    "Unable to open file: %s\n" "  Error reported: %s" % (path, e)
+                    "Unable to open file: %s\n  Error reported: %s" % (path, e)
                 )
         else:
             # get an in-memory file handle
@@ -263,7 +261,7 @@ class DumpConfigAction(Action):
         """
 
         # do the base class default validation
-        parameters = super(DumpConfigAction, self)._validate_parameters(parameters)
+        parameters = super()._validate_parameters(parameters)
 
         # make sure we don't have too many dump types
         if parameters["full"] and parameters["sparse"]:

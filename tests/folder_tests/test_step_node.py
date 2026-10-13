@@ -9,16 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import unittest
-import shutil
+
 import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
 from tank import folder
 from tank_test.tank_test_base import (
-    mock,
     TankTestBase,
+    mock,
 )
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
@@ -32,7 +28,7 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersSingleStep, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(
             parameters={"core": "core.override/shotgun_single_step_core"}
@@ -116,7 +112,7 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersSingleStep, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -210,7 +206,7 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersMultiStep, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(
             parameters={"core": "core.override/shotgun_multi_step_core"}
@@ -294,7 +290,7 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersMultiStep, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -370,7 +366,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersStepAndUserSandbox, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/humanuser_step_core"})
 
@@ -439,7 +435,7 @@ class TestSchemaCreateFoldersStepAndUserSandbox(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersStepAndUserSandbox, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (
@@ -525,7 +521,7 @@ class TestSchemaCreateFoldersCustomStep(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersCustomStep, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(
             parameters={"core": "core.override/shotgun_single_custom_step_core"}
@@ -614,7 +610,7 @@ class TestSchemaCreateFoldersCustomStep(TankTestBase):
     def tearDown(self):
 
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersCustomStep, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (

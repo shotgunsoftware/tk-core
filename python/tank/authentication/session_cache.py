@@ -19,22 +19,23 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from __future__ import with_statement
 import os
 import socket
+
+from tank_vendor import yaml
 from tank_vendor.shotgun_api3 import (
-    Shotgun,
     AuthenticationFault,
-    ProtocolError,
     MissingTwoFactorAuthenticationFault,
+    ProtocolError,
+    Shotgun,
 )
 from tank_vendor.shotgun_api3.lib import httplib2
-from tank_vendor import yaml
+
+from .. import LogManager
+from ..util import LocalFileStorageManager
+from ..util.shotgun import connection
 from . import constants
 from .errors import AuthenticationError
-from .. import LogManager
-from ..util.shotgun import connection
-from ..util import LocalFileStorageManager
 
 logger = LogManager.get_logger(__name__)
 
@@ -80,7 +81,6 @@ def _get_global_authentication_file_location():
         _SESSION_CACHE_FILE_NAME,
     )
     if not os.path.exists(path):
-
         # see if there is a legacy path
         old_path = os.path.join(
             LocalFileStorageManager.get_global_root(
@@ -112,7 +112,6 @@ def _get_site_authentication_file_location(base_url):
     )
 
     if not os.path.exists(path):
-
         # see if there is a legacy path
         old_path = os.path.join(
             LocalFileStorageManager.get_site_root(
@@ -223,7 +222,7 @@ def _try_load_site_authentication_file(file_path):
     content.setdefault(_RECENT_USERS, [])
 
     if content.get(_PREFERRED_METHOD, "not null") is None:
-        del(content[_PREFERRED_METHOD])
+        del content[_PREFERRED_METHOD]
 
     for user in content[_USERS]:
         user[_LOGIN] = user[_LOGIN].strip()

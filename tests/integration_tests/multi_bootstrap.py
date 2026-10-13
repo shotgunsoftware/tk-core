@@ -12,15 +12,12 @@
 This test makes sure that various tank command operations do not fail.
 """
 
-from __future__ import print_function
-
-import sys
 import os
-
 import traceback
 import unittest
-from sgtk_integration_test import SgtkIntegrationTest
+
 import sgtk
+from sgtk_integration_test import SgtkIntegrationTest
 
 logger = sgtk.LogManager.get_logger(__name__)
 
@@ -91,4 +88,4 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest.main(failfast=True, verbosity=2)
+    unittest.main(failfast=True, verbosity=2)

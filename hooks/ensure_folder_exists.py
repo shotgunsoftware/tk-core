@@ -13,8 +13,8 @@ This hook is called when an engine, app or framework's
 :class:`~sgtk.platform.Application.ensure_folder_exists` method is called.
 """
 
-from sgtk.util import filesystem
 from sgtk import Hook
+from sgtk.util import filesystem
 
 
 class EnsureFolderExists(Hook):

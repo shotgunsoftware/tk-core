@@ -70,7 +70,7 @@ class TankErrorProjectIsSetup(TankError):
         """
         Include error message
         """
-        super(TankErrorProjectIsSetup, self).__init__(
+        super().__init__(
             "You are trying to set up a project which has already been set up. "
             "If you want to do this, make sure to set the force parameter."
         )

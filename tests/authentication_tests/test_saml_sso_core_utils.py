@@ -10,20 +10,20 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase
-
-from tank.authentication.sso_saml2.core.utils import get_user_name, _encode_cookies
+from tank.authentication.sso_saml2.core.utils import _encode_cookies, get_user_name
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+)
 
 
 class SamlSsoCoreUtilsTests(ShotgunTestBase):
-
     def test_username_valid(self):
         login_cookies = {
-            'user+name': 'shotgun_current_user_login=user%2Bname; domain=shotgrid.autodesk.com; path=/',
-            'user name': 'shotgun_current_user_login=user+name; domain=shotgrid.autodesk.com; path=/'
+            "user+name": "shotgun_current_user_login=user%2Bname; domain=shotgrid.autodesk.com; path=/",
+            "user name": "shotgun_current_user_login=user+name; domain=shotgrid.autodesk.com; path=/",
         }
         for login in login_cookies:
-            self.assertEqual(login, get_user_name(_encode_cookies(login_cookies[login])))
+            self.assertEqual(
+                login, get_user_name(_encode_cookies(login_cookies[login]))
+            )

@@ -11,16 +11,14 @@
 """
 Various helper methods relating to user interaction via the shell.
 """
-from __future__ import print_function
 
 import textwrap
 
 from .. import pipelineconfig_utils
-from ..platform import validation
-from ..errors import TankError, TankNoDefaultValueError
 from ..descriptor import CheckVersionConstraintsError
+from ..errors import TankError, TankNoDefaultValueError
+from ..platform import validation
 from ..platform.bundle import resolve_default_value
-
 
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
@@ -35,7 +33,7 @@ def format_bundle_info(log, descriptor, required_updates=None):
     :param required_updates: A list of bundle names that require updating.
     """
     # yay we can install! - get release notes
-    (summary, url) = descriptor.changelog
+    summary, url = descriptor.changelog
 
     if required_updates:
         add_padding = "     "
@@ -170,7 +168,6 @@ def _get_configuration_recursive(
             param_values[param_name] = child_params
 
         else:
-
             # leaf param so need to get value:
             param_path = list(parent_path) + [param_name]
 
@@ -262,7 +259,6 @@ def ensure_frameworks_installed(
 
     # first pass: install all frameworks that are required by this descriptor
     for fw_dict in missing_fws:
-
         name = fw_dict["name"]
         version_pattern = fw_dict["version"]
 
@@ -439,7 +435,6 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
     new_params = {}
 
     for param_name, new_param_definition_dict in new_schema.items():
-
         param_type = new_param_definition_dict.get("type", "Unknown")
         param_desc = new_param_definition_dict.get("description", "No description.")
 

@@ -86,7 +86,7 @@ DEBUG_LOGGING_ENV_VAR = "TK_DEBUG"
 TOOLKIT_INIT_CACHE_FILE = "toolkit_init.cache"
 
 # URL for contacting support
-SUPPORT_URL = "https://knowledge.autodesk.com/contact-support"
+SUPPORT_URL = "https://knowledge.autodesk.com/support"
 
 DOCUMENTATION_URL_LEGACY_AUTHENTICATION = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Migration_mi_migration_account_mi_end_user_account_html#legacy-shotgrid-login-credentials"
 
