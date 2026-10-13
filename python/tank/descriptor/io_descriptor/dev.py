@@ -54,14 +54,15 @@ class IODescriptorDev(IODescriptorPath):
 
     def get_version(self):
         v = super().get_version()
-        if v.lower() != "undefined":  # TODO constant
+        log.info(f"{self} - get_version() returned {v} - {type(v)}")
+        if v not in ("HEAD", "Undefined"):  # TODO constant
             return v
 
         desc = self.get_git_output("describe", "--tags", "--first-parent")
         if not desc:
             return v
 
-        return desc.replace("-", "+dev-", 1)
+        return desc.replace("-alpha1-", "+git+", 1)
 
     def get_git_output(self, *args):
         cmd_args = ["git", "-C", self._path]
