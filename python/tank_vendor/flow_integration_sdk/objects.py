@@ -53,7 +53,6 @@ from .globals import (
     VARIANT_SET_TYPE,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
-from .schema import get_schema_id
 from .storage import (
     _cache_asset_info,
     get_storage_asset_dir,
@@ -68,25 +67,22 @@ from .utils import (
 )
 
 
-def _get_schema_wildcard(type_name: str) -> str | None:
+def _get_schema_wildcard(type_name: str) -> str:
     """Return a wildcard type id matching every version of type name.
 
-    The namespace of the configured schema is kept and only the version is
-    replaced by a wildcard (e.g. "component.reference" ->
-    "autodesk.me:component.reference-*").
+    Both the namespace and the version are replaced by a wildcard (e.g.
+    "component.reference" -> "*:component.reference-*"), so components keep
+    matching when the namespace changes, e.g. from private to public schemas.
 
     Args:
         type_name: Base name of schema type, without namespace or version
                    (e.g. "component.reference").
 
     Returns:
-        Wildcard type id, or None if type is not cached.
+        Wildcard type id.
     """
-    configured_schema_id = get_schema_id(type_name)
-    if not configured_schema_id:
-        return None
     # type ids are "<namespace>:<type name>-<version>"
-    return f"{configured_schema_id.rsplit('-', 1)[0]}-*"
+    return f"*:{type_name}-*"
 
 
 class FlowEntity:

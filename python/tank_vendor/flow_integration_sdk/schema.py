@@ -135,8 +135,8 @@ def cache_schema_config(config_path: str):
         parent_types = schema.get("inherits", [])
         # strip "$ref:" prefix
         parent_types = [pt.removeprefix("$ref:") for pt in parent_types]
-        # convert to full ids, full type ids (e.g. "autodesk.me:component-2.0.0")
-        # are not in the cache and are kept as-is
+        # Resolve each inherited type name defined in this config to its full id,
+        # e.g. "type.container" -> "<namespace>:type.container-1.0.0".
         parent_types = [get_schema_id(pt) or pt for pt in parent_types]
         if kind not in KIND_BASE_TYPE_ID:
             raise ValueError(
