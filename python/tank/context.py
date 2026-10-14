@@ -981,7 +981,7 @@ class Context(object):
         ):
             _flowam_fields_cache.update(
                 {
-                    flow_auth.AM_READY_PROJECT_FIELD: data["flow_project_id"],
+                    flow_auth.AM_READY_PROJECT_FIELD: data.get("flow_project_id"),
                     flow_const.FLOW_SCHEMA_VERSION_FIELD: data.get(
                         "flow_schema_version"
                     ),
@@ -1321,9 +1321,8 @@ class Context(object):
                 )
                 return {}
             sg_project = sg_project or {}
-            _flowam_fields_cache.update(
-                {field: sg_project.get(field) for field in fields}
-            )
+            for field in fields:
+                _flowam_fields_cache[field] = sg_project.get(field)
 
         return _flowam_fields_cache
 
