@@ -80,7 +80,15 @@ class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
         ) as check_output_mock:
             self._get_version()
         check_output_mock.assert_called_once_with(
-            ["git", "-C", self.dev_path, "describe", "--tags", "--long"]
+            [
+                "git",
+                "-C",
+                self.dev_path,
+                "describe",
+                "--tags",
+                "--long",
+                "--dirty=.dirty",
+            ]
         )
 
     def test_git_describe_conversion(self) -> None:
@@ -98,6 +106,9 @@ class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
             ("v1.7.9-alpha1-6-gdb78cfd\n", "v1.7.9-alpha1.post6+gdb78cfd"),
             ("v1.7.0-alpha.3-0-gabc1234\n", "v1.7.0-alpha.3+gabc1234"),
             ("v1.7.8-rc3-2-gabc1234\n", "v1.7.8-rc3.post2+gabc1234"),
+            # Uncommitted changes to tracked files.
+            ("v1.2.3-0-g1a2b3c4.dirty\n", "v1.2.3+g1a2b3c4.dirty"),
+            ("v1.2.3-5-g1a2b3c4.dirty\n", "v1.2.3.post5+g1a2b3c4.dirty"),
         ]
         for describe_output, expected in cases:
             with self.subTest(describe_output=describe_output):
@@ -121,6 +132,7 @@ class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
             "v1.2.3",
             describe("v1.2.3-0-g1a2b3c4"),
             describe("v1.2.3-5-g1a2b3c4"),
+            describe("v1.2.3-5-g1a2b3c4.dirty"),
             describe("v1.2.3-12-g1a2b3c4"),
             "v1.2.4",
         ]
@@ -151,7 +163,14 @@ class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
                 with unittest.mock.patch(CHECK_OUTPUT, side_effect=error):
                     self.assertEqual(self._get_version(), "Undefined")
 
-        for output in ("", "\n", "unexpected-output"):
+        for output in (
+            "",
+            "\n",
+            "unexpected-output",
+            # Tags that do not produce a valid PEP 440 version.
+            "release-1.2.3-0-g1a2b3c4\n",
+            "v1.2.3.post1-5-g1a2b3c4\n",
+        ):
             with self.subTest(output=output):
                 with unittest.mock.patch(CHECK_OUTPUT, return_value=output):
                     self.assertEqual(self._get_version(), "Undefined")
@@ -184,7 +203,11 @@ class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
             )
 
         git("init", "-q")
-        git("commit", "-q", "--allow-empty", "-m", "first")
+        tracked_file = os.path.join(repo, "info.yml")
+        with open(tracked_file, "w") as fh:
+            fh.write("version: HEAD\n")
+        git("add", "info.yml")
+        git("commit", "-q", "-m", "first")
         git("tag", "-a", "v1.2.2", "-m", "annotated tag")
         git("commit", "-q", "--allow-empty", "-m", "second")
         # Lightweight tag, like the ones releases use. --tags is required to
@@ -208,6 +231,13 @@ class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
         ).strip()
         sha = re.search(r"\+g([0-9a-f]+)$", dev_version).group(1)
         self.assertTrue(head.startswith(sha))
+
+        # Uncommitted changes to a tracked file mark the version as dirty.
+        with open(tracked_file, "a") as fh:
+            fh.write("# local change\n")
+        dirty_version = self._get_version(path=repo)
+        self.assertEqual(dirty_version, f"{dev_version}.dirty")
+        version.Version(dirty_version)
 
         # A folder nested in the clone must not report the clone's version.
         nested = os.path.join(repo, "bundles", "my_app")
