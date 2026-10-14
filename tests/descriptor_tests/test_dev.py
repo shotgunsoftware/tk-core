@@ -13,22 +13,18 @@ from __future__ import annotations  # needed for python 3.9 support
 import os
 import re
 import subprocess
+import unittest.mock
 
 import sgtk
-from tank.util.process import SubprocessCalledProcessError
-from tank.util.version import is_version_newer
-from tank_test.tank_test_base import (
-    ShotgunTestBase,
-    mock,
-    setUpModule,  # noqa
-    skip_if_git_missing,
-)
-from tank_vendor.packaging.version import Version
+from tank.util import process
+from tank_test import tank_test_base
+from tank_test.tank_test_base import setUpModule  # noqa: F401 - run by unittest
+from tank_vendor.packaging import version
 
-CHECK_OUTPUT = "tank.descriptor.io_descriptor.dev._check_output"
+CHECK_OUTPUT = "tank.descriptor.io_descriptor.git._check_output"
 
 
-class TestDevDescriptorVersion(ShotgunTestBase):
+class TestDevDescriptorVersion(tank_test_base.ShotgunTestBase):
     """
     Tests the version reported by dev descriptors pointing at a git clone.
 
@@ -39,6 +35,8 @@ class TestDevDescriptorVersion(ShotgunTestBase):
     def setUp(self) -> None:
         super().setUp()
         self.dev_path = os.path.join(self.tank_temp, "dev_bundle")
+        # Make the path look like the root of a git clone.
+        os.makedirs(os.path.join(self.dev_path, ".git"), exist_ok=True)
 
     def _get_version(self, **descriptor_dict: str) -> str:
         """
@@ -59,15 +57,25 @@ class TestDevDescriptorVersion(ShotgunTestBase):
         """
         Tests that an explicit version is returned without running git.
         """
-        with mock.patch(CHECK_OUTPUT) as check_output_mock:
+        with unittest.mock.patch(CHECK_OUTPUT) as check_output_mock:
             self.assertEqual(self._get_version(version="v1.0.0"), "v1.0.0")
+        check_output_mock.assert_not_called()
+
+    def test_not_a_clone_root(self) -> None:
+        """
+        Tests that git is not run when the path is not the root of a git clone.
+        """
+        path = os.path.join(self.tank_temp, "not_a_clone_root")
+        os.makedirs(path, exist_ok=True)
+        with unittest.mock.patch(CHECK_OUTPUT) as check_output_mock:
+            self.assertEqual(self._get_version(path=path), "Undefined")
         check_output_mock.assert_not_called()
 
     def test_git_describe_command(self) -> None:
         """
         Tests the git command run to describe the clone.
         """
-        with mock.patch(
+        with unittest.mock.patch(
             CHECK_OUTPUT, return_value="v1.2.3-0-g1a2b3c4\n"
         ) as check_output_mock:
             self._get_version()
@@ -93,11 +101,11 @@ class TestDevDescriptorVersion(ShotgunTestBase):
         ]
         for describe_output, expected in cases:
             with self.subTest(describe_output=describe_output):
-                with mock.patch(CHECK_OUTPUT, return_value=describe_output):
-                    version = self._get_version()
-                self.assertEqual(version, expected)
+                with unittest.mock.patch(CHECK_OUTPUT, return_value=describe_output):
+                    dev_version = self._get_version()
+                self.assertEqual(dev_version, expected)
                 # Must be a valid PEP 440 version.
-                Version(version)
+                version.Version(dev_version)
 
     def test_version_ordering(self) -> None:
         """
@@ -106,7 +114,7 @@ class TestDevDescriptorVersion(ShotgunTestBase):
         """
 
         def describe(output: str) -> str:
-            with mock.patch(CHECK_OUTPUT, return_value=output):
+            with unittest.mock.patch(CHECK_OUTPUT, return_value=output):
                 return self._get_version()
 
         ordered = [
@@ -125,30 +133,30 @@ class TestDevDescriptorVersion(ShotgunTestBase):
         for versions in (ordered, ordered_pre_release):
             for older, newer in zip(versions, versions[1:]):
                 with self.subTest(older=older, newer=newer):
-                    self.assertTrue(is_version_newer(newer, older))
-                    self.assertFalse(is_version_newer(older, newer))
+                    self.assertTrue(sgtk.util.is_version_newer(newer, older))
+                    self.assertFalse(sgtk.util.is_version_newer(older, newer))
 
     def test_git_failures_fall_back(self) -> None:
         """
         Tests that the undefined version is returned when git cannot help.
         """
         cases = {
-            "not a git clone or no tags": SubprocessCalledProcessError(
+            "not a git clone or no tags": process.SubprocessCalledProcessError(
                 128, "git describe", "fatal: No names found"
             ),
             "git not installed": FileNotFoundError("git"),
         }
         for name, error in cases.items():
             with self.subTest(name):
-                with mock.patch(CHECK_OUTPUT, side_effect=error):
+                with unittest.mock.patch(CHECK_OUTPUT, side_effect=error):
                     self.assertEqual(self._get_version(), "Undefined")
 
         for output in ("", "\n", "unexpected-output"):
             with self.subTest(output=output):
-                with mock.patch(CHECK_OUTPUT, return_value=output):
+                with unittest.mock.patch(CHECK_OUTPUT, return_value=output):
                     self.assertEqual(self._get_version(), "Undefined")
 
-    @skip_if_git_missing
+    @tank_test_base.skip_if_git_missing
     def test_real_git_describe(self) -> None:
         """
         Tests against a real git clone, to validate that git describe still
@@ -183,20 +191,25 @@ class TestDevDescriptorVersion(ShotgunTestBase):
         # match it over the older annotated tag.
         git("tag", "v1.2.3")
 
-        version = self._get_version(path=repo)
-        self.assertRegex(version, r"^v1\.2\.3\+g[0-9a-f]{7,}$")
+        dev_version = self._get_version(path=repo)
+        self.assertRegex(dev_version, r"^v1\.2\.3\+g[0-9a-f]{7,}$")
 
         git("commit", "-q", "--allow-empty", "-m", "third")
         git("commit", "-q", "--allow-empty", "-m", "fourth")
 
-        version = self._get_version(path=repo)
-        self.assertRegex(version, r"^v1\.2\.3\.post2\+g[0-9a-f]{7,}$")
-        self.assertTrue(is_version_newer(version, "v1.2.3"))
-        self.assertTrue(is_version_newer("v1.2.4", version))
+        dev_version = self._get_version(path=repo)
+        self.assertRegex(dev_version, r"^v1\.2\.3\.post2\+g[0-9a-f]{7,}$")
+        self.assertTrue(sgtk.util.is_version_newer(dev_version, "v1.2.3"))
+        self.assertTrue(sgtk.util.is_version_newer("v1.2.4", dev_version))
 
         # The sha must match the clone's current commit.
         head = subprocess.check_output(
             ["git", "-C", repo, "rev-parse", "HEAD"], text=True
         ).strip()
-        sha = re.search(r"\+g([0-9a-f]+)$", version).group(1)
+        sha = re.search(r"\+g([0-9a-f]+)$", dev_version).group(1)
         self.assertTrue(head.startswith(sha))
+
+        # A folder nested in the clone must not report the clone's version.
+        nested = os.path.join(repo, "bundles", "my_app")
+        os.makedirs(nested)
+        self.assertEqual(self._get_version(path=nested), "Undefined")

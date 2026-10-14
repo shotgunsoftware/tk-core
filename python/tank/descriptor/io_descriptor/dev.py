@@ -10,9 +10,11 @@
 
 from __future__ import annotations  # needed for python 3.9 support
 
+import os
+
 from ... import LogManager
-from ...util.process import SubprocessCalledProcessError
-from .git import _check_output
+from ...util import process
+from . import git
 from .path import IODescriptorPath
 
 log = LogManager.get_logger(__name__)
@@ -62,8 +64,8 @@ class IODescriptorDev(IODescriptorPath):
         Like any path descriptor, this normally returns the version defined
         in the descriptor, or ``Undefined`` if no version is defined.
 
-        As a special case, when a version is defined and the path is a git
-        clone, the version is "improved" with information from git, to
+        As a special case, when no version is defined and the path is the root
+        of a git clone, the version is "improved" with information from git, to
         identify exactly which code is in use. See :meth:`_get_git_version`.
 
         :returns: Version string.
@@ -94,15 +96,24 @@ class IODescriptorDev(IODescriptorPath):
         The ``+g<sha>`` local label distinguishes a git clone from a released
         version.
 
+        Only the root of a git clone, i.e. a folder containing ``.git``, is
+        described. A folder nested inside a clone, for example a bundle stored
+        in a config repository, would otherwise report the version of that
+        enclosing repository.
+
         :returns: Version string, or ``None`` if git cannot describe the path,
-            for example because it is not a git clone, has no tags, or git is
-            not installed.
+            for example because it is not the root of a git clone, has no tags,
+            or git is not installed.
         """
+        # .git is a folder in a regular clone, and a file in worktrees and submodules.
+        if not os.path.exists(os.path.join(self._path, ".git")):
+            return
+
         try:
-            output = _check_output(
+            output = git._check_output(
                 ["git", "-C", self._path, "describe", "--tags", "--long"]
             )
-        except (SubprocessCalledProcessError, OSError):
+        except (process.SubprocessCalledProcessError, OSError):
             return
 
         desc = output.strip()
