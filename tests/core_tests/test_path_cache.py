@@ -1448,8 +1448,8 @@ class TestPathCacheBatchOperation(TankTestBase):
         # grab a brand new cursor
         cursor = self._pc._connection.cursor()
 
-        # note: looks like the test below does not fail on travis
-        # but fails in other test setups, so commenting this out.
+        # note: the test below is inconsistent across test setups, so
+        # commenting this out.
         # the important test is the sync further down where we
         # validate that the operation does not error.
         #
