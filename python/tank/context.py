@@ -1302,6 +1302,7 @@ class Context(object):
             ``sg_flow_schema_config_version`` values, ``None`` for a non-FlowAM
             project. An empty dict if there is no project or the query failed.
         """
+        # Make sure we have a project to query FlowAM fields for.
         if not self.project:
             return {}
 
