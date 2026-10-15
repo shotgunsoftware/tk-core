@@ -1433,67 +1433,131 @@ class TestMultiRoot(TestContext):
         self.assertIsNone(result.task)
 
 
-class TestContextFlowAmProjectId(TankTestBase):
-    """Tests for Context.flow_project_id."""
+class TestContextFlowAMProjectFields(TankTestBase):
+    """Tests for Context.flow_project_id and Context.flow_schema_version."""
 
     def setUp(self):
         super().setUp()
         self.setup_fixtures()
 
-    def test_returns_none_for_non_am_project(self):
-        """flow_project_id is None when sg_flow_am_id is not set on the project."""
-        ctx = context.Context(self.tk, project=self.project)
-        self.assertIsNone(ctx.flow_project_id)
+        # The FlowAM fields cache is process-wide, so start each test empty.
+        context._flowam_fields_cache.clear()
+        self.addCleanup(context._flowam_fields_cache.clear)
 
-    def test_returns_none_for_empty_context(self):
-        """flow_project_id is None when the context has no project."""
-        ctx = context.create_empty(self.tk)
-        self.assertIsNone(ctx.flow_project_id)
+        # Only intercept the Project query for the FlowAM fields, so other queries
+        # (e.g. the current user lookup during serialize()) still hit Mockgun.
+        # Otherwise a MagicMock user gets cached and leaks into later tests.
+        self.mock_find_one = mock.Mock()
+        real_find_one = self.tk.shotgun.find_one
 
-    def test_returns_value_when_set(self):
-        """flow_project_id returns sg_flow_am_id when set on the project dict."""
-        project = dict(self.project, sg_flow_am_id="am-project-abc")
-        ctx = context.Context(self.tk, project=project)
+        def find_one(entity_type, *args, **kwargs):
+            if entity_type == "Project":
+                return self.mock_find_one(entity_type, *args, **kwargs)
+            return real_find_one(entity_type, *args, **kwargs)
+
+        find_one_patch = mock.patch.object(
+            self.tk.shotgun, "find_one", side_effect=find_one
+        )
+        find_one_patch.start()
+        self.addCleanup(find_one_patch.stop)
+
+    def _new_project_context(self):
+        return context.Context(
+            self.tk, project={"type": "Project", "id": self.project["id"]}
+        )
+
+    def _set_flowam_project(self):
+        """Makes the Project query return a FlowAM project."""
+        self.mock_find_one.return_value = {
+            "type": "Project",
+            "id": self.project["id"],
+            "sg_flow_am_id": "am-project-abc",
+            "sg_flow_schema_config_version": "1.0.3",
+        }
+
+    def test_flowam_project_queried_once(self):
+        """A FlowAM project is queried once and cached, not stored on the project."""
+        self._set_flowam_project()
+        ctx = self._new_project_context()
+
         self.assertEqual(ctx.flow_project_id, "am-project-abc")
+        self.assertEqual(ctx.flow_schema_version, "1.0.3")
+        # A new context for the same project reuses the cached fields.
+        self.assertEqual(self._new_project_context().flow_project_id, "am-project-abc")
+        self.assertEqual(self.mock_find_one.call_count, 1)
 
-    def test_survives_serialization_roundtrip(self):
-        """flow_project_id is preserved through serialize/deserialize."""
-        project = dict(self.project, sg_flow_am_id="am-project-abc")
-        ctx = context.Context(self.tk, project=project)
-        serialized = ctx.serialize()
+    def test_non_flowam_project_queried_once(self):
+        """A non-FlowAM project returns None, and the None result is cached."""
+        self.mock_find_one.return_value = {
+            "type": "Project",
+            "id": self.project["id"],
+            "sg_flow_am_id": None,
+            "sg_flow_schema_config_version": None,
+        }
+        ctx = self._new_project_context()
+
+        self.assertIsNone(ctx.flow_project_id)
+        self.assertIsNone(ctx.flow_schema_version)
+        # A new context for the same project reuses the cached None result.
+        self.assertIsNone(self._new_project_context().flow_project_id)
+        self.assertEqual(self.mock_find_one.call_count, 1)
+
+    def test_query_failure(self):
+        """A failed query returns None and isn't cached, so the next read retries."""
+        self.mock_find_one.side_effect = Exception("offline")
+        ctx = self._new_project_context()
+
+        self.assertIsNone(ctx.flow_project_id)
+        self.assertEqual(self.mock_find_one.call_count, 1)
+
+        self.mock_find_one.side_effect = None
+        self._set_flowam_project()
+
+        self.assertEqual(ctx.flow_project_id, "am-project-abc")
+        self.assertEqual(self.mock_find_one.call_count, 2)
+
+    def test_no_project_skips_query(self):
+        """A context with no project never queries, nor reads the cache."""
+        self._set_flowam_project()
+        self.assertEqual(self._new_project_context().flow_project_id, "am-project-abc")
+
+        ctx = context.create_empty(self.tk)
+
+        self.assertIsNone(ctx.flow_project_id)
+        self.assertIsNone(ctx.flow_schema_version)
+        self.assertEqual(self.mock_find_one.call_count, 1)
+
+    def test_deserialized_context_skips_query(self):
+        """A deserialized context in a new process reuses the serialized fields."""
+        self._set_flowam_project()
+        serialized = self._new_project_context().serialize()
+        # Simulate a new process.
+        context._flowam_fields_cache.clear()
+        self.mock_find_one.reset_mock()
+
         restored = context.deserialize(serialized)
+
         self.assertEqual(restored.flow_project_id, "am-project-abc")
+        self.assertEqual(restored.flow_schema_version, "1.0.3")
+        self.mock_find_one.assert_not_called()
 
-    def test_set_on_project_dict(self):
-        """flow_project_id can be set by writing sg_flow_am_id onto the project dict."""
-        ctx = context.Context(self.tk, project=dict(self.project))
-        ctx.project["sg_flow_am_id"] = "explicit-am-id"
-        self.assertEqual(ctx.flow_project_id, "explicit-am-id")
+    def test_update_schema_version_writes_sg_and_cache(self):
+        """Updating the schema version writes it to SG and is seen by all contexts."""
+        self._set_flowam_project()
+        ctx = self._new_project_context()
+        self.assertEqual(ctx.flow_schema_version, "1.0.3")
 
-    def test_included_in_to_dict(self):
-        """flow_project_id appears in the dict returned by to_dict()."""
-        project = dict(self.project, sg_flow_am_id="explicit-am-id")
-        ctx = context.Context(self.tk, project=project)
-        d = ctx.to_dict()
-        self.assertIn("flow_project_id", d)
-        self.assertEqual(d["flow_project_id"], "explicit-am-id")
+        with mock.patch.object(self.tk.shotgun, "update") as mock_update:
+            ctx._update_flowam_schema_version("1.0.4")
 
-    def test_deepcopy_preserves_value(self):
-        """Deepcopying a context preserves flow_project_id."""
-        project = dict(self.project, sg_flow_am_id="am-project-abc")
-        ctx = context.Context(self.tk, project=project)
-        ctx_copy = copy.deepcopy(ctx)
-        self.assertEqual(ctx_copy.flow_project_id, "am-project-abc")
-
-    def test_from_dict_preserves_existing_project_value(self):
-        """from_dict does not overwrite sg_flow_am_id already on the project dict."""
-        project = dict(self.project, sg_flow_am_id="existing-am-id")
-        data = context.Context(self.tk, project=project).to_dict()
-        data["project"] = dict(project)
-        data["flow_project_id"] = None
-
-        restored = context.Context.from_dict(self.tk, data)
-        self.assertEqual(restored.flow_project_id, "existing-am-id")
+        mock_update.assert_called_once_with(
+            "Project",
+            self.project["id"],
+            {"sg_flow_schema_config_version": "1.0.4"},
+        )
+        self.assertEqual(ctx.flow_schema_version, "1.0.4")
+        self.assertEqual(self._new_project_context().flow_schema_version, "1.0.4")
+        self.assertEqual(self.mock_find_one.call_count, 1)
 
 
 class TestContextFlowDraftId(TankTestBase):
