@@ -1347,8 +1347,7 @@ class Context(object):
             self.project["id"],
             {flow_const.FLOW_SCHEMA_VERSION_FIELD: schema_version},
         )
-        if _flowam_fields_cache:
-            _flowam_fields_cache[flow_const.FLOW_SCHEMA_VERSION_FIELD] = schema_version
+        _flowam_fields_cache[flow_const.FLOW_SCHEMA_VERSION_FIELD] = schema_version
 
 
 ################################################################################################
