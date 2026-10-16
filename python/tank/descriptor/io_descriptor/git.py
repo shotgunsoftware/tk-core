@@ -7,10 +7,14 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import json
 import os
+import shlex
 import subprocess
 import tempfile
+import urllib.parse
 import uuid
+from typing import Optional, Union
 
 from ... import LogManager
 from ...util import filesystem, is_windows
@@ -32,6 +36,152 @@ def _check_output(*args, **kwargs):
         kwargs["startupinfo"] = startupinfo
 
     return subprocess_check_output(*args, **kwargs)
+
+
+def _sanitize_url(url: Optional[str]) -> Optional[str]:
+    """
+    Sanitizes a git URL by removing embedded credentials (username, password, or token).
+
+    Examples:
+        https://ghp_token123@github.com/org/repo.git
+            -> https://***@github.com/org/repo.git
+
+        https://user:pass@example.com/repo.git
+            -> https://***@example.com/repo.git
+
+        git@github.com:org/repo.git
+            -> git@github.com:org/repo.git (no change for SSH URLs)
+
+    :param url: Git URL that may contain embedded credentials
+    :return: Sanitized URL with credentials replaced by ***
+    """
+    if not url:
+        return url
+
+    try:
+        parsed = urllib.parse.urlparse(url)
+
+        # If the URL has a username or password, replace them with ***
+        if parsed.username or parsed.password:
+            # Reconstruct the netloc with sanitized credentials
+            sanitized_netloc = "***@" + parsed.hostname
+            if parsed.port:
+                sanitized_netloc += ":" + str(parsed.port)
+
+            # Rebuild the URL with the sanitized netloc
+            sanitized_url = urllib.parse.urlunparse(
+                (
+                    parsed.scheme,
+                    sanitized_netloc,
+                    parsed.path,
+                    parsed.params,
+                    parsed.query,
+                    parsed.fragment,
+                )
+            )
+            return sanitized_url
+    except Exception:
+        # Best-effort sanitization for malformed URLs that still contain userinfo
+        if "://" in url:
+            scheme, rest = url.split("://", 1)
+            if "@" in rest:
+                # Only sanitize if '@' appears before any '/'
+                at_pos = rest.find("@")
+                slash_pos = rest.find("/")
+                if slash_pos == -1 or at_pos < slash_pos:
+                    after_at = rest.split("@", 1)[1]
+                    return "%s://***@%s" % (scheme, after_at)
+
+    return url
+
+
+def _sanitize_command(cmd: Union[str, list]) -> Union[str, list]:
+    """
+    Sanitizes a git command (string or list) by replacing credentials in any URLs.
+
+    :param cmd: Command as a string or list of arguments
+    :return: Sanitized command in the same format as input
+    """
+    if isinstance(cmd, list):
+        return [_sanitize_url(arg) if isinstance(arg, str) else arg for arg in cmd]
+    elif isinstance(cmd, str):
+        # For string commands, we need to be more careful
+        # Split on spaces but preserve quoted strings
+
+        try:
+            # Try to parse as shell command
+            parts = shlex.split(cmd)
+            sanitized_parts = [_sanitize_url(part) for part in parts]
+            # Rebuild with proper quoting
+            return " ".join(
+                '"%s"' % part if " " in part else part for part in sanitized_parts
+            )
+        except Exception:
+            # If parsing fails, do simple replacement
+            # This is a fallback for malformed commands
+            words = cmd.split()
+            return " ".join(_sanitize_url(word) for word in words)
+    return cmd
+
+
+def _sanitize_exception(
+    exc: SubprocessCalledProcessError, url_to_sanitize: Optional[str] = None
+) -> SubprocessCalledProcessError:
+    """
+    Sanitizes a SubprocessCalledProcessError by replacing credentials in the command and output.
+
+    :param exc: SubprocessCalledProcessError exception
+    :param url_to_sanitize: Optional URL to specifically sanitize (if known)
+    :return: New exception with sanitized command and output
+    """
+    if not isinstance(exc, SubprocessCalledProcessError):
+        return exc
+
+    sanitized_cmd = _sanitize_command(exc.cmd)
+
+    # Sanitize the output as well, as it may contain URLs with credentials
+    sanitized_output = exc.output
+    if exc.output:
+        if isinstance(exc.output, bytes):
+            try:
+                output_str = exc.output.decode("utf-8")
+                # Sanitize any URLs in the output
+                if url_to_sanitize:
+                    output_str = output_str.replace(
+                        url_to_sanitize, _sanitize_url(url_to_sanitize)
+                    )
+                # Also try to find and sanitize any URL patterns
+                import re
+
+                output_str = re.sub(
+                    r"https?://[^@\s]+@[^\s]+",
+                    lambda m: _sanitize_url(m.group(0)),
+                    output_str,
+                )
+                sanitized_output = output_str.encode("utf-8")
+            except (UnicodeDecodeError, AttributeError):
+                sanitized_output = exc.output
+        elif isinstance(exc.output, str):
+            output_str = exc.output
+            if url_to_sanitize:
+                output_str = output_str.replace(
+                    url_to_sanitize, _sanitize_url(url_to_sanitize)
+                )
+            # Also try to find and sanitize any URL patterns
+            import re
+
+            output_str = re.sub(
+                r"https?://[^@\s]+@[^\s]+",
+                lambda m: _sanitize_url(m.group(0)),
+                output_str,
+            )
+            sanitized_output = output_str
+
+    # Create a new exception with the sanitized command and output
+    new_exc = SubprocessCalledProcessError(
+        exc.returncode, sanitized_cmd, output=sanitized_output
+    )
+    return new_exc
 
 
 class TankGitError(TankError):
@@ -67,6 +217,18 @@ class IODescriptorGit(IODescriptorDownloadable):
         # the name later (using os.basename) we construct it correctly.
         if self._path.endswith("/") or self._path.endswith("\\"):
             self._path = self._path[:-1]
+
+    def __repr__(self):
+        """
+        Low level representation with sanitized credentials.
+        """
+        class_name = self.__class__.__name__
+        # Create a sanitized copy of the descriptor dict with credentials removed
+        sanitized_dict = self._descriptor_dict.copy()
+        if "path" in sanitized_dict:
+            sanitized_dict["path"] = _sanitize_url(sanitized_dict["path"])
+        sanitized_uri = self.uri_from_dict(sanitized_dict)
+        return "<%s %s>" % (class_name, sanitized_uri)
 
     @LogManager.log_timing
     def _clone_then_execute_git_commands(
@@ -112,8 +274,8 @@ class IODescriptorGit(IODescriptorDownloadable):
         log.debug("Checking that git exists and can be executed...")
         try:
             output = _check_output(["git", "--version"])
-        except Exception:
-            log.exception("Unexpected error:")
+        except Exception as e:
+            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
@@ -144,7 +306,10 @@ class IODescriptorGit(IODescriptorDownloadable):
         # If we can't there's no point doing all of this and we should just use
         # os.system.
         if is_windows():
-            log.debug("Executing command '%s' using subprocess module." % cmd)
+            log.debug(
+                "Executing command '%s' using subprocess module."
+                % _sanitize_command(cmd)
+            )
             try:
                 # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
                 # just hang waiting for credentials to be entered on the missing terminal.
@@ -158,12 +323,14 @@ class IODescriptorGit(IODescriptorDownloadable):
                 # If that works, we're done and we don't need to use os.system.
                 run_with_os_system = False
                 status = 0
-            except SubprocessCalledProcessError:
-                log.debug("Subprocess call failed.")
+            except SubprocessCalledProcessError as e:
+                # Sanitize the exception to remove credentials
+                sanitized_exc = _sanitize_exception(e, self._path)
+                log.debug("Subprocess call failed: %s" % sanitized_exc)
 
         if run_with_os_system:
             # Make sure path and repo path are quoted.
-            log.debug("Executing command '%s' using os.system" % cmd)
+            log.debug("Executing command '%s' using os.system" % _sanitize_command(cmd))
             log.debug(
                 "Note: in a terminal environment, this may prompt for authentication"
             )
@@ -173,7 +340,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         if status != 0:
             raise TankGitError(
                 "Error executing git operation. The git command '%s' "
-                "returned error code %s." % (cmd, status)
+                "returned error code %s." % (_sanitize_command(cmd), status)
             )
         log.debug("Git clone into '%s' successful." % target_path)
 
@@ -195,15 +362,66 @@ class IODescriptorGit(IODescriptorDownloadable):
                 output = output.strip().strip("'")
 
             except SubprocessCalledProcessError as e:
+                # Sanitize the exception to remove any potential credentials
+                sanitized_exc = _sanitize_exception(e, self._path)
                 raise TankGitError(
-                    f"Error executing GIT operation '{full_command}': {e.output}"
-                    f" (Return code {e.returncode}). "
+                    f"Error executing GIT operation '{_sanitize_command(full_command)}': {sanitized_exc.output}"
+                    f" (Return code {sanitized_exc.returncode}). "
                     " Supported GIT version: 1.9+."
                 )
             log.debug("Execution successful. stderr/stdout: '%s'" % output)
 
+        self._validate_lfs_content(target_path)
+
         # return the last returned stdout/stderr
         return output
+
+    def _validate_lfs_content(self, repo_path: str) -> None:
+        """
+        Checks that Git LFS tracked files in the checked out repo were
+        actually resolved to their real content, rather than left as
+        literal pointer text. This happens silently when git-lfs isn't
+        installed/registered on this machine - git checks out the pointer
+        text with no error of its own.
+
+        :param repo_path: path to a checked out git repository.
+        :raises TankGitError: if the repo uses Git LFS but git-lfs isn't
+            available, or some LFS content wasn't downloaded.
+        """
+        gitattributes_path = os.path.join(repo_path, ".gitattributes")
+        try:
+            with open(gitattributes_path, "r") as fh:
+                uses_lfs = "filter=lfs" in fh.read()
+        except OSError:
+            uses_lfs = False
+
+        if not uses_lfs:
+            return
+
+        try:
+            output = _check_output(
+                "git lfs ls-files --json",
+                cwd=repo_path,
+                shell=True,
+            )
+        except SubprocessCalledProcessError as err:
+            raise TankGitError(
+                f"{self} uses Git LFS to store some of its files, but git-lfs "
+                "does not appear to be installed on this machine. Install "
+                "it from https://git-lfs.com, run `git lfs install`, and "
+                "try again."
+            ) from err
+
+        files = json.loads(output).get("files") or []
+        missing = [f["name"] for f in files if not f.get("checkout")]
+        if missing:
+            raise TankGitError(
+                "Git LFS content for the following file(s) in %s was not "
+                "downloaded correctly - they still contain pointer text "
+                "instead of their real content: %s. Make sure git-lfs is "
+                "installed (https://git-lfs.com) and run `git lfs install`, "
+                "then try again." % (self, ", ".join(missing))
+            )
 
     def _tmp_clone_then_execute_git_commands(self, commands, depth=None, ref=None):
         """
@@ -253,6 +471,9 @@ class IODescriptorGit(IODescriptorDownloadable):
             self._tmp_clone_then_execute_git_commands([], depth=1)
             log.debug("...connection established")
         except Exception as e:
+            # Sanitize any credentials that might be in the exception
+            if isinstance(e, SubprocessCalledProcessError):
+                e = _sanitize_exception(e, self._path)
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
