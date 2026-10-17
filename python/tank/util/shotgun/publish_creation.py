@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Logic for publishing files to Shotgun.
+Logic for publishing files to FlowPT.
 """
 
 import os
@@ -34,7 +34,7 @@ log = LogManager.get_logger(__name__)
 @LogManager.log_timing
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
-    Creates a Published File in Shotgun.
+    Creates a Published File in FlowPT.
 
     **Introduction**
 
@@ -46,24 +46,24 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     In addition to the path, a version number and a name needs to be provided.
     The version number should reflect the iteration or revision of the publish
     and will be used to populate the number field of the publish that is created
-    in Shotgun. The name should represent the name of the item, without any version
-    number. This is used to group together publishes in Shotgun and various
+    in FlowPT. The name should represent the name of the item, without any version
+    number. This is used to group together publishes in FlowPT and various
     integrations.
 
     If the path matches any local storage roots defined by the toolkit project,
-    it will be uploaded as a local file link to Shotgun. If not matching roots
-    are found, the method will retrieve the list of local storages from Shotgun
+    it will be uploaded as a local file link to FlowPT. If not matching roots
+    are found, the method will retrieve the list of local storages from FlowPT
     and try to locate a suitable storage. Failing that, it will fall back on a
     register the path as a ``file://`` url. For more information on
     this resolution logic, see our
     `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
-    .. note:: Shotgun follows a convention where the name passed to the register publish method is used
-              to control how things are grouped together. When Shotgun and Toolkit groups things together,
+    .. note:: FlowPT follows a convention where the name passed to the register publish method is used
+              to control how things are grouped together. When FlowPT and Toolkit groups things together,
               things are typically grouped first by project/entity/task and then by publish name and version.
 
-              If you create three publishes in Shotgun, all having the name 'foreground.ma' and version numbers
-              1, 2 and 3, Shotgun will assume that these are three revisions of the same content and will
+              If you create three publishes in FlowPT, all having the name 'foreground.ma' and version numbers
+              1, 2 and 3, FlowPT will assume that these are three revisions of the same content and will
               group them together in a group called 'foreground.ma'.
 
               We recommend a convention where the ``name`` parameter reflects the filename passed in via
@@ -155,13 +155,13 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
-                    populate the ``task`` and ``entity`` link in Shotgun.
+                    populate the ``task`` and ``entity`` link in FlowPT.
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
     :param name: A name, without version number, which helps distinguish
                this publish from other publishes. This is typically
-               used for grouping inside of Shotgun so that all the
+               used for grouping inside of FlowPT so that all the
                versions of the same "file" can be grouped into a cluster.
                For example, for a Maya publish, where we track only
                the scene name, the name would simply be that: the scene
@@ -173,7 +173,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     In addition to the above, the following optional arguments exist:
 
         - ``task`` - A shotgun entity dictionary with keys ``id`` and ``type`` (where type should always be ``Task``).
-          This value will be used to populate the task field for the created Shotgun publish record.
+          This value will be used to populate the task field for the created FlowPT publish record.
           If no value is specified, the task will be determined based on the context parameter.
 
         - ``comment`` - A string containing a description of what is being published.
@@ -187,7 +187,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``dependency_ids`` - A list of publish ids which should be registered as dependencies.
 
         - ``published_file_type`` - A publish type in the form of a string. If the publish type does not
-          already exist in Shotgun, it will be created.
+          already exist in FlowPT, it will be created.
 
         - ``update_entity_thumbnail`` - Push thumbnail up to the associated entity
 
@@ -200,20 +200,20 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         - ``created_at`` - Override for the date the publish is created at.  This should be a python
           datetime object
 
-        - ``version_entity`` - The Shotgun review version that the publish should be linked to. This
+        - ``version_entity`` - The FlowPT review version that the publish should be linked to. This
           should be a dictionary of keys ``id`` and ``type`` (where type should always be ``Version``).
-          This parameter is useful for workflows where a Shotgun Version has already been created for review
+          This parameter is useful for workflows where a FlowPT Version has already been created for review
           purposes and you want to associate the publish created by this method.
 
           Note: For workflows where you have an existing review version and want to create a series of associated
           publishes, you may want to extract a :class:`~sgtk.Context` from the Version entity and pass that
           to the :meth:`register_publish` method in order to ensure consistency in how objects are associated
-          in Shotgun.
+          in FlowPT.
 
-        - ``sg_fields`` - Some additional Shotgun fields as a dict (e.g. ``{'sg_custom_field': 'hello'}``)
+        - ``sg_fields`` - Some additional FlowPT fields as a dict (e.g. ``{'sg_custom_field': 'hello'}``)
 
         - ``dry_run`` - Boolean. If set, do not actually create a database entry. Return the
-          dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.
+          dictionary of data that would be supplied to FlowPT to create the PublishedFile entity.
 
     :raises: :class:`ShotgunPublishError` on failure.
     :returns: The created entity dictionary.
@@ -363,22 +363,22 @@ def _create_published_file(
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
-                    populate the ``task`` and ``entity`` link in Shotgun.
+                    populate the ``task`` and ``entity`` link in FlowPT.
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
     :param name: A name, without version number, which helps distinguish
                this publish from other publishes. This is typically
-               used for grouping inside of Shotgun so that all the
+               used for grouping inside of FlowPT so that all the
                versions of the same "file" can be grouped into a cluster.
                For example, for a Maya publish, where we track only
                the scene name, the name would simply be that: the scene
                name. For something like a render, it could be the scene
                name, the name of the AOV and the name of the render layer.
     :param version_number: The version number of the item we are publishing.
-    :param task: Shotgun Task dictionary to associate with publish or ``None``
+    :param task: FlowPT Task dictionary to associate with publish or ``None``
     :param comment: Comments string to associate with publish
-    :param published_file_type: Shotgun publish type dictionary to
+    :param published_file_type: FlowPT publish type dictionary to
                 associate with publish
     :param created_by_user: User entity to associate with publish or ``None``
                 if current user (via :meth:`sgtk.util.get_current_user`)
@@ -431,7 +431,7 @@ def _create_published_file(
     if context.project is None:
         # when running toolkit as a standalone plugin, the context may be
         # empty and not contain a project. Publishes are project entities
-        # in Shotgun, so we cannot proceed without a project.
+        # in FlowPT, so we cannot proceed without a project.
         raise TankError(
             "Your context needs to at least have a project set in order to publish."
         )
@@ -514,7 +514,7 @@ def _create_published_file(
 
             # check if the shotgun server supports the storage and relative_path parameters which
             # allows us to specify exactly which storage to bind a publish to rather than relying on
-            # Shotgun to compute this.
+            # FlowPT to compute this.
             supports_specific_storage_syntax = (
                 hasattr(tk.shotgun, "server_caps")
                 and tk.shotgun.server_caps.version
@@ -522,19 +522,19 @@ def _create_published_file(
             )
 
             if supports_specific_storage_syntax:
-                # get corresponding PTR local storage for the matching root name
+                # get corresponding FlowPT local storage for the matching root name
                 storage = tk.pipeline_configuration.get_local_storage_for_root(
                     root_name
                 )
 
                 if storage is None:
-                    # there is no storage in Shotgun that matches the one toolkit expects.
-                    # this *may* be ok because there may be another storage in Shotgun that
+                    # there is no storage in FlowPT that matches the one toolkit expects.
+                    # this *may* be ok because there may be another storage in FlowPT that
                     # magically picks up the publishes and associates with them. In this case,
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in PTR to associate publish '%s' with. "
+                        "'%s' in FlowPT to associate publish '%s' with. "
                         "Falling back to Flow Production Tracking's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
@@ -549,22 +549,22 @@ def _create_published_file(
                     }
 
             else:
-                # use previous syntax where we pass the whole path to Shotgun
+                # use previous syntax where we pass the whole path to FlowPT
                 # and shotgun will do the storage/relative path split server side.
                 # This operation may do unexpected things if you have multiple
                 # storages that are identical or overlapping
                 data["path"] = {"local_path": path}
 
-            # fill in the path cache field which is used for filtering in Shotgun
-            # (because PTR does not support
+            # fill in the path cache field which is used for filtering in FlowPT
+            # (because FlowPT does not support
             data["path_cache"] = path_cache
 
         else:
             # path does not map to any configured root - fall back gracefully:
-            # 1. look for storages in Shotgun and see if we can create a local path
+            # 1. look for storages in FlowPT and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check PTR local storages to see if there is a match.")
+            log.debug("Will check FlowPT local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
@@ -573,7 +573,9 @@ def _create_published_file(
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
                 ):
-                    log.debug("Path matches PTR local storage '%s'" % storage["code"])
+                    log.debug(
+                        "Path matches FlowPT local storage '%s'" % storage["code"]
+                    )
                     matching_local_storage = True
                     break
 
@@ -608,7 +610,7 @@ def _create_published_file(
         # add the publish type to be as consistent as possible
         data["type"] = published_file_entity_type
         log.debug(
-            "Dry run. Simply returning the data that would be sent to PTR: %s"
+            "Dry run. Simply returning the data that would be sent to FlowPT: %s"
             % pprint.pformat(data)
         )
         return data

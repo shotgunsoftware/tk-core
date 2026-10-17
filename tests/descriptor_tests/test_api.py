@@ -22,7 +22,7 @@ from tank_test.tank_test_base import (
 
 class TestApi(ShotgunTestBase):
     """
-    Testing the Shotgun deploy main API methods
+    Testing the FlowPT deploy main API methods
     """
 
     def _touch_info_yaml(self, path):

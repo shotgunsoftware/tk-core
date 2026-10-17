@@ -21,11 +21,11 @@ logger = LogManager.get_logger(__name__)
 
 # Cache the servers infos for 30 seconds.
 INFOS_CACHE_TIMEOUT = 30
-# This is a global state variable. It is used to cache information about the Shotgun servers we
+# This is a global state variable. It is used to cache information about the FlowPT servers we
 # are interacting with. This is purely to avoid making multiple calls to the servers which would
 # yield back the same information. (That info is relatively constant on a given server)
 # Should this variable be cleared when doing a Python Core swap, it is not an issue.
-# The side effect would be an additional call to the Shotgun site.
+# The side effect would be an additional call to the FlowPT site.
 INFOS_CACHE = {}
 
 
@@ -53,7 +53,7 @@ def _get_site_infos(url, http_proxy=None):
         http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
         if http_proxy:
             logger.debug(
-                "Using HTTP proxy to connect to the PTR server: %s", http_proxy
+                "Using HTTP proxy to connect to the FlowPT server: %s", http_proxy
             )
 
         logger.info("Infos for site '%s' not in cache or expired", url)
@@ -168,8 +168,8 @@ class SiteInfo(object):
         """
         Check to see if the web site uses the unified login flow.
 
-        This setting appeared in the Shotgun 7.X serie, being rarely enabled.
-        It became enabled by default starting at Shotgun 8.0
+        This setting appeared in the FlowPT 7.X serie, being rarely enabled.
+        It became enabled by default starting at FlowPT 8.0
 
         :returns:   A boolean indicating if the unified login flow is enabled or not.
         """
@@ -179,10 +179,10 @@ class SiteInfo(object):
     @property
     def app_session_launcher_enabled(self):
         """
-        Check to see if the PTR site has the App Session Launcher authentication
+        Check to see if the FlowPT site has the App Session Launcher authentication
         enabled.
 
-        This setting appeared in the Shotgun 8.50 serie, being rarely disabled.
+        This setting appeared in the FlowPT 8.50 serie, being rarely disabled.
 
         :returns:   A boolean indicating if the App Session Launcher is enabled
                     or not.

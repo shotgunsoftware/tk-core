@@ -19,7 +19,7 @@ from .expression_tokens import FilterExpressionToken
 
 class ListField(Folder):
     """
-    Represents values from a Shotgun list field in the file system (like Asset.sg_asset_type)
+    Represents values from a FlowPT list field in the file system (like Asset.sg_asset_type)
     """
 
     @classmethod
@@ -188,9 +188,7 @@ class ListField(Folder):
                 # validate that the data type is of type list
                 field_type = resp[field_name]["data_type"]["value"]
             except Exception as e:
-                msg = (
-                    "Folder creation error: Cannot retrieve values for PTR list field "
-                )
+                msg = "Folder creation error: Cannot retrieve values for FlowPT list field "
                 msg += "%s.%s. Error reported: %s" % (entity_type, field_name, e)
                 raise TankError(msg)
 
@@ -207,7 +205,7 @@ class ListField(Folder):
             values = resp[field_name]["properties"]["valid_values"]["value"]
 
             if self._skip_unused:
-                # cull values based on their usage - EXPENSIVE WITH ONE PTR QUERY PER VALUE
+                # cull values based on their usage - EXPENSIVE WITH ONE FlowPT QUERY PER VALUE
                 values = self.__filter_unused_list_values(
                     entity_type, field_name, values, sg_data.get("Project")
                 )

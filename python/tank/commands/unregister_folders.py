@@ -19,9 +19,9 @@ from .action_base import Action
 
 class UnregisterFoldersAction(Action):
     """
-    Tank command for unregistering a folder on disk from Shotgun. This is part of the process of
+    Tank command for unregistering a folder on disk from FlowPT. This is part of the process of
     the deletion of a folder on disk. As part of removing or moving, the folder needs to be
-    unregistered with Shotgun to ensure that the connection between that path and the related
+    unregistered with FlowPT to ensure that the connection between that path and the related
     entity is undone.
     """
 
@@ -106,9 +106,9 @@ class UnregisterFoldersAction(Action):
                 log.info(
                     "Unregister folders on your filesystem that are being tracked by Toolkit. "
                     "When applications are launched and folders are created on your filesystem, "
-                    "new entries are stored in PTR as FilesystemLocation entities. These "
+                    "new entries are stored in FlowPT as FilesystemLocation entities. These "
                     "records are called the 'path cache', and are used to track the relationship "
-                    "between PTR entities and folders on disk. Use this command if you ever "
+                    "between FlowPT entities and folders on disk. Use this command if you ever "
                     "need to remove these associations."
                 )
                 log.info("")
@@ -118,7 +118,7 @@ class UnregisterFoldersAction(Action):
                 log.info("You can unregister all folders matching a certain pattern:")
                 log.info("> tank unregister_folders --filter='john.smith'")
                 log.info("")
-                log.info("Pass in a PTR entity (by name or id):")
+                log.info("Pass in a FlowPT entity (by name or id):")
                 log.info("> tank Shot ABC123 unregister_folders")
                 log.info("")
                 log.info("Or pass in one or more paths:")
@@ -182,9 +182,9 @@ class UnregisterFoldersAction(Action):
         :param parameters: Std tank command parameters dict
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id.
+                  FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  Shotgun rather than live ones.
+                  FlowPT rather than live ones.
         """
 
         if self.tk.pipeline_configuration.is_site_configuration():
@@ -221,9 +221,9 @@ class UnregisterFoldersAction(Action):
         :param prompt: Boolean to indicate that we can prompt the user for information or confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id.
+                  FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  Shotgun rather than live ones.
+                  FlowPT rather than live ones.
         """
         log.debug("Will unregister folders for the following root paths:")
         for p in paths:
@@ -239,7 +239,7 @@ class UnregisterFoldersAction(Action):
             for p in paths:
                 sg_id = pc.get_shotgun_id_from_path(p)
                 if sg_id is None:
-                    log.warning("Path '%s' is not registered in PTR - ignoring." % p)
+                    log.warning("Path '%s' is not registered in FlowPT - ignoring." % p)
                 else:
                     log.debug(
                         "The path '%s' matches FilesystemLocation id: %s" % (p, sg_id)
@@ -255,18 +255,18 @@ class UnregisterFoldersAction(Action):
 
     def _unregister_entity(self, entity, log, prompt):
         """
-        Unregisters an entity from the path cache in Shotgun.
+        Unregisters an entity from the path cache in FlowPT.
 
-        :param entity: Shotgun entity dict (e.g Shot, Asset or Task) with keys type and id
+        :param entity: FlowPT entity dict (e.g Shot, Asset or Task) with keys type and id
         :param log: Logger
         :param prompt: If true, the command may prompt the user for confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id.
+                  FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  Shotgun rather than live ones.
+                  FlowPT rather than live ones.
         """
-        log.debug("Unregister folders for PTR Entity %s..." % entity)
+        log.debug("Unregister folders for FlowPT Entity %s..." % entity)
 
         # get the filesystem location ids which are associated with the entity
         sg_data = self.tk.shotgun.find(
@@ -287,9 +287,9 @@ class UnregisterFoldersAction(Action):
         :param prompt: Should the user be presented with confirmation prompts?
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id.
+                  FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  Shotgun rather than live ones.
+                  FlowPT rather than live ones.
         """
         # tuple index constants for readability
 
@@ -331,7 +331,7 @@ class UnregisterFoldersAction(Action):
         log.info(
             "Proceeding will unregister the above paths from Toolkit's path cache. "
             "This will not alter any of the content in the file system, but once you have "
-            "unregistered the paths, they will not be recognized by PTR until you run "
+            "unregistered the paths, they will not be recognized by FlowPT until you run "
             "Toolkit folder creation again."
         )
         log.info("")

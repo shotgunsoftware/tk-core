@@ -9,11 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-The Shotgun Authentication module.
+The FlowPT Authentication module.
 
 This module provides the user with a dialog or console prompts
 to retrieve the login and password from a user in order to authenticate. A session is then
-created and stored on disk. Whenever a connection to the Shotgun site is required, those
+created and stored on disk. Whenever a connection to the FlowPT site is required, those
 credentials are reused. If a Toolkit-enabled process is launched a second time, the stored
 credentials are reused if available.
 """

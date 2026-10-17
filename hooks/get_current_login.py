@@ -18,12 +18,12 @@ up to require users to log in by default, meaning that there already is a well
 established notion of who the current user is.
 
 Even with such projects, there are environments, e.g. render farms, where a user
-cannot easily log in, and a Shotgun script user typically is being used for
+cannot easily log in, and a FlowPT script user typically is being used for
 "headless" operation of Toolkit. In these cases, Toolkit doesn't know which
-Shotgun user is associated with the operation and this hook will be called.
+FlowPT user is associated with the operation and this hook will be called.
 
 The return value from this hook will then be compared with the available logins
-for all users in Shotgun and if a match is found, this is deemed to be the
+for all users in FlowPT and if a match is found, this is deemed to be the
 current user.
 """
 
@@ -36,14 +36,14 @@ from tank.util import is_windows
 class GetCurrentLogin(Hook):
     def execute(self, **kwargs):
         """
-        Retrieves the login name for the Shotgun user.
+        Retrieves the login name for the FlowPT user.
 
         This is used by Toolkit to resolve against the ``login`` field in the
-        Shotgun users table in order to extract further metadata.
+        FlowPT users table in order to extract further metadata.
 
         The default implementation will return the OS user's login name.
 
-        :returns: A name that matches the user's ``login`` field in Shotgun.
+        :returns: A name that matches the user's ``login`` field in FlowPT.
         :rtype: str
         """
         if is_windows():

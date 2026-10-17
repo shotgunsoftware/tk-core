@@ -262,7 +262,7 @@ class TankCoreUpdater(object):
     (
         UP_TO_DATE,  # all good, no update necessary
         UPDATE_POSSIBLE,  # more recent version exists
-        UPDATE_BLOCKED_BY_SG,  # more recent version exists but PTR version is too low.
+        UPDATE_BLOCKED_BY_SG,  # more recent version exists but FlowPT version is too low.
         UPDATE_BLOCKED_BY_CONFIG,  # The config descriptor is not suitable for updating.
     ) = range(4)
 
@@ -324,7 +324,7 @@ class TankCoreUpdater(object):
 
     def get_required_sg_version_for_update(self):
         """
-        Returns the PTR version that is required in order to update to the specified
+        Returns the FlowPT version that is required in order to update to the specified
         version of the Tank Core API.
 
         :returns: sg version number as a string or None if no version is required.
@@ -343,7 +343,7 @@ class TankCoreUpdater(object):
         """
         Returns true if an update is recommended. As a side effect, if pulls down
         the core from the AppStore to get access to the info.yml file so we can
-        get the required Shotgun version.
+        get the required FlowPT version.
         """
         if is_version_head(self.get_current_version_number()):
             # head is the version number which is stored in tank core trunk

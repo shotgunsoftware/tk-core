@@ -29,11 +29,11 @@ log = LogManager.get_logger(__name__)
 
 def resolve_publish_path(tk, sg_publish_data):
     """
-    Returns a local path on disk given a dictionary of Shotgun publish data.
+    Returns a local path on disk given a dictionary of FlowPT publish data.
 
     This acts as the inverse of :meth:`register_publish` and
-    resolves a local path on disk given some Shotgun publish data,
-    typically obtained by a Shotgun API ``find()`` call.
+    resolves a local path on disk given some FlowPT publish data,
+    typically obtained by a FlowPT Python API ``find()`` call.
 
     Complex logic is applied in order to turn a publish into a
     valid local path. Several exception types are raised to indicate
@@ -51,7 +51,7 @@ def resolve_publish_path(tk, sg_publish_data):
     **Parameters**
 
     :param tk: :class:`~sgtk.Sgtk` instance
-    :param sg_publish_data: Dictionary containing Shotgun publish data.
+    :param sg_publish_data: Dictionary containing FlowPT publish data.
         Needs to at least contain a code, type, id and a path key.
 
     :returns: A local path to file or file sequence.
@@ -119,7 +119,7 @@ def __resolve_local_file_link(tk, attachment_data):
     For details, see :meth:`resolve_publish_path`.
 
     :param tk: :class:`~sgtk.Sgtk` instance
-    :param attachment_data: Shotgun Attachment dictionary.
+    :param attachment_data: FlowPT Attachment dictionary.
 
     :returns: A local path to file or file sequence or None if it cannot be resolved.
     """
@@ -175,7 +175,7 @@ def __resolve_local_file_link(tk, attachment_data):
         if local_path:
             log.warning(
                 "Discovered environment variable %s, however the operating system root is "
-                "already defined in PTR and the environment variable will "
+                "already defined in FlowPT and the environment variable will "
                 "be ignored." % env_var_name
             )
 
@@ -240,7 +240,7 @@ def __resolve_url_link(tk, attachment_data):
     For details, see :meth:`resolve_publish_path`.
 
     :param tk: :class:`~sgtk.Sgtk` instance
-    :param attachment_data: Dictionary containing Shotgun publish data.
+    :param attachment_data: Dictionary containing FlowPT publish data.
         Needs to at least contain a code, type, id and a path key.
 
     :returns: A local path to file or file sequence.
@@ -329,7 +329,7 @@ def __resolve_url_link(tk, attachment_data):
         storage_key = storage["code"].upper()
         storage_lookup[storage_key] = ShotgunPath.from_shotgun_dict(storage)
         log.debug(
-            "Added PTR Storage %s: %s" % (storage_key, storage_lookup[storage_key])
+            "Added FlowPT Storage %s: %s" % (storage_key, storage_lookup[storage_key])
         )
 
     # get default environment variable set
@@ -362,7 +362,7 @@ def __resolve_url_link(tk, attachment_data):
                 if storage_lookup[storage_name].windows:
                     # this path was already defined by a sg local storage
                     log.warning(
-                        "Discovered env var %s, however a PTR local storage already "
+                        "Discovered env var %s, however a FlowPT local storage already "
                         "defines '%s' to be '%s'. Your environment override "
                         "will be ignored."
                         % (env_var, storage_name, storage_lookup[storage_name].windows)
@@ -374,7 +374,7 @@ def __resolve_url_link(tk, attachment_data):
                 if storage_lookup[storage_name].macosx:
                     # this path was already defined by a sg local storage
                     log.warning(
-                        "Discovered env var %s, however a PTR local storage already "
+                        "Discovered env var %s, however a FlowPT local storage already "
                         "defines '%s' to be '%s'. Your environment override "
                         "will be ignored."
                         % (env_var, storage_name, storage_lookup[storage_name].macosx)
@@ -386,7 +386,7 @@ def __resolve_url_link(tk, attachment_data):
                 if storage_lookup[storage_name].linux:
                     # this path was already defined by a sg local storage
                     log.warning(
-                        "Discovered env var %s, however a PTR local storage already "
+                        "Discovered env var %s, however a FlowPT local storage already "
                         "defines '%s' to be '%s'. Your environment override "
                         "will be ignored."
                         % (env_var, storage_name, storage_lookup[storage_name].linux)

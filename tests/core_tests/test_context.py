@@ -1197,7 +1197,7 @@ class TestSerialize(TestContext):
         self.kws["source_entity"] = self.version
 
         # self._auth_user differs from self.kws["user"], because self._auth_user
-        # is the user we are authenticated as when talking to Shotgun
+        # is the user we are authenticated as when talking to FlowPT
         # while self.kws["user"] is the user associated with the current
         # context.
         self._auth_user = ShotgunAuthenticator().create_script_user(

@@ -28,7 +28,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
     Tests that it is possible to invoke a hook during bootstrap that will download the
     core, engine, app and frameworks.
 
-    Note that for performance reason, we only upload the bundles once to the Shotgun
+    Note that for performance reason, we only upload the bundles once to the FlowPT
     site. However, the core is uploaded every single time since a bugfix could
     have been introduced to the core.
     """
@@ -56,7 +56,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
         # First create a temporary zip file for that bundle.
         temp_zipfile = cls._zip_bundle(location)
 
-        # Then look for a recod in Shotgun that can hold it.
+        # Then look for a recod in FlowPT that can hold it.
         item = cls._find_bundle_in_sg(descriptor)
 
         # If we didn't find the record, create it. We're being fault tolerant here and assuming that
@@ -69,7 +69,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
 
         for _ in range(5):
             try:
-                # Upload the bundle to Shotgun.
+                # Upload the bundle to FlowPT.
                 # This field is a File field. Create it in Flow Production Tracking if you get an error here.
                 cls.sg.upload(
                     "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
@@ -86,7 +86,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
     @classmethod
     def _find_bundle_in_sg(cls, descriptor):
         """
-        Finds for a bundle in Shotgun.
+        Finds for a bundle in FlowPT.
         """
         return cls.sg.find_one(
             "CustomNonProjectEntity01",
@@ -97,7 +97,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
     @classmethod
     def _upload_bundle(cls, bundle_name, descriptor):
         """
-        Uploads a bundle to Shotgun.
+        Uploads a bundle to FlowPT.
         """
         cls._upload_bundle_at(
             os.path.join(cls.fixtures_root, "config", "bundles", bundle_name),
@@ -107,7 +107,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
     @classmethod
     def _upload_core(cls, descriptor):
         """
-        Uploads the core to Shotgun.
+        Uploads the core to FlowPT.
         """
         # Create a temp folder into which we'll create a leaner tk-core distribution.
 
@@ -131,7 +131,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
     @classmethod
     def _ensure_entity_fields_ready(cls):
         """
-        Ensures the sg_uploaded_bundle field exists in Shotgun.
+        Ensures the sg_uploaded_bundle field exists in FlowPT.
         """
         try:
             cls.sg.schema_field_read("CustomNonProjectEntity01", "sg_descriptor")

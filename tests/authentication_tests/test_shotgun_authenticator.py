@@ -51,7 +51,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         """
         Makes sure that create_session_user does correct input validation.
         :param generate_session_token_mock: Mocked so we can skip communicating
-                                            with the Shotgun server.
+                                            with the FlowPT server.
         """
         generate_session_token_mock.return_value = "session_token"
         get_global_root.return_value = os.path.join(self.tank_temp, "session_cache")
@@ -161,7 +161,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         """
         Makes sure get_default_user handles all the edge cases.
         :param generate_session_token_mock: Mocked so we can skip communicating
-                                            with the Shotgun server.
+                                            with the FlowPT server.
         """
         generate_session_token_mock.return_value = "session_token"
 

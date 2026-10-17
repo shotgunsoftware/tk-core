@@ -36,7 +36,7 @@ class ConfigurationWriter(object):
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: Shotgun API instance
+        :param sg: FlowPT Python API instance
         """
         self._path = path
         self._sg_connection = sg
@@ -204,7 +204,7 @@ class ConfigurationWriter(object):
         log.debug("Installing tank command...")
 
         # First set up the interpreter_xxx files needed for the tank command
-        # default to the PTR desktop app python. We want those defaults, even with descriptor
+        # default to FlowPT Desktop python. We want those defaults, even with descriptor
         # based pipeline configurations, because from a descriptor based pipeline configuration
         # we might want call setup_project, which will copy the interpreter files. So as a
         # convenience we'll pre-fill those files with an interpreter we know is available on all
@@ -219,7 +219,7 @@ class ConfigurationWriter(object):
         # Shogun Desktop and if we are then we're using the Python that is package with it.
         #
         # The reason we are doing this is because we need the interpreter files
-        # written out during bootstrapping to be using the ones from the PTR desktop app.
+        # written out during bootstrapping to be using the ones from FlowPT Desktop.
         #
         # We could have introduced a way on the ToolkitManager to specify the interpreter
         # to use for the current platform for descriptor based configuration, but we're trying
@@ -230,9 +230,9 @@ class ConfigurationWriter(object):
         # up a bit in my mouth.
 
         # Figures out which is the current Python interpreter.
-        # If we're in the PTR desktop app
+        # If we're in FlowPT Desktop
         if os.path.split(executable)[1].lower().startswith("shotgun"):
-            log.debug("PTR desktop app process detected.")
+            log.debug("FlowPT Desktop process detected.")
             # We'll use the builtin Python.
             if is_macos():
                 current_interpreter = os.path.join(prefix, "bin", "python")
@@ -259,7 +259,7 @@ class ConfigurationWriter(object):
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
             log.debug(
-                "Current OS interpreter will be the default PTR desktop app location."
+                "Current OS interpreter will be the default FlowPT Desktop location."
             )
 
         config_root_path = self._path.current_os
@@ -382,7 +382,7 @@ class ConfigurationWriter(object):
         with filesystem.auto_created_yml(dest_config_sg_file) as fh:
             # ensure the metadata has the host set. We shouldn't assume the shotgun.yml
             # file that can be distributed with the config has the host set, as it
-            # could be used on two different Shotgun servers, for example a production
+            # could be used on two different FlowPT servers, for example a production
             # server and a staging server that are both hosted locally.
             metadata["host"] = connection.sanitize_url(self._sg_connection.base_url)
             # write yaml
@@ -402,7 +402,7 @@ class ConfigurationWriter(object):
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
         This will populate all relevant parameters required for a toolkit runtime setup.
-        Project and pipeline configuration names will be resolved from Shotgun.
+        Project and pipeline configuration names will be resolved from FlowPT.
 
         :param pipeline_config_id: Pipeline config id or None for an unmanaged config.
         :param project_id: Project id or None for the site config or for a baked config.

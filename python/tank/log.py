@@ -106,7 +106,7 @@ This logger will be grouped per invocation instance,
 meaning that you can see for example which dialog UI
 a particular collection of log messages comes from.
 An invocation is typically associated with someone launching
-the app from the Shotgun menu.
+the app from the FlowPT menu.
 
     .. note:: Because log messages are grouped per invocation,
               this makes it easy to for example generate log files
@@ -483,13 +483,13 @@ class LogManager(object):
         case of Toolkit, it is particularly helpful when debugging
         issues to do with I/O or cloud connectivity.
 
-        If you have a method that for example connects to Shotgun to
+        If you have a method that for example connects to FlowPT to
         retrieve data, you can decorate it::
 
             @sgtk.LogManager.log_timing
             def my_shotgun_publish_method():
                 '''
-                Publishes lots of files to Shotgun
+                Publishes lots of files to FlowPT
                 '''
                 # shotgun code here
 
@@ -568,7 +568,7 @@ class LogManager(object):
             # is advantageous is in tk-desktop, where we provide a
             # menu action to toggle debug logging. When it is toggled
             # on, we set the env var here, which then means that when
-            # a user navigates to a project in the PTR desktop app, the
+            # a user navigates to a project in FlowPT Desktop, the
             # Python subprocess spawned will also have debug logging active.
             log.debug(
                 "Setting %s in the environment for this session. This "

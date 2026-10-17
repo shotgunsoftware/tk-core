@@ -35,7 +35,7 @@ def create_io_descriptor(
     will not change or it may be a dev area where the code can change. Given this,
     descriptors are cached and only constructed once for a given descriptor URL.
 
-    :param sg: Shotgun connection to associated site
+    :param sg: FlowPT connection to associated site
     :param descriptor_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK
     :param dict_or_uri: A std descriptor dictionary dictionary or string
     :param bundle_cache_root: Root path to where downloaded apps are cached

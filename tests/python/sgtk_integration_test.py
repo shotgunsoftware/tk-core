@@ -36,7 +36,7 @@ class SgtkIntegrationTest(unittest.TestCase):
         - setting up a log file named after the test
         - creating a random temporary folder to write to or use the path pointed by SHOTGUN_TEST_TEMP
         - setting SHOTGUN_HOME to point to <temp_dir>/shotgun_home
-        - creating a Shotgun connection based on the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME, SHOTGUN_SCRIPT_KEY
+        - creating a FlowPT connection based on the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME, SHOTGUN_SCRIPT_KEY
           environment variables
         - sets the TK_CORE_REPO_ROOT environment variable, which points to the root of this repo.
         - creating a local storage named integration_tests with an optional suffix provided by the continous
@@ -77,7 +77,7 @@ class SgtkIntegrationTest(unittest.TestCase):
         # Ensure Toolkit writes to the temporary directory
         os.environ["SHOTGUN_HOME"] = os.path.join(cls.temp_dir, "shotgun_home")
 
-        # Create a user and connection to Shotgun.
+        # Create a user and connection to FlowPT.
         sa = sgtk.authentication.ShotgunAuthenticator()
         user = sa.create_script_user(
             os.environ["SHOTGUN_SCRIPT_NAME"],
@@ -224,7 +224,7 @@ class SgtkIntegrationTest(unittest.TestCase):
         if "project" in entity_fields:
             filters.append(["project", "is", entity_fields["project"]])
 
-        # Find the entity by this name in Shotgun for the specified project, if any.
+        # Find the entity by this name in FlowPT for the specified project, if any.
         entity = cls.sg.find_one(entity_type, filters)
         # If it doesn't exist, create it!
         if not entity:
@@ -276,7 +276,7 @@ class SgtkIntegrationTest(unittest.TestCase):
 
         :param str location: Folder that contains the tank command.
         :param str cmd_name: Name of the Toolkit command. Can be ``None``.
-        :param dict context: Shotgun entity dictionary with keys ``type`` and ``id``.
+        :param dict context: FlowPT entity dictionary with keys ``type`` and ``id``.
         :param list(str) extra_cmd_line_arguments: List of extra command line arguments. Empty by default.
         :param list user_input: List of answers to provide to provide to the tank command prompt. Empty by default.
             Each entry will be followed by a \n automatically.

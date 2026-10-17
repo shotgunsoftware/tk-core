@@ -303,7 +303,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         Verifies that upload_thumbnail is NOT called when no thumbnail_path is
         provided to register_publish. Previously Toolkit would upload a default
         no_preview.jpg placeholder; that behavior has been removed to avoid
-        unnecessary transcoding jobs on the FPT backend.
+        unnecessary transcoding jobs on the FlowPT backend.
         """
         with mock.patch(
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail"
@@ -459,7 +459,7 @@ class TestMultiRoot(TankTestBase):
 
         self.mockgun.server_caps = server_capsMock()
 
-        # Prevents an actual connection to a Shotgun site.
+        # Prevents an actual connection to a FlowPT site.
         self._server_caps_mock = mock.patch(
             "tank_vendor.shotgun_api3.Shotgun.server_caps"
         )

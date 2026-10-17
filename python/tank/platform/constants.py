@@ -135,7 +135,7 @@ UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"
 
-# Shotgun: The entity that represents Pipeline Configurations in Shotgun
+# FlowPT: The entity that represents Pipeline Configurations in FlowPT
 # (defined here for backwards compatibility with the admin-ui framework)
 PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 

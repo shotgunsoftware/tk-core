@@ -38,7 +38,7 @@ def create_descriptor(
         the shotgun connection that they carry internally. They are reentrant
         and should not be passed between threads.
 
-    :param sg_connection: Shotgun connection to associated site
+    :param sg_connection: FlowPT connection to associated site
     :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,
         ``ENGINE`` or ``FRAMEWORK``
     :param dict_or_uri: A std descriptor dictionary dictionary or string
@@ -178,7 +178,7 @@ class Descriptor(object):
 
         :param descriptor_type: Either ``Descriptor.APP``, ``CORE``,
             ``CONFIG``, ``INSTALLED_CONFIG``, ``ENGINE`` or ``FRAMEWORK``
-        :param sg_connection: Shotgun connection to associated site
+        :param sg_connection: FlowPT connection to associated site
         :param io_descriptor: Associated low level descriptor transport object.
         :param bundle_cache_root_override: Override for root path to where
             downloaded apps are cached.

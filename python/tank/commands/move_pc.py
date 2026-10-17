@@ -278,7 +278,7 @@ class MovePCAction(Action):
         finally:
             os.umask(old_umask)
 
-        log.info("Updating PTR Configuration Record...")
+        log.info("Updating FlowPT Configuration Record...")
         self.tk.shotgun.update(
             constants.PIPELINE_CONFIGURATION_ENTITY,
             pipeline_config_id,

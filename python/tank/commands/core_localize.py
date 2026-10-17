@@ -260,7 +260,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
             # mandatory. If we're copying app_store.yml, only copy it if it
             # exists. This is because when you are localizing a core,
             # app_store.yml might be present or not depending if you are
-            # migrating a core configured with a pre Shotgun 6 or post Shotgun 6
+            # migrating a core configured with a pre FlowPT 6 or post FlowPT 6
             # site. In the latter, AppStore credentials can be retrieved using a
             # session token and therefore we don't need the AppStore credentials
             # to be saved on disk.
