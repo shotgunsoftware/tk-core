@@ -24,18 +24,18 @@ sso_saml2.set_logger_parent(logger)
 
 class ShotgunUser(object):
     """
-    Represents a Shotgun user, either a script or a person and provides an entry point
+    Represents a FlowPT user, either a script or a person and provides an entry point
     into the authentication system.
 
     User objects are created via the :class:`ShotgunAuthenticator` object, which will handle
     caching user objects on disk, prompting the user for their credentials etc.
 
     Once you have retrieved one of the user objects below, this can be used to access
-    Shotgun in a seamless way. The :meth:`create_sg_connection()` will return a Shotgun API handle
+    FlowPT in a seamless way. The :meth:`create_sg_connection()` will return a FlowPT Python API handle
     which is associated with the current user. This API handle is also monitored for
     authentication timeouts, so if the user's session times out (typically due to periods
     of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only
-    console is accessible) to refresh their Shotgun session by typing in their password.
+    console is accessible) to refresh their FlowPT session by typing in their password.
 
     If you need to persist the user object, this is possible via the serialization
     methods. This is particularly useful if you need to pass a user object from one
@@ -69,7 +69,7 @@ class ShotgunUser(object):
     @property
     def login(self):
         """
-        The login for this current user. For Shotgun user types that don't have a concept
+        The login for this current user. For FlowPT user types that don't have a concept
         of a login (like API scripts), None is returned.
 
         :returns: The login string or None.
@@ -78,7 +78,7 @@ class ShotgunUser(object):
 
     def resolve_entity(self):
         """
-        Resolves the Shotgun entity associated with this user.
+        Resolves the FlowPT entity associated with this user.
 
         :returns: A dictionary with ``type`` and ``id`` values.
         :rtype: dict
@@ -87,9 +87,9 @@ class ShotgunUser(object):
 
     def create_sg_connection(self):
         """
-        Creates a Shotgun connection using the credentials for this user.
+        Creates a FlowPT connection using the credentials for this user.
 
-        :returns: A Shotgun connection.
+        :returns: A FlowPT connection.
         """
         return self._impl.create_sg_connection()
 

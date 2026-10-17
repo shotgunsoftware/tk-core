@@ -209,7 +209,7 @@ class ConnectionSettingsTestCases:
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
             tank.set_authenticated_user(None)
 
-            # Prevents from connecting to Shotgun.
+            # Prevents from connecting to FlowPT.
             self._server_caps_mock = mock.patch(
                 "tank_vendor.shotgun_api3.Shotgun.server_caps"
             )
@@ -370,7 +370,7 @@ class AuthConnectionSettings(ConnectionSettingsTestCases.Impl):
         expected_store_proxy=None,
     ):
         """
-        Mock information coming from the Shotgun user and shotgun.yml for authentication.
+        Mock information coming from the FlowPT user and shotgun.yml for authentication.
         """
         with mock.patch("tank.util.shotgun.connection.__get_sg_config_data") as mock1:
             # Mocks shotgun.yml content

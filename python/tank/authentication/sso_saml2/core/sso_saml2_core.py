@@ -51,14 +51,14 @@ except ImportError:
 from urllib.parse import urlencode
 
 # Error messages for events.
-HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To PTR site."
+HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To FlowPT site."
 HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
 HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = (
     "Time out attempting to authenticate to SSO service."
 )
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = (
-    "You have not been granted access to the PTR site."
+    "You have not been granted access to the FlowPT site."
 )
 
 # Timer related values.
@@ -147,7 +147,7 @@ def get_renew_path(session, logger):
 
 
 class SsoSaml2Core(object):
-    """Performs PTR Web login and pre-emptive renewal for SSO sessions."""
+    """Performs FlowPT Web login and pre-emptive renewal for SSO sessions."""
 
     def __init__(self, window_title="Web Login", qt_modules=None):
         """
@@ -747,7 +747,7 @@ class SsoSaml2Core(object):
         # pop an authentication dialog.
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
             message = (
-                "<p>Your company has configured Single Sign-On (SSO) for the PTR site %s"
+                "<p>Your company has configured Single Sign-On (SSO) for the FlowPT site %s"
                 "<p>Please authenticate with your computer login and password to log into Flow Production Tracking."
                 "<p>"
             )
@@ -779,7 +779,7 @@ class SsoSaml2Core(object):
         Called to attempt a login process with user interaction.
 
         The user will be presented with the appropriate web pages from their
-        IdP in order to log on to Shotgun.
+        IdP in order to log on to FlowPT.
 
         :returns: 1 if successful, 0 otherwise.
         """
@@ -791,14 +791,14 @@ class SsoSaml2Core(object):
             # Having separate Chromium profile persistency location have been proven
             # necessary for a few reasons:
             # - Because all of the cookies are serialized to the user's cache, this makes
-            #   the session_metadata property increase in size over time. The PTR desktop app
+            #   the session_metadata property increase in size over time. FlowPT Desktop
             #   serializes the user's properties as environment variables when starting
             #   desktop-linked apps. On Windows, there is a maximum length of 32676 bytes
             #   for them.
             # - By splitting Chromium profiles on a per-site basis (as is the case with
             #   the user infos), we reduce the chances of busting that 32767 limit. It is
             #   still possible for a user to reach it (as cookies accumulate). But then
-            #   the easy fix is to sign-out of the PTR desktop app (or clear_default_user()).
+            #   the easy fix is to sign-out of FlowPT Desktop (or clear_default_user()).
             # - When a user signs out of a site, that site's user data (and session_metadata)
             #   is cleared. At authentication time, if we see that there are no cookies
             #   present, we clear whatever cookies are present in the local Chromium

@@ -19,7 +19,7 @@ class ShotgunPath(object):
 
     Contains methods to easily cast multi-os path between shotgun and os representations
     and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
-    When working with local storages in Shotgun, roots are keyed by the tokens
+    When working with local storages in FlowPT, roots are keyed by the tokens
     ``windows_path``, ``linux_path`` and ``mac_path``. When using ``sys.platform`` in python,
     you get back ``win32``, ``darwin`` and ``linux`` depending on platform. This class makes
     it easy to perform operations and cast between representations and platforms.
@@ -70,7 +70,7 @@ class ShotgunPath(object):
 
     SHOTGUN_PATH_FIELDS = ["windows_path", "linux_path", "mac_path"]
     """
-    A list of the standard path fields used by Shotgun.
+    A list of the standard path fields used by FlowPT.
     """
 
     @staticmethod
@@ -99,9 +99,9 @@ class ShotgunPath(object):
     @staticmethod
     def get_shotgun_storage_key(platform=sys.platform):
         """
-        Given a ``sys.platform`` constant, resolve a Shotgun storage key
+        Given a ``sys.platform`` constant, resolve a FlowPT storage key
 
-        Shotgun local storages handle operating systems using
+        FlowPT local storages handle operating systems using
         the three keys 'windows_path, 'mac_path' and 'linux_path',
         also defined as ``ShotgunPath.SHOTGUN_PATH_FIELDS``
 
@@ -118,7 +118,7 @@ class ShotgunPath(object):
 
         :param platform: sys.platform style string, e.g 'linux',
                          'win32' or 'darwin'.
-        :returns: Shotgun storage path as string.
+        :returns: FlowPT storage path as string.
         """
         if is_windows(platform):
             return "windows_path"
@@ -128,7 +128,8 @@ class ShotgunPath(object):
             return "linux_path"
         else:
             raise ValueError(
-                "Cannot resolve PTR storage - unsupported os platform '%s'" % platform
+                "Cannot resolve FlowPT storage - unsupported os platform '%s'"
+                % platform
             )
 
     @classmethod
@@ -137,7 +138,7 @@ class ShotgunPath(object):
         Creates a path from data contained in a std shotgun data dict,
         containing the paths windows_path, mac_path and linux_path
 
-        :param sg_dict: Shotgun query resultset with possible keys
+        :param sg_dict: FlowPT query resultset with possible keys
                         windows_path, mac_path and linux_path.
         :return: :class:`ShotgunPath` instance
         """
@@ -463,7 +464,7 @@ class ShotgunPath(object):
 
         This method will either return a dev or a path descriptor uri
         path string, suitable for use with for example pipeline configurations
-        in Shotgun.
+        in FlowPT.
 
         :param bool for_development: Set to true for a dev descriptor
         :returns: Dev or Path descriptor uri string representing the path

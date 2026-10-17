@@ -127,7 +127,7 @@ def restart(new_context=None):
 
     Any open windows will remain open and will use the old code base and settings.
     In order to access any changes that have happened as part of a reload, you need
-    to start up new app windows (typically done via the Shotgun menu) and these will
+    to start up new app windows (typically done via the FlowPT menu) and these will
     use the fresh code and configs.
 
     :param new_context: The new Context to start the engine in, if desired. Default behavior

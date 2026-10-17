@@ -96,7 +96,7 @@ def _get_shotgun_user_id(cookies):
     user_domain = None
     for cookie in cookies:
         if cookie.startswith("csrf_token_u"):
-            # Shotgun appends the unique numerical ID of the user to the cookie name:
+            # FlowPT appends the unique numerical ID of the user to the cookie name:
             # ex: csrf_token_u78
             if user_id is not None:
                 # For backward compatibility, we support both the old SAML cookies
@@ -107,7 +107,7 @@ def _get_shotgun_user_id(cookies):
                 # Should we find multiple cookies with the same prefix, it means
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
-                message = "The cookies for this user seem to come from two different PTR sites: '%s' and '%s'"
+                message = "The cookies for this user seem to come from two different FlowPT sites: '%s' and '%s'"
                 raise SsoSaml2MultiSessionNotSupportedError(
                     message % (user_domain, cookies[cookie]["domain"])
                 )
@@ -153,13 +153,13 @@ def _get_cookie_from_prefix(encoded_cookies, cookie_prefix):
 
 def get_saml_claims_expiration(encoded_cookies):
     """
-    Obtain the expiration time of the saml claims from the Shotgun cookies.
+    Obtain the expiration time of the saml claims from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
     :returns: An int with the time in seconds since January 1st 1970 UTC, or None
     """
-    # Shotgun appends the unique numerical ID of the user to the cookie name:
+    # FlowPT appends the unique numerical ID of the user to the cookie name:
     # ex: shotgun_sso_session_expiration_u78
     saml_claims_expiration = _get_cookie(
         encoded_cookies, "shotgun_current_user_sso_claims_expiration"
@@ -171,7 +171,7 @@ def get_saml_claims_expiration(encoded_cookies):
 
 def get_session_expiration(encoded_cookies):
     """
-    Obtain the expiration time of the Shotgun session from the Shotgun cookies.
+    Obtain the expiration time of the FlowPT session from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
@@ -188,13 +188,13 @@ def get_session_expiration(encoded_cookies):
 
 def get_user_name(encoded_cookies):
     """
-    Obtain the user name from the Shotgun cookies.
+    Obtain the user name from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
     :returns: A string with the user name, or None
     """
-    # Shotgun appends the unique numerical ID of the user to the cookie name:
+    # FlowPT appends the unique numerical ID of the user to the cookie name:
     # ex: shotgun_sso_session_userid_u78
     user_name = _get_cookie(
         encoded_cookies, "shotgun_current_user_login"
@@ -206,7 +206,7 @@ def get_user_name(encoded_cookies):
 
 def get_session_id(encoded_cookies):
     """
-    Obtain the session id from the Shotgun cookies.
+    Obtain the session id from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
@@ -223,20 +223,20 @@ def get_session_id(encoded_cookies):
 
 def get_csrf_token(encoded_cookies):
     """
-    Obtain the csrf token from the Shotgun cookies.
+    Obtain the csrf token from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
     :returns: A string with the csrf token, or None
     """
-    # Shotgun appends the unique numerical ID of the user to the cookie name:
+    # FlowPT appends the unique numerical ID of the user to the cookie name:
     # ex: csrf_token_u78
     return _get_cookie_from_prefix(encoded_cookies, "csrf_token_u")
 
 
 def get_csrf_key(encoded_cookies):
     """
-    Obtain the csrf token name from the Shotgun cookies.
+    Obtain the csrf token name from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
@@ -244,6 +244,6 @@ def get_csrf_key(encoded_cookies):
     """
     cookies = SimpleCookie()
     cookies.load(_decode_cookies(encoded_cookies))
-    # Shotgun appends the unique numerical ID of the user to the cookie name:
+    # FlowPT appends the unique numerical ID of the user to the cookie name:
     # ex: csrf_token_u78
     return "csrf_token_u%s" % _get_shotgun_user_id(cookies)

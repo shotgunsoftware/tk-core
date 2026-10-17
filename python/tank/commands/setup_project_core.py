@@ -101,7 +101,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
     if setup_params.get_auto_path_mode():
         raise TankError("Auto path mode cannot be used with distributed setups.")
 
-    # Create Project.tank_name and PipelineConfiguration records in Shotgun
+    # Create Project.tank_name and PipelineConfiguration records in FlowPT
     setup_params.report_progress_from_installer(
         "Registering in Flow Production Tracking..."
     )
@@ -113,7 +113,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
         sg_project_link = None
 
     if project_id:
-        log.info("Registering Toolkit project with PTR Project...")
+        log.info("Registering Toolkit project with FlowPT Project...")
         project_name = setup_params.get_project_disk_name()
         log.debug(
             "Flow Production Tracking: Setting Project.tank_name to %s" % project_name
@@ -277,9 +277,9 @@ def _run_centralized_project_setup(log, sg, setup_params):
         if default_storage_name and storage_name == default_storage_name:
             roots_data[storage_name]["default"] = True
 
-        # if there is a PTR local storage associated with this root, make sure
+        # if there is a FlowPT local storage associated with this root, make sure
         # it is explicit in the the roots file. this allows roots to exist that
-        # are not named the same as the storage in PTR
+        # are not named the same as the storage in FlowPT
         sg_storage_id = setup_params.get_storage_shotgun_id(storage_name)
         if sg_storage_id is not None:
             roots_data[storage_name]["shotgun_storage_id"] = sg_storage_id
@@ -288,7 +288,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     config_folder = os.path.join(config_location_curr_os, "config")
     storage_roots.write(sg, config_folder, storage_roots)
 
-    # Create Project.tank_name and PipelineConfiguration records in Shotgun
+    # Create Project.tank_name and PipelineConfiguration records in FlowPT
     #
     # This logic has some special complexity when the auto_path mode is in use.
 
@@ -303,7 +303,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         sg_project_link = None
 
     if setup_params.get_auto_path_mode():
-        # first, check the project name. If there is no project name in Shotgun, populate it
+        # first, check the project name. If there is no project name in FlowPT, populate it
         # with the project name which is specified via the project name parameter.
         # if there isn't yet an entry, create it.
         # This is consistent with the anticipated future behaviour we expect when we
@@ -329,7 +329,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
                 if data["tank_name"] != project_name:
                     log.warning(
                         "You have supplied the project disk name '%s' as part of the project setup "
-                        "parameters, however the name '%s' has already been registered in PTR for "
+                        "parameters, however the name '%s' has already been registered in FlowPT for "
                         "this project. This name will be used instead of the suggested disk "
                         "name." % (project_name, data["tank_name"])
                     )
@@ -401,7 +401,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME
     data["published_file_entity_type"] = pf_entity_type
 
-    # all 0.15+ projects are pushing folders to Shotgun by default
+    # all 0.15+ projects are pushing folders to FlowPT by default
     data["use_shotgun_path_cache"] = True
 
     try:
@@ -523,13 +523,13 @@ def _run_centralized_project_setup(log, sg, setup_params):
 def _get_published_file_entity_type(log, sg):
     """
     Find the published file entity type to use for this project.
-    Communicates with Shotgun, introspects the sg schema.
+    Communicates with FlowPT, introspects the sg schema.
 
     :returns: 'PublishedFile' if the PublishedFile entity type has
               been enabled, otherwise returns 'TankPublishedFile'
     """
     log.debug(
-        "Retrieving schema from PTR to determine entity type to use for published files"
+        "Retrieving schema from FlowPT to determine entity type to use for published files"
     )
 
     pf_entity_type = "TankPublishedFile"
@@ -542,7 +542,7 @@ def _get_published_file_entity_type(log, sg):
         ):
             pf_entity_type = "PublishedFile"
     except Exception as e:
-        raise TankError("Could not retrieve the PTR schema: %s" % e)
+        raise TankError("Could not retrieve the FlowPT schema: %s" % e)
 
     log.debug(" > Using %s entity type for published files" % pf_entity_type)
 

@@ -53,7 +53,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
 
     This will build the bundle cache for a given config descriptor.
 
-    :param sg_connection: Shotgun connection
+    :param sg_connection: FlowPT connection
     :param target_path: Path to build
     :param config_descriptor_uri: Descriptor of the configuration to cache.
     """
@@ -70,7 +70,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         sg_connection,
         Descriptor.CONFIG,
         config_descriptor_uri,
-        # If the user hasn't specified the version to retrieve, resolve the latest from Shotgun.
+        # If the user hasn't specified the version to retrieve, resolve the latest from FlowPT.
         resolve_latest=is_descriptor_version_missing(config_descriptor_uri),
     )
 

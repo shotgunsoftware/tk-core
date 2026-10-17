@@ -80,11 +80,11 @@ class Application(TankBundle):
     @property
     def shotgun(self):
         """
-        Returns a Shotgun API handle associated with the currently running
+        Returns a FlowPT Python API handle associated with the currently running
         environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
 
-        :returns: Shotgun API handle
+        :returns: FlowPT Python API handle
         """
         # pass on information to the user agent manager which bundle is returning
         # this sg handle. This information will be passed to the web server logs

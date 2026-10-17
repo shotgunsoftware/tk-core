@@ -693,7 +693,7 @@ class TemplateString(Template):
 
     Templated strings are useful if you want to write code where you can configure
     the formatting of strings, for example how a name or other string field should
-    be configured in Shotgun, given a series of key values.
+    be configured in FlowPT, given a series of key values.
     """
 
     def __init__(self, definition, keys, name=None, validate_with=None):
@@ -857,7 +857,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
         root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
         if root_path is None:
             raise TankError(
-                "Undefined PTR storage! The local file storage '%s' is not defined for this "
+                "Undefined FlowPT storage! The local file storage '%s' is not defined for this "
                 "operating system." % root_name
             )
 

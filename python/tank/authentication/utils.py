@@ -20,7 +20,7 @@ def sanitize_http_proxy(http_proxy):
     Returns a parsed url (a la urlparse).
 
     We want to support both the proxy notation expected by
-    Shotgun:                      username:password@hostname:port (a.k.a. netloc)
+    FlowPT Python API:           username:password@hostname:port (a.k.a. netloc)
     Qt's QtNetwork.QNetworkProxy: scheme://username:password@hostname:port (a.k.a. scheme://netloc)
 
     :param http_proxy: URL of the proxy. If the URL does not start with a scheme,

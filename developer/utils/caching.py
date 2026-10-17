@@ -25,7 +25,7 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     """
     Cache the given descriptor into a new bundle cache.
 
-    :param sg: Shotgun API instance
+    :param sg: FlowPT Python API instance
     :param desc_type: Descriptor.ENGINE | Descriptor.APP | Descriptor.FRAMEWORK
     :param desc_dict: descriptor dict or uri
     :param target_path: bundle cache root to cache into
@@ -57,7 +57,7 @@ def cache_apps(
     Iterates over all environments within the given configuration descriptor
     and caches all items into the bundle cache root.
 
-    :param sg_connection: Shotgun connection
+    :param sg_connection: FlowPT connection
     :param cfg_descriptor: Config descriptor
     :param bundle_cache_root: Root where to cache payload
     :param should_skip_caching_callable: Optional callable that will check the descriptor

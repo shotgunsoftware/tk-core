@@ -92,7 +92,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
             "Flame 1.2.3",
         )
 
-        # Validate the PTR desktop app
+        # Validate FlowPT Desktop
         with mock.patch.object(
             sys,
             "argv",

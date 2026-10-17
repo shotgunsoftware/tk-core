@@ -46,14 +46,14 @@ class Hook(object):
 
             def list_actions(self, sg_publish_data):
                 '''
-                Given some Shotgun publish data, return a list of
+                Given some FlowPT publish data, return a list of
                 actions that can be performed
 
-                :param sg_publish_data: Dictionary of publish data from Shotgun
+                :param sg_publish_data: Dictionary of publish data from FlowPT
                 :returns: List of action strings
                 '''
                 # The base implementation implements an action to show
-                # the item in Shotgun
+                # the item in FlowPT
                 return ["show_in_sg"]
 
             def run_action(self, action, sg_publish_data):
@@ -61,7 +61,7 @@ class Hook(object):
                 Execute the given action
 
                 :param action: name of action. One of the items returned by list_actions.
-                :param sg_publish_data: Dictionary of publish data from Shotgun
+                :param sg_publish_data: Dictionary of publish data from FlowPT
                 '''
                 if action == "show_in_sg":
 
@@ -110,10 +110,10 @@ class Hook(object):
 
             def list_actions(self, sg_publish_data):
                 '''
-                Given some Shotgun publish data, return a list of
+                Given some FlowPT publish data, return a list of
                 actions that can be performed
 
-                :param sg_publish_data: Dictionary of publish data from Shotgun
+                :param sg_publish_data: Dictionary of publish data from FlowPT
                 :returns: List of action strings
                 '''
                 # first get base class actions
@@ -128,7 +128,7 @@ class Hook(object):
                 Execute the given action
 
                 :param action: name of action. One of the items returned by list_actions.
-                :param sg_publish_data: Dictionary of publish data from Shotgun
+                :param sg_publish_data: Dictionary of publish data from FlowPT
                 '''
                 if action == "reference":
                     # do maya reference operation
@@ -248,7 +248,7 @@ class Hook(object):
         :class:`~sgtk.platform.Engine` instance. For core hooks, the
         parent object will be :class:`sgtk`.
 
-        .. note:: If you need to access Shotgun inside your hook, you can do this by
+        .. note:: If you need to access FlowPT inside your hook, you can do this by
                   calling ``self.parent.shotgun`` since both Apps, Engines and the Core API
                   has a ``shotgun`` property.
         """
@@ -256,11 +256,11 @@ class Hook(object):
 
     def get_publish_path(self, sg_publish_data):
         """
-        Returns the path on disk for a publish entity in Shotgun.
+        Returns the path on disk for a publish entity in FlowPT.
 
         Convenience method that calls :meth:`sgtk.util.resolve_publish_path`.
 
-        :param sg_publish_data: Dictionaries containing Shotgun publish data.
+        :param sg_publish_data: Dictionaries containing FlowPT publish data.
             Each dictionary needs to at least contain a code, type, id and a path key.
 
         :returns: A path on disk to existing file or file sequence.

@@ -61,7 +61,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     When a new zip file is uploaded, the attachment id (e.g. version) changes, resulting in
     a new descriptor.
 
-    The latest version is defined as the current record available in Shotgun.
+    The latest version is defined as the current record available in FlowPT.
     """
 
     _MODE_ID_BASED, _MODE_NAME_BASED = range(2)
@@ -71,7 +71,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site.
+        :param sg_connection: FlowPT connection to associated site.
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
@@ -100,7 +100,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "PTR descriptor cannot contain both name and id tokens: %s"
+                    "FlowPT descriptor cannot contain both name and id tokens: %s"
                     % descriptor_dict
                 )
 
@@ -341,10 +341,12 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         :return: True if a remote is accessible, false if not.
         """
-        # check if we can connect to Shotgun
+        # check if we can connect to FlowPT
         can_connect = True
         try:
-            log.debug("%r: Probing if a connection to PTR can be established..." % self)
+            log.debug(
+                "%r: Probing if a connection to FlowPT can be established..." % self
+            )
             self._sg_connection.connect()
             log.debug("...connection established!")
         except Exception as e:

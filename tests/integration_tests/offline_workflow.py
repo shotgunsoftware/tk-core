@@ -10,7 +10,7 @@
 
 """
 This test ensures that the offline workflow using local bundle cached inside an uploaded
-zipped config can be bootstrap into without requiring to download anything from Shotgun.
+zipped config can be bootstrap into without requiring to download anything from FlowPT.
 """
 
 import os
@@ -91,11 +91,11 @@ class OfflineWorkflow(SgtkIntegrationTest):
 
     def test_03_upload_to_pipeline_configuration(self):
         """
-        Ensures the project and pipeline configuration we want to use are ready in Shotgun. This
-        includes uploading the pipeline configuration to Shotgun.
+        Ensures the project and pipeline configuration we want to use are ready in FlowPT. This
+        includes uploading the pipeline configuration to FlowPT.
         """
 
-        # Upload the zip file to Shotgun.
+        # Upload the zip file to FlowPT.
         self.sg.upload(
             "PipelineConfiguration",
             self.pc["id"],

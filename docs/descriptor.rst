@@ -501,7 +501,7 @@ becomes easy to exchange environment configs. You can achieve this by using the 
 Pointing at a file attachment in Flow Production Tracking
 =========================================================
 
-The Shotgun descriptor allows you to upload an attachment directly
+The FlowPT descriptor allows you to upload an attachment directly
 to Flow Production Tracking and then reference it with a descriptor.
 
 This allows for workflows where you can distribute configurations, custom apps
@@ -516,7 +516,7 @@ This allows for a powerful workflow where a configuration is simply
 uploaded to Flow Production Tracking and it gets automatically picked up by all
 users (even if they are remote).
 
-The Shotgun descriptor is the low level mechanism that is used to implement the cloud
+The FlowPT descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
 field in Flow Production Tracking and expects a zip file to be uploaded to the field.
 

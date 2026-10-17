@@ -33,18 +33,18 @@ class CacheLocation(HookBaseClass):
 
         Overriding this method in a hook allows a user to change the location on disk where
         the path cache file is located. The path cache file holds a temporary cache representation
-        of the ``FilesystemLocation`` entities stored in Shotgun for a project.
+        of the ``FilesystemLocation`` entities stored in FlowPT for a project.
 
         The default implementation will create a folder inside the user's home folder or
         under ``SHOTGUN_HOME``.
 
-        :param int project_id: The Shotgun id of the project to store caches for. None if
+        :param int project_id: The FlowPT id of the project to store caches for. None if
                                the configuration is a site configuration.
         :param str plugin_id: Unique string to identify the scope for a particular plugin
                               or integration. For more information,
                               see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                               non-plugin based toolkit projects, this value is None.
-        :param int pipeline_configuration_id: The Shotgun pipeline configuration id to store caches
+        :param int pipeline_configuration_id: The FlowPT pipeline configuration id to store caches
                                               for. If the pipeline configuration is unmanaged, it
                                               will be ``None``
         :returns: The path to a path cache file. This file should exist when this method returns.
@@ -122,7 +122,7 @@ class CacheLocation(HookBaseClass):
         instead, however we strongly recommend that you tweak your hook.
 
         Apps, Engines or Frameworks commonly cache data on disk. This can be
-        small files, Shotgun queries, thumbnails, etc. This method implements the
+        small files, FlowPT queries, thumbnails, etc. This method implements the
         logic which defines this location on disk. The cache should be organized in
         a way so that all instances of the app can re-use the same data. Bundles
         which need to cache things per-instance can implement this using a sub
@@ -138,12 +138,12 @@ class CacheLocation(HookBaseClass):
         The default implementation will create a folder inside the user's home folder or
         under ``SHOTGUN_HOME``.
 
-        :param int project_id: The Shotgun id of the project to store caches for, or None.
+        :param int project_id: The FlowPT id of the project to store caches for, or None.
         :param str plugin_id: Unique string to identify the scope for a particular plugin
                               or integration, or None. For more information,
                               see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                               non-plugin based toolkit projects, this value is None.
-        :param int pipeline_configuration_id: The Shotgun pipeline config id to store caches for
+        :param int pipeline_configuration_id: The FlowPT pipeline config id to store caches for
                                               or ``None`` if the pipeline configuration is unmanaged.
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :type bundle: :class:`~sgtk.platform.Engine`, :class:`~sgtk.platform.Framework` or

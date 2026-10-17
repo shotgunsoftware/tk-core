@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-Integration with Shotgun Toolkit API.
+Integration with FlowPT Toolkit API.
 """
 
 # pylint: disable=line-too-long
@@ -24,7 +24,7 @@ class SsoSaml2Toolkit(SsoSaml2):
 
     def get_session_data(self):
         """
-        Get a mimimal subset of session data, for the Shotgun Toolkit.
+        Get a mimimal subset of session data, for the FlowPT Toolkit.
 
         :returns: A tuple of the hostname, user_id, session_id and cookies.
         """

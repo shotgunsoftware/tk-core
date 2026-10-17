@@ -316,7 +316,7 @@ class TestFallbackHandling(TestResolverBase):
     @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_base_config(self, find_mock):
         """
-        Tests the direct config resolve, which doesn't talk to Shotgun
+        Tests the direct config resolve, which doesn't talk to FlowPT
         """
 
         config = self.resolver.resolve_configuration(self.config_1, self.mockgun)
@@ -343,7 +343,7 @@ class TestFallbackHandling(TestResolverBase):
 class TestAutoUpdate(TestResolverBase):
     """
     A test class for the config resolved when
-    the PTR desktop app is launched to startup the tk-desktop
+    FlowPT Desktop is launched to startup the tk-desktop
     engine on a site or Project context.
     """
 
@@ -1124,7 +1124,7 @@ class TestErrorHandling(TestResolverBase):
 
         with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
-            "The PTR pipeline configuration with id %s has no source location specified for "
+            "The FlowPT pipeline configuration with id %s has no source location specified for "
             "your operating system." % pc_id,
         ):
             self.resolver.resolve_shotgun_configuration(

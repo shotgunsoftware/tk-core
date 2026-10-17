@@ -105,7 +105,7 @@ class TemplateKey(object):
 
         # Validation
         if self.shotgun_field_name and not self.shotgun_entity_type:
-            raise TankError("%s: PTR field requires a PTR entity be set." % self)
+            raise TankError("%s: FlowPT field requires a FlowPT entity be set." % self)
 
         if self.is_abstract and self.default is None:
             raise TankError(
@@ -157,14 +157,14 @@ class TemplateKey(object):
     @property
     def shotgun_entity_type(self):
         """
-        Shotgun entity type associated with this item
+        FlowPT entity type associated with this item
         """
         return self._shotgun_entity_type
 
     @property
     def shotgun_field_name(self):
         """
-        Shotgun field name associated with this item
+        FlowPT field name associated with this item
         """
         return self._shotgun_field_name
 

@@ -4,8 +4,8 @@
 """
 Standalone CLI to find your Flow project ID using the Flow Data SDK.
 
-Use this script to retrieve the Flow project ID for a given FPT project,
-so it can be linked in the FPT site settings.
+Use this script to retrieve the Flow project ID for a given FlowPT project,
+so it can be linked in the FlowPT site settings.
 
 Defaults to production values. Override any individual setting via flags.
 
@@ -61,7 +61,7 @@ class TokenAuthHandler(AuthenticationHandlerBase):
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="List Flow collections/projects to find project IDs for FPT linking.",
+        description="List Flow collections/projects to find project IDs for FlowPT linking.",
     )
     parser.add_argument(
         "--endpoint",

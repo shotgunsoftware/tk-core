@@ -78,8 +78,8 @@ class Static(Folder):
             if not isinstance(resolved_constrain_node, Entity):
                 raise TankError(
                     "Configuration error in %s: constrain_by_entity points "
-                    "at a node which is not associated with any PTR data. "
-                    "You can only constrain based on nodes which have a PTR "
+                    "at a node which is not associated with any FlowPT data. "
+                    "You can only constrain based on nodes which have a FlowPT "
                     "representation." % full_path
                 )
 

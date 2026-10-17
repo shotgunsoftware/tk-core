@@ -130,7 +130,7 @@ class TestSetupProjectWizard(TankTestBase):
     def test_default_configuration_location_with_existing_pipeline_configuration(self):
         """
         Ensure that when the tank_name and the configuration folder name are the same
-        for the latest configuration found in Shotgun, we'll offer a pre-baked path
+        for the latest configuration found in FlowPT, we'll offer a pre-baked path
         to the user using the new project name.
 
         For e.g., if a project with a tank_name set to "potato" and whose configuration

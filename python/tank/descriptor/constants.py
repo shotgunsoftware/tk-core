@@ -70,9 +70,9 @@ DESCRIPTOR_URI_PATH_SCHEME = "sgtk"
 DESCRIPTOR_URI_PATH_PREFIX = "descriptor"
 DESCRIPTOR_URI_SEPARATOR = ":"
 
-# This is the earliest version of Shotgun that Toolkit has historically been compatible
+# This is the earliest version of FlowPT that Toolkit has historically been compatible
 # with. Code that use this constant do so because the manifest from a core doesn't
-# have a requires_shotgun_version. 5.0.0 is the minimum Shotgun version that every
+# have a requires_shotgun_version. 5.0.0 is the minimum FlowPT version that every
 # version fo Toolkit have been published with ever since it came out.
 LOWEST_SHOTGUN_VERSION = "5.0.0"
 

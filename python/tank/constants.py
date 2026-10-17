@@ -26,7 +26,7 @@ CACHE_LOCATION_HOOK_NAME = "cache_location"
 # Configuration file containing setup and path details
 PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 
-# Shotgun: The entity that represents Pipeline Configurations in Shotgun
+# FlowPT: The entity that represents Pipeline Configurations in FlowPT
 PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
 # the storage name that is treated to be the primary storage for tank

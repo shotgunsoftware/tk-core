@@ -72,7 +72,7 @@ def _bake_configuration(sg_connection, manifest_data):
     Bake the given configuration by ensuring it is locally cached and by modifying
     the manifest_data.
 
-    :param sg_connection: Shotgun connection
+    :param sg_connection: FlowPT connection
     :param manifest_data: Manifest data as a dictionary
     :returns: The baked descriptor dictionary issued from configuration descriptor.
     """
@@ -127,7 +127,7 @@ def _process_configuration(
     Given data in the plugin manifest, download resolve and
     cache the configuration.
 
-    :param sg_connection: Shotgun connection
+    :param sg_connection: FlowPT connection
     :param source_path: Root path of plugin source.
     :param target_path: Build target path
     :param bundle_cache_root: Bundle cache root
@@ -509,7 +509,7 @@ def build_plugin(
     and then establish a bundle cache containing a reflection
     of all items required by the config.
 
-    :param sg_connection: Shotgun connection
+    :param sg_connection: FlowPT connection
     :param source_path: Path to plugin.
     :param target_path: Path to build
     :param bootstrap_core_uri: Custom bootstrap core uri. If None,

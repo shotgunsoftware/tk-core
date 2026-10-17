@@ -255,7 +255,7 @@ class UserTests(ShotgunTestBase):
 
         su = self._create_test_user()
 
-        # Simulate a session renewal has happened since the Shotgun connection
+        # Simulate a session renewal has happened since the FlowPT connection
         # creationg
         sg = su.create_sg_connection()
         su.impl.set_session_token("session_token_2")
