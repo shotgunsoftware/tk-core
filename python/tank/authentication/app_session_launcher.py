@@ -31,7 +31,7 @@ from . import errors
 logger = LogManager.get_logger(__name__)
 
 PRODUCT_DEFAULT = "Flow Production Tracking Toolkit"
-PRODUCT_DESKTOP = "FPTR desktop app"
+PRODUCT_DESKTOP = "FlowPT Desktop"
 
 
 class AuthenticationError(errors.AuthenticationError):
