@@ -41,7 +41,7 @@ class BakedConfiguration(Configuration):
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: Shotgun API instance
+        :param sg: FlowPT Python API instance
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
                            can be set to None.
@@ -51,7 +51,7 @@ class BakedConfiguration(Configuration):
                           non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
-                                   not have an associated entity in Shotgun, this
+                                   not have an associated entity in FlowPT, this
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         :param descriptor: ConfigDescriptor for the associated config
@@ -103,7 +103,7 @@ class BakedConfiguration(Configuration):
         """
         Returns a tk instance for this configuration.
 
-        :param sg_user: Authenticated Shotgun user to associate
+        :param sg_user: Authenticated FlowPT user to associate
                         the tk instance with.
         """
 
@@ -141,8 +141,8 @@ class BakedConfiguration(Configuration):
         # the newly swapped in core code, if it was swapped
         from .. import api
 
-        # Baked config are typically not attached to any Shotgun site, or project
-        # so we can simply keep using the current user, which holds Shotgun
+        # Baked config are typically not attached to any FlowPT site, or project
+        # so we can simply keep using the current user, which holds FlowPT
         # connection informations.
         api.set_authenticated_user(sg_user)
 
@@ -154,7 +154,7 @@ class BakedConfiguration(Configuration):
         Helper method that can be used to generate a baked scaffold in a given path.
 
         :param path: Path to generate scaffold in.
-        :param sg_connection: Shotgun API instance
+        :param sg_connection: FlowPT Python API instance
         :param plugin_id: Plugin id string to identify the scope for a particular plugin
                           or integration. For more information,
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For

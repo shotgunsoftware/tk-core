@@ -66,7 +66,7 @@ class PushPCAction(Action):
             },
         }
 
-        # Just a cache to query PTR only once.
+        # Just a cache to query FlowPT only once.
         self._pipeline_configs = None
 
     def run_noninteractive(self, log, parameters):

@@ -17,7 +17,7 @@ from ..errors import TankError
 
 class ShotgunAttachmentDownloadError(TankError):
     """
-    Raised when a Shotgun attachment could not be downloaded
+    Raised when a FlowPT attachment could not be downloaded
     """
 
 
@@ -59,7 +59,7 @@ class EnvironmentVariableFileLookupError(TankError):
 
 class ShotgunPublishError(TankError):
     """
-    Raised when Toolkit is not able to register a published file in Shotgun.
+    Raised when Toolkit is not able to register a published file in FlowPT.
 
     The original message for the reported error is available in the 'error_message' property.
 
@@ -70,7 +70,7 @@ class ShotgunPublishError(TankError):
     def __init__(self, error_message, entity=None):
         """
         :param str error_message: An error message, typically coming from a caught exception.
-        :param dict entity: The Shotgun entity which was created, if any.
+        :param dict entity: The FlowPT entity which was created, if any.
         """
         self.error_message = error_message
         self.entity = entity

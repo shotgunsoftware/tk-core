@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-This module offers different SSO integration warppers for Shotgun.
+This module offers different SSO integration warppers for FlowPT.
 """
 
 # Exceptions

@@ -63,7 +63,7 @@ class IODescriptorBase(object):
 
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :param descriptor_dict: Descriptor dictionary describing the bundle.
-        :param sg_connection: Shotgun connection to associated site.
+        :param sg_connection: FlowPT connection to associated site.
         :returns: Instance of class deriving from :class:`IODescriptorBase`
         :raises: TankDescriptorError
         """
@@ -81,7 +81,7 @@ class IODescriptorBase(object):
 
         :param descriptor_dict: Dictionary describing what
                                 the descriptor is pointing at.
-        :param sg_connection: Shotgun connection to associated site.
+        :param sg_connection: FlowPT connection to associated site.
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         """
         self._bundle_cache_root = None

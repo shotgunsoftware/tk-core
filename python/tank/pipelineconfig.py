@@ -480,7 +480,7 @@ class PipelineConfiguration(object):
 
         if data is None:
             raise TankError(
-                "Cannot find a Pipeline configuration in PTR "
+                "Cannot find a Pipeline configuration in FlowPT "
                 "that has id %s." % self.get_shotgun_id()
             )
 
@@ -508,7 +508,7 @@ class PipelineConfiguration(object):
     def is_unmanaged(self):
         """
         Returns true if the configuration is unmanaged, e.g. it does not have a
-        corresponding pipeline configuration in Shotgun.
+        corresponding pipeline configuration in FlowPT.
 
         :return: boolean indicating if config is unmanaged
         """
@@ -593,7 +593,7 @@ class PipelineConfiguration(object):
         """
 
         if self.get_shotgun_path_cache_enabled():
-            raise TankError("PTR based path cache already turned on!")
+            raise TankError("FlowPT based path cache already turned on!")
 
         self._update_metadata({"use_shotgun_path_cache": True})
         self._use_shotgun_path_cache = True
@@ -639,18 +639,18 @@ class PipelineConfiguration(object):
 
     def get_local_storage_for_root(self, root_name):
         """
-        Given a root name, return the associated local storage in PTR.
+        Given a root name, return the associated local storage in FlowPT.
 
         If no local storage can be determined, ``None`` will be returned.
 
         :param root_name:
-        :return: A standard PTR entity dictionary for the matching PTR local
+        :return: A standard FlowPT entity dictionary for the matching FlowPT local
             storage.
         """
 
         if root_name not in self._storage_roots.required_roots:
             log.warning(
-                "Unable to identify PTR local storage for root name '%s'. "
+                "Unable to identify FlowPT local storage for root name '%s'. "
                 "This root name is not required by the configuration." % (root_name,)
             )
             return None
@@ -662,8 +662,8 @@ class PipelineConfiguration(object):
             return mapped_roots[root_name]
         else:
             log.warning(
-                "Unable to identify PTR local storage for root name '%s'. "
-                "The root is not mapped to any PTR local storage. It does "
+                "Unable to identify FlowPT local storage for root name '%s'. "
+                "The root is not mapped to any FlowPT local storage. It does "
                 "not explicitly define a local storage id and does not match "
                 "the name of any known storages." % (root_name,)
             )
@@ -672,14 +672,14 @@ class PipelineConfiguration(object):
     def get_local_storage_mapping(self):
         """
         Returns a tuple of information about the required storage roots and how
-        they map to local storages in PTR.
+        they map to local storages in FlowPT.
 
         The first item in the tuple is a dictionary of storage root names mapped
         to a corresponding dictionary of fields for a local storage defined in
-        Shotgun.
+        FlowPT.
 
         The second item is a list of storage roots required by the configuration
-        that can not be mapped to a PTR local storage.
+        that can not be mapped to a FlowPT local storage.
 
         Example return value::
 
@@ -707,8 +707,8 @@ class PipelineConfiguration(object):
 
         In the example above, 4 storage roots are defined by the configuration:
         "work", "data", "data2", and "data3". The "work" and "data" roots can
-        be associated with a PTR local storage. The other two roots have no
-        corresponding local storage in PTR.
+        be associated with a FlowPT local storage. The other two roots have no
+        corresponding local storage in FlowPT.
 
         :param: A shotgun connection
         :returns: A tuple of information about local storages mapped to the

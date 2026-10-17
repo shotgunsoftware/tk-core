@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Methods for connecting to Shotgun
+Methods for connecting to FlowPT
 """
 
 import os
@@ -136,7 +136,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
 
 def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
     """
-    Returns the Shotgun configuration yml parameters given a config file, just like
+    Returns the FlowPT configuration yml parameters given a config file, just like
     __get_sg_config_data, but the script user is expected to be present or an exception will be
     thrown.
 
@@ -299,7 +299,7 @@ def sanitize_url(server_url):
 def get_associated_sg_base_url():
     """
     Returns the shotgun url which is associated with this Toolkit setup.
-    This is an optimization, allowing code to get the Shotgun site URL
+    This is an optimization, allowing code to get the FlowPT site URL
     without having to create a shotgun connection and then inspecting
     the base_url property.
 
@@ -307,7 +307,7 @@ def get_associated_sg_base_url():
 
     create_sg_connection().base_url
 
-    :returns: The base url for the associated Shotgun site
+    :returns: The base url for the associated FlowPT site
     """
     # Avoids cyclic imports.
     from ... import api
@@ -337,13 +337,13 @@ def get_deferred_sg_connection():
     This is a method intended only to support certain legacy cases
     where some operations in Toolkit are not fully authenticated.
     When descriptor objects are constructed, they are associated with a
-    PTR API handle. This handle is not necessary for basic operations such
+    FlowPT Python API handle. This handle is not necessary for basic operations such
     as path resolution. By passing a deferred connection object to
     descriptors, authentication is essentially deferred until the need
     for more complex operations arises, allowing for simple, *legacy*
     non-authenticated pathways.
 
-    :return: Proxied PTR API handle
+    :return: Proxied FlowPT Python API handle
     """
 
     class DeferredInitShotgunProxy(object):
@@ -367,10 +367,10 @@ def get_sg_connection():
     so that only one API instance is ever returned per thread, no matter how many
     times this call is made.
 
-        .. note:: Because Shotgun API instances are not safe to share across
-                  threads, this method caches PTR Instances per-thread.
+        .. note:: Because FlowPT Python API instances are not safe to share across
+                  threads, this method caches FlowPT Python API instances per-thread.
 
-    :return: PTR API handle
+    :return: FlowPT Python API handle
     """
     sg = getattr(_g_sg_cached_connections, "sg", None)
 
@@ -390,14 +390,14 @@ def create_sg_connection(user="default"):
     Always consider using tk.shotgun and if you don't have a tk instance,
     consider using get_sg_connection().
 
-    Whenever a Shotgun API instance is created, it pings the server to check that
+    Whenever a FlowPT Python API instance is created, it pings the server to check that
     it is running the right versions etc. This is slow and inefficient and means that
     there will be a delay every time create_sg_connection is called.
 
     :param user: Optional shotgun config user to use when connecting to shotgun,
                  as defined in shotgun.yml. This is a deprecated flag and should not
                  be used.
-    :returns: PTR API instance
+    :returns: FlowPT Python API instance
     """
 
     # Avoids cyclic imports.
@@ -411,7 +411,7 @@ def create_sg_connection(user="default"):
     if sg_user is None:
         log.debug(
             "This tk session has no associated authenticated user. Falling back to "
-            "creating a PTR API instance based on script based credentials in the "
+            "creating a FlowPT Python API instance based on script based credentials in the "
             "shotgun.yml configuration file."
         )
 
@@ -420,20 +420,22 @@ def create_sg_connection(user="default"):
             config_file_path = __get_sg_config()
         except TankError as e:
             log.error(
-                "Trying to create a PTR connection but this tk session does not have "
+                "Trying to create a FlowPT connection but this tk session does not have "
                 "an associated authenticated user. Therefore attempted to fall back on "
                 "a legacy authentication method where script based credentials are "
                 "located in a file relative to the location of the core API code. This "
                 "lookup in turn failed. No credentials can be determined and no connection "
-                "to PTR can be made. Details: %s" % e
+                "to FlowPT can be made. Details: %s" % e
             )
             raise TankError(
-                "Cannot connect to PTR - this tk session does not have "
-                "an associated user and attempts to determine a valid PTR "
+                "Cannot connect to FlowPT - this tk session does not have "
+                "an associated user and attempts to determine a valid FlowPT "
                 "via legacy configuration files failed. Details: %s" % e
             )
 
-        log.debug("Creating PTR connection based on details in %s" % config_file_path)
+        log.debug(
+            "Creating FlowPT connection based on details in %s" % config_file_path
+        )
         config_data = __get_sg_config_data_with_script_user(config_file_path, user)
 
         # Credentials were passed in, so let's run the legacy authentication
@@ -448,7 +450,7 @@ def create_sg_connection(user="default"):
 
     else:
         # Otherwise use the authenticated user to create the connection.
-        log.debug("Creating PTR connection from %r..." % sg_user)
+        log.debug("Creating FlowPT connection from %r..." % sg_user)
         api_handle = sg_user.create_sg_connection()
 
     # bolt on our custom user agent manager so that we can
@@ -537,7 +539,7 @@ class ToolkitUserAgentHandler(object):
 
     def __update(self):
         """
-        Perform changes to the Shotgun API
+        Perform changes to the FlowPT Python API
         """
         # note that because of shortcomings in the API,
         # we have to reference the member variable directly.

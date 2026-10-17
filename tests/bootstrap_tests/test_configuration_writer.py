@@ -101,7 +101,7 @@ class TestShotgunYmlWriting(TestConfigurationWriterBase):
 
         :param cw: Configuration writer used to write the shotgun.yml file.
 
-        :returns: Path to the Shotgun file.
+        :returns: Path to the shotgun.yml file.
         """
         shotgun_yml_path = os.path.join(
             cw.path.current_os, "config", "core", "shotgun.yml"
@@ -164,7 +164,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def _get_default_intepreters(self):
         """
-        Gets the default interpreter values for the Shotgun Desktop.
+        Gets the default interpreter values for FlowPT Desktop.
         """
         return ShotgunPath(
             r"C:\Program Files\Shotgun\Python\python.exe",
@@ -202,7 +202,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def test_desktop_interpreter(self):
         """
-        Checks that if we're running in the PTR desktop app we're writing the correct interpreter.
+        Checks that if we're running in FlowPT Desktop we're writing the correct interpreter.
         """
         expected_interpreters = self._get_default_intepreters()
         if is_windows():

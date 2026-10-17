@@ -134,7 +134,7 @@ def init_flow(
     Args:
         pipeline_config: PipelineConfiguration object, used to read flow
             settings from config.
-        sg_connection: Shotgun connection, used to write the schema config
+        sg_connection: FlowPT connection, used to write the schema config
             version back to SG.
         context: The current Toolkit context, used to read the flow project id,
             schema version, and SG project id.

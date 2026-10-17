@@ -23,7 +23,7 @@ from .core.utils import (  # noqa
 
 def has_unified_login_flow_info_in_cookies(encoded_cookies):
     """
-    Indicate if the Unified Login Flow is being used from the Shotgun cookies.
+    Indicate if the Unified Login Flow is being used from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
@@ -34,7 +34,7 @@ def has_unified_login_flow_info_in_cookies(encoded_cookies):
 
 def has_sso_info_in_cookies(encoded_cookies):
     """
-    Indicate if SSO is being used from the Shotgun cookies.
+    Indicate if SSO is being used from the FlowPT cookies.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 

@@ -21,7 +21,7 @@ from .util import resolve_shotgun_filters, translate_filter_tokens
 
 class Entity(Folder):
     """
-    Represents an entity in Shotgun
+    Represents an entity in FlowPT
     """
 
     @classmethod
@@ -90,10 +90,10 @@ class Entity(Folder):
 
         This is basically a shotgun API filter dictionary, but with interleaved tokens
         (e.g. the FilterExpressionToken object). Tank will resolve any Token fields prior to
-        passing the filter to Shotgun for evaluation.
+        passing the filter to FlowPT for evaluation.
         """
 
-        # the schema name is the same as the PTR entity type
+        # the schema name is the same as the FlowPT entity type
         Folder.__init__(self, parent, full_path, metadata)
 
         self._tk = tk
@@ -232,7 +232,7 @@ class Entity(Folder):
         for custom_field in self._get_additional_sg_fields():
             fields.add(custom_field)
 
-        # convert to a list - sets wont work with the PTR API
+        # convert to a list - sets wont work with the FlowPT Python API
         fields_list = list(fields)
 
         # now find all the items (e.g. shots) matching this query
@@ -359,7 +359,7 @@ class Entity(Folder):
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:
                     raise TankError(
-                        "Could not find PTR %s with id %s as required by "
+                        "Could not find FlowPT %s with id %s as required by "
                         "the folder creation setup." % (self._entity_type, my_id)
                     )
                 else:

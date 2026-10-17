@@ -20,18 +20,18 @@ from sgtk.util.shotgun import download_and_unpack_attachment
 # getting the default hook's init method for free.
 class Bootstrap(get_hook_baseclass()):
     """
-    This hook allows to download certain bundles from Shotgun instead of
+    This hook allows to download certain bundles from FlowPT instead of
     official source for the bundle.
     """
 
     def can_cache_bundle(self, descriptor):
         """
-        Returns true if the descriptor has been cached in Shotgun.
+        Returns true if the descriptor has been cached in FlowPT.
 
         :param descriptor: Descriptor of the bundle that needs to be cached.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
 
-        :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.
+        :returns: ``True`` if the bundle is cached in FlowPT, ``False`` otherwise.
         """
         return bool(
             descriptor.get_dict()["type"] in ["app_store", "git"]
@@ -40,7 +40,7 @@ class Bootstrap(get_hook_baseclass()):
 
     def _get_bundle_attachment(self, descriptor):
         """
-        Retrieves the attachment associated to this descriptor in Shotgun.
+        Retrieves the attachment associated to this descriptor in FlowPT.
 
         :param descriptor: Descriptor of the bundle that needs to be cached.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
@@ -55,11 +55,11 @@ class Bootstrap(get_hook_baseclass()):
         # We're using the descriptor uri, i.e.
         # sgtk:descriptor:app_store?name=tk-core&version=v0.18.150,
         # as the code for the entity. If an entry is found and there is an
-        # attachment, the bundle can be downloaded from Shotgun.
+        # attachment, the bundle can be downloaded from FlowPT.
         #
         # You could write a script that introspects a configuration,
-        # extracts all bundles that need to be cached into Shotgun and pushes
-        # them to Shotgun. Part of this workflow can be automated with the
+        # extracts all bundles that need to be cached into FlowPT and pushes
+        # them to FlowPT. Part of this workflow can be automated with the
         # ``developer/populate_bundle_cache.py`` script, which will download
         # locally every single bundle for a given config.
         entity = self.shotgun.find_one(
@@ -74,7 +74,7 @@ class Bootstrap(get_hook_baseclass()):
 
     def populate_bundle_cache_entry(self, destination, descriptor, **kwargs):
         """
-        This method will retrieve the bundle from the Shotgun site and unpack it
+        This method will retrieve the bundle from the FlowPT site and unpack it
         in the destination folder.
 
         :param destination: Folder where the bundle needs to be written. Note

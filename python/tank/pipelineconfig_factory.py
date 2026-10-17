@@ -22,13 +22,13 @@ log = LogManager.get_logger(__name__)
 
 def from_entity(entity_type, entity_id):
     """
-    Factory method that constructs a pipeline configuration given a Shotgun Entity.
+    Factory method that constructs a pipeline configuration given a FlowPT Entity.
 
     Validates that the currently loaded core API is compliant with the configuration
     associated with the entity and attempts to construct a :class:`PipelineConfiguration`.
 
-    :param str entity_type: Shotgun Entity type
-    :param int entity_id: Shotgun id
+    :param str entity_type: FlowPT Entity type
+    :param int entity_id: FlowPT id
     :returns: Pipeline Configuration instance
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
@@ -50,14 +50,14 @@ def from_entity(entity_type, entity_id):
 
 def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     """
-    Factory method that constructs a pipeline configuration given a Shotgun Entity.
+    Factory method that constructs a pipeline configuration given a FlowPT Entity.
 
     For info, see :meth:`from_entity`
 
-    :param str entity_type: Shotgun Entity type
-    :param int entity_id: Shotgun id
+    :param str entity_type: FlowPT Entity type
+    :param int entity_id: FlowPT id
     :param bool force_reread_shotgun_cache: If true,
-        fresh values will be cached from Shotgun.
+        fresh values will be cached from FlowPT.
     :returns: Pipeline Configuration instance
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
@@ -139,7 +139,7 @@ def _from_path(path, force_reread_shotgun_cache):
 
     :param str path: Path to a pipeline configuration or associated project folder
     :param bool force_reread_shotgun_cache: If true,
-        fresh values will be cached from Shotgun.
+        fresh values will be cached from FlowPT.
     :returns: Pipeline Configuration instance
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
@@ -171,12 +171,12 @@ def _from_path(path, force_reread_shotgun_cache):
     if pipelineconfig_utils.is_pipeline_config(path):
         log.debug("The path %s points at a pipeline configuration." % path)
 
-        # resolve the "real" location that is stored in Shotgun and
+        # resolve the "real" location that is stored in FlowPT and
         # cached in the file system
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
         log.debug(
-            "Resolved the official path registered in PTR to be %s."
+            "Resolved the official path registered in FlowPT to be %s."
             % pc_registered_path
         )
 
@@ -243,7 +243,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     one of the ``associated_pipeline_configs`` entries or raise a TankInitError
     exception.
 
-    :param list associated_pipeline_configs: Associated Shotgun data.
+    :param list associated_pipeline_configs: Associated FlowPT data.
     :param str source: String describing what is being manipulated,
         e.g. a path or 'Project 123'. Used for error messages and log feedback.
     :returns: Pipeline config instance.
@@ -309,7 +309,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
             raise TankInitError(
                 "You are loading the Toolkit platform from the pipeline configuration "
-                "located in '%s', with PTR id %s. You are trying to initialize Toolkit "
+                "located in '%s', with FlowPT id %s. You are trying to initialize Toolkit "
                 "from %s, however that is not associated with the pipeline configuration. "
                 "Instead, it's associated with the following configurations: %s. "
                 % (config_context_path, pc_id, source, all_configs_str)
@@ -345,7 +345,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 "The project associated with %s does not have a Primary pipeline "
                 "configuration! This is required by Toolkit. It needs to be named '%s'. "
                 "Please double check the Pipeline configuration page in "
-                "PTR for the project. The following pipeline configurations are "
+                "FlowPT for the project. The following pipeline configurations are "
                 "associated with the path: %s"
                 % (source, constants.PRIMARY_PIPELINE_CONFIG_NAME, all_configs_str)
             )
@@ -369,7 +369,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             )
 
         else:
-            # looks good, we got a primary pipeline config that exists in Shotgun.
+            # looks good, we got a primary pipeline config that exists in FlowPT.
             sg_config_data = primary_pc_data[0]
 
             # with direct access from shared cores, we don't support bootstrap workflows.
@@ -388,7 +388,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             # pipeline configuration that matches the pre-requisites, but that doesn't actually
             # exist on disk because it was either moved to another location or deleted from disk
             # altogether, then we need to raise TankInitError. If the cache hadn't been force
-            # reread, this will be caught by the factory and Shotgun will be queried once again for
+            # reread, this will be caught by the factory and FlowPT will be queried once again for
             # the pipeline configuration info, hopefully finding the real pipeline configuration
             # this time around.
             if not os.path.exists(sg_config_data["path"]):
@@ -428,7 +428,7 @@ def _get_configuration_context():
         curr_pc_path = os.environ["TANK_CURRENT_PC"]
 
         # the path stored in the TANK_CURRENT_PC env var may be a symlink etc.
-        # now we need to find which pipeline config entity this corresponds to in Shotgun.
+        # now we need to find which pipeline config entity this corresponds to in FlowPT.
         # Once found, we can double check that the current Entity is actually
         # associated with the project that the pipeline config is associated with.
         val = pipelineconfig_utils.get_config_install_location(curr_pc_path)
@@ -438,7 +438,7 @@ def _get_configuration_context():
 
 def _get_pipeline_configuration_data(sg_pipeline_configs):
     """
-    Helper method. Given a list of Shotgun Pipeline configuration entity data, return a
+    Helper method. Given a list of FlowPT Pipeline configuration entity data, return a
     simplified list of pipeline configuration data.
 
     Returns a tuple with two lists (pc_data, primary_data):
@@ -450,11 +450,11 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
     Both lists consists of dictionaries with the following keys:
 
     - path: A local, sanitized path to the pipeline configuration
-    - id: The Shotgun id of the pipeline configuration
-    - project_id: The Shotgun id of the associated project or None if the
+    - id: The FlowPT id of the pipeline configuration
+    - project_id: The FlowPT id of the associated project or None if the
       pipeline configuration doesn't have a project.
 
-    :param sg_pipeline_configs: Shotgun pipeline configuration data. List of dicts.
+    :param sg_pipeline_configs: FlowPT pipeline configuration data. List of dicts.
     :returns: (pc_data, primary_data) - tuple with two lists of dicts. See above.
     """
     # get list of local path to pipeline configurations that we have
@@ -484,7 +484,7 @@ def _get_pipeline_configs_for_path(path, data):
     Given a path on disk and a cache data structure, return a list of
     associated pipeline configurations.
 
-    Based on the Shotgun cache data, generates a list of project root locations.
+    Based on the FlowPT cache data, generates a list of project root locations.
     These are then compared (case insensitively) against the given path and
     if it is determined that the input path belongs to any of these project
     roots, the list of pipeline configuration objects for that root is returned.
@@ -579,7 +579,7 @@ def _get_pipeline_configs_for_path(path, data):
     all_matching_pcs = []
 
     for project_path in project_paths:
-        # (like the PTR API, this logic is case preserving, not case insensitive)
+        # (like the FlowPT Python API, this logic is case preserving, not case insensitive)
         path_lower = path.lower()
         proj_path_lower = project_path.lower()
         # check if the path matches. Either
@@ -639,7 +639,7 @@ def _get_pipeline_configs_for_project(project_id, data):
     """
     Given a project id, return a list of associated pipeline configurations.
 
-    Based on the Shotgun cache data, generates a list of project root locations.
+    Based on the FlowPT cache data, generates a list of project root locations.
     These are then compared (case insensitively) against the given path and
     if it is determined that the input path belongs to any of these project
     roots, the list of pipeline configuration objects for that root is returned.
@@ -675,13 +675,13 @@ def _get_pipeline_configs_for_project(project_id, data):
 
 def __get_project_id(entity_type, entity_id, force=False):
     """
-    Connects to Shotgun and retrieves the project id for an entity.
+    Connects to FlowPT and retrieves the project id for an entity.
 
     Uses a cache if possible.
 
-    :param entity_type: Shotgun Entity type
-    :param entity_id: Shotgun entity id
-    :param force: Force read values from Shotgun
+    :param entity_type: FlowPT Entity type
+    :param entity_id: FlowPT entity id
+    :param force: Force read values from FlowPT
     :returns: project id (int) or None if not found
     """
     if entity_type == "Project":
@@ -715,9 +715,9 @@ def __get_project_id(entity_type, entity_id, force=False):
 
 def _get_pipeline_configs(force=False):
     """
-    Connects to Shotgun and retrieves information about all projects
-    and all pipeline configurations in Shotgun. Adds this to the disk cache.
-    If a cache already exists, this is used instead of talking to Shotgun.
+    Connects to FlowPT and retrieves information about all projects
+    and all pipeline configurations in FlowPT. Adds this to the disk cache.
+    If a cache already exists, this is used instead of talking to FlowPT.
 
     To force a re-cache, set the force flag to True.
 

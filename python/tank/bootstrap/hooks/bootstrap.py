@@ -37,7 +37,7 @@ class Bootstrap(get_hook_baseclass()):
         The default implementation copies the arguments into the attributes named ``shotgun``,
         ``pipeline_configuration_id`` and ``configuration_descriptor``.
 
-        :param shotgun: Connection to the Shotgun site.
+        :param shotgun: Connection to the FlowPT site.
         :type shotgun: :class:`~shotgun_api3.Shotgun`
 
         :param int pipeline_configuration_id: Id of the pipeline configuration we're bootstrapping into.

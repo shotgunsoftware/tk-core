@@ -101,7 +101,7 @@ class UserWorkspace(Entity):
 
             if not user:
                 msg = (
-                    "Folder Creation Error: Could not find a HumanUser in PTR with login "
+                    "Folder Creation Error: Could not find a HumanUser in FlowPT with login "
                     "matching the local login. Check that the local login corresponds to a "
                     "user in shotgun."
                 )

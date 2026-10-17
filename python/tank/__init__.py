@@ -81,7 +81,7 @@ def __fix_tank_vendor():
         # Move tank_vendor out of the way instead of simply removing it from sys.modules.
         # If the modules are still in use, removing them from sys.modules seems to do
         # some cleanup of the modules themselves, which we do not want. For example,
-        # if a Shotgun connection is still used from the old tank_vendor after the swap
+        # if a FlowPT connection is still used from the old tank_vendor after the swap
         # happened, then the global methods from shotgun.py like _translate_filters
         # will turn to None. It's all a bit mysterious to be honest, but considering we're
         # also following the same pattern in bootstrap/import_handler.py, it seems

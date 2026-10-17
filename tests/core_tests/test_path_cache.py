@@ -39,7 +39,7 @@ def add_item_to_cache(path_cache, entity, path, primary=True):
 
 def sync_path_cache(tk, force_full_sync=False):
     """
-    Synchronizes the path cache with Shotgun.
+    Synchronizes the path cache with FlowPT.
 
     :param force_full_sync: Force a full sync.
     :returns: log output in a variable
@@ -387,10 +387,10 @@ class TestAddMapping(TestPathCache):
         """
         Verifies that path-to-rowid matching in _upload_cache_data_to_shotgun
         survives separator differences between the locally cached path and
-        the local_path returned in Shotgun's response.
+        the local_path returned in FlowPT's response.
 
         On Windows, locally cached paths use backslashes (per _sanitize_path),
-        while Shotgun normalizes the local_path it stores to forward slashes.
+        while FlowPT normalizes the local_path it stores to forward slashes.
         Without the normalization in _rowid_from_filesystem_entity, the
         string-equality compare fails and add_mappings raises TankError on
         every Windows folder creation flow.
@@ -402,7 +402,7 @@ class TestAddMapping(TestPathCache):
         full_path = os.path.join(self.project_root, relative_path)
 
         # Wrap Mockgun's batch so the response uses forward slashes for
-        # local_path, mirroring real Shotgun's normalization on storage.
+        # local_path, mirroring real FlowPT's normalization on storage.
         original_batch = self.tk.shotgun.batch
 
         def slash_normalizing_batch(batch_data):
@@ -653,7 +653,7 @@ class TestShotgunSync(TankTestBase):
         # make a copy of the path cache at this point
         shutil.copy(pcl, "%s.snap1" % pcl)
 
-        # now insert a new path in Shotgun
+        # now insert a new path in FlowPT
         folder.process_filesystem_structure(
             self.tk, self.task["type"], self.task["id"], preview=False, engine=None
         )
@@ -689,7 +689,7 @@ class TestShotgunSync(TankTestBase):
         # now clear the path cache completely. This should trigger a full flush
         os.remove(pcl)
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete PTR folder sync" in log)
+        self.assertTrue("Performing a complete FlowPT folder sync" in log)
 
         # check that the sync happend
         self.assertEqual(
@@ -841,7 +841,7 @@ class TestShotgunSync(TankTestBase):
 
         # check that this triggers a full sync
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete PTR folder sync" in log)
+        self.assertTrue("Performing a complete FlowPT folder sync" in log)
 
     def test_multiple_projects_eventlog(self):
         """
@@ -877,7 +877,7 @@ class TestShotgunSync(TankTestBase):
 
         # now because we deleted our path cache, we will do a full sync
         log = sync_path_cache(self.tk)
-        self.assertTrue("Performing a complete PTR folder sync" in log)
+        self.assertTrue("Performing a complete FlowPT folder sync" in log)
 
         # now if we sync again, this should be incremental and the sync
         # should detect that there are no new entries for this project,
@@ -1222,7 +1222,7 @@ class TestPathCacheDelete(TankTestBase):
         )
         self.assertEqual(len(paths), 1)
 
-        # Remove it from Shotgun.
+        # Remove it from FlowPT.
         self._remove_filesystem_locations_by_paths(paths)
 
         # Synchronize everything back locally and make sure the path is now gone.
@@ -1245,10 +1245,10 @@ class TestPathCacheDelete(TankTestBase):
         )
         self.assertEqual(len(paths), 1)
 
-        # Remove that path from Shotgun.
+        # Remove that path from FlowPT.
         self._remove_filesystem_locations_by_paths(paths)
 
-        # Let's pretend another computer created entries in Shotgun.
+        # Let's pretend another computer created entries in FlowPT.
         new_shot_path = os.path.join(self.project_root, "new_shot")
         with self.mock_remote_path_cache() as pc:
             add_item_to_cache(pc, self._shot_entity, new_shot_path)
@@ -1288,7 +1288,7 @@ class TestPathCacheDelete(TankTestBase):
         self._pc.synchronize()
         # We can't know when syncing if entries are currently in the cache, so this should always be called
         self.assertEqual(self._pc._remove_filesystem_location_entities.call_count, 1)
-        # However, since there is no filsystem location anymore in Shotgun, we shouldn't have even tried
+        # However, since there is no filsystem location anymore in FlowPT, we shouldn't have even tried
         # to import it.
         self.assertEqual(self._pc._import_filesystem_location_entry.call_count, 0)
 
@@ -1310,13 +1310,13 @@ class TestPathCacheDelete(TankTestBase):
             add_item_to_cache(pc, self._shot_entity, original_path)
             self._remove_filesystem_locations_by_paths([original_path], pc)
 
-            # Sync the changes from Shotgun locally.
+            # Sync the changes from FlowPT locally.
             pc.synchronize()
 
             add_item_to_cache(pc, self._shot_entity, original_path)
             self._remove_filesystem_locations_by_paths([original_path], pc)
 
-            # Sync the changes from Shotgun locally.
+            # Sync the changes from FlowPT locally.
             pc.synchronize()
 
             add_item_to_cache(pc, self._shot_entity, updated_path)
@@ -1372,7 +1372,7 @@ class TestPathCacheDelete(TankTestBase):
 
     def _remove_filesystem_locations_by_paths(self, paths, pc=None):
         """
-        Removes the FilesystemLocations entities from Shotgun associated with a given set of paths.
+        Removes the FilesystemLocations entities from FlowPT associated with a given set of paths.
 
         :param list paths: Paths that need to be unregistered.
         :param pc: Path cache to sync with. If None, the one initialized during setUp will be used.

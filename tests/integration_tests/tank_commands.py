@@ -54,7 +54,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_01_setup_legacy_bootstrap_core(self):
         """
-        Sets up a site-wide configuration like Shotgun Desktop 1.3.6 used to do so we
+        Sets up a site-wide configuration like FlowPT Desktop 1.3.6 used to do so we
         can make sure it doesn't get broken by more recent versions of tk-core.
         """
         self.remove_files(self.legacy_bootstrap_core, self.site_config_location)

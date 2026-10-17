@@ -9,13 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Utilities relating to Shotgun entities
+Utilities relating to FlowPT entities
 """
 
 from ..errors import TankError
 from . import constants, sgre as re
 
-# A dictionary for Shotgun entities which do not store their name
+# A dictionary for FlowPT entities which do not store their name
 # in the standard "code" field.
 SG_ENTITY_SPECIAL_NAME_FIELDS = {
     "ActionMenuItem": "title",
@@ -46,7 +46,7 @@ SG_ENTITY_SPECIAL_NAME_FIELDS = {
 
 def get_sg_entity_name_field(entity_type):
     """
-    Return the Shotgun name field to use for the specified entity type.
+    Return the FlowPT name field to use for the specified entity type.
 
     :param str entity_type: The entity type to get the name field for.
     :returns: The name field for the specified entity type.
@@ -57,7 +57,7 @@ def get_sg_entity_name_field(entity_type):
 
 def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
-    Generates a string value given a Shotgun value.
+    Generates a string value given a FlowPT value.
     This logic is in a hook but it typically does conversions such as:
 
     * "foo" ==> "foo"
@@ -68,10 +68,10 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     This method may also raise exceptions in the case the string value is not valid.
 
     :param tk: Sgtk api instance
-    :param sg_entity_type: the Shotgun entity type e.g. 'Shot'
-    :param sg_id: The Shotgun id for the record, e.g 1234
+    :param sg_entity_type: the FlowPT entity type e.g. 'Shot'
+    :param sg_id: The FlowPT id for the record, e.g 1234
     :param sg_field_name: The field to generate value for, e.g. 'sg_sequence'
-    :param data: The Shotgun entity data chunk that should be converted to a string.
+    :param data: The FlowPT entity data chunk that should be converted to a string.
     """
     # call out to core hook
     return tk.execute_core_hook(
@@ -85,10 +85,10 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
 
 class EntityExpression(object):
     """
-    Represents a name expression for a Shotgun entity.
-    A name expression converts a pattern and a set of Shotgun data into a string:
+    Represents a name expression for a FlowPT entity.
+    A name expression converts a pattern and a set of FlowPT data into a string:
 
-    Expression                 Shotgun Entity Data                          String Result
+    Expression                 FlowPT Entity Data                          String Result
     ----------------------------------------------------------------------------------------
     * "code"                 + {"code": "foo_bar"}                      ==> "foo_bar"
     * "{code}_{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
@@ -103,13 +103,13 @@ class EntityExpression(object):
 
     * "{code:^([^_]+)}/{code:^[^_]+(.+)}" + {"code": "foo_bar"} ==> "foo/bar"
 
-    It it is always connected to a specific Shotgun entity type and
-    the fields need to be Shotgun fields that exists for that entity type.
+    It it is always connected to a specific FlowPT entity type and
+    the fields need to be FlowPT fields that exists for that entity type.
     """
 
     def __init__(self, tk, entity_type, field_name_expr):
         """
-        :param str entity_type: Associated Shotgun entity type.
+        :param str entity_type: Associated FlowPT entity type.
         :param str field_name_expr: Expression, e.g. '{code}/foo'
         """
         self._tk = tk
@@ -230,10 +230,10 @@ class EntityExpression(object):
 
     def get_shotgun_fields(self):
         """
-        Returns the Shotgun fields that are needed in order to
+        Returns the FlowPT fields that are needed in order to
         build this name expression. Returns all fields, including optional.
 
-        :returns: Set of Shotgun field names, e.g. ('code', 'sg_sequence.Sequence.code')
+        :returns: Set of FlowPT field names, e.g. ('code', 'sg_sequence.Sequence.code')
         """
         # use the longest expression - this contains the most fields
         longest_expr = self._sorted_exprs[0]
@@ -276,7 +276,7 @@ class EntityExpression(object):
                 # required value was not provided!
                 raise TankError(
                     "Folder Configuration Error: "
-                    "A PTR field '%s' is being requested as part of the expression "
+                    "A FlowPT field '%s' is being requested as part of the expression "
                     "'%s' when creating folders connected to entities of type %s, "
                     "however no such field exists in Flow Production Tracking. Please review your "
                     "configuration!"
@@ -307,7 +307,7 @@ class EntityExpression(object):
             raise TankError(
                 "Folder Configuration Error. Could not create folders for %s! "
                 "The expression %s refers to one or more values that are blank "
-                "in PTR and a folder can therefore "
+                "in FlowPT and a folder can therefore "
                 "not be created." % (nice_name, self._field_name_expr)
             )
 
@@ -325,11 +325,11 @@ class EntityExpression(object):
         """
         field_defs = self._variations[expression]
 
-        # convert Shotgun values to string values
+        # convert FlowPT values to string values
         # key these by their full expression
         str_data = {}
 
-        # get the Shotgun id from the Shotgun entity dict
+        # get the FlowPT id from the FlowPT entity dict
         sg_id = values.get("id")
 
         # first make sure that each field is valid
@@ -337,7 +337,7 @@ class EntityExpression(object):
             full_sg_field_name = field_def["full_field_name"]
             token = field_def["token"]
 
-            # get value from Shotgun data dict
+            # get value from FlowPT data dict
             raw_val = values.get(full_sg_field_name)
             if raw_val is None:
                 # cannot resolve this!

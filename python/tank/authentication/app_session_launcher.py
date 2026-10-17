@@ -409,7 +409,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the PTR site",
+                "Unable to communicate with the FlowPT site",
                 parent_exception=exc,
             )
 
@@ -425,7 +425,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the PTR site",
+                "Unable to communicate with the FlowPT site",
                 parent_exception=exc,
             )
 

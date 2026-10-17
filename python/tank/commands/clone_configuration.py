@@ -48,7 +48,7 @@ class CloneConfigAction(Action):
         }
 
         self.parameters["user_id"] = {
-            "description": "PTR user id to associate the cloned configuration with.",
+            "description": "FlowPT user id to associate the cloned configuration with.",
             "default": None,
             "type": "int",
         }
@@ -133,7 +133,7 @@ def clone_pipeline_configuration_html(
     Clones a pipeline configuration, not necessarily the one associated with the current tk handle.
 
     This script is called from the tank command directly and is what gets executed if someone
-    tries to run the clone command from inside of Shotgun by right clicking on a Pipeline
+    tries to run the clone command from inside of FlowPT by right clicking on a Pipeline
     Configuration entry and go select the clone action.
     """
 
@@ -218,7 +218,7 @@ def _do_clone(
             "Cannot clone! Target folder '%s' already exists!" % target_folder
         )
 
-    # Register the new entity in Shotgun. This is being done first, because one
+    # Register the new entity in FlowPT. This is being done first, because one
     # common problem is the user's permissions not being sufficient to allow them
     # to create the PC entity. In this situation, we want to fail quickly and not
     # leave garbage files on disk. As such, we do this first, then copy the config
@@ -233,7 +233,7 @@ def _do_clone(
     }
     log.debug("Create sg: %s" % str(data))
     pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
-    log.debug("Created in PTR: %s" % str(pc_entity))
+    log.debug("Created in FlowPT: %s" % str(pc_entity))
 
     # copy files and folders across
     try:

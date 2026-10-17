@@ -41,7 +41,7 @@ class SymlinkToken(object):
         Returns a resolved value for this token.
 
         :param folder_obj: :class:`Folder` to evaluate
-        :param sg_data: Shotgun data dictionary.
+        :param sg_data: FlowPT data dictionary.
         """
         if self._name.startswith("$"):
             # strip the dollar sign
@@ -281,7 +281,7 @@ class FilterExpressionToken(object):
         if self._sg_data_key not in shotgun_data:
             raise TankError(
                 "Cannot resolve data key %s from "
-                "PTR data bundle %s" % (self._sg_data_key, shotgun_data)
+                "FlowPT data bundle %s" % (self._sg_data_key, shotgun_data)
             )
 
         value = shotgun_data[self._sg_data_key]

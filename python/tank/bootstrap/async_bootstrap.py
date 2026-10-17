@@ -57,7 +57,7 @@ class AsyncBootstrapWrapper(QtCore.QObject):
 
         :param toolkit_manager: :class:`~sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
         :param engine_name: Name of the engine to launch.
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
@@ -191,7 +191,7 @@ class _BootstrapToolkitWorker(QtCore.QObject):
 
         :param toolkit_manager: :class:`~sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
         :param engine_name: Name of the engine used to resolve a configuration.
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param parent: The parent object that will be used for the worker.
         """

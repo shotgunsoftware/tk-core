@@ -27,7 +27,7 @@ class BootstrapPipTests(SgtkIntegrationTest):
     def setUpClass(cls):
         super(BootstrapPipTests, cls).setUpClass()
 
-        # Mockup FPTR entities
+        # Mockup FlowPT entities
         cls.project = cls.create_or_update_project(
             "Pip Install SGTK", {"tank_name": "pip_install_sgtk"}
         )

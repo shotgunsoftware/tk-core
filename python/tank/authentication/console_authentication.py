@@ -61,7 +61,7 @@ class ConsoleAuthenticationHandlerBase(object):
         logger.debug("Requesting password on command line.")
         print("[Flow Production Tracking Authentication]\n")
         while True:
-            # Get the PTR URL from the user or from the given hostname
+            # Get the FlowPT URL from the user or from the given hostname
             try:
                 hostname = self._get_sg_url(hostname, http_proxy)
             except EOFError:
@@ -236,7 +236,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
     def _get_sg_url(self, hostname, http_proxy):
         """
-        Prompts the user for the PTR host.
+        Prompts the user for the FlowPT host.
         :param host Host to authenticate for.
         :param http_proxy: Proxy to connect to when authenticating.
         :returns: The hostname.

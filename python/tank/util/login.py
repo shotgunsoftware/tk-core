@@ -81,10 +81,10 @@ def get_current_user(tk):
 
     If a user has been authenticated via a login prompt, this method will return the credentials
     associated with that user. If Toolkit has been configured to use a script user to connect to
-    Shotgun, a core hook will be executed to established which user is associated with the current
+    FlowPT, a core hook will be executed to established which user is associated with the current
     session. This is usually based on the currently logged in user.
 
-    :returns: None if the user is not found in Shotgun. Otherwise, it returns a dictionary
+    :returns: None if the user is not found in FlowPT. Otherwise, it returns a dictionary
               with the following fields: id, type, email, login, name, image, firstname, lastname
     """
     global g_shotgun_current_user_cache
@@ -97,7 +97,7 @@ def get_current_user(tk):
     user = api.get_authenticated_user()
 
     # If an authenticated user has been set and it has a name, just use that as login for the
-    # Shotgun query. If there is no user, that's probably because we're running in an old
+    # FlowPT query. If there is no user, that's probably because we're running in an old
     # script that doesn't use the authenticated user concept. In that case, we'll do what we've
     # always been doing in the past, which is run the hook. Obviously, if the user didn't
     # have a login name (which happens when the authenticated user is a script user), we'll also run
