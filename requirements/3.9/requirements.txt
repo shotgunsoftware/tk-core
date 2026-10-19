@@ -1,3 +1,4 @@
+certifi==2026.6.17
 distro==1.4.0
 fileseq==2.1.2
 packaging==25.0
