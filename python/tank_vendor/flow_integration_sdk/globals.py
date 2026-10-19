@@ -34,8 +34,8 @@ from .utils import get_logger
 # The schemas below are official Autodesk supported types that are
 # commonly relevant to asset management.
 
-BASE_COMPONENT_TYPE_ID = "autodesk.me:component-1.0.0"
-BASE_PROPERTY_TYPE_ID = "autodesk.me:property-2.0.0"
+BASE_COMPONENT_TYPE_ID = "autodesk.me:component-2.0.0"
+BASE_PROPERTY_TYPE_ID = "autodesk.me:property-3.0.0"
 BASE_TYPE_ID = "autodesk.me:type-1.1.0"
 BINARY_TYPE_ID = "autodesk.me:component.binary-1.0.0"
 COMMENT_TYPE_ID = "autodesk.me:component.publishComment-1.0.0"
