@@ -244,23 +244,30 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
         """
         super().__init__(descriptor_dict, sg_connection, bundle_type)
 
-        _path = self._normalize_path(descriptor_dict.get("path"))
+        # strip trailing slashes so os.path.basename builds the name correctly
+        self._path = descriptor_dict.get("path").rstrip("/\\")
+        _path = self._normalize_path(self._path)
 
         if self._path_is_local(_path):
-            self._path = self._execute_git_commands(
-                ["git", "-C", _path, "remote", "get-url", "origin"]
-            )
-            log.debug(
-                "Get remote url from local repo: {} -> {}".format(_path, self._path)
-            )
+            try:
+                remote_url = self._execute_git_commands(
+                    ["git", "-C", _path, "remote", "get-url", "origin"]
+                )
+            except TankGitError:
+                log.debug("No 'origin' remote for %s, using it directly." % _path)
+            else:
+                log.debug(
+                    "Get remote url from local repo: {} -> {}".format(
+                        _path, _sanitize_url(remote_url)
+                    )
+                )
+                self._path = remote_url
             filtered_local_data = {
                 k: v
                 for k, v in self._fetch_local_data(_path).items()
                 if k not in descriptor_dict
             }
             descriptor_dict.update(filtered_local_data)
-        else:
-            self._path = _path
 
     def is_git_available(self):
         log.debug("Checking that git exists and can be executed...")

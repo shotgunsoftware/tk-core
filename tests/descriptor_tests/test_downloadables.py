@@ -636,7 +636,9 @@ class Implementation(object):
         )
         if os.path.exists(git_location):
             # cant use `shutil.move` on readonly files on windows
-            shutil.copytree(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
             shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
@@ -690,7 +692,9 @@ class Implementation(object):
         )
         if os.path.exists(git_location):
             # cant use `shutil.move` on readonly files on windows
-            shutil.copytree(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
             shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
@@ -728,7 +732,9 @@ class Implementation(object):
         )
         if os.path.exists(git_location):
             # cant use `shutil.move` on readonly files on windows
-            shutil.copytree(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
             shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists

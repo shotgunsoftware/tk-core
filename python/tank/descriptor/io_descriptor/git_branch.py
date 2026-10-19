@@ -158,7 +158,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
-            commands = [f"checkout", "-q", self._version]
+            commands = ["checkout", "-q", self._version]
             self._clone_then_execute_git_commands(
                 target_path,
                 commands,
