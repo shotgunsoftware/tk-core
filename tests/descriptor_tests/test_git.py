@@ -65,12 +65,12 @@ class TestGitIODescriptor(ShotgunTestBase):
         }
 
         desc = self._create_desc(location_dict, True)
-        self.assertEqual(desc.version, "30c293f29a50b1e58d2580522656695825523dba")
+        self.assertEqual(desc.version, "dac945d50d2bd0a828181dc3e1d31cfea2c64065")
 
         location_dict = {"type": "git", "path": self.git_repo_uri}
 
         desc = self._create_desc(location_dict, True)
-        self.assertEqual(desc.version, "v0.16.1")
+        self.assertEqual(desc.version, "v0.18.2")
 
     @skip_if_git_missing
     def test_tag(self):
@@ -97,20 +97,20 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         latest_desc = desc.find_latest_version()
 
-        self.assertEqual(latest_desc.version, "v0.16.1")
+        self.assertEqual(latest_desc.version, "v0.18.2")
         self.assertEqual(latest_desc.get_path(), None)
 
         latest_desc.ensure_local()
 
-        self.assertEqual(latest_desc.find_latest_cached_version().version, "v0.16.1")
+        self.assertEqual(latest_desc.find_latest_cached_version().version, "v0.18.2")
 
         self.assertEqual(
-            latest_desc.find_latest_cached_version("v0.16.x").version, "v0.16.1"
+            latest_desc.find_latest_cached_version("v0.18.x").version, "v0.18.2"
         )
 
         self.assertEqual(
             latest_desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.16.1"),
+            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.18.2"),
         )
 
         latest_desc = desc.find_latest_version("v0.15.x")
@@ -179,7 +179,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
 
         self.assertEqual(
-            latest_desc.version, "30c293f29a50b1e58d2580522656695825523dba"
+            latest_desc.version, "dac945d50d2bd0a828181dc3e1d31cfea2c64065"
         )
         self.assertEqual(latest_desc.get_path(), None)
 
@@ -188,7 +188,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(
             latest_desc.get_path(),
             os.path.join(
-                self.bundle_cache, "gitbranch", "tk-config-default.git", "30c293f"
+                self.bundle_cache, "gitbranch", "tk-config-default.git", "dac945d"
             ),
         )
 
@@ -215,7 +215,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
 
         self.assertEqual(
-            latest_desc.version, "7fa75a749c1dfdbd9ad93ee3497c7eaa8e1a488d"
+            latest_desc.version, "b2960d7e8cce43dda63369a6805881443b3daf17"
         )
         self.assertEqual(latest_desc.get_path(), None)
 
@@ -224,7 +224,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(
             latest_desc.get_path(),
             os.path.join(
-                self.bundle_cache, "gitbranch", "tk-config-default.git", "7fa75a7"
+                self.bundle_cache, "gitbranch", "tk-config-default.git", "b2960d7"
             ),
         )
 
@@ -504,8 +504,8 @@ class TestGitIODescriptor(ShotgunTestBase):
         """
         Test that git_tag.py properly sanitizes exceptions in error handlers.
         """
+        from sgtk.descriptor.io_descriptor.git import TankGitError
         from sgtk.descriptor.io_descriptor.git_tag import IODescriptorGitTag
-        from tank.descriptor.errors import TankDescriptorError
 
         # Create a git tag descriptor with credentials
         location_dict = {
@@ -516,25 +516,32 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         desc = IODescriptorGitTag(location_dict, None, None)
 
-        # Mock _tmp_clone_then_execute_git_commands to raise an error
         from unittest.mock import patch
 
         from tank.util.process import SubprocessCalledProcessError
 
         cmd_with_creds = [
             "git",
-            "clone",
+            "ls-remote",
+            "-q",
+            "--tags",
             "https://token123@github.com/fake/nonexistent.git",
         ]
         mock_exc = SubprocessCalledProcessError(128, cmd_with_creds)
 
-        with patch.object(
-            desc, "_tmp_clone_then_execute_git_commands", side_effect=mock_exc
+        def fake_check_output(cmd: list, **kwargs: object) -> str:
+            if "ls-remote" in cmd:
+                raise mock_exc
+            return "/usr/bin/git"
+
+        with patch(
+            "tank.descriptor.io_descriptor.git._check_output",
+            side_effect=fake_check_output,
         ):
             try:
                 desc._fetch_tags()
-                self.fail("Expected TankDescriptorError to be raised")
-            except TankDescriptorError as e:
+                self.fail("Expected TankGitError to be raised")
+            except TankGitError as e:
                 # Verify credentials are not in the error message
                 error_msg = str(e)
                 self.assertNotIn("token123", error_msg)
