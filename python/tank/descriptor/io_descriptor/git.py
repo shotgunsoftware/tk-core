@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import json
 import os
-import platform
 import shlex
 import subprocess
 import urllib.parse
@@ -23,7 +22,6 @@ from ..errors import TankDescriptorError, TankError
 from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
-IS_WINDOWS = platform.system() == "Windows"
 
 
 def _check_output(*args, **kwargs):
@@ -267,7 +265,7 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
     def is_git_available(self):
         log.debug("Checking that git exists and can be executed...")
 
-        if IS_WINDOWS:
+        if is_windows():
             cmd = "where"
         else:
             cmd = "which"
