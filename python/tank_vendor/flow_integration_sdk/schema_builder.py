@@ -27,7 +27,7 @@ from .exceptions import (
     FlowSchemaError,
     FlowSchemaLibraryError,
 )
-from .globals import KIND_BASE_TYPE_ID, get_client
+from .globals import KIND_BASE_TYPE_ID, KIND_RETIRED_BASE_TYPE_IDS, get_client
 from .objects import FlowProject
 from . import schema
 from .schema import get_schema_id
@@ -512,6 +512,27 @@ def _create_schema_library(
         ) from e
 
 
+def _get_schema_ids_by_base_type(
+    client, collection_id: str, base_type_id: str
+) -> set[str]:
+    """Return the ids of all schemas in the collection that inherit, directly or
+    indirectly, from the given base type schema (for example
+    "autodesk.me:component-2.0.0").
+
+    Raises:
+        GQLAPIError, FlowConnectionError, ValidationError: If the query fails.
+    """
+    schemas_by_supertype_input = flow_model.SchemasBySuperTypeInput(
+        collection_id=collection_id,
+        type_id=base_type_id,
+        include_sub_sub_classes=True,
+    )
+    schema_query = client.service_schema.schemas_by_super_type(
+        variables=schemas_by_supertype_input
+    )
+    return set(schema_query.schema_types_iterator)
+
+
 def create_pipeline_schemas(project_id: str, config_path: str):
     """Create pipeline schemas under the schema library 'Flow Toolkit Library'
     for a CPA collection.
@@ -558,16 +579,32 @@ def create_pipeline_schemas(project_id: str, config_path: str):
     existing_schema_types = set()
     try:
         for kind in kinds_in_config:
-            base_type_id = KIND_BASE_TYPE_ID[kind]
-            schemas_by_supertype_input = flow_model.SchemasBySuperTypeInput(
-                collection_id=collection_id,
-                type_id=base_type_id,
-                include_sub_sub_classes=True,
+            # Schemas created under a base type that has since been replaced
+            # are not subclasses of the current base type. Query the retired
+            # base types too, otherwise those schemas look missing and
+            # creating them fails with "already exists".
+            base_type_ids = [KIND_BASE_TYPE_ID[kind]]
+            base_type_ids.extend(
+                retired_id
+                for retired_id in KIND_RETIRED_BASE_TYPE_IDS.get(kind, [])
+                if retired_id not in base_type_ids
             )
-            schema_query = client.service_schema.schemas_by_super_type(
-                variables=schemas_by_supertype_input
-            )
-            existing_schema_types.update(schema_query.schema_types_iterator)
+            for base_type_id in base_type_ids:
+                is_current = base_type_id == KIND_BASE_TYPE_ID[kind]
+                try:
+                    existing_schema_types.update(
+                        _get_schema_ids_by_base_type(
+                            client, collection_id, base_type_id
+                        )
+                    )
+                except GQLAPIError as e:
+                    # A retired base type may no longer exist, nothing can
+                    # inherit from it then.
+                    if is_current or e.error_code != "NOT_FOUND":
+                        raise
+                    logger.warning(
+                        f'Retired base type "{base_type_id}" not found, skipping.'
+                    )
         logger.info(
             f"Retrieved {len(existing_schema_types)} existing schemas for "
             f'collection "{collection_id}".'
