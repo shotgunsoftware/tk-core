@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+from typing import Any
 
 import sgtk
 from tank_test.tank_test_base import (
@@ -400,6 +401,188 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         self.assertEqual(desc.version, "v0")
         latest_desc = desc.find_latest_version()
         self.assertEqual(latest_desc.version, "v139")
+
+    @mock.patch(
+        "sgtk.descriptor.io_descriptor.shotgun_entity.IODescriptorShotgunEntity.has_remote_access",
+        return_value=True,
+    )
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_resolve_latest_when_version_omitted_by_id(
+        self, find_mock: mock.MagicMock, _remote_mock: mock.MagicMock
+    ) -> None:
+        """
+        Tests that a descriptor without a version resolves to the latest one
+        when resolve_latest is set, using the entity id.
+        """
+
+        def our_find_mock(*args: Any, **kwargs: Any) -> list:
+            self.assertEqual(args, ("Shot", [["id", "is", 456]]))
+            self.assertEqual(
+                kwargs,
+                {
+                    "retired_only": False,
+                    "fields": ["sg_field"],
+                    "filter_operator": None,
+                    "order": None,
+                },
+            )
+
+            return [
+                {
+                    "type": "Shot",
+                    "id": 456,
+                    "sg_field": {
+                        "type": "Attachment",
+                        "id": 139,
+                        "link_type": "upload",
+                        "name": "v1.2.3.zip",
+                        "content_type": "application/zip",
+                    },
+                }
+            ]
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 456,
+            },
+            bundle_cache_root_override=self.bundle_cache,
+            resolve_latest=True,
+        )
+
+        self.assertEqual(desc.version, "v139")
+        self.assertEqual(desc.get_dict()["version"], 139)
+
+    @mock.patch(
+        "sgtk.descriptor.io_descriptor.shotgun_entity.IODescriptorShotgunEntity.has_remote_access",
+        return_value=True,
+    )
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
+    def test_resolve_latest_when_version_omitted_by_name_and_proj(
+        self, find_mock: mock.MagicMock, _remote_mock: mock.MagicMock
+    ) -> None:
+        """
+        Tests that a descriptor without a version resolves to the latest one
+        when resolve_latest is set, using the entity name and project.
+        """
+
+        def our_find_mock(*args: Any, **kwargs: Any) -> list:
+            self.assertEqual(
+                args,
+                (
+                    "Shot",
+                    [
+                        ["code", "is", "Primary"],
+                        ["project", "is", {"type": "Project", "id": 1334}],
+                    ],
+                ),
+            )
+            self.assertEqual(
+                kwargs,
+                {
+                    "retired_only": False,
+                    "fields": ["sg_field"],
+                    "filter_operator": None,
+                    "order": None,
+                },
+            )
+
+            return [
+                {
+                    "type": "Shot",
+                    "id": 456,
+                    "sg_field": {
+                        "type": "Attachment",
+                        "id": 139,
+                        "link_type": "upload",
+                        "name": "v1.2.3.zip",
+                        "content_type": "application/zip",
+                    },
+                }
+            ]
+
+        find_mock.side_effect = our_find_mock
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "Primary",
+                "project_id": 1334,
+            },
+            bundle_cache_root_override=self.bundle_cache,
+            resolve_latest=True,
+        )
+
+        self.assertEqual(desc.version, "v139")
+        self.assertEqual(desc.get_dict()["version"], 139)
+
+    @mock.patch(
+        "sgtk.descriptor.io_descriptor.shotgun_entity.IODescriptorShotgunEntity.has_remote_access",
+        return_value=False,
+    )
+    def test_resolve_latest_when_version_omitted_offline(
+        self, _remote_mock: mock.MagicMock
+    ) -> None:
+        """
+        Tests that resolving the latest version without remote access reports
+        that the latest version could not be found, not an invalid version.
+        """
+        with self.assertRaises(sgtk.descriptor.TankDescriptorError) as cm:
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.APP,
+                {
+                    "type": "shotgun",
+                    "entity_type": "Shot",
+                    "field": "sg_field",
+                    "id": 456,
+                },
+                bundle_cache_root_override=self.bundle_cache,
+                resolve_latest=True,
+            )
+
+        self.assertIn("Could not get latest version", str(cm.exception))
+
+    def test_construction_with_latest_version(self) -> None:
+        """
+        Tests that "latest" is accepted as a version.
+        """
+        desc = self._create_desc(
+            {
+                "type": "shotgun",
+                "version": "latest",
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 123,
+            }
+        )
+        self.assertEqual(desc.version, "vlatest")
+
+    def test_latest_version_is_case_sensitive(self) -> None:
+        """
+        Tests that only the exact lowercase "latest" is accepted.
+        """
+        for version in ("Latest", "LATEST"):
+            with self.assertRaises(sgtk.descriptor.TankDescriptorError):
+                self._create_desc(
+                    {
+                        "type": "shotgun",
+                        "version": version,
+                        "entity_type": "Shot",
+                        "field": "sg_field",
+                        "id": 123,
+                    }
+                )
 
     @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_find_invalid_attachment(self, find_mock):
