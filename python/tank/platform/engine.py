@@ -26,7 +26,6 @@ import weakref
 from tank.flowam import (
     host as flow_host,  # noqa: F401 (used in return annotation)
     utils as flow_utils,
-    fd_project_setup as flow_project_setup,
 )
 
 from .. import hook

@@ -14,7 +14,6 @@ import re
 from enum import Enum
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
-
 from tank_vendor.flow_integration_sdk.exceptions import CreateAssetError, FlowError
 from tank_vendor.flow_integration_sdk.globals import (
     CG_ASSET_TYPE_ID,
@@ -36,12 +35,12 @@ from tank_vendor.flow_integration_sdk.publish import (
     publish_new_asset,
     publish_new_revision,
 )
-from tank_vendor.flow_integration_sdk.schema import get_schema_id
-from tank_vendor.flow_integration_sdk.utils import get_logger, trace
 from tank_vendor.flow_integration_sdk.query import (
     generate_project_filter,
     medm_assets_by_project,
 )
+from tank_vendor.flow_integration_sdk.schema import get_schema_id
+from tank_vendor.flow_integration_sdk.utils import get_logger, trace
 
 from .utils import BaseInputs
 

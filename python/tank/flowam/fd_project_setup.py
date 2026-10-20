@@ -20,19 +20,17 @@ simulate data federation.  It includes code for
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError
-
 from tank_vendor.flow_integration_sdk.exceptions import FlowError
 from tank_vendor.flow_integration_sdk.globals import get_client
 from tank_vendor.flow_integration_sdk.objects import FlowAsset
 from tank_vendor.flow_integration_sdk.publish import (
     ComponentSpec,
+    TypeComponentSpec,
     publish_new_asset,
     publish_new_revision,
-    TypeComponentSpec,
 )
 from tank_vendor.flow_integration_sdk.schema import get_schema_id
 from tank_vendor.flow_integration_sdk.utils import get_logger
-
 
 # Asset name templates
 ASSET_TYPE = "FPT Asset Type - %s"
@@ -740,7 +738,7 @@ def _create_sequence_deliverables(sg_project_id: str, medm_project_id: str, sg):
         # Find episode proxy to be associated
         ep_field = "episode" if "episode" in sg_sequence else "sg_episode"
         if sg_sequence[ep_field]:
-            ep_name = f'{sg_sequence[ep_field]["name"]}:{sg_sequence[ep_field]["id"]}'
+            ep_name = f"{sg_sequence[ep_field]['name']}:{sg_sequence[ep_field]['id']}"
             if ep_name not in ASSET_MAP:
                 raise RuntimeError(f'Could not find MEDM proxy episode "{ep_name}".')
             ep_id = ASSET_MAP[ep_name]

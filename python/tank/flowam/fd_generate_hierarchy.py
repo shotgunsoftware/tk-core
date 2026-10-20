@@ -11,18 +11,18 @@
 """
 Test utility to read query config and generate a printed hierarchy.
 """
+
 import json
 import os
 import re
 from typing import Any
 
 from tank_vendor.flow_integration_sdk.objects import FlowAsset, FlowProject
-from tank_vendor.flow_integration_sdk.utils import get_logger
 from tank_vendor.flow_integration_sdk.query import (
     medm_assets_by_ids,
     medm_assets_by_project,
 )
-
+from tank_vendor.flow_integration_sdk.utils import get_logger
 
 # Read query config
 QUERY_CONFIG = None
