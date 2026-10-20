@@ -584,11 +584,7 @@ def create_pipeline_schemas(project_id: str, config_path: str):
             # base types too, otherwise those schemas look missing and
             # creating them fails with "already exists".
             base_type_ids = [KIND_BASE_TYPE_ID[kind]]
-            base_type_ids.extend(
-                retired_id
-                for retired_id in KIND_RETIRED_BASE_TYPE_IDS.get(kind, [])
-                if retired_id not in base_type_ids
-            )
+            base_type_ids.extend(KIND_RETIRED_BASE_TYPE_IDS[kind])
             for base_type_id in base_type_ids:
                 is_current = base_type_id == KIND_BASE_TYPE_ID[kind]
                 try:
