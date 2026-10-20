@@ -5,10 +5,10 @@
         "icon": "folder",
         "child_filters": {
             "deliverable": {
-                "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.asset-1.0.0'"
+                "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             },
             "step": {
-                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Asset'"
+                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             }
         }
     },
@@ -18,10 +18,10 @@
         "icon": "folder",
         "child_filters": {
             "deliverable": {
-                "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.shot-1.0.0'"
+                "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             },
             "step": {
-                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Shot'"
+                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             }
         }
     },
@@ -31,25 +31,24 @@
         "icon": "folder",
         "child_filters": {
             "deliverable": {
-                "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.sequence-1.0.0'"
+                "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.sequence-1.0.0'"
             }
         }
     },
     "{sg_asset_type}": {
         "kind": "token",
-        "label": "{DATA.PROPERTY(name)}",
+        "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "folder",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.dynamicEnum-1.0.0';components[medm21619349.shared:type.dynamicEnum-1.0.0].propertyScope=='Asset Type'",
-            "assets_resolver": "COMPONENT(name=Dynamic Enum).PROPERTY($id:values)",
-            "data_resolver": "COMPONENT(name=Dynamic Enum Value)"
+            "search_filter": "has.component.type=='autodesk.me.dev:type.dynamicEnum-1.0.0';components[typeId:autodesk.me.dev:type.dynamicEnum-1.0.0].data.propertyScope=='assetType'",
+            "assets_resolver": "COMPONENT(name=dynamicEnum).PROPERTY($id:values)"
         },
         "child_filters": {
             "asset": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.asset-1.0.0].assetType=='{DATA.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.asset-1.0.0].data.assetType.value.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             },
             "step": {
-                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Asset'"
+                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             }
         }
     },
@@ -59,28 +58,27 @@
         "icon": "folder",
         "child_filters": {
             "asset": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.asset-1.0.0].assetType=='No Type'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.asset-1.0.0].data.assetType.value.objectId.id=nlike='urn:medm:*'"
             },
             "step": {
-                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Asset'"
+                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             }
         }
     },
     "{sg_shot_type}": {
         "kind": "token",
-        "label": "{DATA.PROPERTY(name)}",
+        "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "folder",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.dynamicEnum-1.0.0';components[medm21619349.shared:type.dynamicEnum-1.0.0].propertyScope=='Shot Type'",
-            "assets_resolver": "COMPONENT(name=Dynamic Enum).PROPERTY($id:values)",
-            "data_resolver": "COMPONENT(name=Dynamic Enum Value)"
+            "search_filter": "has.component.type=='autodesk.me.dev:type.dynamicEnum-1.0.0';components[typeId:autodesk.me.dev:type.dynamicEnum-1.0.0].propertyScope=='shotType'",
+            "assets_resolver": "COMPONENT(name=dynamicEnum).PROPERTY($id:values)"
         },
         "child_filters": {
             "shot": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].shotType=='{DATA.COMPONENT(name=Dynamic Enum Value).PROPERTY(name)}'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.shot-1.0.0].data.shotType.value.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             },
             "step": {
-                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Shot'"
+                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             }
         }
     },
@@ -90,10 +88,10 @@
         "icon": "folder",
         "child_filters": {
             "shot": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].shotType=='No Type'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.shot-1.0.0].data.shotType.value.objectId.id=nlike='urn:medm:*'"
             },
             "step": {
-                "search_filter": "components[medm21619349.shared:type.pipelineStep-1.0.3].entityType=='Shot'"
+                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             }
         }
     },
@@ -102,14 +100,14 @@
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.asset-1.0.0'"
+            "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
         },
         "child_filters": {
             "step": {
-                "assets_resolver": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
+                "assets_resolver": "COMPONENT(name=pipelineSteps).PROPERTY($id:pipelineSteps)"
             },
             "for_deliverable": {
-                "search_filter": "components[medm21619349.shared:component.forDeliverable-1.0.0].targetDeliverable.objectId.id=='{DATA.ATTRIBUTE(id)}'"
+                "search_filter": "components[typeId:autodesk.me.dev:component.forDeliverable-1.0.0].data.targetDeliverable.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             }
         }
     },
@@ -119,12 +117,12 @@
         "icon": "color:{DATA.PROPERTY(backgroundColor)}",
         "color": "{DATA.PROPERTY(backgroundColor)}",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.pipelineStep-1.0.3'",
-            "data_resolver": "COMPONENT(name=Pipeline Step)"
+            "search_filter": "has.component.type=='autodesk.me:type.pipelineStep-1.0.0'",
+            "data_resolver": "COMPONENT(name=pipelineStep)"
         },
         "child_filters": {
             "for_step": {
-                "search_filter": "components[medm21619349.shared:component.forPipelineStep-1.0.1].targetStep.objectId.id=='{DATA.ATTRIBUTE(id)}';components[medm21619349.shared:component.forPipelineStep-1.0.1].targetDeliverable.objectId.id=='{ASSET.ATTRIBUTE(id)}' or components[medm21619349.shared:component.forPipelineStep-1.0.1].targetDeliverable.objectId.id=='{SHOT.ATTRIBUTE(id)}'"
+                "search_filter": "components[typeId:medm24683330.shared:component.forPipelineStep-1.0.1].data.targetStep.objectId.id=='{DATA.ATTRIBUTE(id)}';(components[typeId:medm24683330.shared:component.forPipelineStep-1.0.1].data.targetDeliverable.objectId.id=='{ASSET.ATTRIBUTE(id)}' or components[typeId:medm24683330.shared:component.forPipelineStep-1.0.1].data.targetDeliverable.objectId.id=='{SHOT.ATTRIBUTE(id)}')"
             }
         }
     },
@@ -133,11 +131,11 @@
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "episode",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.episode-1.0.0'"
+            "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.episode-1.0.0'"
         },
         "child_filters": {
             "sequence": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=={DATA.ATTRIBUTE(id)}",
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.sequence-1.0.0].data.episode.objectId.id=={DATA.ATTRIBUTE(id)}",
                 "disable_tokens": [
                     "{Sequence}+No Sequence"
                 ]
@@ -150,7 +148,7 @@
         "icon": "episode",
         "child_filters": {
             "sequence": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.sequence-1.0.0].episode.objectId.id=notstartswith='urn:medm:'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.sequence-1.0.0].data.episode.objectId.id=nlike='urn:medm:*'"
             }
         }
     },
@@ -159,11 +157,11 @@
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "sequence",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.sequence-1.0.0'"
+            "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.sequence-1.0.0'"
         },
         "child_filters": {
             "shot": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=={DATA.ATTRIBUTE(id)}"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.shot-1.0.0].data.sequence.objectId.id=={DATA.ATTRIBUTE(id)}"
             }
         }
     },
@@ -173,7 +171,7 @@
         "icon": "sequence",
         "child_filters": {
             "shot": {
-                "search_filter": "components[medm21619349.shared:type.deliverable.shot-1.0.0].sequence.objectId.id=notstartswith='urn:medm:'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.shot-1.0.0].data.sequence.objectId.id=nlike='urn:medm:*'"
             }
         }
     },
@@ -182,25 +180,31 @@
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "shot",
         "resolution": {
-            "search_filter": "components.typeId=='medm21619349.shared:type.deliverable.shot-1.0.0'"
+            "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
         },
         "child_filters": {
             "step": {
-                "assets_resolver": "COMPONENT(name=Pipeline Steps).PROPERTY($id:targetStep)"
+                "assets_resolver": "COMPONENT(name=pipelineSteps).PROPERTY($id:pipelineSteps)"
             },
             "for_deliverable": {
-                "search_filter": "components[medm21619349.shared:component.forDeliverable-1.0.0].targetDeliverable.objectId.id=='{DATA.ATTRIBUTE(id)}'"
+                "search_filter": "components[typeId:autodesk.me.dev:component.forDeliverable-1.0.0].data.targetDeliverable.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             }
         }
     },
     "{For_Deliverable}": {
         "kind": "binary",
         "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset"
+        "icon": "asset",
+        "resolution": {
+            "search_filter": "has.component.type=='autodesk.me.dev:component.forDeliverable-1.0.0'"
+        }
     },
     "{For_Step}": {
         "kind": "binary",
         "label": "{DATA.ATTRIBUTE(name)}",
-        "icon": "asset"
+        "icon": "asset",
+        "resolution": {
+            "search_filter": "has.component.type=='medm24683330.shared:component.forPipelineStep-1.0.1'"
+        }
     }
 }

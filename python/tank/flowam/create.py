@@ -19,13 +19,13 @@ from tank_vendor.flow_integration_sdk.exceptions import CreateAssetError, FlowEr
 from tank_vendor.flow_integration_sdk.globals import (
     CG_ASSET_TYPE_ID,
     CG_SHOT_TYPE_ID,
-    DELIVERABLE_ASSET_TYPE,
-    DELIVERABLE_SHOT_TYPE,
+    DELIVERABLE_ASSET_TYPE_ID,
+    DELIVERABLE_SHOT_TYPE_ID,
     EXTERNAL_ID_TYPE_ID,
     FOLDER_TYPE_ID,
-    FOR_DELIVERABLE_TYPE,
+    FOR_DELIVERABLE_TYPE_ID,
     FOR_PIPELINE_STEP_TYPE,
-    PIPELINE_STEP_TYPE,
+    PIPELINE_STEP_TYPE_ID,
 )
 from tank_vendor.flow_integration_sdk.objects import FlowAsset, FlowProject
 from tank_vendor.flow_integration_sdk.publish import (
@@ -39,8 +39,8 @@ from tank_vendor.flow_integration_sdk.publish import (
 from tank_vendor.flow_integration_sdk.schema import get_schema_id
 from tank_vendor.flow_integration_sdk.utils import get_logger, trace
 from tank_vendor.flow_integration_sdk.query import (
-    generate_search_filter,
-    medm_search,
+    generate_project_filter,
+    medm_assets_by_project,
 )
 
 from .utils import BaseInputs
@@ -88,24 +88,24 @@ def _find_deliverable(project_id: str, sg_entity: dict) -> FlowAsset | None:
     sg_entity_type = sg_entity.get("type")
     sg_entity_id = sg_entity.get("id")
     if sg_entity_type == ASSET_TYPE:
-        deliverable_type = DELIVERABLE_ASSET_TYPE
+        deliverable_type_id = DELIVERABLE_ASSET_TYPE_ID
     elif sg_entity_type == SHOT_TYPE:
-        deliverable_type = DELIVERABLE_SHOT_TYPE
+        deliverable_type_id = DELIVERABLE_SHOT_TYPE_ID
     else:
         raise ValueError("sg_entity has invalid or missing type.")
     if not sg_entity_id:
         raise ValueError("sg_entity is missing 'id' field.")
 
-    q_filter = generate_search_filter(
-        type_id=get_schema_id(deliverable_type),
+    q_filter = generate_project_filter(
+        type_id=deliverable_type_id,
         components={
-            get_schema_id(deliverable_type): {},
+            deliverable_type_id: {},
             EXTERNAL_ID_TYPE_ID: {
                 "id": f"{sg_entity_type}:{sg_entity_id}",
             },
         },
     )
-    result = medm_search(project_id, q_filter=q_filter)
+    result = medm_assets_by_project(project_id, q_filter=q_filter)
     if result:
         return result[0]
     return None
@@ -129,17 +129,26 @@ def _find_pipeline_step(project_id: str, sg_pipeline_step: dict) -> FlowAsset | 
     if not sg_step_type:
         raise ValueError("sg_pipeline_step is missing 'entity_type' field.")
 
+    if sg_step_type == "Asset":
+        step_type_scope = DELIVERABLE_ASSET_TYPE_ID
+    elif sg_step_type == "Shot":
+        step_type_scope = DELIVERABLE_SHOT_TYPE_ID
+    else:
+        raise ValueError(
+            f"sg_pipeline_step has unsupported entity_type - '{sg_step_type}'."
+        )
+
     # Query for the pipeline step asset matching the sg pipeline step
-    q_filter = generate_search_filter(
-        type_id=get_schema_id(PIPELINE_STEP_TYPE),
+    q_filter = generate_project_filter(
+        type_id=PIPELINE_STEP_TYPE_ID,
         components={
-            get_schema_id(PIPELINE_STEP_TYPE): {
+            PIPELINE_STEP_TYPE_ID: {
                 "name": sg_step_name,
-                "entityType": sg_step_type,
+                "typeScope": step_type_scope,
             },
         },
     )
-    result = medm_search(project_id, q_filter=q_filter)
+    result = medm_assets_by_project(project_id, q_filter=q_filter)
     if result:
         return result[0]
     return None
@@ -153,7 +162,7 @@ def create_federated_hierarchy(inputs: BaseInputs):
     to the "virtual"/federated SG representations within MEDM.
 
     We must create:
-        -> a container asset with a FOR_DELIVERABLE_TYPE component
+        -> a container asset with a FOR_DELIVERABLE_TYPE_ID component
            which points to the SG deliverable asset (parented to project)
         -> a root asset with a FOR_PIPELINE_STEP_TYPE component
            pointing to the SG pipeline step and SG deliverable asset
@@ -197,15 +206,15 @@ def create_federated_hierarchy(inputs: BaseInputs):
         raise CreateAssetError(data=inputs.asdict(), details=msg)
 
     # Query for existing container asset
-    q_filter = generate_search_filter(
+    q_filter = generate_project_filter(
         type_id=get_schema_id(container_type),
         components={
-            get_schema_id(FOR_DELIVERABLE_TYPE): {
+            FOR_DELIVERABLE_TYPE_ID: {
                 "targetDeliverable.objectId.id": deliverable.id,
             },
         },
     )
-    result = project.search_children(q_filter=q_filter)
+    result = project.query_in_project(q_filter=q_filter)
     container = result[0] if result else None
 
     if not container:
@@ -238,7 +247,7 @@ def create_federated_hierarchy(inputs: BaseInputs):
     # that will house the dcc asset as one of its "representations"
 
     # Query for existing root asset
-    q_filter = generate_search_filter(
+    q_filter = generate_project_filter(
         type_id=root_type_id,
         components={
             get_schema_id(FOR_PIPELINE_STEP_TYPE): {
@@ -247,7 +256,7 @@ def create_federated_hierarchy(inputs: BaseInputs):
             },
         },
     )
-    result = project.search_children(q_filter=q_filter)
+    result = project.query_in_project(q_filter=q_filter)
     asset_root = result[0] if result else None
 
     if not asset_root:

@@ -361,7 +361,7 @@ class ComponentMixin:
             purpose: Component purpose to match. '*' wild card supported.
                      If blank ignore this filter.
             type_id: Type id to match on the component type or any of its
-                     ancestors. '*' wild card supported. 
+                     ancestors. '*' wild card supported.
                      If blank ignore this filter.
 
         Returns:
@@ -625,6 +625,17 @@ class FlowProject(FlowEntity):
     ) -> list[FlowAsset]:
         """Search direct children under this project using given
         filter criteria.
+
+        This uses the MEDM AssetsBySearch query.
+        You can use `query.generate_search_filter()` to help create the search filter.
+
+
+        Args:
+            q_filter: String RSQL filter as accepted by AssetsBySearch query.
+            include_deleted: If True, do not filter out soft deleted assets from results.
+
+        Returns:
+            List of FlowAssets objects that fulfill filter criteria.
         """
         from .query import medm_search
 
@@ -632,6 +643,33 @@ class FlowProject(FlowEntity):
             project_id=self.id,
             q_filter=q_filter,
             parent_id=self.id,
+            include_deleted=include_deleted,
+        )
+
+    @trace
+    def query_in_project(
+        self,
+        q_filter: str,
+        include_deleted: bool = False,
+    ) -> list[FlowAsset]:
+        """Search all assets under this project using given filter criteria.
+
+        This uses the MEDM AssetsByProjectId query.
+        You can use `query.generate_project_filter()` to help create the filter.
+
+
+        Args:
+            q_filter: String RSQL filter as accepted by AssetsBySearch query.
+            include_deleted: If True, do not filter out soft deleted assets from results.
+
+        Returns:
+            List of FlowAssets objects that fulfill filter criteria.
+        """
+        from .query import medm_assets_by_project
+
+        return medm_assets_by_project(
+            project_id=self.id,
+            q_filter=q_filter,
             include_deleted=include_deleted,
         )
 
@@ -899,7 +937,18 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         q_filter: str,
         include_deleted: bool = False,
     ) -> list[FlowAsset]:
-        """Do global search under this asset using given filter criteria."""
+        """Do global search under this asset using given filter criteria.
+
+        This uses the MEDM AssetsBySearch query.
+        You can use `query.generate_search_filter()` to help create the search filter.
+
+        Args:
+            q_filter: String RSQL filter as accepted by AssetsBySearch query.
+            include_deleted: If True, do not filter out soft deleted assets from results.
+
+        Returns:
+            List of FlowAssets objects that fulfill filter criteria.
+        """
         from .query import medm_search
 
         project_id = FlowProject.get_project_id(self.id)
@@ -1529,7 +1578,7 @@ class FlowComponent:
         for prop, val in component.data.items():
             if prop in ["data", "purpose"]:
                 continue  # already processed these
-            if isinstance(val, dict) and "reference" in val["typeid"]:
+            if isinstance(val, dict) and "reference" in val.get("typeid", ""):
                 try:
                     # For reference typed properties, store the target entity id
                     # as the property value
@@ -1538,6 +1587,11 @@ class FlowComponent:
                     # Ignore malformed properties
                     continue
             else:
+                # NOTE: If a property is a pointer to another property it
+                #       will just be set as is with no further processing.
+                #       This means its value will just be a dictionary of
+                #       nested properties and any reference type properties
+                #       will need to be dealt with in raw form.
                 self.properties[prop] = val
 
     @trace

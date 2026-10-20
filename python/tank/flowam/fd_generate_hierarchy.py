@@ -18,6 +18,10 @@ from typing import Any
 
 from tank_vendor.flow_integration_sdk.objects import FlowAsset, FlowProject
 from tank_vendor.flow_integration_sdk.utils import get_logger
+from tank_vendor.flow_integration_sdk.query import (
+    medm_assets_by_ids,
+    medm_assets_by_project,
+)
 
 
 # Read query config
@@ -178,9 +182,8 @@ def _resolve_filter(
                 ref_id = eval(f"result.properties.get('{prop_name}')")
                 # Handle lists automatically
                 if isinstance(ref_id, list):
-                    result = []
-                    for r_id in ref_id:
-                        result.append(FlowAsset(r_id["objectId"]["id"]))
+                    # Do batch query of reference list
+                    result = medm_assets_by_ids(ref_id)
                 else:
                     ref_asset = FlowAsset(ref_id)
                     result = ref_asset
@@ -261,8 +264,6 @@ def _resolve_items(
 
     (See `_generate_items_for_token` for argument info.)
     """
-    from .fd_project_setup import _medm_search
-
     logger = get_logger(__name__)
 
     # UI configuration - may contain tokens to be resolved
@@ -312,7 +313,7 @@ def _resolve_items(
         if "" in unique_filter_list:
             unique_filter_list.remove("")
         q_filter = ";".join(unique_filter_list)
-        assets = _medm_search(PROJECT_ID, q_filter)
+        assets = medm_assets_by_project(PROJECT_ID, q_filter)
     else:
         # Not every branch of a token path may end up with legitimate filter criteria
         # This is ok - provide a warning and move on.

@@ -42,7 +42,7 @@ from .globals import (
     DER_SOURCE_COMP,
     DER_SOURCE_TYPE,
     FILE_SEQ_TYPE,
-    FOR_DELIVERABLE_TYPE,
+    FOR_DELIVERABLE_TYPE_ID,
     FOR_PIPELINE_STEP_TYPE,
     get_client,
     IMAGE_TYPE_ID,
@@ -315,7 +315,7 @@ class ForDeliverableComponentSpec(ComponentSpec):
         """Create an MEDM component based on specifications."""
         return self.create_component(
             name=self.name,
-            type_id=get_schema_id(FOR_DELIVERABLE_TYPE),
+            type_id=FOR_DELIVERABLE_TYPE_ID,
             targetDeliverable=self.build_reference_value(self.deliverable_id),
         )
 

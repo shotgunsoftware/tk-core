@@ -33,6 +33,8 @@ def generate_search_filter(
     """Build MEDM API supported search query filter for the criteria
     specified.
 
+    ..note:: The format returned is only valid for the MEDM AssetsBySearch query.
+
     Args:
         name: If specified, search for assets with this name.
         type_id: If specified, search for assets that contain
@@ -66,6 +68,53 @@ def generate_search_filter(
     return filter_str.strip(";")
 
 
+def generate_project_filter(
+    name: str = "",
+    type_id: str = "",
+    components: dict | None = None,
+) -> str:
+    """Build MEDM API supported query filter for the criteria
+    specified.
+
+    ..note:: The format returned will be compatible for MEDM AssetsByProjectId
+             and AssetsByTraversal queries, but not AssetsBySearch.
+             Please use `generate_search_filter` for the latter.
+
+    Args:
+        name: If specified, search for assets with this name.
+        type_id: If specified, search for assets that contain
+                 a type component with this type id.
+        components: Dictionary of format:
+                        {COMPONENT TYPE ID: {COMPONENT PROPERTY: PROPERTY VALUE}}
+                    Search for assets that contain a component of the given type.
+                    If property mappings are provided, further filter for assets
+                    where the components have the given property values.
+
+                    NOTE: Complex COMPONENT PROPERTIES can be drilled into via '.'
+                          notation. (e.g. the MEDM id of a reference property can be
+                          accessed via "<property>.objectId.id")
+
+                    NOTE: Values are treated as strings for now.
+
+    Returns:
+        String filter that can be used in medm_search() function.
+    """
+    filter_str = ""
+
+    if name:
+        filter_str += f"attribute.name=='{name}';"
+    if type_id:
+        filter_str += f"has.component.type=='{type_id}';"
+    if components:
+        for comp_type_id, d_props in components.items():
+            for prop, value in d_props.items():
+                filter_str += (
+                    f"components[typeId:{comp_type_id}].data.{prop}=='{value}';"
+                )
+
+    return filter_str.strip(";")
+
+
 @trace
 def medm_search(
     project_id: str,
@@ -76,12 +125,9 @@ def medm_search(
     """Perform global search in MEDM under given project with provided
     filter criteria.
 
-    NOTE: This search automatically filters out deleted assets.
-
     Args:
         project_id: Id of project to search under.
         q_filter: Filter criteria following MEDM api specs.
-                  See https://git.autodesk.com/learning-content/flow/blob/master/clc/AM-DevGuide/source/dg-using-filters.md
         parent_id: Specify a parent to scope search to. This will
                    limit the search to direct children of this parent.
         include_deleted: Include deleted assets in search results.
@@ -114,4 +160,75 @@ def medm_search(
         raise FlowError(msg) from exc
 
     result = [FlowAsset(a) for a in q_search.results]
+    return result
+
+
+@trace
+def medm_assets_by_project(
+    project_id: str,
+    q_filter: str,
+    include_deleted: bool = False,
+) -> list[FlowAsset]:
+    """Perform query of assets in MEDM under given project with provided
+    filter criteria.
+
+    Args:
+        project_id: Id of project to query under.
+        q_filter: Filter criteria following MEDM api specs.
+        include_deleted: Include deleted assets in search results.
+
+    Returns:
+        List of FlowAsset objects.
+
+    Raises:
+        FlowError
+    """
+    client = get_client()
+
+    # Search under parent, and only include non-deleted assets
+    q_filter_pre = ""
+    if not include_deleted:
+        q_filter_pre = "attribute.deletionState=='NOT_DELETED';"
+
+    q_input = medm_model.AssetsByProjectIdInput(
+        project_id=project_id,
+        filters=(q_filter_pre + q_filter).strip(";"),
+    )
+    q_assets = client.service_asset.assets_by_project_id(q_input)
+
+    try:
+        q_assets.call()
+    except GQLAPIError as exc:
+        msg = f"AssetsByProjectId query failed. {exc}"
+        raise FlowError(msg) from exc
+
+    result = [FlowAsset(a) for a in q_assets.assets]
+    return result
+
+
+@trace
+def medm_assets_by_ids(asset_ids: list[str]) -> list[FlowAsset]:
+    """Batch query assets with given ids.
+
+    Args:
+        asset_ids: List of medm asset ids.
+
+    Returns:
+        List of FlowAsset objects.
+
+    Raises:
+        FlowError
+    """
+    client = get_client()
+
+    q_input = medm_model.AssetsByIdsInput(ids=asset_ids)
+    q_assets = client.service_asset.assets_by_ids(q_input)
+
+    try:
+        q_assets.call()
+    except GQLAPIError as exc:
+        msg = f"AssetsByIds query failed. {exc}"
+        raise FlowError(msg) from exc
+
+    result = [FlowAsset(a) for a in q_assets.assets]
     return result

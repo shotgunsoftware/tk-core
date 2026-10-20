@@ -176,8 +176,6 @@ class Engine(TankBundle):
                     tk.shotgun,
                     context,
                 )
-                # For data federation - build temporary FPT scaffolding in MEDM
-                flow_project_setup.run_project_setup(context.project["id"], context.flow_project_id, tk.shotgun)
             except RuntimeError as exc:
                 self.log_error("Error occurred during Flow initialization!")
                 self.log_exception(exc)

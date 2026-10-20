@@ -42,8 +42,15 @@ CG_ASSET_TYPE_ID = "autodesk.me:type.cgAsset-1.0.0"
 CG_SHOT_TYPE_ID = "autodesk.me:type.shot-1.1.0"
 COMMENT_TYPE_ID = "autodesk.me:component.publishComment-1.0.0"
 EXTERNAL_ID_TYPE_ID = "autodesk.me:component.externalId-1.0.0"
+DELIVERABLE_TYPE_ID = "autodesk.me.dev:type.deliverable-1.0.0"
+DELIVERABLE_ASSET_TYPE_ID = "autodesk.me.dev:type.deliverable.asset-1.0.0"
+DELIVERABLE_SHOT_TYPE_ID = "autodesk.me.dev:type.deliverable.shot-1.0.0"
+DYNAMIC_ENUM_VALUE_TYPE_ID = "autodesk.me.dev:type.dynamicEnumValue-1.0.0"
 FOLDER_TYPE_ID = "autodesk.me:type.folder-1.0.0"
+FOR_DELIVERABLE_TYPE_ID = "autodesk.me.dev:component.forDeliverable-1.0.0"
 IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
+PIPELINE_STEP_TYPE_ID = "autodesk.me.dev:type.pipelineStep-1.0.0"
+
 
 # Maps schema kind name to its root base type ID.
 KIND_BASE_TYPE_ID = {
@@ -57,14 +64,10 @@ KIND_BASE_TYPE_ID = {
 # Component base type names without full ids.
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
-DELIVERABLE_ASSET_TYPE = "type.deliverable.asset"
-DELIVERABLE_SHOT_TYPE = "type.deliverable.shot"
 DER_SOURCE_TYPE = "component.source"
-FOR_DELIVERABLE_TYPE = "component.forDeliverable"
 FOR_PIPELINE_STEP_TYPE = "component.forPipelineStep"
 FILE_SEQ_TYPE = "type.fileSequence"
 LAYER_TYPE = "component.layer"
-PIPELINE_STEP_TYPE = "type.pipelineStep"
 REFERENCE_TYPE = "component.reference"
 VARIANT_SET_TYPE = "component.variantSet"
 
