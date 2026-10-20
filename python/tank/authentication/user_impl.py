@@ -267,11 +267,11 @@ class SessionUser(ShotgunUserImpl):
 
     def create_sg_connection(self):
         """
-        Creates a Shotgun instance using the script user's credentials.
+        Creates a :class:`~shotgun_api3.shotgun.Shotgun` instance using the script user's credentials.
 
-        The Shotgun instance will connect upon its first request.
+        The :class:`~shotgun_api3.shotgun.Shotgun` instance will connect upon its first request.
 
-        :returns: A Shotgun instance.
+        :returns: A :class:`~shotgun_api3.shotgun.Shotgun` instance.
         """
         return _shotgun_instance_factory(
             self.get_host(),
@@ -440,11 +440,11 @@ class ScriptUser(ShotgunUserImpl):
 
     def create_sg_connection(self):
         """
-        Creates a Shotgun instance using the script user's credentials.
+        Creates a :class:`~shotgun_api3.shotgun.Shotgun` instance using the script user's credentials.
 
-        The Shotgun instance will connect upon its first request.
+        The :class:`~shotgun_api3.shotgun.Shotgun` instance will connect upon its first request.
 
-        :returns: A Shotgun instance.
+        :returns: A :class:`~shotgun_api3.shotgun.Shotgun` instance.
         """
         # No need to instantiate the ShotgunWrapper because we're not using
         # session-based authentication.

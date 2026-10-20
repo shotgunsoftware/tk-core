@@ -54,7 +54,7 @@ class ProjectSetupParameters(object):
         Constructor
 
         :param log: python logger
-        :param sg: shotgun connection
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` connection
         """
 
         # set up handles

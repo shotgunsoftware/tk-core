@@ -65,7 +65,7 @@ class BundleDescriptor(Descriptor):
     @classmethod
     def _get_sg_version(cls, connection):
         """
-        Returns the version of the studio shotgun server. It caches the result per site.
+        Returns the version of the studio FlowPT site. It caches the result per site.
 
         :param connection: Connection to the FlowPT site.
         :type: :class:`~shotgun_api3.shotgun.Shotgun`

@@ -29,7 +29,7 @@ def run_project_setup(log, sg, setup_params):
     methods in the parameters object.
 
     :param log: python logger object
-    :param sg: shotgun api connection to the associated site
+    :param sg: :class:`~shotgun_api3.shotgun.Shotgun` connection to the associated site
     :param setup_params: Parameters object which holds gathered project settings
     """
     log.info("")
@@ -95,7 +95,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
     Performs a distributed project setup for the given parameters.
 
     :param log: python logger object
-    :param sg: shotgun api connection to the associated site
+    :param sg: :class:`~shotgun_api3.shotgun.Shotgun` connection to the associated site
     :param setup_params: Parameters object which holds gathered project settings
     """
     if setup_params.get_auto_path_mode():
@@ -143,7 +143,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     Performs a centralized project setup for the given parameters.
 
     :param log: python logger object
-    :param sg: shotgun api connection to the associated site
+    :param sg: :class:`~shotgun_api3.shotgun.Shotgun` connection to the associated site
     :param setup_params: Parameters object which holds gathered project settings
     """
     # get the location of the configuration

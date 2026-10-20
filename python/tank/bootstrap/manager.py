@@ -304,7 +304,7 @@ class ToolkitManager(object):
         Boolean property to indicate if the bootstrap process should connect to
         FlowPT and attempt to resolve a config. Defaults to ``True``.
 
-        If ``True``, the bootstrap process will connect to Shotgun as part
+        If ``True``, the bootstrap process will connect to FlowPT as part
         of the startup, look for a pipeline configuration and attempt
         to resolve a toolkit environment to bootstrap into via the
         Pipeline configuration data. Failing this, it will fall back on

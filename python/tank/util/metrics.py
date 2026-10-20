@@ -404,7 +404,7 @@ class MetricsDispatchWorkerThread(Thread):
         """Runs a loop to dispatch metrics that have been logged."""
 
         # First of all, check if metrics dispatch is supported
-        # connect to shotgun and probe for server version
+        # connect to FlowPT and probe for the site version
         sg_connection = self._engine.shotgun
         self._endpoint_available = (
             hasattr(sg_connection, "server_caps")

@@ -115,7 +115,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
 def __setup_sg_auth_and_proxy(sg):
     """
     Borrowed from the FlowPT Python API, setup urllib with a cookie for authentication on
-    Shotgun instance.
+    :class:`~shotgun_api3.shotgun.Shotgun` instance.
 
     Looks up session token and sets that in a cookie in the :mod:`urllib` handler. This is
     used internally for downloading attachments from the FlowPT site.

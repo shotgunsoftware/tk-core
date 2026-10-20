@@ -25,7 +25,7 @@ class BundleDownloader(object):
 
     def __init__(self, connection, pipeline_config_id, descriptor):
         """
-        :param connection: Connection to FlowPT.
+        :param connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
         :param pipeline_config_id: Id of the pipeline configuration that was selected.
         :param descriptor: Descriptor of the configuration that we're running.
         """

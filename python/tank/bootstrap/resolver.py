@@ -210,7 +210,7 @@ class ConfigurationResolver(object):
         Creates a Configuration instance based on its associated descriptor object.
 
         :param cfg_descriptor: ConfigDescriptor for which we want to create a Configuration object.
-        :param sg_connection: Connection to FlowPT.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
         :param pc_id: Id of the pipeline configuration in FlowPT. Can be ``None``.
         """
 
@@ -387,7 +387,7 @@ class ConfigurationResolver(object):
         """
         Creates a configuration descriptor for a given pipeline configuration entry.
 
-        :param sg_connection: Connection to FlowPT.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
         :param dict shotgun_pc_data: Pipeline configuration dictionary with keys ``descriptor``,
             ``sg_descriptor`` and ``*_path`.
 

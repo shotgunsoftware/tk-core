@@ -40,7 +40,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
 
     The publish will be associated with the current context and point
     at the given file. The method will attempt to add the publish to
-    Shotgun as a local file link, and failing that it will generate
+    FlowPT as a local file link, and failing that it will generate
     a ``file://`` url to represent the path.
 
     In addition to the path, a version number and a name needs to be provided.
@@ -512,7 +512,7 @@ def _create_published_file(
                 "The path '%s' is associated with config root '%s'." % (path, root_name)
             )
 
-            # check if the shotgun server supports the storage and relative_path parameters which
+            # check if the FlowPT site supports the storage and relative_path parameters which
             # allows us to specify exactly which storage to bind a publish to rather than relying on
             # FlowPT to compute this.
             supports_specific_storage_syntax = (
