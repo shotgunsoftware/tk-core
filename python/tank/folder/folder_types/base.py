@@ -74,7 +74,7 @@ class Folder(object):
         This is subclassed by deriving classes which process FlowPT data.
         For more information, see the Entity implementation.
 
-        :param sg: FlowPT Python API instance
+        :param sg: :class:`shotgun_api3.Shotgun` instance
         :param shotgun_data: FlowPT data dictionary. For more information,
                              see the Entity implementation.
         """

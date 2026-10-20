@@ -117,7 +117,7 @@ class InteractiveShellAction(Action):
             tk_locals["shotgun"] = self.tk.shotgun
             msg.append("- A tk API handle is available via the tk variable")
             msg.append(
-                "- A FlowPT Python API handle is available via the shotgun variable"
+                "- A shotgun_api3.Shotgun handle is available via the shotgun variable"
             )
 
         if self.context:

@@ -21,7 +21,7 @@ from tank_test.tank_test_base import (
 
 class TestShotgunIODescriptor(ShotgunTestBase):
     """
-    Testing the FlowPT IO descriptor
+    Testing the FlowPT (shotgun) IO descriptor
     """
 
     def setUp(self):

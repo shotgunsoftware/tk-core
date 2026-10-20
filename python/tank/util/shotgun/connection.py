@@ -337,13 +337,13 @@ def get_deferred_sg_connection():
     This is a method intended only to support certain legacy cases
     where some operations in Toolkit are not fully authenticated.
     When descriptor objects are constructed, they are associated with a
-    FlowPT Python API handle. This handle is not necessary for basic operations such
+    :class:`shotgun_api3.Shotgun` handle. This handle is not necessary for basic operations such
     as path resolution. By passing a deferred connection object to
     descriptors, authentication is essentially deferred until the need
     for more complex operations arises, allowing for simple, *legacy*
     non-authenticated pathways.
 
-    :return: Proxied FlowPT Python API handle
+    :return: Proxied :class:`shotgun_api3.Shotgun` handle
     """
 
     class DeferredInitShotgunProxy(object):
@@ -367,10 +367,10 @@ def get_sg_connection():
     so that only one API instance is ever returned per thread, no matter how many
     times this call is made.
 
-        .. note:: Because FlowPT Python API instances are not safe to share across
-                  threads, this method caches FlowPT Python API instances per-thread.
+        .. note:: Because :class:`shotgun_api3.Shotgun` instances are not safe to share across
+                  threads, this method caches :class:`shotgun_api3.Shotgun` instances per-thread.
 
-    :return: FlowPT Python API handle
+    :return: :class:`shotgun_api3.Shotgun` handle
     """
     sg = getattr(_g_sg_cached_connections, "sg", None)
 
@@ -390,14 +390,14 @@ def create_sg_connection(user="default"):
     Always consider using tk.shotgun and if you don't have a tk instance,
     consider using get_sg_connection().
 
-    Whenever a FlowPT Python API instance is created, it pings the server to check that
+    Whenever a :class:`shotgun_api3.Shotgun` instance is created, it pings the server to check that
     it is running the right versions etc. This is slow and inefficient and means that
     there will be a delay every time create_sg_connection is called.
 
     :param user: Optional shotgun config user to use when connecting to shotgun,
                  as defined in shotgun.yml. This is a deprecated flag and should not
                  be used.
-    :returns: FlowPT Python API instance
+    :returns: :class:`shotgun_api3.Shotgun` instance
     """
 
     # Avoids cyclic imports.

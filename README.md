@@ -10,6 +10,11 @@
 
 This repository represents the Flow Production Tracking Core API.
 
+Flow Production Tracking (FlowPT) was previously named Shotgun and then ShotGrid.
+Code identifiers such as the `shotgun_api3.Shotgun` class, the `sgtk.util.shotgun`
+module and the `SHOTGUN_*` environment variables keep their original names for
+backward compatibility.
+
 ## Getting started with the Flow Production Tracking
 
 Installing the Flow Production Tracking is normally done via our

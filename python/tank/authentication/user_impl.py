@@ -80,7 +80,7 @@ class ShotgunUserImpl(object):
 
     def create_sg_connection(self):
         """
-        Creates a FlowPT connection using the credentials for this user.
+        Creates a :class:`shotgun_api3.Shotgun` connection using the credentials for this user.
 
         :raises NotImplementedError: If not overridden in the derived class,
                                      this method will raise a

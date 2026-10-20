@@ -53,7 +53,7 @@ class PathCache(object):
 
     # To avoid paging, we batch queries of FilesystemLocation entities
     # in chunks of 500 and combine the results. The performance issues
-    # around this have been largely alleviated in FlowPT 7.4.x and the
+    # around this have been largely alleviated in Shotgun 7.4.x and the
     # accompanying shotgun_api3 that was released at the same time, but
     # we still want to batch at the old page length of 500 to boost
     # performance when older FlowPT or API versions are used. We should

@@ -168,8 +168,8 @@ class SiteInfo(object):
         """
         Check to see if the web site uses the unified login flow.
 
-        This setting appeared in the FlowPT 7.X serie, being rarely enabled.
-        It became enabled by default starting at FlowPT 8.0
+        This setting appeared in the Shotgun 7.X serie, being rarely enabled.
+        It became enabled by default starting at Shotgun 8.0
 
         :returns:   A boolean indicating if the unified login flow is enabled or not.
         """
@@ -182,7 +182,7 @@ class SiteInfo(object):
         Check to see if the FlowPT site has the App Session Launcher authentication
         enabled.
 
-        This setting appeared in the FlowPT 8.50 serie, being rarely disabled.
+        This setting appeared in the Shotgun 8.50 serie, being rarely disabled.
 
         :returns:   A boolean indicating if the App Session Launcher is enabled
                     or not.

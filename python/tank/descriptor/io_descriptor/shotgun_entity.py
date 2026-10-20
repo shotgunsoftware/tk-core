@@ -71,7 +71,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: FlowPT connection to associated site.
+        :param sg_connection: :class:`shotgun_api3.Shotgun` connection to associated site.
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
@@ -100,7 +100,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "FlowPT descriptor cannot contain both name and id tokens: %s"
+                    "FlowPT descriptor (type: shotgun) cannot contain both name and id tokens: %s"
                     % descriptor_dict
                 )
 

@@ -31,7 +31,7 @@ class ShotgunUser(object):
     caching user objects on disk, prompting the user for their credentials etc.
 
     Once you have retrieved one of the user objects below, this can be used to access
-    FlowPT in a seamless way. The :meth:`create_sg_connection()` will return a FlowPT Python API handle
+    FlowPT in a seamless way. The :meth:`create_sg_connection()` will return a :class:`shotgun_api3.Shotgun` handle
     which is associated with the current user. This API handle is also monitored for
     authentication timeouts, so if the user's session times out (typically due to periods
     of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only
@@ -87,9 +87,9 @@ class ShotgunUser(object):
 
     def create_sg_connection(self):
         """
-        Creates a FlowPT connection using the credentials for this user.
+        Creates a :class:`shotgun_api3.Shotgun` connection using the credentials for this user.
 
-        :returns: A FlowPT connection.
+        :returns: A :class:`shotgun_api3.Shotgun` connection.
         """
         return self._impl.create_sg_connection()
 

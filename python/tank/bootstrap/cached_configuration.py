@@ -44,7 +44,7 @@ class CachedConfiguration(Configuration):
     ):
         """
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: FlowPT Python API instance
+        :param sg: :class:`shotgun_api3.Shotgun` instance
         :param descriptor: ConfigDescriptor for the associated config
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
@@ -427,7 +427,7 @@ class CachedConfiguration(Configuration):
 
     def _verify_descriptor_compatible(self):
         """
-        Ensures the config we're booting into understands the newer FlowPT descriptor.
+        Ensures the config we're booting into understands the newer FlowPT descriptor (``type: shotgun``).
         """
         # if it's a shotgun descriptor type using id, ensure
         # that the core we are switching *to* is more recent than 18.120

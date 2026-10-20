@@ -1270,13 +1270,13 @@ class ToolkitManager(object):
         if is_shotgun_engine:
             try:
                 log.debug(
-                    "Attempting to start the FlowPT engine using the standard "
+                    "Attempting to start the FlowPT engine (tk-shotgun) using the standard "
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
             except Exception as outer_exc:
                 log.debug(
-                    "FlowPT engine failed to start using start_engine. An "
+                    "FlowPT engine (tk-shotgun) failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
                     "shotgun_xxx.yml environment. The start_engine exception "
                     "was the following: %r" % outer_exc
@@ -1286,7 +1286,7 @@ class ToolkitManager(object):
                         tk, engine_name, entity, ctx
                     )
                     log.debug(
-                        "FlowPT engine started using a legacy shotgun_xxx.yml environment."
+                        "FlowPT engine (tk-shotgun) started using a legacy shotgun_xxx.yml environment."
                     )
                 except tank.platform.TankMissingEnvironmentFile as exc:
                     # If the reason the new style bootstrap failed was that no environment was returned by the
@@ -1307,7 +1307,7 @@ class ToolkitManager(object):
 
                 except Exception as exc:
                     log.debug(
-                        "FlowPT engine failed to start using the legacy "
+                        "FlowPT engine (tk-shotgun) failed to start using the legacy "
                         "start_shotgun_engine routine. No more attempts will "
                         "be made to initialize the engine. The start_shotgun_engine "
                         "exception was the following: %r" % exc
@@ -1340,7 +1340,7 @@ class ToolkitManager(object):
         # new cores handles all this inside the tank.platform.start_shotgun_engine
         # business logic.
         log.debug(
-            "Target core version is %s. Starting FlowPT engine via legacy pathway."
+            "Target core version is %s. Starting FlowPT engine (tk-shotgun) via legacy pathway."
             % tk.version
         )
 

@@ -252,7 +252,7 @@ class Sgtk(object):
     @property
     def shotgun(self):
         """
-        Just-in-time access to a per-thread FlowPT Python API instance.
+        Just-in-time access to a per-thread :class:`shotgun_api3.Shotgun` instance.
 
         This FlowPT Python API is threadlocal, meaning that each thread will get
         a separate instance of the FlowPT Python API. This is in order to prevent

@@ -47,7 +47,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
     - location="/path/to/file" and use_url_extension=False would return "/path/to/file"
     - location="/path/to/file" and use_url_extension=True would return "/path/to/file.png"
 
-    :param sg: FlowPT Python API instance to get proxy connection settings from
+    :param sg: :class:`shotgun_api3.Shotgun` instance to get proxy connection settings from
     :param url: url to download
     :param location: path on disk where the payload should be written.
                      this path needs to exists and the current user needs
@@ -120,7 +120,7 @@ def __setup_sg_auth_and_proxy(sg):
     Looks up session token and sets that in a cookie in the :mod:`urllib` handler. This is
     used internally for downloading attachments from the FlowPT server.
 
-    :param sg: FlowPT Python API instance
+    :param sg: :class:`shotgun_api3.Shotgun` instance
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
     # functionality gets ported back into the FlowPT Python API.
@@ -162,7 +162,7 @@ def download_and_unpack_attachment(
     Downloads the given attachment from FlowPT, assumes it is a zip file
     and attempts to unpack it into the given location.
 
-    :param sg: FlowPT Python API instance
+    :param sg: :class:`shotgun_api3.Shotgun` instance
     :param attachment_id: Attachment to download
     :param target: Folder to unpack zip to. if not created, the method will
                    try to create it.
@@ -187,7 +187,7 @@ def download_and_unpack_url(
     Downloads the content from the provided url, assumes it is a zip file
     and attempts to unpack it into the given location.
 
-    :param sg: FlowPT Python API instance
+    :param sg: :class:`shotgun_api3.Shotgun` instance
     :param url: The url to download from
     :param target: Folder to unpack zip to. if not created, the method will
                    try to create it.
@@ -212,7 +212,7 @@ def _download_and_unpack(
     otherwise downloads the content from the provided url.  Assumes the downloaded
     file is a zip file and attempts to unpack it into the given location.
 
-    :param sg: FlowPT Python API instance
+    :param sg: :class:`shotgun_api3.Shotgun` instance
     :param target: Folder to unpack zip to. if not created, the method will
                    try to create it.
     :param retries: Number of times to retry before giving up

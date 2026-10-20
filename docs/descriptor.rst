@@ -501,7 +501,7 @@ becomes easy to exchange environment configs. You can achieve this by using the 
 Pointing at a file attachment in Flow Production Tracking
 =========================================================
 
-The FlowPT descriptor allows you to upload an attachment directly
+The FlowPT descriptor (``type: shotgun``) allows you to upload an attachment directly
 to Flow Production Tracking and then reference it with a descriptor.
 
 This allows for workflows where you can distribute configurations, custom apps

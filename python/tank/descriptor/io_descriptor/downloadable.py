@@ -26,7 +26,7 @@ class IODescriptorDownloadable(IODescriptorBase):
 
     In order to create a Descriptor associated with data that can
     be downloaded locally to disk, it is necessary to derive from this class.
-    By default, the AppStore, Git and FlowPT entity descriptors can be downloaded
+    By default, the AppStore, Git and FlowPT (``shotgun``) entity descriptors can be downloaded
     to disk and hence are of type :class: `IODescriptorDownloadable`.
 
     Descriptor data can be downloaded by invoking the :meth: `download_local` on instances

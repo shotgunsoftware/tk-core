@@ -132,7 +132,7 @@ class StorageRoots(object):
         This action will overwrite any existing storage roots file defined by
         the configuration.
 
-        :param sg_connection: An existing FlowPT connection, used to query local
+        :param sg_connection: An existing :class:`shotgun_api3.Shotgun` connection, used to query local
             storage entities to ensure paths are up-to-date when the file is
             written.
         :param config_folder: The configuration folder under which the required

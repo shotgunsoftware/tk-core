@@ -92,7 +92,7 @@ class SetupProjectFactoryAction(Action):
         """
         Connects to FlowPT.
 
-        :returns: FlowPT Python API handle.
+        :returns: :class:`shotgun_api3.Shotgun` handle.
         :raises: TankError on failure
         """
 
@@ -757,7 +757,7 @@ class SetupProjectWizard(object):
             # note - when running via the wizard, toolkit script credentials are
             # stripped out as the core is copied across as part of a localization if
             # the site we are configuring supports the authentication module, ie,
-            # FlowPT 6.0.2 and greater.
+            # Shotgun 6.0.2 and greater.
 
             # this is primarily targeting FlowPT Desktop, meaning that even if
             # FlowPT Desktop's site configuration contains script credentials,

@@ -996,7 +996,7 @@ class TemplateConfiguration(object):
         Constructor
 
         :param config_uri: location of config (see constructor docs for details)
-        :param sg: FlowPT site API instance
+        :param sg: :class:`shotgun_api3.Shotgun` instance
         :param log: Log channel
         """
         self._sg = sg

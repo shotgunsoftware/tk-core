@@ -36,7 +36,7 @@ class ConfigurationWriter(object):
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: FlowPT Python API instance
+        :param sg: :class:`shotgun_api3.Shotgun` instance
         """
         self._path = path
         self._sg_connection = sg

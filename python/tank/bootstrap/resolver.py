@@ -83,7 +83,7 @@ class ConfigurationResolver(object):
         Return a configuration object given a config descriptor
 
         :param config_descriptor: descriptor dict or string
-        :param sg_connection: FlowPT Python API instance
+        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
         :return: :class:`Configuration` instance
         """
         log.debug(
@@ -184,7 +184,7 @@ class ConfigurationResolver(object):
         this associated descriptor object.
 
         :param config_descriptor: Fallback descriptor dict or string
-        :param sg_connection: FlowPT Python API instance
+        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
         :return: :class:`Configuration` instance
         """
 
@@ -779,7 +779,7 @@ class ConfigurationResolver(object):
                                            current user and the users field on the pipeline
                                            configuration.
         :param fallback_config_descriptor: descriptor dict or string for fallback config.
-        :param sg_connection: FlowPT Python API instance
+        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
         :param current_login: The login of the currently logged in user.
 
         :return: :class:`Configuration` instance
