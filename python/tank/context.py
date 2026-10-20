@@ -596,7 +596,7 @@ class Context(object):
         pass the template you intend to use the data with as a parameter to this method.
         The values are derived from existing paths on disk, or in the case of keys with
         shotgun_entity_type and shotgun_entity_field settings, direct queries to the FlowPT
-        server. The validate parameter can be used to ensure that the method returns all
+        site. The validate parameter can be used to ensure that the method returns all
         context fields required by the template and if it can't then a :class:`TankError` will be raised.
         Example::
 
