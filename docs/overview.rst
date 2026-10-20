@@ -40,18 +40,6 @@ This documentation is intended for **Software Engineers or TDs** who
 are either developing Toolkit Apps/Engines or doing advanced integration
 of Toolkit into their pipeline and workflows.
 
-Product names
-----------------------------------------
-
-Flow Production Tracking, FlowPT for short, was previously named Shotgun and then ShotGrid.
-Its desktop application is FlowPT Desktop (v1.9 and later), previously named
-ShotGrid Desktop (v1.5.3 to v1.8) and Shotgun Desktop (before v1.5.3).
-
-This documentation uses the current names. Code identifiers keep their original names
-for backward compatibility, for example the :class:`shotgun_api3.Shotgun` class of the
-FlowPT Python API, the ``sgtk.util.shotgun`` module, the ``tk-shotgun`` engine,
-the ``shotgun`` descriptor type and the ``SHOTGUN_*`` environment variables.
-
 Accessing the Toolkit Core API
 ----------------------------------------
 
