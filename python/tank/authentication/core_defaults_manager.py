@@ -56,7 +56,7 @@ class CoreDefaultsManager(DefaultsManager):
         For detailed information about what proxy settings are supported, see
         https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun
 
-        :returns: String with proxy definition suitable for the FlowPT Python API or
+        :returns: String with proxy definition suitable for :class:`~shotgun_api3.shotgun.Shotgun` or
                   None if not necessary.
         """
         sg_config_data = shotgun.get_associated_sg_config_data()

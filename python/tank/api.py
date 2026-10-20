@@ -252,12 +252,12 @@ class Sgtk(object):
     @property
     def shotgun(self):
         """
-        Just-in-time access to a per-thread :class:`shotgun_api3.Shotgun` instance.
+        Just-in-time access to a per-thread :class:`~shotgun_api3.shotgun.Shotgun` instance.
 
-        This FlowPT Python API is threadlocal, meaning that each thread will get
-        a separate instance of the FlowPT Python API. This is in order to prevent
+        This instance is threadlocal, meaning that each thread will get
+        a separate :class:`~shotgun_api3.shotgun.Shotgun` instance. This is in order to prevent
         concurrency issues and add a layer of basic protection around the
-        FlowPT Python API, which isn't threadsafe.
+        :class:`~shotgun_api3.shotgun.Shotgun` class, which isn't threadsafe.
         """
         sg = shotgun.get_sg_connection()
 

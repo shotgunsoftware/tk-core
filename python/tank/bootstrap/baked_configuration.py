@@ -41,7 +41,7 @@ class BakedConfiguration(Configuration):
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
                            can be set to None.
@@ -154,7 +154,7 @@ class BakedConfiguration(Configuration):
         Helper method that can be used to generate a baked scaffold in a given path.
 
         :param path: Path to generate scaffold in.
-        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param plugin_id: Plugin id string to identify the scope for a particular plugin
                           or integration. For more information,
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For

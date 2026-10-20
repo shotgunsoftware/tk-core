@@ -983,7 +983,7 @@ class Context(object):
 
     def _fields_from_shotgun(self, template, entities, validate):
         """
-        Query FlowPT server for keys used by this template whose values come directly
+        Query the FlowPT site for keys used by this template whose values come directly
         from FlowPT fields.
 
         :param template: Template to retrieve FlowPT fields for.

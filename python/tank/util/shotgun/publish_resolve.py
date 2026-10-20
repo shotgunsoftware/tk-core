@@ -33,7 +33,7 @@ def resolve_publish_path(tk, sg_publish_data):
 
     This acts as the inverse of :meth:`register_publish` and
     resolves a local path on disk given some FlowPT publish data,
-    typically obtained by a FlowPT Python API ``find()`` call.
+    typically obtained by a :meth:`~shotgun_api3.shotgun.Shotgun.find` call.
 
     Complex logic is applied in order to turn a publish into a
     valid local path. Several exception types are raised to indicate

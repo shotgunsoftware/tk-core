@@ -71,7 +71,7 @@ def _process_configuration(sg_connection, config_uri_str):
     """
     Resolve and download the given Toolkit configuration.
 
-    :param sg_connection: :class:`shotgun_api3.Shotgun` connection.
+    :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection.
     :param config_uri_str: Toolkit config descriptor as a string.
     :returns: Resolved config descriptor object.
     :raises: ValueError for "baked" descriptors.
@@ -109,7 +109,7 @@ def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_typ
     path and then establish a bundle cache containing a reflection of all items
     required by the config.
 
-    :param sg_connection: :class:`shotgun_api3.Shotgun` connection
+    :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked.

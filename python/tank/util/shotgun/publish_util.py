@@ -24,7 +24,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     Returns the display name for an entity type given its type name.
     For example, if a custom entity is named "Workspace" in the
     FlowPT preferences, but is addressed as "CustomEntity03" in the
-    FlowPT Python API, this method will resolve the display name::
+    FlowPT API, this method will resolve the display name::
 
         >>> get_entity_type_display_name(tk, "CustomEntity03")
         'Workspace'
@@ -82,7 +82,7 @@ def find_publish(
 ):
     """
     Finds publishes in FlowPT given paths on disk.
-    This method is similar to the find method in the FlowPT Python API,
+    This method is similar to :meth:`~shotgun_api3.shotgun.Shotgun.find`,
     except that instead of an Entity type, a list of files is
     passed into the function.
 

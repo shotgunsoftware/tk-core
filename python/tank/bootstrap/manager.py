@@ -732,7 +732,7 @@ class ToolkitManager(object):
              'project': {'id': 123, 'name': 'Test Project', 'type': 'Project'},
              'type': 'PipelineConfiguration'}
 
-        The returned dictionary mimics the result of a FlowPT Python API query, including
+        The returned dictionary mimics the result of a :meth:`~shotgun_api3.shotgun.Shotgun.find` query, including
         standard fields for ``type``, ``id``, ``name`` and ``project``. In addition,
         the resolved descriptor object is returned in a ``descriptor`` key.
 

@@ -80,7 +80,7 @@ class ShotgunUserImpl(object):
 
     def create_sg_connection(self):
         """
-        Creates a :class:`shotgun_api3.Shotgun` connection using the credentials for this user.
+        Creates a :class:`~shotgun_api3.shotgun.Shotgun` connection using the credentials for this user.
 
         :raises NotImplementedError: If not overridden in the derived class,
                                      this method will raise a
@@ -155,7 +155,7 @@ class ShotgunUserImpl(object):
 
 class SessionUser(ShotgunUserImpl):
     """
-    A user that authenticates to the FlowPT server using a session token.
+    A user that authenticates to the FlowPT site using a session token.
     """
 
     def __init__(
@@ -418,7 +418,7 @@ class SessionUser(ShotgunUserImpl):
 
 class ScriptUser(ShotgunUserImpl):
     """
-    User that authenticates to the FlowPT server using a api name and api key.
+    User that authenticates to the FlowPT site using a api name and api key.
     """
 
     def __init__(self, host, api_script, api_key, http_proxy):

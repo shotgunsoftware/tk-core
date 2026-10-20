@@ -36,7 +36,7 @@ class ConfigurationWriter(object):
         Constructor.
 
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         """
         self._path = path
         self._sg_connection = sg
@@ -382,7 +382,7 @@ class ConfigurationWriter(object):
         with filesystem.auto_created_yml(dest_config_sg_file) as fh:
             # ensure the metadata has the host set. We shouldn't assume the shotgun.yml
             # file that can be distributed with the config has the host set, as it
-            # could be used on two different FlowPT servers, for example a production
+            # could be used on two different FlowPT sites, for example a production
             # server and a staging server that are both hosted locally.
             metadata["host"] = connection.sanitize_url(self._sg_connection.base_url)
             # write yaml

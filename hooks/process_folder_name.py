@@ -44,7 +44,7 @@ class ProcessFolderName(Hook):
         :param str entity_type: The FlowPT entity type for which the value is taken.
         :param int entity_id: The entity id representing the data.
         :param str field_name: The FlowPT field associated with the value.
-        :param object value: The actual value in some form, as returned by the FlowPT Python API.
+        :param object value: The actual value in some form, as returned by :class:`~shotgun_api3.shotgun.Shotgun`.
 
         :returns: A string representing the entity.
         :rtype: str

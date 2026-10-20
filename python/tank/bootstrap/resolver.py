@@ -83,7 +83,7 @@ class ConfigurationResolver(object):
         Return a configuration object given a config descriptor
 
         :param config_descriptor: descriptor dict or string
-        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :return: :class:`Configuration` instance
         """
         log.debug(
@@ -184,7 +184,7 @@ class ConfigurationResolver(object):
         this associated descriptor object.
 
         :param config_descriptor: Fallback descriptor dict or string
-        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :return: :class:`Configuration` instance
         """
 
@@ -274,7 +274,7 @@ class ConfigurationResolver(object):
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
-        :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the FlowPT site.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
 
         :returns: A list of pipeline configuration entity dictionaries with an
                   extra key 'config_descriptor' added representing a resolved descriptor
@@ -686,7 +686,7 @@ class ConfigurationResolver(object):
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
-        :param ``shotgun_api3.Shotgun`` sg_connection: Connection to the FlowPT site.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
 
         :returns: The pipeline configurations that can be used with this project. The pipeline
             configurations will always be sorted such as the primary pipeline configuration, if available,
@@ -779,7 +779,7 @@ class ConfigurationResolver(object):
                                            current user and the users field on the pipeline
                                            configuration.
         :param fallback_config_descriptor: descriptor dict or string for fallback config.
-        :param sg_connection: :class:`shotgun_api3.Shotgun` instance
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param current_login: The login of the currently logged in user.
 
         :return: :class:`Configuration` instance

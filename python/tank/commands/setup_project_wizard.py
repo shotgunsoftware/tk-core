@@ -92,7 +92,7 @@ class SetupProjectFactoryAction(Action):
         """
         Connects to FlowPT.
 
-        :returns: :class:`shotgun_api3.Shotgun` handle.
+        :returns: :class:`~shotgun_api3.shotgun.Shotgun` handle.
         :raises: TankError on failure
         """
 
@@ -101,9 +101,9 @@ class SetupProjectFactoryAction(Action):
             log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target FlowPT server! (v%s)" % sg_version)
+            log.debug("Connected to target FlowPT site! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to FlowPT server: %s" % e)
+            raise TankError("Could not connect to FlowPT site: %s" % e)
 
         return sg
 

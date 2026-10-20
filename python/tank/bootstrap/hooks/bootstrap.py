@@ -38,7 +38,7 @@ class Bootstrap(get_hook_baseclass()):
         ``pipeline_configuration_id`` and ``configuration_descriptor``.
 
         :param shotgun: Connection to the FlowPT site.
-        :type shotgun: :class:`~shotgun_api3.Shotgun`
+        :type shotgun: :class:`~shotgun_api3.shotgun.Shotgun`
 
         :param int pipeline_configuration_id: Id of the pipeline configuration we're bootstrapping into.
             If None, the ToolkitManager is bootstrapping into the base configuration.

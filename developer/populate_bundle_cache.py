@@ -53,7 +53,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
 
     This will build the bundle cache for a given config descriptor.
 
-    :param sg_connection: :class:`shotgun_api3.Shotgun` connection
+    :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection
     :param target_path: Path to build
     :param config_descriptor_uri: Descriptor of the configuration to cache.
     """

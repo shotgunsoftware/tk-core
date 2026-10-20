@@ -15,7 +15,7 @@ from . import session_cache
 
 class DefaultsManager(object):
     """
-    The defaults manager allows a client of the ShotgunAuthenticator class
+    The defaults manager allows a client of the :class:`~sgtk.authentication.ShotgunAuthenticator` class
     to customize various behaviors around data storage and settings.
 
     By default, when you construct a :class:`ShotgunAuthenticator` object, it will be
@@ -108,7 +108,7 @@ class DefaultsManager(object):
             Windows Systems Registry: in these cases, Toolkit does not support the use of proxies
             which require authentication (username and password).
 
-        The returned format will be the same as is being used in the FlowPT Python API.
+        The returned format will be the same as is being used by :class:`~shotgun_api3.shotgun.Shotgun`.
         For more information, see the `FlowPT Python API documentation
         <http://developer.shotgridsoftware.com/python-api/reference.html#shotgun>`_.
 

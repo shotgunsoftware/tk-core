@@ -21,7 +21,7 @@ logger = LogManager.get_logger(__name__)
 
 # Cache the servers infos for 30 seconds.
 INFOS_CACHE_TIMEOUT = 30
-# This is a global state variable. It is used to cache information about the FlowPT servers we
+# This is a global state variable. It is used to cache information about the FlowPT sites we
 # are interacting with. This is purely to avoid making multiple calls to the servers which would
 # yield back the same information. (That info is relatively constant on a given server)
 # Should this variable be cleared when doing a Python Core swap, it is not an issue.
@@ -53,7 +53,7 @@ def _get_site_infos(url, http_proxy=None):
         http_proxy = utils.sanitize_http_proxy(http_proxy).netloc
         if http_proxy:
             logger.debug(
-                "Using HTTP proxy to connect to the FlowPT server: %s", http_proxy
+                "Using HTTP proxy to connect to the FlowPT site: %s", http_proxy
             )
 
         logger.info("Infos for site '%s' not in cache or expired", url)

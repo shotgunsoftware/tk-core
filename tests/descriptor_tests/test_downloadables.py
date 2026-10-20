@@ -190,7 +190,7 @@ class Implementation(object):
         Mock implementation of the tank.util.shotgun.download_and_unpack_attachment() that
         reads a pre-generated zip file and unpacks it to the target.
 
-        :param sg: Mocked :class:`shotgun_api3.Shotgun` instance
+        :param sg: Mocked :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param attachment_id: Attachment ID to download
         :param target: Folder to unpack zip to. if not created, the method will
                        try to create it.

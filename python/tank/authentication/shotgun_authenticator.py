@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""ShotgunAuthenticator, the entry point for FlowPT authentication."""
+""":class:`~sgtk.authentication.ShotgunAuthenticator`, the entry point for FlowPT authentication."""
 
 from .. import LogManager
 from . import interactive_authentication, session_cache, user, user_impl

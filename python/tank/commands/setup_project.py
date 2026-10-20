@@ -344,7 +344,7 @@ class SetupProjectAction(Action):
         """
         Connects to FlowPT.
 
-        :returns: :class:`shotgun_api3.Shotgun` instance.
+        :returns: :class:`~shotgun_api3.shotgun.Shotgun` instance.
         :raises: TankError on failure.
         """
 
@@ -353,9 +353,9 @@ class SetupProjectAction(Action):
             log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target FlowPT server! (v%s)" % sg_version)
+            log.debug("Connected to target FlowPT site! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to FlowPT server: %s" % e)
+            raise TankError("Could not connect to FlowPT site: %s" % e)
 
         return sg
 
@@ -382,7 +382,7 @@ class SetupProjectAction(Action):
         Ask the user which config to use. Returns a config uri string.
 
         :param log: python logger
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
 
         :returns: config uri string
         """
@@ -462,7 +462,7 @@ class SetupProjectAction(Action):
         Will request the user to input console input to select project.
 
         :param log: python logger
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param show_initialized_projects: Should alrady initialized projects be displayed in the listing?
 
         :returns: project_id
@@ -553,7 +553,7 @@ class SetupProjectAction(Action):
         and can create these root folders if required (with open permissions).
 
         :param log: python logger
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param params: ProjectSetupParameters instance which holds the project setup parameters.
         :returns: The project disk name which is selected, this name may
                   include slashes if the selected location is multi-directory.
@@ -894,7 +894,7 @@ class SetupProjectAction(Action):
         :param params: Project setup params instance
         :param config_uri: A config uri
         :param log: python logger object
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         """
 
         # query all storages that exist in FlowPT

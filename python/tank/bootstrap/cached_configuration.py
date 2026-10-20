@@ -44,7 +44,7 @@ class CachedConfiguration(Configuration):
     ):
         """
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: :class:`shotgun_api3.Shotgun` instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param descriptor: ConfigDescriptor for the associated config
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this

@@ -68,7 +68,7 @@ class BundleDescriptor(Descriptor):
         Returns the version of the studio shotgun server. It caches the result per site.
 
         :param connection: Connection to the FlowPT site.
-        :type: :class:`shotgun_api3.Shotgun`
+        :type: :class:`~shotgun_api3.shotgun.Shotgun`
 
         :returns: a string on the form "X.Y.Z"
         :rtype: str
