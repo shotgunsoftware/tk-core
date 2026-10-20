@@ -216,7 +216,7 @@ class _IODescriptorGitCache(type):
         cached_time, self = cls._instances.get(id_, (-1, None))
         if cached_time < floored_time:
             log.debug(
-                "{} {} cache expired: cachedTime:{}".format(self, id_, cached_time)
+                "_IODescriptorGitCache {} cache expired: cachedTime={}".format(id_, cached_time)
             )
             self = super().__call__(descriptor_dict, sg_connection, bundle_type)
             cls._instances[id_] = (floored_time, self)
