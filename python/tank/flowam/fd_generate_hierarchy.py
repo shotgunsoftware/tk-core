@@ -183,7 +183,13 @@ def _resolve_filter(
                 # Handle lists automatically
                 if isinstance(ref_id, list):
                     # Do batch query of reference list
-                    result = medm_assets_by_ids(ref_id)
+                    try:
+                        # Compile id list assuming this is an array of reference pointers
+                        ref_ids = [r_id["id"] for r_id in ref_id]
+                    except:
+                        # Otherwise, assume it is a list of straight string ids
+                        ref_ids = ref_id
+                    result = medm_assets_by_ids(ref_ids)
                 else:
                     ref_asset = FlowAsset(ref_id)
                     result = ref_asset

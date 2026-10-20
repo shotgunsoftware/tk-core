@@ -8,7 +8,7 @@
                 "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             },
             "step": {
-                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             }
         }
     },
@@ -21,7 +21,7 @@
                 "search_filter": "has.component.type=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             },
             "step": {
-                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             }
         }
     },
@@ -48,7 +48,7 @@
                 "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.asset-1.0.0].data.assetType.value.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             },
             "step": {
-                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             }
         }
     },
@@ -61,7 +61,7 @@
                 "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.asset-1.0.0].data.assetType.value.objectId.id=nlike='urn:medm:*'"
             },
             "step": {
-                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.asset-1.0.0'"
             }
         }
     },
@@ -70,7 +70,7 @@
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "folder",
         "resolution": {
-            "search_filter": "has.component.type=='autodesk.me.dev:type.dynamicEnum-1.0.0';components[typeId:autodesk.me.dev:type.dynamicEnum-1.0.0].propertyScope=='shotType'",
+            "search_filter": "has.component.type=='autodesk.me.dev:type.dynamicEnum-1.0.0';components[typeId:autodesk.me.dev:type.dynamicEnum-1.0.0].data.propertyScope=='shotType'",
             "assets_resolver": "COMPONENT(name=dynamicEnum).PROPERTY($id:values)"
         },
         "child_filters": {
@@ -78,7 +78,7 @@
                 "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.shot-1.0.0].data.shotType.value.objectId.id=='{DATA.ATTRIBUTE(id)}'"
             },
             "step": {
-                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             }
         }
     },
@@ -91,7 +91,7 @@
                 "search_filter": "components[typeId:autodesk.me.dev:type.deliverable.shot-1.0.0].data.shotType.value.objectId.id=nlike='urn:medm:*'"
             },
             "step": {
-                "search_filter": "components[typeId:autodesk.me:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
+                "search_filter": "components[typeId:autodesk.me.dev:type.pipelineStep-1.0.0].data.typeScope=='autodesk.me.dev:type.deliverable.shot-1.0.0'"
             }
         }
     },
@@ -117,7 +117,7 @@
         "icon": "color:{DATA.PROPERTY(backgroundColor)}",
         "color": "{DATA.PROPERTY(backgroundColor)}",
         "resolution": {
-            "search_filter": "has.component.type=='autodesk.me:type.pipelineStep-1.0.0'",
+            "search_filter": "has.component.type=='autodesk.me.dev:type.pipelineStep-1.0.0'",
             "data_resolver": "COMPONENT(name=pipelineStep)"
         },
         "child_filters": {
