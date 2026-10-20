@@ -71,7 +71,13 @@ class IODescriptorGitBranch(IODescriptorGit):
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
         self._branch = str(descriptor_dict.get("branch"))
-        self._version = descriptor_dict.get("version") or self.get_latest_commit()
+        version = descriptor_dict.get("version")
+        if version:
+            # an all-digit short sha may come from YAML as an int
+            self._version = str(version)
+        else:
+            self._version = self.get_latest_commit()
+            self._descriptor_dict["version"] = self._version
 
     def __str__(self):
         """
@@ -108,23 +114,29 @@ class IODescriptorGitBranch(IODescriptorGit):
         """Returns the short commit sha."""
         return self._version[:7]
 
-    def get_latest_commit(self):
-        """Fetch the latest commit on a specific branch"""
-        output = self._execute_git_commands(
-            ["git", "ls-remote", self._path, self._branch]
+    def get_latest_commit(self, use_cache: bool = True) -> str:
+        """
+        Fetch the latest commit on this descriptor's branch.
+
+        :param use_cache: Whether a recent ``ls-remote`` result may be reused.
+        :returns: The full commit sha.
+        """
+        ref = "refs/heads/%s" % self._branch
+        output = self._ls_remote(["--heads"], [ref], use_cache=use_cache)
+
+        # ls-remote matches ref tails, so e.g. refs/heads/feature/master is possible
+        for line in output.splitlines():
+            sha, _, name = line.partition("\t")
+            if name == ref:
+                return sha
+
+        raise TankDescriptorError(
+            "Could not get latest commit for %s, branch %s"
+            % (_sanitize_url(self._path), self._branch)
         )
-        latest_commit = output.split("\t")[0]
 
-        if not latest_commit:
-            raise TankDescriptorError(
-                "Could not get latest commit for %s, branch %s"
-                % (_sanitize_url(self._path), self._branch)
-            )
-
-        return str(latest_commit)
-
-    def get_latest_short_commit(self):
-        return self.get_latest_commit()[:7]
+    def get_latest_short_commit(self, use_cache: bool = True) -> str:
+        return self.get_latest_commit(use_cache=use_cache)[:7]
 
     def _is_latest_commit(self):
         """
@@ -133,7 +145,8 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         # first probe to check that git exists in our PATH
         log.debug("Checking if the version is pointing to the latest commit...")
-        short_latest_commit = self.get_latest_short_commit()
+        # a stale answer would make a shallow clone miss the requested commit
+        short_latest_commit = self.get_latest_short_commit(use_cache=False)
 
         if short_latest_commit != self.get_short_version():
             return False

@@ -23,6 +23,10 @@ from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
+# Seconds a `git ls-remote` result is reused before querying the remote again.
+_LS_REMOTE_CACHE_TTL = 120
+_ls_remote_cache = {}
+
 
 def _check_output(*args, **kwargs):
     """
@@ -191,40 +195,7 @@ class TankGitError(TankError):
     pass
 
 
-class _IODescriptorGitCache(type):
-    """Use as metaclass. Caches object instances for 2min."""
-
-    _instances = {}
-
-    def __call__(cls, descriptor_dict, sg_connection, bundle_type):
-        now = int(time() / 100)
-        floored_time = now - now % 2  # Cache is valid for 2min
-
-        if (
-            descriptor_dict["type"] == "git_branch"
-        ):  # cant fetch last commit here, too soon
-            version = "-".join(
-                filter(
-                    None, [descriptor_dict.get("version"), descriptor_dict["branch"]]
-                )
-            )
-        else:
-            version = descriptor_dict["version"]
-
-        id_ = "-".join([descriptor_dict["type"], descriptor_dict["path"], version])
-
-        cached_time, self = cls._instances.get(id_, (-1, None))
-        if cached_time < floored_time:
-            log.debug(
-                "_IODescriptorGitCache {} cache expired: cachedTime={}".format(id_, cached_time)
-            )
-            self = super().__call__(descriptor_dict, sg_connection, bundle_type)
-            cls._instances[id_] = (floored_time, self)
-
-        return self
-
-
-class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache):
+class IODescriptorGit(IODescriptorDownloadable):
     """
     Base class for git descriptors.
 
@@ -246,28 +217,17 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
 
         # strip trailing slashes so os.path.basename builds the name correctly
         self._path = descriptor_dict.get("path").rstrip("/\\")
-        _path = self._normalize_path(self._path)
 
-        if self._path_is_local(_path):
-            try:
-                remote_url = self._execute_git_commands(
-                    ["git", "-C", _path, "remote", "get-url", "origin"]
+        if "version" not in descriptor_dict:
+            local_repo = self._normalize_path(self._path)
+            if self._path_is_local(local_repo):
+                descriptor_dict.update(
+                    {
+                        k: v
+                        for k, v in self._fetch_local_data(local_repo).items()
+                        if k not in descriptor_dict
+                    }
                 )
-            except TankGitError:
-                log.debug("No 'origin' remote for %s, using it directly." % _path)
-            else:
-                log.debug(
-                    "Get remote url from local repo: {} -> {}".format(
-                        _path, _sanitize_url(remote_url)
-                    )
-                )
-                self._path = remote_url
-            filtered_local_data = {
-                k: v
-                for k, v in self._fetch_local_data(_path).items()
-                if k not in descriptor_dict
-            }
-            descriptor_dict.update(filtered_local_data)
 
     def is_git_available(self):
         log.debug("Checking that git exists and can be executed...")
@@ -315,11 +275,33 @@ class IODescriptorGit(IODescriptorDownloadable, metaclass=_IODescriptorGitCache)
                     sanitized_exc.output,
                     sanitized_exc.returncode,
                 )
-            )
+            ) from sanitized_exc
         else:
             output = output.strip().strip("'")
-            log.debug("Execution successful. stderr/stdout: '%s'" % output)
+            log.debug("Execution successful.")
             return output
+
+    def _ls_remote(
+        self, options: list, refs: Optional[list] = None, use_cache: bool = True
+    ) -> str:
+        """
+        Runs ``git ls-remote`` against this repository, reusing a recent result
+        for the same query instead of contacting the remote again.
+
+        :param options: Options passed to ``git ls-remote``, e.g. ``["--tags"]``.
+        :param refs: Optional ref patterns to restrict the query to.
+        :param use_cache: Whether a recent result may be reused.
+        :returns: The command output.
+        """
+        cmd = ["git", "ls-remote", *options, self._path, *(refs or [])]
+        key = tuple(cmd)
+        cached = _ls_remote_cache.get(key)
+        if use_cache and cached and time() - cached[0] < _LS_REMOTE_CACHE_TTL:
+            return cached[1]
+
+        output = self._execute_git_commands(cmd)
+        _ls_remote_cache[key] = (time(), output)
+        return output
 
     def __repr__(self):
         """

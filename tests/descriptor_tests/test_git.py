@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+from unittest.mock import patch
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -65,12 +66,12 @@ class TestGitIODescriptor(ShotgunTestBase):
         }
 
         desc = self._create_desc(location_dict, True)
-        self.assertEqual(desc.version, "dac945d50d2bd0a828181dc3e1d31cfea2c64065")
+        self.assertEqual(desc.version, "30c293f29a50b1e58d2580522656695825523dba")
 
         location_dict = {"type": "git", "path": self.git_repo_uri}
 
         desc = self._create_desc(location_dict, True)
-        self.assertEqual(desc.version, "v0.18.2")
+        self.assertEqual(desc.version, "v0.16.1")
 
     @skip_if_git_missing
     def test_tag(self):
@@ -97,20 +98,20 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         latest_desc = desc.find_latest_version()
 
-        self.assertEqual(latest_desc.version, "v0.18.2")
+        self.assertEqual(latest_desc.version, "v0.16.1")
         self.assertEqual(latest_desc.get_path(), None)
 
         latest_desc.ensure_local()
 
-        self.assertEqual(latest_desc.find_latest_cached_version().version, "v0.18.2")
+        self.assertEqual(latest_desc.find_latest_cached_version().version, "v0.16.1")
 
         self.assertEqual(
-            latest_desc.find_latest_cached_version("v0.18.x").version, "v0.18.2"
+            latest_desc.find_latest_cached_version("v0.16.x").version, "v0.16.1"
         )
 
         self.assertEqual(
             latest_desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.18.2"),
+            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.16.1"),
         )
 
         latest_desc = desc.find_latest_version("v0.15.x")
@@ -179,7 +180,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
 
         self.assertEqual(
-            latest_desc.version, "dac945d50d2bd0a828181dc3e1d31cfea2c64065"
+            latest_desc.version, "30c293f29a50b1e58d2580522656695825523dba"
         )
         self.assertEqual(latest_desc.get_path(), None)
 
@@ -188,7 +189,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(
             latest_desc.get_path(),
             os.path.join(
-                self.bundle_cache, "gitbranch", "tk-config-default.git", "dac945d"
+                self.bundle_cache, "gitbranch", "tk-config-default.git", "30c293f"
             ),
         )
 
@@ -215,7 +216,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         latest_desc = desc.find_latest_version()
 
         self.assertEqual(
-            latest_desc.version, "b2960d7e8cce43dda63369a6805881443b3daf17"
+            latest_desc.version, "7fa75a749c1dfdbd9ad93ee3497c7eaa8e1a488d"
         )
         self.assertEqual(latest_desc.get_path(), None)
 
@@ -224,7 +225,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(
             latest_desc.get_path(),
             os.path.join(
-                self.bundle_cache, "gitbranch", "tk-config-default.git", "b2960d7"
+                self.bundle_cache, "gitbranch", "tk-config-default.git", "7fa75a7"
             ),
         )
 
@@ -433,28 +434,37 @@ class TestGitIODescriptor(ShotgunTestBase):
         if sanitized_exc.__context__ is not None:
             self.assertNotIn("ghp_secret123", str(sanitized_exc.__context__))
 
-    @skip_if_git_missing
     def test_git_branch_error_handling_sanitizes_credentials(self):
         """
-        Integration test: Verify that when git_branch descriptor fails with
-        credentials in the URL, the error and exception chain are sanitized.
+        Verify that when git_branch descriptor fails with credentials in the
+        URL, the error, the exception chain and the logs are sanitized.
         """
         import logging
         from io import StringIO
 
-        # Create a descriptor with credentials that will fail
+        from sgtk.descriptor.io_descriptor.git import TankGitError
+        from tank.util.process import SubprocessCalledProcessError
+
+        url = "https://ghp_secret123@github.com/fake/nonexistent.git"
         location_dict = {
             "type": "git_branch",
-            "path": "https://ghp_secret123@github.com/fake/nonexistent.git",
+            "path": url,
             "branch": "master",
             "version": "abc1234",
         }
 
-        # Set up log capture to check what gets logged
+        def fake_check_output(cmd: list, **kwargs: object) -> str:
+            if "ls-remote" in cmd:
+                raise SubprocessCalledProcessError(
+                    128, cmd, output="fatal: repository '%s' not found" % url
+                )
+            return "/usr/bin/git"
+
+        # Set up log capture on the parent of the git and git_branch loggers
         log_stream = StringIO()
         handler = logging.StreamHandler(log_stream)
         handler.setLevel(logging.DEBUG)
-        logger = logging.getLogger("sgtk.core.descriptor.io_descriptor.git_branch")
+        logger = logging.getLogger("sgtk.core.descriptor.io_descriptor")
         original_level = logger.level
         logger.setLevel(logging.DEBUG)
         logger.addHandler(handler)
@@ -462,34 +472,28 @@ class TestGitIODescriptor(ShotgunTestBase):
         try:
             desc = self._create_desc(location_dict)
 
-            # Try to check if it's the latest commit - this should fail
-            # because the repo doesn't exist
-            try:
-                desc._is_latest_commit("abc1234", "master")
-                self.fail("Expected TankGitError to be raised")
-            except Exception as e:
-                # Verify the exception message doesn't contain credentials
-                exc_str = str(e)
-                self.assertNotIn("ghp_secret123", exc_str)
+            with (
+                patch(
+                    "tank.descriptor.io_descriptor.git._check_output",
+                    side_effect=fake_check_output,
+                ),
+                self.assertRaises(TankGitError) as cm,
+            ):
+                desc._io_descriptor._is_latest_commit()
 
-                # Check the entire exception chain
-                current_exc = e
-                while current_exc is not None:
-                    self.assertNotIn(
-                        "ghp_secret123",
-                        str(current_exc),
-                        "Credentials found in exception chain: %s" % type(current_exc),
-                    )
-                    # Check both __cause__ and __context__
-                    if current_exc.__cause__ is not None:
-                        current_exc = current_exc.__cause__
-                    elif current_exc.__context__ is not None:
-                        current_exc = current_exc.__context__
-                    else:
-                        break
+            # Check the entire exception chain
+            current_exc = cm.exception
+            while current_exc is not None:
+                self.assertNotIn(
+                    "ghp_secret123",
+                    "%s %s" % (current_exc, getattr(current_exc, "output", "")),
+                    "Credentials found in exception chain: %s" % type(current_exc),
+                )
+                current_exc = current_exc.__cause__ or current_exc.__context__
 
             # Check that nothing was logged with credentials
             log_contents = log_stream.getvalue()
+            self.assertIn("ls-remote", log_contents)
             self.assertNotIn(
                 "ghp_secret123",
                 log_contents,
@@ -516,8 +520,6 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         desc = IODescriptorGitTag(location_dict, None, None)
 
-        from unittest.mock import patch
-
         from tank.util.process import SubprocessCalledProcessError
 
         cmd_with_creds = [
@@ -542,7 +544,248 @@ class TestGitIODescriptor(ShotgunTestBase):
                 desc._fetch_tags()
                 self.fail("Expected TankGitError to be raised")
             except TankGitError as e:
-                # Verify credentials are not in the error message
+                # Verify credentials are not in the error message or its cause
                 error_msg = str(e)
                 self.assertNotIn("token123", error_msg)
+                self.assertNotIn("token123", str(e.__cause__.cmd))
                 self.assertIn("***", error_msg)
+
+    def test_branch_latest_commit_matches_exact_ref(self) -> None:
+        """
+        ls-remote matches ref tails, so only the exact branch ref must be used.
+        """
+        from sgtk.descriptor.io_descriptor.git_branch import IODescriptorGitBranch
+
+        desc = IODescriptorGitBranch(
+            {
+                "type": "git_branch",
+                "path": "https://github.com/fake/repo.git",
+                "branch": "master",
+                "version": "1234567",
+            },
+            None,
+            None,
+        )
+        output = "aaa\trefs/heads/feature/master\nbbb\trefs/heads/master"
+        with patch.object(desc, "_ls_remote", return_value=output):
+            self.assertEqual(desc.get_latest_commit(), "bbb")
+
+    def test_tag_parsing_and_latest(self) -> None:
+        """
+        Namespaced tags are kept, peeled entries are skipped and versions are
+        compared numerically.
+        """
+        from sgtk.descriptor.io_descriptor.git_tag import IODescriptorGitTag
+
+        desc = IODescriptorGitTag(
+            {
+                "type": "git",
+                "path": "https://github.com/fake/repo.git",
+                "version": "v1.0.0",
+            },
+            None,
+            None,
+        )
+        output = "\n".join(
+            [
+                "a\trefs/tags/releases/v1.2.3",
+                "b\trefs/tags/v9.0.0",
+                "c\trefs/tags/v10.0.0",
+                "d\trefs/tags/v10.0.0^{}",
+            ]
+        )
+        with patch.object(desc, "_ls_remote", return_value=output):
+            self.assertEqual(
+                desc._fetch_tags(), ["releases/v1.2.3", "v9.0.0", "v10.0.0"]
+            )
+
+        output = "b\trefs/tags/v9.0.0\nc\trefs/tags/v10.0.0"
+        with patch.object(desc, "_ls_remote", return_value=output):
+            self.assertEqual(desc._get_latest_by_pattern(None), "v10.0.0")
+
+    def test_descriptors_do_not_share_cache_roots(self) -> None:
+        """
+        Descriptors for the same location must not share state such as their
+        bundle cache roots.
+        """
+        location = {"type": "git", "path": self.git_repo_uri, "version": "v0.16.0"}
+        root_a = os.path.join(self.project_root, "bundle_cache_a")
+        root_b = os.path.join(self.project_root, "bundle_cache_b")
+
+        desc_a = sgtk.descriptor.create_descriptor(
+            self.mockgun, Descriptor.CONFIG, location, bundle_cache_root_override=root_a
+        )
+        desc_b = sgtk.descriptor.create_descriptor(
+            self.mockgun, Descriptor.CONFIG, location, bundle_cache_root_override=root_b
+        )
+
+        self.assertIsNot(desc_a._io_descriptor, desc_b._io_descriptor)
+        self.assertEqual(desc_a._io_descriptor._bundle_cache_root, root_a)
+        self.assertEqual(desc_b._io_descriptor._bundle_cache_root, root_b)
+
+    def test_pinned_version_skips_local_repo_inspection(self) -> None:
+        """
+        A pinned version must not depend on the state of a local repository.
+        """
+        from sgtk.descriptor.io_descriptor.git import IODescriptorGit
+        from sgtk.descriptor.io_descriptor.git_branch import IODescriptorGitBranch
+        from sgtk.descriptor.io_descriptor.git_tag import IODescriptorGitTag
+
+        with (
+            patch.object(IODescriptorGit, "_path_is_local") as path_is_local,
+            patch.object(IODescriptorGit, "_fetch_local_data") as fetch_local_data,
+        ):
+            IODescriptorGitTag(
+                {"type": "git", "path": self.git_repo_uri, "version": "v0.16.0"},
+                None,
+                None,
+            )
+            IODescriptorGitBranch(
+                {
+                    "type": "git_branch",
+                    "path": self.git_repo_uri,
+                    "branch": "master",
+                    "version": "3d3de30",
+                },
+                None,
+                None,
+            )
+
+        path_is_local.assert_not_called()
+        fetch_local_data.assert_not_called()
+
+    @skip_if_git_missing
+    def test_versionless_local_branch_uses_local_head(self) -> None:
+        """
+        A versionless git_branch on a local repository takes its version from
+        the repository itself and records it in the descriptor dictionary.
+        """
+        from sgtk.descriptor.io_descriptor.git_branch import IODescriptorGitBranch
+
+        desc = IODescriptorGitBranch(
+            {"type": "git_branch", "path": self.git_repo_uri, "branch": "master"},
+            None,
+            None,
+        )
+
+        self.assertEqual(desc.get_version(), "30c293f29a50b1e58d2580522656695825523dba")
+        self.assertEqual(desc.get_dict()["version"], desc.get_version())
+
+    def test_versionless_remote_branch_records_resolved_sha(self) -> None:
+        """
+        A versionless git_branch on a remote repository resolves the branch head
+        and records it, so the descriptor stays immutable once serialized.
+        """
+        from sgtk.descriptor.io_descriptor.git_branch import IODescriptorGitBranch
+
+        with patch.object(
+            IODescriptorGitBranch,
+            "_ls_remote",
+            return_value="abc123\trefs/heads/master",
+        ):
+            desc = IODescriptorGitBranch(
+                {
+                    "type": "git_branch",
+                    "path": "https://github.com/fake/repo.git",
+                    "branch": "master",
+                },
+                None,
+                None,
+            )
+
+        self.assertEqual(desc.get_version(), "abc123")
+        self.assertEqual(desc.get_dict()["version"], "abc123")
+        self.assertIn("version=abc123", desc.get_uri())
+
+    def test_successful_command_output_is_not_logged(self) -> None:
+        """
+        Command output may contain credentials, e.g. a remote URL, so it must be
+        returned to the caller but not logged.
+        """
+        from sgtk.descriptor.io_descriptor.git_tag import IODescriptorGitTag
+
+        url = "https://token123@github.com/fake/repo.git"
+        desc = IODescriptorGitTag(
+            {"type": "git", "path": url, "version": "v1.0.0"}, None, None
+        )
+
+        def fake_check_output(cmd: list, **kwargs: object) -> str:
+            return url if "get-url" in cmd else "/usr/bin/git"
+
+        with (
+            patch(
+                "tank.descriptor.io_descriptor.git._check_output",
+                side_effect=fake_check_output,
+            ),
+            self.assertLogs(
+                "sgtk.core.descriptor.io_descriptor.git", level="DEBUG"
+            ) as logs,
+        ):
+            output = desc._execute_git_commands(["git", "remote", "get-url", "origin"])
+
+        self.assertEqual(output, url)
+        self.assertNotIn("token123", "\n".join(logs.output))
+
+    @skip_if_git_missing
+    def test_offline_latest_falls_back_to_cached_version(self) -> None:
+        """
+        Without remote access, resolving the latest tag must fall back to the
+        bundle cache instead of failing while constructing the descriptor.
+        """
+        from sgtk.descriptor.io_descriptor.git import TankGitError
+        from sgtk.descriptor.io_descriptor.git_tag import IODescriptorGitTag
+
+        # the bundle cache outlives the test, keep other tests' cache empty
+        self.bundle_cache = os.path.join(self.project_root, "bundle_cache_offline")
+        self._create_desc(
+            {"type": "git", "path": self.git_repo_uri, "version": "v0.16.0"}
+        ).ensure_local()
+
+        with (
+            patch.object(IODescriptorGitTag, "has_remote_access", return_value=False),
+            patch.object(
+                IODescriptorGitTag, "_ls_remote", side_effect=TankGitError("offline")
+            ),
+        ):
+            desc = self._create_desc({"type": "git", "path": self.git_repo_uri}, True)
+
+        self.assertEqual(desc.version, "v0.16.0")
+
+    def test_ls_remote_cache(self) -> None:
+        """
+        ls-remote results are reused within the cache lifetime, refreshed after
+        it, and bypassed when deciding whether a shallow clone is safe.
+        """
+        from tank.descriptor.io_descriptor import git as git_module
+        from tank.descriptor.io_descriptor.git_branch import IODescriptorGitBranch
+
+        desc = IODescriptorGitBranch(
+            {
+                "type": "git_branch",
+                "path": "https://github.com/fake/repo.git",
+                "branch": "master",
+                "version": "abc1234",
+            },
+            None,
+            None,
+        )
+
+        with (
+            patch.dict(git_module._ls_remote_cache, clear=True),
+            patch("tank.descriptor.io_descriptor.git.time", return_value=1000.0),
+            patch.object(
+                desc,
+                "_execute_git_commands",
+                return_value="abc1234\trefs/heads/master",
+            ) as execute,
+        ):
+            desc.get_latest_commit()
+            desc.get_latest_commit()
+            self.assertEqual(execute.call_count, 1)
+
+            self.assertTrue(desc._is_latest_commit())
+            self.assertEqual(execute.call_count, 2)
+
+            git_module.time.return_value += git_module._LS_REMOTE_CACHE_TTL + 1
+            desc.get_latest_commit()
+            self.assertEqual(execute.call_count, 3)
