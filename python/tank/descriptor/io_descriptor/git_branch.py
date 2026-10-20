@@ -63,6 +63,11 @@ class IODescriptorGitBranch(IODescriptorGit):
             descriptor_dict, required=["type", "path", "branch"], optional=["version"]
         )
 
+        version = descriptor_dict.get("version")
+        if isinstance(version, int) and not isinstance(version, bool):
+            descriptor_dict = descriptor_dict.copy()
+            descriptor_dict["version"] = str(version)
+
         # call base class
         super().__init__(descriptor_dict, sg_connection, bundle_type)
 
