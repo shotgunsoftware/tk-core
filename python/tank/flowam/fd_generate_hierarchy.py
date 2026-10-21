@@ -186,7 +186,7 @@ def _resolve_filter(
                     try:
                         # Compile id list assuming this is an array of reference pointers
                         ref_ids = [r_id["id"] for r_id in ref_id]
-                    except:
+                    except (TypeError, KeyError):
                         # Otherwise, assume it is a list of straight string ids
                         ref_ids = ref_id
                     result = medm_assets_by_ids(ref_ids)

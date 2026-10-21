@@ -28,6 +28,7 @@ from tank_vendor.flow_integration_sdk.globals import (
 )
 from tank_vendor.flow_integration_sdk.objects import FlowAsset, FlowProject
 from tank_vendor.flow_integration_sdk.publish import (
+    ExternalIdComponentSpec,
     ForDeliverableComponentSpec,
     ForPipelineStepComponentSpec,
     LayerComponentSpec,
@@ -154,9 +155,180 @@ def _find_pipeline_step(project_id: str, sg_pipeline_step: dict) -> FlowAsset | 
 
 
 @trace
+def _get_or_create_root_folder(inputs: BaseInputs, project: FlowProject) -> FlowAsset:
+    """Retrieve (or create) the top-level folder for the new asset.
+
+    Returns:
+        Top-level folder as a FlowAsset.
+
+    Raises:
+        CreateAssetError
+    """
+    logger = get_logger(__name__)
+
+    sg_entity_type = inputs.sg_entity["type"]
+
+    if sg_entity_type == SHOT_TYPE:
+        folder = project.find_child(SHOT_TYPE)
+        if not folder:
+            logger.info(f'Creating "{SHOT_TYPE}" folder...')
+            raw_asset = publish_new_asset(
+                name=SHOT_TYPE,
+                parent_id=project.id,
+                description="Folder for Shot assets.",
+                components=[
+                    TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {SHOT_TYPE}")
+                ],
+            )
+            folder = FlowAsset(raw_asset)
+    elif sg_entity_type == ASSET_TYPE:
+        folder = project.find_child(ASSET_FOLDER)
+        if not folder:
+            logger.info(f'Creating "{ASSET_FOLDER}" folder...')
+            raw_asset = publish_new_asset(
+                name=ASSET_FOLDER,
+                parent_id=project.id,
+                description="Folder for Asset Build assets.",
+                components=[
+                    TypeComponentSpec(type_id=FOLDER_TYPE_ID, name=f"Type {ASSET_TYPE}")
+                ],
+            )
+            folder = FlowAsset(raw_asset)
+    else:
+        msg = f"Invalid entity type provided: {sg_entity_type}."
+        raise CreateAssetError(data=inputs.asdict(), details=msg)
+
+    return folder
+
+
+@trace
+def create_default_hierarchy(inputs: BaseInputs):
+    """In a non-federate project, when creating an asset in association
+    with an SG entity or SG pipeline step, we must establish certain MEDM
+    proxy hierarchy to help organize the assets by entity and pipeline step.
+
+    We must create:
+        -> top-level "Assets" or "Shots" folder
+            -> a container asset with representing the sg entity
+                -> a pipeline step folder
+                    -> a root asset for the new workfile asset being created
+
+    Returns:
+        The parent :class:`FlowAsset` for the new workfile.
+
+    Raises:
+        CreateAssetError
+    """
+    logger = get_logger(__name__)
+
+    am_project_id = inputs.am_project_id
+    sg_entity_type = inputs.sg_entity["type"]
+    sg_entity_name = inputs.sg_entity["name"]
+    sg_entity_id = inputs.sg_entity["id"]
+    sg_pipeline_step = inputs.sg_pipeline_step
+    sg_pipeline_step_name = sg_pipeline_step["name"]
+
+    try:
+        project = FlowProject(am_project_id)
+    except FlowError as exc:
+        msg = f"Invalid Flow project id provided: {am_project_id}"
+        raise CreateAssetError(data=inputs.asdict(), details=msg) from exc
+
+    root_folder = _get_or_create_root_folder(inputs, project)
+
+    container_type = SHOT_CONTAINER_TYPE
+    root_type_id = CG_SHOT_TYPE_ID
+    if sg_entity_type == ASSET_TYPE:
+        container_type = ASSET_CONTAINER_TYPE
+        root_type_id = CG_ASSET_TYPE_ID
+
+    container = root_folder.find_child(sg_entity_name)
+    if not container:
+        # Create a container asset that will have a "For Deliverable"
+        # component pointing to the SG deliverable asset
+        # This asset will later be populated with Layer components
+        # that point to "root" assets associated with specific pipeline steps
+        logger.info(
+            f'Creating container asset for "{sg_entity_name}" under '
+            f'project "{project.name}"...'
+        )
+        type_comp = TypeComponentSpec(
+            type_id=get_schema_id(container_type), name="Type"
+        )
+        # This component can be used to trace this container asset
+        # back to its associated Asset/Shot entity in SG
+        extid_comp = ExternalIdComponentSpec(
+            entity_type=sg_entity_type,
+            entity_id=sg_entity_id,
+        )
+        medm_asset = publish_new_asset(
+            name=sg_entity_name,
+            parent_id=root_folder.id,
+            components=[type_comp, extid_comp],
+        )
+        container = FlowAsset(medm_asset)
+
+    pipeline_step = container.find_child(sg_pipeline_step_name)
+    if not pipeline_step:
+        logger.info(f'Creating pipeline step folder for "{sg_pipeline_step_name}"...')
+        type_comp = TypeComponentSpec(type_id=FOLDER_TYPE_ID, name="Type")
+        # This component can be used to trace this pipeline step folder
+        # back to its associated Pipeline Step in SG
+        extid_comp = ExternalIdComponentSpec(
+            entity_type="Step",
+            entity_id=sg_pipeline_step["id"],
+        )
+        medm_asset = publish_new_asset(
+            name=sg_pipeline_step_name,
+            parent_id=container.id,
+            components=[type_comp, extid_comp],
+        )
+        pipeline_step = FlowAsset(medm_asset)
+
+    if inputs.create_mode == CreateMode.GENERIC:
+        # Parent generic assets directly under pipeline step
+        return pipeline_step
+
+    # For dcc assets, parent them under a root asset
+    # that will house the dcc workfile as one of its "representations"
+
+    asset_root = pipeline_step.find_child(sg_entity_name)
+    if not asset_root:
+        logger.info(f'Creating root asset for "{sg_entity_name}"...')
+        type_comp = TypeComponentSpec(type_id=root_type_id, name="Type")
+        medm_asset = publish_new_asset(
+            name=sg_entity_name,
+            parent_id=pipeline_step.id,
+            description=f'Root asset for "{sg_entity_name}".',
+            components=[type_comp],
+        )
+        asset_root = FlowAsset(medm_asset)
+
+        # We need to add a layer component to the container asset
+        # pointing to this root asset
+        logger.info(
+            f'Adding layer component for "{sg_pipeline_step_name}" on '
+            f'container "{container.name}"...'
+        )
+        publish_new_revision(
+            asset_id=container.id,
+            components=[
+                LayerComponentSpec(
+                    layer_name=sg_pipeline_step_name,
+                    asset_id=asset_root.id,
+                    display_name=sg_pipeline_step_name,
+                )
+            ],
+            components_action=medm_model.ListAction.ADD,
+        )
+
+    return asset_root
+
+
+@trace
 def create_federated_hierarchy(inputs: BaseInputs):
-    """When creating an asset in association with an SG entity
-    or SG pipeline step, we must establish certain MEDM
+    """In a federated project, when creating an asset in association
+    with an SG entity or SG pipeline step, we must establish certain MEDM
     proxy assets with correct relationships connecting them
     to the "virtual"/federated SG representations within MEDM.
 

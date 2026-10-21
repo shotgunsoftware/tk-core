@@ -423,6 +423,15 @@ class Context(object):
         return None
 
     @property
+    def flow_federated_project(self) -> bool:
+        """
+        Is the current project connected to Flow via data federation?
+        """
+        if self.project:
+            return self.project.get("sg_flow_federated_project") or False
+        return False
+
+    @property
     def flow_draft_id(self) -> str | None:
         """Current Flow draft context.
         If not None, this designates the current draft being worked on within the DCC session.

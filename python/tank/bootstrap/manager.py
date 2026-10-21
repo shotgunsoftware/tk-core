@@ -87,6 +87,7 @@ class ToolkitManager(object):
 
         # flow fields
         self._flow_project_id = None
+        self._flow_federated_project = None
         self._flow_schema_version = None
 
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
@@ -1133,6 +1134,7 @@ class ToolkitManager(object):
                     [
                         flow_auth.AM_READY_PROJECT_FIELD,
                         flow_const.FLOW_SCHEMA_VERSION_FIELD,
+                        "sg_flow_federated_project",
                     ],
                 )
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
@@ -1140,6 +1142,9 @@ class ToolkitManager(object):
                     # They will be cached on the context object after the context object has been rebuilt.
                     self._flow_project_id = sg_project.get(
                         flow_auth.AM_READY_PROJECT_FIELD
+                    )
+                    self._flow_federated_project = sg_project.get(
+                        "sg_flow_federated_project"
                     )
                     self._flow_schema_version = sg_project.get(
                         flow_const.FLOW_SCHEMA_VERSION_FIELD
@@ -1238,6 +1243,7 @@ class ToolkitManager(object):
 
             # Inject flow fields to context if current project is related to a Flow project.
             if ctx.project and self._flow_project_id is not None:
+                ctx.project["sg_flow_federated_project"] = self._flow_federated_project
                 ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = self._flow_project_id
                 ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = (
                     self._flow_schema_version

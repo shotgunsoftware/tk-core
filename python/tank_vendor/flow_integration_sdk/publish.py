@@ -41,6 +41,7 @@ from .globals import (
     COMMENT_TYPE_ID,
     DER_SOURCE_COMP,
     DER_SOURCE_TYPE,
+    EXTERNAL_ID_TYPE_ID,
     FILE_SEQ_TYPE,
     FOR_DELIVERABLE_TYPE_ID,
     FOR_PIPELINE_STEP_TYPE,
@@ -292,6 +293,34 @@ class DerivativeSourceComponentSpec(ComponentSpec):
             name=self.name,
             type_id=get_schema_id(DER_SOURCE_TYPE),
             targetVersion=self.build_reference_value(self.version_id),
+        )
+
+
+class ExternalIdComponentSpec(ComponentSpec):
+    """Specifications for creating a external id component.
+    This is a component used to designate the SG id of the entity an asset
+    is mirroring in MEDM.
+    """
+
+    def __init__(
+        self,
+        entity_type: str,
+        entity_id: str,
+    ):
+        """
+        Args:
+            entity_type: The SG entity type.
+            entity_id: The SG entity id.
+        """
+        self.entity_type = entity_type
+        self.entity_id = entity_id
+
+    def create(self, **kwargs) -> medm_model.ComponentData:
+        """Create an MEDM component based on specifications."""
+        return self.create_component(
+            name="sgEntityId",
+            type_id=EXTERNAL_ID_TYPE_ID,
+            id=f"{self.entity_type}:{self.entity_id}",
         )
 
 
