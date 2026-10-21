@@ -244,6 +244,8 @@ class TestIODescriptors(ShotgunTestBase):
                 self.cache_root, "gitbranch", "tk-multi-shotgunpanel.git", "6547378"
             ),
         )
+        self.assertEqual(d.version, "6547378")
+        self.assertEqual(d._io_descriptor.get_dict()["version"], "6547378")
 
     def test_download_receipt(self):
         """

@@ -305,7 +305,8 @@ Http protocol syntax:
     sgtk:descriptor:git_branch?branch=master&path=https://github.com/user/tk-multi-publish.git&version=17fedd8
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
-descriptor is defined as the most recent commit for a given branch.
+descriptor is defined as the most recent commit for a given branch. If the version property is omitted,
+Toolkit will automatically use the latest commit on the specified branch.
 
 .. warning:: Repositories requiring authentication are not fully supported by Toolkit. For such
              setups, we strongly recommend using an ssh style git url

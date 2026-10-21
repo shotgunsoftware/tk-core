@@ -11,18 +11,21 @@ import json
 import os
 import shlex
 import subprocess
-import tempfile
 import urllib.parse
-import uuid
+from time import time
 from typing import Optional, Union
 
 from ... import LogManager
 from ...util import filesystem, is_windows
 from ...util.process import SubprocessCalledProcessError, subprocess_check_output
-from ..errors import TankError
+from ..errors import TankDescriptorError, TankError
 from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
+
+# Seconds a `git ls-remote` result is reused before querying the remote again.
+_LS_REMOTE_CACHE_TTL = 120
+_ls_remote_cache = {}
 
 
 def _check_output(*args, **kwargs):
@@ -212,11 +215,93 @@ class IODescriptorGit(IODescriptorDownloadable):
         """
         super().__init__(descriptor_dict, sg_connection, bundle_type)
 
-        self._path = descriptor_dict.get("path")
-        # strip trailing slashes - this is so that when we build
-        # the name later (using os.basename) we construct it correctly.
-        if self._path.endswith("/") or self._path.endswith("\\"):
-            self._path = self._path[:-1]
+        # strip trailing slashes so os.path.basename builds the name correctly
+        self._path = descriptor_dict.get("path").rstrip("/\\")
+
+        if "version" not in descriptor_dict:
+            local_repo = self._normalize_path(self._path)
+            if self._path_is_local(local_repo):
+                descriptor_dict.update(
+                    {
+                        k: v
+                        for k, v in self._fetch_local_data(local_repo).items()
+                        if k not in descriptor_dict
+                    }
+                )
+
+    def is_git_available(self):
+        log.debug("Checking that git exists and can be executed...")
+
+        if is_windows():
+            cmd = "where"
+        else:
+            cmd = "which"
+
+        try:
+            output = _check_output([cmd, "git"])
+        except SubprocessCalledProcessError:
+            raise TankGitError(
+                "Cannot execute the 'git' command. Please make sure that git is "
+                "installed on your system and that the git executable has been added to the PATH."
+            )
+        else:
+            log.debug("Git installed: %s" % output)
+            return True
+
+    def _execute_git_commands(self, commands):
+        # first probe to check that git exists in our PATH
+        self.is_git_available()
+
+        log.debug(
+            "Executing command '%s' using subprocess module."
+            % _sanitize_command(commands)
+        )
+
+        # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
+        # just hang waiting for credentials to be entered on the missing terminal.
+        # I would have expected Windows to give an error about stdin being close and
+        # aborting the git command but at least on Windows 10 that is not the case.
+        environ = os.environ.copy()
+        environ["GIT_TERMINAL_PROMPT"] = "0"
+
+        try:
+            output = _check_output(commands, env=environ)
+        except SubprocessCalledProcessError as e:
+            sanitized_exc = _sanitize_exception(e, self._path)
+            raise TankGitError(
+                "Error executing git operation '%s': %s (Return code %s)"
+                % (
+                    sanitized_exc.cmd,
+                    sanitized_exc.output,
+                    sanitized_exc.returncode,
+                )
+            ) from sanitized_exc
+        else:
+            output = output.strip().strip("'")
+            log.debug("Execution successful.")
+            return output
+
+    def _ls_remote(
+        self, options: list, refs: Optional[list] = None, use_cache: bool = True
+    ) -> str:
+        """
+        Runs ``git ls-remote`` against this repository, reusing a recent result
+        for the same query instead of contacting the remote again.
+
+        :param options: Options passed to ``git ls-remote``, e.g. ``["--tags"]``.
+        :param refs: Optional ref patterns to restrict the query to.
+        :param use_cache: Whether a recent result may be reused.
+        :returns: The command output.
+        """
+        cmd = ["git", "ls-remote", *options, self._path, *(refs or [])]
+        key = tuple(cmd)
+        cached = _ls_remote_cache.get(key)
+        if use_cache and cached and time() - cached[0] < _LS_REMOTE_CACHE_TTL:
+            return cached[1]
+
+        output = self._execute_git_commands(cmd)
+        _ls_remote_cache[key] = (time(), output)
+        return output
 
     def __repr__(self):
         """
@@ -267,113 +352,22 @@ class IODescriptorGit(IODescriptorDownloadable):
         """
         # ensure *parent* folder exists
         parent_folder = os.path.dirname(target_path)
-
         filesystem.ensure_folder_exists(parent_folder)
 
-        # first probe to check that git exists in our PATH
-        log.debug("Checking that git exists and can be executed...")
-        try:
-            output = _check_output(["git", "--version"])
-        except Exception as e:
-            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
-            raise TankGitError(
-                "Cannot execute the 'git' command. Please make sure that git is "
-                "installed on your system and that the git executable has been added to the PATH."
-            )
-
-        log.debug("Git installed: %s" % output)
-
         # Make sure all git commands are correct according to the descriptor type
-        cmd = self._validate_git_commands(
+        cmd = self._get_git_clone_commands(
             target_path, depth=depth, ref=ref, is_latest_commit=is_latest_commit
         )
-
-        run_with_os_system = True
-
-        # We used to call only os.system here. On macOS and Linux this behaved correctly,
-        # i.e. if stdin was open you would be prompted on the terminal and if not then an
-        # error would be raised. This is the best we could do.
-        #
-        # However, for Windows, os.system actually pops a terminal, which is annoying, especially
-        # if you don't require to authenticate. To avoid this popup, we will first launch
-        # git through the subprocess module and instruct it to not show a terminal for the
-        # subprocess.
-        #
-        # If that fails, then we'll assume that it failed because credentials were required.
-        # Unfortunately, we can't tell why it failed.
-        #
-        # Note: We only try this workflow if we can actually hide the terminal on Windows.
-        # If we can't there's no point doing all of this and we should just use
-        # os.system.
-        if is_windows():
-            log.debug(
-                "Executing command '%s' using subprocess module."
-                % _sanitize_command(cmd)
-            )
-            try:
-                # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
-                # just hang waiting for credentials to be entered on the missing terminal.
-                # I would have expected Windows to give an error about stdin being close and
-                # aborting the git command but at least on Windows 10 that is not the case.
-                environ = {}
-                environ.update(os.environ)
-                environ["GIT_TERMINAL_PROMPT"] = "0"
-                _check_output(cmd, env=environ)
-
-                # If that works, we're done and we don't need to use os.system.
-                run_with_os_system = False
-                status = 0
-            except SubprocessCalledProcessError as e:
-                # Sanitize the exception to remove credentials
-                sanitized_exc = _sanitize_exception(e, self._path)
-                log.debug("Subprocess call failed: %s" % sanitized_exc)
-
-        if run_with_os_system:
-            # Make sure path and repo path are quoted.
-            log.debug("Executing command '%s' using os.system" % _sanitize_command(cmd))
-            log.debug(
-                "Note: in a terminal environment, this may prompt for authentication"
-            )
-            status = os.system(cmd)
-
-        log.debug("Command returned exit code %s" % status)
-        if status != 0:
-            raise TankGitError(
-                "Error executing git operation. The git command '%s' "
-                "returned error code %s." % (_sanitize_command(cmd), status)
-            )
-        log.debug("Git clone into '%s' successful." % target_path)
-
-        # clone worked ok! Now execute git commands on this repo
+        self._execute_git_commands(cmd)
 
         output = None
-
-        for command in commands:
-            # we use git -C to specify the working directory where to execute the command
-            # this option was added in as part of git 1.9
-            # and solves an issue with UNC paths on windows.
-            full_command = 'git -C "%s" %s' % (target_path, command)
-            log.debug("Executing '%s'" % full_command)
-
-            try:
-                output = _check_output(full_command, shell=True)
-
-                # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                output = output.strip().strip("'")
-
-            except SubprocessCalledProcessError as e:
-                # Sanitize the exception to remove any potential credentials
-                sanitized_exc = _sanitize_exception(e, self._path)
-                raise TankGitError(
-                    f"Error executing GIT operation '{_sanitize_command(full_command)}': {sanitized_exc.output}"
-                    f" (Return code {sanitized_exc.returncode}). "
-                    " Supported GIT version: 1.9+."
-                )
-            log.debug("Execution successful. stderr/stdout: '%s'" % output)
+        if commands:
+            full_commands = ["git", "-C", os.path.normpath(target_path)]
+            full_commands.extend(commands)
+            output = self._execute_git_commands(full_commands)
 
         self._validate_lfs_content(target_path)
 
-        # return the last returned stdout/stderr
         return output
 
     def _validate_lfs_content(self, repo_path: str) -> None:
@@ -423,28 +417,6 @@ class IODescriptorGit(IODescriptorDownloadable):
                 "then try again." % (self, ", ".join(missing))
             )
 
-    def _tmp_clone_then_execute_git_commands(self, commands, depth=None, ref=None):
-        """
-        Clone into a temp location and executes the given
-        list of git commands.
-
-        For more details, see :meth:`_clone_then_execute_git_commands`.
-
-        :param commands: list git commands to execute, e.g. ['checkout x']
-        :returns: stdout and stderr of the last command executed as a string
-        """
-        clone_tmp = os.path.join(
-            tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex
-        )
-        filesystem.ensure_folder_exists(clone_tmp)
-        try:
-            return self._clone_then_execute_git_commands(
-                clone_tmp, commands, depth, ref
-            )
-        finally:
-            log.debug("Cleaning up temp location '%s'" % clone_tmp)
-            filesystem.safe_delete_folder(clone_tmp)
-
     def get_system_name(self):
         """
         Returns a short name, suitable for use in configuration files
@@ -467,8 +439,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         can_connect = True
         try:
             log.debug("%r: Probing if a connection to git can be established..." % self)
-            # clone repo into temp folder
-            self._tmp_clone_then_execute_git_commands([], depth=1)
+            self._execute_git_commands(["git", "ls-remote", "--heads", self._path])
             log.debug("...connection established")
         except Exception as e:
             # Sanitize any credentials that might be in the exception
@@ -495,17 +466,44 @@ class IODescriptorGit(IODescriptorDownloadable):
         # make sure item exists locally
         self.ensure_local()
         # copy descriptor into target.
-        # the skip list contains .git folders by default, so pass in []
-        # to turn that restriction off. In the case of the git descriptor,
-        # we want to transfer this folder as well.
-        filesystem.copy_folder(
-            self.get_path(),
-            target_path,
-            # Make we do not pass none or we will be getting the default skip list.
-            skip_list=skip_list or [],
-        )
+        filesystem.copy_folder(self.get_path(), target_path, skip_list=skip_list or [])
 
-    def _validate_git_commands(
+    def _normalize_path(self, path):
+        if path.endswith("/") or path.endswith("\\"):
+            new_path = path[:-1]
+        else:
+            new_path = path
+
+        if os.path.isdir(new_path):
+            if not new_path.endswith(".git"):
+                new_path = os.path.join(new_path, ".git")
+
+        return new_path
+
+    def _path_is_local(self, path):
+        """
+        Check if path value is an existing folder, and if contain a .git folder.
+        """
+        if os.path.isdir(path):
+            output = self._execute_git_commands(
+                [
+                    "git",
+                    "-C",
+                    os.path.normpath(path),
+                    "rev-parse",
+                    "--git-dir",
+                ]
+            )
+            if output.startswith("fatal: not a git repository"):
+                raise TankDescriptorError(
+                    "Folder is not a git repository: {}".format(path)
+                )
+            elif output == ".":
+                return True
+
+        return False
+
+    def _get_git_clone_commands(
         self, target_path, depth=None, ref=None, is_latest_commit=None
     ):
         """
@@ -525,23 +523,22 @@ class IODescriptorGit(IODescriptorDownloadable):
         # complications in cleanup scenarios and with file copying. We want
         # each repo that we clone to be completely independent on a filesystem level.
         log.debug("Git Cloning %r into %s" % (self, target_path))
-        depth = "--depth %s" % depth if depth else ""
-        ref = "-b %s" % ref if ref else ""
-        cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
-            self._path,
-            ref,
-            target_path,
-            depth,
-        )
-        if self._descriptor_dict.get("type") == "git_branch":
-            if not is_latest_commit:
-                if "--depth" in cmd:
-                    depth = ""
-                    cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
-                        self._path,
-                        ref,
-                        target_path,
-                        depth,
-                    )
+
+        if self._descriptor_dict.get("type") == "git_branch" and not is_latest_commit:
+            depth = None
+
+        cmd = ["git", "clone", "--no-hardlinks", "-q"]
+
+        if ref:
+            cmd.extend(["-b", str(ref)])
+
+        if depth:
+            cmd.extend(["--depth", str(depth)])
+
+        cmd.append(self._path)
+        cmd.append(os.path.normpath(target_path))
 
         return cmd
+
+    def _fetch_local_data(self, path):
+        return {}

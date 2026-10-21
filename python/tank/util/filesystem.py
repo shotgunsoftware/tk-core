@@ -343,7 +343,14 @@ def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
             if os.path.isdir(_to_extended_path(srcname)):
                 files.extend(copy_folder(srcname, dstname, folder_permissions))
             else:
-                shutil.copy(_to_extended_path(srcname), _to_extended_path(dstname))
+                extended_dstname = _to_extended_path(dstname)
+                if os.path.exists(extended_dstname) and not os.access(
+                    extended_dstname, os.W_OK
+                ):
+                    # if destination already exists but is readonly, change it to writable
+                    os.chmod(extended_dstname, stat.S_IWUSR)
+
+                shutil.copy(_to_extended_path(srcname), extended_dstname)
                 # Return the plain path; callers (e.g. move_folder) re-extend
                 # as needed when operating on it.
                 files.append(srcname)
