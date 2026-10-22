@@ -159,6 +159,7 @@ class TestFunctionality(ShotgunTestBase):
             [
                 "_flow_project_id",
                 "_flow_schema_version",
+                "_flow_federated_project",
             ]
         )
         # Through this operation, we're taking all the symbols that are defined from an instance,
