@@ -10,7 +10,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-echo "This script will update the local tk-core with the given version of the Shotgun API."
+echo "This script will update the local tk-core with the given version of the FlowPT Python API."
 echo ""
 echo "Script syntax: $0 shotgun_api_tag"
 echo "For example:   $0 v3.0.31"
@@ -77,11 +77,11 @@ mkdir $DEST_REPO
 # Strip files from the destination and recreate it.
 rm -rf $DEST/*
 
-echo "Cloning the Shotgun API into a temp location, hang on..."
+echo "Cloning the FlowPT Python API into a temp location, hang on..."
 # Clone the repo
 git clone --depth 1 --branch $1 $SRC_REPO $DEST_REPO
 
-echo "Copying Shotgun API to the required location..."
+echo "Copying FlowPT Python API to the required location..."
 
 # Copy the files to the destination
 cp -R $DEST_REPO/shotgun_api3 $DEST/..

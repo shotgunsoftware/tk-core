@@ -432,7 +432,7 @@ class Engine(TankBundle):
             except Exception:
                 # QT import failed. This may be because someone has upgraded the core
                 # to the latest but are still running a earlier version of the
-                # Shotgun or Shell engine where the self.has_ui method is not
+                # FlowPT or Shell engine where the self.has_ui method is not
                 # correctly implemented. In that case, absorb the error and
                 # emit a log message
                 self.log_info("[%s] %s" % (title, details))
@@ -533,11 +533,11 @@ class Engine(TankBundle):
     @property
     def shotgun(self):
         """
-        Returns a Shotgun API handle associated with the currently running
+        Returns a :class:`~shotgun_api3.shotgun.Shotgun` handle associated with the currently running
         environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
 
-        :returns: Shotgun API handle
+        :returns: :class:`~shotgun_api3.shotgun.Shotgun` handle
         """
         # pass on information to the user agent manager which bundle is returning
         # this sg handle. This information will be passed to the web server logs
@@ -656,10 +656,10 @@ class Engine(TankBundle):
         """
         Indicates this engine will allow the metrics worker threads to forward
         the user metrics logged via core, this engine, or registered apps to
-        PTR.
+        FlowPT.
 
         :returns: boolean value indicating that the engine allows user metrics
-            to be forwarded to PTR.
+            to be forwarded to FlowPT.
         """
         return True
 
@@ -924,10 +924,10 @@ class Engine(TankBundle):
         Register a ``command`` with a name and a callback function.
 
         A *command* refers to an access point for some functionality.
-        In most cases, commands will appear as items on a Shotgun dropdown
+        In most cases, commands will appear as items on a FlowPT dropdown
         menu, but it ultimately depends on the engine - in the Shell engine,
         commands are instead represented as a text base listing and in the
-        PTR desktop app it is a scrollable list of larger icons.
+        FlowPT Desktop it is a scrollable list of larger icons.
 
         .. note:: This method is used to add menu entries for launching
            toolkit UIs. If you wish to register a panel UI with toolkit,
@@ -992,7 +992,7 @@ class Engine(TankBundle):
                   appropriate way. Some engines may not support grouping.
 
 
-        The following properties are supported for the Shotgun engine specifically:
+        The following properties are supported for the FlowPT engine (``tk-shotgun``) specifically:
 
         - ``deny_permissions`` - List of permission groups to exclude this
           menu item for (e.g. ``["Artist"]``)
@@ -1002,11 +1002,11 @@ class Engine(TankBundle):
           other ways to achieve this same result.
 
         - ``supports_multiple_selection`` - a special flag that allows multiple objects
-          in Shotgun to be selected and operated on. An example showing how to write a
+          in FlowPT to be selected and operated on. An example showing how to write a
           multi select shotgun app is provided in a special branch in the sample starter
           app: https://github.com/shotgunsoftware/tk-multi-starterapp/tree/shotgun_multi_select
 
-        - Please note that custom icons are not supported by the Shotgun engine.
+        - Please note that custom icons are not supported by the FlowPT engine (``tk-shotgun``).
 
         Typical usage normally looks something like this -
         register_command is called from the :meth:`Application.init_app()` method of an app::
@@ -1070,7 +1070,7 @@ class Engine(TankBundle):
         # on command execution. The toolkit callback system supports
         # two different callback styles:
         #
-        # - A legacy type which is only used by Shotgun Apps which
+        # - A legacy type which is only used by apps of the FlowPT engine (tk-shotgun) which
         #   utilize multi select. These callbacks are always on the
         #   form callback(entity_type, entity_ids)
         #
@@ -1531,9 +1531,9 @@ class Engine(TankBundle):
 
     def _ensure_core_fonts_loaded(self):
         """
-        Loads the Shotgun approved fonts that are bundled with tk-core.
+        Loads the FlowPT approved fonts that are bundled with tk-core.
 
-        This method ensures that the Shotgun approved fonts bundled with core
+        This method ensures that the FlowPT approved fonts bundled with core
         are loaded into Qt's font database. This allows them to be used by apps
         for a consistent look and feel.
 
@@ -3294,7 +3294,8 @@ def start_shotgun_engine(tk, entity_type, context):
     # get the location for our engine
     if constants.SHOTGUN_ENGINE_NAME not in env.get_engines():
         raise TankMissingEngineError(
-            "Cannot find a PTR engine in %s. Please contact support." % env
+            "Cannot find a FlowPT engine (tk-shotgun) in %s. Please contact support."
+            % env
         )
 
     engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)
@@ -3404,7 +3405,7 @@ def get_env_and_descriptor_for_engine(engine_name, tk, context):
 def __pick_environment(engine_name, tk, context):
     """
     Call out to the pick_environment core hook to determine which environment we should load
-    based on the current context. The Shotgun engine provides its own implementation.
+    based on the current context. The FlowPT engine (``tk-shotgun``) provides its own implementation.
 
     :param engine_name: system name of the engine to look for, e.g tk-maya
     :param tk: :class:`~sgtk.Sgtk` instance

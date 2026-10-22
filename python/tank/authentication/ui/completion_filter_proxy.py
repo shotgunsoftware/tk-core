@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-QT Login dialog for authenticating to a Shotgun server.
+QT Login dialog for authenticating to a FlowPT site.
 
 --------------------------------------------------------------------------------
 NOTE! This module is part of the authentication library internals and should

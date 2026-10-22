@@ -175,7 +175,7 @@ class AltCustomFormatter(logging.Formatter):
     Custom logging formatter for the tank command.
 
     This logger handles html-style outputting, intended for
-    messages that are sent back to the Shotgun UI (via the sg engine).
+    messages that are sent back to the FlowPT UI (via the sg engine).
 
     Non-html output is formatted to be cut at 80 chars
     in order to make it easily readable.
@@ -214,7 +214,7 @@ class AltCustomFormatter(logging.Formatter):
 
         if self._html:
             # html logging for shotgun.
-            # The logging mechanisms in Shotgun tend to filter out any output
+            # The logging mechanisms in FlowPT tend to filter out any output
             # which does not start with an html tag, so we need to make sure we got that.
             if record.levelno in (
                 logging.WARNING,
@@ -303,7 +303,7 @@ Executing Commands
 Syntax: tank [context] command [args]
 
  - Context is a location on disk where you want the command to operate.
-   It can also be a Shotgun Entity on the form Type id or Type name describing
+   It can also be a FlowPT Entity on the form Type id or Type name describing
    the object you want to operate on. If you leave this out, the command
    will use your current working directory as the context.
 
@@ -323,16 +323,16 @@ Show what commands are available for Shot ABC123 in project Flash
  only works when running from a tank studio command)
 > tank Shot Flash:ABC123
 
-Show a list of all shots in Shotgun containing the phrase ABC
+Show a list of all shots in FlowPT containing the phrase ABC
 > tank Shot ABC
 
 Launch maya for your current path (assuming this command exists):
 > tank launch_maya
 
-Launch maya for a Shot in Shotgun:
+Launch maya for a Shot in FlowPT:
 > tank Shot ABC123 launch_maya
 
-Launch maya for a Task in Shotgun using an id:
+Launch maya for a Task in FlowPT using an id:
 > tank Task @234 launch_maya
 
 Launch maya for a folder:
@@ -379,7 +379,7 @@ def ensure_authenticated(script_name, script_key):
 
 
 ###############################################################################################
-# Shotgun Actions Management
+# FlowPT Actions Management
 
 
 def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
@@ -562,7 +562,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError as e:
-        logger.error("Error writing PTR cache file: %s" % e)
+        logger.error("Error writing FlowPT cache file: %s" % e)
     except Exception:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
@@ -616,7 +616,7 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
-    :param args: list of arguments passed from Shotgun.
+    :param args: list of arguments passed from FlowPT.
     """
     logger.debug("Running shotgun_run_action_auth command")
 
@@ -654,7 +654,7 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
                 if user.are_credentials_expired():
                     raise IncompleteCredentials("Session token is expired.")
             except IncompleteCredentials:
-                # report back to the Shotgun javascript integration
+                # report back to the FlowPT javascript integration
                 # this error message will trigger the javascript to
                 # prompt the user for a password and run this method
                 # again, this time with an actual password rather
@@ -695,9 +695,9 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
     Executes the special shotgun run action command from inside of shotgun.
     Legacy - unauthenticated version.
 
-    All modern versions of Shotgun will be running the shotgun_run_action_auth method.
+    All modern versions of FlowPT will be running the shotgun_run_action_auth method.
     this method is to serve users who are running an updated version of core with
-    an older version of Shotgun
+    an older version of FlowPT
 
     This method expects the following arguments to be passed via the args param:
     args[0]: name of the action
@@ -708,7 +708,7 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
-    :param args: list of arguments passed from Shotgun.
+    :param args: list of arguments passed from FlowPT.
     """
     logger.debug("Running shotgun_run_action command")
     logger.debug("Arguments passed: %s" % args)
@@ -719,9 +719,9 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
             "Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids"
         )
 
-    # all modern versions of Shotgun will be running the shotgun_run_action_auth method.
+    # all modern versions of FlowPT will be running the shotgun_run_action_auth method.
     # this method is to serve users who are running an updated version of core with
-    # an older version of Shotgun
+    # an older version of FlowPT
 
     # in this case, we cannot prompt for a login/password
     # so we have rely on the built-in user that is given by the defaults manager
@@ -756,7 +756,7 @@ def _shotgun_run_action(
     entity_ids,
 ):
     """
-    Executes a Shotgun action.
+    Executes a FlowPT action.
 
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
@@ -915,7 +915,7 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
 
     if len(data) == 0:
         raise TankError(
-            "No PTR %s matching the pattern '%s'!" % (entity_type, name_pattern)
+            "No FlowPT %s matching the pattern '%s'!" % (entity_type, name_pattern)
         )
 
     elif len(data) > 1:
@@ -1057,7 +1057,7 @@ def _list_commands(tk, ctx):
 
 def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_project_id):
     """
-    Resolves a Shotgun context when someone specifies tank Shot ABC.
+    Resolves a FlowPT context when someone specifies tank Shot ABC.
     Will display multiple matches to the logger if there isn't a unique match.
 
     :param entity_type: Entity type to resolve
@@ -1300,7 +1300,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             if ctx.project is None:
                 # context could not be determined based on the path
                 # revert back to the project context
-                logger.info("- The path is not associated with any PTR object.")
+                logger.info("- The path is not associated with any FlowPT object.")
                 logger.info("- Falling back on default project settings.")
 
                 if tk.pipeline_configuration.is_site_configuration():
@@ -1322,7 +1322,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 "You are executing a project specific tank command so there is "
                 "no need to specify a Project parameter! Try running just the "
                 "tank command with no parameters to see what options are available "
-                "on the project level. Alternatively, you can pass a PTR entity "
+                "on the project level. Alternatively, you can pass a FlowPT entity "
                 "(e.g. 'Shot abc123') or a path on disk to specify a particular "
                 "environment to see the available commands."
             )

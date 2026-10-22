@@ -54,7 +54,7 @@ class ProjectSetupParameters(object):
         Constructor
 
         :param log: python logger
-        :param sg: shotgun connection
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` connection
         """
 
         # set up handles
@@ -144,7 +144,7 @@ class ProjectSetupParameters(object):
 
     def validate_config_uri(self, config_uri):
         r"""
-        Validates a configuration template to check if it is compatible with the current Shotgun setup.
+        Validates a configuration template to check if it is compatible with the current FlowPT setup.
         This will download the config, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
 
@@ -218,13 +218,13 @@ class ProjectSetupParameters(object):
             if not storage_data[storage_name]["defined_in_shotgun"]:
                 raise TankError(
                     "The storage '%s' required by the configuration has not been defined in Flow Production Tracking. "
-                    "In order to fix this, please navigate to the Site Preferences in PTR "
+                    "In order to fix this, please navigate to the Site Preferences in FlowPT "
                     "and set up a new local file storage." % storage_name
                 )
 
             elif storage_data[storage_name][sys.platform] is None:
                 raise TankError(
-                    "The PTR Local File Storage '%s' does not have a path defined "
+                    "The FlowPT Local File Storage '%s' does not have a path defined "
                     "for the current operating system!" % storage_name
                 )
 
@@ -233,7 +233,7 @@ class ProjectSetupParameters(object):
             ):
                 local_path = storage_data[storage_name][sys.platform]
                 raise TankError(
-                    "The path on disk '%s' defined in the PTR Local File Storage '%s' does "
+                    "The path on disk '%s' defined in the FlowPT Local File Storage '%s' does "
                     "not exist!" % (local_path, storage_name)
                 )
 
@@ -355,14 +355,14 @@ class ProjectSetupParameters(object):
     def get_storage_shotgun_id(self, storage_name):
         """
         Given a storage name as defined in the configuration roots, return the
-        corresponding shotgun id as defined in Shotgun. If no PTR storage can
+        corresponding shotgun id as defined in FlowPT. If no FlowPT storage can
         be correlated, return None.
         """
         return self._storage_data.get(storage_name, {}).get("shotgun_id")
 
     def get_storage_path(self, storage_name, platform):
         """
-        Returns the storage root path given a platform and a storage, as defined in Shotgun
+        Returns the storage root path given a platform and a storage, as defined in FlowPT
         Note that this path has not been cleaned up, and may for example contain slashes at the end.
 
         :param storage_name: Storage name
@@ -392,15 +392,15 @@ class ProjectSetupParameters(object):
 
     def upload_configuration(self, pipeline_config_id):
         """
-        Zips up and then uploads the configuration to Shotgun.
+        Zips up and then uploads the configuration to FlowPT.
 
         :param int pipeline_config_id: Pipeline configuration id to upload to.
         """
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        # compose a filename for the zip file that will be uploaded to PTR
-        # this will also be the name that is displayed on the attachment in PTR
+        # compose a filename for the zip file that will be uploaded to FlowPT
+        # this will also be the name that is displayed on the attachment in FlowPT
         zip_filename = "%s.zip" % (self._config_template.version or "config")
 
         # create a folder name which will be the folder which everything is
@@ -422,7 +422,7 @@ class ProjectSetupParameters(object):
             # update the roots.yml file in the config to
             # match the storage selections we have made in the wizard
             # e.g. link up a storage name e.g. 'primary' in the config
-            # against a local storage id in Shotgun.
+            # against a local storage id in FlowPT.
             #
             # Note: We don't write any paths to the roots.yml -
             # these are resolved at bootstrap time.
@@ -443,9 +443,9 @@ class ProjectSetupParameters(object):
                 ):
                     roots_data[storage_name]["default"] = True
 
-                # if there is a PTR local storage associated with this root, make sure
+                # if there is a FlowPT local storage associated with this root, make sure
                 # it is explicit in the the roots file. this allows roots to exist that
-                # are not named the same as the storage in PTR
+                # are not named the same as the storage in FlowPT
                 sg_storage_id = self.get_storage_shotgun_id(storage_name)
                 if sg_storage_id is not None:
                     roots_data[storage_name]["shotgun_storage_id"] = sg_storage_id
@@ -487,7 +487,7 @@ class ProjectSetupParameters(object):
         """
         Sets the project id and validates that this id is valid.
 
-        :param project_id: Shotgun project id. Passing None means we are configuring the site
+        :param project_id: FlowPT project id. Passing None means we are configuring the site
                            configuration.
         :param force: If true, existing projects can be overwritten
         """
@@ -617,7 +617,7 @@ class ProjectSetupParameters(object):
         """
         Returns the project id for the project to be set up.
 
-        :returns: Shotgun project id as int or None if the id is not set.
+        :returns: FlowPT project id as int or None if the id is not set.
         """
         return self._project_id
 
@@ -670,7 +670,7 @@ class ProjectSetupParameters(object):
         """
         Defines if auto-path should be on or off.
         Auto-path means that the pipeline configuration entry in
-        Shotgun does not actually encode the path to where the configuration
+        FlowPT does not actually encode the path to where the configuration
         is located on disk - this is instead purely kept on the disk side
 
         :param status: boolean indicating if auto path should be used
@@ -906,7 +906,7 @@ class ProjectSetupParameters(object):
             field_data = self._sg.schema_field_read("PipelineConfiguration")
             if "uploaded_config" not in field_data:
                 raise TankError(
-                    "PTR site is missing a PipelineConfiguration.uploaded_config "
+                    "FlowPT site is missing a PipelineConfiguration.uploaded_config "
                     "field, required for distributed configs to work correctly. Please update to "
                     "a more recent version of Flow Production Tracking."
                 )
@@ -996,7 +996,7 @@ class TemplateConfiguration(object):
         Constructor
 
         :param config_uri: location of config (see constructor docs for details)
-        :param sg: Shotgun site API instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param log: Log channel
         """
         self._sg = sg
@@ -1074,13 +1074,13 @@ class TemplateConfiguration(object):
 
                 if is_version_newer(required_version, sg_version_str):
                     raise TankError(
-                        "This configuration requires PTR version %s "
+                        "This configuration requires FlowPT version %s "
                         "but you are running version %s"
                         % (required_version, sg_version_str)
                     )
                 else:
                     self._log.debug(
-                        "Config requires PTR %s. "
+                        "Config requires FlowPT %s. "
                         "You are running %s which is fine."
                         % (required_version, sg_version_str)
                     )
@@ -1214,7 +1214,7 @@ class TemplateConfiguration(object):
 
     def resolve_storages(self):
         r"""
-        Validate that the roots exist in shotgun. Communicates with Shotgun.
+        Validate that the roots exist in shotgun. Communicates with FlowPT.
 
         Returns the root paths from shotgun for each storage.
 
@@ -1243,10 +1243,10 @@ class TemplateConfiguration(object):
         - description: Description what the storage is used for. This comes from the
           configuration template and can be used to help a user to explain the purpose
           of a particular storage required by a configuration.
-        - defined_in_shotgun: If false, no local storage with this name exists in Shotgun.
+        - defined_in_shotgun: If false, no local storage with this name exists in FlowPT.
         - shotgun_id: If defined_in_shotgun is True, this will contain the entity id for
           the storage. If defined_in_shotgun is False, this will be set to none.
-        - darwin/win32/linux: Paths to storages, as defined in Shotgun. These values can be
+        - darwin/win32/linux: Paths to storages, as defined in FlowPT. These values can be
           None if a storage has not been defined.
         - exists_on_disk: Flag if the path defined for the current operating system exists on
           disk or not.
@@ -1257,7 +1257,7 @@ class TemplateConfiguration(object):
         # a dictionary of info to return
         storage_info = {}
 
-        # do the storage lookup and mapping in PTR
+        # do the storage lookup and mapping in FlowPT
         local_storage_lookup, unmapped_roots = self._storage_roots.get_local_storages(
             self._sg
         )
@@ -1278,12 +1278,12 @@ class TemplateConfiguration(object):
                 storage_info[root_name][key] = root_info.get(key)
 
             if root_name in unmapped_roots:
-                # not mapped to a storage in PTR
+                # not mapped to a storage in FlowPT
                 storage_info[root_name]["shotgun_id"] = None
                 storage_info[root_name]["defined_in_shotgun"] = False
                 storage_info[root_name]["exists_on_disk"] = False
             else:
-                # mapped to a PTR storage
+                # mapped to a FlowPT storage
                 local_storage = local_storage_lookup[root_name]
 
                 storage_info[root_name]["defined_in_shotgun"] = True

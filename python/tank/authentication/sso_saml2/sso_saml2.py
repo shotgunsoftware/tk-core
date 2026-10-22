@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-Integration with Shotgun API.
+Integration with FlowPT Python API.
 """
 
 # pylint: disable=line-too-long
@@ -61,10 +61,10 @@ class SsoSaml2(object):
         If this fails, or there are no cookies, the user will be prompted for
         their credentials.
 
-        :param host:                URL of the Shotgun server.
+        :param host:                URL of the FlowPT site.
         :param cookies:             String of encoded cookies.
         :param product:             String describing the application attempting to login.
-                                    This string will appear in the Shotgun server logs.
+                                    This string will appear in the FlowPT site logs.
         :param http_proxy:          URL of the proxy.
         :param use_watchdog:
         :param profile_location:    Location override for the WebEngine profile location.

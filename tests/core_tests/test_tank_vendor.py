@@ -34,7 +34,7 @@ PACKAGES_TO_TEST = [
     {
         "name": "shotgun_api3",
         "attributes": ["Shotgun", "__version__"],
-        "description": "Shotgun API",
+        "description": "FlowPT Python API",
     },
     {
         "name": "packaging",
@@ -278,7 +278,7 @@ class TestShotgunAPI3CertPatchPrecedence(ShotgunTestBase):
     Prior to this fix, _patch_shotgun_api3_certs() unconditionally returned the
     Core-extracted cacert.pem whenever ca_certs wasn't explicitly passed, silently
     ignoring the documented SHOTGUN_API_CACERTS environment variable. When the
-    extracted cert lives on a slow network share, this made every cold ShotGrid
+    extracted cert lives on a slow network share, this made every cold FlowPT
     connection pay a large one-time filesystem cost that a local cert copy avoids.
 
     These tests call _patch_shotgun_api3_certs() directly against a throwaway

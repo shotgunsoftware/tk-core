@@ -18,7 +18,7 @@ from .util import translate_filter_tokens
 
 class ShotgunStep(Entity):
     """
-    Represents a Shotgun Pipeline Step
+    Represents a FlowPT Pipeline Step
     """
 
     @classmethod
@@ -115,7 +115,7 @@ class ShotgunStep(Entity):
             elif sg_parent is None:
                 raise TankError(
                     "Error in configuration %s - node must be parented "
-                    "under a PTR entity." % full_path
+                    "under a FlowPT entity." % full_path
                 )
 
             else:
@@ -181,8 +181,8 @@ class ShotgunStep(Entity):
 
     def get_step_entity_type(self):
         """
-        Returns the Shotgun entity type which is used to represent the pipeline step.
-        Shotgun has a built in pipeline step which is a way of grouping tasks together
+        Returns the FlowPT entity type which is used to represent the pipeline step.
+        FlowPT has a built in pipeline step which is a way of grouping tasks together
         into distinct sets, however it is sometimes useful to be able to use a different
         entity to perform this grouping.
         """

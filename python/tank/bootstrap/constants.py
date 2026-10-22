@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-# Shotgun: The entity that represents Pipeline Configurations in Shotgun
+# FlowPT: The entity that represents Pipeline Configurations in FlowPT
 PIPELINE_CONFIGURATION_ENTITY_TYPE = "PipelineConfiguration"
 
 # the manifest file inside a bundle
@@ -41,7 +41,7 @@ PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
 # The name of an unmanaged pipeline config
 # Unmanaged pipeline configs don't have a corresponding
-# record in Shotgun.
+# record in FlowPT.
 UNMANAGED_PIPELINE_CONFIG_NAME = "Unmanaged"
 
 # The project name for a project with no tank name
@@ -52,7 +52,7 @@ UNNAMED_PROJECT_NAME = "unnamed"
 # latest core
 LATEST_CORE_DESCRIPTOR = {"type": "app_store", "name": "tk-core"}
 
-# default PTR desktop app python installations
+# default FlowPT Desktop python installations
 DESKTOP_PYTHON_MAC = "/Applications/Shotgun.app/Contents/Resources/Python/bin/python"
 DESKTOP_PYTHON_WIN = "C:\\Program Files\\Shotgun\\Python\\python.exe"
 DESKTOP_PYTHON_LINUX = "/opt/Shotgun/Python/bin/python"

@@ -65,7 +65,7 @@ class LocalFileStorageManager(object):
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
         """
-        Returns a generic Shotgun storage root.
+        Returns a generic FlowPT storage root.
 
         The following paths will be used:
 
@@ -207,7 +207,7 @@ class LocalFileStorageManager(object):
 
         .. note:: This method does not ensure that the folder exists.
 
-        :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
+        :param hostname: FlowPT hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,
@@ -221,7 +221,7 @@ class LocalFileStorageManager(object):
         """
         if hostname is None:
             raise TankError(
-                "Cannot compute path for local site specific storage - no PTR hostname specified!"
+                "Cannot compute path for local site specific storage - no FlowPT hostname specified!"
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
@@ -256,11 +256,11 @@ class LocalFileStorageManager(object):
 
         - A well defined project id should always be passed. Passing None as the project
           id indicates that the *site* configuration, a special toolkit configuration
-          that represents the non-project state in Shotgun.
+          that represents the non-project state in FlowPT.
 
-        - Configurations that have a pipeline configuration in Shotgun should pass in
+        - Configurations that have a pipeline configuration in FlowPT should pass in
           a pipeline configuration id. When a pipeline configuration is not registered
-          in Shotgun, this value should be None.
+          in FlowPT, this value should be None.
 
         - If the configuration has been bootstrapped or has a known plugin id, this
           should be specified via the plugin id parameter.
@@ -275,13 +275,13 @@ class LocalFileStorageManager(object):
 
         .. note:: This method does not ensure that the folder exists.
 
-        :param hostname: Shotgun hostname as string, e.g. 'https://foo.shotgunstudio.com'
-        :param project_id: Shotgun project id as integer. For the site config, this should be None.
+        :param hostname: FlowPT hostname as string, e.g. 'https://foo.shotgunstudio.com'
+        :param project_id: FlowPT project id as integer. For the site config, this should be None.
         :param plugin_id: Plugin id string to identify the scope for a particular plugin
                           or integration. For more information,
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
-        :param pipeline_config_id: Shotgun pipeline config id. None for bootstraped configs.
+        :param pipeline_config_id: FlowPT pipeline config id. None for bootstraped configs.
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,

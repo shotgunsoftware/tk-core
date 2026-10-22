@@ -90,9 +90,9 @@ class SetupProjectFactoryAction(Action):
 
     def _shotgun_connect(self, log):
         """
-        Connects to Shotgun.
+        Connects to FlowPT.
 
-        :returns: Shotgun API handle.
+        :returns: :class:`~shotgun_api3.shotgun.Shotgun` handle.
         :raises: TankError on failure
         """
 
@@ -101,9 +101,9 @@ class SetupProjectFactoryAction(Action):
             log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target PTR server! (v%s)" % sg_version)
+            log.debug("Connected to target FlowPT site! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to PTR server: %s" % e)
+            raise TankError("Could not connect to FlowPT site: %s" % e)
 
         return sg
 
@@ -158,7 +158,7 @@ class SetupProjectWizard(object):
         """
         Specify which project that should be set up.
 
-        :param project_id: Shotgun id for the project that should be set up.
+        :param project_id: FlowPT id for the project that should be set up.
         :param force: Allow for the setting up of existing projects.
         """
         self._params.set_project_id(project_id, force)
@@ -177,7 +177,7 @@ class SetupProjectWizard(object):
 
     def validate_config_uri(self, config_uri):
         r"""
-        Validates a configuration template to check if it is compatible with the current Shotgun setup.
+        Validates a configuration template to check if it is compatible with the current FlowPT setup.
         This will download the configuration, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
 
@@ -218,10 +218,10 @@ class SetupProjectWizard(object):
         - description: Description what the storage is used for. This comes from the
           configuration template and can be used to help a user to explain the purpose
           of a particular storage required by a configuration.
-        - defined_in_shotgun: If false, no local storage with this name exists in Shotgun.
+        - defined_in_shotgun: If false, no local storage with this name exists in FlowPT.
         - shotgun_id: If defined_in_shotgun is True, this will contain the entity id for
           the storage. If defined_in_shotgun is False, this will be set to none.
-        - darwin/win32/linux: Paths to storages, as defined in Shotgun. These values can be
+        - darwin/win32/linux: Paths to storages, as defined in FlowPT. These values can be
           None if a storage has not been defined.
         - exists_on_disk: Flag if the path defined for the current operating system exists on
           disk or not.
@@ -324,7 +324,7 @@ class SetupProjectWizard(object):
                         "win32" : "c:\textures\project_name"}}
 
         The operating systems are enumerated using sys.platform jargon.
-        If a path doesn't have a valid storage path defined in Shotgun,
+        If a path doesn't have a valid storage path defined in FlowPT,
         it will be returned as None. If the project name is not valid,
         None values will be returned for all paths.
 
@@ -457,7 +457,8 @@ class SetupProjectWizard(object):
             # now take the pipeline config paths, and try to replace the current project name
             # in these paths by the new project name
             self._log.debug(
-                "Basing config values on the following PTR pipeline config: %s" % data
+                "Basing config values on the following FlowPT pipeline config: %s"
+                % data
             )
 
             # get the project path for this project
@@ -560,7 +561,7 @@ class SetupProjectWizard(object):
         using_runtime - If set to true, this indicates that the core used for the setup will be picked up
                         from the currently executing core API.
 
-        pipeline_config - If the core is picked up from an existing pipeline configuration in Shotgun, this
+        pipeline_config - If the core is picked up from an existing pipeline configuration in FlowPT, this
                           parameter will hold a dictionary with various shotgun values representing the
                           pipeline configuration and its associated project. If the core used to create the project
                           is not associated with an existing pipeline configuration, None is returned.
@@ -758,8 +759,8 @@ class SetupProjectWizard(object):
             # the site we are configuring supports the authentication module, ie,
             # Shotgun 6.0.2 and greater.
 
-            # this is primarily targeting the PTR desktop app, meaning that even if
-            # the PTR desktop app's site configuration contains script credentials,
+            # this is primarily targeting FlowPT Desktop, meaning that even if
+            # FlowPT Desktop's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
             config_path = self._params.get_configuration_location(sys.platform)

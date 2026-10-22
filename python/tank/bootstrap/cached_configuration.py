@@ -44,7 +44,7 @@ class CachedConfiguration(Configuration):
     ):
         """
         :param path: ShotgunPath object describing the path to this configuration
-        :param sg: Shotgun API instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param descriptor: ConfigDescriptor for the associated config
         :param project_id: Project id for the shotgun project associated with the
                            configuration. For a site-level configuration, this
@@ -55,7 +55,7 @@ class CachedConfiguration(Configuration):
                           non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
-                                   not have an associated entity in Shotgun, this
+                                   not have an associated entity in FlowPT, this
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
@@ -112,7 +112,7 @@ class CachedConfiguration(Configuration):
         self._descriptor.ensure_local()
 
         log.debug(
-            "Verifying that all necessary PTR data is "
+            "Verifying that all necessary FlowPT data is "
             "available in order for config %s to run..." % self
         )
 
@@ -139,7 +139,7 @@ class CachedConfiguration(Configuration):
 
         _, unmapped_roots = storage_roots.get_local_storages(self._sg_connection)
 
-        # get a list of all defined storage roots without a corresponding PTR
+        # get a list of all defined storage roots without a corresponding FlowPT
         # local storage defined
         if unmapped_roots:
             raise TankBootstrapError(
@@ -427,7 +427,7 @@ class CachedConfiguration(Configuration):
 
     def _verify_descriptor_compatible(self):
         """
-        Ensures the config we're booting into understands the newer Shotgun descriptor.
+        Ensures the config we're booting into understands the newer FlowPT descriptor (``type: shotgun``).
         """
         # if it's a shotgun descriptor type using id, ensure
         # that the core we are switching *to* is more recent than 18.120
@@ -435,7 +435,7 @@ class CachedConfiguration(Configuration):
         if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
             if self._descriptor.associated_core_version_less_than("v0.18.120"):
                 raise TankBootstrapError(
-                    "Configurations uploaded to PTR must use core API "
+                    "Configurations uploaded to FlowPT must use core API "
                     "version v0.18.120 or later. Please check the "
                     "core/core_api.yml file in your configuration."
                 )

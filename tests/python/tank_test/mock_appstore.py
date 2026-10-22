@@ -216,7 +216,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         Patches IODescriptorAppStore so needs to carry the same signature.
 
         :param location_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
         """
         IODescriptorBase.__init__(self, location_dict, sg_connection, bundle_type)

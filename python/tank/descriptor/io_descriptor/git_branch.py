@@ -54,7 +54,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to associated site.
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """

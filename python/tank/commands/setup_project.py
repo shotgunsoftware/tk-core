@@ -74,7 +74,7 @@ class SetupProjectAction(Action):
         }
 
         self.parameters["project_id"] = {
-            "description": "PTR id for the project you want to set up.",
+            "description": "FlowPT id for the project you want to set up.",
             "default": None,
             "type": "int",
         }
@@ -133,12 +133,12 @@ class SetupProjectAction(Action):
             "type": "str",
         }
 
-        # Special setting used by older versions of the PTR desktop app
+        # Special setting used by older versions of FlowPT Desktop
         # to handle auto-installing the site configuration at startup.
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
             "Expert setting. Setting this to true means that a blank "
-            "path entry is written to the PTR site pipeline "
+            "path entry is written to the FlowPT site pipeline "
             "configuration. This can be used in conjunction with "
             "a localized core to create a site configuration which "
             "can have different locations on different machines. It "
@@ -342,9 +342,9 @@ class SetupProjectAction(Action):
 
     def _shotgun_connect(self, log):
         """
-        Connects to Shotgun.
+        Connects to FlowPT.
 
-        :returns: Shotgun API Instance.
+        :returns: :class:`~shotgun_api3.shotgun.Shotgun` instance.
         :raises: TankError on failure.
         """
 
@@ -353,9 +353,9 @@ class SetupProjectAction(Action):
             log.info("Connecting to Flow Production Tracking...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target PTR server! (v%s)" % sg_version)
+            log.debug("Connected to target FlowPT site! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to PTR server: %s" % e)
+            raise TankError("Could not connect to FlowPT site: %s" % e)
 
         return sg
 
@@ -382,7 +382,7 @@ class SetupProjectAction(Action):
         Ask the user which config to use. Returns a config uri string.
 
         :param log: python logger
-        :param sg: Shotgun API instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
 
         :returns: config uri string
         """
@@ -462,7 +462,7 @@ class SetupProjectAction(Action):
         Will request the user to input console input to select project.
 
         :param log: python logger
-        :param sg: Shotgun API instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param show_initialized_projects: Should alrady initialized projects be displayed in the listing?
 
         :returns: project_id
@@ -547,13 +547,13 @@ class SetupProjectAction(Action):
 
     def _get_project_folder_name(self, log, sg, params):
         """
-        Given a project entity in Shotgun (name, id), decide where the project data
+        Given a project entity in FlowPT (name, id), decide where the project data
         root should be on disk. This will verify that the selected folder exists
         in each of the storages required by the configuration. It will prompt the user
         and can create these root folders if required (with open permissions).
 
         :param log: python logger
-        :param sg: Shotgun API instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         :param params: ProjectSetupParameters instance which holds the project setup parameters.
         :returns: The project disk name which is selected, this name may
                   include slashes if the selected location is multi-directory.
@@ -570,7 +570,7 @@ class SetupProjectAction(Action):
         log.info(
             "The selected Toolkit config utilizes the following Local Storages, as "
         )
-        log.info("defined in the PTR Site Preferences:")
+        log.info("defined in the FlowPT Site Preferences:")
         log.info("")
         for storage_name in params.get_required_storages():
             current_os_path = params.get_storage_path(storage_name, sys.platform)
@@ -732,7 +732,7 @@ class SetupProjectAction(Action):
         if pipelineconfig_utils.is_localized(curr_core_path):
             # the API we are using to run the setup from was localized. This means
             # that the API will not be shared between projects and with something
-            # like the PTR desktop app workflow, the core API is installed in a
+            # like FlowPT Desktop workflow, the core API is installed in a
             # system location like %APPDATA% or ~/Library.
             # So we cannot use that as a default. In this case, simply don't provide
             # a default parameter.
@@ -869,7 +869,7 @@ class SetupProjectAction(Action):
         )
         log.info("The following items will be created:")
         log.info("")
-        log.info("* A PTR Pipeline configuration will be created:")
+        log.info("* A FlowPT Pipeline configuration will be created:")
         log.info("  - on Macosx:  '%s'" % params.get_configuration_location("darwin"))
         log.info("  - on Linux:   '%s'" % params.get_configuration_location("linux"))
         log.info("  - on Windows: '%s'" % params.get_configuration_location("win32"))
@@ -889,15 +889,15 @@ class SetupProjectAction(Action):
         """
         Present the user with information about the storage roots defined by
         the configuration. Allows them to map a root to an existing local
-        storage in PTR.
+        storage in FlowPT.
 
         :param params: Project setup params instance
         :param config_uri: A config uri
         :param log: python logger object
-        :param sg: Shotgun API instance
+        :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         """
 
-        # query all storages that exist in PTR
+        # query all storages that exist in FlowPT
         storages = sg.find(
             "LocalStorage",
             filters=[],
@@ -915,7 +915,7 @@ class SetupProjectAction(Action):
             storage_by_id[storage_id] = storage
             storage_by_name[storage_name] = storage
 
-        # present a summary of storages that exist in PTR
+        # present a summary of storages that exist in FlowPT
         log.info("")
         log.info("The following local storages exist in Flow Production Tracking:")
         log.info("")
@@ -1008,7 +1008,7 @@ class SetupProjectAction(Action):
 
             if not current_os_path:
                 # the current os path for the selected storage is not populated.
-                # prompt the user and update the path in PTR.
+                # prompt the user and update the path in FlowPT.
                 current_os_path = input(
                     "Please enter a path for this storage on the current OS: "
                 )
@@ -1028,8 +1028,8 @@ class SetupProjectAction(Action):
                         "Error: %s\n%s" % (e, traceback.format_exc())
                     )
 
-                # update the storage in PTR.
-                log.info("Updating the local storage in PTR...")
+                # update the storage in FlowPT.
+                log.info("Updating the local storage in FlowPT...")
                 log.info("")
                 update_data = sg.update(
                     "LocalStorage", storage["id"], {current_os_key: current_os_path}

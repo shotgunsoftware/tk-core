@@ -20,7 +20,7 @@ from tank_test.tank_test_base import (
 
 class TestIODescriptors(ShotgunTestBase):
     """
-    Testing the Shotgun deploy main API methods
+    Testing the FlowPT deploy main API methods
     """
 
     def test_version_resolve(self):

@@ -15,7 +15,7 @@ from . import session_cache
 
 class DefaultsManager(object):
     """
-    The defaults manager allows a client of the Shotgun Authenticator class
+    The defaults manager allows a client of the :class:`~sgtk.authentication.ShotgunAuthenticator` class
     to customize various behaviors around data storage and settings.
 
     By default, when you construct a :class:`ShotgunAuthenticator` object, it will be
@@ -98,7 +98,7 @@ class DefaultsManager(object):
     def get_http_proxy(self):
         """
         Called by the authentication system when it needs to retrieve the
-        proxy settings to use for a Shotgun connection.
+        proxy settings to use for a FlowPT connection.
 
         .. note:: If the centralized settings do not specify an HTTP proxy, Toolkit will rely on
             Python's `urllib.getproxies <https://docs.python.org/2/library/urllib.html#urllib.getproxies>`_
@@ -108,8 +108,8 @@ class DefaultsManager(object):
             Windows Systems Registry: in these cases, Toolkit does not support the use of proxies
             which require authentication (username and password).
 
-        The returned format will be the same as is being used in the Shotgun API.
-        For more information, see the `Shotgun API documentation
+        The returned format will be the same as is being used by :class:`~shotgun_api3.shotgun.Shotgun`.
+        For more information, see the `FlowPT Python API documentation
         <http://developer.shotgridsoftware.com/python-api/reference.html#shotgun>`_.
 
         :returns: String containing the default http proxy, None by default.
@@ -158,7 +158,7 @@ class DefaultsManager(object):
         credentials across all DCCs and tools.
 
         :returns: A dictionary either with keys login and session_token in the case
-                  of a normal Shotgun User, keys api_script and api_key in the case of a Script
+                  of a normal FlowPT User, keys api_script and api_key in the case of a Script
                   User or None in case no credentials could be established.
         """
         if self.get_host() and self.get_login():

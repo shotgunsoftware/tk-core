@@ -92,7 +92,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
             "Flame 1.2.3",
         )
 
-        # Validate the PTR desktop app
+        # Validate FlowPT Desktop
         with mock.patch.object(
             sys,
             "argv",
@@ -116,7 +116,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
         ):
             self.assertEqual(
                 app_session_launcher.get_product_name(),
-                "FPTR desktop app 3.2.1",
+                "FlowPT Desktop 3.2.1",
             )
 
         # Validate the TK_AUTH_PRODUCT environment variable

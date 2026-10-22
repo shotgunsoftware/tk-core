@@ -201,7 +201,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Clear cached appstore connection
         tank.set_authenticated_user(None)
 
-        # Prevents an actual connection to a Shotgun site.
+        # Prevents an actual connection to a FlowPT site.
         self._server_caps_mock = mock.patch(
             "tank_vendor.shotgun_api3.Shotgun.server_caps"
         )
@@ -702,7 +702,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # why either value might be changed
         #
         self.assertEqual(5, MetricsDispatchWorkerThread.DISPATCH_INTERVAL)
-        # NOTE: that current PTR server code reject batches larger than 10.
+        # NOTE: the FlowPT site currently rejects batches larger than 10.
         self.assertEqual(10, MetricsDispatchWorkerThread.DISPATCH_BATCH_SIZE)
 
     def test_maximum_queue_size(self):

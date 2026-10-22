@@ -962,8 +962,8 @@ class TestFolderCreationEdgeCases(TankTestBase):
     def test_delete_shot_then_recreate(self):
 
         # 1. create fodlers for shot ABC
-        # 2. delete shot ABC from PTR
-        # 3. create a new shot ABC in PTR
+        # 2. delete shot ABC from FlowPT
+        # 3. create a new shot ABC in FlowPT
         # 4. when creating folders, it should delete the previous records and replace with new
 
         self.assertEqual(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
@@ -999,7 +999,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         )
 
         # Folder creation aborted: The path '.../project_code/sequences/seq_code/shot_code' cannot be processed
-        # because it is already associated with Shot 'shot_code' (id 1) in Shotgun. You are now trying to
+        # because it is already associated with Shot 'shot_code' (id 1) in FlowPT. You are now trying to
         # associate it with Shot 'shot_code' (id 12345). If you want to unregister your previously created
         # folders, you can run the following command: 'tank Shot shot_code unregister_folders'
 
@@ -1028,7 +1028,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         )
 
         # Folder creation aborted: The path '.../project_code/sequences/seq_code/shot_code' cannot be processed
-        # because it is already associated with Shot 'shot_code' (id 1) in Shotgun. You are now trying to
+        # because it is already associated with Shot 'shot_code' (id 1) in FlowPT. You are now trying to
         # associate it with Shot 'shot_code' (id 12345). If you want to unregister your previously created
         # folders, you can run the following command: 'tank Shot shot_code unregister_folders'
 

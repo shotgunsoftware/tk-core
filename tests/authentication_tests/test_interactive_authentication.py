@@ -348,7 +348,7 @@ class InteractiveTests(ShotgunTestBase):
             mock.patch(
                 "tank.authentication.console_authentication.input",
                 side_effect=[
-                    "\n",  # Select default PTR site (site1)
+                    "\n",  # Select default FlowPT site (site1)
                     "2",  # Select "legacy" auth method
                     "username",
                 ],
@@ -1374,7 +1374,7 @@ class InteractiveTests(ShotgunTestBase):
             mock.patch(
                 "tank.authentication.console_authentication.input",
                 side_effect=[
-                    "\n",  # Select default PTR site (site1)
+                    "\n",  # Select default FlowPT site (site1)
                     "2",  # Select "legacy" auth method
                     "username",
                 ],

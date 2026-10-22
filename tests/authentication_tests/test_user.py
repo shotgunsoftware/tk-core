@@ -228,7 +228,7 @@ class UserTests(ShotgunTestBase):
         Makes sure we can refresh credentials correctly.
 
         :param renew_session_mock: Mock for the renew_session method in interactive_authentication.
-        :param renew_session_mock: Mock for the _call_rpc method on the Shotgun class.
+        :param renew_session_mock: Mock for the _call_rpc method on the :class:`~shotgun_api3.shotgun.Shotgun` class.
         """
 
         su = self._create_test_user()
@@ -250,12 +250,12 @@ class UserTests(ShotgunTestBase):
         refreshed with the newer token on the user object.
 
         :param renew_session_mock: Mock for the renew_session method in interactive_authentication.
-        :param renew_session_mock: Mock for the _call_rpc method on the Shotgun class.
+        :param renew_session_mock: Mock for the _call_rpc method on the :class:`~shotgun_api3.shotgun.Shotgun` class.
         """
 
         su = self._create_test_user()
 
-        # Simulate a session renewal has happened since the Shotgun connection
+        # Simulate a session renewal has happened since the FlowPT connection
         # creationg
         sg = su.create_sg_connection()
         su.impl.set_session_token("session_token_2")

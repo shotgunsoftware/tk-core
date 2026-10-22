@@ -35,7 +35,7 @@ class ProcessFolderCreation(Hook):
         **Standard Folder**
 
         This represents a standard folder in the file system which is not associated
-        with anything in Shotgun. It contains the following keys:
+        with anything in FlowPT. It contains the following keys:
 
         - **action** (:class:`str`) - ``folder``
         - **metadata** (:class:`dict`) - The configuration yaml data for this item
@@ -44,12 +44,12 @@ class ProcessFolderCreation(Hook):
         **Entity Folder**
 
         This represents a folder in the file system which is associated with a
-        Shotgun entity. It contains the following keys:
+        FlowPT entity. It contains the following keys:
 
         - **action** (:class:`str`) - ``entity_folder``
         - **metadata** (:class:`dict`) - The configuration yaml data for this item
         - **path** (:class:`str`) - path on disk to the item
-        - **entity** (:class:`dict`) - Shotgun entity link with keys ``type``, ``id`` and ``name``.
+        - **entity** (:class:`dict`) - FlowPT entity link with keys ``type``, ``id`` and ``name``.
 
         **Remote Entity Folder**
 
@@ -61,7 +61,7 @@ class ProcessFolderCreation(Hook):
         - **action** (:class:`str`) - ``remote_entity_folder``
         - **metadata** (:class:`dict`) - The configuration yaml data for this item
         - **path** (:class:`str`) - path on disk to the item
-        - **entity** (:class:`dict`) - Shotgun entity link with keys ``type``, ``id`` and ``name``.
+        - **entity** (:class:`dict`) - FlowPT entity link with keys ``type``, ``id`` and ``name``.
 
         **File Copy**
 

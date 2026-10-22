@@ -26,7 +26,7 @@ from .errors import TankError
 from .platform.engine import clear_global_busy, show_global_busy
 from .util.login import get_current_user
 
-# Shotgun field definitions to store the path cache data
+# FlowPT field definitions to store the path cache data
 SHOTGUN_ENTITY = "FilesystemLocation"
 SG_ENTITY_FIELD = "entity"
 SG_PATH_FIELD = "path"
@@ -56,7 +56,7 @@ class PathCache(object):
     # around this have been largely alleviated in Shotgun 7.4.x and the
     # accompanying shotgun_api3 that was released at the same time, but
     # we still want to batch at the old page length of 500 to boost
-    # performance when older PTR or API versions are used. We should
+    # performance when older FlowPT or API versions are used. We should
     # eventually raise this to 5000 (or more) when we feel it is safe
     # to do so.
     SHOTGUN_ENTITY_QUERY_BATCH_SIZE = 500
@@ -295,11 +295,11 @@ class PathCache(object):
             self._connection = None
 
     ############################################################################################
-    # shotgun synchronization (PTR data pushed into path cache database)
+    # shotgun synchronization (FlowPT data pushed into path cache database)
 
     def synchronize(self, full_sync=False):
         """
-        Ensure the local path cache is in sync with Shotgun.
+        Ensure the local path cache is in sync with FlowPT.
 
         If the method decides to do a full sync, it will attempt to
         launch the busy overlay window.
@@ -433,7 +433,7 @@ class PathCache(object):
 
     def _upload_cache_data_to_shotgun(self, data, event_log_desc):
         """
-        Takes a standard chunk of Shotgun data and uploads it to Shotgun
+        Takes a standard chunk of FlowPT data and uploads it to FlowPT
         using a single batch statement. Then writes a single event log entry record
         which binds the created path records. Returns the id of this event log record.
 
@@ -499,7 +499,7 @@ class PathCache(object):
             response = self._tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError(
-                "Critical! Could not update PTR with folder "
+                "Critical! Could not update FlowPT with folder "
                 "data. Please contact support. Error details: %s" % e
             )
 
@@ -507,7 +507,7 @@ class PathCache(object):
         # is mapped to the shotgun ids that were just created
         def _normalize_path(p):
             # Local cache paths use os.sep (backslashes on Windows, per
-            # _sanitize_path) while paths round-tripped through Shotgun's
+            # _sanitize_path) while paths round-tripped through FlowPT's
             # local_path field come back with forward slashes. normpath
             # unifies separators and collapses redundant components;
             # normcase lowercases on case-insensitive filesystems (Windows).
@@ -562,7 +562,7 @@ class PathCache(object):
             response = self._tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError(
-                "Critical! Could not update PTR with folder data event log "
+                "Critical! Could not update FlowPT with folder data event log "
                 "history marker. Please contact support. Error details: %s" % e
             )
 
@@ -586,7 +586,7 @@ class PathCache(object):
 
     def _do_full_sync(self, cursor):
         """
-        Ensure the local path cache is in sync with Shotgun.
+        Ensure the local path cache is in sync with FlowPT.
 
         Returns a list of remote items which were detected, created remotely
         and not existing in this path cache. These are returned as a list of
@@ -601,12 +601,12 @@ class PathCache(object):
         show_global_busy(
             "Hang on, Toolkit is preparing folders...",
             (
-                "Toolkit is retrieving folder listings from PTR and ensuring that your "
+                "Toolkit is retrieving folder listings from FlowPT and ensuring that your "
                 "setup is up to date. Hang tight while data is being downloaded..."
             ),
         )
         try:
-            log.debug("Performing a complete PTR folder sync...")
+            log.debug("Performing a complete FlowPT folder sync...")
 
             # find the max event log id. we will store this in the sync db later.
             sg_data = self._tk.shotgun.find_one(
@@ -657,7 +657,7 @@ class PathCache(object):
             tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError(
-                "PTR reported an error while attempting to delete FilesystemLocation entities. "
+                "FlowPT reported an error while attempting to delete FilesystemLocation entities. "
                 "Please contact support. Details: %s Data: %s" % (e, sg_batch_data)
             )
 
@@ -703,14 +703,14 @@ class PathCache(object):
             tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError(
-                "PTR Reported an error while trying to write a Toolkit_Folders_Delete event "
+                "FlowPT Reported an error while trying to write a Toolkit_Folders_Delete event "
                 "log entry after having successfully removed folders. Please contact support for "
                 "assistance. Error details: %s Data: %s" % (e, sg_event_data)
             )
 
     def _do_incremental_sync(self, cursor, sg_data):
         """
-        Ensure the local path cache is in sync with Shotgun.
+        Ensure the local path cache is in sync with FlowPT.
 
         Patch the existing cache with the events passed via sg_data.
 
@@ -797,7 +797,7 @@ class PathCache(object):
 
     def _get_filesystem_location_entities(self, folder_ids):
         """
-        Retrieves filesystem location entities from Shotgun.
+        Retrieves filesystem location entities from FlowPT.
 
         :param list folder_ids: List of ids of entities to retrieve. If None, every entry is returned.
 
@@ -880,7 +880,7 @@ class PathCache(object):
 
     def _replay_folder_entities(self, cursor, max_event_log_id):
         """
-        Downloads all the filesystem location entities from Shotgun and repopulates the
+        Downloads all the filesystem location entities from FlowPT and repopulates the
         path cache with them.
 
         Lastly, this method updates the event_log_sync marker in the sqlite database
@@ -928,7 +928,7 @@ class PathCache(object):
 
     def _update_last_event_log_synced(self, cursor, event_log_id):
         """
-        Saves into the db the last event processed from Shotgun.
+        Saves into the db the last event processed from FlowPT.
 
         :param cursor: Database cursor.
         :type cursor: :class:`sqlite3.Cursor`
@@ -982,7 +982,7 @@ class PathCache(object):
         #            'url': 'file:///Volumes/xyz/proj1/sequences/aaa'},
         #   'type': 'FilesystemLocation'},
         #
-        # With a retired storage, the returned data from the PTR API is
+        # With a retired storage, the returned data from the FlowPT Python API is
         #  {'id': 646,
         #   'path': {'content_type': None,
         #            'id': 2141,
@@ -1120,10 +1120,10 @@ class PathCache(object):
         # The final result is that only add 2 will be in the path cache.
         #
         # While incrementally updating the path cache, entry 1 will never be added to the path cache
-        # because it doesn't exist in Shotgun anymore. Because of this, _import_filesystem_location_entry
+        # because it doesn't exist in FlowPT anymore. Because of this, _import_filesystem_location_entry
         # will skip importing entry 1 because it isn't in the result final set of entities. When this
         # happens, it means that it also can't be removed from the path cache. As such, shotgun_status
-        # will not report any mapping between the path cache and the Shotgun filesystem location
+        # will not report any mapping between the path cache and the FlowPT filesystem location
         # entity.
         if not all_path_cache_ids:
             return
@@ -1241,7 +1241,7 @@ class PathCache(object):
                         entity["type"],
                         entity["name"],
                     )
-                    msg += "This typically happens if an item in PTR is renamed or "
+                    msg += "This typically happens if an item in FlowPT is renamed or "
                     msg += "if the path naming in the folder creation configuration "
                     msg += "is changed. In order to continue you can either change "
                     msg += (
@@ -1304,7 +1304,7 @@ class PathCache(object):
                 )
                 if new_rowid:
                     # this entry wasn't already in the db. So add it to the list to
-                    # potentially upload to PTR later on
+                    # potentially upload to FlowPT later on
                     data_for_sg.append(d)
                     # append path cache row id to data
                     d["path_cache_row_id"] = new_rowid
@@ -1340,7 +1340,7 @@ class PathCache(object):
             raise
 
         else:
-            # Shotgun insert complete! Now we can commit path cache transaction
+            # FlowPT insert complete! Now we can commit path cache transaction
             self._connection.commit()
 
         finally:
@@ -1387,7 +1387,7 @@ class PathCache(object):
                 ):
                     raise TankError(
                         "Database concurrency problems: The path '%s' is "
-                        "already associated with PTR entity %s. Please re-run "
+                        "already associated with FlowPT entity %s. Please re-run "
                         "folder creation to try again." % (path, str(curr_entity))
                     )
 
@@ -1435,8 +1435,8 @@ class PathCache(object):
         Given an entity, checks if a path is in the database or not
 
         :param path: Path to try
-        :param entity_type: A Shotgun entity type
-        :param entity_id: A Shotgun entity id
+        :param entity_type: A FlowPT entity type
+        :param entity_id: A FlowPT entity id
         :param cursor: Database cursor to use.
         :returns: True if path exists, false if not
         """
@@ -1581,8 +1581,8 @@ class PathCache(object):
         """
         Returns a path given a shotgun entity (type/id pair)
 
-        :param entity_type: A Shotgun entity type
-        :param entity_id: A Shotgun entity id
+        :param entity_type: A FlowPT entity type
+        :param entity_id: A FlowPT entity id
         :param primary_only: Only return items marked as primary
         :param cursor: Database cursor to use. If none, a new cursor will be created.
         :returns: A path on disk
@@ -1640,7 +1640,7 @@ class PathCache(object):
 
         :param path: a path on disk
         :param cursor: Database cursor to use. If none, a new cursor will be created.
-        :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123}
+        :returns: FlowPT entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123}
                   or None if not found
         """
         if self._path_cache_disabled:
@@ -1726,10 +1726,10 @@ class PathCache(object):
 
     def ensure_all_entries_are_in_shotgun(self):
         """
-        Ensures that all the path cache data in this database is also registered in Shotgun.
+        Ensures that all the path cache data in this database is also registered in FlowPT.
 
         This will go through each entity in the path cache database and check if it exists in
-        Shotgun. If not, it will be created.
+        FlowPT. If not, it will be created.
 
         No updates will be made to the path cache database.
         """
@@ -1817,7 +1817,7 @@ class PathCache(object):
             if sg_dict_key in sg_existing_data:
                 log.info(" - Skipping '%s'" % local_os_path)
                 log.debug(
-                    "Path '%s' (%s %s) is already in PTR (id %s)"
+                    "Path '%s' (%s %s) is already in FlowPT (id %s)"
                     % (
                         local_os_path,
                         entity_type,
@@ -1840,7 +1840,7 @@ class PathCache(object):
 
         # cull out stuff where the linked entity has been retired in shogun
         log.info("")
-        log.info("Step 4 - Ensuring all PTR entity links are valid.")
+        log.info("Step 4 - Ensuring all FlowPT entity links are valid.")
 
         ids_to_look_for = collections.defaultdict(list)
         for sg_record in sg_records:

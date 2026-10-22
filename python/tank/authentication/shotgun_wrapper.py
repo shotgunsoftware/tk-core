@@ -29,8 +29,8 @@ logger = LogManager.get_logger(__name__)
 
 class ShotgunWrapper(Shotgun):
     """
-    This class wraps the Shotgun instance that communicates with the Shotgun
-    server. Every time a request is made to the server and we are authenticated
+    This class wraps the :class:`~shotgun_api3.shotgun.Shotgun` instance that communicates with the FlowPT
+    site. Every time a request is made to the site and we are authenticated
     as a session user, the call will be monitored for an AuthenticationFault.
     If it happens, the call will be interrupted by a prompt asking for the user's
     password to renew the session. Once the session is renewed, the call will be
@@ -39,7 +39,7 @@ class ShotgunWrapper(Shotgun):
 
     def __init__(self, *args, **kwargs):
         """
-        Constructor. This has the same parameters as the Shotgun class, but it
+        Constructor. This has the same parameters as the :class:`~shotgun_api3.shotgun.Shotgun` class, but it
         has an extra sg_auth_user parameter documented below.
 
         :param sg_auth_user: ShotgunUser derived instance that represents the

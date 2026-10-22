@@ -27,7 +27,7 @@ class ClearCacheAction(Action):
             "clear_shotgun_menu_cache",
             Action.TK_INSTANCE,
             (
-                "Clears the PTR Menu Cache associated with this Configuration. "
+                "Clears the FlowPT Menu Cache associated with this Configuration. "
                 "This is sometimes useful after complex configuration changes if new "
                 "or modified Toolkit menu items are not appearing inside Flow Production Tracking."
             ),
@@ -73,7 +73,7 @@ class ClearCacheAction(Action):
                 except Exception:
                     log.warning("Could not delete cache file '%s'!" % full_path)
 
-        log.info("The PTR menu cache has been cleared.")
+        log.info("The FlowPT menu cache has been cleared.")
 
 
 class InteractiveShellAction(Action):
@@ -116,7 +116,9 @@ class InteractiveShellAction(Action):
             tk_locals["tk"] = self.tk
             tk_locals["shotgun"] = self.tk.shotgun
             msg.append("- A tk API handle is available via the tk variable")
-            msg.append("- A Shotgun API handle is available via the shotgun variable")
+            msg.append(
+                "- A shotgun_api3.Shotgun handle is available via the shotgun variable"
+            )
 
         if self.context:
             tk_locals["context"] = self.context

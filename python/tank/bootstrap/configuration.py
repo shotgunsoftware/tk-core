@@ -94,7 +94,7 @@ class Configuration(object):
 
         It swaps the core out if needed and ensure we use the right login.
 
-        :param sg_user: Authenticated Shotgun user to associate
+        :param sg_user: Authenticated FlowPT user to associate
                         the tk instance with.
 
         :returns: A tuple of (:class:`Sgtk` and :class:`ShotgunUser`) representing

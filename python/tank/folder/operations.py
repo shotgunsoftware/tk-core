@@ -27,8 +27,8 @@ def create_single_folder_item(
 
     :param config_obj: a FolderConfiguration object representing the folder configuration
     :param io_receiver: a FolderIOReceiver representing the folder operation callbacks
-    :param entity_type: Shotgun entity type
-    :param entity_id: Shotgun entity id
+    :param entity_type: FlowPT entity type
+    :param entity_id: FlowPT entity id
     :param sg_task_data: shotgun task id if this folder creation is associated with a particular task
     :param engine: Engine to create folders for / indicate second pass if not None.
     """
@@ -108,7 +108,7 @@ def synchronize_folders(tk, full_sync):
 
 def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     """
-    Creates filesystem structure in Tank based on Shotgun and a schema config.
+    Creates filesystem structure in Tank based on FlowPT and a schema config.
     Internal implementation.
 
     :param tk: A tk instance
@@ -171,9 +171,9 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
         filters.extend(entity_ids)  # weird filter format here
 
         # "steps" are a grouping mechanism that sits
-        # on the "side" and allows for Shotgun to group tasks into
+        # on the "side" and allows for FlowPT to group tasks into
         # smaller sets (lighting, modeling etc). By default, the Step
-        # entity in Shotgun is controlling this, but it is possible to customize
+        # entity in FlowPT is controlling this, but it is possible to customize
         # this behaviour in the step node, to use a different entity type as a "step".
         # (this can be useful if you want standard Steps for scheduling but
         # a different breakdown for your disk setup).
