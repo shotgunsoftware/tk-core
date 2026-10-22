@@ -32,3 +32,6 @@ FLOW_SCHEMA_CONFIG_PATH = str(pathlib.Path(__file__).resolve().parent) + "/confi
 # SG Project field that stores the current schema config version,
 # used to skip schema provisioning when the version already matches.
 FLOW_SCHEMA_VERSION_FIELD = "sg_flow_schema_config_version"
+
+# Subfolder of the config env folder which contains the FlowAM environments
+FLOW_ENVIRONMENT_FOLDER = "flowam"
