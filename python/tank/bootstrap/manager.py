@@ -1129,7 +1129,6 @@ class ToolkitManager(object):
                     [
                         flow_auth.AM_READY_PROJECT_FIELD,
                         flow_const.FLOW_SCHEMA_VERSION_FIELD,
-                        "sg_flow_federated_project",
                     ],
                 )
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
