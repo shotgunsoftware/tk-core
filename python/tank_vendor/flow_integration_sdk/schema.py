@@ -27,12 +27,19 @@ from .globals import (
     BASE_PROPERTY_TYPE_ID,
     BASE_TYPE_ID,
     BINARY_TYPE_ID,
+    CG_ASSET_TYPE_ID,
+    CG_SHOT_TYPE_ID,
     COMMENT_TYPE_ID,
+    DELIVERABLE_ASSET_TYPE_ID,
+    DELIVERABLE_SHOT_TYPE_ID,
+    DELIVERABLE_TYPE_ID,
+    EXTERNAL_ID_TYPE_ID,
     FOLDER_TYPE_ID,
     get_client,
     get_session_collection,
     IMAGE_TYPE_ID,
     KIND_BASE_TYPE_ID,
+    PIPELINE_STEP_TYPE_ID,
 )
 from .utils import get_logger, trace
 
@@ -49,14 +56,24 @@ _schema_tree: dict[str, list[str]] = {}
 _BASE_COMPONENT_TYPE_ID_V1 = "autodesk.me:component-1.0.0"
 
 # Hardcode some well known relationships and root types
+# Base types
 _schema_tree[BASE_PROPERTY_TYPE_ID] = []
 _schema_tree[BASE_TYPE_ID] = []
 _schema_tree[BASE_COMPONENT_TYPE_ID] = []
 _schema_tree[_BASE_COMPONENT_TYPE_ID_V1] = []
+# Component types
 _schema_tree[BINARY_TYPE_ID] = [_BASE_COMPONENT_TYPE_ID_V1]
 _schema_tree[COMMENT_TYPE_ID] = [BASE_COMPONENT_TYPE_ID]
-_schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
 _schema_tree[IMAGE_TYPE_ID] = [BINARY_TYPE_ID]
+# Type types
+_schema_tree[CG_ASSET_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[CG_SHOT_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[DELIVERABLE_ASSET_TYPE_ID] = [DELIVERABLE_TYPE_ID]
+_schema_tree[DELIVERABLE_SHOT_TYPE_ID] = [DELIVERABLE_TYPE_ID]
+_schema_tree[DELIVERABLE_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[EXTERNAL_ID_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[FOLDER_TYPE_ID] = [BASE_TYPE_ID]
+_schema_tree[PIPELINE_STEP_TYPE_ID] = [BASE_TYPE_ID]
 
 
 # Schema type ids cache
