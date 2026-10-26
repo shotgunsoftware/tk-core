@@ -12,6 +12,8 @@
 Test utility to read query config and generate a printed hierarchy.
 """
 
+from __future__ import annotations  # needed for python 3.9 support
+
 import json
 import os
 import re
