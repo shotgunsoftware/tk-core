@@ -192,7 +192,7 @@
         }
     },
     "{For_Deliverable}": {
-        "kind": "binary",
+        "kind": "token",
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
@@ -200,7 +200,7 @@
         }
     },
     "{For_Step}": {
-        "kind": "binary",
+        "kind": "token",
         "label": "{DATA.ATTRIBUTE(name)}",
         "icon": "asset",
         "resolution": {
