@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.platform.engine &mdash; tk-core v0.24.4 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.24.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -87,7 +87,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.4.<br>
+    <b>tk-core</b> v0.24.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -303,11 +303,7 @@
         <span class="c1"># Do Flow sdk initialization if context is configured with Flow</span>
         <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">flow_project_id</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">flow_utils</span><span class="o">.</span><span class="n">init_flow</span><span class="p">(</span>
-                    <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="p">,</span>
-                    <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="p">,</span>
-                    <span class="n">context</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="n">flow_utils</span><span class="o">.</span><span class="n">init_flow</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">"Error occurred during Flow initialization!"</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>

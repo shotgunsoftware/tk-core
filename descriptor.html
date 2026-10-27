@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.24.4 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.24.6 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -143,7 +143,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.4.<br>
+    <b>tk-core</b> v0.24.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -443,7 +443,8 @@ a commit in a particular branch.</p>
 </pre></div>
 </div>
 <p>You can use both long and short hash formats for the version token. The latest version for a git_branch
-descriptor is defined as the most recent commit for a given branch.</p>
+descriptor is defined as the most recent commit for a given branch. If the version property is omitted,
+Toolkit will automatically use the latest commit on the specified branch.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Repositories requiring authentication are not fully supported by Toolkit. For such
@@ -461,6 +462,14 @@ trying to prompt for a password in the background.</p>
 the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> in order for the API to be able to do a latest check or
 app download. The git executable is, however, not needed during descriptor
 resolve and normal operation.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a repository uses <a class="reference external" href="https://git-lfs.com">Git LFS</a> to store some of its files
+(declared via <code class="docutils literal notranslate"><span class="pre">filter=lfs</span></code> entries in its <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code>), the machine
+downloading the descriptor also needs <code class="docutils literal notranslate"><span class="pre">git-lfs</span></code> installed and initialized
+(<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">lfs</span> <span class="pre">install</span></code>). If it isn’t, Toolkit will raise an error rather than
+silently checking out files that still contain unresolved LFS pointer text.</p>
 </div>
 </section>
 <section id="tracking-against-releases-on-github">
@@ -500,6 +509,15 @@ A token must be set as environment variable that is specific to the organization
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For private repos, it’s recommended that you use a personal access token (classic) with read-only access to Content. Fine-grained tokens are not yet supported. For more information, see the <a class="reference external" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token">Github Documentation on Personal Access Tokens</a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the repository uses <a class="reference external" href="https://git-lfs.com">Git LFS</a>, its
+<a class="reference external" href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-git-lfs-objects-in-archives-of-your-repository">“Include Git LFS objects in archives”</a>
+setting must be enabled on Github. This descriptor downloads a Release’s zip archive rather than
+doing a git clone, and Github only includes real Git LFS content in that archive when this setting
+is turned on; otherwise the downloaded files will contain unresolved LFS pointer text. This setting
+isn’t exposed through the Github API and must be checked/enabled manually per repository.</p>
 </div>
 </section>
 <section id="pointing-to-a-path-on-disk">

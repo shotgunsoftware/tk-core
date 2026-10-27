@@ -305,7 +305,8 @@ Http protocol syntax:
     sgtk:descriptor:git_branch?branch=master&path=https://github.com/user/tk-multi-publish.git&version=17fedd8
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
-descriptor is defined as the most recent commit for a given branch.
+descriptor is defined as the most recent commit for a given branch. If the version property is omitted,
+Toolkit will automatically use the latest commit on the specified branch.
 
 .. warning:: Repositories requiring authentication are not fully supported by Toolkit. For such
              setups, we strongly recommend using an ssh style git url
@@ -318,6 +319,12 @@ descriptor is defined as the most recent commit for a given branch.
           the ``PATH`` in order for the API to be able to do a latest check or
           app download. The git executable is, however, not needed during descriptor
           resolve and normal operation.
+
+.. note:: If a repository uses `Git LFS <https://git-lfs.com>`_ to store some of its files
+          (declared via ``filter=lfs`` entries in its ``.gitattributes``), the machine
+          downloading the descriptor also needs ``git-lfs`` installed and initialized
+          (``git lfs install``). If it isn't, Toolkit will raise an error rather than
+          silently checking out files that still contain unresolved LFS pointer text.
 
 
 Tracking against releases on Github
@@ -356,6 +363,13 @@ A token must be set as environment variable that is specific to the organization
 .. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
 .. note:: For private repos, it's recommended that you use a personal access token (classic) with read-only access to Content. Fine-grained tokens are not yet supported. For more information, see the `Github Documentation on Personal Access Tokens <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
+
+.. note:: If the repository uses `Git LFS <https://git-lfs.com>`_, its
+          `"Include Git LFS objects in archives" <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-git-lfs-objects-in-archives-of-your-repository>`_
+          setting must be enabled on Github. This descriptor downloads a Release's zip archive rather than
+          doing a git clone, and Github only includes real Git LFS content in that archive when this setting
+          is turned on; otherwise the downloaded files will contain unresolved LFS pointer text. This setting
+          isn't exposed through the Github API and must be checked/enabled manually per repository.
 
 
 Pointing to a path on disk

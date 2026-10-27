@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.bootstrap.manager &mdash; tk-core v0.24.4 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.24.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -87,7 +87,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.4.<br>
+    <b>tk-core</b> v0.24.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -217,10 +217,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_allow_config_overrides</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="c1"># flow fields</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_flow_project_id</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_flow_schema_version</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID</span>
         <span class="c1"># and in case this is set, use it as a default</span>
@@ -1269,16 +1265,10 @@
                     <span class="p">],</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">sg_project</span> <span class="ow">and</span> <span class="n">sg_project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">):</span>
-                    <span class="c1"># Store flow fields temporarily to avoid re-querying.</span>
-                    <span class="c1"># They will be cached on the context object after the context object has been rebuilt.</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_flow_project_id</span> <span class="o">=</span> <span class="n">sg_project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span>
-                    <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_flow_schema_version</span> <span class="o">=</span> <span class="n">sg_project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span>
-                    <span class="p">)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"Current SG project is associated with a Flow project: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_flow_project_id</span><span class="si">}</span><span class="s2"> with schema version </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_flow_schema_version</span><span class="si">}</span><span class="s2">."</span>
+                        <span class="s2">"Current SG project is associated with a Flow project: "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">sg_project</span><span class="p">[</span><span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">]</span><span class="si">}</span><span class="s2"> with schema "</span>
+                        <span class="sa">f</span><span class="s2">"version </span><span class="si">{</span><span class="n">sg_project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
                     <span class="p">)</span>
 
                     <span class="n">tk</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_tk_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="p">)</span>
@@ -1338,11 +1328,6 @@
 
 <span class="sd">        If entity is None, the method will bootstrap into the site config.</span>
 
-<span class="sd">        For Flow-enabled projects, the Flow project id and schema version</span>
-<span class="sd">        cached during ``_get_updated_configuration()`` are injected onto</span>
-<span class="sd">        ``ctx.project`` so the engine can read them via</span>
-<span class="sd">        ``context.flow_project_id`` and ``context.flow_schema_version``.</span>
-
 <span class="sd">        Please note that the API version of the tk instance that hosts</span>
 <span class="sd">        the engine may not be the same as the API version that was</span>
 <span class="sd">        executed during the bootstrap.</span>
@@ -1368,13 +1353,6 @@
             <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity_dictionary</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
-
-            <span class="c1"># Inject flow fields to context if current project is related to a Flow project.</span>
-            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">project</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow_project_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow_project_id</span>
-                <span class="n">ctx</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_flow_schema_version</span>
-                <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span>
             <span class="n">progress_callback</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LAUNCHING_ENGINE_RATE</span><span class="p">,</span> <span class="s2">"Launching Engine..."</span>

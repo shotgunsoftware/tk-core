@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.context &mdash; tk-core v0.24.4 documentation</title>
+  <title>tank.context &mdash; tk-core v0.24.6 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -87,7 +87,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.4.<br>
+    <b>tk-core</b> v0.24.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -159,9 +159,16 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.authentication</span><span class="w"> </span><span class="kn">import</span> <span class="n">flow_auth</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankContextDeserializationError</span><span class="p">,</span> <span class="n">TankError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.flowam</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">flow_const</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.path_cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathCache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.template</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplatePath</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">login</span><span class="p">,</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">shotgun</span><span class="p">,</span> <span class="n">shotgun_entity</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># FlowAM fields of the project, so it is only queried once per process.</span>
+<span class="c1"># A session only deals with one site and one project. Only a successful query is stored.</span>
+<span class="n">_flowam_fields_cache</span> <span class="o">=</span> <span class="p">{}</span>
 
 
 <div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../core.html#sgtk.Context">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Context</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -545,15 +552,17 @@
 <span class="sd">        The FlowAM project ID for this context, or ``None`` if the project is</span>
 <span class="sd">        not FlowAM-enabled or there is no project in this context.</span>
 
-<span class="sd">        The value is read from the ``sg_flow_am_id`` field on the project dict.</span>
-<span class="sd">        It is populated by the bootstrap manager after it queries ShotGrid.</span>
+<span class="sd">        The value is the project ``sg_flow_am_id`` field, queried from Flow</span>
+<span class="sd">        Production Tracking the first time it is read.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The value is cached once per process, assuming a single project per</span>
+<span class="sd">            process.</span>
 
 <span class="sd">        :returns: A string containing the FlowAM project ID, or ``None``.</span>
 <span class="sd">        :rtype: str or None</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_flowam_fields</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">flow_draft_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -568,15 +577,17 @@
 <span class="sd">        The FlowAM schema version of the project in context, or ``None`` if the project is</span>
 <span class="sd">        not FlowAM-enabled or there is no schema created.</span>
 
-<span class="sd">        The value is read from the ``sg_flow_schema_config_version`` field on the project dict.</span>
-<span class="sd">        It is populated by the bootstrap manager after it queries ShotGrid.</span>
+<span class="sd">        The value is the project ``sg_flow_schema_config_version`` field, queried</span>
+<span class="sd">        from Flow Production Tracking the first time it is read.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The value is cached once per process, assuming a single project per</span>
+<span class="sd">            process.</span>
 
 <span class="sd">        :returns: A string containing the FlowAM schema version, or ``None``.</span>
 <span class="sd">        :rtype: str or None</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_flowam_fields</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">entity_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1095,20 +1106,20 @@
             <span class="n">source_entity</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_entity"</span><span class="p">),</span>
             <span class="n">flow_draft_id</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flow_draft_id"</span><span class="p">),</span>
         <span class="p">)</span>
+        <span class="c1"># Reuse the serialized FlowAM fields, so a new process doesn't query them.</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="ow">and</span> <span class="s2">"flow_project_id"</span> <span class="ow">in</span> <span class="n">data</span>
-            <span class="ow">and</span> <span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">_flowam_fields_cache</span>
         <span class="p">):</span>
-            <span class="n">ctx</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"flow_project_id"</span><span class="p">]</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="n">ctx</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="s2">"flow_schema_version"</span> <span class="ow">in</span> <span class="n">data</span>
-            <span class="ow">and</span> <span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">project</span>
-        <span class="p">):</span>
-            <span class="n">ctx</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span>
-                <span class="s2">"flow_schema_version"</span>
-            <span class="p">]</span>
+            <span class="n">_flowam_fields_cache</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flow_project_id"</span><span class="p">),</span>
+                    <span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="s2">"flow_schema_version"</span>
+                    <span class="p">),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">ctx</span>
 
     <span class="c1">################################################################################################</span>
@@ -1412,6 +1423,43 @@
 
         <span class="k">return</span> <span class="n">found_fields</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_flowam_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns the FlowAM fields of the project in context.</span>
+
+<span class="sd">        They are queried from Flow Production Tracking the first time this is</span>
+<span class="sd">        called in this process, and cached. A failed query is logged and not</span>
+<span class="sd">        cached, so it is retried on the next call.</span>
+
+<span class="sd">        :returns: A dict with the ``sg_flow_am_id`` and</span>
+<span class="sd">            ``sg_flow_schema_config_version`` values, ``None`` for a non-FlowAM</span>
+<span class="sd">            project. An empty dict if there is no project or the query failed.</span>
+<span class="sd">        """</span>
+        <span class="c1"># Make sure we have a project to query FlowAM fields for.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_flowam_fields_cache</span><span class="p">:</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">flow_auth</span><span class="o">.</span><span class="n">AM_READY_PROJECT_FIELD</span><span class="p">,</span>
+                <span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sg_project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                    <span class="s2">"Project"</span><span class="p">,</span> <span class="p">[[</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"is"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]]],</span> <span class="n">fields</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">"Could not query the FlowAM fields for project </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">"</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">e</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="p">{}</span>
+            <span class="n">sg_project</span> <span class="o">=</span> <span class="n">sg_project</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                <span class="n">_flowam_fields_cache</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">sg_project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_flowam_fields_cache</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_project_roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Gets the project root paths for the current pipeline configuration.</span>
@@ -1419,7 +1467,21 @@
 <span class="sd">        :returns: A list of project root file paths as strings.</span>
 <span class="sd">        :rtype: list</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_flowam_schema_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Writes the FlowAM schema version of the project in context to Flow</span>
+<span class="sd">        Production Tracking, then updates the cache.</span>
+
+<span class="sd">        :param schema_version: The new FlowAM schema version.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="s2">"Project"</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+            <span class="p">{</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">:</span> <span class="n">schema_version</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">_flowam_fields_cache</span><span class="p">[</span><span class="n">flow_const</span><span class="o">.</span><span class="n">FLOW_SCHEMA_VERSION_FIELD</span><span class="p">]</span> <span class="o">=</span> <span class="n">schema_version</span></div>
 
 
 <span class="c1">################################################################################################</span>

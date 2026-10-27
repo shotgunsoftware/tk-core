@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tank.util.filesystem &mdash; tk-core v0.24.4 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.24.6 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
@@ -87,7 +87,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.4.<br>
+    <b>tk-core</b> v0.24.6.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -476,7 +476,14 @@
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">srcname</span><span class="p">)):</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">copy_folder</span><span class="p">(</span><span class="n">srcname</span><span class="p">,</span> <span class="n">dstname</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">srcname</span><span class="p">),</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dstname</span><span class="p">))</span>
+                <span class="n">extended_dstname</span> <span class="o">=</span> <span class="n">_to_extended_path</span><span class="p">(</span><span class="n">dstname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">extended_dstname</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span>
+                    <span class="n">extended_dstname</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span>
+                <span class="p">):</span>
+                    <span class="c1"># if destination already exists but is readonly, change it to writable</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">extended_dstname</span><span class="p">,</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWUSR</span><span class="p">)</span>
+
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">_to_extended_path</span><span class="p">(</span><span class="n">srcname</span><span class="p">),</span> <span class="n">extended_dstname</span><span class="p">)</span>
                 <span class="c1"># Return the plain path; callers (e.g. move_folder) re-extend</span>
                 <span class="c1"># as needed when operating on it.</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">srcname</span><span class="p">)</span>
