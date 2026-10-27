@@ -1,7 +1,7 @@
-certifi==2026.6.17
+certifi==2026.10.23
 distro==1.4.0
 fileseq==2.1.2
-packaging==25.0
+packaging==26.3
 pyyaml==6.0.1
 ruamel.yaml==0.18.14
-shotgun_api3 @ git+https://github.com/shotgunsoftware/python-api.git@v3.10.3
+shotgun_api3 @ git+https://github.com/shotgunsoftware/python-api.git@v3.10.4
