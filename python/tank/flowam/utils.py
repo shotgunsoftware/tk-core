@@ -289,7 +289,6 @@ def create_components_for_publish(
         file_format = os.path.basename(sequences[0].frame(frame_expr))
         components.append(
             FileSeqComponentSpec(
-                type_id=schema.get_schema_id(globals.FILE_SEQ_TYPE),
                 frame_start=sequences[0].start(),
                 frame_end=sequences[0].end(),
                 frame_set=str(sequences[0].frameSet()),
