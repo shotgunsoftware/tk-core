@@ -128,6 +128,7 @@ def medm_search(
     Args:
         project_id: Id of project to search under.
         q_filter: Filter criteria following MEDM api specs.
+                  (Can use `generate_search_filter()` to help create filter.)
         parent_id: Specify a parent to scope search to. This will
                    limit the search to direct children of this parent.
         include_deleted: Include deleted assets in search results.
@@ -175,6 +176,7 @@ def medm_assets_by_project(
     Args:
         project_id: Id of project to query under.
         q_filter: Filter criteria following MEDM api specs.
+                  (Can use `generate_project_filter()` to help create filter.)
         include_deleted: Include deleted assets in search results.
 
     Returns:
@@ -203,6 +205,58 @@ def medm_assets_by_project(
         raise FlowError(msg) from exc
 
     result = [FlowAsset(a) for a in q_assets.assets]
+    return result
+
+
+@trace
+def medm_assets_by_traversal(
+    start_id: str,
+    q_filter: str = "",
+    depth: int = 1,
+    direction: str = medm_model.TraverseDirectionEnum.OUTGOING.value,
+) -> list[FlowAsset]:
+    """Perform traversal query of assets in MEDM under given project or asset id
+    with provided filter criteria.
+
+    Args:
+        start_id: Id of project or asset to query under.
+        q_filter: Filter criteria following MEDM api specs.
+                  (Can use `generate_project_filter()` to help create filter.)
+        depth: Valid values are.
+                    * 0 -> search entire subtree
+                    * 1 -> search first-level children only
+        direction: Valid values are
+                    * TraverseDirectionEnum.OUTGOING.value -> search descendents
+                    * TraverseDirectionEnum.INCOMING.value -> search ancestors
+
+    Returns:
+        List of FlowAsset objects.
+
+    Raises:
+        FlowError
+    """
+    client = get_client()
+
+    q_input = medm_model.AssetsByTraversalInput(
+        start_at_id=start_id,
+        depth=depth,
+        direction=direction,
+        filters=q_filter,
+    )
+    q_assets = client.service_asset.assets_by_traversal(q_input)
+
+    try:
+        q_assets.call()
+    except GQLAPIError as exc:
+        msg = f"AssetsByTraversal query failed. {exc}"
+        raise FlowError(msg) from exc
+
+    result = []
+    for medm_asset in q_assets.assets:
+        # Skip self in the results (traversal API includes start node)
+        if medm_asset.id == start_id:
+            continue
+        result.append(FlowAsset(medm_asset))
     return result
 
 

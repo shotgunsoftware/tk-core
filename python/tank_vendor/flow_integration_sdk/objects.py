@@ -76,10 +76,17 @@ def _get_schema_wildcard(type_name: str) -> str:
     Args:
         type_name: Base name of schema type, without namespace or version
                    (e.g. "component.reference").
+                   This can also be a full type id.
 
     Returns:
         Wildcard type id.
     """
+    try:
+        # Attempt to parse type id
+        domain, rest = type_name.split(":")
+        type_name, version = rest.split("-")
+    except ValueError:
+        pass
     # type ids are "<namespace>:<type name>-<version>"
     return f"*:{type_name}-*"
 

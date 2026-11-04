@@ -48,6 +48,7 @@ DELIVERABLE_SHOT_TYPE_ID = "autodesk.me.dev:type.deliverable.shot-1.0.0"
 DYNAMIC_ENUM_VALUE_TYPE_ID = "autodesk.me.dev:type.dynamicEnumValue-1.0.0"
 FOLDER_TYPE_ID = "autodesk.me:type.folder-1.0.0"
 FOR_DELIVERABLE_TYPE_ID = "autodesk.me.dev:component.forDeliverable-1.0.0"
+FOR_PIPELINE_STEP_TYPE_ID = "autodesk.me.dev:component.forPipelineStep-1.0.0"
 IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
 PIPELINE_STEP_TYPE_ID = "autodesk.me.dev:type.pipelineStep-1.0.0"
 
@@ -73,7 +74,6 @@ KIND_RETIRED_BASE_TYPE_IDS = {
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
 DER_SOURCE_TYPE = "component.source"
-FOR_PIPELINE_STEP_TYPE = "component.forPipelineStep"
 FILE_SEQ_TYPE = "type.fileSequence"
 LAYER_TYPE = "component.layer"
 REFERENCE_TYPE = "component.reference"

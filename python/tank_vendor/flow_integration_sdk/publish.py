@@ -44,7 +44,7 @@ from .globals import (
     EXTERNAL_ID_TYPE_ID,
     FILE_SEQ_TYPE,
     FOR_DELIVERABLE_TYPE_ID,
-    FOR_PIPELINE_STEP_TYPE,
+    FOR_PIPELINE_STEP_TYPE_ID,
     get_client,
     IMAGE_TYPE_ID,
     REFERENCE_TYPE,
@@ -367,7 +367,7 @@ class ForPipelineStepComponentSpec(ComponentSpec):
 
     @property
     def name(self) -> str:
-        return "For Pipeline Step"
+        return "ForPipelineStep"
 
     def create(self) -> medm_model.Component:
         """Create an MEDM component based on specifications."""
@@ -376,7 +376,7 @@ class ForPipelineStepComponentSpec(ComponentSpec):
             deliverable_id = self.build_reference_value(self.deliverable_id)
         return self.create_component(
             name=self.name,
-            type_id=get_schema_id(FOR_PIPELINE_STEP_TYPE),
+            type_id=FOR_PIPELINE_STEP_TYPE_ID,
             targetStep=self.build_reference_value(self.pipeline_step_id),
             targetDeliverable=deliverable_id,
         )

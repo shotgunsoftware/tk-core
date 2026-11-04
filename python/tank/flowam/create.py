@@ -23,10 +23,14 @@ from tank_vendor.flow_integration_sdk.globals import (
     EXTERNAL_ID_TYPE_ID,
     FOLDER_TYPE_ID,
     FOR_DELIVERABLE_TYPE_ID,
-    FOR_PIPELINE_STEP_TYPE,
+    FOR_PIPELINE_STEP_TYPE_ID,
     PIPELINE_STEP_TYPE_ID,
 )
-from tank_vendor.flow_integration_sdk.objects import FlowAsset, FlowProject
+from tank_vendor.flow_integration_sdk.objects import (
+    FlowAsset,
+    FlowProject,
+    _get_schema_wildcard,
+)
 from tank_vendor.flow_integration_sdk.publish import (
     ExternalIdComponentSpec,
     ForDeliverableComponentSpec,
@@ -335,7 +339,7 @@ def create_federated_hierarchy(inputs: BaseInputs):
     We must create:
         -> a container asset with a FOR_DELIVERABLE_TYPE_ID component
            which points to the SG deliverable asset (parented to project)
-        -> a root asset with a FOR_PIPELINE_STEP_TYPE component
+        -> a root asset with a FOR_PIPELINE_STEP_TYPE_ID component
            pointing to the SG pipeline step and SG deliverable asset
            (parented to the project)
 
@@ -418,10 +422,11 @@ def create_federated_hierarchy(inputs: BaseInputs):
     # that will house the dcc asset as one of its "representations"
 
     # Query for existing root asset
+    for_pipestep_id = _get_schema_wildcard(FOR_PIPELINE_STEP_TYPE_ID)
     q_filter = generate_project_filter(
         type_id=root_type_id,
         components={
-            get_schema_id(FOR_PIPELINE_STEP_TYPE): {
+            for_pipestep_id: {
                 "targetStep.objectId.id": pipeline_step.id,
                 "targetDeliverable.objectId.id": deliverable.id,
             },
