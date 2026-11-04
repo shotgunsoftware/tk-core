@@ -20,7 +20,6 @@ import fileseq
 import os
 import zipfile
 from collections.abc import Iterator
-from functools import cache
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
 from tank_vendor.flow_data_sdk.base.exceptions import GQLAPIError

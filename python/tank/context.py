@@ -33,6 +33,9 @@ from .util import login, pickle, shotgun, shotgun_entity
 
 log = LogManager.get_logger(__name__)
 
+# Temporary custom attribute on SG project to indicate
+# whether it is a Flow-federated project
+FLOW_FEDERATED_PROJECT = "sg_flow_federated_project"
 # FlowAM fields of the project, so it is only queried once per process.
 # A session only deals with one site and one project. Only a successful query is stored.
 _flowam_fields_cache = {}
@@ -430,6 +433,13 @@ class Context(object):
         :rtype: str or None
         """
         return self._get_flowam_fields().get(flow_auth.AM_READY_PROJECT_FIELD)
+
+    @property
+    def flow_federated_project(self) -> bool:
+        """
+        Is the current project connected to Flow via data federation?
+        """
+        return self._get_flowam_fields().get(FLOW_FEDERATED_PROJECT) or False
 
     @property
     def flow_draft_id(self) -> str | None:
@@ -985,6 +995,7 @@ class Context(object):
                     flow_const.FLOW_SCHEMA_VERSION_FIELD: data.get(
                         "flow_schema_version"
                     ),
+                    FLOW_FEDERATED_PROJECT: data.get("flow_federated_project"),
                 }
             )
         return ctx
@@ -1310,6 +1321,7 @@ class Context(object):
             fields = [
                 flow_auth.AM_READY_PROJECT_FIELD,
                 flow_const.FLOW_SCHEMA_VERSION_FIELD,
+                FLOW_FEDERATED_PROJECT,
             ]
             try:
                 sg_project = self.__tk.shotgun.find_one(
