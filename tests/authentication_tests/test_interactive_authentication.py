@@ -108,7 +108,19 @@ class InteractiveTests(ShotgunTestBase):
 
         # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
         # issues with tests.
-        with mock.patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(
+                mock.patch("tank.authentication.login_dialog.SsoSaml2Toolkit")
+            )
+            # The dialog queries the site from a QThread; hitting the network there
+            # segfaults on macOS CI (Python 3.13). Keep any mock set by the test.
+            if not isinstance(site_info._get_site_infos, mock.Mock):
+                stack.enter_context(
+                    mock.patch(
+                        "tank.authentication.site_info._get_site_infos",
+                        return_value={},
+                    )
+                )
             with contextlib.closing(MyLoginDialog(is_session_renewal, **kwargs)) as ld:
                 try:
                     self._prepare_window(ld)
