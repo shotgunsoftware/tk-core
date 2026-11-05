@@ -97,7 +97,6 @@ popd
 # Put files in the staging area.
 echo "adding new files to git..."
 git add -A $DEST
-git add -A $DEST/../six.py
 
 # Cleanup!
 echo "cleaning up..."
