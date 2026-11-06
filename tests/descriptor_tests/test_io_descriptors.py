@@ -8,13 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import setUpModule  # noqa
-
 import sgtk
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    setUpModule,  # noqa
+    temp_env_var,
+)
 
 
 class TestIODescriptors(ShotgunTestBase):
@@ -250,6 +251,35 @@ class TestIODescriptors(ShotgunTestBase):
         self.assertTrue(
             os.path.exists(tk_bundle_app._io_descriptor._get_primary_cache_path())
         )
+
+    def test_git_branch_descriptor_input(self):
+        """
+        Tests that Short integer commit hashes descriptors are converted to a str type
+        """
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "tk-multi-shotgunpanel.git"
+        )
+        sg = self.mockgun
+        location = {
+            "type": "git_branch",
+            "version": 6547378,
+            "branch": "master",
+            "path": self.git_repo_uri,
+        }
+        d = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            location,
+        )
+
+        self.assertEqual(
+            d._io_descriptor._get_bundle_cache_path(self.cache_root),
+            os.path.join(
+                self.cache_root, "gitbranch", "tk-multi-shotgunpanel.git", "6547378"
+            ),
+        )
+        self.assertEqual(d.version, "6547378")
+        self.assertEqual(d._io_descriptor.get_dict()["version"], "6547378")
 
     def test_download_receipt(self):
         """

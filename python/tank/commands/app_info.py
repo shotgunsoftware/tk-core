@@ -8,8 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .action_base import Action
 from ..errors import TankError
+from .action_base import Action
 
 
 class AppInfoAction(Action):
@@ -108,7 +108,7 @@ class AppInfoAction(Action):
                 descriptor = env.get_app_descriptor(eng, app)
                 log.info("App %s" % app)
                 log.info("-" * (4 + len(app)))
-                for (k, v) in descriptor.get_dict().items():
+                for k, v in descriptor.get_dict().items():
                     log.info(" %s: %s" % (k.capitalize(), v))
                 log.info(" Docs: %s" % descriptor.documentation_url)
                 log.info("")

@@ -13,27 +13,25 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
-import sys
-import os
 import fnmatch
+import os
 import pprint
+import sys
 
+from .. import LogManager
 from ..descriptor import (
     Descriptor,
     create_descriptor,
     descriptor_uri_to_dict,
     is_descriptor_version_missing,
 )
-from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
+from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
+from ..util import LocalFileStorageManager, ShotgunPath, filesystem
+from . import constants
 from .baked_configuration import BakedConfiguration
 from .cached_configuration import CachedConfiguration
+from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
 from .installed_configuration import InstalledConfiguration
-from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
-from ..util import filesystem
-from ..util import ShotgunPath
-from ..util import LocalFileStorageManager
-from .. import LogManager
-from . import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -178,6 +176,33 @@ class ConfigurationResolver(object):
                 cfg_descriptor, sg_connection, pc_id=None
             )
 
+    def resolve_not_found_sg_configuration(self, config_descriptor, sg_connection):
+        """
+        Creates a configuration object given a config fallback descriptor this
+        means not pipeline config record was found in shotgrid, so
+        we request that the latest version should be resolved based on
+        this associated descriptor object.
+
+        :param config_descriptor: Fallback descriptor dict or string
+        :param sg_connection: Shotgun API instance
+        :return: :class:`Configuration` instance
+        """
+
+        if config_descriptor is None:
+            raise TankBootstrapError(
+                "No config descriptor specified - Cannot create a configuration object."
+            )
+
+        # convert to dictionary form
+        if isinstance(config_descriptor, str):
+            # convert to dict so we can introspect
+            config_descriptor = descriptor_uri_to_dict(config_descriptor)
+        # This is a special case covered in resolve_configuration()
+        if config_descriptor["type"] == constants.BAKED_DESCRIPTOR_TYPE:
+            return self.resolve_configuration(config_descriptor, sg_connection)
+
+        return self.resolve_configuration(config_descriptor, sg_connection)
+
     def _create_configuration_from_descriptor(
         self, cfg_descriptor, sg_connection, pc_id
     ):
@@ -264,7 +289,7 @@ class ConfigurationResolver(object):
         # get the pipeline configs for the current project which are
         # either the primary or is associated with the currently logged in user.
         # also get the pipeline configs for the site level (project=None)
-        log.debug("Requesting pipeline configurations from Shotgun...")
+        log.debug("Requesting pipeline configurations from Flow Production Tracking...")
 
         if pipeline_config_name is None:
             # If nothing was specified, we need to pick pipeline configurations...
@@ -336,7 +361,6 @@ class ConfigurationResolver(object):
 
         # loop over all pipeline configs
         for pipeline_config in pipeline_configs:
-
             # see if the pipeline configuration we are looking at is relevant. Either of:
             # - Be a match against the resolver's associated plugin id
             # - Be a centralized config associated with the resolver's associated project
@@ -344,14 +368,13 @@ class ConfigurationResolver(object):
             if self._matches_current_plugin_id(
                 pipeline_config
             ) or self._is_centralized_pc_for_current_project(pipeline_config):
-
                 # extract the location information and place in special 'config_descriptor'
                 # field. Note that this may be None if for example the pipeline configuration
                 # is defined for another operating system.
                 try:
-                    pipeline_config[
-                        "config_descriptor"
-                    ] = self._create_config_descriptor(sg_connection, pipeline_config)
+                    pipeline_config["config_descriptor"] = (
+                        self._create_config_descriptor(sg_connection, pipeline_config)
+                    )
                     yield pipeline_config
 
                 except TankBootstrapInvalidPipelineConfigurationError as e:
@@ -429,7 +452,6 @@ class ConfigurationResolver(object):
                 )
 
         elif sg_descriptor_uri and not is_centralized_config:
-
             if sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
@@ -453,7 +475,6 @@ class ConfigurationResolver(object):
             )
 
         elif sg_uploaded_config and not is_centralized_config:
-
             if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get(
                 "sg_uploaded_config"
             ):
@@ -501,7 +522,6 @@ class ConfigurationResolver(object):
             )
 
         else:
-
             # If we have neither a uri, nor a path, raise exception
             # to indicate that config is not valid.
             if plugin_ids is None and (sg_descriptor_uri or sg_uploaded_config):
@@ -765,7 +785,7 @@ class ConfigurationResolver(object):
         :return: :class:`Configuration` instance
         """
         log.debug(
-            "%s resolving configuration from Shotgun Pipeline Configuration %s"
+            "%s resolving configuration from PTR Pipeline Configuration %s"
             % (self, pipeline_config_identifier)
         )
 
@@ -814,7 +834,9 @@ class ConfigurationResolver(object):
                 "Will use pipeline configuration id '%s'" % pipeline_config_identifier
             )
 
-            log.debug("Requesting pipeline configuration data from Shotgun...")
+            log.debug(
+                "Requesting pipeline configuration data from Flow Production Tracking..."
+            )
 
             # Fetch the one and only config that matches this id.
             pipeline_config = sg_connection.find_one(
@@ -826,7 +848,7 @@ class ConfigurationResolver(object):
             # If it doesn't exist, we're in trouble.
             if pipeline_config is None:
                 raise TankBootstrapError(
-                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Shotgun."
+                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Flow Production Tracking."
                     % (pipeline_config_identifier, self._proj_entity_dict["id"])
                 )
 
@@ -842,7 +864,9 @@ class ConfigurationResolver(object):
 
             # We couldn't resolve anything from Shotgun, so we'll resolve the configuration using
             # an offline resolve.
-            return self.resolve_configuration(fallback_config_descriptor, sg_connection)
+            return self.resolve_not_found_sg_configuration(
+                fallback_config_descriptor, sg_connection
+            )
 
         else:
             # Something was found in Shotgun, which means we've also potentially resolved its
@@ -864,7 +888,7 @@ class ConfigurationResolver(object):
                     pipeline_config["id"],
                 )
                 raise TankBootstrapError(
-                    "The Shotgun pipeline configuration with id %s has no source location specified for "
+                    "The PTR pipeline configuration with id %s has no source location specified for "
                     "your operating system." % pipeline_config["id"]
                 )
             config_descriptor = pipeline_config["config_descriptor"]

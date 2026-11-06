@@ -13,21 +13,18 @@ Environment Settings Object and access.
 
 """
 
+import copy
 import os
 import sys
-import copy
 
 from tank_vendor import yaml
-from .bundle import resolve_default_value
-from . import constants
-from . import environment_includes
-from ..errors import TankError, TankUnreadableFileError
-from .errors import TankMissingEnvironmentFile
 
-from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
-from tank_vendor import six
-from tank_vendor.shotgun_api3.lib import sgsix
+from ..errors import TankError, TankUnreadableFileError
+from ..util.yaml_cache import g_yaml_cache
+from . import constants, environment_includes
+from .bundle import resolve_default_value
+from .errors import TankMissingEnvironmentFile
 
 logger = LogManager.get_logger(__name__)
 
@@ -69,8 +66,7 @@ class Environment(object):
         return "Environment %s" % os.path.basename(self._env_path)
 
     def _refresh(self):
-        """Refreshes the environment data from disk
-        """
+        """Refreshes the environment data from disk"""
         data = self.__load_environment_data()
 
         self._env_data = environment_includes.process_includes(
@@ -151,8 +147,8 @@ class Environment(object):
         # now check if the current platform is disabled
         deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
-        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
-            sgsix.platform
+        nice_system_name = {"linux": "linux", "darwin": "mac", "win32": "windows"}[
+            sys.platform
         ]
         if nice_system_name in deny_platforms:
             return True
@@ -235,7 +231,7 @@ class Environment(object):
                 constants.ENVIRONMENT_LOCATION_KEY
             )
 
-        for (eng, app) in self.__app_settings:
+        for eng, app in self.__app_settings:
             descriptor_dict = self.__app_settings[(eng, app)].get(
                 constants.ENVIRONMENT_LOCATION_KEY
             )
@@ -253,7 +249,7 @@ class Environment(object):
         """
         loads the main data from disk, raw form
         """
-        logger.debug("Loading environment data from path: %s", self._env_path)
+        logger.debug("Loading environment data from path: %s", path)
         return g_yaml_cache.get(path) or {}
 
     def __load_environment_data(self):
@@ -281,8 +277,16 @@ class Environment(object):
         returns the environment name, e.g. the file name of the environment file
         without its extension
         """
+        # A FlowAM environment is prefixed with its folder, e.g. flowam/project.
+        # Imported here, flowam.utils imports this module through pipelineconfig.
+        from ..flowam import utils as flow_utils
+
+        flowam_name = flow_utils.get_flowam_environment_name(self._env_path)
+        if flowam_name:
+            return flowam_name
+
         file_name_with_ext = os.path.basename(self._env_path)
-        (file_name, ext) = os.path.splitext(file_name_with_ext)
+        file_name, ext = os.path.splitext(file_name_with_ext)
         return file_name
 
     @property
@@ -325,7 +329,7 @@ class Environment(object):
 
         apps = []
         engine_app_tuples = list(self.__app_settings.keys())
-        for (engine_name, app_name) in engine_app_tuples:
+        for engine_name, app_name in engine_app_tuples:
             if engine_name == engine:
                 apps.append(app_name)
         return apps
@@ -599,7 +603,7 @@ class Environment(object):
             absolute_location,
         )
         # first, find the location of the engine:
-        (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
+        engine_tokens, engine_yml_file = self.find_location_for_engine(engine_name)
 
         # load the engine data:
         engine_yml_data = self.__load_data(engine_yml_file)
@@ -691,7 +695,7 @@ class Environment(object):
             is determined by whether it is a string, and if so, it is an
             included value if it has an @ at its head.
             """
-            return isinstance(item, six.string_types) and item.startswith("@")
+            return isinstance(item, str) and item.startswith("@")
 
         if is_included(bundle_section):
             # The whole section is a reference! The token is just the include
@@ -759,7 +763,7 @@ class InstalledEnvironment(Environment):
                         context-based include file resolve will be
                         skipped.
         """
-        super(InstalledEnvironment, self).__init__(env_path, context)
+        super().__init__(env_path, context)
         self.__pipeline_config = pipeline_config
 
     def get_framework_descriptor(self, framework_name):
@@ -816,7 +820,7 @@ class WritableEnvironment(InstalledEnvironment):
     content back to disk.
     """
 
-    (NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS) = range(3)
+    NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS = range(3)
     """Format enumeration to use when dumping an environment.
 
     NONE: Don't modify the settings.
@@ -833,7 +837,17 @@ class WritableEnvironment(InstalledEnvironment):
                         skipped.
         """
         self.set_yaml_preserve_mode(True)
-        super(WritableEnvironment, self).__init__(env_path, pipeline_config, context)
+        super().__init__(env_path, pipeline_config, context)
+
+    def _get_ruamel_yaml(self):
+        vendor_path = os.path.join(os.path.dirname(__file__), "../..", "tank_vendor")
+
+        if vendor_path not in sys.path:
+            sys.path.append(vendor_path)
+
+        from tank_vendor.ruamel import yaml as ruamel_yaml
+
+        return ruamel_yaml
 
     def __load_writable_yaml(self, path):
         """
@@ -850,9 +864,7 @@ class WritableEnvironment(InstalledEnvironment):
             )
 
         try:
-            # the ruamel parser doesn't have 2.5 support so
-            # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
+            if self._use_ruamel_yaml_parser:
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is
                 # written back to disk.
@@ -861,17 +873,17 @@ class WritableEnvironment(InstalledEnvironment):
                 # which also holds the additional contextual metadata
                 # required by the parse to maintain the lexical integrity
                 # of the content.
-                from tank_vendor import ruamel_yaml
+                ruamel_yaml = self._get_ruamel_yaml()
 
-                yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
+                yaml_data = ruamel_yaml.YAML(typ="rt").load(fh)
             else:
                 # use pyyaml parser
-                yaml_data = yaml.load(fh)
+                yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
-            yaml_data = yaml.load(fh)
+            yaml_data = yaml.load(fh, Loader=yaml.FullLoader)
         except Exception as e:
             raise TankError(
                 "Could not parse file '%s'. Error reported: '%s'" % (path, e)
@@ -893,8 +905,7 @@ class WritableEnvironment(InstalledEnvironment):
             fh = open(path, "wt")
         except Exception as e:
             raise TankError(
-                "Could not open file '%s' for writing. "
-                "Error reported: '%s'" % (path, e)
+                "Could not open file '%s' for writing. Error reported: '%s'" % (path, e)
             )
 
         try:
@@ -916,9 +927,7 @@ class WritableEnvironment(InstalledEnvironment):
         """
 
         try:
-            # the ruamel parser doesn't have 2.5 support so
-            # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
+            if self._use_ruamel_yaml_parser:
                 # note that we are using the RoundTripDumper in order to
                 # preserve the structure when writing the file to disk.
                 #
@@ -936,14 +945,9 @@ class WritableEnvironment(InstalledEnvironment):
                 # note that safe_dump is not needed when using the
                 # roundtrip dumper, it will adopt a 'safe' behaviour
                 # by default.
-                from tank_vendor import ruamel_yaml
+                ruamel_yaml = self._get_ruamel_yaml()
 
-                ruamel_yaml.dump(
-                    data,
-                    fh,
-                    default_flow_style=False,
-                    Dumper=ruamel_yaml.RoundTripDumper,
-                )
+                ruamel_yaml.YAML(typ="rt").dump(data, fh)
             else:
                 # use pyyaml parser
                 #
@@ -961,7 +965,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # >>> yaml.safe_dump({"foo": u"bar"})
                 # '{foo: bar}\n'
                 #
-                yaml.safe_dump(data, fh)
+                yaml.safe_dump(data, fh, default_flow_style=None)
         except ImportError:
             # In case the ruamel_yaml module cannot be loaded, use pyyaml parser
             # instead. This is known to happen when an old version (<= v1.3.20)
@@ -1015,7 +1019,7 @@ class WritableEnvironment(InstalledEnvironment):
         # It is the difference between the following:
         #
         # common.engines.tk-maya.location:
-        #   type: app_store
+        # type: app_store
         #   name: tk-maya
         #   version: v0.8.1
         #
@@ -1023,7 +1027,7 @@ class WritableEnvironment(InstalledEnvironment):
         #
         # common.apps.tk-multi-shotgunpanel:
         #   location:
-        #     type: app_store
+        # type: app_store
         #     name: tk-multi-shotgunpanel
         #     version: v1.4.3
         #
@@ -1053,7 +1057,7 @@ class WritableEnvironment(InstalledEnvironment):
         # in a concrete manner (ie: the actual dict and not an include
         # to another yml file). The absolute_location argument will allow
         # us to do that.
-        (tokens, yml_file) = self._find_location_for_engine(
+        tokens, yml_file = self._find_location_for_engine(
             engine_name, absolute_location=True
         )
 
@@ -1096,7 +1100,7 @@ class WritableEnvironment(InstalledEnvironment):
         # in a concrete manner (ie: the actual dict and not an include
         # to another yml file). The absolute_location argument will allow
         # us to do that.
-        (tokens, yml_file) = self._find_location_for_app(
+        tokens, yml_file = self._find_location_for_app(
             engine_name, app_name, absolute_location=True
         )
 
@@ -1134,7 +1138,7 @@ class WritableEnvironment(InstalledEnvironment):
         # in a concrete manner (ie: the actual dict and not an include
         # to another yml file). The absolute_location argument will allow
         # us to do that.
-        (tokens, yml_file) = self._find_location_for_framework(
+        tokens, yml_file = self._find_location_for_framework(
             framework_name, absolute_location=True
         )
 
@@ -1235,9 +1239,9 @@ class WritableEnvironment(InstalledEnvironment):
             )
 
         data["frameworks"][framework_name] = {}
-        data["frameworks"][framework_name][
-            constants.ENVIRONMENT_LOCATION_KEY
-        ] = location
+        data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = (
+            location
+        )
         self._update_settings_recursive(data["frameworks"][framework_name], params)
 
         self.__write_data(yml_file, data)
@@ -1404,9 +1408,8 @@ class WritableEnvironment(InstalledEnvironment):
 
         # process each of the engines for the environment
         for engine_name in self.get_engines():
-
             # only process settings in this file
-            (tokens, engine_file) = self.find_location_for_engine(engine_name)
+            tokens, engine_file = self.find_location_for_engine(engine_name)
             if not engine_file == self._env_path:
                 continue
 
@@ -1437,9 +1440,8 @@ class WritableEnvironment(InstalledEnvironment):
 
             # processing all the installed apps
             for app_name in self.get_apps(engine_name):
-
                 # only process settings in this file
-                (tokens, app_file) = self.find_location_for_app(engine_name, app_name)
+                tokens, app_file = self.find_location_for_app(engine_name, app_name)
                 if not app_file == self._env_path:
                     continue
 
@@ -1470,9 +1472,8 @@ class WritableEnvironment(InstalledEnvironment):
 
         # processing all the frameworks
         for fw_name in self.get_frameworks():
-
             # only process settings in this file
-            (tokens, fw_file) = self.find_location_for_framework(fw_name)
+            tokens, fw_file = self.find_location_for_framework(fw_name)
             if not fw_file == self._env_path:
                 continue
 
@@ -1504,8 +1505,7 @@ class WritableEnvironment(InstalledEnvironment):
             self.__write_data_file(file, yml_data)
         except Exception as e:
             raise TankError(
-                "Could not write to environment file handle. "
-                "Error reported: %s" % (e,)
+                "Could not write to environment file handle. Error reported: %s" % (e,)
             )
 
     def _update_settings(
@@ -1537,7 +1537,6 @@ class WritableEnvironment(InstalledEnvironment):
 
         # check each key defined in the schema
         for setting_name in schema.keys():
-
             # this setting's schema
             setting_schema = schema[setting_name]
 
@@ -1547,7 +1546,6 @@ class WritableEnvironment(InstalledEnvironment):
             )
 
             if setting_name in settings and transform == self.STRIP_DEFAULTS:
-
                 # the setting is in the environment and we are removing default
                 # values. see if the value is a default.
 
@@ -1558,7 +1556,6 @@ class WritableEnvironment(InstalledEnvironment):
                 setting_type = setting_schema["type"]
 
                 if setting_value == schema_default:
-
                     # the setting value matches the schema default. remove the
                     # setting.
                     del settings[setting_name]
@@ -1570,7 +1567,6 @@ class WritableEnvironment(InstalledEnvironment):
                     modified = True
 
             elif setting_name not in settings and transform == self.INCLUDE_DEFAULTS:
-
                 # the setting is not in the environment and we are including
                 # default values. need to add it.
 
@@ -1587,7 +1583,6 @@ class WritableEnvironment(InstalledEnvironment):
                 and hasattr(settings, "yaml_add_eol_comment")
                 and setting_name in settings
             ):
-
                 if schema_default == settings[setting_name]:
                     # The value of the setting matches the default value in the
                     # manifest.

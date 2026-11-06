@@ -12,12 +12,9 @@
 Utility methods related to Published Files in Shotgun
 """
 
-from __future__ import with_statement
-
 from ...log import LogManager
+from .. import constants, login
 from ..shotgun_path import ShotgunPath
-from .. import constants
-from .. import login
 
 log = LogManager.get_logger(__name__)
 
@@ -34,7 +31,7 @@ def get_entity_type_display_name(tk, entity_type_code):
 
     .. note:: The recommended way to access this data is now via the
               globals module in the shotgunutils framework. For more information,
-              see http://developer.shotgunsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
+              see http://developer.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_globals.html
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param entity_type_code: API entity type name
@@ -52,7 +49,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     try:
         if entity_type_code in schema_data:
             display_name = schema_data[entity_type_code]["name"]["value"]
-    except:
+    except Exception:
         pass
 
     return display_name
@@ -69,7 +66,7 @@ def get_cached_local_storages(tk):
     storage_data = tk.get_cache_item(constants.SHOTGUN_LOCAL_STORAGES_CACHE_KEY)
 
     if storage_data is None:
-        log.debug("Caching shotgun local storages...")
+        log.debug("Caching PTR local storages...")
         storage_data = tk.shotgun.find(
             "LocalStorage", [], ["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS
         )
@@ -80,7 +77,9 @@ def get_cached_local_storages(tk):
 
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None):
+def find_publish(
+    tk, list_of_paths, filters=None, fields=None, only_current_project=True
+):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
@@ -94,6 +93,10 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     By default, the shotgun id is returned for each successfully identified path.
     If you want to retrieve additional fields, you can specify these using
     the fields parameter.
+
+    By default, only publishes in the current project will be found. If you
+    want to retreive publishes from any active project in the pipeline config,
+    you can specify the only_current_project param to False.
 
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example::
@@ -111,6 +114,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
                    return. Defaults to id and type.
+    :param only_current_project: Optional boolean to find publishes in Shotgun only from the
+                                 current project (True) or from any active project (False).
+                                 Defaults to True.
     :returns: dictionary keyed by path
     """
     # avoid cyclic references
@@ -120,7 +126,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # in case of sequences, there will be more than one file
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
-    storage_root_to_paths = group_by_storage(tk, list_of_paths)
+    storage_root_to_paths = group_by_storage(tk, list_of_paths, only_current_project)
 
     filters = filters or []
     fields = fields or []
@@ -154,7 +160,6 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     published_file_entity_type = get_published_file_entity_type(tk)
     for root_name in root_names:
-
         local_storage = mapped_roots.get(root_name)
         if not local_storage:
             # fail gracefully here - it may be a storage which has been deleted
@@ -194,7 +199,6 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     matches = {}
 
     for local_storage_name, publishes in published_files.items():
-
         # get a dictionary which maps shotgun paths to file system paths
         if local_storage_name == "Tank":
             normalized_path_lookup_dict = storage_root_to_paths[
@@ -205,12 +209,10 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
         # now go through all publish entities found for current storage
         for publish in publishes:
-
             path_cache = publish["path_cache"]
 
             # get the list of real paths matching this entry
             for full_path in normalized_path_lookup_dict.get(path_cache, []):
-
                 if full_path not in matches:
                     # this path not yet in the list of matching publish entity data
                     matches[full_path] = publish

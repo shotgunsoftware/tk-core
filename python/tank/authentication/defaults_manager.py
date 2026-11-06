@@ -8,9 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import session_cache
-from ..util.user_settings import UserSettings
 from ..util.system_settings import SystemSettings
+from ..util.user_settings import UserSettings
+from . import session_cache
 
 
 class DefaultsManager(object):
@@ -66,7 +66,7 @@ class DefaultsManager(object):
         interactive authentication. When the host is not fixed (see the
         :meth:`is_host_fixed` method), the return value of get_host is what is
         used to implement single sign-on between all Toolkit desktop
-        applications (at the moment, tank and Shotgun Desktop).
+        applications (at the moment, tank and Flow Production Tracking).
 
         The default implementation will return the fixed host if one was provided
         during the initialization. If fixed host was provided, the default
@@ -110,7 +110,7 @@ class DefaultsManager(object):
 
         The returned format will be the same as is being used in the Shotgun API.
         For more information, see the `Shotgun API documentation
-        <http://developer.shotgunsoftware.com/python-api/reference.html#shotgun>`_.
+        <http://developer.shotgridsoftware.com/python-api/reference.html#shotgun>`_.
 
         :returns: String containing the default http proxy, None by default.
         """

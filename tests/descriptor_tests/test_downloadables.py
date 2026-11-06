@@ -8,25 +8,27 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import print_function
-from functools import reduce
+import contextlib
 import multiprocessing
 import os
-from mock import patch
+import shutil
 import sys
 import tempfile
 import time
 import uuid
-import shutil
 import zipfile
+from functools import reduce
 
-from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing, temp_env_var
-from tank_test.tank_test_base import setUpModule  # noqa
-
+import pytest
 import sgtk
 import tank
-from tank.util import is_windows
-from tank_vendor.six import b
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
+    skip_if_git_missing,
+    temp_env_var,
+)
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -40,10 +42,114 @@ def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
     raise OSError("An unknown OSError occurred")
 
 
+def onerror(func, path, exc_info):
+    """
+    Error handler for ``shutil.rmtree``.
+
+    If the error is due to an access error (read only file)
+    it attempts to add write permission and then retries.
+
+    If the error is for another reason it re-raises the error.
+
+    Usage : ``shutil.rmtree(path, onerror=onerror)``
+    """
+    import stat
+
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise
+
+
 class TestDownloadableIODescriptors(ShotgunTestBase):
     """
     Tests the ability of the descriptor to download to a path on disk.
     """
+
+    # In Python 3.8+, the TestCase class cannot be serialized due to a regression.
+    # It appears an argument parser is reachable from the TestCase instance. The
+    # multiprocessing module serializes both the test method and the instance
+    # associated to it (which makes sense, since we need the test data on the
+    # instance!). This becomes an issue, because ArgumentParser is not picklable
+    # in Python 3.8 (due to a regression it seems). The cleanest way to avoid
+    # this serialization issue without mucking around with the TestCase internals
+    # and that generates the smallest diff is to create a new Implementation
+    # class defined below that reimplements the necessary interface from
+    # ShotgunTestBase and have the TestDownloadableIODescriptors call the test
+    # methods on that new clean instance that is serializable.
+    def setUp(self):
+        """
+        Instantiate the actual test class that is are pickle-able by multiprocessing
+        and pass any information required for the test to function.
+        """
+        super().setUp()
+        self.imp = Implementation(
+            self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
+        )
+
+    def test_appstore_downloads(self):
+        self.imp.test_appstore_downloads()
+
+    def test_shotgun_entity_downloads(self):
+        self.imp.test_shotgun_entity_downloads()
+
+    @skip_if_git_missing
+    def test_git_tag_downloads(self):
+        self.imp.test_git_tag_downloads()
+
+    @skip_if_git_missing
+    def test_git_branch_downloads(self):
+        self.imp.test_git_branch_downloads()
+
+    def test_descriptor_download_error_throws_exception(self):
+        self.imp.test_descriptor_download_error_throws_exception()
+
+    def test_descriptor_rename_error_fallbacks(self):
+        self.imp.test_descriptor_rename_error_fallbacks()
+
+    def test_descriptor_rename_fallback_failure(self):
+        self.imp.test_descriptor_rename_fallback_failure()
+
+    def test_partial_download_handling(self):
+        self.imp.test_partial_download_handling()
+
+
+class Implementation(object):
+    """
+    Class that actually contains the test and its data.
+    """
+
+    def __init__(self, tank_temp, project_root, mockgun, fixtures_root):
+        """
+        :param str tank_temp: Temporary folder where the test will write its files.
+        :param str project_root: Root of the project
+        :param mockgun: Mockgun instance with the test data.
+        :param fixtures_root: Absolute path to the tests/fixtures folder.
+        """
+        self.tank_temp = tank_temp
+        self.project_root = project_root
+        self.mockgun = mockgun
+        self.fixtures_root = fixtures_root
+
+    # Implements some methods from TestCase, which will avoid
+    # us having to modify the tests below and keep the history clean.
+    def assertTrue(self, test, msg=""):
+        assert not not test, msg
+
+    def assertFalse(self, test, msg=""):
+        assert not test, msg
+
+    def assertEqual(self, lhs, rhs, msg=""):
+        assert lhs == rhs, msg
+
+    def assertNotEqual(self, lhs, rhs, msg=""):
+        assert lhs != rhs, msg
+
+    @contextlib.contextmanager
+    def assertRaises(self, exception_type):
+        with pytest.raises(exception_type):
+            yield
 
     ###############################################################################################
     # Helper methods
@@ -118,7 +224,6 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         done = False
 
         while not done and attempt < retries:
-
             zip_tmp = os.path.join(
                 tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex
             )
@@ -154,7 +259,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write(b("\0"))
+            f.write(b"\0")
 
         zip_file_path = os.path.join(
             tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex
@@ -207,16 +312,16 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         io_descriptor_app_store = (
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
         )
-        with patch(
+        with mock.patch(
             "%s._IODescriptorAppStore__create_sg_app_store_connection"
             % io_descriptor_app_store,
             return_value=(self.mockgun, None),
         ):
-            with patch(
+            with mock.patch(
                 "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
                 return_value=self._metadata,
             ):
-                with patch(
+                with mock.patch(
                     "tank.util.shotgun.download_and_unpack_attachment",
                     side_effect=self._download_and_unpack_attachment,
                 ):
@@ -240,7 +345,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
                 desc = self._create_desc(location)
         else:
             desc = self._create_desc(location)
-        with patch(
+        with mock.patch(
             "tank.util.shotgun.download_and_unpack_attachment",
             side_effect=self._download_and_unpack_attachment,
         ):
@@ -294,10 +399,6 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         :param expected_path: The expected path of the descriptor once it is downloaded locally.
         :param shared_dir: Optional shared directory to which the descriptor has to be downloaded to.
         """
-        # skip this test on windows or py2.5 where multiprocessing isn't available
-        # TODO: Test with subprocess instead of multiprocessing.
-        if is_windows() or sys.version_info < (2, 6):
-            return
 
         processes = []
         errors = []
@@ -407,7 +508,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
                     "large_binary_file",
                 )
             ),
-            "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.",
+            "Failed to find the default bundle cache directory for the PTR entity descriptor on disk.",
         )
 
         # now test concurrent downloads to a shared bundle cache
@@ -513,14 +614,14 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
 
         # ensure that an exception raised while downloading the descriptor to a
         # temporary folder will raise a TankDescriptorError
-        with patch(
+        with mock.patch(
             "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
             side_effect=_raise_exception,
         ):
             with self.assertRaises(tank.descriptor.errors.TankDescriptorIOError):
                 self._download_git_branch_bundle()
 
-    @patch("os.rename", side_effect=_raise_exception)
+    @mock.patch("os.rename", side_effect=_raise_exception)
     def test_descriptor_rename_error_fallbacks(self, *_):
         """
         Tests that an error during the rename operation kicks in various fallbacks.
@@ -534,7 +635,11 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             "e1c03fa",
         )
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            # cant use `shutil.move` on readonly files on windows
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
+            shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -558,8 +663,8 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         tmp_files_after = os.listdir(tmp_location)
         self.assertEqual(tmp_files_after, tmp_files_before)
 
-    @patch("tank.util.filesystem.move_folder")
-    @patch("os.rename", side_effect=_raise_exception)
+    @mock.patch("tank.util.filesystem.move_folder")
+    @mock.patch("os.rename", side_effect=_raise_exception)
     def test_descriptor_rename_fallback_failure(self, rename_mock, move_mock):
         """
         Tests the expected behaviour when a rename fails and then 'plan B' fallback also fails.
@@ -586,7 +691,11 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             "e1c03fa",
         )
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            # cant use `shutil.move` on readonly files on windows
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
+            shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -622,7 +731,11 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             "e1c03fa",
         )
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            # cant use `shutil.move` on readonly files on windows
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
+            shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))

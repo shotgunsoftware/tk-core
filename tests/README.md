@@ -1,33 +1,25 @@
 Readme for Tank core tests
 ==========================
 
-
-Required packages
------------------
-* unittest2
-* mock
-* coverage (only if `--with-coverage` option is used)
-
-`unitest2` and `mock` are packaged under `tests/python/third_party`. If you intend to run the tests with the `--with-coverage` option, you need to `pip install coverage` first.
-
 Running the test suite
 -----------------------
-To run the tests on Windows run the `run_tests.bat`. To run on Linux or macOS, run the script `run_tests.sh`.
-Add `-h` to see options.
-To run specific test(s), specify module, or module.class or module.class.test:
+The tests run with [pytest](https://docs.pytest.org/) through
+[tk-toolchain](https://github.com/shotgunsoftware/tk-toolchain). Install
+`tk-toolchain` and run `pytest` from the repository root:
 
-    $ run_tests.sh test_tank_content.TestValidate.test_valid_path
+```shell
+pip install git+https://github.com/shotgunsoftware/tk-toolchain.git
+pytest
+```
 
-To run all the tests from a specific file, you can specify both the module or file path:
+To run a specific test file, class, or test:
 
-    $ ./run_tests.sh tank_module_test.test_module
-    $ ./run_tests.sh tank_module_test/test_module.py
+```shell
+pytest tests/core_tests/test_api.py
+pytest tests/core_tests/test_api.py::TestApi::test_something
+```
 
-
-Compile sources with Python 3
------------------------------
-To make sure the tank source code can be compiled with Python 3, run the compile_python3.* scripts. Note that the unit tests cannot
-be executed right now with Python 3.
+Add `--cov` to enable coverage.
 
 Test suite layout
 -----------------
@@ -44,7 +36,7 @@ There is a tank tests module, `tank_test.tank_test_base.py` which contains both 
 
 ShotgunTestBase
 ---------------
-This is a lighter version of the TankTestBase, which only mocks a Shotgun connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
+This is a lighter version of the TankTestBase, which only mocks a Flow Production Tracking connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
 
 ### A partial list of features
 Among other features, this module includes:

@@ -11,24 +11,22 @@
 """
 Logic for publishing files to Shotgun.
 """
-from __future__ import with_statement
 
 import os
-from tank_vendor.six.moves import urllib
 import pprint
+import urllib.parse
+import urllib.request
 
-from .publish_util import (
-    get_published_file_entity_type,
-    get_cached_local_storages,
-    find_publish,
-)
-from ..errors import ShotgunPublishError
 from ...errors import TankError, TankMultipleMatchingTemplatesError
 from ...log import LogManager
+from .. import constants, login
+from ..errors import ShotgunPublishError
 from ..shotgun_path import ShotgunPath
-from .. import constants
-from .. import login
-from tank_vendor import six
+from .publish_util import (
+    find_publish,
+    get_cached_local_storages,
+    get_published_file_entity_type,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -58,7 +56,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     and try to locate a suitable storage. Failing that, it will fall back on a
     register the path as a ``file://`` url. For more information on
     this resolution logic, see our
-    `Admin Guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution>`_.
+    `Admin Guide <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#configuring-published-file-path-resolution>`_.
 
     .. note:: Shotgun follows a convention where the name passed to the register publish method is used
               to control how things are grouped together. When Shotgun and Toolkit groups things together,
@@ -254,7 +252,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, six.string_types):
+            if not isinstance(published_file_type, str):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":
@@ -285,7 +283,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
                     )
 
         # create the publish
-        log.debug("Publish: Creating publish in Shotgun")
+        log.debug("Publish: Creating publish in Flow Production Tracking")
         entity = _create_published_file(
             tk,
             context,
@@ -306,31 +304,23 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
             # upload thumbnails
             log.debug("Publish: Uploading thumbnails")
             if thumbnail_path and os.path.exists(thumbnail_path):
-
                 # publish
                 tk.shotgun.upload_thumbnail(
                     published_file_entity_type, entity["id"], thumbnail_path
                 )
 
                 # entity
-                if update_entity_thumbnail == True and context.entity is not None:
+                if update_entity_thumbnail is True and context.entity is not None:
                     tk.shotgun.upload_thumbnail(
                         context.entity["type"], context.entity["id"], thumbnail_path
                     )
 
                 # task
-                if update_task_thumbnail == True and task is not None:
+                if update_task_thumbnail and task is not None:
                     tk.shotgun.upload_thumbnail("Task", task["id"], thumbnail_path)
 
             else:
-                # no thumbnail found - instead use the default one
-                this_folder = os.path.abspath(os.path.dirname(__file__))
-                no_thumb = os.path.join(
-                    this_folder, os.path.pardir, "resources", "no_preview.jpg"
-                )
-                tk.shotgun.upload_thumbnail(
-                    published_file_entity_type, entity.get("id"), no_thumb
-                )
+                log.debug("Publish: No thumbnail provided, skipping thumbnail upload.")
 
             # register dependencies
             log.debug("Publish: Register dependencies")
@@ -475,7 +465,6 @@ def _create_published_file(
 
     # naming and path logic is different depending on url
     if path_is_url:
-
         # extract name from url:
         #
         # scheme://hostname.com/path/to/file.ext -> file.ext
@@ -501,7 +490,6 @@ def _create_published_file(
         }
 
     else:
-
         # normalize the path to native slashes
         norm_path = ShotgunPath.normalize(path)
         if norm_path != path:
@@ -534,8 +522,7 @@ def _create_published_file(
             )
 
             if supports_specific_storage_syntax:
-
-                # get corresponding SG local storage for the matching root name
+                # get corresponding PTR local storage for the matching root name
                 storage = tk.pipeline_configuration.get_local_storage_for_root(
                     root_name
                 )
@@ -547,8 +534,8 @@ def _create_published_file(
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in Shotgun to associate publish '%s' with. "
-                        "Falling back to Shotgun's built-in storage resolution "
+                        "'%s' in PTR to associate publish '%s' with. "
+                        "Falling back to Flow Production Tracking's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
                         % (root_name, path, root_name)
@@ -569,16 +556,15 @@ def _create_published_file(
                 data["path"] = {"local_path": path}
 
             # fill in the path cache field which is used for filtering in Shotgun
-            # (because SG does not support
+            # (because PTR does not support
             data["path_cache"] = path_cache
 
         else:
-
             # path does not map to any configured root - fall back gracefully:
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check shotgun local storages to see if there is a match.")
+            log.debug("Will check PTR local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
@@ -587,9 +573,7 @@ def _create_published_file(
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
                 ):
-                    log.debug(
-                        "Path matches Shotgun local storage '%s'" % storage["code"]
-                    )
+                    log.debug("Path matches PTR local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
 
@@ -624,12 +608,14 @@ def _create_published_file(
         # add the publish type to be as consistent as possible
         data["type"] = published_file_entity_type
         log.debug(
-            "Dry run. Simply returning the data that would be sent to SG: %s"
+            "Dry run. Simply returning the data that would be sent to PTR: %s"
             % pprint.pformat(data)
         )
         return data
     else:
-        log.debug("Registering publish in Shotgun: %s" % pprint.pformat(data))
+        log.debug(
+            "Registering publish in Flow Production Tracking: %s" % pprint.pformat(data)
+        )
         return tk.shotgun.create(published_file_entity_type, data)
 
 
@@ -668,7 +654,7 @@ def _translate_abstract_fields(tk, path):
                     if abstract_key_name in cur_fields:
                         cur_fields[abstract_key_name] = template.keys[
                             abstract_key_name
-                        ]._get_default()
+                        ].default
                 path = template._apply_fields(cur_fields, skip_defaults=True)
         else:
             log.debug(
@@ -698,14 +684,12 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     sg_batch_data = []
 
     for dependency_path in dependency_paths:
-
         # did we manage to resolve this file path against
         # a publish in shotgun?
         published_file = publishes.get(dependency_path)
 
         if published_file:
             if published_file_entity_type == "PublishedFile":
-
                 req = {
                     "request_type": "create",
                     "entity_type": "PublishedFileDependency",
@@ -717,7 +701,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 sg_batch_data.append(req)
 
             else:  # == "TankPublishedFile"
-
                 req = {
                     "request_type": "create",
                     "entity_type": "TankDependency",
@@ -730,7 +713,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
 
     for dependency_id in dependency_ids:
         if published_file_entity_type == "PublishedFile":
-
             req = {
                 "request_type": "create",
                 "entity_type": "PublishedFileDependency",
@@ -745,7 +727,6 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
             sg_batch_data.append(req)
 
         else:  # == "TankPublishedFile"
-
             req = {
                 "request_type": "create",
                 "entity_type": "TankDependency",
@@ -764,7 +745,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
         tk.shotgun.batch(sg_batch_data)
 
 
-def _calc_path_cache(tk, path):
+def _calc_path_cache(tk, path, project_names=None):
     r"""
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache). The relative path is always using forward
@@ -787,6 +768,10 @@ def _calc_path_cache(tk, path):
 
     :param tk: Toolkit API instance
     :param str path: Path to normalize.
+    :param list project_names: A list of project names used to find a matching
+                               storage to calculate the path cache. If a list is
+                               not provided, only the current project name will
+                               be used.
     :returns: (root_name, path_cache)
     """
     # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
@@ -802,40 +787,45 @@ def _calc_path_cache(tk, path):
 
     # get project name, typically a a-z string but can contain
     # forward slashes, e.g. 'my_project', or 'client_a/proj_b'
-    project_disk_name = tk.pipeline_configuration.get_project_disk_name()
+    if not project_names:
+        project_names = [tk.pipeline_configuration.get_project_disk_name()]
 
     for root_name, root_path in storage_roots.items():
-
         root_path_obj = ShotgunPath.from_current_os_path(root_path)
         # normalize the root path
         norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
 
-        # append project and normalize
-        proj_path = root_path_obj.join(project_disk_name).current_os
-        proj_path = proj_path.replace(os.sep, "/")
+        for project_name in project_names:
+            # append project and normalize
+            proj_path = root_path_obj.join(project_name).current_os
+            proj_path = str(proj_path.replace(os.sep, "/"))
 
-        if norm_path.lower().startswith(proj_path.lower()):
-            # our path matches this storage!
+            if norm_path.lower().startswith(proj_path.lower()):
+                # our path matches this storage!
 
-            # Remove parent dir plus "/" - be careful to handle the case where
-            # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = norm_path[len(norm_root_path) :].lstrip("/")
-            log.debug(
-                "Split up path '%s' into storage %s and relative path '%s'"
-                % (path, root_name, path_cache)
-            )
-            return root_name, path_cache
+                # Remove parent dir plus "/" - be careful to handle the case where
+                # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
+                path_cache = norm_path[len(norm_root_path) :].lstrip("/")
+                log.debug(
+                    "Split up path '%s' into storage %s and relative path '%s'"
+                    % (path, root_name, path_cache)
+                )
+                return root_name, path_cache
 
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
     return None, None
 
 
-def group_by_storage(tk, list_of_paths):
+def group_by_storage(tk, list_of_paths, only_current_project=True):
     r"""
     Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.
+
+    By default, paths are grouped only by storages matching the current project.
+    Set only_current_project to False to group by storages matching any current
+    active project in the pipeline config.
 
     This method aims to process the paths to make them useful for later shotgun processing.
 
@@ -865,11 +855,25 @@ def group_by_storage(tk, list_of_paths):
     """
     storages_paths = {}
 
-    for path in list_of_paths:
+    # get a list of all the current tank names. We'll need it when trying to determine the root of the given paths
+    if not only_current_project:
+        sg_projects = tk.shotgun.find(
+            "Project",
+            [
+                ["archived", "is", False],
+                ["is_template", "is", False],
+                ["tank_name", "is_not", None],
+            ],
+            ["tank_name"],
+        )
+        project_names = [p["tank_name"] for p in sg_projects]
+    else:
+        project_names = None
 
+    for path in list_of_paths:
         # use abstracted path if path is part of a sequence
         abstract_path = _translate_abstract_fields(tk, path)
-        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
+        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path, project_names)
 
         # make sure that the path is even remotely valid, otherwise skip
         if dep_path_cache is None:

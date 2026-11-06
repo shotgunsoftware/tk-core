@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,23 +8,22 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-import os
 import fnmatch
+import os
 import stat
-from mock import patch
+from shutil import copytree
+
 import sgtk
 from sgtk.pipelineconfig_utils import get_metadata
 from tank.util import is_windows
-from shutil import copytree
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    mock,
+    setUpModule,  # noqa
+    temp_env_var,
+)
 
-from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import temp_env_var
-from tank_test.tank_test_base import ShotgunTestBase
 
-
-# Copied from Python 2.7's source code.
 def ignore_patterns(*patterns):
     """Function that can be used as copytree() ignore parameter.
 
@@ -42,7 +41,7 @@ def ignore_patterns(*patterns):
 
 class TestBackups(ShotgunTestBase):
     def setUp(self):
-        super(TestBackups, self).setUp()
+        super().setUp()
 
         pathHead, pathTail = os.path.split(__file__)
         self._core_repo_path = os.path.join(pathHead, "..", "..")
@@ -127,7 +126,7 @@ class TestBackups(ShotgunTestBase):
                 self.core_backup_folder_path = core
 
             # Update the configuration, but don't clean up backups
-            with patch.object(
+            with mock.patch.object(
                 sgtk.bootstrap.resolver.CachedConfiguration,
                 "_cleanup_backup_folders",
                 new=dont_cleanup_backup_folders,
@@ -201,7 +200,7 @@ class TestBackups(ShotgunTestBase):
                 self.config_backup_folder_path = config
                 self.core_backup_folder_path = core
 
-            with patch.object(
+            with mock.patch.object(
                 sgtk.bootstrap.resolver.CachedConfiguration,
                 "_cleanup_backup_folders",
                 new=dont_cleanup_backup_folders,
@@ -250,7 +249,6 @@ class TestBackups(ShotgunTestBase):
             plugin_id="backup_tests"
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
-
             config = resolver.resolve_configuration(
                 {"type": "dev", "name": "backup_tests", "path": self._temp_test_path},
                 self.mockgun,

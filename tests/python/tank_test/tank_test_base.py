@@ -12,34 +12,30 @@
 Base class for engine and app testing
 """
 
-from __future__ import with_statement, print_function
-
-import sys
-import os
-import time
-import shutil
-import pprint
-import threading
-import tempfile
-import contextlib
 import atexit
-import uuid
+import contextlib
 import datetime
-from functools import wraps
-
+import importlib.util
+import os
+import pprint
+import shutil
+import sys
+import tempfile
+import threading
+import time
+import unittest
+import uuid
 from collections import defaultdict
-
-from tank_vendor.shotgun_api3.lib import mockgun
-
-import unittest2 as unittest
-import mock
+from functools import wraps
+from unittest import mock
 
 import sgtk
 import tank
 from tank import path_cache, pipelineconfig_factory
-from tank_vendor import yaml
 from tank.util import is_windows
 from tank.util.user_settings import UserSettings
+from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import mockgun
 
 TANK_TEMP = None
 
@@ -49,6 +45,8 @@ __all__ = [
     "tank",
     "interactive",
     "skip_if_pyside_missing",
+    "skip_if_pyside2",
+    "skip_if_pyside6",
 ]
 
 
@@ -100,18 +98,6 @@ def _is_git_missing():
     return git_missing
 
 
-def skip_if_on_travis_ci(reason):
-    """
-    Skips a test if we're on travis-ci and display the error.
-    :returns: The decorated function.
-    """
-
-    def wrapper(func):
-        return unittest.skipIf("TRAVIS" in os.environ, reason)(func)
-
-    return wrapper
-
-
 def skip_if_git_missing(func):
     """
     Decorated that allows to skips a test if PySide is missing.
@@ -121,22 +107,47 @@ def skip_if_git_missing(func):
     return unittest.skipIf(_is_git_missing(), "git is missing from PATH")(func)
 
 
+def _is_git_lfs_missing():
+    """
+    Tests is git-lfs is available in PATH
+    :returns: True is git-lfs is available, False otherwise.
+    """
+    git_lfs_missing = True
+    try:
+        sgtk.util.process.subprocess_check_output(["git", "lfs", "version"])
+        git_lfs_missing = False
+    except Exception:
+        # no git-lfs!
+        pass
+    return git_lfs_missing
+
+
+def skip_if_git_lfs_missing(func):
+    """
+    Decorator that allows to skip a test if git-lfs is missing.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    return unittest.skipIf(_is_git_lfs_missing(), "git-lfs is missing from PATH")(func)
+
+
 def _is_pyside_missing():
     """
     Tests is PySide is available.
     :returns: True is PySide is available, False otherwise.
     """
+
     try:
-        # First try PySide
-        import PySide  # noqa
+        # If PySide wasn't found, check for PySide2
+        import PySide2  # noqa
 
         return False
     except ImportError:
         pass
 
     try:
-        # If PySide wasn't found, check for PySide2
-        import PySide2  # noqa
+        # Check for PySide6
+        import PySide6  # noqa
 
         return False
     except ImportError:
@@ -145,11 +156,88 @@ def _is_pyside_missing():
 
 def skip_if_pyside_missing(func):
     """
-    Decorated that allows to skips a test if PySide is missing.
+    Decorator that allows to skip tests if no version of PySide is found.
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
+
+
+def _has_pyside2():
+    """
+    Tests if PySide2 is avalable.
+    :returns: True if PySide2 is available, False otherwise.
+    """
+    pyside2_spec = importlib.util.find_spec("PySide2")
+    found = pyside2_spec is not None
+    return found
+
+
+def skip_if_pyside2(found=True):
+    """
+    Decorator that allows to skip tests based on if PySide2 module found or not.
+    :param func: Function to be decorated.
+    :param found: True will skip if PySide2 is found, else will skip if PySide2 not found
+        (e.g. missing). Default to skip if PySide2 found.
+    :returns: The decorated function.
+    """
+
+    def _skip_if_pyside2(func):
+        found_pyside2 = _has_pyside2()
+        msg = "PySide2 found" if found else "PySide2 missing"
+        return unittest.skipIf(found_pyside2 == found, msg)(func)
+
+    return _skip_if_pyside2
+
+
+def _has_pyside6():
+    """
+    Tests if PySide6 is avalable.
+    :returns: True if PySide6 is available, False otherwise.
+    """
+    pyside6_spec = importlib.util.find_spec("PySide6")
+    found = pyside6_spec is not None
+    return found
+
+
+def skip_if_pyside6(found=True):
+    """
+    Decorator that allows to skip tests if PySide6 is missing.
+    :param func: Function to be decorated.
+    :param found: True will skip if PySide2 is found, else will skip if PySide2 not found
+        (e.g. missing). Default to skip if PySide2 found.
+    :returns: The decorated function.
+    """
+
+    def _skip_if_pyside6(func):
+        found_pyside6 = _has_pyside6()
+        msg = "PySide6 found" if found else "PySide6 missing"
+        return unittest.skipIf(found_pyside6 == found, msg)(func)
+
+    return _skip_if_pyside6
+
+
+def suppress_generated_code_qt_warnings(func):
+    """
+    Suppress the warnings emitted by the pyside-uic generated code in Python 3.
+
+    This function should be used to decorate a test that emits those warnings.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        import warnings
+
+        # Supressed warnings like this one in auto-generated code. We can't fix those
+        # right now as we're stuck generating code for PySide-1 targeted code.
+        # /Users/boismej/gitlocal/tk-core/python/tank/authentication/ui/login_dialog.py:137: DeprecationWarning: an integer is required (got type PySide2.QtCore.Qt.Alignment).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+        #    self.message.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", module=r"tank\.authentication\.ui\.*")
+            warnings.filterwarnings("ignore", module=r"tank\.platform\.qt\.ui\.*")
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 @contextlib.contextmanager
@@ -280,7 +368,7 @@ class TankTestBase(unittest.TestCase):
 
     def __init__(self, *args, **kws):
 
-        super(TankTestBase, self).__init__(*args, **kws)
+        super().__init__(*args, **kws)
 
         # Below are attributes which will be set during setUp
 
@@ -371,12 +459,6 @@ class TankTestBase(unittest.TestCase):
 
         self._do_io = parameters.get("do_io", True)
 
-        if "project_tank_name" in parameters:
-            project_tank_name = parameters["project_tank_name"]
-        else:
-            # default project name
-            project_tank_name = "project_code"
-
         # now figure out mockgun location
         # 1. see if we have it explicitly specified in the parameters
         # 2. if not, check if the fixtures location has a mockgun folder
@@ -414,17 +496,10 @@ class TankTestBase(unittest.TestCase):
                 "schema_entity.pickle",
             )
 
-        # The name to use for our primary storage
-        self.primary_root_name = parameters.get("primary_root_name", "unit_tests")
-
         # set up mockgun to use our schema
         mockgun.Shotgun.set_schema_paths(
             mockgun_schema_path, mockgun_schema_entity_path
         )
-
-        self.tank_temp = TANK_TEMP
-
-        self.cache_root = os.path.join(self.tank_temp, "cache_root")
 
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
@@ -433,125 +508,12 @@ class TankTestBase(unittest.TestCase):
             {"host": "https://somewhere.shotgunstudio.com"},
         )
 
-        # define entity for test project
-        self.project = {
-            "type": "Project",
-            "id": 1,
-            "tank_name": project_tank_name,
-            "name": "project_name",
-            "archived": False,
-        }
-
-        self.project_root = os.path.join(
-            self.tank_temp, self.project["tank_name"].replace("/", os.path.sep)
-        )
-
-        self.pipeline_config_root = os.path.join(
-            self.tank_temp, "pipeline_configuration"
-        )
-
-        if self._do_io:
-            # move away previous data
-            self._move_project_data()
-
-            # create new structure
-            os.makedirs(self.project_root)
-            os.makedirs(self.pipeline_config_root)
-
-            # copy tank util scripts
-            shutil.copy(
-                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
-                os.path.join(self.pipeline_config_root, "tank"),
-            )
-            shutil.copy(
-                os.path.join(
-                    self.tank_source_path, "setup", "root_binaries", "tank.bat"
-                ),
-                os.path.join(self.pipeline_config_root, "tank.bat"),
-            )
-
-        self.project_config = os.path.join(self.pipeline_config_root, "config")
-
-        # create project cache directory
-        project_cache_dir = os.path.join(self.pipeline_config_root, "cache")
-        if self._do_io:
-            os.mkdir(project_cache_dir)
-
-        # define entity for pipeline configuration
-        self.sg_pc_entity = {
-            "type": "PipelineConfiguration",
-            "code": "Primary",
-            "id": 123,
-            "project": self.project,
-            "windows_path": self.pipeline_config_root,
-            "mac_path": self.pipeline_config_root,
-            "linux_path": self.pipeline_config_root,
-        }
-
-        # add files needed by the pipeline config
-        pc_yml = os.path.join(
-            self.pipeline_config_root, "config", "core", "pipeline_configuration.yml"
-        )
-        pc_yml_data = (
-            "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
-            "project_id: %d, pc_name: %s}\n\n"
-            % (
-                self.project["tank_name"],
-                self.sg_pc_entity["id"],
-                self.project["id"],
-                self.sg_pc_entity["code"],
-            )
-        )
-        if self._do_io:
-            self.create_file(pc_yml, pc_yml_data)
-
-        loc_yml = os.path.join(
-            self.pipeline_config_root, "config", "core", "install_location.yml"
-        )
-        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
-            self.pipeline_config_root,
-            self.pipeline_config_root,
-            self.pipeline_config_root,
-        )
-        if self._do_io:
-            self.create_file(loc_yml, loc_yml_data)
-
-        # inject this file which toolkit is probing for to determine
-        # if an installation has been localized.
-        localize_token_file = os.path.join(
-            self.pipeline_config_root, "install", "core", "_core_upgrader.py"
-        )
-        if self._do_io:
-            self.create_file(localize_token_file, "foo bar")
-
-        roots = {self.primary_root_name: {}}
-        for os_name in ["windows_path", "linux_path", "mac_path"]:
-            # TODO make os specific roots
-            roots[self.primary_root_name][os_name] = self.tank_temp
-
-        if self._do_io:
-            roots_path = os.path.join(
-                self.pipeline_config_root, "config", "core", "roots.yml"
-            )
-            roots_file = open(roots_path, "w")
-            roots_file.write(yaml.dump(roots))
-            roots_file.close()
-
-        if self._do_io:
-            self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
-                self.pipeline_config_root
-            )
-            self.tk = tank.Tank(self.pipeline_configuration)
-
         # set up mockgun and make sure shotgun connection calls route via mockgun
         self.mockgun = mockgun.Shotgun(
             "http://unit_test_mock_sg", "mock_user", "mock_key"
         )
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
-
-        self.add_to_sg_mock_db(self.project)
-        self.add_to_sg_mock_db(self.sg_pc_entity)
 
         self._mock_return_value(
             "tank.util.shotgun.connection.get_associated_sg_base_url",
@@ -565,8 +527,38 @@ class TankTestBase(unittest.TestCase):
         )
         self._mock_return_value("tank.util.shotgun.create_sg_connection", self.mockgun)
 
-        # add project to mock sg and path cache db
+        # now, set up a project, pipeline configuration and storage root for testing
+        # The name to use for our primary storage
+        self.primary_root_name = parameters.get("primary_root_name", "unit_tests")
+        self.tank_temp = TANK_TEMP
+        self.cache_root = os.path.join(self.tank_temp, "cache_root")
+
+        # Initialize storage roots
+        self.roots = {self.primary_root_name: {}}
+        for os_name in ["windows_path", "linux_path", "mac_path"]:
+            # TODO make os specific roots
+            self.roots[self.primary_root_name][os_name] = self.tank_temp
+
+        # initialize list of projects for testing.
+        if "project_tank_name" in parameters:
+            project_tank_name = parameters["project_tank_name"]
+        else:
+            # default project name
+            project_tank_name = "project_code"
+
+        self.project, self.project_root = self.create_project(
+            {"tank_name": project_tank_name}
+        )
+        (
+            self.sg_pc_entity,
+            self.pipeline_configuration,
+            self.pipeline_config_root,
+            self.project_config,
+            self.tk,
+        ) = self.create_pipeline_configuration(self.project, {"code": "Primary"})
+
         if self._do_io:
+            # add the project root to the production path (once self.tk is initialized)
             self.add_production_path(self.project_root, self.project)
 
         # add local storage
@@ -578,7 +570,6 @@ class TankTestBase(unittest.TestCase):
             "linux_path": self.tank_temp,
             "mac_path": self.tank_temp,
         }
-
         self.add_to_sg_mock_db(self.primary_storage)
 
         # back up the authenticated user in case a unit test doesn't clean up correctly.
@@ -622,8 +613,8 @@ class TankTestBase(unittest.TestCase):
         try:
             sgtk.set_authenticated_user(self._authenticated_user)
 
-            # get rid of path cache from local ~/.shotgun storage
             if self._do_io:
+                # get rid of path cache from local ~/.shotgun storage
                 pc = path_cache.PathCache(self.tk)
                 path_cache_file = pc._get_path_cache_location()
                 pc.close()
@@ -641,6 +632,8 @@ class TankTestBase(unittest.TestCase):
 
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
+            # clear the process-wide FlowAM fields cache
+            tank.context._flowam_fields_cache.clear()
         finally:
             if self._old_shotgun_home is not None:
                 os.environ[self.SHOTGUN_HOME] = self._old_shotgun_home
@@ -777,81 +770,61 @@ class TankTestBase(unittest.TestCase):
             }
         )
 
-        # Add multiple project roots
         project_name = os.path.basename(self.project_root)
-        self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
-        self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
-        self.alt_root_3 = os.path.join(self.tank_temp, "alternate_3", project_name)
-        self.alt_root_4 = os.path.join(self.tank_temp, "alternate_4", project_name)
 
-        # add local storages to represent the alternate root points
-        self.alt_storage_1 = {
-            "type": "LocalStorage",
-            "id": 7778,
-            "code": "alternate_1",
-            "windows_path": os.path.join(self.tank_temp, "alternate_1"),
-            "linux_path": os.path.join(self.tank_temp, "alternate_1"),
-            "mac_path": os.path.join(self.tank_temp, "alternate_1"),
-        }
-        self.add_to_sg_mock_db(self.alt_storage_1)
+        # Add multiple project roots. Do not update the roots file on creating each storage, wait until all are
+        # created and write them all at once (also, we need to swap storage 3 and 4)
+        self.alt_root_1, self.alt_storage_1 = self.create_storage_root(
+            project_name, "alternate_1", False
+        )
+        self.alt_root_2, self.alt_storage_2 = self.create_storage_root(
+            project_name, "alternate_2", False
+        )
+        self.alt_root_3, self.alt_storage_3 = self.create_storage_root(
+            project_name, "alternate_3", False
+        )
+        self.alt_root_4, self.alt_storage_4 = self.create_storage_root(
+            project_name, "alternate_4", False
+        )
 
-        self.alt_storage_2 = {
-            "type": "LocalStorage",
-            "id": 7779,
-            "code": "alternate_2",
-            "windows_path": os.path.join(self.tank_temp, "alternate_2"),
-            "linux_path": os.path.join(self.tank_temp, "alternate_2"),
-            "mac_path": os.path.join(self.tank_temp, "alternate_2"),
-        }
-        self.add_to_sg_mock_db(self.alt_storage_2)
-
-        self.alt_storage_3 = {
-            "type": "LocalStorage",
-            "id": 7780,
-            "code": "alternate_3",
-            "windows_path": os.path.join(self.tank_temp, "alternate_3"),
-            "linux_path": os.path.join(self.tank_temp, "alternate_3"),
-            "mac_path": os.path.join(self.tank_temp, "alternate_3"),
-        }
-        self.add_to_sg_mock_db(self.alt_storage_3)
-
-        self.alt_storage_4 = {
-            "type": "LocalStorage",
-            "id": 7781,
-            "code": "alternate_4",
-            "windows_path": os.path.join(self.tank_temp, "alternate_4"),
-            "linux_path": os.path.join(self.tank_temp, "alternate_4"),
-            "mac_path": os.path.join(self.tank_temp, "alternate_4"),
-        }
-        self.add_to_sg_mock_db(self.alt_storage_4)
-
-        # Write roots file
-        roots = {
+        self.roots = {
             "primary": {},
-            "alternate_1": {},
-            "alternate_2": {},
-            "alternate_3": {},
-            "alternate_4": {},
+            self.alt_storage_1["code"]: {},
+            self.alt_storage_2["code"]: {},
+            self.alt_storage_3["code"]: {},
+            self.alt_storage_4["code"]: {},
         }
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
-            roots["primary"][os_name] = os.path.dirname(self.project_root)
-            roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
-            roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
+            self.roots["primary"][os_name] = os.path.dirname(self.project_root)
+            self.roots[self.alt_storage_1["code"]][os_name] = os.path.dirname(
+                self.alt_root_1
+            )
+            self.roots[self.alt_storage_2["code"]][os_name] = os.path.dirname(
+                self.alt_root_2
+            )
 
             # NOTE: swap the mapped roots
-            roots["alternate_3"][os_name] = os.path.dirname(self.alt_root_4)
-            roots["alternate_4"][os_name] = os.path.dirname(self.alt_root_3)
+            self.roots[self.alt_storage_3["code"]][os_name] = os.path.dirname(
+                self.alt_root_4
+            )
+            self.roots[self.alt_storage_4["code"]][os_name] = os.path.dirname(
+                self.alt_root_3
+            )
 
         # swap the mapped storage ids
-        roots["alternate_3"]["shotgun_storage_id"] = 7781  # local storage 4
-        roots["alternate_4"]["shotgun_storage_id"] = 7780  # local storage 3
+        self.roots[self.alt_storage_3["code"]]["shotgun_storage_id"] = (
+            self.alt_storage_4["id"]
+        )  # local storage 4
+        self.roots[self.alt_storage_4["code"]]["shotgun_storage_id"] = (
+            self.alt_storage_3["id"]
+        )  # local storage 3
 
         roots_path = os.path.join(
             self.pipeline_config_root, "config", "core", "roots.yml"
         )
         roots_file = open(roots_path, "w")
-        roots_file.write(yaml.dump(roots))
+        roots_file.write(yaml.dump(self.roots))
         roots_file.close()
 
         # need to reload the pipeline config object that to respect the
@@ -928,7 +901,7 @@ class TankTestBase(unittest.TestCase):
         print(
             "-----------------------------------------------------------------------------"
         )
-        print(" Shotgun contents:")
+        print(" PTR contents:")
 
         print(pprint.pformat(self.mockgun._db))
         print("")
@@ -947,6 +920,189 @@ class TankTestBase(unittest.TestCase):
         )
         print("")
 
+    def create_pipeline_configuration(self, project, pipeline_config_properties=None):
+        """
+        Convenience method to create a new pipeline configuration object.
+        """
+
+        pipeline_config_properties = pipeline_config_properties or {}
+        pipeline_configuration = None
+        tk = None
+        tank_name = project["tank_name"]
+
+        pipeline_config_root = os.path.join(
+            self.tank_temp, "%s_pipeline_configuration" % tank_name
+        )
+
+        project_config = os.path.join(pipeline_config_root, "config")
+        project_cache_dir = os.path.join(pipeline_config_root, "cache")
+
+        if self._do_io:
+            _move_data(pipeline_config_root)
+
+            # create new structure
+            os.makedirs(pipeline_config_root)
+            os.mkdir(project_cache_dir)
+
+            # copy tank util scripts
+            shutil.copy(
+                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
+                os.path.join(pipeline_config_root, "tank"),
+            )
+            shutil.copy(
+                os.path.join(
+                    self.tank_source_path, "setup", "root_binaries", "tank.bat"
+                ),
+                os.path.join(pipeline_config_root, "tank.bat"),
+            )
+
+        # define entity for pipeline configuration
+        entity_type = "PipelineConfiguration"
+        sg_pc_entity = {
+            "type": entity_type,
+            "code": "%s_pc" % tank_name,
+            "project": project,
+            "windows_path": pipeline_config_root,
+            "mac_path": pipeline_config_root,
+            "linux_path": pipeline_config_root,
+        }
+        sg_pc_entity.update(pipeline_config_properties)
+        self.add_to_sg_mock_db(sg_pc_entity)
+
+        # add files needed by the pipeline config
+        pc_yml = os.path.join(
+            pipeline_config_root, "config", "core", "pipeline_configuration.yml"
+        )
+        pc_yml_data = (
+            "{project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+            "project_id: %d, pc_name: %s}\n\n"
+            % (
+                project["tank_name"],
+                sg_pc_entity["id"],
+                project["id"],
+                sg_pc_entity["code"],
+            )
+        )
+
+        if self._do_io:
+            self.create_file(pc_yml, pc_yml_data)
+
+        loc_yml = os.path.join(
+            pipeline_config_root, "config", "core", "install_location.yml"
+        )
+        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
+            pipeline_config_root,
+            pipeline_config_root,
+            pipeline_config_root,
+        )
+        if self._do_io:
+            self.create_file(loc_yml, loc_yml_data)
+
+        # inject this file which toolkit is probing for to determine
+        # if an installation has been localized.
+        localize_token_file = os.path.join(
+            pipeline_config_root, "install", "core", "_core_upgrader.py"
+        )
+        if self._do_io:
+            self.create_file(localize_token_file, "foo bar")
+
+            # Write roots to file
+            if self.roots is None:
+                # Use the default roots if none provided
+                self.roots = {}
+
+            roots_path = os.path.join(
+                pipeline_config_root, "config", "core", "roots.yml"
+            )
+            roots_file = open(roots_path, "w")
+            roots_file.write(yaml.dump(self.roots))
+            roots_file.close()
+
+            pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
+                pipeline_config_root
+            )
+            tk = tank.Tank(pipeline_configuration)
+
+        return (
+            sg_pc_entity,
+            pipeline_configuration,
+            pipeline_config_root,
+            project_config,
+            tk,
+        )
+
+    def _get_next_id(self, entity_type):
+        """
+        Compute the next available id for the given entity.
+
+        :param entity_type: Type of the entity.
+
+        :returns: The next available id.
+        """
+        entities = self.mockgun.find(entity_type, [])
+        if entities:
+            return max(entity["id"] for entity in entities) + 1
+        else:
+            return 1
+
+    def create_project(self, project_properties):
+        """
+        Convenience method to add a Project entity to the mocked shotgun database. This
+        is used for when multiple projects are required for testing.
+        """
+
+        entity_type = "Project"
+        project_id = self._get_next_id("Project")
+        project_entity = {
+            "type": entity_type,
+            "tank_name": "project_%s" % project_id,
+            "name": "project_name",
+            "archived": False,
+            "is_template": False,
+        }
+        project_entity.update(project_properties)
+        tank_name = project_entity["tank_name"]
+        project_root = os.path.join(self.tank_temp, tank_name.replace("/", os.path.sep))
+
+        if self._do_io:
+            _move_data(project_root)
+            os.makedirs(project_root)
+
+        self.add_to_sg_mock_db(project_entity)
+        return (project_entity, project_root)
+
+    def create_storage_root(self, project_name, root_name, update_roots_file=True):
+        """
+        Convenience method to create a storage root (e.g. an alternate project root)
+        """
+
+        storage_root_name = os.path.join(self.tank_temp, root_name, project_name)
+        storage = {
+            "type": "LocalStorage",
+            "code": root_name,
+            "windows_path": os.path.join(self.tank_temp, root_name),
+            "linux_path": os.path.join(self.tank_temp, root_name),
+            "mac_path": os.path.join(self.tank_temp, root_name),
+        }
+        self.add_to_sg_mock_db(storage)
+
+        if self._do_io and update_roots_file:
+            if not self.roots:
+                self.roots = {}
+
+            self.roots[root_name] = {}
+            for os_name in ["windows_path", "linux_path", "mac_path"]:
+                self.roots[root_name][os_name] = os.path.dirname(storage_root_name)
+
+            roots_path = os.path.join(
+                self.pipeline_config_root, "config", "core", "roots.yml"
+            )
+            roots_file = open(roots_path, "w")
+            roots_file.write(yaml.dump(self.roots))
+            roots_file.close()
+
+        return (storage_root_name, storage)
+
     def add_to_sg_mock_db(self, entities):
         """
         Adds an entity or entities to the mocked shotgun database.
@@ -957,10 +1113,18 @@ class TankTestBase(unittest.TestCase):
         # make sure it's a list
         if isinstance(entities, dict):
             entities = [entities]
+
         for entity in entities:
             # entity: {"id": 2, "type":"Shot", "name":...}
             # wedge it into the mockgun database
             et = entity["type"]
+
+            # if the entity does not specify an "id", get the next one
+            if entity.get("id", None) is None:
+                # FIXME: We should be using create below instead of allowing the user to pick an id.
+                # get next id in this table.
+                entity["id"] = self._get_next_id(et)
+
             eid = entity["id"]
 
             # special retired flag for mockgun
@@ -1123,6 +1287,7 @@ class TankTestBase(unittest.TestCase):
         Reload the Pipeline Configuration used in this TestCase.
         Should be called whenever a configuration yaml changes in `self.pipeline_config_root`
         """
+
         pc = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         self.pipeline_configuration = pc
         # push this new pipeline config into the tk api
@@ -1139,7 +1304,7 @@ class SealedMock(mock.Mock):
         :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
             argument from the base class to seal the gettable and settable properties.
         """
-        super(SealedMock, self).__init__(spec_set=list(kwargs.keys()), **kwargs)
+        super().__init__(spec_set=list(kwargs.keys()), **kwargs)
 
 
 def _move_data(path):

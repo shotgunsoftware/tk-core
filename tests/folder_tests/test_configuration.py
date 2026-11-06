@@ -9,15 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import unittest
-import shutil
-from mock import Mock
-import tank
+
+from tank import TankError, folder
+from tank_test.tank_test_base import (
+    TankTestBase,
+    setUpModule,  # noqa
+)
 from tank_vendor import yaml
-from tank import TankError
-from tank import hook
-from tank import folder
-from tank_test.tank_test_base import *
 
 
 class TestFolderConfiguration(TankTestBase):
@@ -26,7 +24,7 @@ class TestFolderConfiguration(TankTestBase):
     """
 
     def setUp(self):
-        super(TestFolderConfiguration, self).setUp()
+        super().setUp()
         self.schema_location = os.path.join(
             self.pipeline_config_root, "config", "core", "schema"
         )
@@ -50,7 +48,7 @@ class TestFolderConfiguration(TankTestBase):
         )
 
         fh = open(roots_file, "r")
-        data = yaml.load(fh)
+        data = yaml.load(fh, Loader=yaml.FullLoader)
         fh.close()
         data["root_name"] = "some_bogus_Data"
         fh = open(roots_file, "w")

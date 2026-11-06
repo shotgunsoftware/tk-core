@@ -35,7 +35,7 @@ PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"
 
 # a human readable explanation of the regex above - used in error messages
 VALID_SG_ENTITY_NAME_EXPLANATION = (
-    "letters, numbers and the characters period(.), " "dash(-) and underscore(_)"
+    "letters, numbers and the characters period(.), dash(-) and underscore(_)"
 )
 
 # regex pattern that all folder names must validate against

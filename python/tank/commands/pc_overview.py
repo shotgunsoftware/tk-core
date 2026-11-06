@@ -9,13 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
+import os
+
 from .. import pipelineconfig_utils
+from ..errors import TankError
 from ..util import ShotgunPath
 from . import constants
-from ..errors import TankError
 from .action_base import Action
-
-import os
 
 
 class PCBreakdownAction(Action):
@@ -63,7 +63,7 @@ class PCBreakdownAction(Action):
         Actual execution payload
         """
 
-        log.info("Fetching data from Shotgun...")
+        log.info("Fetching data from Flow Production Tracking...")
         log.info("")
         log.info("")
         log.info("=" * 70)
@@ -89,7 +89,6 @@ class PCBreakdownAction(Action):
             ["code", "users", "mac_path", "windows_path", "linux_path"],
         )
         for d in data:
-
             if len(d.get("users")) == 0:
                 log.info("Configuration '%s' (Public)" % d.get("code"))
             else:
@@ -146,7 +145,6 @@ class PCBreakdownAction(Action):
                     log.info("")
 
                 else:
-
                     log.info(
                         "This configuration is using a shared version of the Toolkit API."
                         "If you want it to run its own independent version "
@@ -167,24 +165,24 @@ class PCBreakdownAction(Action):
 
             if len(d.get("users")) == 0:
                 log.info(
-                    "This is a public configuration. In Shotgun, the actions defined in this "
+                    "This is a public configuration. In Flow Production Tracking, the actions defined in this "
                     "configuration will be on all users' menus."
                 )
 
             elif len(d.get("users")) == 1:
                 log.info(
-                    "This is a private configuration. In Shotgun, only %s will see the actions "
+                    "This is a private configuration. In Flow Production Tracking, only %s will see the actions "
                     "defined in this config. If you want to add additional members to this "
-                    "configuration, navigate to the Shotgun Pipeline Configuration Page "
+                    "configuration, navigate to the PTR Pipeline Configuration Page "
                     "and add them to the Users field." % d.get("users")[0]["name"]
                 )
 
             elif len(d.get("users")) > 1:
                 users = ", ".join([u.get("name") for u in d.get("users")])
                 log.info(
-                    "This is a private configuration. In Shotgun, the following users will see "
+                    "This is a private configuration. In Flow Production Tracking, the following users will see "
                     "the actions defined in this config: %s. If you want to add additional "
-                    "members to this configuration, navigate to the Shotgun Pipeline "
+                    "members to this configuration, navigate to the PTR Pipeline "
                     "Configuration Page and add them to the Users field." % users
                 )
 

@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
-from unittest2 import TestCase
+from unittest import TestCase
 
 from tank.util import process
 

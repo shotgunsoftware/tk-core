@@ -13,19 +13,13 @@ Default implementation for the Tank Dialog
 
 """
 
-from . import QtCore, QtGui
-from . import ui_tank_dialog
-from . import TankDialogBase
-from .config_item import ConfigItem
-from .. import engine
-from .. import application
-from .. import constants
-from ...errors import TankError
-
-import sys
-import os
 import inspect
-from tank_vendor import six
+import os
+
+from ...errors import TankError
+from .. import application, constants, engine
+from . import QtCore, QtGui, TankDialogBase, ui_tank_dialog
+from .config_item import ConfigItem
 
 
 class TankQDialog(TankDialogBase):
@@ -62,16 +56,14 @@ class TankQDialog(TankDialogBase):
 
         widgets = [widget]
         for w in widgets:
-
             # look through class hierarchy - can't use isinstance here
             # because we don't know which module the BrowserWidget would
             # be from!
             cls_type = None
             for cls in inspect.getmro(type(w)):
-
                 # stop if we've previously checked this class:
                 cls_type = checked_classes.get(cls, None)
-                if cls_type != None:
+                if cls_type is not None:
                     break
                 checked_classes[cls] = ""
 
@@ -105,7 +97,7 @@ class TankQDialog(TankDialogBase):
                         # assume that this is derived from an actual tk-multi-workfiles.SaveAsForm!
                         cls_type = "SaveAsForm"
 
-                if cls_type != None:
+                if cls_type is not None:
                     checked_classes[cls] = cls_type
                     break
 
@@ -195,6 +187,9 @@ class TankQDialog(TankDialogBase):
 
         self._config_items = []
 
+        # Set the WA_DeleteOnClose attribute to be sure the dialog will be fully destroyed on close
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
         ########################################################################################
         # set up the main UI and header
         self.ui = ui_tank_dialog.Ui_TankDialog()
@@ -209,7 +204,7 @@ class TankQDialog(TankDialogBase):
         else:
             self.ui.label.setText(title)
 
-        self.setWindowTitle("Shotgun: %s" % title)
+        self.setWindowTitle("Flow Production Tracking: %s" % title)
         if os.path.exists(bundle.icon_256):
             self._window_icon = QtGui.QIcon(bundle.icon_256)
             self.setWindowIcon(self._window_icon)
@@ -222,15 +217,14 @@ class TankQDialog(TankDialogBase):
         self.ui.top_group.setVisible(show_tk_title_bar)
 
         if show_tk_title_bar:
-
             ########################################################################################
             # set up the title bar and configuration panel
 
             self.ui.tank_logo.setToolTip(
-                "This is part of the Shotgun App %s" % self._bundle.name
+                "This is part of the PTR desktop app %s" % self._bundle.name
             )
             self.ui.label.setToolTip(
-                "This is part of the Shotgun App %s" % self._bundle.name
+                "This is part of the PTR desktop app %s" % self._bundle.name
             )
 
             # Add our context to the header
@@ -296,12 +290,9 @@ class TankQDialog(TankDialogBase):
                 if p is None:
                     formatted = "Undefined"
                 elif show_type:
-                    formatted = "%s %s" % (p.get("type"), p.get("name"))
+                    formatted = "{} {}".format(p.get("type"), p.get("name"))
                 else:
-                    formatted = "%s" % p.get("name")
-
-                if isinstance(formatted, six.text_type):
-                    formatted = formatted.encode("utf-8")
+                    formatted = "{}".format(p.get("name"))
 
                 return formatted
 
@@ -332,7 +323,7 @@ class TankQDialog(TankDialogBase):
             tooltip += "<b>System Information</b>"
             tooltip += "<hr>"
             tooltip += (
-                "<b>Shotgun Pipeline Toolkit Version: </b>%s<br>"
+                "<b>Flow Production Tracking Toolkit Version: </b>%s<br>"
                 % self._bundle.tank.version
             )
             tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
@@ -343,7 +334,8 @@ class TankQDialog(TankDialogBase):
             ########################################################################################
             # now setup the info page with all the details
 
-            self.ui.details.clicked.connect(self._on_arrow)
+            self.ui.details_show.clicked.connect(self._on_arrow)
+            self.ui.details_hide.clicked.connect(self._on_arrow)
             self.ui.app_name.setText(self._bundle.display_name)
             self.ui.app_description.setText(self._bundle.description)
             # get the descriptor type (eg. git/app store/dev etc)
@@ -358,10 +350,11 @@ class TankQDialog(TankDialogBase):
             context_info = "Your current work area is %s. " % self._bundle.context
             # try get the environment - may not work - not all bundle classes have a .engine method
             try:
-                context_info += "You are currently running in the %s environment." % (
-                    self._bundle.engine.environment["name"]
+                context_info += (
+                    "You are currently running in the %s environment."
+                    % (self._bundle.engine.environment["name"])
                 )
-            except:
+            except Exception:
                 pass
 
             self.ui.app_work_area_info.setText(context_info)
@@ -594,10 +587,19 @@ class TankQDialog(TankDialogBase):
                     # hide the info panel:
                     # activate page 1 again - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(0)
+
+                    # Flip arrow icon
+                    self.ui.details_show.setVisible(True)
+                    self.ui.details_hide.setVisible(False)
                 else:
                     # show the info panel:
                     # activate page 2 - note that this will reset all positions!
                     self.ui.stackedWidget.setCurrentIndex(1)
+
+                    # Flip arrow icon
+                    self.ui.details_show.setVisible(False)
+                    self.ui.details_hide.setVisible(True)
+
                     # this hides page page 1, so let's show it again
                     self.ui.page_1.show()
                     # make sure page1 stays on top
@@ -621,6 +623,9 @@ class TankQDialog(TankDialogBase):
         Toggle the visibility of the info panel, animating the transition.
         """
         if self._info_mode:
+            # Flip arrow icon
+            self.ui.details_show.setVisible(True)
+            self.ui.details_hide.setVisible(False)
 
             self.setUpdatesEnabled(False)
             try:
@@ -677,6 +682,9 @@ class TankQDialog(TankDialogBase):
             self.grp.start()
 
         else:
+            # Flip arrow icon
+            self.ui.details_show.setVisible(False)
+            self.ui.details_hide.setVisible(True)
 
             # activate page 2 - note that this will reset all positions!
             self.ui.stackedWidget.setCurrentIndex(1)
@@ -748,7 +756,6 @@ class TankQDialog(TankDialogBase):
         # launch one window for each location on disk
         paths = self._bundle.context.filesystem_locations
         for disk_location in paths:
-
             url = QtCore.QUrl.fromLocalFile(disk_location)
             status = QtGui.QDesktopServices.openUrl(url)
 
@@ -773,7 +780,6 @@ class TankQDialog(TankDialogBase):
             self._bundle.log_error(e)
 
         try:
-
             # now restart the engine
             current_context = self._bundle.context
             current_engine_name = self._bundle.engine.name

@@ -12,7 +12,6 @@ import sgtk
 
 
 class TestFramework(sgtk.platform.Framework):
-
     ##########################################################################################
     # init and destroy
 

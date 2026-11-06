@@ -12,21 +12,17 @@
 This test makes sure that various tank command operations do not fail.
 """
 
-from __future__ import print_function
-
 import os
 import re
-import sys
 import shutil
-
-import unittest2
-from mock import Mock, patch
-from tank.util import is_linux, is_macos, is_windows, filesystem
-from tank.util import yaml_cache, zip
-
-from sgtk_integration_test import SgtkIntegrationTest
+import unittest
 
 import sgtk
+from sgtk_integration_test import SgtkIntegrationTest
+from tank.util import filesystem, is_linux, is_macos, is_windows, yaml_cache, zip
+from tank_test.tank_test_base import (
+    mock,
+)
 
 logger = sgtk.LogManager.get_logger(__name__)
 
@@ -83,7 +79,7 @@ class TankCommands(SgtkIntegrationTest):
         )
         os.makedirs(install_core_folder)
 
-        cw.write_shotgun_file(Mock(get_path=lambda: "does_not_exist"))
+        cw.write_shotgun_file(mock.Mock(get_path=lambda: "does_not_exist"))
         cw.write_install_location_file()
 
         sgtk.util.filesystem.copy_folder(
@@ -108,7 +104,7 @@ class TankCommands(SgtkIntegrationTest):
 
         sgtk.set_authenticated_user(self.user)
 
-        with patch(
+        with mock.patch(
             "tank.pipelineconfig_utils.resolve_all_os_paths_to_core",
             return_value=sgtk.util.ShotgunPath.from_current_os_path(
                 self.legacy_bootstrap_core
@@ -155,7 +151,7 @@ class TankCommands(SgtkIntegrationTest):
 
         self.tank_setup_project(
             self.shared_core_location,
-            "tk-config-basic",
+            "tk-config-testing",
             None,
             self.project["id"],
             "tankcommandtest",
@@ -171,7 +167,7 @@ class TankCommands(SgtkIntegrationTest):
 
         self.tank_setup_project(
             self.shared_core_location,
-            "https://github.com/shotgunsoftware/tk-config-basic.git",
+            "https://github.com/shotgunsoftware/tk-config-testing.git",
             None,
             self.project["id"],
             "tankcommandtest",
@@ -195,9 +191,6 @@ class TankCommands(SgtkIntegrationTest):
             force=True,
         )
 
-    @unittest2.skipIf(
-        sys.version_info[0] > 2, "shell engine is not Python 3 compatible."
-    )
     def test_04_list_actions_for_project_with_shared_core(self):
         """
         Ensures that running the tank command when there is a site-wide Primary
@@ -324,7 +317,7 @@ class TankCommands(SgtkIntegrationTest):
         # Since we are using a core branch we can't do a core update.
         self.assertRegex(
             output,
-            r"You are currently running version HEAD of the Shotgun Pipeline Toolkit",
+            r"You are currently running version HEAD of the Flow Production Tracking Toolkit",
         )
         self.assertRegex(
             output, r"No need to update the Toolkit Core API at this time!"
@@ -532,4 +525,4 @@ class TankCommands(SgtkIntegrationTest):
 
 
 if __name__ == "__main__":
-    ret_val = unittest2.main(failfast=True, verbosity=2)
+    unittest.main(failfast=True, verbosity=2)

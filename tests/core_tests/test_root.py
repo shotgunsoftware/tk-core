@@ -8,22 +8,19 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
-import os
 import copy
-
-from tank_vendor import yaml
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+import os
 
 import tank
 from tank import TankError
 from tank.util import is_linux, is_macos, is_windows
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+from tank_vendor import yaml
 
 
 class TestGetProjectRoots(TankTestBase):
     def setUp(self):
-        super(TestGetProjectRoots, self).setUp()
+        super().setUp()
 
         # Tests are updating the roots.yml file, so we'll turn this into an installed configuration.
         self.setup_fixtures(parameters={"installed_config": True})
@@ -105,7 +102,7 @@ class TestGetProjectRoots(TankTestBase):
         platform_lookup = {
             "win32": "windows_path",
             "darwin": "mac_path",
-            "linux2": "linux_path",
+            "linux": "linux_path",
         }
 
         project_name = os.path.basename(self.project_root)
@@ -157,7 +154,7 @@ class TestGetProjectRoots(TankTestBase):
 
 class TestGetPrimaryRoot(TankTestBase):
     def setUp(self):
-        super(TestGetPrimaryRoot, self).setUp()
+        super().setUp()
 
         self.setup_multi_root_fixtures()
 

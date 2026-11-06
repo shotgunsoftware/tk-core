@@ -8,22 +8,18 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 
-from .descriptor_config import ConfigDescriptor
-from .. import pipelineconfig_utils
-from .. import LogManager
-from ..util import ShotgunPath
-from . import constants
-from .errors import TankMissingManifestError
-
+from .. import LogManager, pipelineconfig_utils
 from ..errors import (
-    TankNotPipelineConfigurationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
+    TankNotPipelineConfigurationError,
 )
+from ..util import ShotgunPath
+from . import constants
+from .descriptor_config import ConfigDescriptor
+from .errors import TankMissingManifestError
 
 log = LogManager.get_logger(__name__)
 
@@ -52,7 +48,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         :param fallback_roots: List of immutable fallback cache locations where
             apps will be searched for.
         """
-        super(InstalledConfigDescriptor, self).__init__(
+        super().__init__(
             sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
         )
         self._io_descriptor.set_is_copiable(False)

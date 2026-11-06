@@ -13,14 +13,13 @@ Implements a caching mechanism to avoid loading the same yaml file multiple time
 unless it's changed on disk.
 """
 
-from __future__ import with_statement
-
-import os
 import copy
+import os
 import threading
 
 from tank_vendor import yaml
-from ..errors import TankError, TankUnreadableFileError, TankFileDoesNotExistError
+
+from ..errors import TankError, TankFileDoesNotExistError, TankUnreadableFileError
 
 
 class CacheItem(object):
@@ -256,8 +255,8 @@ class YamlCache(object):
         """
         path = item.path
         try:
-            with open(path, "r") as fh:
-                raw_data = yaml.load(fh)
+            with open(path, "r", encoding="utf8") as fh:
+                raw_data = yaml.load(fh, Loader=yaml.FullLoader)
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
         except Exception as e:

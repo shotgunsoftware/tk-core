@@ -48,7 +48,13 @@ class SsoSaml2MissingQtNetwork(SsoSaml2MissingQtModuleError):
     """
 
 
-class SsoSaml2MissingQtWebKit(SsoSaml2MissingQtModuleError):
+class SsoSaml2MissingQtWebEngineWidgets(SsoSaml2MissingQtModuleError):
     """
-    Exception that indicates that the QtWebKit component is missing.
+    Exception that indicates that the QtWebEngineWidgets component is missing.
+    """
+
+
+class SsoSaml2IncompletePySide2(SsoSaml2Error):
+    """
+    Exception that indicates that the version of PySide2 used is incomplete or obsolete.
     """

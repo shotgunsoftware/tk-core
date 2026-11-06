@@ -1,5 +1,5 @@
-Shotgun pipeline toolkit core platform, |release|
-####################################################
+Flow Production Tracking core platform, |release|
+#########################################################
 
 .. toctree::
     :maxdepth: 2
@@ -11,3 +11,5 @@ Shotgun pipeline toolkit core platform, |release|
     utils
     descriptor
     authentication
+    environment_variables
+    contributing

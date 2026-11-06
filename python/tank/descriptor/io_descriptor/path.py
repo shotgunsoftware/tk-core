@@ -10,10 +10,10 @@
 
 import os
 
-from .base import IODescriptorBase
-from ..errors import TankDescriptorError
-from ...util import ShotgunPath
 from ... import LogManager
+from ...util import ShotgunPath
+from ..errors import TankDescriptorError
+from .base import IODescriptorBase
 
 log = LogManager.get_logger(__name__)
 
@@ -38,6 +38,9 @@ class IODescriptorPath(IODescriptorBase):
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
 
+    #: Version returned when the descriptor does not define one.
+    UNDEFINED_VERSION = "Undefined"
+
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
@@ -48,9 +51,7 @@ class IODescriptorPath(IODescriptorBase):
         :return: Descriptor instance
         """
 
-        super(IODescriptorPath, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict,
@@ -90,7 +91,10 @@ class IODescriptorPath(IODescriptorBase):
         # if there is a version defined in the descriptor dict
         # (this is handy when doing framework development, but totally
         #  non-required for finding the code)
-        self._version = descriptor_dict.get("version") or "Undefined"
+        self._version = descriptor_dict.get("version") or self.UNDEFINED_VERSION
+
+        # Resolve environment variables in the version
+        self._version = os.path.expandvars(self._version)
 
         # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:

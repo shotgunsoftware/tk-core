@@ -9,22 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import unittest
-import shutil
-from mock import Mock
-import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
+
 from tank import folder
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestDeferredFolderCreation(TankTestBase):
     """Test deferring of folder creation."""
 
     def setUp(self):
-        super(TestDeferredFolderCreation, self).setUp()
+        super().setUp()
         self.setup_fixtures(parameters={"core": "core.override/deferred_core"})
 
         self.shot = {

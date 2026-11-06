@@ -9,14 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.six.moves import urllib
+import urllib.parse
 
-from .downloadable import IODescriptorDownloadable
-from ...util import filesystem, shotgun
-from ...util.shotgun_entity import get_sg_entity_name_field
-from ...util.errors import ShotgunAttachmentDownloadError
-from ..errors import TankDescriptorError
 from ... import LogManager
+from ...util import filesystem, shotgun
+from ...util.errors import ShotgunAttachmentDownloadError
+from ...util.shotgun_entity import get_sg_entity_name_field
+from ..errors import TankDescriptorError
+from .downloadable import IODescriptorDownloadable
 
 log = LogManager.get_logger(__name__)
 
@@ -64,7 +64,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     The latest version is defined as the current record available in Shotgun.
     """
 
-    (_MODE_ID_BASED, _MODE_NAME_BASED) = range(2)
+    _MODE_ID_BASED, _MODE_NAME_BASED = range(2)
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
@@ -75,9 +75,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(
-            descriptor_dict, sg_connection, bundle_type
-        )
+        super().__init__(descriptor_dict, sg_connection, bundle_type)
 
         # ensure project id is an int if specified
         self._project_link = None
@@ -102,7 +100,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "Shotgun descriptor cannot contain both name and id tokens: %s"
+                    "PTR descriptor cannot contain both name and id tokens: %s"
                     % descriptor_dict
                 )
 
@@ -133,13 +131,16 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         self._entity_type = descriptor_dict.get("entity_type")
         self._field = descriptor_dict.get("field")
 
-        # ensure version is an int if specified
+        # Ensure version is an int if specified. create_descriptor() sets the
+        # string "latest" when resolve_latest is requested without a version,
+        # so accept it as well.
         try:
-            self._version = (
-                int(descriptor_dict["version"])
-                if "version" in descriptor_dict
-                else None
-            )
+            if "version" not in descriptor_dict:
+                self._version = None
+            elif descriptor_dict["version"] == "latest":
+                self._version = "latest"
+            else:
+                self._version = int(descriptor_dict["version"])
         except ValueError:
             raise TankDescriptorError(
                 "Invalid version in descriptor %s" % descriptor_dict
@@ -253,7 +254,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         data = self._sg_connection.find_one(self._entity_type, filters, [self._field])
 
         if data is None:
-            raise TankDescriptorError("Cannot resolve descriptor %s in Shotgun!" % self)
+            raise TankDescriptorError(
+                "Cannot resolve descriptor %s in Flow Production Tracking!" % self
+            )
 
         # attachment field is on the following form in the case a file has been
         # uploaded:
@@ -341,9 +344,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         # check if we can connect to Shotgun
         can_connect = True
         try:
-            log.debug(
-                "%r: Probing if a connection to Shotgun can be established..." % self
-            )
+            log.debug("%r: Probing if a connection to PTR can be established..." % self)
             self._sg_connection.connect()
             log.debug("...connection established!")
         except Exception as e:

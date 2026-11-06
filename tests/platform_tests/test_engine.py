@@ -12,23 +12,25 @@
 Engine-related unit tests.
 """
 
-from __future__ import with_statement, print_function
-
+import contextlib
 import os
+import random
 import sys
 import threading
-import random
 import time
+import unittest
+from unittest import mock
 
-from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing
-from tank_test.tank_test_base import setUpModule  # noqa
-
-import contextlib
-import tank
 import sgtk
+import tank
 from sgtk.platform import engine
 from tank.errors import TankError
-import mock
+from tank_test.tank_test_base import (
+    TankTestBase,
+    setUpModule,  # noqa
+    skip_if_pyside_missing,
+    suppress_generated_code_qt_warnings,
+)
 
 
 class TestEngineBase(TankTestBase):
@@ -40,7 +42,7 @@ class TestEngineBase(TankTestBase):
         """
         Sets up a few entities so we can create a vaid context.
         """
-        super(TestEngineBase, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -75,7 +77,7 @@ class TestEngineBase(TankTestBase):
         os.remove(self.test_resource)
 
         # important to call base class so it can clean up memory
-        super(TestEngineBase, self).tearDown()
+        super().tearDown()
 
 
 class TestDialogCreation(TestEngineBase):
@@ -83,15 +85,17 @@ class TestDialogCreation(TestEngineBase):
     Tests how engines construct and show dialogs.
     """
 
-    @skip_if_pyside_missing
     def setUp(self):
         """
         We need a QApplication to run these tests.
         """
-        super(TestDialogCreation, self).setUp()
+        super().setUp()
 
-        if sgtk.platform.qt.QtGui.QApplication.instance() is None:
-            sgtk.platform.qt.QtGui.QApplication([])
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        if QtGui.QApplication.instance() is None:
+            QtGui.QApplication([])
 
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -100,8 +104,10 @@ class TestDialogCreation(TestEngineBase):
         """
         Ensures that the _create_widget method is exception safe.
         """
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
+        from tank.authentication.ui.qt_abstraction import QtGui
 
-        class _test_widget(sgtk.platform.qt.QtGui.QWidget):
+        class _test_widget(QtGui.QWidget):
             def __init__(self, *args, **kwargs):
                 raise Exception("Testing...")
 
@@ -118,7 +124,7 @@ class TestDialogCreation(TestEngineBase):
             cur_engine.destroy()
 
         # important to call base class so it can clean up memory
-        super(TestEngineBase, self).tearDown()
+        super().tearDown()
 
 
 class TestStartEngine(TestEngineBase):
@@ -160,7 +166,7 @@ class TestStartEngine(TestEngineBase):
         Test engine properties
         """
         engine = tank.platform.start_engine("test_engine", self.tk, self.context)
-        expected_doc_url = "https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide"
+        expected_doc_url = "https://help.autodesk.com/view/SGSUB/ENU/?guid=SG_Supervisor_Artist_sa_integrations_sa_integrations_user_guide_html"
         self.assertEqual(engine.name, "test_engine")
         self.assertEqual(engine.display_name, "test_engine")
         self.assertEqual(engine.version, "Undefined")
@@ -199,22 +205,28 @@ class TestExecuteInMainThread(TestEngineBase):
         """
         Starts up an engine and makes sure Qt is ready to be used.
         """
-        super(TestExecuteInMainThread, self).setUp()
+        super().setUp()
 
-        # Init QApplication before engine starts or the engine's invokers can be
-        # deleted internally by Qt before they are used on PySide2.
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
 
         # See if a QApplication instance exists, and if not create one.  Use the
         # QApplication.instance() method, since qApp can contain a non-None
         # value even if no QApplication has been constructed on PySide2.
         if not QtGui.QApplication.instance():
-            self._app = sgtk.platform.qt.QtGui.QApplication(sys.argv)
+            self._app = QtGui.QApplication(sys.argv)
         else:
-            self._app = sgtk.platform.qt.QtGui.QApplication.instance()
+            self._app = QtGui.QApplication.instance()
 
         tank.platform.start_engine("test_engine", self.tk, self.context)
 
+    @unittest.skipIf(
+        (
+            (sys.version_info.major, sys.version_info.minor) == (3, 11)
+            and sys.platform.startswith("linux")
+        ),
+        "Problem - SG-38851",
+    )
     def test_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
@@ -375,14 +387,11 @@ class TestContextChange(TestEngineBase):
         :param new_context: Context to compare with the new context parameter in
             the hooks.
         """
-        # Multi item "with"s are not supported in Python 2.5, so do one after
-        # the other.
-        with self._pre_patch as pre_mock:
-            with self._post_patch as post_mock:
-                # Invokes the code within the caller's 'with' statement. (that's really cool!)
-                yield
-                pre_mock.assert_called_once_with(self.tk, old_context, new_context)
-                post_mock.assert_called_once_with(self.tk, old_context, new_context)
+        with self._pre_patch as pre_mock, self._post_patch as post_mock:
+            # Invokes the code within the caller's 'with' statement. (that's really cool!)
+            yield
+            pre_mock.assert_called_once_with(self.tk, old_context, new_context)
+            post_mock.assert_called_once_with(self.tk, old_context, new_context)
 
     def test_on_engine_start(self):
         """
@@ -649,14 +658,16 @@ class TestShowDialog(TestEngineBase):
         """
         Prepares the engine and makes sure Qt is ready.
         """
-        super(TestShowDialog, self).setUp()
+        super().setUp()
         self.setup_fixtures()
 
         self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
+        from tank.authentication.ui.qt_abstraction import QtGui
+
         # Create an application instance so we can take control of the execution
         # of the dialog.
-        from sgtk.platform.qt import QtGui
-
         if QtGui.QApplication.instance() is None:
             self._app = QtGui.QApplication(sys.argv)
         else:
@@ -666,8 +677,9 @@ class TestShowDialog(TestEngineBase):
 
     def tearDown(self):
         self.engine.destroy()
-        super(TestShowDialog, self).tearDown()
+        super().tearDown()
 
+    @suppress_generated_code_qt_warnings
     def test_gui_app_and_close(self):
         # Show the dialog
         self.engine.commands["test_app"]["callback"]()
@@ -677,3 +689,52 @@ class TestShowDialog(TestEngineBase):
         self.engine.apps["test_app"].dismiss_button.click()
         # Process the remaining events.
         self._app.processEvents()
+
+    @suppress_generated_code_qt_warnings
+    def test_destroy_qt_dialogs(self):
+        """
+        Ensures _destroy_qt_dialogs closes the open dialogs and deletes the widgets
+        of closed dialogs, including widgets with a reference cycle.
+        """
+        from sgtk.platform.qt import QtGui, shiboken
+
+        class CyclicWidget(QtGui.QWidget):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                # Keeps the widget in the widget trash after its dialog is closed.
+                self.cycle = self
+
+        app = self.engine.apps["test_app"]
+        # No parent: otherwise, the second dialog can be parented to the first one
+        # (the active window on some platforms) and deleted with it.
+        with mock.patch.object(self.engine, "_get_dialog_parent", return_value=None):
+            closed = self.engine.show_dialog("Closed", app, CyclicWidget)
+            opened = self.engine.show_dialog("Opened", app, CyclicWidget)
+        self._app.processEvents()
+        closed.close()
+        self._app.processEvents()
+        self.assertEqual(len(self.engine.created_qt_dialogs), 1)
+        self.assertTrue(shiboken.isValid(closed))
+
+        self.engine._destroy_qt_dialogs()
+
+        self.assertEqual(self.engine.created_qt_dialogs, [])
+        self.assertFalse(shiboken.isValid(closed))
+        self.assertFalse(shiboken.isValid(opened))
+
+    @suppress_generated_code_qt_warnings
+    def test_destroy_qt_dialogs_deleted_dialog(self):
+        """
+        Ensures _destroy_qt_dialogs skips an open dialog that was already deleted,
+        for example with a parent dialog.
+        """
+        from sgtk.platform.qt import QtGui, shiboken
+
+        app = self.engine.apps["test_app"]
+        self.engine.show_dialog("Deleted", app, QtGui.QWidget)
+        self._app.processEvents()
+        shiboken.delete(self.engine.created_qt_dialogs[0])
+
+        self.engine._destroy_qt_dialogs()
+
+        self.assertEqual(self.engine.created_qt_dialogs, [])

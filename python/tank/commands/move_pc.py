@@ -8,15 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import constants
-from ..errors import TankError
-
-from .action_base import Action
-
 import os
 import shutil
-from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.six.moves import input
+import sys
+
+from ..errors import TankError
+from . import constants
+from .action_base import Action
 
 
 class MovePCAction(Action):
@@ -86,7 +84,6 @@ class MovePCAction(Action):
 
         names = os.listdir(src)
         for name in names:
-
             srcname = os.path.join(src, name)
             dstname = os.path.join(dst, name)
 
@@ -152,13 +149,13 @@ class MovePCAction(Action):
         linux_path = args[0]
         windows_path = args[1]
         mac_path = args[2]
-        new_paths = {"darwin": mac_path, "win32": windows_path, "linux2": linux_path}
+        new_paths = {"darwin": mac_path, "win32": windows_path, "linux": linux_path}
 
         # check which paths are different
         modifications = {
             "darwin": (current_paths.macosx != mac_path),
             "win32": (current_paths.windows != windows_path),
-            "linux2": (current_paths.linux != linux_path),
+            "linux": (current_paths.linux != linux_path),
         }
 
         log.info("")
@@ -170,7 +167,7 @@ class MovePCAction(Action):
         log.info("")
         log.info("New Paths")
         log.info("--------------------------------------------------------------")
-        if modifications["linux2"]:
+        if modifications["linux"]:
             log.info("New Linux Path:   '%s'" % linux_path)
         else:
             log.info("New Linux Path:   No change")
@@ -188,7 +185,7 @@ class MovePCAction(Action):
         log.info("")
         log.info("")
 
-        if modifications[sgsix.platform]:
+        if modifications[sys.platform]:
             copy_files = True
             log.info(
                 "The configuration will be moved to reflect the specified path changes."
@@ -215,10 +212,9 @@ class MovePCAction(Action):
 
         # ok let's do it!
         local_source_path = self.tk.pipeline_configuration.get_path()
-        local_target_path = new_paths[sgsix.platform]
+        local_target_path = new_paths[sys.platform]
 
         if copy_files:
-
             # check that files exists and that we can carry out the copy etc.
             if not os.path.exists(local_source_path):
                 raise TankError(
@@ -242,7 +238,6 @@ class MovePCAction(Action):
         # first copy the data across
         old_umask = os.umask(0)
         try:
-
             # first copy the files - this is where things can go wrong so start with this
             if copy_files:
                 log.info(
@@ -261,7 +256,7 @@ class MovePCAction(Action):
             log.info("Updating cached locations in %s..." % sg_code_location)
             os.chmod(sg_code_location, 0o666)
             fh = open(sg_code_location, "wt")
-            fh.write("# Shotgun Pipeline Toolkit configuration file\n")
+            fh.write("# Flow Production Tracking Toolkit configuration file\n")
             fh.write("# This file reflects the paths in the pipeline configuration\n")
             fh.write("# entity which is associated with this location\n")
             fh.write("\n")
@@ -283,14 +278,14 @@ class MovePCAction(Action):
         finally:
             os.umask(old_umask)
 
-        log.info("Updating Shotgun Configuration Record...")
+        log.info("Updating PTR Configuration Record...")
         self.tk.shotgun.update(
             constants.PIPELINE_CONFIGURATION_ENTITY,
             pipeline_config_id,
             {
                 "mac_path": new_paths["darwin"],
                 "windows_path": new_paths["win32"],
-                "linux_path": new_paths["linux2"],
+                "linux_path": new_paths["linux"],
             },
         )
 

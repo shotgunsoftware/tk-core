@@ -39,7 +39,7 @@ class TestApp(Application):
 
         class AppDialog(QtGui.QWidget):
             def __init__(self, parent=None):
-                super(AppDialog, self).__init__(parent)
+                super().__init__(parent)
                 self._layout = QtGui.QVBoxLayout(self)
                 self.button = QtGui.QPushButton("Close", parent=self)
                 self.button.clicked.connect(self.close)

@@ -6,6 +6,9 @@
     <file>arrow_hover.png</file>
     <file>arrow_pressed.png</file>
     <file>arrow.png</file>
+    <file>arrow_flipped_hover.png</file>
+    <file>arrow_flipped_pressed.png</file>
+    <file>arrow_flipped.png</file>
     <file>tank_logo.png</file>
     <file>default_app_icon_256.png</file>
   </qresource>

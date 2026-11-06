@@ -12,12 +12,9 @@
 Methods relating to the path cache
 """
 
+from .. import folder, path_cache
 from ..errors import TankError
-from .. import path_cache
-from .. import folder
-
 from .action_base import Action
-from tank_vendor.six.moves import input
 
 
 class SynchronizePathCache(Action):
@@ -35,7 +32,7 @@ class SynchronizePathCache(Action):
             "synchronize_folders",
             Action.TK_INSTANCE,
             (
-                "Ensures that the local folders and folder metadata is up to date with Shotgun."
+                "Ensures that the local folders and folder metadata is up to date with Flow Production Tracking."
             ),
             "Admin",
         )
@@ -88,7 +85,6 @@ class SynchronizePathCache(Action):
         """
 
         if self.tk.pipeline_configuration.get_shotgun_path_cache_enabled():
-
             log.info("Ensuring that the local folder representation is up to date...")
 
             if full_sync:
@@ -106,7 +102,7 @@ class SynchronizePathCache(Action):
         else:
             # remote cache not turned on for this project
             log.error(
-                "Looks like this project doesn't synchronize its folders with Shotgun! "
+                "Looks like this project doesn't synchronize its folders with Flow Production Tracking! "
                 "If you want to turn on synchronization for this project, run "
                 "the 'upgrade_folders' tank command."
             )
@@ -146,7 +142,7 @@ class PathCacheMigrationAction(Action):
         log.info("")
         log.info(
             "Projects created with Toolkit v0.14 and earlier do not automatically synchronize "
-            "their folders on disk with Shotgun. You can use this command to turn on that folder "
+            "their folders on disk with Flow Production Tracking. You can use this command to turn on that folder "
             "sync."
         )
         log.info("")
@@ -164,7 +160,7 @@ class PathCacheMigrationAction(Action):
         log.info(
             "Note! If you have any cloned pipeline configurations for this project, you must run "
             "'tank upgrade_folders' for each one of them in order for them to pick up folders "
-            "from Shotgun."
+            "from Flow Production Tracking."
         )
         log.info("")
         val = input(
@@ -177,7 +173,9 @@ class PathCacheMigrationAction(Action):
         # first load up the current path cache file and make sure
         # shotgun has got all those entries present as FilesystemLocations.
         log.info("")
-        log.info("Phase 1/3: Pushing data from the current path cache to Shotgun...")
+        log.info(
+            "Phase 1/3: Pushing data from the current path cache to Flow Production Tracking..."
+        )
         curr_pc = path_cache.PathCache(self.tk)
         try:
             curr_pc.ensure_all_entries_are_in_shotgun()
@@ -187,12 +185,14 @@ class PathCacheMigrationAction(Action):
         # now turn on the cloud based path cache. This means that from now on, a new path
         # cache, stored on the local disk, will be used instead of the previous (shared) one.
         log.info("")
-        log.info("Phase 2/3: Switching on the Shotgun Path Cache...")
+        log.info("Phase 2/3: Switching on the PTR Path Cache...")
         self.tk.pipeline_configuration.turn_on_shotgun_path_cache()
 
         # and synchronize path cache
         log.info("")
-        log.info("Phase 3/3: Synchronizing your local machine with Shotgun...")
+        log.info(
+            "Phase 3/3: Synchronizing your local machine with Flow Production Tracking..."
+        )
         pc = path_cache.PathCache(self.tk)
         try:
             pc.synchronize(full_sync=True)
@@ -201,7 +201,7 @@ class PathCacheMigrationAction(Action):
 
         log.info("")
         log.info(
-            "All done! This project and pipeline configuration is now synchronizing its folders with Shotgun."
+            "All done! This project and pipeline configuration is now synchronizing its folders with Flow Production Tracking."
         )
         log.info("")
         log.info(

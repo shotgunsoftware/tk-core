@@ -15,13 +15,11 @@ Utility methods related to folder creation
 import copy
 
 from ...errors import TankError
-
 from .expression_tokens import (
-    FilterExpressionToken,
     CurrentStepExpressionToken,
     CurrentTaskExpressionToken,
+    FilterExpressionToken,
 )
-from tank_vendor import six
 
 
 def resolve_shotgun_filters(filters, sg_data):
@@ -77,9 +75,7 @@ def translate_filter_tokens(filter_list, parent, yml_path):
         values = sg_filter["values"]
         new_values = []
         for filter_value in values:
-            if isinstance(filter_value, six.string_types) and filter_value.startswith(
-                "$"
-            ):
+            if isinstance(filter_value, str) and filter_value.startswith("$"):
                 # this is a filter expression!
                 try:
                     expr_token = FilterExpressionToken(filter_value, parent)

@@ -220,17 +220,15 @@ Python provides a large number of log handlers as part of its standard library.
 For more information, see https://docs.python.org/2/library/logging.handlers.html#module-logging.handlers
 """
 
-
 import logging
-from logging.handlers import RotatingFileHandler
 import os
-import sys
 import time
-import weakref
 import uuid
+import weakref
 from functools import wraps
+from logging.handlers import RotatingFileHandler
+
 from . import constants
-from tank_vendor import six
 
 
 class LogManager(object):
@@ -304,7 +302,7 @@ class LogManager(object):
 
             try:
                 os.rename(self.baseFilename, temp_backup_name)
-            except:
+            except Exception:
                 # It failed, so we'll simply append from now on.
                 log.debug(
                     "Cannot rotate log file '%s'. Logging will continue to this file, "
@@ -319,7 +317,7 @@ class LogManager(object):
             # so doRollover can do its work.
             try:
                 os.rename(temp_backup_name, self.baseFilename)
-            except:
+            except Exception:
                 # For some reason we couldn't move the backup in its place.
                 log.debug(
                     "Unexpected issue while rotating log file '%s'. Logging will continue to this file, "
@@ -333,18 +331,13 @@ class LogManager(object):
                 self._handle_rename_failure("w")
                 return
 
-            # Python 2.6 expects the file to be opened during rollover.
-            if not self.stream and sys.version_info[:2] < (2, 7):
-                self.mode = "a"
-                self.stream = self._open()
-
             # Now, that we are back in the original state we were in,
             # were pretty confident that the rollover will work. However, due to
             # any number of reasons it could still fail. If it does, simply
             # disable rollover and append to the current log.
             try:
                 RotatingFileHandler.doRollover(self)
-            except:
+            except Exception:
                 # Something probably failed trying to rollover the backups,
                 # since the code above proved that in theory the main log file
                 # should be renamable. In any case, we didn't succeed in renaming,
@@ -575,8 +568,8 @@ class LogManager(object):
             # is advantageous is in tk-desktop, where we provide a
             # menu action to toggle debug logging. When it is toggled
             # on, we set the env var here, which then means that when
-            # a user navigates to a project in SG Desktop, the Python
-            # subprocess spawned will also have debug logging active.
+            # a user navigates to a project in the PTR desktop app, the
+            # Python subprocess spawned will also have debug logging active.
             log.debug(
                 "Setting %s in the environment for this session. This "
                 "ensures that subprocesses spawned from this process will "
@@ -601,7 +594,7 @@ class LogManager(object):
 
     @property
     def log_file(self):
-        """ Full path to the current log file or None if logging is not active. """
+        """Full path to the current log file or None if logging is not active."""
         return self._std_file_handler_log_file
 
     @property
@@ -794,11 +787,7 @@ class LogManager(object):
             maxBytes=1024 * 1024 * 5,
             # Need at least one backup in order to rotate
             backupCount=1,
-            # Python 3 is pickier about the encoding type of a file.
-            # Python 2 treats str as bytes, so it writes them
-            # directly to disk. Putting utf8 encoding actually
-            # causes problems.
-            encoding="utf8" if six.PY3 else None,
+            encoding="utf8",
         )
 
         # set the level based on global debug flag
@@ -842,6 +831,8 @@ sgtk_root_logger.propagate = False
 # this should not be changed, but any filtering
 # should happen via log handlers
 sgtk_root_logger.setLevel(logging.DEBUG)
+
+
 #
 # create a 'nop' log handler to be attached.
 # this is to avoid warnings being reported that

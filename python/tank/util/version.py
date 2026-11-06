@@ -7,9 +7,40 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+import contextlib
+import warnings
 
-from distutils.version import LooseVersion
+from tank_vendor.packaging.version import InvalidVersion, parse as version_parse
+
+from .. import LogManager
+from ..errors import TankError
 from . import sgre as re
+
+logger = LogManager.get_logger(__name__)
+GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
+
+# Normalize non-standard version formats
+# into PEP 440–compliant forms ("1.2.3") to ensure compatibility with
+# Python’s version parsing utilities (e.g., packaging.version.parse).
+# Reference: https://peps.python.org/pep-0440/
+_VERSION_PATTERNS = [
+    (  # Extract version from software names: "Software Name 21.0" -> "21.0"
+        re.compile(r"^[a-zA-Z\s]+(\d+(?:\.\d+)*(?:v\d+(?:\.\d+)*)?)$"),
+        r"\1",
+    ),
+    (  # Dot-v format: "6.3v6" -> "6.3.6"
+        re.compile(r"^(\d+)\.(\d+)v(\d+)$"),
+        r"\1.\2.\3",
+    ),
+    (  # Simple v format: "2019v0.1" -> "2019.0.1"
+        re.compile(r"^(\d+)v(\d+(?:\.\d+)*)$"),
+        r"\1.\2",
+    ),
+    (  # Service pack with/without dot: "2017.2sp1" or "2017.2.sp1" -> "2017.2.post1"
+        re.compile(r"^(\d+(?:\.\d+)*)\.?(sp|hotfix|hf)(\d+)$"),
+        r"\1.post\3",
+    ),
+]
 
 
 def is_version_head(version):
@@ -23,30 +54,75 @@ def is_version_head(version):
     return version.lower() in ["head", "master"]
 
 
+def _is_git_commit(version):
+    """
+    Returns if the version looks like a git commit id.
+
+    :param version: Version to test.
+
+    :returns: True if the version is a commit id, false otherwise.
+    """
+    return GITHUB_HASH_RE.match(version) is not None
+
+
 def is_version_newer(a, b):
     """
-    Is the version number string a newer than b?
+    Is the version string ``a`` newer than ``b``?
 
-    a=v0.12.1 b=0.13.4 -- Returns False
-    a=v0.13.1 b=0.13.1 -- Returns True
-    a=HEAD b=0.13.4 -- Returns False
-    a=master b=0.13.4 -- Returns False
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
 
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is newer than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(a, b)
 
 
 def is_version_older(a, b):
     """
-    Is the version number string a older than b?
+    Is the version string ``a`` older than ``b``?
 
-    a=v0.12.1 b=0.13.4 -- Returns True
-    a=v0.13.1 b=0.13.1 -- Returns True
-    a=HEAD b=0.13.4 -- Returns False
-    a=master b=0.13.4 -- Returns False
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
 
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is older than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(b, a)
+
+
+def is_version_newer_or_equal(a, b):
+    """
+    Is the version string ``a`` newer than or equal to ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is newer than or equal to ``b``, ``False`` otherwise.
+    """
+    return is_version_older(a, b) is False
+
+
+def is_version_older_or_equal(a, b):
+    """
+    Is the version string ``a`` older than or equal to ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is older than or equal to ``b``, ``False`` otherwise.
+    """
+    return is_version_newer(a, b) is False
 
 
 def is_version_number(version):
@@ -67,6 +143,45 @@ def is_version_number(version):
         return False
 
 
+@contextlib.contextmanager
+def suppress_known_deprecation():
+    """
+    Imported function from setuptools.distutils module
+    """
+    with warnings.catch_warnings(record=True) as ctx:
+        warnings.filterwarnings(
+            action="default",
+            category=DeprecationWarning,
+            message="distutils Version classes are deprecated.",
+        )
+        yield ctx
+
+
+def normalize_version_format(version: str) -> str:
+    """
+    Normalize version strings by applying common format transformations.
+
+    This function exists because packaging.version.parse() follows PEP 440
+    and cannot handle non-standard version formats like "v1.2.3" or "6.3v6",
+    which are commonly found in various software tools and DCCs but don't
+    conform to the PEP 440 specification.
+
+    Transformations applied:
+    - Extract version numbers from software names: "Software Name 21.0" -> "21.0"
+    - Convert dot-v format: "6.3v6" -> "6.3.6"
+    - Convert simple v format: "2019v0.1" -> "2019.0.1"
+    - Convert service pack formats: "2017.2sp1" -> "2017.2.post1", "2017.2.sp1" -> "2017.2.post1"
+
+    :param str version: Version string to normalize
+    :return str: Normalized version string compatible with PEP 440
+    """
+
+    for compiled_pattern, replacement in _VERSION_PATTERNS:
+        version = compiled_pattern.sub(replacement, version)
+
+    return version
+
+
 def _compare_versions(a, b):
     """
     Tests if version a is newer than version b.
@@ -76,9 +191,19 @@ def _compare_versions(a, b):
 
     :rtype: bool
     """
-    if b is None:
-        # a is always newer than None
+    if b in [None, "Undefined"]:
+        # a is always newer than None or `Undefined`
         return True
+
+    if _is_git_commit(a) and not _is_git_commit(b):
+        return True
+    elif _is_git_commit(b) and not _is_git_commit(a):
+        return False
+    elif _is_git_commit(a) and _is_git_commit(b):
+        if a.lower() == b.lower():
+            return False
+        else:
+            raise TankError("Can't compare two git commits lexicographically.")
 
     if is_version_head(a):
         # our version is latest
@@ -88,40 +213,16 @@ def _compare_versions(a, b):
         # comparing against HEAD - our version is always old
         return False
 
-    if a.startswith("v"):
-        a = a[1:]
-    if b.startswith("v"):
-        b = b[1:]
+    a = normalize_version_format(a)
+    b = normalize_version_format(b)
 
-    # In Python 3, LooseVersion comparisons between versions where a non-numeric
-    # version component is compared to a numeric one fail.  We'll work around this
-    # as follows:
-    # First, try to use LooseVersion for comparison.  This should work in
-    # most cases.
+    # Use packaging.version (either system or vendored)
+    # This is now guaranteed to be available
     try:
-        return LooseVersion(a) > LooseVersion(b)
-    except TypeError:
-        # To mimick the behavior in Python 2.7 as closely as possible, we will
-        # If LooseVersion comparison didn't work, try to extract a numeric
-        # version from both versions for comparison
-        version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
-        match_a = version_expr.match(a)
-        match_b = version_expr.match(b)
-        if match_a and match_b:
-            # If we could get two numeric versions, generate LooseVersions for
-            # them.
-            ver_a = LooseVersion(match_a.group(1))
-            ver_b = LooseVersion(match_b.group(1))
-            if ver_a != ver_b:
-                # If they're not identical, return based on this comparison
-                return ver_a > ver_b
-            else:
-                # If the numeric versions do match, do a string comparsion for
-                # the rest.
-                return match_a.group(2) > match_b.group(2)
-        elif match_a or match_b:
-            # If only one had a numeric version, treat that as the newer version.
-            return bool(match_a)
+        version_a = version_parse(a)
+        version_b = version_parse(b)
+    except InvalidVersion:
+        # If the version is invalid by `packaging.version.parse`, compare lexicographically
+        return a > b
 
-    # In the case that both versions are non-numeric, do a string comparison.
-    return a > b
+    return version_a > version_b

@@ -16,6 +16,7 @@ Utility methods for unserializing JSON documents.
 from __future__ import absolute_import
 
 import json
+import sys
 
 from .unicode import ensure_contains_str
 
@@ -29,7 +30,7 @@ def load(
     parse_float=None,
     parse_int=None,
     parse_constant=None,
-    **kw
+    **kw,
 ):
     """
     Deserialize ``fp`` (a ``.read()``-supporting file-like object containing
@@ -44,15 +45,17 @@ def load(
     # between Python 2 and 3.
     # See https://docs.python.org/3/library/json.html#json.load and
     # https://docs.python.org/2/library/json.html#json.load for both signatures.
+    # Python 3.9 does not have an encodings parameter, so don't add the value to the arguments list.
+    if sys.version_info[0:2] < (3, 9):
+        kw["encoding"] = encoding
     loaded_value = json.load(
         fp,
-        encoding=encoding,
         cls=cls,
         object_hook=object_hook,
         parse_float=parse_float,
         parse_int=parse_int,
         parse_constant=parse_constant,
-        **kw
+        **kw,
     )
 
     return ensure_contains_str(loaded_value)
@@ -67,7 +70,7 @@ def loads(
     parse_float=None,
     parse_int=None,
     parse_constant=None,
-    **kw
+    **kw,
 ):
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
@@ -82,15 +85,17 @@ def loads(
     # between Python 2 and 3.
     # See https://docs.python.org/3/library/json.html#json.loads and
     # https://docs.python.org/2/library/json.html#json.loads for both signatures.
+    # Python 3.9 does not have an encodings parameter, so don't add the value to the arguments list.
+    if sys.version_info[0:2] < (3, 9):
+        kw["encoding"] = encoding
     loaded_value = json.loads(
         s,
-        encoding=encoding,
         cls=cls,
         object_hook=object_hook,
         parse_float=parse_float,
         parse_int=parse_int,
         parse_constant=parse_constant,
-        **kw
+        **kw,
     )
 
     return ensure_contains_str(loaded_value)

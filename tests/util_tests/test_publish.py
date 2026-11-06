@@ -8,19 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
 import os
 
-from mock import patch, call
-
 import tank
-from tank import context, errors
+from tank import context
 from tank.util import is_windows
 from tank_test.tank_test_base import (
     TankTestBase,
-    setUpModule,
-    only_run_on_windows,
+    mock,
     only_run_on_nix,
+    only_run_on_windows,
+    setUpModule,  # noqa
 )
 
 
@@ -30,7 +28,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunRegisterPublish, self).setUp()
+        super().setUp()
 
         self.setup_fixtures()
 
@@ -80,12 +78,11 @@ class TestShotgunRegisterPublish(TankTestBase):
         Checks that if local storage is disabled that we raise a more user friendly error
         than a CRUD message.
         """
-        with patch.object(
+        with mock.patch.object(
             self.tk.shotgun,
             "create",
             side_effect=Exception("[Attachment.local_storage] does not exist"),
         ):
-
             if is_windows():
                 local_path = r"x:\tmp\win\path\to\file.txt"
             else:
@@ -114,6 +111,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         seq_path = os.path.join(self.project_root, "folder", "name_001.ext")
 
         create_data = []
+
         # wrap create so we can keep tabs of things
         def create_mock(entity_type, data, return_fields=None):
             create_data.append(data)
@@ -146,7 +144,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertEqual(expected_path, actual_path)
         self.assertEqual(expected_path_cache, actual_path_cache)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths(self, create_mock):
         """Tests the passing of urls via the path."""
 
@@ -181,7 +179,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         )
         self.assertEqual("pathcache" not in sg_dict, True)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_url_paths_host(self, create_mock):
         """Tests the passing of urls via the path."""
 
@@ -208,7 +206,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         )
         self.assertEqual("pathcache" not in sg_dict, True)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_local_storage_publish(self, create_mock):
         """
         Tests that we generate local file links when publishing to a known storage
@@ -224,7 +222,6 @@ class TestShotgunRegisterPublish(TankTestBase):
 
         # Various paths we support, Unix and Windows styles
         for local_path in values:
-
             publish_data = tank.util.register_publish(
                 self.tk, self.context, local_path, self.name, self.version, dry_run=True
             )
@@ -242,7 +239,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
             self.assertTrue("pathcache" not in sg_dict)
 
-    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
+    @mock.patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.create")
     def test_freeform_publish(self, create_mock):
         """
         Tests that we generate url file:// links for freeform paths
@@ -284,8 +281,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             }
 
         # Various paths we support, Unix and Windows styles
-        for (local_path, path_dict) in values.items():
-
+        for local_path, path_dict in values.items():
             publish_data = tank.util.register_publish(
                 self.tk, self.context, local_path, self.name, self.version, dry_run=True
             )
@@ -302,6 +298,25 @@ class TestShotgunRegisterPublish(TankTestBase):
             self.assertEqual(sg_dict["path"], path_dict)
             self.assertTrue("pathcache" not in sg_dict)
 
+    def test_no_thumbnail_skips_upload(self):
+        """
+        Verifies that upload_thumbnail is NOT called when no thumbnail_path is
+        provided to register_publish. Previously Toolkit would upload a default
+        no_preview.jpg placeholder; that behavior has been removed to avoid
+        unnecessary transcoding jobs on the FPT backend.
+        """
+        with mock.patch(
+            "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail"
+        ) as upload_thumb_mock:
+            tank.util.register_publish(
+                self.tk,
+                self.context,
+                self.path,
+                self.name,
+                self.version,
+            )
+        upload_thumb_mock.assert_not_called()
+
     def test_publish_errors(self):
         """Tests exceptions raised on publish errors."""
 
@@ -311,7 +326,6 @@ class TestShotgunRegisterPublish(TankTestBase):
         # Publish with an invalid Version, no PublishEntity should have been
         # created
         with self.assertRaises(tank.util.ShotgunPublishError) as cm:
-
             publish_data = tank.util.register_publish(
                 self.tk,
                 self.context,
@@ -338,18 +352,21 @@ class TestShotgunRegisterPublish(TankTestBase):
         def raise_value_error(*arg, **kwargs):
             raise ValueError("Failed")
 
-        with patch(
+        with mock.patch(
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_value_error,
-        ) as mock:
+        ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
-
+                # thumbnail_path=__file__ is required here: without a thumbnail
+                # path upload_thumbnail is never called and the mock never
+                # fires, so the expected exception would not be raised.
                 publish_data = tank.util.register_publish(
                     self.tk,
                     self.context,
                     "Constant failure",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -361,6 +378,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "Constant failure",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
@@ -373,18 +391,21 @@ class TestShotgunRegisterPublish(TankTestBase):
         def raise_io_error(*arg, **kwargs):
             open("/this/file/does/not/exist/or/we/are/very/unlucky.txt", "r")
 
-        with patch(
+        with mock.patch(
             "tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload_thumbnail",
             new=raise_io_error,
-        ) as mock:
+        ):
             with self.assertRaises(tank.util.ShotgunPublishError) as cm:
-
+                # thumbnail_path=__file__ is required here: without a thumbnail
+                # path upload_thumbnail is never called and the mock never
+                # fires, so the expected exception would not be raised.
                 publish_data = tank.util.register_publish(
                     self.tk,
                     self.context,
                     "dummy_path.txt",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                     dry_run=True,
                 )
@@ -396,6 +417,7 @@ class TestShotgunRegisterPublish(TankTestBase):
                     "dummy_path.txt",
                     self.name,
                     self.version,
+                    thumbnail_path=__file__,
                     dependencies=[-1],
                 )
         self.assertIsInstance(cm.exception.entity, dict)
@@ -407,7 +429,7 @@ class TestShotgunRegisterPublish(TankTestBase):
 
 class TestMultiRoot(TankTestBase):
     def setUp(self):
-        super(TestMultiRoot, self).setUp()
+        super().setUp()
         self.setup_multi_root_fixtures()
 
         self.shot = {
@@ -438,7 +460,9 @@ class TestMultiRoot(TankTestBase):
         self.mockgun.server_caps = server_capsMock()
 
         # Prevents an actual connection to a Shotgun site.
-        self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock = mock.patch(
+            "tank_vendor.shotgun_api3.Shotgun.server_caps"
+        )
         self._server_caps_mock.start()
         self.addCleanup(self._server_caps_mock.stop)
 
@@ -468,7 +492,7 @@ class TestMultiRoot(TankTestBase):
 
 
 class TestCalcPathCache(TankTestBase):
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_case_difference(self, get_local_storage_roots):
         """
         Case that root case is different between input path and that in roots file.
@@ -486,11 +510,11 @@ class TestCalcPathCache(TankTestBase):
         root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
             self.tk, input_path
         )
-        self.assertEqual("primary", root_name)
-        self.assertEqual(expected, path_cache)
+        assert root_name == "primary"
+        assert path_cache == expected
 
     @only_run_on_windows
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_win_drive_letter(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
@@ -515,7 +539,7 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("project_code/3d/Assets", path_cache)
 
     @only_run_on_windows
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_win_unc(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
@@ -538,7 +562,7 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("project_code/3d/Assets", path_cache)
 
     @only_run_on_nix
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_nix(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
@@ -561,6 +585,92 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("primary", root_name)
             self.assertEqual("project_code/3d/Assets", path_cache)
 
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_project_names_only_current_project(self, get_local_storage_roots):
+        """
+        Test _calc_path_cache with project_names as a single list containing the
+        current project. The result shoudl be the as when not passing any project_names.
+        """
+
+        project_names = [self.tk.pipeline_configuration.get_project_disk_name()]
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+
+        relative_path = os.path.join("Some", "Path")
+        wrong_case_root = self.project_root.swapcase()
+        expected = os.path.join(
+            os.path.basename(wrong_case_root), relative_path
+        ).replace(os.sep, "/")
+
+        input_path = os.path.join(wrong_case_root, relative_path)
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, input_path
+        )
+        root_name2, path_cache2 = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, input_path, project_names=project_names
+        )
+        assert root_name == root_name2
+        assert path_cache == path_cache2
+        # make sure the results are correct
+        assert root_name == "primary"
+        assert path_cache == expected
+
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_project_names_multiple(self, get_local_storage_roots):
+        """
+        Test _calc_path_cache with project_names as a list of more than one.
+        """
+
+        # create and add a second project to the mock db
+        _, proj_2_root = self.create_project({"name": "second project"})
+        proj_2_name = os.path.basename(proj_2_root)
+        current_project_name = self.tk.pipeline_configuration.get_project_disk_name()
+
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+        relative_path = os.path.join("Some", "Path")
+
+        # input and expected values for current project
+        current_project_root = self.project_root.swapcase()
+        current_project_expected = os.path.join(
+            os.path.basename(current_project_root), relative_path
+        ).replace(os.sep, "/")
+        current_project_input_path = os.path.join(current_project_root, relative_path)
+
+        # input and expected values for second project
+        proj_2_expected = os.path.join(
+            os.path.basename(proj_2_name), relative_path
+        ).replace(os.sep, "/")
+        proj_2_input_path = os.path.join(proj_2_root, relative_path)
+
+        # exclude the project name associated with this input path
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, current_project_input_path, project_names=[proj_2_name]
+        )
+        assert root_name is None
+        assert path_cache is None
+        # do the same for the second project
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, proj_2_input_path, project_names=[current_project_name]
+        )
+        assert root_name is None
+        assert path_cache is None
+
+        # include the project name associated with the input path
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk,
+            current_project_input_path,
+            project_names=[proj_2_name, current_project_name],
+        )
+        assert root_name == "primary"
+        assert path_cache == current_project_expected
+        # do the same for the second project
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk,
+            proj_2_input_path,
+            project_names=[proj_2_name, current_project_name],
+        )
+        assert root_name == "primary"
+        assert path_cache == proj_2_expected
+
 
 class TestCalcPathCacheProjectWithSlash(TankTestBase):
     def setUp(self):
@@ -568,11 +678,9 @@ class TestCalcPathCacheProjectWithSlash(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestCalcPathCacheProjectWithSlash, self).setUp(
-            {"project_tank_name": "foo/bar"}
-        )
+        super().setUp({"project_tank_name": "foo/bar"})
 
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    @mock.patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_multi_project_root(self, get_local_storage_roots):
         """
         Testing path cache calculations for project names with slashes

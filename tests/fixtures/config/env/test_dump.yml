@@ -61,7 +61,6 @@ engines:
                 test_simple_list: ['a','b','c','d']
 
                 test_complex_list:
-
                     -   test_str: a
                         test_int: 1
                         test_float: 1.1
@@ -79,7 +78,6 @@ engines:
                         test_extra: extra
 
                 test_very_complex_list:
-
                     -   test_str: a
                         test_list:
                             -   test_str: aa

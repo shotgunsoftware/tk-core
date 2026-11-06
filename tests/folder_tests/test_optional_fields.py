@@ -10,18 +10,11 @@
 
 import copy
 import os
-import unittest
-import shutil
-from mock import Mock
-import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
+
 from tank import folder
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
-
 
 # test secondary entities.
 
@@ -32,7 +25,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersSecondaryEntity, self).setUp()
+        super().setUp()
 
         self.setup_fixtures(parameters={"core": "core.override/optional_folder_fields"})
 
@@ -82,7 +75,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
 
     def tearDown(self):
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersSecondaryEntity, self).tearDown()
+        super().tearDown()
 
         # and do local teardown
         folder.folder_io.FolderIOReceiver.execute_folder_creation = (

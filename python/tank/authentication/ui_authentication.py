@@ -18,9 +18,9 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .errors import AuthenticationCancelled, ShotgunAuthenticationError
-from . import invoker
 from .. import LogManager
+from . import invoker
+from .errors import AuthenticationCancelled, ShotgunAuthenticationError
 
 logger = LogManager.get_logger(__name__)
 

@@ -16,11 +16,8 @@ Integration with Shotgun API.
 # pylint: disable=too-many-arguments
 # pylint: disable=unused-import
 
-from .core import SsoSaml2Core  # noqa
-
-from .utils import (  # noqa
-    is_sso_enabled_on_site,
-    is_unified_login_flow_enabled_on_site,
+from .core.sso_saml2_core import SsoSaml2Core  # noqa
+from .core.utils import (  # noqa
     set_logger_parent,
 )
 
@@ -36,7 +33,8 @@ class SsoSaml2(object):
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
-                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
+                             For Qt5/PySide2, we require modules QtCore, QtGui,
+                             QtNetwork and QtWebEngineWidgets
 
         :returns: The SsoSaml2 oject.
         """
@@ -46,7 +44,13 @@ class SsoSaml2(object):
         self._core = SsoSaml2Core(window_title=window_title, qt_modules=qt_modules)
 
     def login_attempt(
-        self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False
+        self,
+        host,
+        cookies=None,
+        product=None,
+        http_proxy=None,
+        use_watchdog=False,
+        profile_location=None,
     ):
         """
         Called to attempt a login process.
@@ -57,12 +61,14 @@ class SsoSaml2(object):
         If this fails, or there are no cookies, the user will be prompted for
         their credentials.
 
-        :param host:         URL of the Shotgun server.
-        :param cookies:      String of encoded cookies.
-        :param product:      String describing the application attempting to login.
-                             This string will appear in the Shotgun server logs.
-        :param http_proxy:   URL of the proxy.
+        :param host:                URL of the Shotgun server.
+        :param cookies:             String of encoded cookies.
+        :param product:             String describing the application attempting to login.
+                                    This string will appear in the Shotgun server logs.
+        :param http_proxy:          URL of the proxy.
         :param use_watchdog:
+        :param profile_location:    Location override for the WebEngine profile location.
+                                    This is only relevant when using Qt5/PySide2.
 
         :returns: True if the login was successful.
         """
@@ -76,6 +82,7 @@ class SsoSaml2(object):
                 "product": product,
             },
             use_watchdog,
+            profile_location,
         )
         return success == 1
 

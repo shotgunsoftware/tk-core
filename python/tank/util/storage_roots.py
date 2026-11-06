@@ -14,10 +14,7 @@ from tank_vendor import yaml
 
 from .. import LogManager
 from ..errors import TankError
-
-from . import filesystem
-from . import ShotgunPath
-from . import yaml_cache
+from . import ShotgunPath, filesystem, yaml_cache
 
 log = LogManager.get_logger(__name__)
 
@@ -135,7 +132,7 @@ class StorageRoots(object):
         This action will overwrite any existing storage roots file defined by
         the configuration.
 
-        :param sg_connection: An existing SG connection, used to query local
+        :param sg_connection: An existing PTR connection, used to query local
             storage entities to ensure paths are up-to-date when the file is
             written.
         :param config_folder: The configuration folder under which the required
@@ -144,7 +141,7 @@ class StorageRoots(object):
             the required roots.
         """
 
-        (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
+        local_storage_lookup, unmapped_roots = storage_roots.get_local_storages(
             sg_connection
         )
 
@@ -152,12 +149,12 @@ class StorageRoots(object):
 
         log.debug("Writing storage roots to: %s" % (roots_file,))
 
-        # raise an error if there are any roots that can not be mapped to SG
+        # raise an error if there are any roots that can not be mapped to PTR
         # local storage entries
         if unmapped_roots:
             raise TankError(
                 "The following storages are defined by %s but can not be "
-                "mapped to a local storage in Shotgun: %s"
+                "mapped to a local storage in Flow Production Tracking: %s"
                 % (roots_file, ", ".join(unmapped_roots))
             )
 
@@ -172,8 +169,7 @@ class StorageRoots(object):
         roots_metadata = storage_roots.metadata
 
         for root_name, root_info in storage_roots:
-
-            # get the cached SG storage dict
+            # get the cached PTR storage dict
             sg_local_storage = local_storage_lookup[root_name]
 
             # get the local storage as a ShotgunPath object
@@ -303,14 +299,14 @@ class StorageRoots(object):
     def get_local_storages(self, sg_connection):
         """
         Returns a tuple of information about the required storage roots and how
-        they map to local storages in SG.
+        they map to local storages in PTR.
 
         The first item in the tuple is a dictionary of storage root names mapped
         to a corresponding dictionary of fields for a local storage defined in
         Shotgun.
 
         The second item is a list of storage roots required by the configuration
-        that can not be mapped to a SG local storage.
+        that can not be mapped to a PTR local storage.
 
         Example return value::
 
@@ -338,8 +334,8 @@ class StorageRoots(object):
 
         In the example above, 4 storage roots are defined by the configuration:
         "work", "data", "data2", and "data3". The "work" and "data" roots can
-        be associated with a SG local storage. The other two roots have no
-        corresponding local storage in SG.
+        be associated with a PTR local storage. The other two roots have no
+        corresponding local storage in PTR.
 
         :param: A shotgun connection
         :returns: A tuple of information about local storages mapped to the
@@ -347,25 +343,24 @@ class StorageRoots(object):
         """
 
         log.debug(
-            "Attempting to associate required storage roots with SG local "
-            "storages..."
+            "Attempting to associate required storage roots with PTR local storages..."
         )
 
-        # build a lookup of storage root name to local storages SG dicts
+        # build a lookup of storage root name to local storages PTR dicts
         local_storage_lookup = {}
 
-        # keep a list of storages that could not be mapped to a SG local storage
+        # keep a list of storages that could not be mapped to a PTR local storage
         unmapped_root_names = []
 
-        # query all local storages from SG so we can store a lookup of roots
-        # defined here to SG storages
+        # query all local storages from PTR so we can store a lookup of roots
+        # defined here to PTR storages
 
-        # fields required for SG local storage queries
+        # fields required for PTR local storage queries
         local_storage_fields = ["code", "id"]
         local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
 
-        # create the SG connection and query
-        log.debug("Querying SG local storages...")
+        # create the PTR connection and query
+        log.debug("Querying PTR local storages...")
         sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
         log.debug("Query returned %s storages." % (len(sg_storages)))
 
@@ -381,7 +376,6 @@ class StorageRoots(object):
             sg_storages_by_name[name] = sg_storage
 
         for root_name, root_info in self:
-
             # see if the shotgun storage id is specified explicitly in the
             # roots.yml file.
             root_storage_id = root_info.get("shotgun_storage_id")
@@ -389,7 +383,7 @@ class StorageRoots(object):
                 # found a match. store it in the lookup
                 sg_storage = sg_storages_by_id[root_storage_id]
                 log.debug(
-                    "Storage root %s explicitly associated with SG local "
+                    "Storage root %s explicitly associated with PTR local "
                     "storage id %s (%s)" % (root_name, root_storage_id, sg_storage)
                 )
                 local_storage_lookup[root_name] = sg_storage
@@ -401,16 +395,16 @@ class StorageRoots(object):
                 # found a match. store it in the lookup
                 sg_storage = sg_storages_by_name[root_name]
                 log.debug(
-                    "Storage root %s matches SG local storage with same name "
+                    "Storage root %s matches PTR local storage with same name "
                     "(%s)" % (root_name, sg_storage)
                 )
                 local_storage_lookup[root_name] = sg_storage
                 continue
 
             # if we're here, then we could not map the storage root to a local
-            # storage in SG
+            # storage in PTR
             log.warning(
-                "Storage root %s could not be mapped to a SG local storage"
+                "Storage root %s could not be mapped to a PTR local storage"
                 % (root_name,)
             )
             unmapped_root_names.append(root_name)
@@ -433,12 +427,10 @@ class StorageRoots(object):
             # populated with the expected platform keys
             for root_name, root_info in self:
                 for platform_key in self.PLATFORM_KEYS:
-
                     if platform_key not in root_info:
                         # platform key not defined for root. add it
                         root_info[platform_key] = None
         else:
-
             # no roots required by this configuration. add a default storage
             # requirement
             root_name = self.LEGACY_DEFAULT_STORAGE_NAME
@@ -556,7 +548,6 @@ class StorageRoots(object):
         # iterate over each storage root required by the configuration. try to
         # identify the default root.
         for root_name, root_info in self:
-
             log.debug("Processing storage: %s - %s" % (root_name, root_info))
 
             # store a shotgun path for each root definition. sanitize path data
@@ -576,7 +567,6 @@ class StorageRoots(object):
         # no default storage root defined explicitly. try to identify one if
         # there are storage roots defined
         if self.required_roots and not self._default_storage_name:
-
             log.debug("No default storage explicitly defined...")
 
             # if there is only one, then that is the default

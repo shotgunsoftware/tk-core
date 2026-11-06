@@ -13,7 +13,7 @@
 
 # General items
 display_name: Test App
-author: Shotgun Software
+author: ShotGrid Software
 description: Unit testing
 version: 0.2.2
 maturity: dev # dev, beta, testing, mature

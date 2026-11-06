@@ -24,9 +24,9 @@ is being used, for example:
        raise TankError("Shot names cannot start with AA!")
 """
 
-from tank import Hook
 import re
-from tank_vendor import six
+
+from tank import Hook
 
 
 class ProcessFolderName(Hook):
@@ -49,7 +49,7 @@ class ProcessFolderName(Hook):
         :returns: A string representing the entity.
         :rtype: str
         """
-        if value.__class__ == dict and "name" in value:
+        if isinstance(value, dict) and "name" in value:
             # it is a dictionary with a name key - assume this is what we want
             # this is normally an entity link
             #
@@ -57,14 +57,14 @@ class ProcessFolderName(Hook):
             #
             str_value = str(value["name"])
 
-        elif value.__class__ == list and len(value) == 0:
+        elif isinstance(value, list) and len(value) == 0:
             # this an empty list.
             #
             # [] ==> ""
             #
             str_value = ""
 
-        elif value.__class__ == list and len(value) > 0:
+        elif isinstance(value, list) and len(value) > 0:
             # this is a multi entity link with at least one element
             # that element is a dict with a name field
             # e.g. this is a multi entity link field
@@ -77,7 +77,7 @@ class ProcessFolderName(Hook):
             except KeyError:
                 str_value = str(value)
 
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             # no conversion required
             str_value = value
 
@@ -110,7 +110,7 @@ class ProcessFolderName(Hook):
             # "word" characters, not just A-Z.
             exp = re.compile(r"\W", re.UNICODE)
 
-        if isinstance(src, six.text_type):
+        if isinstance(src, str):
             # src is unicode so we don't need to convert!
             return exp.sub("-", src)
         else:

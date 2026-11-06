@@ -9,10 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import TankError
-from . import console_utils
+from . import console_utils, constants, util
 from .action_base import Action
-from . import util
-from . import constants
 
 
 class InstallAppAction(Action):
@@ -59,7 +57,7 @@ class InstallAppAction(Action):
             "description": (
                 "Address to app to install. If you specify the name of "
                 "an app (e.g. tk-multi-loader), toolkit will try to download "
-                "it from the Shotgun App Store. Alternatively, you can also "
+                "it from the PTR App Store. Alternatively, you can also "
                 "specify the path to a bare git repo, for example in github. "
                 "For more info, see the help for the install_app commmand."
             ),
@@ -94,11 +92,10 @@ class InstallAppAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 3:
-
             log.info(
                 "This command adds an app to an existing environment and engine. "
                 "You can either add apps from the Toolkit App Store, git or directly from disk."
@@ -127,7 +124,7 @@ class InstallAppAction(Action):
             log.info("")
             log.info(
                 "For more information about app development, see "
-                "https://support.shotgunsoftware.com/entries/95440137"
+                "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PG_SGTK_DEVELOPER_APP"
             )
             log.info("")
             log.info("")
@@ -174,7 +171,9 @@ class InstallAppAction(Action):
                 "To see all apps and engines in the Toolkit App Store, navigate here:"
             )
             log.info("")
-            log.info("https://support.shotgunsoftware.com/entries/95441247")
+            log.info(
+                "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PC_TOOLKIT_APPS"
+            )
             log.info("")
             log.info("To install an app store app, use the following syntax:")
             log.info("> tank install_app environment_name engine_name app_name")
@@ -213,7 +212,7 @@ class InstallAppAction(Action):
     def _run(self, log, env_name, engine_instance_name, app_name, preserve_yaml):
 
         log.info("")
-        log.info("Welcome to the Shotgun Pipeline Toolkit App installer!")
+        log.info("Welcome to the Flow Production Tracking App installer!")
         log.info(
             "Installing into environment %s and engine %s."
             % (env_name, engine_instance_name)
@@ -237,7 +236,7 @@ class InstallAppAction(Action):
                 % (env_name, engine_instance_name)
             )
 
-        if app_name.endswith(".git"):
+        if util.is_git_repo_uri(app_name):
             # this is a git location!
             # run descriptor factory method
             log.info("Connecting to git...")
@@ -374,7 +373,7 @@ class InstallEngineAction(Action):
             "description": (
                 "Address to engine to install. If you specify the name of "
                 "an engine (e.g. tk-maya), toolkit will try to download "
-                "it from the Shotgun App Store. Alternatively, you can also "
+                "it from the PTR App Store. Alternatively, you can also "
                 "specify the path to a bare git repo, for example in github. "
                 "For more info, see the help for the install_engine commmand."
             ),
@@ -409,11 +408,10 @@ class InstallEngineAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        (use_legacy_parser, args) = util.should_use_legacy_yaml_parser(args)
+        use_legacy_parser, args = util.should_use_legacy_yaml_parser(args)
         preserve_yaml = not use_legacy_parser
 
         if len(args) != 2:
-
             log.info(
                 "This command adds an engine to an existing environment. "
                 "You can either add engines from the Toolkit App Store or from git source control."
@@ -476,7 +474,9 @@ class InstallEngineAction(Action):
                 "To see all apps and engines in the Toolkit App Store, navigate here:"
             )
             log.info("")
-            log.info("https://support.shotgunsoftware.com/entries/95441247")
+            log.info(
+                "https://help.autodesk.com/view/SGDEV/ENU/?contextId=PC_TOOLKIT_APPS"
+            )
             log.info("")
             log.info("To install an app store engine, use the following syntax:")
             log.info("> tank install_engine environment_name engine_name")
@@ -516,7 +516,7 @@ class InstallEngineAction(Action):
 
         log.info("")
         log.info("")
-        log.info("Welcome to the Shotgun Pipeline Toolkit Engine installer!")
+        log.info("Welcome to the Flow Production Tracking Toolkit Engine installer!")
         log.info("")
 
         try:
@@ -530,13 +530,13 @@ class InstallEngineAction(Action):
                 % (env_name, e)
             )
 
-        if engine_name.endswith(".git"):
+        if util.is_git_repo_uri(engine_name):
             # this is a git location!
             # run descriptor factory method
             log.info("Connecting to git...")
             location = {"type": "git", "path": engine_name}
-            engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(
-                location
+            engine_descriptor = (
+                self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
             )
             log.info(
                 "Latest tag in repository '%s' is %s."
@@ -555,8 +555,8 @@ class InstallEngineAction(Action):
             # this is an app store app!
             log.info("Connecting to the Toolkit App Store...")
             location = {"type": "app_store", "name": engine_name}
-            engine_descriptor = self.tk.pipeline_configuration.get_latest_engine_descriptor(
-                location
+            engine_descriptor = (
+                self.tk.pipeline_configuration.get_latest_engine_descriptor(location)
             )
             log.info(
                 "Latest approved App Store Version is %s." % engine_descriptor.version
