@@ -10,6 +10,13 @@ A number of different environment variables exist to help control the behavior o
 General
 =======
 
+``FLOWPT_IO_DESCRIPTOR_MODULES``
+--------------------------------
+List of importable Python modules, separated by ``os.pathsep`` (``:`` on macOS and Linux, ``;`` on Windows),
+that register custom descriptor types. Each module must define ``register_io_descriptors(io_descriptor_base)``
+and is loaded when ``tank.descriptor`` is imported. An error in any listed module raises a
+``RegisterDescriptorError``. See :ref:`customizing_descriptor_types`.
+
 ``SHOTGUN_API_CACERTS``
 -----------------------
 Use this variable to override the default Trusted Root Certification Authorities

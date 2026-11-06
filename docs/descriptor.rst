@@ -598,6 +598,131 @@ for the code in the ``BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0`` folder.
     we do not recommend using them.
 
 
+.. _customizing_descriptor_types:
+
+Adding Custom Descriptor Types
+===============================================
+
+Custom ``IODescriptor`` types can be provided by Python modules listed in the
+``FLOWPT_IO_DESCRIPTOR_MODULES`` environment variable (separated by
+``os.pathsep``). The modules must be importable and are loaded when
+``tank.descriptor`` is imported, so the types are available before bootstrapping,
+in pipeline configuration descriptors, and without ``ToolkitManager``.
+
+Each module must define ``register_io_descriptors(io_descriptor_base)``. The
+following module, ``my_studio_descriptors.py``, implements a ``bitbucket_release``
+descriptor that downloads a tagged archive from Bitbucket. It is modeled on the
+built-in ``github_release`` descriptor.
+
+.. code-block:: python
+
+    import os
+
+    from tank import LogManager
+    from tank.descriptor.errors import TankDescriptorError, TankError
+    from tank.descriptor.io_descriptor.downloadable import IODescriptorDownloadable
+    from tank.util.shotgun import download
+
+    log = LogManager.get_logger(__name__)
+
+
+    class IODescriptorBitbucketRelease(IODescriptorDownloadable):
+        """
+        Descriptor for a tagged archive on Bitbucket::
+
+            {type: bitbucket_release, organization: mycompany,
+             repository: tk-multi-autocomp, version: v0.1.0}
+        """
+
+        def __init__(self, descriptor_dict, sg_connection, bundle_type):
+            super().__init__(descriptor_dict, sg_connection, bundle_type)
+            self._validate_descriptor(
+                descriptor_dict,
+                required=["type", "organization", "repository", "version"],
+                optional=[],
+            )
+            self._sg_connection = sg_connection
+            self._bundle_type = bundle_type
+            self._organization = descriptor_dict["organization"]
+            self._repository = descriptor_dict["repository"]
+            self._version = descriptor_dict["version"]
+
+        def _get_bundle_cache_path(self, bundle_cache_root):
+            return os.path.join(
+                bundle_cache_root,
+                "bitbucket",
+                self._organization,
+                self.get_system_name(),
+                self.get_version(),
+            )
+
+        def get_system_name(self):
+            return self._repository
+
+        def get_version(self):
+            return self._version
+
+        def _download_local(self, destination_path):
+            url = "https://bitbucket.org/{0}/{1}/get/{2}.zip".format(
+                self._organization, self._repository, self._version
+            )
+            try:
+                download.download_and_unpack_url(
+                    self._sg_connection,
+                    url,
+                    destination_path,
+                    auto_detect_bundle=True,
+                )
+            except TankError as e:
+                raise TankDescriptorError(
+                    "Failed to download %s from %s. Error: %s" % (self, url, e)
+                )
+
+        def get_latest_version(self, constraint_pattern=None):
+            # This example does not query Bitbucket for newer tags, so the
+            # pinned version is always considered the latest.
+            return self
+
+        def get_latest_cached_version(self, constraint_pattern=None):
+            versions = list(self._get_locally_cached_versions().keys())
+            version = self._find_latest_tag_by_pattern(versions, constraint_pattern)
+            if version is None:
+                return None
+            descriptor_dict = dict(self._descriptor_dict, version=version)
+            desc = IODescriptorBitbucketRelease(
+                descriptor_dict, self._sg_connection, self._bundle_type
+            )
+            desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+            return desc
+
+        def has_remote_access(self):
+            return True
+
+
+    def register_io_descriptors(io_descriptor_base):
+        """
+        Called by Toolkit when ``tank.descriptor`` is imported.
+        """
+        io_descriptor_base.register_descriptor_factory(
+            "bitbucket_release", IODescriptorBitbucketRelease
+        )
+
+Make the module importable and list it in the environment variable:
+
+.. code-block:: bash
+
+    export PYTHONPATH=/path/to/studio/python:$PYTHONPATH
+    export FLOWPT_IO_DESCRIPTOR_MODULES=my_studio_descriptors
+
+Several modules can be listed, separated by ``:`` on macOS and Linux and ``;``
+on Windows.
+
+The descriptor can then be used like any other type:
+
+.. code-block:: yaml
+
+    {type: bitbucket_release, organization: mycompany, repository: tk-multi-autocomp, version: v0.1.0}
+
 Environment Variables
 ===============================================
 

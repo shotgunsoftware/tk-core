@@ -44,5 +44,30 @@ def _initialize_descriptor_factory():
     IODescriptorBase.register_descriptor_factory("manual", IODescriptorManual)
 
 
+def _register_custom_descriptors() -> None:
+    """
+    Import the modules listed in ``FLOWPT_IO_DESCRIPTOR_MODULES`` and call their
+    ``register_io_descriptors(io_descriptor_base)`` function, which registers
+    custom types with ``register_descriptor_factory``.
+
+    :raises: RegisterDescriptorError if a module cannot be loaded or registered.
+    """
+    import importlib
+    import os
+
+    from .base import IODescriptorBase
+    from ..errors import RegisterDescriptorError
+
+    names = os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "")
+    for name in filter(None, (n.strip() for n in names.split(os.pathsep))):
+        try:
+            importlib.import_module(name).register_io_descriptors(IODescriptorBase)
+        except Exception as e:
+            raise RegisterDescriptorError(
+                "Failed to register custom IO descriptors from '%s': %s" % (name, e)
+            )
+
+
 _initialize_descriptor_factory()
+_register_custom_descriptors()
 del _initialize_descriptor_factory
