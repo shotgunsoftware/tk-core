@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 
 import sgtk
 from tank_test.tank_test_base import (
@@ -218,40 +219,6 @@ class TestIODescriptors(ShotgunTestBase):
             ],
         )
 
-    def test_custom_io_descriptor_type(self):
-        config_root = os.path.join(self.fixtures_root, "config")
-        sg = self.mockgun
-
-        d = sgtk.descriptor.create_descriptor(
-            self.mockgun,
-            sgtk.descriptor.Descriptor.CONFIG,
-            {
-                "type": "dev",
-                "path": config_root,
-                "version": "v0.1.0",
-                "name": "tk-core",
-            },
-        )
-
-        location = {
-            "type": "bitbucket_release",
-            "organization": "tk-core-testing",
-            "repository": "tk-multi-demo",
-            "version": "v0.1.0",
-        }
-
-        downloads_root = os.path.join(self.fixtures_root, "config")
-        tk_bundle_app = sgtk.descriptor.create_descriptor(
-            sg,
-            sgtk.descriptor.Descriptor.APP,
-            location,
-            bundle_cache_root_override=downloads_root,
-        )
-        tk_bundle_app._io_descriptor.ensure_local()
-        self.assertTrue(
-            os.path.exists(tk_bundle_app._io_descriptor._get_primary_cache_path())
-        )
-
     def test_git_branch_descriptor_input(self):
         """
         Tests that Short integer commit hashes descriptors are converted to a str type
@@ -307,3 +274,33 @@ class TestIODescriptors(ShotgunTestBase):
 
         self.assertEqual(d.get_path(), bundle_path)
         self.assertEqual(d.find_latest_cached_version(), d)
+
+    def test_custom_io_descriptor_module(self) -> None:
+        """
+        Tests that modules listed in SHOTGUN_IO_DESCRIPTOR_MODULES register types.
+        """
+        from sgtk.descriptor.errors import RegisterDescriptorError
+        from sgtk.descriptor.io_descriptor import _register_custom_descriptors
+        from sgtk.descriptor.io_descriptor.base import IODescriptorBase
+
+        module_dir = os.path.join(self.tank_temp, "custom_io_modules")
+        os.makedirs(module_dir)
+        with open(os.path.join(module_dir, "custom_io_ok.py"), "wt") as fh:
+            fh.write(
+                "def register_io_descriptors(base):\n"
+                "    base.register_descriptor_factory('custom_test', object)\n"
+            )
+        with open(os.path.join(module_dir, "custom_io_bad.py"), "wt") as fh:
+            fh.write("raise ImportError('boom')\n")
+
+        sys.path.insert(0, module_dir)
+        self.addCleanup(sys.path.remove, module_dir)
+        self.addCleanup(IODescriptorBase._factory.pop, "custom_test", None)
+
+        with temp_env_var(SHOTGUN_IO_DESCRIPTOR_MODULES="custom_io_ok"):
+            _register_custom_descriptors()
+        self.assertIn("custom_test", IODescriptorBase._factory)
+
+        with temp_env_var(SHOTGUN_IO_DESCRIPTOR_MODULES="custom_io_bad"):
+            with self.assertRaises(RegisterDescriptorError):
+                _register_custom_descriptors()

@@ -106,8 +106,6 @@ Descriptors that are downloaded (cached) to the local disk are called **download
 The **app_store**, **shotgun**, **git** and **git_branch** descriptors are downloadable descriptors,
 while the **path**, **dev** and **manual** descriptors are accessed directly from the specified path.
 
-.. note:: To add custom descriptor types via a hook,
-    see :ref:`Customizing Descriptor Types<customizing_descriptor_types>`.
 
 .. _app_store_descriptor:
 
@@ -605,46 +603,26 @@ for the code in the ``BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0`` folder.
 Adding Custom Descriptor Types
 ===============================================
 
-Shotgun toolkit allows you to provide additional descriptor grammar with custom Descriptor classes.
+Custom ``IODescriptor`` types can be provided by Python modules listed in the
+``SHOTGUN_IO_DESCRIPTOR_MODULES`` environment variable (separated by
+``os.pathsep``). The modules must be importable and are loaded when
+``tank.descriptor`` is imported, so the types are available before bootstrapping,
+in pipeline configuration descriptors, and without ``ToolkitManager``.
 
-This can be done by overriding the ``register_descriptor.py`` core hook.
+Each module must define ``register_io_descriptors(io_descriptor_base)``:
 
-The ``register_descriptor.py`` hook consists of only two methods:
+.. code-block:: python
 
-=================================== ===========================================================================
-Method Name                         Description
-=================================== ===========================================================================
-init                                Standard hook initialization. Used to provide access to a shotgun instance,
-                                    the id of the pipeline that we are bootstrapping into, and a reference to
-                                    the ConfigDescriptor that we are bootstrapping into. It also creates a
-                                    reference to both IODescriptor and Descriptor base classes if needed.
+    def register_io_descriptors(io_descriptor_base):
+        io_descriptor_base.register_descriptor_factory(
+            "bitbucket_release", IODescriptorBitbucketRelease
+        )
 
-register_io_descriptors             Used to register additional IODescriptor subclasses. Use
-                                    ``self.io_descriptor_base.register_descriptor_factory(name, klass)`` to
-                                    link your custom descriptor grammar to a Python class.
-
-=================================== ===========================================================================
-
-
-An example of registering a custom IODescriptor for a bitbucket release would look similar to the following:
-
-.. literalinclude:: examples/register_descriptor_hook.py
-   :language: python
-   :start-after: #documentationStart
-   :end-before: #documentationEnd
-
-
-With the hook implemented and accessible from your config, you should be able to use the following app descriptor
+The descriptor can then be used like any other type:
 
 .. code-block:: yaml
 
-    {
-        type: bitbucket_release,
-        organization: mycompany,
-        repository: tk-multi-autocomp,
-        version: v0.1.0
-    }
-
+    {type: bitbucket_release, organization: mycompany, repository: tk-multi-autocomp, version: v0.1.0}
 
 Environment Variables
 ===============================================
