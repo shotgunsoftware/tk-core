@@ -277,7 +277,7 @@ class TestIODescriptors(ShotgunTestBase):
 
     def test_custom_io_descriptor_module(self) -> None:
         """
-        Tests that modules listed in SHOTGUN_IO_DESCRIPTOR_MODULES register types.
+        Tests that modules listed in FLOWPT_IO_DESCRIPTOR_MODULES register types.
         """
         from sgtk.descriptor.errors import RegisterDescriptorError
         from sgtk.descriptor.io_descriptor import _register_custom_descriptors
@@ -297,10 +297,10 @@ class TestIODescriptors(ShotgunTestBase):
         self.addCleanup(sys.path.remove, module_dir)
         self.addCleanup(IODescriptorBase._factory.pop, "custom_test", None)
 
-        with temp_env_var(SHOTGUN_IO_DESCRIPTOR_MODULES="custom_io_ok"):
+        with temp_env_var(FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_ok"):
             _register_custom_descriptors()
         self.assertIn("custom_test", IODescriptorBase._factory)
 
-        with temp_env_var(SHOTGUN_IO_DESCRIPTOR_MODULES="custom_io_bad"):
+        with temp_env_var(FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_bad"):
             with self.assertRaises(RegisterDescriptorError):
                 _register_custom_descriptors()

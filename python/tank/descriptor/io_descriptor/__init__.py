@@ -46,7 +46,7 @@ def _initialize_descriptor_factory():
 
 def _register_custom_descriptors() -> None:
     """
-    Import the modules listed in ``SHOTGUN_IO_DESCRIPTOR_MODULES`` and call their
+    Import the modules listed in ``FLOWPT_IO_DESCRIPTOR_MODULES`` and call their
     ``register_io_descriptors(io_descriptor_base)`` function, which registers
     custom types with ``register_descriptor_factory``.
 
@@ -58,7 +58,7 @@ def _register_custom_descriptors() -> None:
     from .base import IODescriptorBase
     from ..errors import RegisterDescriptorError
 
-    names = os.environ.get("SHOTGUN_IO_DESCRIPTOR_MODULES", "")
+    names = os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "")
     for name in filter(None, (n.strip() for n in names.split(os.pathsep))):
         try:
             importlib.import_module(name).register_io_descriptors(IODescriptorBase)
