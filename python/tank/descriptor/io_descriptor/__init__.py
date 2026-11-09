@@ -67,6 +67,10 @@ def _register_custom_descriptors() -> None:
 
     names = os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "")
     for name in filter(None, (n.strip() for n in names.split(os.pathsep))):
+        # A cached module would keep classes bound to the core before a core swap.
+        parts = name.split(".")
+        for i in range(len(parts), 0, -1):
+            sys.modules.pop(".".join(parts[:i]), None)
         try:
             importlib.import_module(name).register_io_descriptors(IODescriptorBase)
         except Exception as e:

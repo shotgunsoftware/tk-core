@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import builtins
 import os
 import sys
 
@@ -304,3 +305,36 @@ class TestIODescriptors(ShotgunTestBase):
         with temp_env_var(FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_bad"):
             with self.assertRaises(RegisterDescriptorError):
                 _register_custom_descriptors()
+
+    def test_custom_io_descriptor_paths_and_reload(self) -> None:
+        """
+        Tests that FLOWPT_IO_DESCRIPTOR_PATHS makes modules importable and that
+        a module is executed again on every registration, as after a core swap.
+        """
+        from sgtk.descriptor.io_descriptor import _register_custom_descriptors
+        from sgtk.descriptor.io_descriptor.base import IODescriptorBase
+
+        module_dir = os.path.join(self.tank_temp, "custom_io_paths")
+        os.makedirs(module_dir)
+        with open(os.path.join(module_dir, "custom_io_counter.py"), "wt") as fh:
+            fh.write(
+                "import builtins\n"
+                "builtins._custom_io_runs = getattr(builtins, '_custom_io_runs', 0) + 1\n"
+                "def register_io_descriptors(base):\n"
+                "    base.register_descriptor_factory('custom_counter', object)\n"
+            )
+
+        self.addCleanup(lambda: sys.path.remove(module_dir))
+        self.addCleanup(IODescriptorBase._factory.pop, "custom_counter", None)
+        self.addCleanup(sys.modules.pop, "custom_io_counter", None)
+        self.addCleanup(lambda: delattr(builtins, "_custom_io_runs"))
+
+        with temp_env_var(
+            FLOWPT_IO_DESCRIPTOR_PATHS=module_dir,
+            FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_counter",
+        ):
+            _register_custom_descriptors()
+            _register_custom_descriptors()
+
+        self.assertIn("custom_counter", IODescriptorBase._factory)
+        self.assertEqual(builtins._custom_io_runs, 2)

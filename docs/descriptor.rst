@@ -717,6 +717,10 @@ Make the module importable and list it in the environment variable:
 Several modules can be listed, separated by ``:`` on macOS and Linux and ``;``
 on Windows.
 
+The modules are executed again each time Toolkit swaps its core, so their
+``tank`` imports and classes always belong to the active core. Do not rely on
+module-level state surviving a core swap.
+
 The descriptor can then be used like any other type:
 
 .. code-block:: yaml
