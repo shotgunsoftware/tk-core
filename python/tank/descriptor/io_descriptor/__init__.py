@@ -77,6 +77,8 @@ def _register_custom_descriptors() -> None:
     top_levels = {name.split(".")[0] for name in names}
     roots = tuple(os.path.join(os.path.realpath(p), "") for p in search_paths)
     for module_name, module in list(sys.modules.items()):
+        if module_name.split(".")[0] in {"tank", "sgtk", "tank_vendor"}:
+            continue
         module_file = getattr(module, "__file__", None)
         if module_name.split(".")[0] in top_levels or (
             roots
