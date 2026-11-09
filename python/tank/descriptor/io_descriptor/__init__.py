@@ -61,16 +61,31 @@ def _register_custom_descriptors() -> None:
 
     # Desktop overrides PYTHONPATH on startup, so modules need their own search path.
     paths = os.environ.get("FLOWPT_IO_DESCRIPTOR_PATHS", "")
-    for path in filter(None, (p.strip() for p in paths.split(os.pathsep))):
+    search_paths = [p.strip() for p in paths.split(os.pathsep) if p.strip()]
+    for path in search_paths:
         if path not in sys.path:
             sys.path.insert(0, path)
 
-    names = os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "")
-    for name in filter(None, (n.strip() for n in names.split(os.pathsep))):
-        # A cached module would keep classes bound to the core before a core swap.
-        parts = name.split(".")
-        for i in range(len(parts), 0, -1):
-            sys.modules.pop(".".join(parts[:i]), None)
+    names = [
+        n.strip()
+        for n in os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "").split(os.pathsep)
+        if n.strip()
+    ]
+
+    # Cached modules would keep classes bound to the core before a core swap, so
+    # drop the listed packages and anything loaded from the configured paths.
+    top_levels = {name.split(".")[0] for name in names}
+    roots = tuple(os.path.join(os.path.realpath(p), "") for p in search_paths)
+    for module_name, module in list(sys.modules.items()):
+        module_file = getattr(module, "__file__", None)
+        if module_name.split(".")[0] in top_levels or (
+            roots
+            and module_file
+            and os.path.realpath(module_file).startswith(roots)
+        ):
+            sys.modules.pop(module_name, None)
+
+    for name in names:
         try:
             importlib.import_module(name).register_io_descriptors(IODescriptorBase)
         except Exception as e:

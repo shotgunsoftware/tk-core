@@ -718,8 +718,10 @@ Several modules can be listed, separated by ``:`` on macOS and Linux and ``;``
 on Windows.
 
 The modules are executed again each time Toolkit swaps its core, so their
-``tank`` imports and classes always belong to the active core. Do not rely on
-module-level state surviving a core swap.
+``tank`` imports and classes always belong to the active core. This applies to
+the listed package, including its submodules, and to any module loaded from a
+directory in ``FLOWPT_IO_DESCRIPTOR_PATHS``. Keep descriptor code in those
+locations, and do not rely on module-level state surviving a core swap.
 
 The descriptor can then be used like any other type:
 
