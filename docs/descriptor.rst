@@ -711,7 +711,7 @@ Make the module importable and list it in the environment variable:
 
 .. code-block:: bash
 
-    export PYTHONPATH=/path/to/studio/python:$PYTHONPATH
+    export FLOWPT_IO_DESCRIPTOR_PATHS=/path/to/studio/python
     export FLOWPT_IO_DESCRIPTOR_MODULES=my_studio_descriptors
 
 Several modules can be listed, separated by ``:`` on macOS and Linux and ``;``

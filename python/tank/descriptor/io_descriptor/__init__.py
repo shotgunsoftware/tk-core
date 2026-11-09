@@ -54,9 +54,16 @@ def _register_custom_descriptors() -> None:
     """
     import importlib
     import os
+    import sys
 
     from .base import IODescriptorBase
     from ..errors import RegisterDescriptorError
+
+    # Desktop overrides PYTHONPATH on startup, so modules need their own search path.
+    paths = os.environ.get("FLOWPT_IO_DESCRIPTOR_PATHS", "")
+    for path in filter(None, (p.strip() for p in paths.split(os.pathsep))):
+        if path not in sys.path:
+            sys.path.insert(0, path)
 
     names = os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "")
     for name in filter(None, (n.strip() for n in names.split(os.pathsep))):

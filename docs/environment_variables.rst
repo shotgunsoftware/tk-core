@@ -17,6 +17,12 @@ that register custom descriptor types. Each module must define ``register_io_des
 and is loaded when ``tank.descriptor`` is imported. An error in any listed module raises a
 ``RegisterDescriptorError``. See :ref:`customizing_descriptor_types`.
 
+``FLOWPT_IO_DESCRIPTOR_PATHS``
+------------------------------
+Directories, separated by ``os.pathsep``, that are added to ``sys.path`` before the modules listed in
+``FLOWPT_IO_DESCRIPTOR_MODULES`` are imported. Use it instead of ``PYTHONPATH``, which Flow Production Tracking
+Desktop overrides on startup. See :ref:`customizing_descriptor_types`.
+
 ``SHOTGUN_API_CACERTS``
 -----------------------
 Use this variable to override the default Trusted Root Certification Authorities
