@@ -618,7 +618,7 @@ built-in ``github_release`` descriptor.
 
     import os
 
-    from tank import LogManager
+    from tank.log import LogManager
     from tank.descriptor.errors import TankDescriptorError, TankError
     from tank.descriptor.io_descriptor.downloadable import IODescriptorDownloadable
     from tank.util.shotgun import download
@@ -722,6 +722,28 @@ The modules are executed again each time Toolkit swaps its core, so their
 the listed package, including its submodules, and to any module loaded from a
 directory in ``SGTK_IO_DESCRIPTOR_PATHS``. Keep descriptor code in those
 locations, and do not rely on module-level state surviving a core swap.
+
+.. warning::
+    Before each import, Toolkit purges (removes from ``sys.modules``) every module
+    loaded from a directory listed in ``SGTK_IO_DESCRIPTOR_PATHS``, plus every module
+    that shares a top-level package with an entry in ``SGTK_IO_DESCRIPTOR_MODULES``.
+    Those modules are reloaded and lose their state. Use dedicated directories and
+    packages that contain only descriptor code. Do not point these variables at shared
+    pipeline locations, because unrelated modules there would be reloaded too.
+
+.. note::
+    Custom modules are imported while ``tank`` is still initializing, so names
+    cannot be imported from the ``tank``, ``sgtk`` or ``tank.descriptor`` package
+    ``__init__`` files. Idioms such as ``from tank import TankError``,
+    ``from sgtk import ...`` or ``from tank.descriptor import Descriptor`` raise an
+    ``AttributeError`` (partially initialized module). Import from the defining
+    submodule instead, for example ``from tank.errors import TankError`` or
+    ``from tank.descriptor.errors import TankDescriptorError``.
+
+An error while loading or registering a listed module raises a
+``RegisterDescriptorError`` when ``sgtk`` is imported. Toolkit fails fast because
+this is a customization hook, so fix or remove the module from
+``SGTK_IO_DESCRIPTOR_MODULES`` to recover.
 
 The descriptor can then be used like any other type:
 
