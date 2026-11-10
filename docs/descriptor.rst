@@ -604,7 +604,7 @@ Adding Custom Descriptor Types
 ===============================================
 
 Custom ``IODescriptor`` types can be provided by Python modules listed in the
-``FLOWPT_IO_DESCRIPTOR_MODULES`` environment variable (separated by
+``SGTK_IO_DESCRIPTOR_MODULES`` environment variable (separated by
 ``os.pathsep``). The modules must be importable and are loaded when
 ``tank.descriptor`` is imported, so the types are available before bootstrapping,
 in pipeline configuration descriptors, and without ``ToolkitManager``.
@@ -711,8 +711,8 @@ Make the module importable and list it in the environment variable:
 
 .. code-block:: bash
 
-    export FLOWPT_IO_DESCRIPTOR_PATHS=/path/to/studio/python
-    export FLOWPT_IO_DESCRIPTOR_MODULES=my_studio_descriptors
+    export SGTK_IO_DESCRIPTOR_PATHS=/path/to/studio/python
+    export SGTK_IO_DESCRIPTOR_MODULES=my_studio_descriptors
 
 Several modules can be listed, separated by ``:`` on macOS and Linux and ``;``
 on Windows.
@@ -720,7 +720,7 @@ on Windows.
 The modules are executed again each time Toolkit swaps its core, so their
 ``tank`` imports and classes always belong to the active core. This applies to
 the listed package, including its submodules, and to any module loaded from a
-directory in ``FLOWPT_IO_DESCRIPTOR_PATHS``. Keep descriptor code in those
+directory in ``SGTK_IO_DESCRIPTOR_PATHS``. Keep descriptor code in those
 locations, and do not rely on module-level state surviving a core swap.
 
 The descriptor can then be used like any other type:

@@ -278,7 +278,7 @@ class TestIODescriptors(ShotgunTestBase):
 
     def test_custom_io_descriptor_module(self) -> None:
         """
-        Tests that modules listed in FLOWPT_IO_DESCRIPTOR_MODULES register types.
+        Tests that modules listed in SGTK_IO_DESCRIPTOR_MODULES register types.
         """
         from sgtk.descriptor.errors import RegisterDescriptorError
         from sgtk.descriptor.io_descriptor import _register_custom_descriptors
@@ -298,17 +298,17 @@ class TestIODescriptors(ShotgunTestBase):
         self.addCleanup(sys.path.remove, module_dir)
         self.addCleanup(IODescriptorBase._factory.pop, "custom_test", None)
 
-        with temp_env_var(FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_ok"):
+        with temp_env_var(SGTK_IO_DESCRIPTOR_MODULES="custom_io_ok"):
             _register_custom_descriptors()
         self.assertIn("custom_test", IODescriptorBase._factory)
 
-        with temp_env_var(FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_bad"):
+        with temp_env_var(SGTK_IO_DESCRIPTOR_MODULES="custom_io_bad"):
             with self.assertRaises(RegisterDescriptorError):
                 _register_custom_descriptors()
 
     def test_custom_io_descriptor_paths_and_reload(self) -> None:
         """
-        Tests that FLOWPT_IO_DESCRIPTOR_PATHS makes modules importable and that
+        Tests that SGTK_IO_DESCRIPTOR_PATHS makes modules importable and that
         a module is executed again on every registration, as after a core swap.
         """
         from sgtk.descriptor.io_descriptor import _register_custom_descriptors
@@ -330,8 +330,8 @@ class TestIODescriptors(ShotgunTestBase):
         self.addCleanup(lambda: delattr(builtins, "_custom_io_runs"))
 
         with temp_env_var(
-            FLOWPT_IO_DESCRIPTOR_PATHS=module_dir,
-            FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_counter",
+            SGTK_IO_DESCRIPTOR_PATHS=module_dir,
+            SGTK_IO_DESCRIPTOR_MODULES="custom_io_counter",
         ):
             _register_custom_descriptors()
             _register_custom_descriptors()
@@ -376,8 +376,8 @@ class TestIODescriptors(ShotgunTestBase):
             self.addCleanup(sys.modules.pop, name, None)
 
         with temp_env_var(
-            FLOWPT_IO_DESCRIPTOR_PATHS=root,
-            FLOWPT_IO_DESCRIPTOR_MODULES="custom_io_pkg",
+            SGTK_IO_DESCRIPTOR_PATHS=root,
+            SGTK_IO_DESCRIPTOR_MODULES="custom_io_pkg",
         ):
             _register_custom_descriptors()
             first = IODescriptorBase._factory["custom_pkg"]

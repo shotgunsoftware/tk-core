@@ -46,7 +46,7 @@ def _initialize_descriptor_factory():
 
 def _register_custom_descriptors() -> None:
     """
-    Import the modules listed in ``FLOWPT_IO_DESCRIPTOR_MODULES`` and call their
+    Import the modules listed in ``SGTK_IO_DESCRIPTOR_MODULES`` and call their
     ``register_io_descriptors(io_descriptor_base)`` function, which registers
     custom types with ``register_descriptor_factory``.
 
@@ -60,7 +60,7 @@ def _register_custom_descriptors() -> None:
     from ..errors import RegisterDescriptorError
 
     # Desktop overrides PYTHONPATH on startup, so modules need their own search path.
-    paths = os.environ.get("FLOWPT_IO_DESCRIPTOR_PATHS", "")
+    paths = os.environ.get("SGTK_IO_DESCRIPTOR_PATHS", "")
     search_paths = [p.strip() for p in paths.split(os.pathsep) if p.strip()]
     for path in search_paths:
         if path not in sys.path:
@@ -68,7 +68,7 @@ def _register_custom_descriptors() -> None:
 
     names = [
         n.strip()
-        for n in os.environ.get("FLOWPT_IO_DESCRIPTOR_MODULES", "").split(os.pathsep)
+        for n in os.environ.get("SGTK_IO_DESCRIPTOR_MODULES", "").split(os.pathsep)
         if n.strip()
     ]
 
