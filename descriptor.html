@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Descriptors &mdash; tk-core v0.24.6 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.25.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -74,6 +74,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#pointing-to-a-path-on-disk">Pointing to a path on disk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pointing-at-a-file-attachment-in-flow-production-tracking">Pointing at a file attachment in Flow Production Tracking</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#manual-descriptors">Manual Descriptors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-custom-descriptor-types">Adding Custom Descriptor Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
 </ul>
 </li>
@@ -143,7 +144,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.6.<br>
+    <b>tk-core</b> v0.25.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -708,6 +709,149 @@ for the code in the <code class="docutils literal notranslate"><span class="pre"
 <p class="admonition-title">Warning</p>
 <p>Manual descriptors are part of an older toolkit workflow methodology and while they are supported,
 we do not recommend using them.</p>
+</div>
+</section>
+<section id="adding-custom-descriptor-types">
+<span id="customizing-descriptor-types"></span><h3>Adding Custom Descriptor Types<a class="headerlink" href="#adding-custom-descriptor-types" title="Permalink to this heading"></a></h3>
+<p>Custom <code class="docutils literal notranslate"><span class="pre">IODescriptor</span></code> types can be provided by Python modules listed in the
+<code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_MODULES</span></code> environment variable (separated by
+<code class="docutils literal notranslate"><span class="pre">os.pathsep</span></code>). The modules must be importable and are loaded when
+<code class="docutils literal notranslate"><span class="pre">tank.descriptor</span></code> is imported, so the types are available before bootstrapping,
+in pipeline configuration descriptors, and without <code class="docutils literal notranslate"><span class="pre">ToolkitManager</span></code>.</p>
+<p>Each module must define <code class="docutils literal notranslate"><span class="pre">register_io_descriptors(io_descriptor_base)</span></code>. The
+following module, <code class="docutils literal notranslate"><span class="pre">my_studio_descriptors.py</span></code>, implements a <code class="docutils literal notranslate"><span class="pre">bitbucket_release</span></code>
+descriptor that downloads a tagged archive from Bitbucket. It is modeled on the
+built-in <code class="docutils literal notranslate"><span class="pre">github_release</span></code> descriptor.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.log</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.descriptor.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TankDescriptorError</span><span class="p">,</span> <span class="n">TankError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.descriptor.io_descriptor.downloadable</span><span class="w"> </span><span class="kn">import</span> <span class="n">IODescriptorDownloadable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tank.util.shotgun</span><span class="w"> </span><span class="kn">import</span> <span class="n">download</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IODescriptorBitbucketRelease</span><span class="p">(</span><span class="n">IODescriptorDownloadable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Descriptor for a tagged archive on Bitbucket::</span>
+
+<span class="sd">        {type: bitbucket_release, organization: mycompany,</span>
+<span class="sd">         repository: tk-multi-autocomp, version: v0.1.0}</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">bundle_type</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">bundle_type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_descriptor</span><span class="p">(</span>
+            <span class="n">descriptor_dict</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="p">[</span><span class="s2">"type"</span><span class="p">,</span> <span class="s2">"organization"</span><span class="p">,</span> <span class="s2">"repository"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">],</span>
+            <span class="n">optional</span><span class="o">=</span><span class="p">[],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="n">sg_connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_type</span> <span class="o">=</span> <span class="n">bundle_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_organization</span> <span class="o">=</span> <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">"organization"</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_repository</span> <span class="o">=</span> <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">"repository"</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">"version"</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_bundle_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle_cache_root</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">bundle_cache_root</span><span class="p">,</span>
+            <span class="s2">"bitbucket"</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_organization</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_system_name</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_version</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_system_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repository</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_download_local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s2">"https://bitbucket.org/</span><span class="si">{0}</span><span class="s2">/</span><span class="si">{1}</span><span class="s2">/get/</span><span class="si">{2}</span><span class="s2">.zip"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_organization</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repository</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">download</span><span class="o">.</span><span class="n">download_and_unpack_url</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
+                <span class="n">url</span><span class="p">,</span>
+                <span class="n">destination_path</span><span class="p">,</span>
+                <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                <span class="s2">"Failed to download </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2">. Error: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_latest_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># This example does not query Bitbucket for newer tags, so the</span>
+        <span class="c1"># pinned version is always considered the latest.</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_latest_cached_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">versions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_locally_cached_versions</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_latest_tag_by_pattern</span><span class="p">(</span><span class="n">versions</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_descriptor_dict</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">IODescriptorBitbucketRelease</span><span class="p">(</span>
+            <span class="n">descriptor_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_type</span>
+        <span class="p">)</span>
+        <span class="n">desc</span><span class="o">.</span><span class="n">set_cache_roots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fallback_roots</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">desc</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_remote_access</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">register_io_descriptors</span><span class="p">(</span><span class="n">io_descriptor_base</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Called by Toolkit when ``tank.descriptor`` is imported.</span>
+<span class="sd">    """</span>
+    <span class="n">io_descriptor_base</span><span class="o">.</span><span class="n">register_descriptor_factory</span><span class="p">(</span>
+        <span class="s2">"bitbucket_release"</span><span class="p">,</span> <span class="n">IODescriptorBitbucketRelease</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Make the module importable and list it in the environment variable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">SGTK_IO_DESCRIPTOR_PATHS</span><span class="o">=</span>/path/to/studio/python
+<span class="nb">export</span><span class="w"> </span><span class="nv">SGTK_IO_DESCRIPTOR_MODULES</span><span class="o">=</span>my_studio_descriptors
+</pre></div>
+</div>
+<p>Several modules can be listed, separated by <code class="docutils literal notranslate"><span class="pre">:</span></code> on macOS and Linux and <code class="docutils literal notranslate"><span class="pre">;</span></code>
+on Windows.</p>
+<p>The modules are executed again each time Toolkit swaps its core, so their
+<code class="docutils literal notranslate"><span class="pre">tank</span></code> imports and classes always belong to the active core. This applies to
+the listed package, including its submodules, and to any module loaded from a
+directory in <code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_PATHS</span></code>. Keep descriptor code in those
+locations, and do not rely on module-level state surviving a core swap.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Before each import, Toolkit purges (removes from <code class="docutils literal notranslate"><span class="pre">sys.modules</span></code>) every module
+loaded from a directory listed in <code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_PATHS</span></code>, plus every module
+that shares a top-level package with an entry in <code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_MODULES</span></code>.
+Those modules are reloaded and lose their state. Use dedicated directories and
+packages that contain only descriptor code. Do not point these variables at shared
+pipeline locations, because unrelated modules there would be reloaded too.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Custom modules are imported while <code class="docutils literal notranslate"><span class="pre">tank</span></code> is still initializing, so names
+cannot be imported from the <code class="docutils literal notranslate"><span class="pre">tank</span></code>, <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> or <code class="docutils literal notranslate"><span class="pre">tank.descriptor</span></code> package
+<code class="docutils literal notranslate"><span class="pre">__init__</span></code> files. Idioms such as <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">tank</span> <span class="pre">import</span> <span class="pre">TankError</span></code>,
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">sgtk</span> <span class="pre">import</span> <span class="pre">...</span></code> or <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">tank.descriptor</span> <span class="pre">import</span> <span class="pre">Descriptor</span></code> raise an
+<code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> (partially initialized module). Import from the defining
+submodule instead, for example <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">tank.errors</span> <span class="pre">import</span> <span class="pre">TankError</span></code> or
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">tank.descriptor.errors</span> <span class="pre">import</span> <span class="pre">TankDescriptorError</span></code>.</p>
+</div>
+<p>An error while loading or registering a listed module raises a
+<code class="docutils literal notranslate"><span class="pre">RegisterDescriptorError</span></code> when <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> is imported. Toolkit fails fast because
+this is a customization hook, so fix or remove the module from
+<code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_MODULES</span></code> to recover.</p>
+<p>The descriptor can then be used like any other type:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="nv">bitbucket_release</span><span class="p p-Indicator">,</span><span class="nt"> organization</span><span class="p">:</span><span class="w"> </span><span class="nv">mycompany</span><span class="p p-Indicator">,</span><span class="nt"> repository</span><span class="p">:</span><span class="w"> </span><span class="nv">tk-multi-autocomp</span><span class="p p-Indicator">,</span><span class="nt"> version</span><span class="p">:</span><span class="w"> </span><span class="nv">v0.1.0</span><span class="p p-Indicator">}</span>
+</pre></div>
 </div>
 </section>
 <section id="environment-variables">

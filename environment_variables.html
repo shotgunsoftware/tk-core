@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; tk-core v0.24.6 documentation</title>
+  <title>Environment Variables &mdash; tk-core v0.25.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
@@ -69,6 +69,8 @@
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Environment Variables</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#general">General</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-io-descriptor-modules"><code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_MODULES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-io-descriptor-paths"><code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_PATHS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgun-api-cacerts"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_API_CACERTS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgun-home"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgun-skip-qtwebenginewidgets-import"><code class="docutils literal notranslate"><span class="pre">SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT</span></code></a></li>
@@ -126,7 +128,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.24.6.<br>
+    <b>tk-core</b> v0.25.0.<br>
     
         This documentation is part of the Flow Production Tracking.
     
@@ -173,6 +175,19 @@
 <p>A number of different environment variables exist to help control the behavior of the Toolkit Startup.</p>
 <section id="general">
 <span id="environment-variables-general"></span><h2>General<a class="headerlink" href="#general" title="Permalink to this heading"></a></h2>
+<section id="sgtk-io-descriptor-modules">
+<h3><code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_MODULES</span></code><a class="headerlink" href="#sgtk-io-descriptor-modules" title="Permalink to this heading"></a></h3>
+<p>List of importable Python modules, separated by <code class="docutils literal notranslate"><span class="pre">os.pathsep</span></code> (<code class="docutils literal notranslate"><span class="pre">:</span></code> on macOS and Linux, <code class="docutils literal notranslate"><span class="pre">;</span></code> on Windows),
+that register custom descriptor types. Each module must define <code class="docutils literal notranslate"><span class="pre">register_io_descriptors(io_descriptor_base)</span></code>
+and is loaded when <code class="docutils literal notranslate"><span class="pre">tank.descriptor</span></code> is imported. An error in any listed module raises a
+<code class="docutils literal notranslate"><span class="pre">RegisterDescriptorError</span></code>. See <a class="reference internal" href="descriptor.html#customizing-descriptor-types"><span class="std std-ref">Adding Custom Descriptor Types</span></a>.</p>
+</section>
+<section id="sgtk-io-descriptor-paths">
+<h3><code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_PATHS</span></code><a class="headerlink" href="#sgtk-io-descriptor-paths" title="Permalink to this heading"></a></h3>
+<p>Directories, separated by <code class="docutils literal notranslate"><span class="pre">os.pathsep</span></code>, that are added to <code class="docutils literal notranslate"><span class="pre">sys.path</span></code> before the modules listed in
+<code class="docutils literal notranslate"><span class="pre">SGTK_IO_DESCRIPTOR_MODULES</span></code> are imported. Use it instead of <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>, which Flow Production Tracking
+Desktop overrides on startup. See <a class="reference internal" href="descriptor.html#customizing-descriptor-types"><span class="std std-ref">Adding Custom Descriptor Types</span></a>.</p>
+</section>
 <section id="shotgun-api-cacerts">
 <h3><code class="docutils literal notranslate"><span class="pre">SHOTGUN_API_CACERTS</span></code><a class="headerlink" href="#shotgun-api-cacerts" title="Permalink to this heading"></a></h3>
 <p>Use this variable to override the default Trusted Root Certification Authorities
