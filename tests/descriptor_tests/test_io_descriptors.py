@@ -8,7 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import builtins
 import os
+import sys
 
 import sgtk
 from tank_test.tank_test_base import (
@@ -273,3 +275,115 @@ class TestIODescriptors(ShotgunTestBase):
 
         self.assertEqual(d.get_path(), bundle_path)
         self.assertEqual(d.find_latest_cached_version(), d)
+
+    def test_custom_io_descriptor_module(self) -> None:
+        """
+        Tests that modules listed in SGTK_IO_DESCRIPTOR_MODULES register types.
+        """
+        from sgtk.descriptor.errors import RegisterDescriptorError
+        from sgtk.descriptor.io_descriptor import _register_custom_descriptors
+        from sgtk.descriptor.io_descriptor.base import IODescriptorBase
+
+        module_dir = os.path.join(self.tank_temp, "custom_io_modules")
+        os.makedirs(module_dir)
+        with open(os.path.join(module_dir, "custom_io_ok.py"), "wt") as fh:
+            fh.write(
+                "def register_io_descriptors(base):\n"
+                "    base.register_descriptor_factory('custom_test', object)\n"
+            )
+        with open(os.path.join(module_dir, "custom_io_bad.py"), "wt") as fh:
+            fh.write("raise ImportError('boom')\n")
+
+        sys.path.insert(0, module_dir)
+        self.addCleanup(sys.path.remove, module_dir)
+        self.addCleanup(IODescriptorBase._factory.pop, "custom_test", None)
+
+        with temp_env_var(SGTK_IO_DESCRIPTOR_MODULES="custom_io_ok"):
+            _register_custom_descriptors()
+        self.assertIn("custom_test", IODescriptorBase._factory)
+
+        with temp_env_var(SGTK_IO_DESCRIPTOR_MODULES="custom_io_bad"):
+            with self.assertRaises(RegisterDescriptorError):
+                _register_custom_descriptors()
+
+    def test_custom_io_descriptor_paths_and_reload(self) -> None:
+        """
+        Tests that SGTK_IO_DESCRIPTOR_PATHS makes modules importable and that
+        a module is executed again on every registration, as after a core swap.
+        """
+        from sgtk.descriptor.io_descriptor import _register_custom_descriptors
+        from sgtk.descriptor.io_descriptor.base import IODescriptorBase
+
+        module_dir = os.path.join(self.tank_temp, "custom_io_paths")
+        os.makedirs(module_dir)
+        with open(os.path.join(module_dir, "custom_io_counter.py"), "wt") as fh:
+            fh.write(
+                "import builtins\n"
+                "builtins._custom_io_runs = getattr(builtins, '_custom_io_runs', 0) + 1\n"
+                "def register_io_descriptors(base):\n"
+                "    base.register_descriptor_factory('custom_counter', object)\n"
+            )
+
+        self.addCleanup(lambda: sys.path.remove(module_dir))
+        self.addCleanup(IODescriptorBase._factory.pop, "custom_counter", None)
+        self.addCleanup(sys.modules.pop, "custom_io_counter", None)
+        self.addCleanup(lambda: delattr(builtins, "_custom_io_runs"))
+
+        with temp_env_var(
+            SGTK_IO_DESCRIPTOR_PATHS=module_dir,
+            SGTK_IO_DESCRIPTOR_MODULES="custom_io_counter",
+        ):
+            _register_custom_descriptors()
+            _register_custom_descriptors()
+
+        self.assertIn("custom_counter", IODescriptorBase._factory)
+        self.assertEqual(builtins._custom_io_runs, 2)
+
+    def test_custom_io_descriptor_package_reload(self) -> None:
+        """
+        Tests that submodules and siblings of a custom package are re-executed
+        too, so classes are not left bound to a previous core.
+        """
+        from sgtk.descriptor.io_descriptor import _register_custom_descriptors
+        from sgtk.descriptor.io_descriptor.base import IODescriptorBase
+
+        root = os.path.join(self.tank_temp, "custom_io_package")
+        package_dir = os.path.join(root, "custom_io_pkg")
+        os.makedirs(package_dir)
+        with open(os.path.join(package_dir, "__init__.py"), "wt") as fh:
+            fh.write(
+                "from .implementation import Impl\n"
+                "import custom_io_helper\n"
+                "def register_io_descriptors(base):\n"
+                "    base.register_descriptor_factory('custom_pkg', Impl)\n"
+                "    base.register_descriptor_factory(\n"
+                "        'custom_pkg_helper', custom_io_helper.Helper\n"
+                "    )\n"
+            )
+        with open(os.path.join(package_dir, "implementation.py"), "wt") as fh:
+            fh.write("class Impl:\n    pass\n")
+        with open(os.path.join(root, "custom_io_helper.py"), "wt") as fh:
+            fh.write("class Helper:\n    pass\n")
+
+        self.addCleanup(lambda: sys.path.remove(root))
+        self.addCleanup(IODescriptorBase._factory.pop, "custom_pkg", None)
+        self.addCleanup(IODescriptorBase._factory.pop, "custom_pkg_helper", None)
+        for name in (
+            "custom_io_pkg",
+            "custom_io_pkg.implementation",
+            "custom_io_helper",
+        ):
+            self.addCleanup(sys.modules.pop, name, None)
+
+        with temp_env_var(
+            SGTK_IO_DESCRIPTOR_PATHS=root,
+            SGTK_IO_DESCRIPTOR_MODULES="custom_io_pkg",
+        ):
+            _register_custom_descriptors()
+            first = IODescriptorBase._factory["custom_pkg"]
+            first_helper = IODescriptorBase._factory["custom_pkg_helper"]
+            _register_custom_descriptors()
+
+        # A submodule of the package and a sibling module from the configured path.
+        self.assertIsNot(IODescriptorBase._factory["custom_pkg"], first)
+        self.assertIsNot(IODescriptorBase._factory["custom_pkg_helper"], first_helper)
