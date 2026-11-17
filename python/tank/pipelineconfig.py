@@ -413,13 +413,18 @@ class PipelineConfiguration(object):
             with open(cache_file, "r", encoding="utf-8") as fh:
                 raw_items = json.load(fh)
             cache_items = [yaml_cache.CacheItem.from_dict(item) for item in raw_items]
+            # The merge stays inside the try: merge_cache_items re-reads any
+            # entry whose cached payload is falsy, so a stale optional cache
+            # (e.g. an empty yaml file that was later removed) can raise. That
+            # must never break initialization - fall back to reading YAML live
+            # from disk instead. See SG-46278.
+            yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
         except Exception as e:
             # A missing, corrupt, or otherwise unreadable cache must never
             # break initialization; fall back to reading YAML live from disk.
             log.warning(f"Could not read yaml cache {cache_file}: {e}")
             return
 
-        yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
         log.debug(f"Read {len(cache_items)} items from yaml cache {cache_file}")
 
     ########################################################################################

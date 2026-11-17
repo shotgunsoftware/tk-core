@@ -813,11 +813,16 @@ def _load_lookup_cache() -> dict:
     :returns: cache cache, as constructed by the _add_to_lookup_cache method
     """
     cache_file = _get_cache_location()
-    cache_data = {}
 
     try:
         with open(cache_file, "r", encoding="utf-8") as fh:
             cache_data = json.load(fh)
+        if not isinstance(cache_data, dict):
+            # Callers expect a dict keyed by cache key. Valid JSON that is not
+            # an object (e.g. null, a list or a scalar, whether corrupt or
+            # tampered with) must not be trusted or allowed to break callers;
+            # treat it as a cache miss. See SG-46278.
+            raise ValueError("lookup cache is not a JSON object")
     except Exception as e:
         # Failed to load cache from file. Continue silently. This also covers a
         # legacy pickle cache written by an older core: it is deliberately not
@@ -827,6 +832,7 @@ def _load_lookup_cache() -> dict:
             f"Failed to load lookup cache {cache_file}. "
             f"Proceeding without cache. Error: {e}"
         )
+        cache_data = {}
 
     return cache_data
 

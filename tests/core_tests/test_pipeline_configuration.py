@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import json
 import logging
 import os
 import shutil
@@ -147,6 +148,23 @@ class TestPipelineConfig(TankTestBase):
             self.tk.pipeline_configuration._pc_root, "yaml_cache.json"
         )
         self.create_file(cache_file)
+        self.tk.pipeline_configuration._populate_yaml_cache()
+
+    def test_stale_optional_yaml_cache_does_not_break_init(self):
+        """
+        SG-46278: a cached entry whose payload is falsy (e.g. an empty yaml
+        file) is re-read from disk when merged. If that file has since been
+        removed, the merge raises - which must never abort configuration
+        initialization. The cache is simply ignored instead.
+        """
+        cache_file = os.path.join(
+            self.tk.pipeline_configuration._pc_root, "yaml_cache.json"
+        )
+        missing_path = os.path.join(self.tk.pipeline_configuration._pc_root, "gone.yml")
+        with open(cache_file, "w", encoding="utf-8") as fh:
+            json.dump([{"path": missing_path, "mtime": 0, "size": 0, "data": None}], fh)
+
+        # Must not raise even though gone.yml does not exist on disk.
         self.tk.pipeline_configuration._populate_yaml_cache()
 
 

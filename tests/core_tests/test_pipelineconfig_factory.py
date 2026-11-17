@@ -600,6 +600,30 @@ class TestLookupCache(ShotgunTestBase):
         loaded = sgtk.pipelineconfig_factory._load_lookup_cache()
         self.assertEqual(loaded, {})
 
+    def test_non_object_json_cache_is_ignored(self):
+        """
+        SG-46278: valid JSON that is not an object (null, a list, a scalar),
+        whether corrupt or tampered with, must be treated as a cache miss so
+        it cannot break callers that expect a dict.
+        """
+        cache_file = sgtk.pipelineconfig_factory._get_cache_location()
+        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+
+        for bad_payload in ("null", "[1, 2, 3]", '"a string"', "42"):
+            with open(cache_file, "w", encoding="utf-8") as fh:
+                fh.write(bad_payload)
+
+            # The loader must return an empty dict, not the parsed value.
+            loaded = sgtk.pipelineconfig_factory._load_lookup_cache()
+            self.assertEqual(loaded, {})
+
+            # Writing on top of a non-object cache must not raise either.
+            sgtk.pipelineconfig_factory._add_to_lookup_cache("k", {"ok": True})
+            self.assertEqual(
+                sgtk.pipelineconfig_factory._load_lookup_cache()["k"],
+                {"ok": True},
+            )
+
 
 class TestTankFromWithSiteConfig(TankTestBase):
     """

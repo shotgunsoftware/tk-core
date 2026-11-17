@@ -652,3 +652,19 @@ class TestAppStoreMetadataCache(ShotgunTestBase):
             fh.write("this is not valid json {{{")
 
         self.assertEqual(self._load(io_desc, path), {})
+
+    def test_non_object_metadata_cache_is_ignored(self):
+        """
+        SG-46278: valid JSON that is not an object (null, a list, a scalar)
+        must be treated as a miss so callers that call metadata.get() do not
+        raise AttributeError.
+        """
+        io_desc = self._io_descriptor()
+        path = os.path.join(self.tank_temp, "appstore_bundle_non_object")
+        os.makedirs(path, exist_ok=True)
+        cache_file = os.path.join(path, ".cached_metadata.json")
+
+        for bad_payload in ("null", "[1, 2, 3]", '"a string"', "42"):
+            with open(cache_file, "w", encoding="utf-8") as fh:
+                fh.write(bad_payload)
+            self.assertEqual(self._load(io_desc, path), {})

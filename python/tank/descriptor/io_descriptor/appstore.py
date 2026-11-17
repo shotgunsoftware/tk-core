@@ -191,6 +191,12 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             try:
                 with open(cache_file, "r", encoding="utf-8") as fp:
                     metadata = json.load(fp)
+                if not isinstance(metadata, dict):
+                    # Callers (e.g. get_deprecation_status) immediately call
+                    # metadata.get(), so valid JSON that is not an object
+                    # (null, a list, a scalar) must be treated as a miss just
+                    # like syntactically corrupt contents. See SG-46278.
+                    raise ValueError("cached metadata is not a JSON object")
             except Exception as e:
                 # A corrupt or unreadable cache - including a legacy pickle
                 # cache written by an older core - must never be trusted or
