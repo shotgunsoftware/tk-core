@@ -668,3 +668,25 @@ class TestAppStoreMetadataCache(ShotgunTestBase):
             with open(cache_file, "w", encoding="utf-8") as fh:
                 fh.write(bad_payload)
             self.assertEqual(self._load(io_desc, path), {})
+
+    def test_metadata_cache_write_failure_is_graceful(self):
+        """
+        Writing the metadata cache into a read-only bundle cache must fail
+        gracefully (logged, not raised) and still return the metadata.
+        """
+        io_desc = self._io_descriptor()
+        path = os.path.join(self.tank_temp, "appstore_bundle_readonly")
+        os.makedirs(path, exist_ok=True)
+
+        with mock.patch(
+            "tank.descriptor.io_descriptor.appstore.json.dump",
+            side_effect=OSError("read-only location"),
+        ):
+            metadata = io_desc._IODescriptorAppStore__refresh_metadata(
+                path,
+                sg_bundle_data={"id": 1},
+                sg_version_data={"id": 2, "code": "v1.0.0"},
+            )
+
+        # The in-memory metadata is still returned despite the write failing.
+        self.assertEqual(metadata["sg_version_data"], {"id": 2, "code": "v1.0.0"})

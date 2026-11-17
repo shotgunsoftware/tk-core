@@ -624,6 +624,60 @@ class TestLookupCache(ShotgunTestBase):
                 {"ok": True},
             )
 
+    def test_add_to_lookup_cache_handles_write_failure(self):
+        """
+        SG-46278: the cache is only an optimization, so a failure while writing
+        it must be swallowed (never raised to the caller) and must not leave a
+        stray temp file behind from the atomic write.
+        """
+        cache_file = sgtk.pipelineconfig_factory._get_cache_location()
+        cache_folder = os.path.dirname(cache_file)
+        os.makedirs(cache_folder, exist_ok=True)
+
+        with mock.patch(
+            "tank.pipelineconfig_factory.os.replace",
+            side_effect=OSError("simulated write failure"),
+        ):
+            # Must not raise even though the atomic replace fails.
+            sgtk.pipelineconfig_factory._add_to_lookup_cache("k", {"v": 1})
+
+        # The failed atomic write must not leave a temp file behind.
+        leftovers = [
+            name
+            for name in os.listdir(cache_folder)
+            if name.startswith(".toolkit_init.")
+        ]
+        self.assertEqual(leftovers, [])
+
+    def test_add_to_lookup_cache_ignores_temp_cleanup_failure(self):
+        """
+        SG-46278: if the atomic write fails and the temp file cannot be removed
+        either, the cleanup error must be ignored and the operation must still
+        fail silently rather than raising to the caller.
+        """
+        cache_file = sgtk.pipelineconfig_factory._get_cache_location()
+        cache_folder = os.path.dirname(cache_file)
+        os.makedirs(cache_folder, exist_ok=True)
+
+        with (
+            mock.patch(
+                "tank.pipelineconfig_factory.os.replace",
+                side_effect=OSError("write failure"),
+            ),
+            mock.patch(
+                "tank.pipelineconfig_factory.os.remove",
+                side_effect=OSError("cleanup failure"),
+            ),
+        ):
+            # Must not raise despite both the write and the cleanup failing.
+            sgtk.pipelineconfig_factory._add_to_lookup_cache("k", {"v": 1})
+
+        # Remove the temp file the mocked cleanup could not (keep the dir tidy
+        # for other tests).
+        for name in os.listdir(cache_folder):
+            if name.startswith(".toolkit_init."):
+                os.remove(os.path.join(cache_folder, name))
+
 
 class TestTankFromWithSiteConfig(TankTestBase):
     """
