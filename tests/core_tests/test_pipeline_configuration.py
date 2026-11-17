@@ -141,12 +141,12 @@ class TestPipelineConfig(TankTestBase):
 
     def test_invalid_yaml_cache(self):
         """
-        Makes sure there are no errors if the pickle file is found but not valid.
+        Makes sure there are no errors if the cache file is found but not valid.
         """
-        pickle_file = os.path.join(
-            self.tk.pipeline_configuration._pc_root, "yaml_cache.pickle"
+        cache_file = os.path.join(
+            self.tk.pipeline_configuration._pc_root, "yaml_cache.json"
         )
-        self.create_file(pickle_file)
+        self.create_file(cache_file)
         self.tk.pipeline_configuration._populate_yaml_cache()
 
 
@@ -355,7 +355,7 @@ class TestConfigLocations(TankTestBase):
         self.assertEqual(pc.get_path(), autogen_files_root)
         self.assertEqual(
             pc.get_yaml_cache_location(),
-            os.path.join(autogen_files_root, "yaml_cache.pickle"),
+            os.path.join(autogen_files_root, "yaml_cache.json"),
         )
         self.assertEqual(
             pc._get_pipeline_config_file_location(),

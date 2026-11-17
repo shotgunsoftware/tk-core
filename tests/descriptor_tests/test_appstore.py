@@ -567,3 +567,88 @@ class TestAppStorePythonVersionCompatibility(ShotgunTestBase):
         self.assertEqual(latest_desc.get_version(), "v2.0.0")
         # Verify cache search was NOT called because Python 3.11 is compatible
         mock_find_cached.assert_not_called()
+
+
+class TestAppStoreMetadataCache(ShotgunTestBase):
+    """
+    SG-46278 / PSIRT-3972: the app store metadata cache must be stored as
+    data-only JSON (``.cached_metadata.json``) and never as a pickle, so a
+    crafted cache file in a shared bundle cache cannot execute code when it is
+    loaded.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self._conn_mock = mock.patch(
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore."
+            "_IODescriptorAppStore__create_sg_app_store_connection",
+            return_value=(self.mockgun, None),
+        )
+        self._conn_mock.start()
+        self.addCleanup(self._conn_mock.stop)
+
+    def _io_descriptor(self):
+        desc = create_descriptor(
+            None,
+            Descriptor.FRAMEWORK,
+            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"},
+        )
+        return desc._io_descriptor
+
+    def _load(self, io_desc, path):
+        # The method is name-mangled (double underscore); call it explicitly.
+        return io_desc._IODescriptorAppStore__load_cached_app_store_metadata(path)
+
+    def test_metadata_cache_is_json(self):
+        """
+        The cache is written as JSON and reads back unchanged.
+        """
+        io_desc = self._io_descriptor()
+        path = os.path.join(self.tank_temp, "appstore_bundle")
+        os.makedirs(path, exist_ok=True)
+
+        bundle_data = {"id": 1234, "sg_system_name": "tk-framework-main"}
+        version_data = {"id": 1, "code": "v1.0.0", "tags": []}
+
+        # Write the cache via the pre-fetched-data path (no SG connection).
+        io_desc._IODescriptorAppStore__refresh_metadata(
+            path, sg_bundle_data=bundle_data, sg_version_data=version_data
+        )
+
+        cache_file = os.path.join(path, ".cached_metadata.json")
+        self.assertTrue(os.path.exists(cache_file))
+        with open(cache_file, "r", encoding="utf-8") as fh:
+            on_disk = json.load(fh)
+        self.assertEqual(on_disk["sg_bundle_data"], bundle_data)
+        self.assertEqual(on_disk["sg_version_data"], version_data)
+
+        loaded = self._load(io_desc, path)
+        self.assertEqual(loaded["sg_version_data"], version_data)
+
+    def test_legacy_pickle_metadata_is_ignored(self):
+        """
+        A leftover legacy ``.cached_metadata.pickle`` must never be read.
+        """
+        import pickle as _stdlib_pickle
+
+        io_desc = self._io_descriptor()
+        path = os.path.join(self.tank_temp, "appstore_bundle_legacy")
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, ".cached_metadata.pickle"), "wb") as fh:
+            _stdlib_pickle.dump({"sg_version_data": {"evil": True}}, fh)
+
+        self.assertEqual(self._load(io_desc, path), {})
+
+    def test_corrupt_metadata_cache_is_ignored(self):
+        """
+        An unreadable JSON cache is treated as a miss, not an error.
+        """
+        io_desc = self._io_descriptor()
+        path = os.path.join(self.tank_temp, "appstore_bundle_corrupt")
+        os.makedirs(path, exist_ok=True)
+        with open(
+            os.path.join(path, ".cached_metadata.json"), "w", encoding="utf-8"
+        ) as fh:
+            fh.write("this is not valid json {{{")
+
+        self.assertEqual(self._load(io_desc, path), {})

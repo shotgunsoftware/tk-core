@@ -9,13 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import collections
+import json
 import os
 import pprint
+import tempfile
+from typing import Any
 
 from . import LogManager, constants, pipelineconfig_utils
 from .errors import TankError, TankInitError
 from .pipelineconfig import PipelineConfiguration
-from .util import LocalFileStorageManager, ShotgunPath, filesystem, pickle, shotgun
+from .util import LocalFileStorageManager, ShotgunPath, filesystem, shotgun
 
 log = LogManager.get_logger(__name__)
 
@@ -561,8 +564,10 @@ def _get_pipeline_configs_for_path(path, data):
                 # but the value may be None for projects not using the
                 # templates/schema system. for safety, call 'get' as we've seen
                 # issues with invalid/corrupt toolkit_init caches.
+                # projects are keyed by their id as a string (see
+                # _get_pipeline_configs / SG-46278).
                 project_id = pc["project"]["id"]
-                project_name = data["projects"][project_id].get("tank_name")
+                project_name = data["projects"][str(project_id)].get("tank_name")
 
                 # this method is used to look up the appropriate configuration given
                 # a path on disk. Configurations that don't have a file system
@@ -783,7 +788,12 @@ def _get_pipeline_configs(force=False):
     projects = sg.find("Project", [["archived", "is", False]], ["name", "tank_name"])
 
     # Index the result by project id so look-ups are easier to do later on.
-    projects = dict((project["id"], project) for project in projects)
+    # The id is stored as a string key (not an int) so the structure survives
+    # a round-trip through the JSON cache unchanged - JSON object keys are
+    # always strings, so int keys would silently come back as strings on load
+    # and break the str/int lookup in _get_pipeline_configs_for_path. See
+    # SG-46278.
+    projects = dict((str(project["id"]), project) for project in projects)
 
     # cache this data
     data = {
@@ -796,7 +806,7 @@ def _get_pipeline_configs(force=False):
     return data
 
 
-def _load_lookup_cache():
+def _load_lookup_cache() -> dict:
     """
     Load lookup cache file from disk.
 
@@ -806,23 +816,22 @@ def _load_lookup_cache():
     cache_data = {}
 
     try:
-        fh = open(cache_file, "rb")
-        try:
-            cache_data = pickle.load(fh)
-        finally:
-            fh.close()
+        with open(cache_file, "r", encoding="utf-8") as fh:
+            cache_data = json.load(fh)
     except Exception as e:
-        # failed to load cache from file. Continue silently.
+        # Failed to load cache from file. Continue silently. This also covers a
+        # legacy pickle cache written by an older core: it is deliberately not
+        # read (json.load never executes code the way pickle.load does), so it
+        # is simply treated as a miss and rebuilt. See SG-46278 / PSIRT-3972.
         log.debug(
-            "Failed to load lookup cache %s. Proceeding without cache. Error: %s"
-            % (cache_file, e)
+            f"Failed to load lookup cache {cache_file}. "
+            f"Proceeding without cache. Error: {e}"
         )
 
     return cache_data
 
 
-@filesystem.with_cleared_umask
-def _add_to_lookup_cache(key, data):
+def _add_to_lookup_cache(key: str, data: Any) -> None:
     """
     Add a key to the lookup cache. This method will silently
     fail if the cache cannot be operated on.
@@ -839,20 +848,39 @@ def _add_to_lookup_cache(key, data):
     cache_file = _get_cache_location()
 
     try:
-        filesystem.ensure_folder_exists(os.path.dirname(cache_file))
+        cache_folder = os.path.dirname(cache_file)
+        filesystem.ensure_folder_exists(cache_folder)
 
-        # write cache file
-        fh = open(cache_file, "wb")
+        # Write the cache as data-only JSON, atomically, with owner-only
+        # permissions. This file used to be written as a pickle and was then
+        # explicitly made world-writable (os.chmod(0o666) under a cleared
+        # umask). In shared setups (e.g. a shared SHOTGUN_HOME) that let any
+        # local user replace the file with a crafted pickle, which the next
+        # user would deserialize - arbitrary code execution. We now (a) never
+        # unpickle this file and (b) never grant write access to other users.
+        # See SG-46278 / PSIRT-3972 (CWE-732 + CWE-502).
+        #
+        # tempfile.mkstemp creates the temp file with 0o600 permissions, owned
+        # by the current user; os.replace then atomically moves it into place,
+        # replacing any pre-existing (possibly world-writable) cache file.
+        fd, tmp_path = tempfile.mkstemp(
+            dir=cache_folder, prefix=".toolkit_init.", suffix=".tmp"
+        )
         try:
-            pickle.dump(cache_data, fh)
-        finally:
-            fh.close()
-        # and ensure the cache file has got open permissions
-        os.chmod(cache_file, 0o666)
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump(cache_data, fh)
+            os.replace(tmp_path, cache_file)
+        except Exception:
+            # Make sure we never leave a stray temp file behind on failure.
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            raise
 
     except Exception as e:
         # silently continue in case exceptions are raised
-        log.debug("Failed to add to lookup cache %s. Error: %s" % (cache_file, e))
+        log.debug(f"Failed to add to lookup cache {cache_file}. Error: {e}")
 
 
 def _get_cache_location():

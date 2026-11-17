@@ -8,8 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import json
 import os
-import pickle
+import stat
 import sys
 
 import sgtk
@@ -412,10 +413,13 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
         """
         Make sure _get_pipeline_configs actually returns all pipeline configurations.
         """
+        # projects are keyed by their id as a string so the lookup cache can
+        # round-trip through JSON (JSON object keys are always strings). See
+        # SG-46278.
         self.assertEqual(
             self._sg_data["projects"],
             dict(
-                (proj["id"], proj)
+                (str(proj["id"]), proj)
                 for proj in [
                     self.project_with_tank_name,
                     self.project_with_another_tank_name,
@@ -539,14 +543,62 @@ class TestLookupCache(ShotgunTestBase):
             # Remove the paths
             cache_data.pop("paths_v2")
 
-            with open(sgtk.pipelineconfig_factory._get_cache_location(), "wb") as fh:
-                pickle.dump(cache_data, fh)
+            # The cache is stored as data-only JSON (SG-46278), never pickle.
+            with open(
+                sgtk.pipelineconfig_factory._get_cache_location(),
+                "w",
+                encoding="utf-8",
+            ) as fh:
+                json.dump(cache_data, fh)
 
             # Do not force read from Shotgun, but since the cache is not present
             # it should be loaded from Shotgun.
             mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(False)
             self.assertTrue(mock1.called)
+
+    def test_cache_is_json_and_not_world_writable(self):
+        """
+        SG-46278 / PSIRT-3972: the toolkit init lookup cache must be stored as
+        data-only JSON (so it is never deserialized via pickle) and must never
+        be writable by group or other users (CWE-732).
+        """
+        payload = {"hello": "world", "nested": [1, 2, 3]}
+        sgtk.pipelineconfig_factory._add_to_lookup_cache("SG-46278_key", payload)
+
+        cache_file = sgtk.pipelineconfig_factory._get_cache_location()
+        self.assertTrue(os.path.exists(cache_file))
+
+        # It must be valid JSON. json.load cannot execute code the way
+        # pickle.load can, so even a hostile file is inert here.
+        with open(cache_file, "r", encoding="utf-8") as fh:
+            on_disk = json.load(fh)
+        self.assertEqual(on_disk["SG-46278_key"], payload)
+
+        # It must round-trip back through the loader unchanged.
+        loaded = sgtk.pipelineconfig_factory._load_lookup_cache()
+        self.assertEqual(loaded["SG-46278_key"], payload)
+
+        # It must not be writable by group or others.
+        if not is_windows():
+            mode = stat.S_IMODE(os.stat(cache_file).st_mode)
+            self.assertEqual(mode & (stat.S_IWGRP | stat.S_IWOTH), 0)
+
+    def test_legacy_pickle_cache_is_ignored(self):
+        """
+        SG-46278: a cache file left behind by an older core (a pickle) must be
+        treated as a cache miss and never deserialized.
+        """
+        import pickle as _stdlib_pickle
+
+        cache_file = sgtk.pipelineconfig_factory._get_cache_location()
+        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+        with open(cache_file, "wb") as fh:
+            _stdlib_pickle.dump({"paths_v2": {"should": "not be read"}}, fh)
+
+        # The loader must not raise and must not return the pickled content.
+        loaded = sgtk.pipelineconfig_factory._load_lookup_cache()
+        self.assertEqual(loaded, {})
 
 
 class TestTankFromWithSiteConfig(TankTestBase):

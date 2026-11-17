@@ -14,8 +14,8 @@ across storages, configurations etc.
 """
 
 import glob
+import json
 import os
-import pickle
 
 from tank_vendor import yaml
 
@@ -285,7 +285,7 @@ class PipelineConfiguration(object):
                     % (self, self._bundle_cache_fallback_paths)
                 )
 
-        # Populate the global yaml_cache if we find a pickled cache on disk.
+        # Populate the global yaml_cache if we find a cache on disk.
         # TODO: For immutable configs, move this into bootstrap
         self._populate_yaml_cache()
 
@@ -388,38 +388,39 @@ class PipelineConfiguration(object):
             self._pc_root, "config", "core", constants.PIPELINECONFIG_FILE
         )
 
-    def get_yaml_cache_location(self):
+    def get_yaml_cache_location(self) -> str:
         """
         Returns the location of the yaml cache for this configuration.
         """
-        return os.path.join(self._pc_root, "yaml_cache.pickle")
+        return os.path.join(self._pc_root, "yaml_cache.json")
 
-    def _populate_yaml_cache(self):
+    def _populate_yaml_cache(self) -> None:
         """
-        Loads pickled yaml_cache items if they are found and merges them into
+        Loads cached yaml_cache items if they are found and merges them into
         the global YamlCache.
+
+        The cache is a data-only JSON file (see commands/cache_yaml.py). A
+        legacy pickle cache (``yaml_cache.pickle``) written by an older core is
+        deliberately not read: it has a different name and would never be
+        deserialized here, so there is no code-execution risk. A missing cache
+        simply means the YAML files are read live from disk. See SG-46278.
         """
         cache_file = self.get_yaml_cache_location()
         if not os.path.exists(cache_file):
             return
 
         try:
-            fh = open(cache_file, "rb")
+            with open(cache_file, "r", encoding="utf-8") as fh:
+                raw_items = json.load(fh)
+            cache_items = [yaml_cache.CacheItem.from_dict(item) for item in raw_items]
         except Exception as e:
-            log.warning("Could not read yaml cache %s: %s" % (cache_file, e))
+            # A missing, corrupt, or otherwise unreadable cache must never
+            # break initialization; fall back to reading YAML live from disk.
+            log.warning(f"Could not read yaml cache {cache_file}: {e}")
             return
 
-        try:
-            cache_items = pickle.load(fh)
-            yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
-        except Exception as e:
-            log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
-        else:
-            log.debug(
-                "Read %s items from yaml cache %s" % (len(cache_items), cache_file)
-            )
-        finally:
-            fh.close()
+        yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
+        log.debug(f"Read {len(cache_items)} items from yaml cache {cache_file}")
 
     ########################################################################################
     # general access and properties
