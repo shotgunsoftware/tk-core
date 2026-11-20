@@ -377,7 +377,7 @@ class MetricsDispatchWorkerThread(Thread):
     DISPATCH_BATCH_SIZE = 10
     """
     Worker will dispatch this many metrics at a time, or all if <= 0.
-    NOTE: the FlowPT site currently rejects batches larger than 10.
+    NOTE: the FlowPT (Shotgun) site currently rejects batches larger than 10.
     """
 
     def __init__(self, engine):
@@ -404,7 +404,7 @@ class MetricsDispatchWorkerThread(Thread):
         """Runs a loop to dispatch metrics that have been logged."""
 
         # First of all, check if metrics dispatch is supported
-        # connect to FlowPT and probe for the site version
+        # connect to FlowPT (Shotgun) and probe for the site version
         sg_connection = self._engine.shotgun
         self._endpoint_available = (
             hasattr(sg_connection, "server_caps")
@@ -574,7 +574,7 @@ class MetricsDispatchWorkerThread(Thread):
 
 class EventMetric(object):
     """
-    Convenience class for creating a metric event to be logged on a FlowPT site.
+    Convenience class for creating a metric event to be logged on a FlowPT (Shotgun) site.
 
     Use this helper class to create a suitable metric structure that you can
     then pass to the `tank.utils.metrics.EventMetric.log` method.

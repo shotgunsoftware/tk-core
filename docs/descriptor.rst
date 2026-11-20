@@ -517,7 +517,7 @@ This allows for a powerful workflow where a configuration is simply
 uploaded to Flow Production Tracking and it gets automatically picked up by all
 users (even if they are remote).
 
-The FlowPT descriptor is the low level mechanism that is used to implement the cloud
+The FlowPT (Shotgun) descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
 field in Flow Production Tracking and expects a zip file to be uploaded to the field.
 

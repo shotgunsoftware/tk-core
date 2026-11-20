@@ -210,7 +210,7 @@ class ConfigurationResolver(object):
         Creates a Configuration instance based on its associated descriptor object.
 
         :param cfg_descriptor: ConfigDescriptor for which we want to create a Configuration object.
-        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT (Shotgun) site.
         :param pc_id: Id of the pipeline configuration in FlowPT. Can be ``None``.
         """
 
@@ -269,7 +269,7 @@ class ConfigurationResolver(object):
         self, pipeline_config_name, current_login, sg_connection
     ):
         """
-        Retrieves pipeline configurations from FlowPT that are compatible with the given project.
+        Retrieves pipeline configurations from FlowPT (Shotgun) that are compatible with the given project.
 
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
@@ -387,7 +387,7 @@ class ConfigurationResolver(object):
         """
         Creates a configuration descriptor for a given pipeline configuration entry.
 
-        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT (Shotgun) site.
         :param dict shotgun_pc_data: Pipeline configuration dictionary with keys ``descriptor``,
             ``sg_descriptor`` and ``*_path`.
 
@@ -686,7 +686,7 @@ class ConfigurationResolver(object):
         :param str pipeline_config_name: Name of the pipeline configuration requested for. If ``None``,
             all pipeline configurations from the project will be matched.
         :param str current_login: Only retains non-primary configs from the specified user.
-        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT site.
+        :param sg_connection: :class:`~shotgun_api3.shotgun.Shotgun` connection to the FlowPT (Shotgun) site.
 
         :returns: The pipeline configurations that can be used with this project. The pipeline
             configurations will always be sorted such as the primary pipeline configuration, if available,
@@ -770,7 +770,7 @@ class ConfigurationResolver(object):
     ):
         """
         Return a configuration object by requesting a pipeline configuration
-        in FlowPT. If no suitable configuration is found, return a configuration
+        in FlowPT (Shotgun). If no suitable configuration is found, return a configuration
         for the given fallback config.
 
         :param pipeline_config_identifier: Name or id of configuration branch (e.g Primary).
@@ -858,18 +858,18 @@ class ConfigurationResolver(object):
 
         # now resolve the descriptor to use based on the pipeline config record
         # default to the fallback descriptor
-        # If no pipeline configuration was found in FlowPT, we will use the fallback descriptor.
+        # If no pipeline configuration was found in FlowPT (Shotgun), we will use the fallback descriptor.
         if pipeline_config is None:
             log.debug("No pipeline configuration found. Using fallback descriptor")
 
-            # We couldn't resolve anything from FlowPT, so we'll resolve the configuration using
+            # We couldn't resolve anything from FlowPT (Shotgun), so we'll resolve the configuration using
             # an offline resolve.
             return self.resolve_not_found_sg_configuration(
                 fallback_config_descriptor, sg_connection
             )
 
         else:
-            # Something was found in FlowPT, which means we've also potentially resolved its
+            # Something was found in FlowPT (Shotgun), which means we've also potentially resolved its
             # descriptor!
             log.debug(
                 "The following pipeline configuration will be used: %s"

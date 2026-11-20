@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-QT Login dialog for authenticating to a FlowPT site.
+QT Login dialog for authenticating to a FlowPT (Shotgun) site.
 
 --------------------------------------------------------------------------------
 NOTE! This module is part of the authentication library internals and should
@@ -69,7 +69,7 @@ THREAD_WAIT_TIMEOUT_MS = 5000
 
 def _is_running_in_desktop():
     """
-    Indicate if we are in the context of FlowPT Desktop.
+    Indicate if we are in the context of FlowPT Desktop (Shotgun Desktop).
 
     When FlowPT Desktop is used, we want to disregard the value returned
     by the call to `get_shotgun_authenticator_support_web_login()` when the

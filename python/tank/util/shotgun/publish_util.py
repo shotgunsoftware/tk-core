@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Utility methods related to Published Files in FlowPT
+Utility methods related to Published Files in FlowPT (Shotgun)
 """
 
 from ...log import LogManager
@@ -23,7 +23,7 @@ def get_entity_type_display_name(tk, entity_type_code):
     """
     Returns the display name for an entity type given its type name.
     For example, if a custom entity is named "Workspace" in the
-    FlowPT preferences, but is addressed as "CustomEntity03" in the
+    FlowPT (Shotgun) preferences, but is addressed as "CustomEntity03" in the
     FlowPT API, this method will resolve the display name::
 
         >>> get_entity_type_display_name(tk, "CustomEntity03")
@@ -57,7 +57,7 @@ def get_entity_type_display_name(tk, entity_type_code):
 
 def get_cached_local_storages(tk):
     """
-    Return a list of all FlowPT local storages.
+    Return a list of all FlowPT (Shotgun) local storages.
     Use an in-memory cache for performance
 
     :param tk: :class:`~sgtk.Sgtk` instance
@@ -81,7 +81,7 @@ def find_publish(
     tk, list_of_paths, filters=None, fields=None, only_current_project=True
 ):
     """
-    Finds publishes in FlowPT given paths on disk.
+    Finds publishes in FlowPT (Shotgun) given paths on disk.
     This method is similar to :meth:`~shotgun_api3.shotgun.Shotgun.find`,
     except that instead of an Entity type, a list of files is
     passed into the function.
@@ -248,7 +248,7 @@ def find_publish(
 @LogManager.log_timing
 def create_event_log_entry(tk, context, event_type, description, metadata=None):
     """
-    Creates an event log entry inside of FlowPT.
+    Creates an event log entry inside of FlowPT (Shotgun).
     Event log entries can be handy if you want to track a process or a sequence of events.
 
     :param tk: :class:`~sgtk.Sgtk` instance
@@ -290,7 +290,7 @@ def get_published_file_entity_type(tk):
 
     .. note:: This is for backwards compatibility situations only.
               Code targeting new installations can assume that
-              the published file type in FlowPT is always ``PublishedFile``.
+              the published file type in FlowPT (Shotgun) is always ``PublishedFile``.
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :returns: "PublishedFile" or "TankPublishedFile"

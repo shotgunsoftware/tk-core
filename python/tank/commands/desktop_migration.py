@@ -18,7 +18,7 @@ _MESSAGE = (
     "framework. You can see which version you are running in FlowPT Desktop's About "
     "Box. If you don't see the Startup version mentionned in the About Box, you must "
     "install the latest release of FlowPT Desktop.\n"
-    "WARNING: If there are people using older versions of FlowPT Desktop with your "
+    "WARNING: If there are people using older versions of Shotgun Desktop with your "
     "site, they will get an error when starting Desktop after the migration.."
 )
 
@@ -43,7 +43,7 @@ class DesktopMigration(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor (tank migrate_desktop)
-        Retrieves the pipeline configuration from FlowPT
+        Retrieves the pipeline configuration from FlowPT (Shotgun)
         and unassigns it from the Template Project.
 
         :param log: std python logger

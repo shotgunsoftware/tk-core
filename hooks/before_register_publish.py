@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Hook that gets executed before a publish record is created in FlowPT.
+Hook that gets executed before a publish record is created in FlowPT (Shotgun).
 This hook makes it possible to add custom fields to a publish before it gets created
 as well as modifying the content that is being pushed to FlowPT.
 """
@@ -20,7 +20,7 @@ from tank import Hook
 class BeforeRegisterPublish(Hook):
     def execute(self, shotgun_data, context, **kwargs):
         """
-        Executed just before a new publish entity is created in FlowPT.
+        Executed just before a new publish entity is created in FlowPT (Shotgun).
 
         The default implementation returns ``shotgun_data`` untouched.
 

@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-""":class:`~sgtk.authentication.ShotgunAuthenticator`, the entry point for FlowPT authentication."""
+""":class:`~sgtk.authentication.ShotgunAuthenticator`, the entry point for FlowPT (Shotgun) authentication."""
 
 from .. import LogManager
 from . import interactive_authentication, session_cache, user, user_impl
@@ -21,7 +21,7 @@ logger = LogManager.get_logger(__name__)
 
 class ShotgunAuthenticator(object):
     """
-    The ShotgunAuthenticator is the central object in the FlowPT authentication
+    The ShotgunAuthenticator is the central object in the FlowPT (Shotgun) authentication
     module. It helps you with authentication and login and makes it easy to
     create and maintain a shotgun connection so that it belongs to a given user.
     It also helps store who the current user is, so that users don't have to log
@@ -55,7 +55,7 @@ class ShotgunAuthenticator(object):
       one process to another, allowing you to maintain an experience where
       a user is authenticated across multiple applications. This is useful
       if you for example want to launch RV from Maya or Maya from the
-      FlowPT Desktop.
+      FlowPT Desktop (Shotgun Desktop).
 
     - The authenticator maintains the concept of a default user - which
       can be used in order to present good defaults in UIs as well as
@@ -111,7 +111,7 @@ class ShotgunAuthenticator(object):
 
         The DefaultsManager is called to pre-fill the host, login name, http_proxy and is_host_fixed if not provided.
 
-        :param host: FlowPT host to log in to. If None, the default host will be used.
+        :param host: FlowPT (Shotgun) host to log in to. If None, the default host will be used.
         :param login: FlowPT user login. If None, the default login will be used.
         :param http_proxy: FlowPT proxy to use. If None, the default http proxy will be used.
         :param is_host_fixed: Weither the host is fixed or not. If None, the default value will be used.
@@ -154,7 +154,7 @@ class ShotgunAuthenticator(object):
         Either a password or session token must be supplied. If a password is supplied,
         a session token will be generated for security reasons.
 
-        :param login: FlowPT user login
+        :param login: FlowPT (Shotgun) user login
         :param session_token: FlowPT session token
         :param password: FlowPT password
         :param host: FlowPT host to log in to. If None, the default host will be used.
@@ -192,7 +192,7 @@ class ShotgunAuthenticator(object):
         """
         Create an AuthenticatedUser given a set of script credentials.
 
-        :param api_script: FlowPT script user
+        :param api_script: FlowPT (Shotgun) script user
         :param api_key: FlowPT script key
         :param host: FlowPT host to log in to. If None, the default host will
                      be used.

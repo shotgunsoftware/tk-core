@@ -21,7 +21,7 @@ from .util import resolve_shotgun_filters, translate_filter_tokens
 
 class Entity(Folder):
     """
-    Represents an entity in FlowPT
+    Represents an entity in FlowPT (Shotgun)
     """
 
     @classmethod
@@ -90,10 +90,10 @@ class Entity(Folder):
 
         This is basically a shotgun API filter dictionary, but with interleaved tokens
         (e.g. the FilterExpressionToken object). Tank will resolve any Token fields prior to
-        passing the filter to FlowPT for evaluation.
+        passing the filter to FlowPT (Shotgun) for evaluation.
         """
 
-        # the schema name is the same as the FlowPT entity type
+        # the schema name is the same as the FlowPT (Shotgun) entity type
         Folder.__init__(self, parent, full_path, metadata)
 
         self._tk = tk
@@ -232,7 +232,7 @@ class Entity(Folder):
         for custom_field in self._get_additional_sg_fields():
             fields.add(custom_field)
 
-        # convert to a list - sets wont work with the FlowPT Python API
+        # convert to a list - sets wont work with the FlowPT Python API (shotgun_api3)
         fields_list = list(fields)
 
         # now find all the items (e.g. shots) matching this query

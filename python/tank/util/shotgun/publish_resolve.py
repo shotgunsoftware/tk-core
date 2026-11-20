@@ -29,7 +29,7 @@ log = LogManager.get_logger(__name__)
 
 def resolve_publish_path(tk, sg_publish_data):
     """
-    Returns a local path on disk given a dictionary of FlowPT publish data.
+    Returns a local path on disk given a dictionary of FlowPT (Shotgun) publish data.
 
     This acts as the inverse of :meth:`register_publish` and
     resolves a local path on disk given some FlowPT publish data,
@@ -119,7 +119,7 @@ def __resolve_local_file_link(tk, attachment_data):
     For details, see :meth:`resolve_publish_path`.
 
     :param tk: :class:`~sgtk.Sgtk` instance
-    :param attachment_data: FlowPT Attachment dictionary.
+    :param attachment_data: FlowPT (Shotgun) Attachment dictionary.
 
     :returns: A local path to file or file sequence or None if it cannot be resolved.
     """
@@ -240,7 +240,7 @@ def __resolve_url_link(tk, attachment_data):
     For details, see :meth:`resolve_publish_path`.
 
     :param tk: :class:`~sgtk.Sgtk` instance
-    :param attachment_data: Dictionary containing FlowPT publish data.
+    :param attachment_data: Dictionary containing FlowPT (Shotgun) publish data.
         Needs to at least contain a code, type, id and a path key.
 
     :returns: A local path to file or file sequence.

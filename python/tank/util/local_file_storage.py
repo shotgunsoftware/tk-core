@@ -65,7 +65,7 @@ class LocalFileStorageManager(object):
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
         """
-        Returns a generic FlowPT storage root.
+        Returns a generic FlowPT (Shotgun) storage root.
 
         The following paths will be used:
 
@@ -207,7 +207,7 @@ class LocalFileStorageManager(object):
 
         .. note:: This method does not ensure that the folder exists.
 
-        :param hostname: FlowPT hostname as string, e.g. 'https://foo.shotgunstudio.com'
+        :param hostname: FlowPT (Shotgun) hostname as string, e.g. 'https://foo.shotgunstudio.com'
         :param path_type: Type of path to return. One of ``LocalFileStorageManager.LOGGING``,
                           ``LocalFileStorageManager.CACHE``, ``LocalFileStorageManager.PERSISTENT``, where
                           logging is a path where log- and debug related data should be stored,
@@ -256,7 +256,7 @@ class LocalFileStorageManager(object):
 
         - A well defined project id should always be passed. Passing None as the project
           id indicates that the *site* configuration, a special toolkit configuration
-          that represents the non-project state in FlowPT.
+          that represents the non-project state in FlowPT (Shotgun).
 
         - Configurations that have a pipeline configuration in FlowPT should pass in
           a pipeline configuration id. When a pipeline configuration is not registered

@@ -18,7 +18,7 @@ up to require users to log in by default, meaning that there already is a well
 established notion of who the current user is.
 
 Even with such projects, there are environments, e.g. render farms, where a user
-cannot easily log in, and a FlowPT script user typically is being used for
+cannot easily log in, and a FlowPT (Shotgun) script user typically is being used for
 "headless" operation of Toolkit. In these cases, Toolkit doesn't know which
 FlowPT user is associated with the operation and this hook will be called.
 
@@ -36,7 +36,7 @@ from tank.util import is_windows
 class GetCurrentLogin(Hook):
     def execute(self, **kwargs):
         """
-        Retrieves the login name for the FlowPT user.
+        Retrieves the login name for the FlowPT (Shotgun) user.
 
         This is used by Toolkit to resolve against the ``login`` field in the
         FlowPT users table in order to extract further metadata.

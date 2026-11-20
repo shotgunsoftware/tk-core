@@ -144,7 +144,7 @@ class ProjectSetupParameters(object):
 
     def validate_config_uri(self, config_uri):
         r"""
-        Validates a configuration template to check if it is compatible with the current FlowPT setup.
+        Validates a configuration template to check if it is compatible with the current FlowPT (Shotgun) setup.
         This will download the config, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
 
@@ -355,14 +355,14 @@ class ProjectSetupParameters(object):
     def get_storage_shotgun_id(self, storage_name):
         """
         Given a storage name as defined in the configuration roots, return the
-        corresponding shotgun id as defined in FlowPT. If no FlowPT storage can
+        corresponding shotgun id as defined in FlowPT (Shotgun). If no FlowPT storage can
         be correlated, return None.
         """
         return self._storage_data.get(storage_name, {}).get("shotgun_id")
 
     def get_storage_path(self, storage_name, platform):
         """
-        Returns the storage root path given a platform and a storage, as defined in FlowPT
+        Returns the storage root path given a platform and a storage, as defined in FlowPT (Shotgun)
         Note that this path has not been cleaned up, and may for example contain slashes at the end.
 
         :param storage_name: Storage name
@@ -392,14 +392,14 @@ class ProjectSetupParameters(object):
 
     def upload_configuration(self, pipeline_config_id):
         """
-        Zips up and then uploads the configuration to FlowPT.
+        Zips up and then uploads the configuration to FlowPT (Shotgun).
 
         :param int pipeline_config_id: Pipeline configuration id to upload to.
         """
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        # compose a filename for the zip file that will be uploaded to FlowPT
+        # compose a filename for the zip file that will be uploaded to FlowPT (Shotgun)
         # this will also be the name that is displayed on the attachment in FlowPT
         zip_filename = "%s.zip" % (self._config_template.version or "config")
 
@@ -422,7 +422,7 @@ class ProjectSetupParameters(object):
             # update the roots.yml file in the config to
             # match the storage selections we have made in the wizard
             # e.g. link up a storage name e.g. 'primary' in the config
-            # against a local storage id in FlowPT.
+            # against a local storage id in FlowPT (Shotgun).
             #
             # Note: We don't write any paths to the roots.yml -
             # these are resolved at bootstrap time.
@@ -443,7 +443,7 @@ class ProjectSetupParameters(object):
                 ):
                     roots_data[storage_name]["default"] = True
 
-                # if there is a FlowPT local storage associated with this root, make sure
+                # if there is a FlowPT (Shotgun) local storage associated with this root, make sure
                 # it is explicit in the the roots file. this allows roots to exist that
                 # are not named the same as the storage in FlowPT
                 sg_storage_id = self.get_storage_shotgun_id(storage_name)
@@ -487,7 +487,7 @@ class ProjectSetupParameters(object):
         """
         Sets the project id and validates that this id is valid.
 
-        :param project_id: FlowPT project id. Passing None means we are configuring the site
+        :param project_id: FlowPT (Shotgun) project id. Passing None means we are configuring the site
                            configuration.
         :param force: If true, existing projects can be overwritten
         """
@@ -617,7 +617,7 @@ class ProjectSetupParameters(object):
         """
         Returns the project id for the project to be set up.
 
-        :returns: FlowPT project id as int or None if the id is not set.
+        :returns: FlowPT (Shotgun) project id as int or None if the id is not set.
         """
         return self._project_id
 
@@ -670,7 +670,7 @@ class ProjectSetupParameters(object):
         """
         Defines if auto-path should be on or off.
         Auto-path means that the pipeline configuration entry in
-        FlowPT does not actually encode the path to where the configuration
+        FlowPT (Shotgun) does not actually encode the path to where the configuration
         is located on disk - this is instead purely kept on the disk side
 
         :param status: boolean indicating if auto path should be used
@@ -1214,7 +1214,7 @@ class TemplateConfiguration(object):
 
     def resolve_storages(self):
         r"""
-        Validate that the roots exist in shotgun. Communicates with FlowPT.
+        Validate that the roots exist in shotgun. Communicates with FlowPT (Shotgun).
 
         Returns the root paths from shotgun for each storage.
 
@@ -1257,7 +1257,7 @@ class TemplateConfiguration(object):
         # a dictionary of info to return
         storage_info = {}
 
-        # do the storage lookup and mapping in FlowPT
+        # do the storage lookup and mapping in FlowPT (Shotgun)
         local_storage_lookup, unmapped_roots = self._storage_roots.get_local_storages(
             self._sg
         )
@@ -1278,12 +1278,12 @@ class TemplateConfiguration(object):
                 storage_info[root_name][key] = root_info.get(key)
 
             if root_name in unmapped_roots:
-                # not mapped to a storage in FlowPT
+                # not mapped to a storage in FlowPT (Shotgun)
                 storage_info[root_name]["shotgun_id"] = None
                 storage_info[root_name]["defined_in_shotgun"] = False
                 storage_info[root_name]["exists_on_disk"] = False
             else:
-                # mapped to a FlowPT storage
+                # mapped to a FlowPT (Shotgun) storage
                 local_storage = local_storage_lookup[root_name]
 
                 storage_info[root_name]["defined_in_shotgun"] = True

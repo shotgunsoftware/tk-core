@@ -9,13 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Utilities relating to FlowPT entities
+Utilities relating to FlowPT (Shotgun) entities
 """
 
 from ..errors import TankError
 from . import constants, sgre as re
 
-# A dictionary for FlowPT entities which do not store their name
+# A dictionary for FlowPT (Shotgun) entities which do not store their name
 # in the standard "code" field.
 SG_ENTITY_SPECIAL_NAME_FIELDS = {
     "ActionMenuItem": "title",
@@ -46,7 +46,7 @@ SG_ENTITY_SPECIAL_NAME_FIELDS = {
 
 def get_sg_entity_name_field(entity_type):
     """
-    Return the FlowPT name field to use for the specified entity type.
+    Return the FlowPT (Shotgun) name field to use for the specified entity type.
 
     :param str entity_type: The entity type to get the name field for.
     :returns: The name field for the specified entity type.
@@ -57,7 +57,7 @@ def get_sg_entity_name_field(entity_type):
 
 def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
-    Generates a string value given a FlowPT value.
+    Generates a string value given a FlowPT (Shotgun) value.
     This logic is in a hook but it typically does conversions such as:
 
     * "foo" ==> "foo"
@@ -85,7 +85,7 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
 
 class EntityExpression(object):
     """
-    Represents a name expression for a FlowPT entity.
+    Represents a name expression for a FlowPT (Shotgun) entity.
     A name expression converts a pattern and a set of FlowPT data into a string:
 
     Expression                 FlowPT Entity Data                          String Result
@@ -109,7 +109,7 @@ class EntityExpression(object):
 
     def __init__(self, tk, entity_type, field_name_expr):
         """
-        :param str entity_type: Associated FlowPT entity type.
+        :param str entity_type: Associated FlowPT (Shotgun) entity type.
         :param str field_name_expr: Expression, e.g. '{code}/foo'
         """
         self._tk = tk
@@ -230,7 +230,7 @@ class EntityExpression(object):
 
     def get_shotgun_fields(self):
         """
-        Returns the FlowPT fields that are needed in order to
+        Returns the FlowPT (Shotgun) fields that are needed in order to
         build this name expression. Returns all fields, including optional.
 
         :returns: Set of FlowPT field names, e.g. ('code', 'sg_sequence.Sequence.code')
@@ -325,11 +325,11 @@ class EntityExpression(object):
         """
         field_defs = self._variations[expression]
 
-        # convert FlowPT values to string values
+        # convert FlowPT (Shotgun) values to string values
         # key these by their full expression
         str_data = {}
 
-        # get the FlowPT id from the FlowPT entity dict
+        # get the FlowPT (Shotgun) id from the FlowPT entity dict
         sg_id = values.get("id")
 
         # first make sure that each field is valid
@@ -337,7 +337,7 @@ class EntityExpression(object):
             full_sg_field_name = field_def["full_field_name"]
             token = field_def["token"]
 
-            # get value from FlowPT data dict
+            # get value from FlowPT (Shotgun) data dict
             raw_val = values.get(full_sg_field_name)
             if raw_val is None:
                 # cannot resolve this!

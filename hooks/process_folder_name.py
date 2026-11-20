@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Core hook which handles conversion of FlowPT field data into strings.
+Core hook which handles conversion of FlowPT (Shotgun) field data into strings.
 
 This hook can be used to control how folders are named on disk given
 a field in FlowPT. Should for example spaces be replaced by underscores
@@ -41,7 +41,7 @@ class ProcessFolderName(Hook):
         For example, ``{"type":"Shot", "id":123, "name":"Pont de L\xc3\xa9vis"}`` would
         be converted to ``Pont_de_L-vis``.
 
-        :param str entity_type: The FlowPT entity type for which the value is taken.
+        :param str entity_type: The FlowPT (Shotgun) entity type for which the value is taken.
         :param int entity_id: The entity id representing the data.
         :param str field_name: The FlowPT field associated with the value.
         :param object value: The actual value in some form, as returned by :class:`~shotgun_api3.shotgun.Shotgun`.

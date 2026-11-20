@@ -54,7 +54,7 @@ class Context(object):
     and something as vague as an empty context.
 
     The context is split up into several levels of granularity, reflecting the
-    fundamental hierarchy of FlowPT itself.
+    fundamental hierarchy of FlowPT (Shotgun) itself.
 
     - The project level defines which shotgun project the context reflects.
     - The entity level defines which entity the context reflects. For example,
@@ -225,7 +225,7 @@ class Context(object):
         elif self.additional_entities or other.additional_entities:
             return False
 
-        # finally compare the user - this may result in a FlowPT look-up
+        # finally compare the user - this may result in a FlowPT (Shotgun) look-up
         # so do this last!
         if not _entity_dicts_eq(self.user, other.user):
             return False
@@ -318,7 +318,7 @@ class Context(object):
     @property
     def source_entity(self):
         """
-        The FlowPT entity that was used to construct this Context.
+        The FlowPT (Shotgun) entity that was used to construct this Context.
 
         This is not necessarily the same as the context's "entity", as there
         are situations where a context is interpreted from an input entity,
@@ -616,7 +616,7 @@ class Context(object):
         the Sgtk API. In order for the system to pass suitable values, you need to
         pass the template you intend to use the data with as a parameter to this method.
         The values are derived from existing paths on disk, or in the case of keys with
-        shotgun_entity_type and shotgun_entity_field settings, direct queries to the FlowPT
+        shotgun_entity_type and shotgun_entity_field settings, direct queries to the FlowPT (Shotgun)
         site. The validate parameter can be used to ensure that the method returns all
         context fields required by the template and if it can't then a :class:`TankError` will be raised.
         Example::
@@ -691,7 +691,7 @@ class Context(object):
         if isinstance(template, TemplatePath):
             # first, sanity check that we actually have a path cache entry
             # this relates to ticket 22541 where it is possible to create
-            # a context object purely from FlowPT without having it in the path cache
+            # a context object purely from FlowPT (Shotgun) without having it in the path cache
             # (using tk.context_from_entity(Task, 1234) for example)
             #
             # Such a context can result in erronous lookups in the later commands
@@ -763,7 +763,7 @@ class Context(object):
             >>> copied_ctx.user
             {'type': 'HumanUser', 'id': 23, 'name': 'John Snow'}
 
-        :param user:  The FlowPT user entity dictionary that should be set on the copied context
+        :param user:  The FlowPT (Shotgun) user entity dictionary that should be set on the copied context
         :returns: :class:`Context`
         """
         ctx_copy = copy.deepcopy(self)
@@ -793,7 +793,7 @@ class Context(object):
         Any Context object can be serialized to/deserialized from a string.
         This can be useful if you need to pass a Context between different processes.
         As an example, the ``tk-multi-launchapp`` uses this mechanism to pass the Context
-        from the launch process (e.g. for example FlowPT Desktop) to the
+        from the launch process (for example FlowPT Desktop, formerly Shotgun Desktop) to the
         Application (e.g. Maya) being launched. Example:
 
             >>> import sgtk
@@ -919,7 +919,7 @@ class Context(object):
         """
         Cleanup the entity dictionary.
 
-        :param dict entity: FlowPT entity object.
+        :param dict entity: FlowPT (Shotgun) entity object.
 
         On Python 3, we have to be very careful about what we pickle because if we start
         serializing non-builtin types like datetimes we won't be able to cast back the pickle
@@ -1005,7 +1005,7 @@ class Context(object):
 
     def _fields_from_shotgun(self, template, entities, validate):
         """
-        Query the FlowPT site for keys used by this template whose values come directly
+        Query the FlowPT (Shotgun) site for keys used by this template whose values come directly
         from FlowPT fields.
 
         :param template: Template to retrieve FlowPT fields for.
@@ -1395,7 +1395,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
     """
     Constructs a context from the entity type and id as stored in the given
     entity. Any other data necessary to construct the context beyond the type
-    and id keys will be queried from FlowPT. To get a context from a fully
+    and id keys will be queried from FlowPT (Shotgun). To get a context from a fully
     populated entity dictionary, see the from_entity_dictionary function.
 
     For more information, see :meth:`Sgtk.context_from_entity`.
@@ -1514,7 +1514,7 @@ def from_entity_dictionary(tk, entity_dictionary):
 
 def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
     """
-    Constructs a context from a FlowPT entity dictionary.
+    Constructs a context from a FlowPT (Shotgun) entity dictionary.
 
     For more information, see :meth:`Sgtk.context_from_entity_dictionary`.
 
@@ -1984,7 +1984,7 @@ def _task_from_sg(tk, task_id, additional_fields=None):
 
 def _entity_from_sg(tk, entity_type, entity_id):
     """
-    Determines the entity details for the specified entity type and id by querying FlowPT.
+    Determines the entity details for the specified entity type and id by querying FlowPT (Shotgun).
 
     If entity_type is 'Project' then this will return a single dictionary for the project.  For all
     other entity types, this will return dictionaries for both the entity and the project the entity
@@ -2005,7 +2005,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
     # get the sg name field for the specified entity type:
     name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
 
-    # get the entity data from FlowPT
+    # get the entity data from FlowPT (Shotgun)
     data = tk.shotgun.find_one(
         entity_type, [["id", "is", entity_id]], ["project", name_field]
     )
@@ -2041,7 +2041,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     """Adds data to context based on path cache.
 
     :param tk: a Sgtk API instance
-    :param entity_type: a FlowPT entity type
+    :param entity_type: a FlowPT (Shotgun) entity type
     :param entity_id: a FlowPT entity id
     """
     context = {}

@@ -19,7 +19,7 @@ from .util import translate_filter_tokens
 
 class ShotgunTask(Entity):
     """
-    Represents a FlowPT Task
+    Represents a FlowPT (Shotgun) Task
     """
 
     @classmethod
@@ -205,7 +205,7 @@ class ShotgunTask(Entity):
         :param path:        The file system path to the location where this folder should be
                             created.
 
-        :param entity:      FlowPT data dictionary for the item, containing all fields required by
+        :param entity:      FlowPT (Shotgun) data dictionary for the item, containing all fields required by
                             the configuration + the ones specified by :meth:`_get_additional_sg_fields`.
         """
         # call base class implementation

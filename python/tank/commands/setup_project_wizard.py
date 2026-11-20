@@ -90,7 +90,7 @@ class SetupProjectFactoryAction(Action):
 
     def _shotgun_connect(self, log):
         """
-        Connects to FlowPT.
+        Connects to FlowPT (Shotgun).
 
         :returns: :class:`~shotgun_api3.shotgun.Shotgun` handle.
         :raises: TankError on failure
@@ -158,7 +158,7 @@ class SetupProjectWizard(object):
         """
         Specify which project that should be set up.
 
-        :param project_id: FlowPT id for the project that should be set up.
+        :param project_id: FlowPT (Shotgun) id for the project that should be set up.
         :param force: Allow for the setting up of existing projects.
         """
         self._params.set_project_id(project_id, force)
@@ -177,7 +177,7 @@ class SetupProjectWizard(object):
 
     def validate_config_uri(self, config_uri):
         r"""
-        Validates a configuration template to check if it is compatible with the current FlowPT setup.
+        Validates a configuration template to check if it is compatible with the current FlowPT (Shotgun) setup.
         This will download the configuration, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
 
@@ -324,7 +324,7 @@ class SetupProjectWizard(object):
                         "win32" : "c:\textures\project_name"}}
 
         The operating systems are enumerated using sys.platform jargon.
-        If a path doesn't have a valid storage path defined in FlowPT,
+        If a path doesn't have a valid storage path defined in FlowPT (Shotgun),
         it will be returned as None. If the project name is not valid,
         None values will be returned for all paths.
 
@@ -561,7 +561,7 @@ class SetupProjectWizard(object):
         using_runtime - If set to true, this indicates that the core used for the setup will be picked up
                         from the currently executing core API.
 
-        pipeline_config - If the core is picked up from an existing pipeline configuration in FlowPT, this
+        pipeline_config - If the core is picked up from an existing pipeline configuration in FlowPT (Shotgun), this
                           parameter will hold a dictionary with various shotgun values representing the
                           pipeline configuration and its associated project. If the core used to create the project
                           is not associated with an existing pipeline configuration, None is returned.
@@ -759,7 +759,7 @@ class SetupProjectWizard(object):
             # the site we are configuring supports the authentication module, ie,
             # Shotgun 6.0.2 and greater.
 
-            # this is primarily targeting FlowPT Desktop, meaning that even if
+            # this is primarily targeting FlowPT Desktop (Shotgun Desktop), meaning that even if
             # FlowPT Desktop's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 

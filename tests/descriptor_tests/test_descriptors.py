@@ -721,7 +721,7 @@ class TestConstraintValidation(unittest.TestCase):
 
     def setUp(self):
         """
-        Ensures the FlowPT version cache is cleared between tests.
+        Ensures the FlowPT (Shotgun) version cache is cleared between tests.
         """
         super().setUp()
         # Set the server info on the Mockgun object.
@@ -738,7 +738,7 @@ class TestConstraintValidation(unittest.TestCase):
         so we can have some settings from info.yml
 
         :param version_constraints: Dictionary with keys min_sg, min_core and min_engine
-            which are used to specify minimum version of FlowPT, Core and Engine.
+            which are used to specify minimum version of FlowPT (Shotgun), Core and Engine.
         :param supported_engines: List of engines that are supported by this descriptor.
         :param sg_connection: Connection to the current FlowPT site. This will be used
             for comparing the version of FlowPT with the descriptor. If None, a
@@ -766,7 +766,7 @@ class TestConstraintValidation(unittest.TestCase):
 
     def test_min_sg_constraint_pass(self):
         """
-        Ensures that having a greater or equal version of FlowPT works.
+        Ensures that having a greater or equal version of FlowPT (Shotgun) works.
         """
         self._create_descriptor(
             version_constraints={"min_sg": "6.6.6"}, supported_engines=None
@@ -774,7 +774,7 @@ class TestConstraintValidation(unittest.TestCase):
 
     def test_min_sg_constraint_fail(self):
         """
-        Ensures that having an older version of FlowPT fails.
+        Ensures that having an older version of FlowPT (Shotgun) fails.
         """
 
         with self.assertRaises(CheckVersionConstraintsError) as ctx:
@@ -885,7 +885,7 @@ class TestConstraintValidation(unittest.TestCase):
 
     def test_min_desktop_constraint_pass(self):
         """
-        Ensures that having a greater or equal version of FlowPT works.
+        Ensures that having a greater or equal version of FlowPT (Shotgun) works.
         """
         self._create_descriptor(
             version_constraints={"min_desktop": "6.6.6"}, supported_engines=None
@@ -893,7 +893,7 @@ class TestConstraintValidation(unittest.TestCase):
 
     def test_min_desktop_constraint_fail(self):
         """
-        Ensures that having an older version of FlowPT fails.
+        Ensures that having an older version of FlowPT (Shotgun) fails.
         """
         with self.assertRaises(CheckVersionConstraintsError) as ctx:
             self._create_descriptor(
@@ -945,7 +945,7 @@ class TestConstraintValidation(unittest.TestCase):
         with self.assertRaises(CheckVersionConstraintsError) as ctx:
             self._create_descriptor(
                 version_constraints={
-                    # No need to test for core or FlowPT since passing None uses the current core
+                    # No need to test for core or FlowPT (Shotgun) since passing None uses the current core
                     # and FlowPT version instead.
                     "min_engine": "v4.4.4",
                     "min_desktop": "v3.3.4",

@@ -428,7 +428,7 @@ class Engine(TankBundle):
             except Exception:
                 # QT import failed. This may be because someone has upgraded the core
                 # to the latest but are still running a earlier version of the
-                # FlowPT or Shell engine where the self.has_ui method is not
+                # FlowPT (Shotgun) or Shell engine where the self.has_ui method is not
                 # correctly implemented. In that case, absorb the error and
                 # emit a log message
                 self.log_info("[%s] %s" % (title, details))
@@ -652,7 +652,7 @@ class Engine(TankBundle):
         """
         Indicates this engine will allow the metrics worker threads to forward
         the user metrics logged via core, this engine, or registered apps to
-        FlowPT.
+        FlowPT (Shotgun).
 
         :returns: boolean value indicating that the engine allows user metrics
             to be forwarded to FlowPT.
@@ -920,10 +920,10 @@ class Engine(TankBundle):
         Register a ``command`` with a name and a callback function.
 
         A *command* refers to an access point for some functionality.
-        In most cases, commands will appear as items on a FlowPT dropdown
+        In most cases, commands will appear as items on a FlowPT (Shotgun) dropdown
         menu, but it ultimately depends on the engine - in the Shell engine,
         commands are instead represented as a text base listing and in the
-        FlowPT Desktop it is a scrollable list of larger icons.
+        FlowPT Desktop (Shotgun Desktop) it is a scrollable list of larger icons.
 
         .. note:: This method is used to add menu entries for launching
            toolkit UIs. If you wish to register a panel UI with toolkit,
@@ -1527,7 +1527,7 @@ class Engine(TankBundle):
 
     def _ensure_core_fonts_loaded(self):
         """
-        Loads the FlowPT approved fonts that are bundled with tk-core.
+        Loads the FlowPT (Shotgun) approved fonts that are bundled with tk-core.
 
         This method ensures that the FlowPT approved fonts bundled with core
         are loaded into Qt's font database. This allows them to be used by apps

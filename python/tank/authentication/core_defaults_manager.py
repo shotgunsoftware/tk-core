@@ -52,7 +52,7 @@ class CoreDefaultsManager(DefaultsManager):
 
     def get_http_proxy(self):
         """
-        Returns an optional proxy string to be used when connecting to FlowPT.
+        Returns an optional proxy string to be used when connecting to FlowPT (Shotgun).
         For detailed information about what proxy settings are supported, see
         https://github.com/shotgunsoftware/python-api/wiki/Reference%3A-Methods#shotgun
 
@@ -73,7 +73,7 @@ class CoreDefaultsManager(DefaultsManager):
         available.
 
         :returns: A dictionary either with keys login and session_token in the case
-                  of a normal FlowPT User, keys api_script and api_key in the case of a Script
+                  of a normal FlowPT (Shotgun) User, keys api_script and api_key in the case of a Script
                   User or None in case no credentials could be established.
         """
         if not self._mask_script_user:

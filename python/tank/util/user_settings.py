@@ -236,8 +236,8 @@ class UserSettings(Singleton):
 
             - The ``SGTK_PREFERENCES_LOCATION`` environment variable.
             - The ``SGTK_DESKTOP_CONFIG_LOCATION`` environment variable.
-            - The FlowPT folder.
-            - FlowPT Desktop folder.
+            - The FlowPT (Shotgun) folder.
+            - FlowPT Desktop (Shotgun Desktop) folder.
 
         :returns: The location where to read the configuration file from.
         """
@@ -256,7 +256,7 @@ class UserSettings(Singleton):
             self._evaluate_env_var("SGTK_DESKTOP_CONFIG_LOCATION"),
             # Default location first
             default_location,
-            # This is the location set by users of FlowPT Desktop in the past.
+            # This is the location set by users of FlowPT Desktop (Shotgun Desktop) in the past.
             os.path.join(
                 LocalFileStorageManager.get_global_root(
                     LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17

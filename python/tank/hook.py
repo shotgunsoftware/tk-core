@@ -46,7 +46,7 @@ class Hook(object):
 
             def list_actions(self, sg_publish_data):
                 '''
-                Given some FlowPT publish data, return a list of
+                Given some FlowPT (Shotgun) publish data, return a list of
                 actions that can be performed
 
                 :param sg_publish_data: Dictionary of publish data from FlowPT
@@ -248,7 +248,7 @@ class Hook(object):
         :class:`~sgtk.platform.Engine` instance. For core hooks, the
         parent object will be :class:`sgtk`.
 
-        .. note:: If you need to access FlowPT inside your hook, you can do this by
+        .. note:: If you need to access FlowPT (Shotgun) inside your hook, you can do this by
                   calling ``self.parent.shotgun`` since both Apps, Engines and the Core API
                   has a ``shotgun`` property.
         """
@@ -256,7 +256,7 @@ class Hook(object):
 
     def get_publish_path(self, sg_publish_data):
         """
-        Returns the path on disk for a publish entity in FlowPT.
+        Returns the path on disk for a publish entity in FlowPT (Shotgun).
 
         Convenience method that calls :meth:`sgtk.util.resolve_publish_path`.
 

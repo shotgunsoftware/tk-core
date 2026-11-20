@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Methods for connecting to FlowPT
+Methods for connecting to FlowPT (Shotgun)
 """
 
 import os
@@ -136,7 +136,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
 
 def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
     """
-    Returns the FlowPT configuration yml parameters given a config file, just like
+    Returns the FlowPT (Shotgun) configuration yml parameters given a config file, just like
     __get_sg_config_data, but the script user is expected to be present or an exception will be
     thrown.
 
@@ -299,7 +299,7 @@ def sanitize_url(server_url):
 def get_associated_sg_base_url():
     """
     Returns the shotgun url which is associated with this Toolkit setup.
-    This is an optimization, allowing code to get the FlowPT site URL
+    This is an optimization, allowing code to get the FlowPT (Shotgun) site URL
     without having to create a shotgun connection and then inspecting
     the base_url property.
 
@@ -390,7 +390,7 @@ def create_sg_connection(user="default"):
     Always consider using tk.shotgun and if you don't have a tk instance,
     consider using get_sg_connection().
 
-    Whenever a :class:`~shotgun_api3.shotgun.Shotgun` instance is created, it pings the FlowPT site to check that
+    Whenever a :class:`~shotgun_api3.shotgun.Shotgun` instance is created, it pings the FlowPT (Shotgun) site to check that
     it is running the right versions etc. This is slow and inefficient and means that
     there will be a delay every time create_sg_connection is called.
 

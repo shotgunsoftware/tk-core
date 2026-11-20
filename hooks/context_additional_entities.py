@@ -30,7 +30,7 @@ class ContextAdditionalEntities(Hook):
 
         The method should return a dictionary with two lists:
 
-        **entity_types_in_path** (:class:`list`) - A list of FlowPT entity types
+        **entity_types_in_path** (:class:`list`) - A list of FlowPT (Shotgun) entity types
         (ie. CustomNonProjectEntity05) that :meth:`sgtk.Sgtk.context_from_path`
         should recognize and insert into :attr:`sgtk.Context.additional_entities`.
 

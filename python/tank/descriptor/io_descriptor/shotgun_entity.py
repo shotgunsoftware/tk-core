@@ -61,7 +61,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     When a new zip file is uploaded, the attachment id (e.g. version) changes, resulting in
     a new descriptor.
 
-    The latest version is defined as the current record available in FlowPT.
+    The latest version is defined as the current record available in FlowPT (Shotgun).
     """
 
     _MODE_ID_BASED, _MODE_NAME_BASED = range(2)
@@ -341,7 +341,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         :return: True if a remote is accessible, false if not.
         """
-        # check if we can connect to FlowPT
+        # check if we can connect to FlowPT (Shotgun)
         can_connect = True
         try:
             log.debug(

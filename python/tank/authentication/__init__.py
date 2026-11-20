@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-The FlowPT Authentication module.
+The FlowPT (Shotgun) Authentication module.
 
 This module provides the user with a dialog or console prompts
 to retrieve the login and password from a user in order to authenticate. A session is then

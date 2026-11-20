@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-Defines the supported types of authentication methods with FlowPT. You can
+Defines the supported types of authentication methods with FlowPT (Shotgun). You can
 either authenticate with a session token with the SessionUser class or with an
 api key with the ScriptUser class. This module is meant to be used internally.
 
@@ -38,14 +38,14 @@ logger = LogManager.get_logger(__name__)
 
 class ShotgunUserImpl(object):
     """
-    Abstract base class for a FlowPT user. It tracks the user's host and proxy.
+    Abstract base class for a FlowPT (Shotgun) user. It tracks the user's host and proxy.
     """
 
     def __init__(self, host, http_proxy):
         """
         Constructor.
 
-        :param host: Host for this FlowPT user.
+        :param host: Host for this FlowPT (Shotgun) user.
         :param http_proxy: HTTP proxy to use with this host.
         """
         if not host:
@@ -155,7 +155,7 @@ class ShotgunUserImpl(object):
 
 class SessionUser(ShotgunUserImpl):
     """
-    A user that authenticates to the FlowPT site using a session token.
+    A user that authenticates to the FlowPT (Shotgun) site using a session token.
     """
 
     def __init__(
@@ -170,7 +170,7 @@ class SessionUser(ShotgunUserImpl):
         """
         Constructor.
 
-        :param host: Host for this FlowPT user.
+        :param host: Host for this FlowPT (Shotgun) user.
         :param login: Login name for the user.
         :param session_token: Session token for the user. If session token is None
             the session token will be looked for in the users file.
@@ -283,7 +283,7 @@ class SessionUser(ShotgunUserImpl):
 
     def resolve_entity(self):
         """
-        Resolves the FlowPT entity associated with this user.
+        Resolves the FlowPT (Shotgun) entity associated with this user.
 
         :returns: A dictionary with ``type`` and ``id`` values.
         :rtype: dict
@@ -302,7 +302,7 @@ class SessionUser(ShotgunUserImpl):
         """
         Checks if the credentials for the user are expired.
 
-        This check is done solely on the FlowPT side. If SSO is being used,
+        This check is done solely on the FlowPT (Shotgun) side. If SSO is being used,
         we do not attempt to contact the IdP to validate the session.
 
         :returns: True if the credentials are expired, False otherwise.
@@ -330,7 +330,7 @@ class SessionUser(ShotgunUserImpl):
             # expired. We check if we were given a 302 and the
             # saml_login_request URL.
             # But if we get there, it means our session_token is still valid
-            # as far as FlowPT is concerned.
+            # as far as FlowPT (Shotgun) is concerned.
             if (
                 e.errcode == http.client.FOUND
                 and "location" in e.headers
@@ -418,14 +418,14 @@ class SessionUser(ShotgunUserImpl):
 
 class ScriptUser(ShotgunUserImpl):
     """
-    User that authenticates to the FlowPT site using a api name and api key.
+    User that authenticates to the FlowPT (Shotgun) site using a api name and api key.
     """
 
     def __init__(self, host, api_script, api_key, http_proxy):
         """
         Constructor.
 
-        :param host: Host for this FlowPT user.
+        :param host: Host for this FlowPT (Shotgun) user.
         :param api_script: API script name.
         :param api_key: API script key.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
@@ -458,7 +458,7 @@ class ScriptUser(ShotgunUserImpl):
 
     def resolve_entity(self):
         """
-        Resolves the FlowPT entity associated with this user.
+        Resolves the FlowPT (Shotgun) entity associated with this user.
 
         :returns: A dictionary with ``type`` and ``id`` values.
         :rtype: dict

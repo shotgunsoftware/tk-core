@@ -19,7 +19,7 @@ from .action_base import Action
 
 class UnregisterFoldersAction(Action):
     """
-    Tank command for unregistering a folder on disk from FlowPT. This is part of the process of
+    Tank command for unregistering a folder on disk from FlowPT (Shotgun). This is part of the process of
     the deletion of a folder on disk. As part of removing or moving, the folder needs to be
     unregistered with FlowPT to ensure that the connection between that path and the related
     entity is undone.
@@ -184,7 +184,7 @@ class UnregisterFoldersAction(Action):
                   Each dictionary has keys path and entity, where entity is a standard
                   FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  FlowPT rather than live ones.
+                  FlowPT (Shotgun) rather than live ones.
         """
 
         if self.tk.pipeline_configuration.is_site_configuration():
@@ -223,7 +223,7 @@ class UnregisterFoldersAction(Action):
                   Each dictionary has keys path and entity, where entity is a standard
                   FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  FlowPT rather than live ones.
+                  FlowPT (Shotgun) rather than live ones.
         """
         log.debug("Will unregister folders for the following root paths:")
         for p in paths:
@@ -255,7 +255,7 @@ class UnregisterFoldersAction(Action):
 
     def _unregister_entity(self, entity, log, prompt):
         """
-        Unregisters an entity from the path cache in FlowPT.
+        Unregisters an entity from the path cache in FlowPT (Shotgun).
 
         :param entity: FlowPT entity dict (e.g Shot, Asset or Task) with keys type and id
         :param log: Logger
@@ -289,7 +289,7 @@ class UnregisterFoldersAction(Action):
                   Each dictionary has keys path and entity, where entity is a standard
                   FlowPT-style link dictionary containing the keys type and id.
                   Note that the shotgun ids returned will refer to retired objects in
-                  FlowPT rather than live ones.
+                  FlowPT (Shotgun) rather than live ones.
         """
         # tuple index constants for readability
 

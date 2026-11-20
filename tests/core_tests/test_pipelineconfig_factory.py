@@ -522,12 +522,12 @@ class TestLookupCache(ShotgunTestBase):
         with mock.patch(
             "tank.util.shotgun.get_sg_connection", return_value=self.mockgun
         ) as mock1:
-            # Force read from FlowPT, a connection must be made to FlowPT.
+            # Force read from FlowPT (Shotgun), a connection must be made to FlowPT.
             mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(True)
             self.assertTrue(mock1.called)
 
-            # Do not force read from FlowPT, there should be a cache hit.
+            # Do not force read from FlowPT (Shotgun), there should be a cache hit.
             mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(False)
             self.assertFalse(mock1.called)
@@ -542,7 +542,7 @@ class TestLookupCache(ShotgunTestBase):
             with open(sgtk.pipelineconfig_factory._get_cache_location(), "wb") as fh:
                 pickle.dump(cache_data, fh)
 
-            # Do not force read from FlowPT, but since the cache is not present
+            # Do not force read from FlowPT (Shotgun), but since the cache is not present
             # it should be loaded from FlowPT.
             mock1.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(False)

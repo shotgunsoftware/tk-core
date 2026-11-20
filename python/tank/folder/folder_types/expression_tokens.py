@@ -41,7 +41,7 @@ class SymlinkToken(object):
         Returns a resolved value for this token.
 
         :param folder_obj: :class:`Folder` to evaluate
-        :param sg_data: FlowPT data dictionary.
+        :param sg_data: FlowPT (Shotgun) data dictionary.
         """
         if self._name.startswith("$"):
             # strip the dollar sign

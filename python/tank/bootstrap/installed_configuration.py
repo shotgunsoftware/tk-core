@@ -21,7 +21,7 @@ class InstalledConfiguration(Configuration):
     """
     Represents a Toolkit pipeline configuration that is installed at a specific location via the
     ``mac_path``, ``linux_path`` and ``windows_path`` fields that has been setup with the setup project
-    command of the pre-zero config project creation wizard in FlowPT Desktop.
+    command of the pre-zero config project creation wizard in FlowPT Desktop (Shotgun Desktop).
     """
 
     def __init__(self, path, descriptor):

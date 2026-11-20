@@ -1,5 +1,5 @@
 """
-Web-based login is required when the target FlowPT site uses SSO or Autodesk
+Web-based login is required when the target FlowPT (Shotgun) site uses SSO or Autodesk
 Identity for authentication.
 
 This flag will control if the Unified Login Flow is to be used or not. By
@@ -7,7 +7,7 @@ default, it will not be used.
 
 Unfortunately, not all DCCs/Scripts/Applications that use the Toolkit have all
 the required dependencies to fully support Web-based authentication and renewal.
-This can be a problem for programs not started by FlowPT Desktop or if
+This can be a problem for programs not started by FlowPT Desktop (Shotgun Desktop) or if
 FlowPT Desktop is closed after. When the program attemps to authenticate
 or renew a session against a FlowPT site that uses SSO/Autodesk Identity, it
 will fail to do so and will not provide meaningful feedback to the user.
@@ -35,7 +35,7 @@ Web based authentication.
 # This global variable is meant to affect the way the authentication is
 # handled by the toolkit-using application.
 # Initially, the only clients that will modify this value will be the
-# FlowPT Desktop and Shotgun Create.
+# FlowPT Desktop (Shotgun Desktop) and Shotgun Create.
 # This is the way for an application to clearly state: yes I support the ULF.
 # This value will properly be propagated across a core swap if the new core
 # also defines this variable.

@@ -18,7 +18,7 @@ from .util import translate_filter_tokens
 
 class ShotgunStep(Entity):
     """
-    Represents a FlowPT Pipeline Step
+    Represents a FlowPT (Shotgun) Pipeline Step
     """
 
     @classmethod
@@ -181,7 +181,7 @@ class ShotgunStep(Entity):
 
     def get_step_entity_type(self):
         """
-        Returns the FlowPT entity type which is used to represent the pipeline step.
+        Returns the FlowPT (Shotgun) entity type which is used to represent the pipeline step.
         FlowPT has a built in pipeline step which is a way of grouping tasks together
         into distinct sets, however it is sometimes useful to be able to use a different
         entity to perform this grouping.

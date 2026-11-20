@@ -164,7 +164,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def _get_default_intepreters(self):
         """
-        Gets the default interpreter values for FlowPT Desktop.
+        Gets the default interpreter values for FlowPT Desktop (Shotgun Desktop).
         """
         return ShotgunPath(
             r"C:\Program Files\Shotgun\Python\python.exe",
@@ -202,7 +202,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
 
     def test_desktop_interpreter(self):
         """
-        Checks that if we're running in FlowPT Desktop we're writing the correct interpreter.
+        Checks that if we're running in FlowPT Desktop (Shotgun Desktop) we're writing the correct interpreter.
         """
         expected_interpreters = self._get_default_intepreters()
         if is_windows():

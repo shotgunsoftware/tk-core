@@ -133,7 +133,7 @@ class SetupProjectAction(Action):
             "type": "str",
         }
 
-        # Special setting used by older versions of FlowPT Desktop
+        # Special setting used by older versions of Shotgun Desktop
         # to handle auto-installing the site configuration at startup.
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
@@ -342,7 +342,7 @@ class SetupProjectAction(Action):
 
     def _shotgun_connect(self, log):
         """
-        Connects to FlowPT.
+        Connects to FlowPT (Shotgun).
 
         :returns: :class:`~shotgun_api3.shotgun.Shotgun` instance.
         :raises: TankError on failure.
@@ -547,7 +547,7 @@ class SetupProjectAction(Action):
 
     def _get_project_folder_name(self, log, sg, params):
         """
-        Given a project entity in FlowPT (name, id), decide where the project data
+        Given a FlowPT (Shotgun) project entity (name, id), decide where the project data
         root should be on disk. This will verify that the selected folder exists
         in each of the storages required by the configuration. It will prompt the user
         and can create these root folders if required (with open permissions).
@@ -732,7 +732,7 @@ class SetupProjectAction(Action):
         if pipelineconfig_utils.is_localized(curr_core_path):
             # the API we are using to run the setup from was localized. This means
             # that the API will not be shared between projects and with something
-            # like FlowPT Desktop workflow, the core API is installed in a
+            # like FlowPT Desktop (Shotgun Desktop) workflow, the core API is installed in a
             # system location like %APPDATA% or ~/Library.
             # So we cannot use that as a default. In this case, simply don't provide
             # a default parameter.
@@ -889,7 +889,7 @@ class SetupProjectAction(Action):
         """
         Present the user with information about the storage roots defined by
         the configuration. Allows them to map a root to an existing local
-        storage in FlowPT.
+        storage in FlowPT (Shotgun).
 
         :param params: Project setup params instance
         :param config_uri: A config uri
@@ -897,7 +897,7 @@ class SetupProjectAction(Action):
         :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
         """
 
-        # query all storages that exist in FlowPT
+        # query all storages that exist in FlowPT (Shotgun)
         storages = sg.find(
             "LocalStorage",
             filters=[],
@@ -915,7 +915,7 @@ class SetupProjectAction(Action):
             storage_by_id[storage_id] = storage
             storage_by_name[storage_name] = storage
 
-        # present a summary of storages that exist in FlowPT
+        # present a summary of storages that exist in FlowPT (Shotgun)
         log.info("")
         log.info("The following local storages exist in Flow Production Tracking:")
         log.info("")
@@ -1008,7 +1008,7 @@ class SetupProjectAction(Action):
 
             if not current_os_path:
                 # the current os path for the selected storage is not populated.
-                # prompt the user and update the path in FlowPT.
+                # prompt the user and update the path in FlowPT (Shotgun).
                 current_os_path = input(
                     "Please enter a path for this storage on the current OS: "
                 )
@@ -1028,7 +1028,7 @@ class SetupProjectAction(Action):
                         "Error: %s\n%s" % (e, traceback.format_exc())
                     )
 
-                # update the storage in FlowPT.
+                # update the storage in FlowPT (Shotgun).
                 log.info("Updating the local storage in FlowPT...")
                 log.info("")
                 update_data = sg.update(

@@ -175,7 +175,7 @@ class AltCustomFormatter(logging.Formatter):
     Custom logging formatter for the tank command.
 
     This logger handles html-style outputting, intended for
-    messages that are sent back to the FlowPT UI (via the sg engine).
+    messages that are sent back to the FlowPT (Shotgun) UI (via the sg engine).
 
     Non-html output is formatted to be cut at 80 chars
     in order to make it easily readable.
@@ -214,7 +214,7 @@ class AltCustomFormatter(logging.Formatter):
 
         if self._html:
             # html logging for shotgun.
-            # The logging mechanisms in FlowPT tend to filter out any output
+            # The logging mechanisms in FlowPT (Shotgun) tend to filter out any output
             # which does not start with an html tag, so we need to make sure we got that.
             if record.levelno in (
                 logging.WARNING,
@@ -379,7 +379,7 @@ def ensure_authenticated(script_name, script_key):
 
 
 ###############################################################################################
-# FlowPT Actions Management
+# FlowPT (Shotgun) Actions Management
 
 
 def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
@@ -616,7 +616,7 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
     :param is_localized: True if the pipeline configuration has been localized
-    :param args: list of arguments passed from FlowPT.
+    :param args: list of arguments passed from FlowPT (Shotgun).
     """
     logger.debug("Running shotgun_run_action_auth command")
 
@@ -654,7 +654,7 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
                 if user.are_credentials_expired():
                     raise IncompleteCredentials("Session token is expired.")
             except IncompleteCredentials:
-                # report back to the FlowPT javascript integration
+                # report back to the FlowPT (Shotgun) javascript integration
                 # this error message will trigger the javascript to
                 # prompt the user for a password and run this method
                 # again, this time with an actual password rather
@@ -695,9 +695,9 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
     Executes the special shotgun run action command from inside of shotgun.
     Legacy - unauthenticated version.
 
-    All modern versions of FlowPT will be running the shotgun_run_action_auth method.
+    All modern versions of FlowPT (Shotgun) will be running the shotgun_run_action_auth method.
     this method is to serve users who are running an updated version of core with
-    an older version of FlowPT
+    an older version of Shotgun
 
     This method expects the following arguments to be passed via the args param:
     args[0]: name of the action
@@ -719,9 +719,9 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
             "Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids"
         )
 
-    # all modern versions of FlowPT will be running the shotgun_run_action_auth method.
+    # all modern versions of FlowPT (Shotgun) will be running the shotgun_run_action_auth method.
     # this method is to serve users who are running an updated version of core with
-    # an older version of FlowPT
+    # an older version of Shotgun
 
     # in this case, we cannot prompt for a login/password
     # so we have rely on the built-in user that is given by the defaults manager
@@ -756,7 +756,7 @@ def _shotgun_run_action(
     entity_ids,
 ):
     """
-    Executes a FlowPT action.
+    Executes a FlowPT (Shotgun) action.
 
     :param install_root: Root of the toolkit core installation
     :param pipeline_config_root: Root of the pipeline configuration
@@ -1057,7 +1057,7 @@ def _list_commands(tk, ctx):
 
 def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_project_id):
     """
-    Resolves a FlowPT context when someone specifies tank Shot ABC.
+    Resolves a FlowPT (Shotgun) context when someone specifies tank Shot ABC.
     Will display multiple matches to the logger if there isn't a unique match.
 
     :param entity_type: Entity type to resolve

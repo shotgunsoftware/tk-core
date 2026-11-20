@@ -21,7 +21,7 @@ logger = LogManager.get_logger(__name__)
 
 # Cache the servers infos for 30 seconds.
 INFOS_CACHE_TIMEOUT = 30
-# This is a global state variable. It is used to cache information about the FlowPT sites we
+# This is a global state variable. It is used to cache information about the FlowPT (Shotgun) sites we
 # are interacting with. This is purely to avoid making multiple calls to the servers which would
 # yield back the same information. (That info is relatively constant on a given server)
 # Should this variable be cleared when doing a Python Core swap, it is not an issue.
@@ -179,7 +179,7 @@ class SiteInfo(object):
     @property
     def app_session_launcher_enabled(self):
         """
-        Check to see if the FlowPT site has the App Session Launcher authentication
+        Check to see if the FlowPT (Shotgun) site has the App Session Launcher authentication
         enabled.
 
         This setting appeared in the Shotgun 8.50 serie, being rarely disabled.

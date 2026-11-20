@@ -51,7 +51,7 @@ class BakedConfiguration(Configuration):
                           non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
-                                   not have an associated entity in FlowPT, this
+                                   not have an associated entity in FlowPT (Shotgun), this
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         :param descriptor: ConfigDescriptor for the associated config
@@ -103,7 +103,7 @@ class BakedConfiguration(Configuration):
         """
         Returns a tk instance for this configuration.
 
-        :param sg_user: Authenticated FlowPT user to associate
+        :param sg_user: Authenticated FlowPT (Shotgun) user to associate
                         the tk instance with.
         """
 
@@ -141,7 +141,7 @@ class BakedConfiguration(Configuration):
         # the newly swapped in core code, if it was swapped
         from .. import api
 
-        # Baked config are typically not attached to any FlowPT site, or project
+        # Baked config are typically not attached to any FlowPT (Shotgun) site, or project
         # so we can simply keep using the current user, which holds FlowPT
         # connection informations.
         api.set_authenticated_user(sg_user)

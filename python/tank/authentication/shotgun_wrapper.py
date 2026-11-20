@@ -29,7 +29,7 @@ logger = LogManager.get_logger(__name__)
 
 class ShotgunWrapper(Shotgun):
     """
-    This class wraps the :class:`~shotgun_api3.shotgun.Shotgun` instance that communicates with the FlowPT
+    This class wraps the :class:`~shotgun_api3.shotgun.Shotgun` instance that communicates with the FlowPT (Shotgun)
     site. Every time a request is made to the site and we are authenticated
     as a session user, the call will be monitored for an AuthenticationFault.
     If it happens, the call will be interrupted by a prompt asking for the user's

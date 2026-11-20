@@ -71,7 +71,7 @@ class Folder(object):
         Extract data from shotgun for a specific pathway upwards through the
         schema.
 
-        This is subclassed by deriving classes which process FlowPT data.
+        This is subclassed by deriving classes which process FlowPT (Shotgun) data.
         For more information, see the Entity implementation.
 
         :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
@@ -130,7 +130,7 @@ class Folder(object):
         :param path: The file system path to the location where this folder should be
                      created.
 
-        :param sg_data: All FlowPT data, organized in a dictionary, as returned by
+        :param sg_data: All FlowPT (Shotgun) data, organized in a dictionary, as returned by
                         extract_shotgun_data_upwards()
 
         :param is_primary: Indicates that the folder is part of the primary creation chain

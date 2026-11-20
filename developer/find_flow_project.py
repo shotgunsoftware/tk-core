@@ -4,7 +4,7 @@
 """
 Standalone CLI to find your Flow project ID using the Flow Data SDK.
 
-Use this script to retrieve the Flow project ID for a given FlowPT project,
+Use this script to retrieve the Flow project ID for a given FlowPT (Shotgun) project,
 so it can be linked in the FlowPT site settings.
 
 Defaults to production values. Override any individual setting via flags.

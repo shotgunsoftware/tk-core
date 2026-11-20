@@ -693,7 +693,7 @@ class TemplateString(Template):
 
     Templated strings are useful if you want to write code where you can configure
     the formatting of strings, for example how a name or other string field should
-    be configured in FlowPT, given a series of key values.
+    be configured in FlowPT (Shotgun), given a series of key values.
     """
 
     def __init__(self, definition, keys, name=None, validate_with=None):

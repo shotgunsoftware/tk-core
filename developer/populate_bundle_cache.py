@@ -70,7 +70,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         sg_connection,
         Descriptor.CONFIG,
         config_descriptor_uri,
-        # If the user hasn't specified the version to retrieve, resolve the latest from FlowPT.
+        # If the user hasn't specified the version to retrieve, resolve the latest from FlowPT (Shotgun).
         resolve_latest=is_descriptor_version_missing(config_descriptor_uri),
     )
 

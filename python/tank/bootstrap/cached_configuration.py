@@ -55,7 +55,7 @@ class CachedConfiguration(Configuration):
                           non-plugin based toolkit projects, this value is None.
         :param pipeline_config_id: Pipeline Configuration id for the shotgun
                                    pipeline config id associated. If a config does
-                                   not have an associated entity in FlowPT, this
+                                   not have an associated entity in FlowPT (Shotgun), this
                                    should be set to None.
         :param bundle_cache_fallback_paths: List of additional paths where apps are cached.
         """
@@ -139,7 +139,7 @@ class CachedConfiguration(Configuration):
 
         _, unmapped_roots = storage_roots.get_local_storages(self._sg_connection)
 
-        # get a list of all defined storage roots without a corresponding FlowPT
+        # get a list of all defined storage roots without a corresponding FlowPT (Shotgun)
         # local storage defined
         if unmapped_roots:
             raise TankBootstrapError(

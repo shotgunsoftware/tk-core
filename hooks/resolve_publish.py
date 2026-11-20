@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Hook used to resolve publish records in FlowPT into local form on a machine during
+Hook used to resolve publish records in FlowPT (Shotgun) into local form on a machine during
 a call to :meth:`sgtk.util.resolve_publish_path`.
 """
 
@@ -19,7 +19,7 @@ from sgtk import Hook
 class ResolvePublish(Hook):
     def resolve_path(self, sg_publish_data):
         """
-        Resolves a FlowPT publish record into a local file on disk.
+        Resolves a FlowPT (Shotgun) publish record into a local file on disk.
 
         If this method returns ``None``, it indicates to Toolkit that the default
         publish resolution logic should be used.

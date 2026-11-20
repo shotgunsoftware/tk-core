@@ -419,7 +419,7 @@ class TankTestBase(unittest.TestCase):
     @timer.clock_func("TankTestBase.setUp")
     def setUp(self, parameters=None):
         """
-        Sets up a FlowPT Mockgun instance with a project and a basic project scaffold on
+        Sets up a FlowPT (Shotgun) Mockgun instance with a project and a basic project scaffold on
         disk.
 
         :param parameters: Dictionary with additional parameters to control the setup.

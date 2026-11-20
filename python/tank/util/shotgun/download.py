@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Methods for downloading things from FlowPT
+Methods for downloading things from FlowPT (Shotgun)
 """
 
 import os
@@ -34,7 +34,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
     """
     Convenience method that downloads a file from a given url.
     This method will take into account any proxy settings which have
-    been defined in the FlowPT connection parameters.
+    been defined in the FlowPT (Shotgun) connection parameters.
 
     In some cases, the target content of the url is not known beforehand.
     For example, the url ``https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227``
@@ -63,7 +63,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
               could be determined from the resolved url.
     :raises: :class:`TankError` on failure.
     """
-    # We only need to set the auth cookie for downloads from the FlowPT site,
+    # We only need to set the auth cookie for downloads from the FlowPT (Shotgun) site,
     # input URLs like: https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227
     if sg.config.server in url:
         # this method also handles proxy server settings from the shotgun API
@@ -91,7 +91,7 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
 
         if use_url_extension:
             # Make sure the disk location has the same extension as the url path.
-            # Would be nice to see this functionality moved to back into FlowPT
+            # Would be nice to see this functionality moved to back into FlowPT (Shotgun)
             # API and removed from here.
             url_ext = os.path.splitext(urllib.parse.urlparse(response.geturl()).path)[
                 -1
@@ -114,16 +114,16 @@ def download_url(sg, url, location, use_url_extension=False, headers=None):
 
 def __setup_sg_auth_and_proxy(sg):
     """
-    Borrowed from the FlowPT Python API, setup urllib with a cookie for authentication on
+    Borrowed from the FlowPT Python API (``shotgun_api3``), setup urllib with a cookie for authentication on
     :class:`~shotgun_api3.shotgun.Shotgun` instance.
 
     Looks up session token and sets that in a cookie in the :mod:`urllib` handler. This is
-    used internally for downloading attachments from the FlowPT site.
+    used internally for downloading attachments from the FlowPT (Shotgun) site.
 
     :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
-    # functionality gets ported back into the FlowPT Python API.
+    # functionality gets ported back into the FlowPT Python API (shotgun_api3).
     import http.cookiejar
 
     sid = sg.get_session_token()
@@ -159,7 +159,7 @@ def download_and_unpack_attachment(
     sg, attachment_id, target, retries=5, auto_detect_bundle=False
 ):
     """
-    Downloads the given attachment from FlowPT, assumes it is a zip file
+    Downloads the given attachment from FlowPT (Shotgun), assumes it is a zip file
     and attempts to unpack it into the given location.
 
     :param sg: :class:`~shotgun_api3.shotgun.Shotgun` instance
@@ -173,7 +173,7 @@ def download_and_unpack_attachment(
         the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    # NOTE Downloading by attachment ID is deprecated in the FlowPT Python API.
+    # NOTE Downloading by attachment ID is deprecated in the FlowPT Python API (shotgun_api3).
     # We should avoid using this where possible.
     return _download_and_unpack(
         sg, target, retries, auto_detect_bundle, attachment_id=attachment_id
@@ -208,7 +208,7 @@ def _download_and_unpack(
     sg, target, retries, auto_detect_bundle, attachment_id=None, url=None, headers=None
 ):
     """
-    Downloads the given attachment from FlowPT if an attachment ID is provided,
+    Downloads the given attachment from FlowPT (Shotgun) if an attachment ID is provided,
     otherwise downloads the content from the provided url.  Assumes the downloaded
     file is a zip file and attempts to unpack it into the given location.
 
@@ -224,7 +224,7 @@ def _download_and_unpack(
     :param url: The url to download from
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    # @todo: progress feedback here - when the FlowPT Python API supports it!
+    # @todo: progress feedback here - when the FlowPT Python API (shotgun_api3) supports it!
     # sometimes people report that this download fails (because of flaky connections etc)
     # engines can often be 30-50MiB - as a quick fix, just retry the download if it fails
 

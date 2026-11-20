@@ -92,7 +92,7 @@ class AppSessionLauncherTests(ShotgunTestBase):
             "Flame 1.2.3",
         )
 
-        # Validate FlowPT Desktop
+        # Validate FlowPT Desktop (Shotgun Desktop)
         with mock.patch.object(
             sys,
             "argv",

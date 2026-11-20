@@ -24,7 +24,7 @@ sso_saml2.set_logger_parent(logger)
 
 class ShotgunUser(object):
     """
-    Represents a FlowPT user, either a script or a person and provides an entry point
+    Represents a FlowPT (Shotgun) user, either a script or a person and provides an entry point
     into the authentication system.
 
     User objects are created via the :class:`ShotgunAuthenticator` object, which will handle
@@ -69,7 +69,7 @@ class ShotgunUser(object):
     @property
     def login(self):
         """
-        The login for this current user. For FlowPT user types that don't have a concept
+        The login for this current user. For FlowPT (Shotgun) user types that don't have a concept
         of a login (like API scripts), None is returned.
 
         :returns: The login string or None.
@@ -78,7 +78,7 @@ class ShotgunUser(object):
 
     def resolve_entity(self):
         """
-        Resolves the FlowPT entity associated with this user.
+        Resolves the FlowPT (Shotgun) entity associated with this user.
 
         :returns: A dictionary with ``type`` and ``id`` values.
         :rtype: dict

@@ -33,7 +33,7 @@ class CacheLocation(HookBaseClass):
 
         Overriding this method in a hook allows a user to change the location on disk where
         the path cache file is located. The path cache file holds a temporary cache representation
-        of the ``FilesystemLocation`` entities stored in FlowPT for a project.
+        of the ``FilesystemLocation`` entities stored in FlowPT (Shotgun) for a project.
 
         The default implementation will create a folder inside the user's home folder or
         under ``SHOTGUN_HOME``.
@@ -122,7 +122,7 @@ class CacheLocation(HookBaseClass):
         instead, however we strongly recommend that you tweak your hook.
 
         Apps, Engines or Frameworks commonly cache data on disk. This can be
-        small files, FlowPT queries, thumbnails, etc. This method implements the
+        small files, FlowPT (Shotgun) queries, thumbnails, etc. This method implements the
         logic which defines this location on disk. The cache should be organized in
         a way so that all instances of the app can re-use the same data. Bundles
         which need to cache things per-instance can implement this using a sub

@@ -39,7 +39,7 @@ def add_item_to_cache(path_cache, entity, path, primary=True):
 
 def sync_path_cache(tk, force_full_sync=False):
     """
-    Synchronizes the path cache with FlowPT.
+    Synchronizes the path cache with FlowPT (Shotgun).
 
     :param force_full_sync: Force a full sync.
     :returns: log output in a variable
@@ -390,7 +390,7 @@ class TestAddMapping(TestPathCache):
         the local_path returned in FlowPT's response.
 
         On Windows, locally cached paths use backslashes (per _sanitize_path),
-        while FlowPT normalizes the local_path it stores to forward slashes.
+        while FlowPT (Shotgun) normalizes the local_path it stores to forward slashes.
         Without the normalization in _rowid_from_filesystem_entity, the
         string-equality compare fails and add_mappings raises TankError on
         every Windows folder creation flow.
@@ -653,7 +653,7 @@ class TestShotgunSync(TankTestBase):
         # make a copy of the path cache at this point
         shutil.copy(pcl, "%s.snap1" % pcl)
 
-        # now insert a new path in FlowPT
+        # now insert a new path in FlowPT (Shotgun)
         folder.process_filesystem_structure(
             self.tk, self.task["type"], self.task["id"], preview=False, engine=None
         )
@@ -1222,7 +1222,7 @@ class TestPathCacheDelete(TankTestBase):
         )
         self.assertEqual(len(paths), 1)
 
-        # Remove it from FlowPT.
+        # Remove it from FlowPT (Shotgun).
         self._remove_filesystem_locations_by_paths(paths)
 
         # Synchronize everything back locally and make sure the path is now gone.
@@ -1245,10 +1245,10 @@ class TestPathCacheDelete(TankTestBase):
         )
         self.assertEqual(len(paths), 1)
 
-        # Remove that path from FlowPT.
+        # Remove that path from FlowPT (Shotgun).
         self._remove_filesystem_locations_by_paths(paths)
 
-        # Let's pretend another computer created entries in FlowPT.
+        # Let's pretend another computer created entries in FlowPT (Shotgun).
         new_shot_path = os.path.join(self.project_root, "new_shot")
         with self.mock_remote_path_cache() as pc:
             add_item_to_cache(pc, self._shot_entity, new_shot_path)
@@ -1288,7 +1288,7 @@ class TestPathCacheDelete(TankTestBase):
         self._pc.synchronize()
         # We can't know when syncing if entries are currently in the cache, so this should always be called
         self.assertEqual(self._pc._remove_filesystem_location_entities.call_count, 1)
-        # However, since there is no filsystem location anymore in FlowPT, we shouldn't have even tried
+        # However, since there is no filsystem location anymore in FlowPT (Shotgun), we shouldn't have even tried
         # to import it.
         self.assertEqual(self._pc._import_filesystem_location_entry.call_count, 0)
 
@@ -1310,13 +1310,13 @@ class TestPathCacheDelete(TankTestBase):
             add_item_to_cache(pc, self._shot_entity, original_path)
             self._remove_filesystem_locations_by_paths([original_path], pc)
 
-            # Sync the changes from FlowPT locally.
+            # Sync the changes from FlowPT (Shotgun) locally.
             pc.synchronize()
 
             add_item_to_cache(pc, self._shot_entity, original_path)
             self._remove_filesystem_locations_by_paths([original_path], pc)
 
-            # Sync the changes from FlowPT locally.
+            # Sync the changes from FlowPT (Shotgun) locally.
             pc.synchronize()
 
             add_item_to_cache(pc, self._shot_entity, updated_path)
@@ -1372,7 +1372,7 @@ class TestPathCacheDelete(TankTestBase):
 
     def _remove_filesystem_locations_by_paths(self, paths, pc=None):
         """
-        Removes the FilesystemLocations entities from FlowPT associated with a given set of paths.
+        Removes the FilesystemLocations entities from FlowPT (Shotgun) associated with a given set of paths.
 
         :param list paths: Paths that need to be unregistered.
         :param pc: Path cache to sync with. If None, the one initialized during setUp will be used.

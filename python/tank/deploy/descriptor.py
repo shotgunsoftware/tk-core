@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Legacy handling of descriptors for FlowPT Desktop.
+Legacy handling of descriptors for FlowPT Desktop (Shotgun Desktop).
 
 This code may be removed at some point in the future.
 """
@@ -33,7 +33,7 @@ def get_from_location_and_paths(
     Factory method.
 
     LEGACY - Use create_descriptor instead. This is itended only for
-    older versions of FlowPT Desktop.
+    older versions of Shotgun Desktop.
 
     :param app_or_engine: Either AppDescriptor.APP ENGINE CORE or FRAMEWORK (as defined above)
     :param pc_path: Path to the root of the pipeline configuration.

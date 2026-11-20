@@ -65,7 +65,7 @@ class BundleDescriptor(Descriptor):
     @classmethod
     def _get_sg_version(cls, connection):
         """
-        Returns the version of the studio FlowPT site. It caches the result per site.
+        Returns the version of the studio FlowPT (Shotgun) site. It caches the result per site.
 
         :param connection: Connection to the FlowPT site.
         :type: :class:`~shotgun_api3.shotgun.Shotgun`
@@ -119,7 +119,7 @@ class BundleDescriptor(Descriptor):
         :type core_version: str
         :param engine_descriptor: Descriptor of the engine this bundle will run under. None by default.
         :type engine_descriptor: :class:`~sgtk.bootstrap.DescriptorBundle`
-        :param desktop_version: Version of FlowPT Desktop. None by default.
+        :param desktop_version: Version of FlowPT Desktop (Shotgun Desktop). None by default.
         :type desktop_version: str
 
         :raises: Raised if one or multiple constraint checks has failed.
@@ -299,7 +299,7 @@ class BundleDescriptor(Descriptor):
         exists in shotgun. In the metadata (``info.yml``) for an app or an engine,
         it is possible to define a section for this::
 
-            # the FlowPT fields that this app needs in order to operate correctly
+            # the FlowPT (Shotgun) fields that this app needs in order to operate correctly
             requires_shotgun_fields:
                 Version:
                     - { "system_name": "sg_movie_type", "type": "text" }

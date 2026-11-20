@@ -204,7 +204,7 @@ class ConfigurationWriter(object):
         log.debug("Installing tank command...")
 
         # First set up the interpreter_xxx files needed for the tank command
-        # default to FlowPT Desktop python. We want those defaults, even with descriptor
+        # default to FlowPT Desktop (Shotgun Desktop) python. We want those defaults, even with descriptor
         # based pipeline configurations, because from a descriptor based pipeline configuration
         # we might want call setup_project, which will copy the interpreter files. So as a
         # convenience we'll pre-fill those files with an interpreter we know is available on all
@@ -219,7 +219,7 @@ class ConfigurationWriter(object):
         # Shogun Desktop and if we are then we're using the Python that is package with it.
         #
         # The reason we are doing this is because we need the interpreter files
-        # written out during bootstrapping to be using the ones from FlowPT Desktop.
+        # written out during bootstrapping to be using the ones from FlowPT Desktop (Shotgun Desktop).
         #
         # We could have introduced a way on the ToolkitManager to specify the interpreter
         # to use for the current platform for descriptor based configuration, but we're trying
@@ -230,7 +230,7 @@ class ConfigurationWriter(object):
         # up a bit in my mouth.
 
         # Figures out which is the current Python interpreter.
-        # If we're in FlowPT Desktop
+        # If we're in FlowPT Desktop (Shotgun Desktop)
         if os.path.split(executable)[1].lower().startswith("shotgun"):
             log.debug("FlowPT Desktop process detected.")
             # We'll use the builtin Python.
@@ -382,7 +382,7 @@ class ConfigurationWriter(object):
         with filesystem.auto_created_yml(dest_config_sg_file) as fh:
             # ensure the metadata has the host set. We shouldn't assume the shotgun.yml
             # file that can be distributed with the config has the host set, as it
-            # could be used on two different FlowPT sites, for example a production
+            # could be used on two different FlowPT (Shotgun) sites, for example a production
             # server and a staging server that are both hosted locally.
             metadata["host"] = connection.sanitize_url(self._sg_connection.base_url)
             # write yaml
@@ -402,7 +402,7 @@ class ConfigurationWriter(object):
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
 
         This will populate all relevant parameters required for a toolkit runtime setup.
-        Project and pipeline configuration names will be resolved from FlowPT.
+        Project and pipeline configuration names will be resolved from FlowPT (Shotgun).
 
         :param pipeline_config_id: Pipeline config id or None for an unmanaged config.
         :param project_id: Project id or None for the site config or for a baked config.

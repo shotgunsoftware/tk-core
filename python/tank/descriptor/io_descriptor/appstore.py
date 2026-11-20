@@ -210,7 +210,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         baked into a DCC distribution, the cache will not be updated.
 
         :param path: The path to the bundle where cache info should be written
-        :param sg_bundle_data, sg_version_data: FlowPT data to cache
+        :param sg_bundle_data, sg_version_data: FlowPT (Shotgun) data to cache
         :returns: A dictionary with keys 'sg_bundle_data' and 'sg_version_data',
                   containing FlowPT metadata.
         """
@@ -576,7 +576,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         Filter versions to only those available in the App Store.
 
         :param version_numbers: Iterator of version strings
-        :param sg_matching_records: List of FlowPT version records from App Store
+        :param sg_matching_records: List of FlowPT (Shotgun) version records from App Store
         :returns: Iterator of version strings that exist in App Store, or original iterator if no records provided
         """
         if not sg_matching_records:
@@ -684,7 +684,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         Searches locally cached versions for the highest version compatible
         with the current Python version.
 
-        :param sg_matching_records: List of FlowPT version records from App Store
+        :param sg_matching_records: List of FlowPT (Shotgun) version records from App Store
         :returns: IODescriptorAppStore instance or None if no compatible version found
         """
         log.debug(
@@ -931,7 +931,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         """
         Given a list of tags, see if it matches the given label
 
-        FlowPT tags are glob style: *, 2017.*, 2018.2
+        FlowPT (Shotgun) tags are glob style: *, 2017.*, 2018.2
 
         :param tag_list: list of tags (strings) from shotgun
         :return: True if matching false if not
@@ -977,7 +977,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         sg_url = self._sg_connection.base_url
 
         if sg_url not in self._app_store_connections:
-            # Connect to associated FlowPT site and retrieve the credentials to use to
+            # Connect to associated FlowPT (Shotgun) site and retrieve the credentials to use to
             # connect to the app store site
             try:
                 script_name, script_key = self.__get_app_store_key_from_shotgun()
@@ -1084,13 +1084,13 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         # Use the http proxy from the connection so we don't have to run
         # the connection hook again or look up the system settings as they
-        # will have been previously looked up to create the connection to FlowPT.
+        # will have been previously looked up to create the connection to FlowPT (Shotgun).
         return self._sg_connection.config.raw_http_proxy
 
     @LogManager.log_timing
     def __get_app_store_key_from_shotgun(self):
         """
-        Given a FlowPT url and script credentials, fetch the app store key
+        Given a FlowPT (Shotgun) url and script credentials, fetch the app store key
         for this shotgun instance using a special controller method.
         Returns a tuple with (app_store_script_name, app_store_auth_key)
 
@@ -1137,7 +1137,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :return: True if a remote is accessible, false if not.
         """
 
-        # check if we can connect to FlowPT
+        # check if we can connect to FlowPT (Shotgun)
         can_connect = True
         try:
             log.debug(

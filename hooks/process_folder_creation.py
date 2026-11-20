@@ -35,7 +35,7 @@ class ProcessFolderCreation(Hook):
         **Standard Folder**
 
         This represents a standard folder in the file system which is not associated
-        with anything in FlowPT. It contains the following keys:
+        with anything in FlowPT (Shotgun). It contains the following keys:
 
         - **action** (:class:`str`) - ``folder``
         - **metadata** (:class:`dict`) - The configuration yaml data for this item

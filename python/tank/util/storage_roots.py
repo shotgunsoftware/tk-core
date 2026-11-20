@@ -23,7 +23,7 @@ class StorageRoots(object):
     """
     This class provides a centralized interface and processing logic for the
     storage roots as specified in a configuration's config/core/roots.yml.
-    The roots.yml defines the local storages in FlowPT that a configuration
+    The roots.yml defines the local storages in FlowPT (Shotgun) that a configuration
     requires.
 
     Instances of this class can be instantiated by providing a config folder,
@@ -128,7 +128,7 @@ class StorageRoots(object):
         """
         Given a ``StorageRoots`` object, write it's metadata to the standard
         roots location within the supplied config folder. The method will write
-        the corresponding local storage paths to the file as defined in FlowPT.
+        the corresponding local storage paths to the file as defined in FlowPT (Shotgun).
         This action will overwrite any existing storage roots file defined by
         the configuration.
 
@@ -149,7 +149,7 @@ class StorageRoots(object):
 
         log.debug("Writing storage roots to: %s" % (roots_file,))
 
-        # raise an error if there are any roots that can not be mapped to FlowPT
+        # raise an error if there are any roots that can not be mapped to FlowPT (Shotgun)
         # local storage entries
         if unmapped_roots:
             raise TankError(
@@ -169,7 +169,7 @@ class StorageRoots(object):
         roots_metadata = storage_roots.metadata
 
         for root_name, root_info in storage_roots:
-            # get the cached FlowPT storage dict
+            # get the cached FlowPT (Shotgun) storage dict
             sg_local_storage = local_storage_lookup[root_name]
 
             # get the local storage as a ShotgunPath object
@@ -299,7 +299,7 @@ class StorageRoots(object):
     def get_local_storages(self, sg_connection):
         """
         Returns a tuple of information about the required storage roots and how
-        they map to local storages in FlowPT.
+        they map to local storages in FlowPT (Shotgun).
 
         The first item in the tuple is a dictionary of storage root names mapped
         to a corresponding dictionary of fields for a local storage defined in
@@ -346,20 +346,20 @@ class StorageRoots(object):
             "Attempting to associate required storage roots with FlowPT local storages..."
         )
 
-        # build a lookup of storage root name to local storages FlowPT dicts
+        # build a lookup of storage root name to local storages FlowPT (Shotgun) dicts
         local_storage_lookup = {}
 
-        # keep a list of storages that could not be mapped to a FlowPT local storage
+        # keep a list of storages that could not be mapped to a FlowPT (Shotgun) local storage
         unmapped_root_names = []
 
-        # query all local storages from FlowPT so we can store a lookup of roots
+        # query all local storages from FlowPT (Shotgun) so we can store a lookup of roots
         # defined here to FlowPT storages
 
-        # fields required for FlowPT local storage queries
+        # fields required for FlowPT (Shotgun) local storage queries
         local_storage_fields = ["code", "id"]
         local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
 
-        # create the FlowPT connection and query
+        # create the FlowPT (Shotgun) connection and query
         log.debug("Querying FlowPT local storages...")
         sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
         log.debug("Query returned %s storages." % (len(sg_storages)))
@@ -402,7 +402,7 @@ class StorageRoots(object):
                 continue
 
             # if we're here, then we could not map the storage root to a local
-            # storage in FlowPT
+            # storage in FlowPT (Shotgun)
             log.warning(
                 "Storage root %s could not be mapped to a FlowPT local storage"
                 % (root_name,)

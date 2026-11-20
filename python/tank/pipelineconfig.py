@@ -508,7 +508,7 @@ class PipelineConfiguration(object):
     def is_unmanaged(self):
         """
         Returns true if the configuration is unmanaged, e.g. it does not have a
-        corresponding pipeline configuration in FlowPT.
+        corresponding pipeline configuration in FlowPT (Shotgun).
 
         :return: boolean indicating if config is unmanaged
         """
@@ -639,7 +639,7 @@ class PipelineConfiguration(object):
 
     def get_local_storage_for_root(self, root_name):
         """
-        Given a root name, return the associated local storage in FlowPT.
+        Given a root name, return the associated local storage in FlowPT (Shotgun).
 
         If no local storage can be determined, ``None`` will be returned.
 
@@ -672,7 +672,7 @@ class PipelineConfiguration(object):
     def get_local_storage_mapping(self):
         """
         Returns a tuple of information about the required storage roots and how
-        they map to local storages in FlowPT.
+        they map to local storages in FlowPT (Shotgun).
 
         The first item in the tuple is a dictionary of storage root names mapped
         to a corresponding dictionary of fields for a local storage defined in

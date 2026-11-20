@@ -101,7 +101,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
     if setup_params.get_auto_path_mode():
         raise TankError("Auto path mode cannot be used with distributed setups.")
 
-    # Create Project.tank_name and PipelineConfiguration records in FlowPT
+    # Create Project.tank_name and PipelineConfiguration records in FlowPT (Shotgun)
     setup_params.report_progress_from_installer(
         "Registering in Flow Production Tracking..."
     )
@@ -277,7 +277,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         if default_storage_name and storage_name == default_storage_name:
             roots_data[storage_name]["default"] = True
 
-        # if there is a FlowPT local storage associated with this root, make sure
+        # if there is a FlowPT (Shotgun) local storage associated with this root, make sure
         # it is explicit in the the roots file. this allows roots to exist that
         # are not named the same as the storage in FlowPT
         sg_storage_id = setup_params.get_storage_shotgun_id(storage_name)
@@ -288,7 +288,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     config_folder = os.path.join(config_location_curr_os, "config")
     storage_roots.write(sg, config_folder, storage_roots)
 
-    # Create Project.tank_name and PipelineConfiguration records in FlowPT
+    # Create Project.tank_name and PipelineConfiguration records in FlowPT (Shotgun)
     #
     # This logic has some special complexity when the auto_path mode is in use.
 
@@ -303,7 +303,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         sg_project_link = None
 
     if setup_params.get_auto_path_mode():
-        # first, check the project name. If there is no project name in FlowPT, populate it
+        # first, check the project name. If there is no project name in FlowPT (Shotgun), populate it
         # with the project name which is specified via the project name parameter.
         # if there isn't yet an entry, create it.
         # This is consistent with the anticipated future behaviour we expect when we
@@ -401,7 +401,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     data["pc_name"] = constants.PRIMARY_PIPELINE_CONFIG_NAME
     data["published_file_entity_type"] = pf_entity_type
 
-    # all 0.15+ projects are pushing folders to FlowPT by default
+    # all 0.15+ projects are pushing folders to FlowPT (Shotgun) by default
     data["use_shotgun_path_cache"] = True
 
     try:
@@ -523,7 +523,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
 def _get_published_file_entity_type(log, sg):
     """
     Find the published file entity type to use for this project.
-    Communicates with FlowPT, introspects the sg schema.
+    Communicates with FlowPT (Shotgun), introspects the sg schema.
 
     :returns: 'PublishedFile' if the PublishedFile entity type has
               been enabled, otherwise returns 'TankPublishedFile'

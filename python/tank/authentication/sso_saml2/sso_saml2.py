@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-Integration with FlowPT Python API.
+Integration with FlowPT Python API (``shotgun_api3``).
 """
 
 # pylint: disable=line-too-long
@@ -61,7 +61,7 @@ class SsoSaml2(object):
         If this fails, or there are no cookies, the user will be prompted for
         their credentials.
 
-        :param host:                URL of the FlowPT site.
+        :param host:                URL of the FlowPT (Shotgun) site.
         :param cookies:             String of encoded cookies.
         :param product:             String describing the application attempting to login.
                                     This string will appear in the FlowPT site logs.

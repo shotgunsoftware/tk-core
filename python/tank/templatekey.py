@@ -157,14 +157,14 @@ class TemplateKey(object):
     @property
     def shotgun_entity_type(self):
         """
-        FlowPT entity type associated with this item
+        FlowPT (Shotgun) entity type associated with this item
         """
         return self._shotgun_entity_type
 
     @property
     def shotgun_field_name(self):
         """
-        FlowPT field name associated with this item
+        FlowPT (Shotgun) field name associated with this item
         """
         return self._shotgun_field_name
 

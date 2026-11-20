@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Logic for publishing files to FlowPT.
+Logic for publishing files to FlowPT (Shotgun).
 """
 
 import os
@@ -34,7 +34,7 @@ log = LogManager.get_logger(__name__)
 @LogManager.log_timing
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
-    Creates a Published File in FlowPT.
+    Creates a Published File in FlowPT (Shotgun).
 
     **Introduction**
 
@@ -363,7 +363,7 @@ def _create_published_file(
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: A :class:`~sgtk.Context` to associate with the publish. This will
-                    populate the ``task`` and ``entity`` link in FlowPT.
+                    populate the ``task`` and ``entity`` link in FlowPT (Shotgun).
     :param path: The path to the file or sequence we want to publish. If the
                  path is a sequence path it will be abstracted so that
                  any sequence keys are replaced with their default values.
@@ -431,7 +431,7 @@ def _create_published_file(
     if context.project is None:
         # when running toolkit as a standalone plugin, the context may be
         # empty and not contain a project. Publishes are project entities
-        # in FlowPT, so we cannot proceed without a project.
+        # in FlowPT (Shotgun), so we cannot proceed without a project.
         raise TankError(
             "Your context needs to at least have a project set in order to publish."
         )
@@ -512,7 +512,7 @@ def _create_published_file(
                 "The path '%s' is associated with config root '%s'." % (path, root_name)
             )
 
-            # check if the FlowPT site supports the storage and relative_path parameters which
+            # check if the FlowPT (Shotgun) site supports the storage and relative_path parameters which
             # allows us to specify exactly which storage to bind a publish to rather than relying on
             # FlowPT to compute this.
             supports_specific_storage_syntax = (
@@ -522,13 +522,13 @@ def _create_published_file(
             )
 
             if supports_specific_storage_syntax:
-                # get corresponding FlowPT local storage for the matching root name
+                # get corresponding FlowPT (Shotgun) local storage for the matching root name
                 storage = tk.pipeline_configuration.get_local_storage_for_root(
                     root_name
                 )
 
                 if storage is None:
-                    # there is no storage in FlowPT that matches the one toolkit expects.
+                    # there is no storage in FlowPT (Shotgun) that matches the one toolkit expects.
                     # this *may* be ok because there may be another storage in FlowPT that
                     # magically picks up the publishes and associates with them. In this case,
                     # issue a warning and fall back on the server-side functionality
@@ -549,19 +549,19 @@ def _create_published_file(
                     }
 
             else:
-                # use previous syntax where we pass the whole path to FlowPT
+                # use previous syntax where we pass the whole path to FlowPT (Shotgun)
                 # and shotgun will do the storage/relative path split server side.
                 # This operation may do unexpected things if you have multiple
                 # storages that are identical or overlapping
                 data["path"] = {"local_path": path}
 
-            # fill in the path cache field which is used for filtering in FlowPT
+            # fill in the path cache field which is used for filtering in FlowPT (Shotgun)
             # (because FlowPT does not support
             data["path_cache"] = path_cache
 
         else:
             # path does not map to any configured root - fall back gracefully:
-            # 1. look for storages in FlowPT and see if we can create a local path
+            # 1. look for storages in FlowPT (Shotgun) and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
             log.debug("Will check FlowPT local storages to see if there is a match.")

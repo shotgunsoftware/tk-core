@@ -147,7 +147,7 @@ def get_renew_path(session, logger):
 
 
 class SsoSaml2Core(object):
-    """Performs FlowPT Web login and pre-emptive renewal for SSO sessions."""
+    """Performs FlowPT (Shotgun) Web login and pre-emptive renewal for SSO sessions."""
 
     def __init__(self, window_title="Web Login", qt_modules=None):
         """
@@ -779,7 +779,7 @@ class SsoSaml2Core(object):
         Called to attempt a login process with user interaction.
 
         The user will be presented with the appropriate web pages from their
-        IdP in order to log on to FlowPT.
+        IdP in order to log on to FlowPT (Shotgun).
 
         :returns: 1 if successful, 0 otherwise.
         """
@@ -791,7 +791,7 @@ class SsoSaml2Core(object):
             # Having separate Chromium profile persistency location have been proven
             # necessary for a few reasons:
             # - Because all of the cookies are serialized to the user's cache, this makes
-            #   the session_metadata property increase in size over time. FlowPT Desktop
+            #   the session_metadata property increase in size over time. FlowPT Desktop (Shotgun Desktop)
             #   serializes the user's properties as environment variables when starting
             #   desktop-linked apps. On Windows, there is a maximum length of 32676 bytes
             #   for them.
