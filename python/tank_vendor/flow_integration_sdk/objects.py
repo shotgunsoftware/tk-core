@@ -23,7 +23,6 @@ import datetime
 import re
 import urllib
 from collections.abc import Iterator
-from functools import cache
 from typing import Any
 
 from tank_vendor.flow_data_sdk.base import model as medm_model
@@ -53,7 +52,6 @@ from .globals import (
     VARIANT_SET_TYPE,
 )
 from .sandbox import CheckoutDraftInfo, get_asset_drafts
-from .schema import get_schema_id
 from .storage import (
     _cache_asset_info,
     get_storage_asset_dir,
@@ -66,6 +64,24 @@ from .utils import (
     to_regex_safe_wildcard_string,
     trace,
 )
+
+
+def _get_schema_wildcard(type_name: str) -> str:
+    """Return a wildcard type id matching every version of type name.
+
+    Both the namespace and the version are replaced by a wildcard (e.g.
+    "component.reference" -> "*:component.reference-*"), so components keep
+    matching when the namespace changes, e.g. from private to public schemas.
+
+    Args:
+        type_name: Base name of schema type, without namespace or version
+                   (e.g. "component.reference").
+
+    Returns:
+        Wildcard type id.
+    """
+    # type ids are "<namespace>:<type name>-<version>"
+    return f"*:{type_name}-*"
 
 
 class FlowEntity:
@@ -331,7 +347,10 @@ class ComponentMixin:
         purpose: str = "",
         type_id: str = "",
     ) -> list[FlowComponent]:
-        """Search for component with matching name in given revision.
+        """Search for components matching the given filters in given revision.
+
+        Each filter is a full, case-sensitive match where '*' matches any sequence
+        of characters, and every other character is matched literally.
 
         ..note:: Filters, if defined, are treated as an intersection, meaning
                  results will conform to all filters.
@@ -339,20 +358,27 @@ class ComponentMixin:
         Args:
             name: Component name to match. '*' wild card supported.
                   If blank ignore this filter.
-            purpose: Match this purpose on component. If blank ignore this filter.
-            type_id: Match this type id on component. If blank ignore this filter.
+            purpose: Component purpose to match. '*' wild card supported.
+                     If blank ignore this filter.
+            type_id: Type id to match on the component type or any of its
+                     ancestors. '*' wild card supported.
+                     If blank ignore this filter.
 
         Returns:
-            Component object or None if not found.
+            List of matching components, in revision order. Empty if none match.
         """
-        regex = "^{}$".format(to_regex_safe_wildcard_string(name))
+        name_regex = "^{}$".format(to_regex_safe_wildcard_string(name))
+        purpose_regex = "^{}$".format(to_regex_safe_wildcard_string(purpose))
+        type_regex = "^{}$".format(to_regex_safe_wildcard_string(type_id))
         matches = []
         for comp in self.components:
-            if name and not re.match(regex, comp.name):
+            if name and not re.match(name_regex, comp.name):
                 continue
-            if purpose and purpose != comp.purpose:
+            if purpose and not re.match(purpose_regex, comp.purpose):
                 continue
-            if type_id and type_id not in comp.parent_type_ids:
+            if type_id and not any(
+                re.match(type_regex, t) for t in comp.parent_type_ids
+            ):
                 continue
             matches.append(comp)
         return matches
@@ -373,7 +399,7 @@ class ComponentMixin:
         Returns:
             Component object or None if not found.
         """
-        matches = self.find_components(name, purpose, type_id)
+        matches = self.find_components(name=name, purpose=purpose, type_id=type_id)
         if matches:
             return matches[0]
         return None
@@ -393,7 +419,7 @@ class ComponentMixin:
         Raises:
             FlowError
         """
-        source_type_id = get_schema_id(DER_SOURCE_TYPE)
+        source_type_id = _get_schema_wildcard(DER_SOURCE_TYPE)
         source_comps = self.find_components(type_id=source_type_id)
         try:
             return [c.properties["targetVersion"] for c in source_comps]
@@ -413,7 +439,7 @@ class ComponentMixin:
         Returns:
             Dictionary of variant set names to lists of variants.
         """
-        varset_type_id = get_schema_id(VARIANT_SET_TYPE)
+        varset_type_id = _get_schema_wildcard(VARIANT_SET_TYPE)
         varset_comps = self.find_components(type_id=varset_type_id)
         varsets = {}
         try:
@@ -443,7 +469,7 @@ class ComponentMixin:
         Raises:
             FlowError
         """
-        ref_type_id = get_schema_id(REFERENCE_TYPE)
+        ref_type_id = _get_schema_wildcard(REFERENCE_TYPE)
         ref_comps = self.find_components(type_id=ref_type_id)
         try:
             return [c.properties["targetVersion"] for c in ref_comps]
@@ -459,7 +485,7 @@ class ComponentMixin:
         Returns:
             Dictionary mapping layer name to asset id.
         """
-        layer_type_id = get_schema_id(LAYER_TYPE)
+        layer_type_id = _get_schema_wildcard(LAYER_TYPE)
         layer_comps = self.find_components(type_id=layer_type_id)
         layers = {}
         try:
@@ -590,6 +616,62 @@ class FlowProject(FlowEntity):
         NOTE: This is useful for schema id determination.
         """
         return self._entity.schema_registry_info.group_id
+
+    @trace
+    def search_children(
+        self,
+        q_filter: str,
+        include_deleted: bool = False,
+    ) -> list[FlowAsset]:
+        """Search direct children under this project using given
+        filter criteria.
+
+        This uses the MEDM AssetsBySearch query.
+        You can use `query.generate_search_filter()` to help create the search filter.
+
+
+        Args:
+            q_filter: String RSQL filter as accepted by AssetsBySearch query.
+            include_deleted: If True, do not filter out soft deleted assets from results.
+
+        Returns:
+            List of FlowAssets objects that fulfill filter criteria.
+        """
+        from .query import medm_search
+
+        return medm_search(
+            project_id=self.id,
+            q_filter=q_filter,
+            parent_id=self.id,
+            include_deleted=include_deleted,
+        )
+
+    @trace
+    def query_in_project(
+        self,
+        q_filter: str,
+        include_deleted: bool = False,
+    ) -> list[FlowAsset]:
+        """Search all assets under this project using given filter criteria.
+
+        This uses the MEDM AssetsByProjectId query.
+        You can use `query.generate_project_filter()` to help create the filter.
+
+
+        Args:
+            q_filter: String RSQL filter as accepted by AssetsBySearch query.
+            include_deleted: If True, do not filter out soft deleted assets from results.
+
+        Returns:
+            List of FlowAssets objects that fulfill filter criteria.
+        """
+        from .query import medm_assets_by_project
+
+        return medm_assets_by_project(
+            project_id=self.id,
+            q_filter=q_filter,
+            include_deleted=include_deleted,
+        )
 
     def __str__(self):
         """Readable string representation of project object."""
@@ -850,6 +932,34 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
         return FlowRevision.get_revision(self.revision_id)
 
     @trace
+    def search_children(
+        self,
+        q_filter: str,
+        include_deleted: bool = False,
+    ) -> list[FlowAsset]:
+        """Do global search under this asset using given filter criteria.
+
+        This uses the MEDM AssetsBySearch query.
+        You can use `query.generate_search_filter()` to help create the search filter.
+
+        Args:
+            q_filter: String RSQL filter as accepted by AssetsBySearch query.
+            include_deleted: If True, do not filter out soft deleted assets from results.
+
+        Returns:
+            List of FlowAssets objects that fulfill filter criteria.
+        """
+        from .query import medm_search
+
+        project_id = FlowProject.get_project_id(self.id)
+        return medm_search(
+            project_id=project_id,
+            q_filter=q_filter,
+            parent_id=self.id,
+            include_deleted=include_deleted,
+        )
+
+    @trace
     def iterate_revisions(self, refresh: bool = False) -> Iterator[FlowRevision]:
         """Query revisions of this asset.
         Pagination is handled internally within this call via the V2 sdk.
@@ -928,15 +1038,18 @@ class FlowAsset(ComponentMixin, UsesMixin, FlowEntity):
 
         # This target id should match the beginning of any version id belonging to this asset
         target_id = self.id.replace(self.MEDM_ENTITY, FlowVersion.MEDM_ENTITY)
-        der_source_type_id = get_schema_id(DER_SOURCE_TYPE)
+        # Wildcard type id matching every version of the Source component schema
+        der_source_type_id = _get_schema_wildcard(DER_SOURCE_TYPE)
 
         # Generate a query to find assets which contain a Source component with a matching target id
         # Since we know derivative assets will be siblings of the current asset
         # we can safely scope this query to the parent asset with depth of 1.
         client = get_client()
-        q_filter = f"has.component.type=={der_source_type_id};"
-        q_filter += f"components[typeId:{der_source_type_id}].data.targetVersion.objectId.id=like={target_id}*;"
-        q_filter += f"components[typeId:{der_source_type_id}].name=='{DER_SOURCE_COMP}'"
+        q_filter = (
+            f"components[typeId:{der_source_type_id}]"
+            f".data.targetVersion.objectId.id=like={target_id}*;"
+            f"components[typeId:{der_source_type_id}].name=='{DER_SOURCE_COMP}'"
+        )
         q_input = medm_model.AssetsByTraversalInput(
             start_at_id=self.parent_id,  # search under parent
             depth=1,  # search immediate children only
@@ -1465,7 +1578,7 @@ class FlowComponent:
         for prop, val in component.data.items():
             if prop in ["data", "purpose"]:
                 continue  # already processed these
-            if isinstance(val, dict) and "reference" in val["typeid"]:
+            if isinstance(val, dict) and "reference" in val.get("typeid", ""):
                 try:
                     # For reference typed properties, store the target entity id
                     # as the property value
@@ -1474,6 +1587,11 @@ class FlowComponent:
                     # Ignore malformed properties
                     continue
             else:
+                # NOTE: If a property is a pointer to another property it
+                #       will just be set as is with no further processing.
+                #       This means its value will just be a dictionary of
+                #       nested properties and any reference type properties
+                #       will need to be dealt with in raw form.
                 self.properties[prop] = val
 
     @trace

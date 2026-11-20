@@ -12,6 +12,7 @@ import os
 
 from .. import pipelineconfig_utils
 from ..descriptor import CheckVersionConstraintsError
+from ..flowam import utils as flow_utils
 from ..platform.environment import WritableEnvironment
 from ..util.version import is_version_newer, is_version_number
 from . import console_utils, constants, util
@@ -295,6 +296,13 @@ class AppUpdatesAction(Action):
                         # matching the env filter (or no filter set)
                         log.info("> found %s" % filename)
                         env_filenames.append(os.path.join(env_path, filename))
+
+            # The FlowAM environments are in their own env subfolder.
+            flowam_env_files = flow_utils.get_flowam_environment_files(env_path)
+            for name, env_file in flowam_env_files.items():
+                if env_name is None or env_name == name:
+                    log.info("> found %s" % name)
+                    env_filenames.append(env_file)
 
             # now process them one after the other
             for env_filename in env_filenames:

@@ -685,24 +685,32 @@ class TestDescriptorSupport(TankTestBase):
             }
         )
         self.assertEqual(
-            desc._io_descriptor._validate_git_commands(
+            desc._io_descriptor._get_git_clone_commands(
                 target_path, depth=1, ref="master"
             ),
-            'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (
+            [
+                "git",
+                "clone",
+                "--no-hardlinks",
+                "-q",
+                "-b",
+                "master",
                 self.git_repo_uri,
-                "-b master",
                 target_path,
-            ),
+            ],
         )
         self.assertEqual(
-            desc._io_descriptor._validate_git_commands(target_path, ref="master"),
-            'git clone --no-hardlinks -q "%s" %s "%s" '
-            % (
+            desc._io_descriptor._get_git_clone_commands(target_path, ref="master"),
+            [
+                "git",
+                "clone",
+                "--no-hardlinks",
+                "-q",
+                "-b",
+                "master",
                 self.git_repo_uri,
-                "-b master",
                 target_path,
-            ),
+            ],
         )
 
 

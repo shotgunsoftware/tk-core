@@ -85,10 +85,6 @@ class ToolkitManager(object):
         self._plugin_id = None
         self._allow_config_overrides = True
 
-        # flow fields
-        self._flow_project_id = None
-        self._flow_schema_version = None
-
         # look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID
         # and in case this is set, use it as a default
         if constants.PIPELINE_CONFIG_ID_ENV_VAR in os.environ:
@@ -1136,16 +1132,10 @@ class ToolkitManager(object):
                     ],
                 )
                 if sg_project and sg_project.get(flow_auth.AM_READY_PROJECT_FIELD):
-                    # Store flow fields temporarily to avoid re-querying.
-                    # They will be cached on the context object after the context object has been rebuilt.
-                    self._flow_project_id = sg_project.get(
-                        flow_auth.AM_READY_PROJECT_FIELD
-                    )
-                    self._flow_schema_version = sg_project.get(
-                        flow_const.FLOW_SCHEMA_VERSION_FIELD
-                    )
                     log.info(
-                        f"Current SG project is associated with a Flow project: {self._flow_project_id} with schema version {self._flow_schema_version}."
+                        "Current SG project is associated with a Flow project: "
+                        f"{sg_project[flow_auth.AM_READY_PROJECT_FIELD]} with schema "
+                        f"version {sg_project.get(flow_const.FLOW_SCHEMA_VERSION_FIELD)}."
                     )
 
                     tk, _ = config.get_tk_instance(self._sg_user)
@@ -1205,11 +1195,6 @@ class ToolkitManager(object):
 
         If entity is None, the method will bootstrap into the site config.
 
-        For Flow-enabled projects, the Flow project id and schema version
-        cached during ``_get_updated_configuration()`` are injected onto
-        ``ctx.project`` so the engine can read them via
-        ``context.flow_project_id`` and ``context.flow_schema_version``.
-
         Please note that the API version of the tk instance that hosts
         the engine may not be the same as the API version that was
         executed during the bootstrap.
@@ -1235,13 +1220,6 @@ class ToolkitManager(object):
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
-
-            # Inject flow fields to context if current project is related to a Flow project.
-            if ctx.project and self._flow_project_id is not None:
-                ctx.project[flow_auth.AM_READY_PROJECT_FIELD] = self._flow_project_id
-                ctx.project[flow_const.FLOW_SCHEMA_VERSION_FIELD] = (
-                    self._flow_schema_version
-                )
 
         self._report_progress(
             progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine..."

@@ -1119,6 +1119,12 @@ class PipelineConfiguration(object):
             file_name = os.path.basename(f)
             name, _ = os.path.splitext(file_name)
             env_names.append(name)
+
+        # Include FlowAM environments
+        from .flowam import utils as flow_utils
+
+        env_root = os.path.join(self.get_config_location(), "env")
+        env_names.extend(flow_utils.get_flowam_environment_files(env_root))
         return env_names
 
     def get_environment(self, env_name, context=None, writable=False):

@@ -42,6 +42,26 @@ def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
     raise OSError("An unknown OSError occurred")
 
 
+def onerror(func, path, exc_info):
+    """
+    Error handler for ``shutil.rmtree``.
+
+    If the error is due to an access error (read only file)
+    it attempts to add write permission and then retries.
+
+    If the error is for another reason it re-raises the error.
+
+    Usage : ``shutil.rmtree(path, onerror=onerror)``
+    """
+    import stat
+
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise
+
+
 class TestDownloadableIODescriptors(ShotgunTestBase):
     """
     Tests the ability of the descriptor to download to a path on disk.
@@ -615,7 +635,11 @@ class Implementation(object):
             "e1c03fa",
         )
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            # cant use `shutil.move` on readonly files on windows
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
+            shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -667,7 +691,11 @@ class Implementation(object):
             "e1c03fa",
         )
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            # cant use `shutil.move` on readonly files on windows
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
+            shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -703,7 +731,11 @@ class Implementation(object):
             "e1c03fa",
         )
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+            # cant use `shutil.move` on readonly files on windows
+            shutil.copytree(
+                git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex)
+            )
+            shutil.rmtree(git_location, onerror=onerror)
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))

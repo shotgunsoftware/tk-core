@@ -5,15 +5,12 @@
 
 from __future__ import annotations
 
+import base64
+import json
 import logging
+import time
 from typing import Any, Optional
 from urllib.error import HTTPError
-
-try:
-    import jwt
-except ImportError:
-    # TODO: Remove when Python 3.7 is discontinued
-    jwt = None
 
 from .config import AuthConfig
 from .file_store import delete_tokens
@@ -51,35 +48,20 @@ def get_access_token(
     # 1. Valid token in cache?
     cached = _access_token_cache.get(user_profile)
     if cached and not (force_refresh or force_reauthentication):
-        if jwt is None:  # TODO: Remove when Python 3.7 is discontinued
+        if _is_token_valid(cached):
             return cached
-        try:
-            jwt.decode(cached, options={"verify_signature": False, "verify_exp": True})
-            return cached
-        except (jwt.ExpiredSignatureError, jwt.DecodeError):
-            pass
 
     if force_reauthentication:
         delete_tokens(config.storage_dir, config.application_id, user_profile)
 
     # 2. Valid token in file store?
     if not (force_reauthentication or force_refresh):
-        try:
-            access_token = get_access_token_from_store(
-                config.storage_dir, config.application_id, user_profile
-            )
-            if access_token:
-                if jwt is None:  # TODO: Remove when Python 3.7 is discontinued
-                    _access_token_cache[user_profile] = access_token
-                    return access_token
-                jwt.decode(
-                    access_token,
-                    options={"verify_signature": False, "verify_exp": True},
-                )
-                _access_token_cache[user_profile] = access_token
-                return access_token
-        except (jwt.ExpiredSignatureError, jwt.DecodeError):
-            pass
+        access_token = get_access_token_from_store(
+            config.storage_dir, config.application_id, user_profile
+        )
+        if access_token and _is_token_valid(access_token):
+            _access_token_cache[user_profile] = access_token
+            return access_token
 
     # 3. Refresh token?
     try:
@@ -110,3 +92,37 @@ def clear_stored_tokens(config: AuthConfig, profile: Optional[str] = None) -> No
     user_profile = get_user_profile(profile)
     _access_token_cache.pop(user_profile, None)
     delete_tokens(config.storage_dir, config.application_id, user_profile)
+
+
+def _is_token_valid(token: str) -> bool:
+    """
+    Check that an access token is a well-formed JWT that has not expired.
+
+    Only the "exp" claim is read: the signature is not verified, since the server
+    does that. This deliberately avoids PyJWT, which imports any cryptography
+    package found on sys.path. In FPT Desktop, that could load an incompatible
+    cryptography before tk-framework-desktopserver loads its own bundled copy.
+
+    A token without an "exp" claim is considered valid.
+    """
+    parts = token.split(".")
+    if len(parts) != 3:
+        return False
+
+    # JWT segments are base64url encoded without padding.
+    payload_segment = parts[1] + "=" * (-len(parts[1]) % 4)
+    try:
+        payload = json.loads(base64.urlsafe_b64decode(payload_segment))
+    except ValueError:
+        return False
+
+    if not isinstance(payload, dict):
+        return False
+
+    if "exp" not in payload:
+        return True
+
+    try:
+        return int(payload["exp"]) > time.time()
+    except (OverflowError, TypeError, ValueError):
+        return False

@@ -31,14 +31,14 @@ class FlowHost(ABC):
     #: key = file extension from FILE_TYPES, value = mime type
     MIME_TYPES: dict[str, str] = {}
 
-    def __init__(self, context):
-        """Base class initialization.
+    @property
+    def context(self):
+        """The current Toolkit context, resolved live from the running engine."""
+        # Import sgtk lazily: a module-scope import freezes the sgtk alias
+        # before the engine sets tank.platform.qt.QtGui and breaks core startup.
+        import sgtk
 
-        Args:
-            context: Sgtk context object to be passed in from engine.
-        """
-        # Store sgtk context
-        self.context = context
+        return sgtk.platform.current_engine().context
 
     @abstractmethod
     def current_file(self) -> str:

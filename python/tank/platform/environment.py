@@ -277,6 +277,14 @@ class Environment(object):
         returns the environment name, e.g. the file name of the environment file
         without its extension
         """
+        # A FlowAM environment is prefixed with its folder, e.g. flowam/project.
+        # Imported here, flowam.utils imports this module through pipelineconfig.
+        from ..flowam import utils as flow_utils
+
+        flowam_name = flow_utils.get_flowam_environment_name(self._env_path)
+        if flowam_name:
+            return flowam_name
+
         file_name_with_ext = os.path.basename(self._env_path)
         file_name, ext = os.path.splitext(file_name_with_ext)
         return file_name

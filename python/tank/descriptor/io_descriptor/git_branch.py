@@ -13,13 +13,7 @@ import os
 from ... import LogManager
 from ...util.process import SubprocessCalledProcessError
 from ..errors import TankDescriptorError
-from .git import (
-    IODescriptorGit,
-    TankGitError,
-    _check_output,
-    _sanitize_exception,
-    _sanitize_url,
-)
+from .git import IODescriptorGit, TankGitError, _sanitize_url
 
 log = LogManager.get_logger(__name__)
 
@@ -66,8 +60,13 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict, required=["type", "path", "version", "branch"], optional=[]
+            descriptor_dict, required=["type", "path", "branch"], optional=["version"]
         )
+
+        version = descriptor_dict.get("version")
+        if isinstance(version, int) and not isinstance(version, bool):
+            descriptor_dict = descriptor_dict.copy()
+            descriptor_dict["version"] = str(version)
 
         # call base class
         super().__init__(descriptor_dict, sg_connection, bundle_type)
@@ -76,8 +75,14 @@ class IODescriptorGitBranch(IODescriptorGit):
         # have a path to a repo
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
-        self._version = descriptor_dict.get("version")
         self._branch = str(descriptor_dict.get("branch"))
+        version = descriptor_dict.get("version")
+        if version:
+            # an all-digit short sha may come from YAML as an int
+            self._version = str(version)
+        else:
+            self._version = self.get_latest_commit()
+            self._descriptor_dict["version"] = self._version
 
     def __str__(self):
         """
@@ -98,59 +103,57 @@ class IODescriptorGitBranch(IODescriptorGit):
         :param bundle_cache_root: Bundle cache root path
         :return: Path to bundle cache location
         """
-        # If the descriptor is an integer change the version to a string type
-        if isinstance(self._version, int):
-            self._version = str(self._version)
-        # to be MAXPATH-friendly, we only use the first seven chars
-        short_hash = self._version[:7]
-
         # git@github.com:manneohrstrom/tk-hiero-publish.git -> tk-hiero-publish.git
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(bundle_cache_root, "gitbranch", name, short_hash)
+        return os.path.join(
+            bundle_cache_root, "gitbranch", name, self.get_short_version()
+        )
 
     def get_version(self):
-        """
-        Returns the version number string for this item, .e.g 'v1.2.3'
-        or the branch name 'master'
-        """
+        """Returns the full commit sha."""
         return self._version
 
-    def _is_latest_commit(self, version, branch):
+    def get_short_version(self):
+        """Returns the short commit sha."""
+        return self._version[:7]
+
+    def get_latest_commit(self, use_cache: bool = True) -> str:
+        """
+        Fetch the latest commit on this descriptor's branch.
+
+        :param use_cache: Whether a recent ``ls-remote`` result may be reused.
+        :returns: The full commit sha.
+        """
+        ref = "refs/heads/%s" % self._branch
+        output = self._ls_remote(["--heads"], [ref], use_cache=use_cache)
+
+        # ls-remote matches ref tails, so e.g. refs/heads/feature/master is possible
+        for line in output.splitlines():
+            sha, _, name = line.partition("\t")
+            if name == ref:
+                return sha
+
+        raise TankDescriptorError(
+            "Could not get latest commit for %s, branch %s"
+            % (_sanitize_url(self._path), self._branch)
+        )
+
+    def get_latest_short_commit(self, use_cache: bool = True) -> str:
+        return self.get_latest_commit(use_cache=use_cache)[:7]
+
+    def _is_latest_commit(self):
         """
         Check if the git_branch descriptor is pointing to the
         latest commit version.
         """
         # first probe to check that git exists in our PATH
         log.debug("Checking if the version is pointing to the latest commit...")
-        try:
-            output = _check_output(["git", "ls-remote", self._path, branch])
-        except SubprocessCalledProcessError as e:
-            # Sanitize the exception to remove credentials from the command
-            sanitized_exc = _sanitize_exception(e, self._path)
-            # Log the sanitized exception manually (don't use log.exception() as it logs
-            # the original exception from the context)
-            log.exception(
-                "Unexpected error:\n%s: %s",
-                sanitized_exc.__class__.__name__,
-                sanitized_exc,
-            )
-            # Use exception chaining to attach the sanitized exception
-            raise TankGitError(
-                "Cannot execute the 'git' command. Please make sure that git is "
-                "installed on your system and that the git executable has been added to the PATH."
-            ) from sanitized_exc
-        except Exception as e:
-            log.exception("Unexpected error: %s: %s", e.__class__.__name__, e)
-            raise TankGitError(
-                "Cannot execute the 'git' command. Please make sure that git is "
-                "installed on your system and that the git executable has been added to the PATH."
-            )
-        latest_commit = output.split("\t")
-        short_latest_commit = latest_commit[0][:7]
+        # a stale answer would make a shallow clone miss the requested commit
+        short_latest_commit = self.get_latest_short_commit(use_cache=False)
 
-        if short_latest_commit != version[:7]:
+        if short_latest_commit != self.get_short_version():
             return False
         log.debug(
             "This version is pointing to the latest commit %s, lets enable shallow clones"
@@ -159,41 +162,33 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         return True
 
-    def _download_local(self, destination_path):
+    def _download_local(self, target_path):
         """
-        Retrieves this version to local repo.
-        Will exit early if app already exists local.
-
-        This will connect to remote git repositories.
-        Depending on how git is configured, https repositories
-        requiring credentials may result in a shell opening up
-        requesting username and password.
-
-        The git repo will be cloned into the local cache and
-        will then be adjusted to point at the relevant commit.
-
-        :param destination_path: The destination path on disk to which
-        the git branch descriptor is to be downloaded to.
+        Downloads the data represented by the descriptor into the primary bundle
+        cache path.
         """
+        log.info("Downloading {}:{}".format(self.get_system_name(), self._version))
+
         depth = None
-        is_latest_commit = self._is_latest_commit(self._version, self._branch)
+        is_latest_commit = self._is_latest_commit()
         if is_latest_commit:
             depth = 1
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
-            commands = ['checkout -q "%s"' % self._version]
+            commands = ["checkout", "-q", self._version]
             self._clone_then_execute_git_commands(
-                destination_path,
+                target_path,
                 commands,
                 depth=depth,
                 ref=self._branch,
                 is_latest_commit=is_latest_commit,
             )
-        except Exception as e:
+        except (TankGitError, OSError, SubprocessCalledProcessError) as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
-                "commit %s: %s" % (self._path, self._branch, self._version, e)
+                "commit %s: %s"
+                % (_sanitize_url(self._path), self._branch, self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -228,24 +223,9 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "Latest version will be used." % self
             )
 
-        try:
-            # clone the repo, get the latest commit hash
-            # for the given branch
-            commands = [
-                'checkout -q "%s"' % self._branch,
-                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch,
-            ]
-            git_hash = self._tmp_clone_then_execute_git_commands(commands)
-
-        except Exception as e:
-            raise TankDescriptorError(
-                "Could not get latest commit for %s, "
-                "branch %s: %s" % (self._path, self._branch, e)
-            )
-
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = str(git_hash)
+        new_loc_dict["version"] = self.get_latest_commit()
         desc = IODescriptorGitBranch(
             new_loc_dict, self._sg_connection, self._bundle_type
         )
@@ -274,3 +254,16 @@ class IODescriptorGitBranch(IODescriptorGit):
         else:
             # no cached version exists
             return None
+
+    def _fetch_local_data(self, path):
+        version = self._execute_git_commands(
+            ["git", "-C", os.path.normpath(path), "rev-parse", "HEAD"]
+        )
+
+        branch = self._execute_git_commands(
+            ["git", "-C", os.path.normpath(path), "branch", "--show-current"]
+        )
+
+        local_data = {"version": version, "branch": branch}
+        log.debug("Get local repo data: {}".format(local_data))
+        return local_data

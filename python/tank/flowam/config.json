@@ -1,6 +1,6 @@
 {
   "name": "demo_pipeline",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Flow Toolkit pipeline schema definitions",
   "schemas": [
     {
@@ -32,15 +32,6 @@
       "inherits": [
         "$ref:type.container"
       ],
-      "properties": []
-    },
-    {
-      "name": "type.pipelineStep",
-      "version": "1.0.0",
-      "display_name": "Pipeline Step",
-      "kind": "type",
-      "description": "Base type for a step in a production pipeline.",
-      "inherits": [],
       "properties": []
     },
     {
@@ -186,14 +177,14 @@
     },
     {
       "name": "component.layer",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "display_name": "Layer",
       "kind": "component",
       "description": "A named compositional relationship. The target asset contributes compositionally to this asset.",
       "inherits": [],
       "properties": [
         {
-          "name": "name",
+          "name": "layerName",
           "data_type": "String"
         },
         {
@@ -252,6 +243,24 @@
       "properties": [
         {
           "name": "targetVersion",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "component.forPipelineStep",
+      "version": "1.0.1",
+      "display_name": "For Pipeline Step",
+      "kind": "component",
+      "description": "References a Pipeline Step value asset.",
+      "inherits": [],
+      "properties": [
+        {
+          "name": "targetStep",
+          "data_type": "$id:autodesk.me:reference-2.0.0"
+        },
+        {
+          "name": "targetDeliverable",
           "data_type": "$id:autodesk.me:reference-2.0.0"
         }
       ]

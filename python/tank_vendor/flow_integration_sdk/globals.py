@@ -34,19 +34,37 @@ from .utils import get_logger
 # The schemas below are official Autodesk supported types that are
 # commonly relevant to asset management.
 
-BASE_COMPONENT_TYPE_ID = "autodesk.me:component-1.0.0"
-BASE_PROPERTY_TYPE_ID = "autodesk.me:property-1.0.0"
+BASE_COMPONENT_TYPE_ID = "autodesk.me:component-2.0.0"
+BASE_PROPERTY_TYPE_ID = "autodesk.me:property-3.0.0"
 BASE_TYPE_ID = "autodesk.me:type-1.1.0"
 BINARY_TYPE_ID = "autodesk.me:component.binary-1.0.0"
+CG_ASSET_TYPE_ID = "autodesk.me:type.cgAsset-1.0.0"
+CG_SHOT_TYPE_ID = "autodesk.me:type.shot-1.1.0"
 COMMENT_TYPE_ID = "autodesk.me:component.publishComment-1.0.0"
+EXTERNAL_ID_TYPE_ID = "autodesk.me:component.externalId-1.0.0"
+DELIVERABLE_TYPE_ID = "autodesk.me.dev:type.deliverable-1.0.0"
+DELIVERABLE_ASSET_TYPE_ID = "autodesk.me.dev:type.deliverable.asset-1.0.0"
+DELIVERABLE_SHOT_TYPE_ID = "autodesk.me.dev:type.deliverable.shot-1.0.0"
+DYNAMIC_ENUM_VALUE_TYPE_ID = "autodesk.me.dev:type.dynamicEnumValue-1.0.0"
 FOLDER_TYPE_ID = "autodesk.me:type.folder-1.0.0"
+FOR_DELIVERABLE_TYPE_ID = "autodesk.me.dev:component.forDeliverable-1.0.0"
 IMAGE_TYPE_ID = "autodesk.me:component.binary.image-1.0.0"
+PIPELINE_STEP_TYPE_ID = "autodesk.me.dev:type.pipelineStep-1.0.0"
 
-# Maps schema kind name to its root base type ID
+# Maps schema kind name to its root base type ID.
 KIND_BASE_TYPE_ID = {
     "component": BASE_COMPONENT_TYPE_ID,
     "property": BASE_PROPERTY_TYPE_ID,
     "type": BASE_TYPE_ID,
+}
+
+# Maps schema kind name to the base type IDs it used before. When a base in
+# KIND_BASE_TYPE_ID is replaced, add the previous one here, so schemas created
+# under it are still found (and not created a second time).
+KIND_RETIRED_BASE_TYPE_IDS = {
+    "component": ["autodesk.me:component-1.0.0"],
+    "property": [],
+    "type": [],
 }
 
 # Component types
@@ -54,10 +72,11 @@ KIND_BASE_TYPE_ID = {
 # Component base type names without full ids.
 # This should be a temporary measure, only necessary while some types
 # are not yet added to the autodesk domain, and must be created per collection.
-FILE_SEQ_TYPE = "type.fileSequence"
-REFERENCE_TYPE = "component.reference"
 DER_SOURCE_TYPE = "component.source"
+FOR_PIPELINE_STEP_TYPE = "component.forPipelineStep"
+FILE_SEQ_TYPE = "type.fileSequence"
 LAYER_TYPE = "component.layer"
+REFERENCE_TYPE = "component.reference"
 VARIANT_SET_TYPE = "component.variantSet"
 
 
