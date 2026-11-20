@@ -73,11 +73,11 @@ class Framework(TankBundle):
     @property
     def shotgun(self):
         """
-        Returns a Shotgun API handle associated with the currently running
+        Returns a :class:`~shotgun_api3.shotgun.Shotgun` handle associated with the currently running
         environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
 
-        :returns: Shotgun API handle
+        :returns: :class:`~shotgun_api3.shotgun.Shotgun` handle
         """
         # pass on information to the user agent manager which bundle is returning
         # this sg handle. This information will be passed to the web server logs

@@ -55,7 +55,7 @@ class ToolkitManager(object):
 
     def __init__(self, sg_user=None):
         """
-        :param sg_user: Authenticated Shotgun User object. If you pass in None,
+        :param sg_user: Authenticated FlowPT (Shotgun) User object. If you pass in None,
                         the manager will provide a standard authentication for you
                         via the shotgun authentication module and prompting the user
                         if necessary. If you have special requirements around
@@ -232,18 +232,18 @@ class ToolkitManager(object):
 
         By default, this value is set to ``None``, indicating to the Manager
         that it should attempt to automatically find the most suitable pipeline
-        configuration entry in Shotgun given the project and plugin id.
-        In this case, it will look at all pipeline configurations stored in Shotgun
+        configuration entry in FlowPT (Shotgun) given the project and plugin id.
+        In this case, it will look at all pipeline configurations stored in FlowPT
         associated with the project who are associated with the current
         user. If no user-tagged pipeline configuration exists, it will look for
         the primary configuration, and in case this is not found, it will fall back on the
         :meth:`base_configuration`. If you don't want this check to be carried out in
-        Shotgun, please set :meth:`do_shotgun_config_lookup` to False.
+        FlowPT, please set :meth:`do_shotgun_config_lookup` to False.
 
         Alternatively, you can set this to a specific pipeline configuration. In that
         case, the Manager will look for a pipeline configuration that matches that name or id
         and the associated project and plugin id. If such a config cannot be found in
-        Shotgun, it falls back on the :meth:`base_configuration`.
+        FlowPT, it falls back on the :meth:`base_configuration`.
         """
         return self._pipeline_configuration_identifier
 
@@ -295,18 +295,18 @@ class ToolkitManager(object):
 
     def _get_do_shotgun_config_lookup(self):
         """
-        Controls the Shotgun override behaviour.
+        Controls the FlowPT (Shotgun) override behaviour.
 
         Boolean property to indicate if the bootstrap process should connect to
-        Shotgun and attempt to resolve a config. Defaults to ``True``.
+        FlowPT and attempt to resolve a config. Defaults to ``True``.
 
-        If ``True``, the bootstrap process will connect to Shotgun as part
+        If ``True``, the bootstrap process will connect to FlowPT as part
         of the startup, look for a pipeline configuration and attempt
         to resolve a toolkit environment to bootstrap into via the
         Pipeline configuration data. Failing this, it will fall back on
         the :meth:`base_configuration`.
 
-        If ``False``, no Shotgun lookup will happen. Instead, whatever config
+        If ``False``, no FlowPT lookup will happen. Instead, whatever config
         is defined via :meth:`base_configuration` will always be used.
         """
         return self._do_shotgun_config_lookup
@@ -359,7 +359,7 @@ class ToolkitManager(object):
 
         The descriptor (string or dict) for the
         configuration that should be used as a base fallback
-        to be used if an override configuration isn't set in Shotgun.
+        to be used if an override configuration isn't set in FlowPT (Shotgun).
 
         For
         """
@@ -478,7 +478,7 @@ class ToolkitManager(object):
         executed during the bootstrap.
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
-        :param entity: Shotgun entity to launch engine for.
+        :param entity: FlowPT (Shotgun) entity to launch engine for.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
 
         :returns: :class:`~sgtk.platform.Engine` instance.
@@ -557,7 +557,7 @@ class ToolkitManager(object):
                 '''
 
         :param engine_name: Name of engine to launch (e.g. ``tk-nuke``).
-        :param entity: Shotgun entity to launch engine for.
+        :param entity: FlowPT (Shotgun) entity to launch engine for.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
@@ -728,11 +728,11 @@ class ToolkitManager(object):
              'project': {'id': 123, 'name': 'Test Project', 'type': 'Project'},
              'type': 'PipelineConfiguration'}
 
-        The returned dictionary mimics the result of a Shotgun API query, including
+        The returned dictionary mimics the result of a :meth:`~shotgun_api3.shotgun.Shotgun.find` query, including
         standard fields for ``type``, ``id``, ``name`` and ``project``. In addition,
         the resolved descriptor object is returned in a ``descriptor`` key.
 
-        For pipeline configurations which are defined in Shotgun via their **descriptor** field,
+        For pipeline configurations which are defined in FlowPT (Shotgun) via their **descriptor** field,
         this field is returned in a ``descriptor_source_uri`` key. For pipeline configurations
         defined via an uploaded attachment or explicit path fields, the ``descriptor_source_uri``
         key will return ``None``.
@@ -746,7 +746,7 @@ class ToolkitManager(object):
                   fully resolved descriptor object, representing the
                   latest descriptor version as of right now, where as the
                   ``descriptor_source_uri`` key contains the versionless descriptor
-                  uri string as it is defined in Shotgun.
+                  uri string as it is defined in FlowPT.
 
         :param project: Project entity link to enumerate pipeline configurations for.
             If ``None``, this will enumerate the pipeline configurations
@@ -810,7 +810,7 @@ class ToolkitManager(object):
         The standard environment variables read by this method can be
         generated by :meth:`~sgtk.platform.SoftwareLauncher.get_standard_plugin_environment`.
 
-        :returns: Standard Shotgun entity dictionary with type and id or
+        :returns: Standard FlowPT (Shotgun) entity dictionary with type and id or
             None if not defined.
         """
         shotgun_site = os.environ.get("SHOTGUN_SITE")
@@ -822,7 +822,7 @@ class ToolkitManager(object):
         if shotgun_site and self._sg_user.host != shotgun_site:
             log.warning(
                 "You are currently logged in to site %s but your launch environment "
-                "is set to start up %s %s on site %s. The PTR integration "
+                "is set to start up %s %s on site %s. The FlowPT integration "
                 "currently doesn't support switching between sites and the contents of "
                 "SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID will therefore be ignored."
                 % (self._sg_user.host, entity_type, entity_id, shotgun_site)
@@ -872,7 +872,7 @@ class ToolkitManager(object):
         """
         Helper method that logs information about the current session
         :param engine_name: Name of the engine used to bootstrap
-        :param entity: Shotgun entity to bootstrap into.
+        :param entity: FlowPT (Shotgun) entity to bootstrap into.
         """
         log.debug("-----------------------------------------------------------------")
         log.debug("Begin bootstrapping Toolkit.")
@@ -880,7 +880,7 @@ class ToolkitManager(object):
         log.debug("Plugin Id: %s" % self._plugin_id)
 
         if self._do_shotgun_config_lookup:
-            log.debug("Will connect to PTR to look for overrides.")
+            log.debug("Will connect to FlowPT to look for overrides.")
             log.debug(
                 "If no overrides found, this config will be used: %s"
                 % self._base_config_descriptor
@@ -899,7 +899,7 @@ class ToolkitManager(object):
                 log.debug("based on the current project id and user.")
 
         else:
-            log.debug("Will not connect to PTR to resolve config overrides.")
+            log.debug("Will not connect to FlowPT to resolve config overrides.")
             log.debug(
                 "The following config will be used: %s" % self._base_config_descriptor
             )
@@ -911,10 +911,10 @@ class ToolkitManager(object):
 
     def _resolve_project_id(self, entity):
         """
-        Resolve a Shotgun project id from a target entity.
+        Resolve a FlowPT (Shotgun) project id from a target entity.
 
         :param entity: ``None``, a Project dict, an entity with a ``project``
-                       link, or any entity that can be looked up in Shotgun
+                       link, or any entity that can be looked up in FlowPT
                        to find its parent project.
         :type entity: dict or None
         :returns: Integer project id, or ``None`` for the site context.
@@ -949,7 +949,7 @@ class ToolkitManager(object):
         they raise ``TankBootstrapError``.
 
         :param pipeline_config: PipelineConfiguration object.
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT (Shotgun) entity used to resolve a project context.
         :type entity: dict or None
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
@@ -991,7 +991,7 @@ class ToolkitManager(object):
         """
         Resolves the configuration to use without creating it on disk.
 
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT (Shotgun) entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
@@ -1080,7 +1080,7 @@ class ToolkitManager(object):
         """
         Resolves the configuration and updates it.
 
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT (Shotgun) entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
@@ -1089,7 +1089,7 @@ class ToolkitManager(object):
         """
         config = self._get_configuration(entity, progress_callback)
 
-        # verify that this configuration works with Shotgun
+        # verify that this configuration works with FlowPT (Shotgun)
         config.verify_required_shotgun_fields()
 
         # see what we have locally
@@ -1161,7 +1161,7 @@ class ToolkitManager(object):
         Please note that the API version of the :class:`~sgtk.Sgtk` instance may not be the same as the
         API version that was used during the bootstrap.
 
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT (Shotgun) entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
                                   Set to ``None`` to use the default callback function.
@@ -1201,7 +1201,7 @@ class ToolkitManager(object):
 
         :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
         :param engine_name: Name of the engine to start up.
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT (Shotgun) entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param progress_callback: Callback function that reports back on the engine startup progress.
                                   Set to ``None`` to use the default callback function.
@@ -1248,13 +1248,13 @@ class ToolkitManager(object):
         if is_shotgun_engine:
             try:
                 log.debug(
-                    "Attempting to start the PTR engine using the standard "
+                    "Attempting to start the FlowPT engine (tk-shotgun) using the standard "
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
             except Exception as outer_exc:
                 log.debug(
-                    "PTR engine failed to start using start_engine. An "
+                    "FlowPT engine (tk-shotgun) failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
                     "shotgun_xxx.yml environment. The start_engine exception "
                     "was the following: %r" % outer_exc
@@ -1264,7 +1264,7 @@ class ToolkitManager(object):
                         tk, engine_name, entity, ctx
                     )
                     log.debug(
-                        "PTR engine started using a legacy shotgun_xxx.yml environment."
+                        "FlowPT engine (tk-shotgun) started using a legacy shotgun_xxx.yml environment."
                     )
                 except tank.platform.TankMissingEnvironmentFile as exc:
                     # If the reason the new style bootstrap failed was that no environment was returned by the
@@ -1285,7 +1285,7 @@ class ToolkitManager(object):
 
                 except Exception as exc:
                     log.debug(
-                        "PTR engine failed to start using the legacy "
+                        "FlowPT engine (tk-shotgun) failed to start using the legacy "
                         "start_shotgun_engine routine. No more attempts will "
                         "be made to initialize the engine. The start_shotgun_engine "
                         "exception was the following: %r" % exc
@@ -1309,7 +1309,7 @@ class ToolkitManager(object):
 
         :param tk: Bootstrapped :class:`~sgtk.Sgtk` instance.
         :param engine_name: Name of the engine to start up.
-        :param entity: Shotgun entity used to resolve a project context.
+        :param entity: FlowPT (Shotgun) entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         """
         # bootstrapping into a shotgun engine with an older core
@@ -1318,13 +1318,13 @@ class ToolkitManager(object):
         # new cores handles all this inside the tank.platform.start_shotgun_engine
         # business logic.
         log.debug(
-            "Target core version is %s. Starting PTR engine via legacy pathway."
+            "Target core version is %s. Starting FlowPT engine (tk-shotgun) via legacy pathway."
             % tk.version
         )
 
         if entity is None:
             raise TankBootstrapError(
-                "Legacy PTR environments do not support bootstrapping into a site context."
+                "Legacy FlowPT environments do not support bootstrapping into a site context."
             )
 
         # start engine via legacy pathway
