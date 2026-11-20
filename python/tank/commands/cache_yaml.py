@@ -9,17 +9,19 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import fnmatch
+import json
+import logging
 import os
 
 from ..errors import TankError
-from ..util import pickle, yaml_cache
+from ..util import yaml_cache
 from .action_base import Action
 
 
 class CacheYamlAction(Action):
     """
     Action that ensures that crawls a config, caching all YAML data found
-    to disk as pickled data.
+    to disk as data-only JSON.
     """
 
     def __init__(self):
@@ -60,7 +62,7 @@ class CacheYamlAction(Action):
             raise TankError("This command takes no arguments!")
         return self._run(log)
 
-    def _run(self, log):
+    def _run(self, log: logging.Logger) -> None:
         """
         Actual execution payload
         """
@@ -80,18 +82,33 @@ class CacheYamlAction(Action):
             yaml_cache.g_yaml_cache.get(path)
 
         items = yaml_cache.g_yaml_cache.get_cached_items()
-        pickle_path = self.tk.pipeline_configuration.get_yaml_cache_location()
-        log.debug("Writing cache to %s" % pickle_path)
+        cache_path = self.tk.pipeline_configuration.get_yaml_cache_location()
+        log.debug(f"Writing cache to {cache_path}")
+
+        serializable_items = []
+        skipped = 0
+        for item in items:
+            item_dict = item.to_dict()
+            if not yaml_cache.is_round_trip_safe(item_dict["data"]):
+                skipped += 1
+                log.debug(
+                    "Skipping yaml cache item whose data is not JSON "
+                    f"round-trip safe: {item_dict['path']}"
+                )
+                continue
+            serializable_items.append(item_dict)
 
         try:
-            fh = open(pickle_path, "wb")
+            with open(cache_path, "w", encoding="utf-8") as fh:
+                json.dump(serializable_items, fh)
         except Exception as e:
-            raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
+            raise TankError(f"Unable to write yaml cache data: {e}")
 
-        try:
-            pickle.dump(items, fh)
-        except Exception as e:
-            raise TankError("Unable to dump pickled cache data: %s" % e)
+        if skipped:
+            log.info(
+                f"{skipped} yaml file(s) were not cached because their data is "
+                "not JSON-serializable; they will be read directly when needed."
+            )
 
         log.info("")
         log.info("Cache yaml completed!")

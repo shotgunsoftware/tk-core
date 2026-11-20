@@ -32,7 +32,6 @@ from ...constants import SUPPORT_URL
 from ...util import (
     ShotgunAttachmentDownloadError,
     UnresolvableCoreConfigurationError,
-    pickle,
     shotgun,
 )
 from ...util.user_settings import UserSettings
@@ -49,8 +48,7 @@ from .downloadable import IODescriptorDownloadable
 log = LogManager.get_logger(__name__)
 
 
-# file where we cache the app store metadata for an item
-METADATA_FILE = ".cached_metadata.pickle"
+METADATA_FILE = ".cached_metadata.json"
 
 
 class IODescriptorAppStore(IODescriptorDownloadable):
@@ -173,7 +171,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         return display_name
 
-    def __load_cached_app_store_metadata(self, path):
+    def __load_cached_app_store_metadata(self, path: str) -> dict:
         """
         Loads the metadata for a path in the app store
 
@@ -182,15 +180,30 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         """
         cache_file = os.path.join(path, METADATA_FILE)
         if os.path.exists(cache_file):
-            fp = open(cache_file, "rb")
             try:
-                metadata = pickle.load(fp)
-            finally:
-                fp.close()
+                with open(cache_file, "r", encoding="utf-8") as fp:
+                    metadata = json.load(fp)
+                if not isinstance(metadata, dict):
+                    # Callers (e.g. get_deprecation_status) immediately call
+                    # metadata.get(), so valid JSON that is not an object
+                    # (null, a list, a scalar) must be treated as a miss just
+                    # like syntactically corrupt contents. See SG-46278.
+                    raise ValueError("cached metadata is not a JSON object")
+            except Exception as e:
+                # A corrupt or unreadable cache - including a legacy pickle
+                # cache written by an older core - must never be trusted or
+                # deserialized. Treat it as a cache miss and proceed with
+                # empty metadata. See SG-46278 / PSIRT-3972.
+                log.debug(
+                    f"{self!r} Could not load cached metadata file "
+                    f"{cache_file} - will proceed with empty app store "
+                    f"metadata. Error: {e}"
+                )
+                metadata = {}
         else:
             log.debug(
-                "%r Could not find cached metadata file %s - "
-                "will proceed with empty app store metadata." % (self, cache_file)
+                f"{self!r} Could not find cached metadata file {cache_file} - "
+                "will proceed with empty app store metadata."
             )
             metadata = {}
 
@@ -286,16 +299,11 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # readonly bundle cache - if the caching fails, gracefully
         # fall back and log
         try:
-            fp = open(cache_file, "wb")
-            try:
-                pickle.dump(metadata, fp)
-                log.debug("Wrote app store metadata cache '%s'" % cache_file)
-            finally:
-                fp.close()
+            with open(cache_file, "w", encoding="utf-8") as fp:
+                json.dump(metadata, fp)
+            log.debug(f"Wrote app store metadata cache '{cache_file}'")
         except Exception as e:
-            log.debug(
-                "Did not update app store metadata cache '%s': %s" % (cache_file, e)
-            )
+            log.debug(f"Did not update app store metadata cache '{cache_file}': {e}")
 
         return metadata
 
