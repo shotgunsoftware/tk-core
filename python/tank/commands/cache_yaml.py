@@ -85,16 +85,6 @@ class CacheYamlAction(Action):
         cache_path = self.tk.pipeline_configuration.get_yaml_cache_location()
         log.debug(f"Writing cache to {cache_path}")
 
-        # The cache is written as data-only JSON rather than as a pickle.
-        # Pickle executes arbitrary code on load, which is a code-execution
-        # risk because this file lives inside a pipeline configuration that may
-        # be stored on a shared location. See SG-46278 / PSIRT-3972 (CWE-502).
-        #
-        # Any item whose YAML payload would not survive a JSON round-trip
-        # unchanged (for example it contains a datetime or bytes value, or a
-        # non-string mapping key) is skipped. Such an item is simply read live
-        # from disk on next access, so behaviour is unchanged - the cache is
-        # only an optimization.
         serializable_items = []
         skipped = 0
         for item in items:

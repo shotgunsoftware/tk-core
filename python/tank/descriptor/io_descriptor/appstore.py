@@ -48,14 +48,6 @@ from .downloadable import IODescriptorDownloadable
 log = LogManager.get_logger(__name__)
 
 
-# file where we cache the app store metadata for an item.
-#
-# This is a JSON (data-only) file. It used to be a pickle
-# (".cached_metadata.pickle"), but pickle.load executes arbitrary code during
-# deserialization, which is a remote code execution risk for bundle caches
-# that are shared or reachable by other users (e.g. on a network share). See
-# SG-46278 / PSIRT-3972 (CWE-502). A legacy pickle file is simply ignored and
-# regenerated as JSON.
 METADATA_FILE = ".cached_metadata.json"
 
 
