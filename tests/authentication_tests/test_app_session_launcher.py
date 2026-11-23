@@ -16,9 +16,8 @@ import errno
 import http.client
 import http.server
 import json
-import logging
 import os
-import random
+import socketserver
 import sys
 import threading
 import urllib.parse
@@ -553,45 +552,35 @@ class AppSessionLauncherAPITests(ShotgunTestBase):
 
 class MyTCPServer(http.server.HTTPServer):
     """
-    Random port listen
+    OS-assigned port listen
     Specific handler (router)
     Thread
     """
 
     def __init__(self):
+        # Port 0 lets the OS pick a free port. Using the loopback IP instead
+        # of "localhost" avoids any name resolution.
         super().__init__(
-            ("localhost", 8000),  # server_address
+            ("127.0.0.1", 0),  # server_address
             MyHttpHandler,  # RequestHandlerClass
-            bind_and_activate=False,
         )
-
-        bound = False
-        port_tries = 0
-        while not bound:
-            port_tries += 1
-            port = random.randrange(8000, 9000)
-            logging.debug("Try port: {}".format(port))
-            self.server_address = ("localhost", port)
-
-            try:
-                self.server_bind()
-                bound = True
-            except OSError as err:
-                if err.errno != errno.EADDRINUSE:
-                    raise
-
-                if port_tries >= 10:
-                    raise
-
-                # let's try another port
-                continue
-
-        self.server_activate()
 
         # For dynamic bindings
         self.router = {}
 
-        self.thread = threading.Thread(target=self.serve_forever)
+        # A short poll interval keeps shutdown() in tearDown from waiting up to
+        # the default 0.5 seconds per test.
+        self.thread = threading.Thread(
+            target=self.serve_forever,
+            kwargs={"poll_interval": 0.01},
+        )
+
+    def server_bind(self):
+        # HTTPServer.server_bind() calls socket.getfqdn(), a reverse DNS lookup
+        # that can stall for ~30 seconds on some CI agents. The server name is
+        # not used by these tests.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
     def start(self):
         self.thread.start()
