@@ -16,6 +16,10 @@ There are also two optional environment variables:
 
 To run the tests you must first configure your Personal Access Token (PAT). If you have not yet configured your PAT you might not be able to run the tests. For more information on how to configure your Personal Access Token, please visit [this page](https://knowledge.autodesk.com/support/shotgrid/learn-explore/caas/CloudHelp/cloudhelp/ENU/SG-Migration/files/mi-migration/SG-Migration-mi-migration-account-mi-end-user-account-html-html.html?us_oa=akn-us&us_si=e1612a29-78a6-4503-9349-2ec30fc72e28&us_st=Personal%20Access%20Tokens).
 
+You will also need to configure `CustomNonProjectEntity1`. It needs to have 2 user define fields:
+- `sg_content`, a file field
+- `sg_descriptor`, a string field.
+
 How to run an integration test
 ------------------------------
 Once the 3 main environment variables have been set, you can run the tests using `run_integration_tests.py`. This will run all the tests. If you only want to run one or more test, you can do so like this:
