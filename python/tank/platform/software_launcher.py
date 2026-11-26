@@ -249,7 +249,7 @@ class SoftwareLauncher(object):
     @property
     def shotgun(self):
         """
-        :class:`shotgun_api3.Shotgun` handle associated with the currently running
+        :class:`~shotgun_api3.shotgun.Shotgun` handle associated with the currently running
         environment. This method is a convenience method that calls out
         to :meth:`~sgtk.Tank.shotgun`.
         """

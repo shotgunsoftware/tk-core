@@ -31,7 +31,7 @@ from . import errors
 logger = LogManager.get_logger(__name__)
 
 PRODUCT_DEFAULT = "Flow Production Tracking Toolkit"
-PRODUCT_DESKTOP = "FPTR desktop app"
+PRODUCT_DESKTOP = "FlowPT Desktop"
 
 
 class AuthenticationError(errors.AuthenticationError):
@@ -409,7 +409,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the PTR site",
+                "Unable to communicate with the FlowPT site",
                 parent_exception=exc,
             )
 
@@ -425,7 +425,7 @@ def http_request(opener, req, max_attempts=4):
                 continue
 
             raise AuthenticationError(
-                "Unable to communicate with the PTR site",
+                "Unable to communicate with the FlowPT site",
                 parent_exception=exc,
             )
 

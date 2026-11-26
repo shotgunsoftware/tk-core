@@ -32,10 +32,10 @@ TANK_CODE_PAYLOAD_FIELD = "sg_payload"
 # Configuration file containing setup and path details
 PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 
-# Shotgun: The entity that represents Pipeline Configurations in Shotgun
+# FlowPT (Shotgun): The entity that represents Pipeline Configurations in FlowPT
 PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
-# field to which configs should be uploaded in Shotgun
+# field to which configs should be uploaded in FlowPT (Shotgun)
 PIPELINE_CONFIGURATION_UPLOAD_FIELD = "uploaded_config"
 
 # the name of the primary pipeline configuration

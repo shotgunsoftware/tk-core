@@ -84,7 +84,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
     Perform the actual localize command.
 
     :param log: logging object
-    :param sg_connection: An open shotgun connection
+    :param sg_connection: An open :class:`~shotgun_api3.shotgun.Shotgun` connection
     :param str target_config_path: Path to the config that should be localized.
     :param interaction_interface: Interface to use to interact with the user
     """

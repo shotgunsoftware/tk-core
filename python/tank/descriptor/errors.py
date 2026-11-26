@@ -56,7 +56,7 @@ class TankAppStoreConnectionError(TankAppStoreError):
 
 class TankInvalidAppStoreCredentialsError(TankAppStoreConnectionError):
     """
-    Error indicating no credentials for the Toolkit App Store were found in Shotgun.
+    Error indicating no credentials for the Toolkit App Store were found in FlowPT (Shotgun).
     """
 
 
