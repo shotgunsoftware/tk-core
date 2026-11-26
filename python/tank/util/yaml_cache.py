@@ -14,12 +14,53 @@ unless it's changed on disk.
 """
 
 import copy
+import json
 import os
 import threading
+from typing import Any
 
 from tank_vendor import yaml
 
 from ..errors import TankError, TankFileDoesNotExistError, TankUnreadableFileError
+
+
+def is_round_trip_safe(data: Any) -> bool:
+    """
+    Returns ``True`` if ``data`` can be stored in the data-only (JSON) yaml
+    cache and read back unchanged.
+
+    The yaml cache is persisted as JSON (see ``commands/cache_yaml.py`` and
+    :meth:`tank.pipelineconfig.PipelineConfiguration._populate_yaml_cache`),
+    rather than as a pickle, because pickle executes arbitrary code on load.
+    JSON cannot represent everything a YAML loader produces: datetimes and
+    bytes are not serializable at all, and non-string mapping keys (for example
+    integers) would silently come back as strings. Any YAML file whose data is
+    not round-trip safe is simply left out of the cache and read live from disk
+    instead, so behaviour is never altered - the cache is only an optimization.
+    See SG-46278 / PSIRT-3972.
+
+    :param data: the parsed YAML data to test.
+    :returns: bool
+    """
+    try:
+        return json.loads(json.dumps(data)) == data
+    except (TypeError, ValueError):
+        return False
+
+
+class _CachedStat(object):
+    """
+    Minimal stand-in for :class:`os.stat_result` that only carries the two
+    fields the yaml cache relies on: ``st_mtime`` and ``st_size``.
+
+    It is used when a :class:`CacheItem` is rebuilt from the data-only (JSON)
+    yaml cache on disk, so no filesystem access and, crucially, no object
+    deserialization is required. See SG-46278 / PSIRT-3972.
+    """
+
+    def __init__(self, mtime: float, size: int) -> None:
+        self.st_mtime = mtime
+        self.st_size = size
 
 
 class CacheItem(object):
@@ -118,6 +159,35 @@ class CacheItem(object):
 
     def __str__(self):
         return str(self.path)
+
+    def to_dict(self) -> dict:
+        """
+        Serializes this item into a JSON-compatible, data-only dictionary.
+
+        Only plain data is stored - the source path, the file mtime and size,
+        and the parsed YAML payload. No Python objects are pickled, so the
+        cache cannot be used as a code-execution vector. See SG-46278.
+
+        :returns: dict with keys ``path``, ``mtime``, ``size`` and ``data``.
+        """
+        return {
+            "path": self._path,
+            "mtime": self._stat.st_mtime,
+            "size": self._stat.st_size,
+            "data": self._data,
+        }
+
+    @classmethod
+    def from_dict(cls, item_dict: dict) -> "CacheItem":
+        """
+        Rebuilds a :class:`CacheItem` from the data produced by
+        :meth:`to_dict`, without touching the filesystem.
+
+        :param item_dict: dict as produced by :meth:`to_dict`.
+        :returns: a :class:`CacheItem` instance.
+        """
+        stat = _CachedStat(mtime=item_dict["mtime"], size=item_dict["size"])
+        return cls(item_dict["path"], data=item_dict["data"], stat=stat)
 
 
 class YamlCache(object):

@@ -9,10 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import copy
+import datetime
+import json
 import os
 
 from sgtk import TankError
-from sgtk.util.yaml_cache import YamlCache
+from sgtk.util.yaml_cache import CacheItem, YamlCache, is_round_trip_safe
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     setUpModule,  # noqa
@@ -130,3 +132,44 @@ class TestYamlCache(ShotgunTestBase):
 
         # ...and check that the data in the cache has been updated:
         self.assertEqual(read_data, modified_test_data)
+
+    def test_is_round_trip_safe(self):
+        """
+        SG-46278: only data that survives a JSON round-trip unchanged may be
+        persisted in the (data-only) yaml cache; everything else must be
+        reported as unsafe so it is read live from disk instead.
+        """
+        self.assertTrue(is_round_trip_safe({"a": 1, "b": [1, 2, "three"], "c": None}))
+        self.assertTrue(is_round_trip_safe([1, "two", {"k": "v"}]))
+        # A non-string mapping key would silently become a string through JSON.
+        self.assertFalse(is_round_trip_safe({8: "eight"}))
+        # datetimes and bytes are not JSON-serializable at all.
+        self.assertFalse(is_round_trip_safe({"when": datetime.datetime(2020, 1, 1)}))
+        self.assertFalse(is_round_trip_safe({"blob": b"bytes"}))
+
+    def test_cache_item_to_from_dict_roundtrip(self):
+        """
+        SG-46278: CacheItem.to_dict/from_dict preserve the path, file stat and
+        data as plain data (no pickling), and the reconstructed item compares
+        equal to the original for cache-merge purposes without touching disk.
+        """
+        yaml_path = os.path.join(self.tank_temp, "roundtrip.yml")
+        with open(yaml_path, "w") as fh:
+            fh.write(yaml.dump({"a": 1, "list": [1, 2, 3]}))
+
+        original = CacheItem(yaml_path, data={"a": 1, "list": [1, 2, 3]})
+        item_dict = original.to_dict()
+
+        # to_dict is pure, JSON-serializable data.
+        self.assertEqual(set(item_dict.keys()), {"path", "mtime", "size", "data"})
+        json.dumps(item_dict)
+
+        restored = CacheItem.from_dict(item_dict)
+        self.assertEqual(restored.path, original.path)
+        self.assertEqual(restored.data, original.data)
+        self.assertEqual(restored.stat.st_mtime, original.stat.st_mtime)
+        self.assertEqual(restored.stat.st_size, original.stat.st_size)
+        # The reconstructed item must be usable by the cache comparison logic
+        # (equality and newer/size checks) without re-stat'ing the file.
+        self.assertEqual(restored, original)
+        self.assertFalse(original.given_item_newer(restored))
