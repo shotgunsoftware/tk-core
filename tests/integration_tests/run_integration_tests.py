@@ -68,7 +68,7 @@ def main():
                 "-m",
                 "pytest",
                 filename,
-                f"--nunit-xml=test-results-{uid}.xml",
+                f"--junitxml=test-results-{uid}.xml",
                 "--verbose",
             ]
 
